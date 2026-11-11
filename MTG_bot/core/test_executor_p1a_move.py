@@ -33,6 +33,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.decisions import in_trigger_order
 from MTG_bot.core.executor.events import KIND_CREATURE_DIES, KIND_ZONE_CHANGE
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
@@ -146,6 +147,7 @@ class TestTriggerMatching(P1aMatchingCase):
         # "Whenever you put a card from your library into your graveyard"
         # — a mill-shaped ZoneChangeEvent must fire on the MOVE_ZONE too.
         self.attach_trigger(self.watch, ZoneChangeEvent(LIB_YOU, GY_YOU), gain(1))
+        self.ex.decisions.provider = in_trigger_order  # two milled cards, two triggers
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,

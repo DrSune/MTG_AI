@@ -5,7 +5,7 @@ Compiled ability IR (a ``CardRecord`` from ``compile_pool`` / a
 world event the :class:`~MTG_bot.core.executor.events.EventJournal` derives
 is matched against the attached :class:`TriggeredAbility` nodes; a match
 queues a canonical :class:`~MTG_bot.core.state.TriggerInstance` through
-``world.queue_trigger`` (the resolution order is the stack's, ``_pop_next``),
+``world.queue_trigger`` (put on the stack by :meth:`TriggerBinder.put_waiting`),
 and the binder drains the queue — condition -> may-offer -> effect through
 the executor's effect runner, whose mutations are journalled and matched in
 turn — firing until the queue empties.
@@ -16,12 +16,10 @@ Contracts honoured:
     battlefield: leaving detaches, re-entering re-registers. The compiled
     record stays registered by oracle id: the bridge from the game card's
     :class:`~MTG_bot.core.identity.CardIdentity` to its compiled IR;
-  * **the stack's order** — the drain resolves the top of the stack first
-    (CR 405.5): the newest batch of triggers, within it the player last in
-    APNAP order (CR 603.3b: the active player puts theirs on the stack
-    first, so the non-active player's resolve first), within one player the
-    order they triggered, then Handle and bind order, so one scripted game
-    replays byte-identically (:meth:`TriggerBinder._pop_next`);
+  * **the stack's order** — waiting triggers go on the stack in APNAP order
+    (CR 603.3b: the active player's first, so the non-active player's resolve
+    first), each player's in the order that player chooses
+    (:meth:`TriggerBinder.put_waiting`);
   * **was-snapshots** — a dies firing binds ``event``/``result`` to the dead
     subject, whose was-snapshot the journal carried, so the ``event``/
     ``result`` QProp referents read it;
@@ -282,17 +280,13 @@ def _compile_bridge(compiled: object) -> CardRecord:
 @dataclass
 class _Firing:
     """One queued trigger instance's execution payload, keyed by the
-    instance's (tick-unique) clock. ``batch`` and ``apnap`` place it on the
-    stack (:meth:`TriggerBinder._pop_next`): the drain step it triggered in,
-    and its controller's distance from the active player in turn order."""
+    instance's (tick-unique) clock."""
 
     source: Handle
     controller: Handle
     node: _AnyTrigger
     event: GameEvent
     seq: int
-    batch: int = 0
-    apnap: int = 0
 
 
 @dataclass
@@ -363,10 +357,6 @@ class TriggerBinder:
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
-        # CR 603.3b, 405.5: the drain step count. A trigger queued after the
-        # n-th firing began is put on the stack above every trigger waiting
-        # from before, so it resolves first (_pop_next).
-        self._stack_batch = 0
         # CR 603.2 dedup: (source, node-id, declare-group) for every
         # DeclareAttackersEvent queue already made. The journal carries ONE
         # row per declared attacker (the grammar's filter is subject-
@@ -838,7 +828,7 @@ class TriggerBinder:
             # so they are brought up to date first (CR 603.10: the effects that
             # exist right after the event; Warded Battlements' +1/+0 on the
             # creatures just declared as attackers). An extra instance (CR
-            # 603.2e, ``additional``) is queued later, when the carrier
+            # 603.2d, ``additional``) is queued later, when the carrier
             # resolves; its original passed this check.
             self.executor.layers.recompute()
             if not self._condition_holds(
@@ -855,8 +845,6 @@ class TriggerBinder:
             node=node,
             event=event,
             seq=self._seq,
-            batch=self._stack_batch,
-            apnap=self._apnap_distance(controller),
         )
         self.firings[instance.clock] = payload
         if not additional:
@@ -864,7 +852,7 @@ class TriggerBinder:
             # ability triggers"): an ordinary queued firing feeds every
             # AbilityTriggerEvent subscriber in a SYNTHETIC match pass --
             # no journal row is written, and `additional` firings (CR
-            # 603.2e: an extra trigger has no triggering event) never feed
+            # 603.2d: an extra trigger has no triggering event) never feed
             # it again, which is what keeps two extra-trigger carriers from
             # chasing each other.
             self._fan_ability_triggers(payload)
@@ -894,7 +882,7 @@ class TriggerBinder:
         the matched payload so the TRIGGER_ADDITIONAL verb can re-queue
         it; the subscriber's condition (Sanctum's "six or more Shrines")
         gates like any other trigger's: when it triggers and again at resolve
-        time (CR 603.4). CR 603.2e: an
+        time (CR 603.4). CR 603.2d: an
         extra-trigger carrier's OWN firings never fan out — the family's
         effect does not apply to instances of itself, which is what keeps
         two carriers from chasing each other (each adds its one extra per
@@ -1369,23 +1357,52 @@ class TriggerBinder:
         """CR 603.3b: every ability that triggered since a player last received
         priority goes on the stack, the active player's first, then the next
         player's in turn order (APNAP), each player's in an order that player
-        chooses; modes and targets are chosen as each goes on (:meth:`_put`),
-        and one with no legal mode or required target is removed (603.3d).
-        The engine does not ask for the order yet: it puts each player's
-        triggers so they resolve in the order they triggered (the order
-        :meth:`_pop_next` gives, newest batch first, then reverse APNAP, then
-        trigger order). Returns how many went on the stack."""
-        order: list[_Firing] = []
-        while self.world.triggers:
-            instance = self._pop_next()
-            order.append(self.firings.pop(instance.clock))
+        chooses (:meth:`_resolution_order`); modes and targets are chosen as
+        each goes on (:meth:`_put`), and one with no legal mode or required
+        target is removed (603.3d). Returns how many went on the stack."""
+        world = self.world
+        waiting = sorted(world.triggers, key=lambda t: t.clock)  # the order they triggered
+        world.triggers.clear()
+        order = [self.firings.pop(t.clock) for t in waiting]
+        seats = world.player_order
+        first = seats.index(world.active_player) if world.active_player is not None else 0
         put = 0
-        for payload in reversed(order):  # the last to resolve goes on first
-            obj = self._put(payload)
-            if obj is not None:
-                self.executor.stack.push(obj)
-                put += 1
+        for controller in seats[first:] + seats[:first]:  # APNAP: the active player's go on first
+            mine = [p for p in order if p.controller == controller]
+            for payload in reversed(self._resolution_order(controller, mine)):
+                obj = self._put(payload)  # the last to resolve goes on first
+                if obj is not None:
+                    self.executor.stack.push(obj)
+                    put += 1
         return put
+
+    def _resolution_order(self, controller: Handle, mine: list[_Firing]) -> list[_Firing]:
+        """CR 603.3b: ``controller`` orders its own simultaneous triggers (``mine``, in
+        the order they triggered), returned in resolution order. While two or more
+        different ones are left it is asked which resolves next
+        (``trigger:<seat>:<digest>``). An option is a trigger's source, ``card:12``, or
+        ``card:12:2`` for a second, different trigger of the same source; copies of
+        one ability from one source and one event share an option, since their order
+        cannot matter (two triggers of a doubled ability, CR 603.2d)."""
+        tokens: list[str] = []
+        per_source: dict[Handle, list[_Firing]] = {}
+        for p in mine:
+            same = per_source.setdefault(p.source, [])
+            twin = next((q for q in same if q.node == p.node and q.event == p.event), None)
+            if twin is None:
+                same.append(p)
+                twin = p
+            tokens.append(str(p.source) if same[0] is twin else f"{p.source}:{same.index(twin) + 1}")
+        left = list(zip(tokens, mine, strict=True))
+        ordered: list[_Firing] = []
+        while len({t for t, _ in left}) > 1:
+            vocab = tuple(dict.fromkeys(t for t, _ in left))
+            answer = self.executor.decisions.take(
+                vocab, f"trigger:{controller}:{site_digest(vocab)}", seat=controller
+            )
+            k = next(i for i, (t, _) in enumerate(left) if t == answer)
+            ordered.append(left.pop(k)[1])
+        return ordered + [p for _, p in left]
 
     def quarantine(self, per_source: dict[Handle, int]) -> None:
         """The trigger-loop tripwire (``Executor._settle``): a settle resolved
@@ -1450,36 +1467,6 @@ class TriggerBinder:
                 if isinstance(handle, Handle):
                     out.add(handle)
         return frozenset(out)
-
-    def _apnap_distance(self, controller: Handle) -> int:
-        """How far ``controller`` sits after the active player in turn order (0 for the
-        active player; seat 0 counts as active before any turn began)."""
-        world = self.world
-        seats = len(world.player_order)
-        active = world.active_player
-        active_seat = world.players[active].seat if active is not None else 0
-        return (world.players[controller].seat - active_seat) % seats
-
-    def _pop_next(self):
-        """Of the waiting triggers, the one that would resolve first;
-        :meth:`put_waiting` puts them on the stack in the reverse order.
-
-        CR 603.3b: the abilities that triggered since a player last received priority are
-        put on the stack in APNAP order, the active player's first, each player's in the
-        order that player chooses; CR 405.5: the stack resolves from the top. So the newest
-        batch goes first (a trigger queued after a firing began sits above the older ones),
-        then the player last in APNAP order (the non-active player of a duel), then that
-        player's own triggers in the order they triggered (the engine does not ask for that
-        order: it is the one a player putting them on the stack newest-first would get),
-        Handle and bind order breaking ties."""
-        def key(t):
-            payload = self.firings[t.clock]
-            return (-payload.batch, -payload.apnap, t.clock, str(t.source), payload.seq)
-
-        chosen = min(self.world.triggers, key=key)
-        self.world.triggers.remove(chosen)
-        self._stack_batch += 1
-        return chosen
 
     def cease_triggered_before(self, mark: int) -> int:
         """CR 724.1a: when an effect ends the turn, the abilities that

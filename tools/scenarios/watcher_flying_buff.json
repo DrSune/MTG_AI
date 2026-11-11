@@ -24,7 +24,10 @@
   },
   {
    "op": "enter",
-   "key": "s"
+   "key": "s",
+   "decisions": [
+    "w"
+   ]
   }
  ],
  "expect": {
@@ -35,5 +38,5 @@
    ]
   }
  },
- "notes": "Printed: 'Whenever another creature with flying enters under your control, ~ gets +1/+1 until end of turn.' Real flyer (Skyscanner) enters: 2/2 -> 3/3. Asserted before end_turn (duration still open)."
+ "notes": "Printed: 'Whenever another creature with flying enters under your control, ~ gets +1/+1 until end of turn.' Real flyer (Skyscanner) enters: 2/2 -> 3/3. Asserted before end_turn (duration still open). The trigger-order words (CR 603.3b, asked since 2026-11-11) put the simultaneous triggers in the order they triggered; that order does not change the outcome here."
 }

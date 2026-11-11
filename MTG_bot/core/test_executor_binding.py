@@ -66,7 +66,7 @@ from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
-from MTG_bot.core.executor.decisions import site_digest
+from MTG_bot.core.executor.decisions import in_trigger_order, site_digest
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -938,6 +938,7 @@ class TestMayAndDeterminism(BindingCase):
         # primings). The digest is value-based, so the
         # structurally identical trigger effect re-digests here.
         offer = OptionalEffect(gain(2))
+        self.ex.decisions.provider = in_trigger_order  # E1's trigger resolves first (CR 603.3b)
         self.ex.decisions.push(
             ("fire", "skip"), f"may:{both[0]}:{site_digest(offer)}", "fire"
         )

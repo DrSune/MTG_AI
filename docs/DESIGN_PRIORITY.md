@@ -505,6 +505,20 @@ Step 5 goes in two commits:
   a cost no mana can fix and shared one listing per menu (it was 0.618). Left in stage 1: the
   trigger-order ask, step 6's tests, the zone-entry clocks of §2.3 (CR 400.7) and the stack
   target enumeration of abilities (BACKLOG B-110).
+- **The trigger-order ask landed 2026-11-11.** `TriggerBinder.put_waiting` puts every waiting
+  trigger on the stack in APNAP order, and `_resolution_order` asks each player with two or
+  more different ones which resolves next (`trigger:<seat>:<digest>`, kind `trigger`, grown
+  from `other`); the options are the sources (`card:12`, a card's second trigger `card:12:2`),
+  and copies of one ability from one source and one event share an option (CR 603.2d: their
+  order cannot matter). The old drain order (newest batch, then APNAP, then trigger order) and
+  its bookkeeping went: CR 603.3b puts everything that triggered since a player last received
+  priority on the stack together. The heuristic answers with the order they triggered (the
+  old fixed order) until §3.3; `decisions.in_trigger_order` does the same for unit tests that
+  script every other decision. New packs `terror_of_the_peaks_3/4` (Terror of the Peaks and
+  Bone Pit Brute: 8 damage with the Brute's trigger first, 4 the other way). Measured,
+  heuristic against heuristic, 200 coherent M21 games: 0.4 `trigger` asks per game, 0 crashes;
+  random games, 150 coherent and 150 stress: 0 crashes. Until §3.2 the network sees an option
+  as its source card only, so two triggers of one card look alike to it.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

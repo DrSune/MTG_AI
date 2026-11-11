@@ -84,11 +84,10 @@ class PlayerState:
 class TriggerInstance:
     """A triggered ability waiting to resolve.
 
-    ``world.triggers`` holds them in queue order. The executor's drain
-    (``TriggerBinder._pop_next``) resolves them as the stack would, the
-    non-active player's simultaneous triggers first (CR 603.3b: the active
-    player puts theirs on the stack first, and the stack resolves from the
-    top).
+    ``world.triggers`` holds them in queue order until the next time a player
+    would receive priority, when ``TriggerBinder.put_waiting`` puts them on the
+    stack (CR 603.3b: APNAP order, each player's in the order that player
+    chooses).
     """
 
     source: Handle  # the card handle the trigger belongs to

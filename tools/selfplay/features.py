@@ -58,6 +58,8 @@ ASK_KINDS = (
     "mulligan", "mulligan_bottom",
     # a priority point where the player may act at instant speed only (DESIGN_PRIORITY §3.1)
     "priority",
+    # which of a player's simultaneous triggered abilities resolves first (CR 603.3b)
+    "trigger",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
@@ -398,6 +400,7 @@ def _parse_option(tok: str) -> tuple:
 
 def _handle(text: str) -> Handle | None:
     ns, _, idx = text.partition(":")
+    idx = idx.split(":", 1)[0]  # card:12:2, a second triggered ability of card:12
     if ns in ("card", "player", "emblem") and idx.isdigit():
         return Handle(ns, int(idx))
     return None

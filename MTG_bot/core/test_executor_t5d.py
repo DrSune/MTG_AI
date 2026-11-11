@@ -14,7 +14,7 @@ Rounding-policy (Peer "Round up each time.") and additional-trigger-count
   CONTROLLER_IS YOU + FNot(IS_SOURCE)). The effect verb
   ``TRIGGER_ADDITIONAL`` carries the reusable {count} axis. The engine
   fans each non-additional firing onto matching subscribers; additional
-  firings never re-arm (CR 603.2e), which is what keeps two carriers or a
+  firings never re-arm (CR 603.2d), which is what keeps two carriers or a
   self-counting carrier from chasing each other forever. The synthetic
   event is never journalled, so trigger fingerprints stay byte-stable.
 """
@@ -44,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     to_dict,
 )
 from MTG_bot.core.executor import Executor
+from MTG_bot.core.executor.decisions import in_trigger_order
 from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.quantity import ExecCtx, resolve
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
@@ -117,6 +118,9 @@ class T5DEngineCase(unittest.TestCase):
         self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
+        # A Shrine's trigger and the carrier's go on the stack together; their order
+        # (CR 603.3b) does not change the life totals these tests read.
+        self.ex.decisions.provider = in_trigger_order
 
     def shrine(self, owner, name="Shrine"):
         return self.world.add_card(
@@ -198,7 +202,7 @@ class TestMultiplierEngine(T5DEngineCase):
         self.assertEqual(self.life(self.p0), 23)
 
     def test_two_carriers_additive_and_terminating(self):
-        # CR 603.2e: extra triggers carry no triggering event, so each
+        # CR 603.2d: extra triggers carry no triggering event, so each
         # carrier adds exactly one per ORIGINAL firing; the extras never
         # re-arm each other. 5 plain + Fangs + 2 carriers: Fangs fires 3.
         for i in range(5):

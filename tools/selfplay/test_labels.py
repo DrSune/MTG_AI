@@ -141,22 +141,30 @@ def test_labelling_leaves_the_real_game_and_its_decisions_alone(table, net, monk
     over two futures, scored from the labelled seat's side."""
     monkeypatch.setattr(S, "MAX_SIM_DECISIONS", 8)  # the playouts then run on the fallback: fast
     monkeypatch.setattr(S, "LABELS_PER_GAME", 2)
+    monkeypatch.setattr(S, "CONFIDENT_SHARE", 1.0)  # every act decision is a candidate
     supply = get_supply("castable")
     job = {"gid": 0, "seats": ["learner", "heuristic"], "greedy": [True, True],
            "record": [False, False]}
 
-    def run(label: bool):
+    def run(label: bool, deal: int):
         slot = _LogSlot(net)
         lab = S.Labeller(slot, 0, "learner", table, pool_mode="castable", set_code="M21", k=2,
                          d=2, greedy=True, seed=5) if label else None
-        game = _setup_game(3, supply, deal_decks(3, 1409, supply, "coherent"))
+        game = _setup_game(deal, supply, deal_decks(deal, 1409, supply, "coherent"))
         router = _router(game, [NetAgent(slot, job, 0, table, lab), HeuristicAgent()], supply)
         _play(game, router, game.world.player_order, TURN_CAP)
         state, decisions = game.executor.state_fingerprint(), list(slot.rows)
         return state, decisions, (lab.labels() if lab else None), game
 
-    state0, decisions0, _, _ = run(False)
-    state1, decisions1, labels, game = run(True)
+    # The untrained network may mulligan its hand away; take a deal where it makes two act
+    # decisions or more.
+    for deal in range(3, 9):
+        state1, decisions1, labels, game = run(True, deal)
+        if len(labels) == 2:
+            break
+    else:
+        pytest.fail("no deal gave the network seat two act decisions")
+    state0, decisions0, _, _ = run(False, deal)
     assert decisions1 == decisions0 and state1 == state0
     assert game.executor.state_fingerprint() == state1
     assert len(labels) == 2

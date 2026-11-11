@@ -34,6 +34,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.templates import AbilityOutcome, EffectOutcome
 from MTG_bot.core.compiler.templates_b10 import TEMPLATES as TEMPLATES_B10
+from MTG_bot.core.executor.decisions import in_trigger_order
 from MTG_bot.core.executor.query import legal_targets
 from MTG_bot.core.executor.stack import cast, park
 from MTG_bot.core.identity import CardIdentity
@@ -427,6 +428,7 @@ class TestCastKindFalsifiers(CastKindCase):
             ),
             "SubWatcher",
         )
+        self.ex.decisions.provider = in_trigger_order  # both watchers trigger on one cast
         self.cast_free(
             self.free_spell("Twobird", kind=SpellKind.CREATURE, subtypes=("Wizard",))
         )

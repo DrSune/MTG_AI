@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "Printed prowess: '+1/+1 UNTIL END OF TURN'. Turn 1: Goblin Wizardry, then Shock (the tokens are 2/2 this turn). Turn 3 (seat 0 again): the Shock bonus has worn off, so Pestilent Haze's prowess trigger makes them 2/2 and -2/-2 kills both. If the turn-1 bonus had stayed, they would survive as 1/1.",
+ "notes": "Printed prowess: '+1/+1 UNTIL END OF TURN'. Turn 1: Goblin Wizardry, then Shock (the tokens are 2/2 this turn). Turn 3 (seat 0 again): the Shock bonus has worn off, so Pestilent Haze's prowess trigger makes them 2/2 and -2/-2 kills both. If the turn-1 bonus had stayed, they would survive as 1/1. The trigger-order words (CR 603.3b, asked since 2026-11-11) put the simultaneous triggers in the order they triggered; that order does not change the outcome here.",
  "cards": [
   {
    "key": "wiz",
@@ -50,6 +50,9 @@
    "key": "shock",
    "targets": [
     "p1"
+   ],
+   "decisions": [
+    "first-legal"
    ]
   },
   {
@@ -78,6 +81,13 @@
    "key": "haze",
    "decisions": [
     "0"
+   ],
+   "hold": true
+  },
+  {
+   "op": "pass",
+   "decisions": [
+    "first-legal"
    ]
   }
  ],

@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "Printed: 'Create two 1/1 red Goblin Wizard creature tokens with prowess. (Whenever you cast a noncreature spell, they get +1/+1 until end of turn.)' After Goblin Wizardry, seat 0 casts Shock (at seat 1) and then Pestilent Haze (all creatures -2/-2): each token gets +1/+1 twice, so 1/1 +2/+2 -2/-2 = 1/1 and both survive. Without working prowess they would be -1/-1 and die.",
+ "notes": "Printed: 'Create two 1/1 red Goblin Wizard creature tokens with prowess. (Whenever you cast a noncreature spell, they get +1/+1 until end of turn.)' After Goblin Wizardry, seat 0 casts Shock (at seat 1) and then Pestilent Haze (all creatures -2/-2): each token gets +1/+1 twice, so 1/1 +2/+2 -2/-2 = 1/1 and both survive. Without working prowess they would be -1/-1 and die. The trigger-order words (CR 603.3b, asked since 2026-11-11) put the simultaneous triggers in the order they triggered; that order does not change the outcome here.",
  "cards": [
   {
    "key": "wiz",
@@ -50,6 +50,9 @@
    "key": "shock",
    "targets": [
     "p1"
+   ],
+   "decisions": [
+    "first-legal"
    ]
   },
   {
@@ -66,6 +69,13 @@
    "key": "haze",
    "decisions": [
     "0"
+   ],
+   "hold": true
+  },
+  {
+   "op": "pass",
+   "decisions": [
+    "first-legal"
    ]
   }
  ],

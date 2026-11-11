@@ -39,7 +39,12 @@ Pack vocabulary (all keys required as noted):
                                             (a target may be "p0"/"p1": a player)
               "decisions": [str...]},       each word must be offered by the ask it
                                             answers (a pack key resolves to its handle;
-                                            "first-legal" takes the first offered word)
+                                            "first-legal" takes the first offered word).
+                                            The cast also reads the words as its own
+                                            modes and designations (CR 601.2b-c), and
+                                            those stay in the step's queue: a modal cast
+                                            followed by a trigger order (CR 603.3b) casts
+                                            with "hold" and orders in a "pass" step
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),

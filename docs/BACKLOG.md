@@ -202,9 +202,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Creature)`, one golden.
   - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
     bullets only when every option set is one mode); it is representable but not described.
-- **One player's simultaneous triggers resolve oldest first, never asked** (CR 603.3b lets the
-  player order them): weaker only, e.g. Terror of the Peaks + Bone Pit Brute deals 4 where 8 is
-  possible; ~9 of 481 same-player batches per 2,000 games care.
 - **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
   restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
   returned before resolution is still hit because handles survive zone changes (CR 400.7).

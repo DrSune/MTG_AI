@@ -67,6 +67,17 @@ def site_digest(payload: object) -> str:
     return hashlib.sha1(repr(payload).encode()).hexdigest()[:12]
 
 
+def in_trigger_order(vocab: tuple[str, ...], what: str) -> str:
+    """A :attr:`DecisionStream.provider` for a harness that scripts every
+    decision but the trigger order (CR 603.3b, ``trigger:<seat>:<digest>``):
+    each player's simultaneous triggers resolve in the order they triggered
+    (the first option, each time). Any other ask raises, as an unanswered
+    stream does."""
+    if what.startswith("trigger:"):
+        return vocab[0]
+    raise ValueError(f"executor: {what} needs a decision from {tuple(vocab)}, nothing is primed")
+
+
 class DecisionStream:
     """Per-(vocab, what) FIFOs + optional ask-time provider + ask log.
 

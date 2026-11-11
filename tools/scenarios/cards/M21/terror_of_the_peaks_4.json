@@ -1,0 +1,12 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "t", "real": "Terror of the Peaks", "zone": "battlefield", "controller": 0},
+  {"key": "b", "real": "Bone Pit Brute", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "b", "decisions": ["t", "b", "player:1"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 16}, "power": {"b": 8}},
+ "notes": "terror_of_the_peaks_3 in the other order (CR 603.3b): Terror's trigger resolves first (the word 't'), so the Brute's goes on the stack first, aimed at itself, and Terror's above it, aimed at seat 1. Terror deals the Brute's power before the +4/+0: 4, so seat 1 goes 20 -> 16; the Brute is 8/5 afterwards."
+}

@@ -217,7 +217,7 @@ class Verb(Enum):
     # TRIGGER_ADDITIONAL (Sanctum of All "that ability triggers an
     # additional time"): the {count} axis of the extra-trigger family — the
     # AbilityTriggerEvent firing re-triggers the ability it matched
-    # `count` more times. CR 603.2e: those extra triggers are created
+    # `count` more times. CR 603.2d: those extra triggers are created
     # WITHOUT a triggering event, so they never re-arm an
     # AbilityTriggerEvent (the executor marks and skips them). Shared
     # encoding for the whole pool family (Panharmonicon, a derived

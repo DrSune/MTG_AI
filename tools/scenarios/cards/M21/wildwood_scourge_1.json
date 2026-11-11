@@ -12,11 +12,11 @@
  "mana": {"0": {"G": 3, "W": 3}},
  "steps": [
   {"op": "cast", "key": "ws", "real": "Wildwood Scourge", "x": 1},
-  {"op": "cast", "key": "bs", "real": "Basri's Solidarity"}
+  {"op": "cast", "key": "bs", "real": "Basri's Solidarity", "decisions": ["ws"]}
  ],
  "expect": {
   "counters": {"ws": {"PLUS_1_PLUS_1": 4}, "b1": {"PLUS_1_PLUS_1": 1}, "b2": {"PLUS_1_PLUS_1": 1}, "hy": {"PLUS_1_PLUS_1": 1}, "foe": {}},
   "power": {"ws": 4}
  },
- "notes": "P649da1d5b6 G4: Scourge enters with X=1 counter. Basri's Solidarity puts a +1/+1 counter on each creature you control: the counter on the Scourge itself does not trigger ('another'), the one on Other Hydra does not ('non-Hydra'), and each of the two Bears triggers once. Scourge: 1 + 1 + 2 = 4."
+ "notes": "P649da1d5b6 G4: Scourge enters with X=1 counter. Basri's Solidarity puts a +1/+1 counter on each creature you control: the counter on the Scourge itself does not trigger ('another'), the one on Other Hydra does not ('non-Hydra'), and each of the two Bears triggers once. Scourge: 1 + 1 + 2 = 4. The trigger-order words (CR 603.3b, asked since 2026-11-11) put the simultaneous triggers in the order they triggered; that order does not change the outcome here."
 }

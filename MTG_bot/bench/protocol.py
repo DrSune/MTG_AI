@@ -71,7 +71,7 @@ class AskRoutingError(RuntimeError):
 #: ``mulligan:<seat>:<mulligans taken>`` (keep or mulligan) and
 #: ``mulligan_bottom:<seat>:<cards still to put on the bottom>`` (a card of the hand).
 SEAT_IN_TAG = frozenset(
-    {"target", "tap", "sacrifice", "discard", "scry", "pay", "legend", "x",
+    {"target", "tap", "sacrifice", "discard", "scry", "pay", "legend", "x", "trigger",
      "replace", "mulligan", "mulligan_bottom"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
@@ -124,7 +124,10 @@ def resolve_ask_seat(what: str, hook_seat: Handle | None, *, strict: bool = True
 
 
 def _handle_token(token: str) -> Handle | None:
+    """``card:12`` -> card:12; a numbered second option of the same card, ``card:12:2`` (two of
+    its triggered abilities waiting at once), names the same card."""
     namespace, _, index = token.partition(":")
+    index = index.split(":", 1)[0]
     if namespace in ("card", "player", "emblem") and index.isdigit():
         return Handle(namespace, int(index))
     return None
@@ -186,6 +189,8 @@ def engine_ask(
         if handle is not None:
             if kind == "attack":  # a planeswalker this creature may attack
                 return f"attack {lens.describe(executor, handle, offered=True)}"
+            if kind == "trigger" and token.count(":") == 2:  # card:12:2, a card's second trigger
+                return f"{lens.describe(executor, handle, offered=True)} (trigger {token.rsplit(':', 1)[1]})"
             return lens.describe(executor, handle, offered=True)
         if kind == "attack" and token == "ATTACK" and any(_handle_token(t) for t in vocab):
             return "attack the defending player"
@@ -217,6 +222,10 @@ def engine_ask(
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",
         "order": f"{about}: choose the damage assignment order.",
+        "trigger": (
+            "Several of your triggered abilities go on the stack at once (CR 603.3b): choose the "
+            "one that resolves first; the rest follow in the order you choose next."
+        ),
         "trample": f"{about}: choose how much excess damage to assign.",
         "x": f"{about}: announce the value of X for the ability.",
         "policy": f"{about}: choose how to assign its combat damage.",

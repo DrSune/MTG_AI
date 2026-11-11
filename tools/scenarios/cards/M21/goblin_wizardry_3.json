@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "Printed prowess: 'Whenever YOU cast a noncreature spell'. After Goblin Wizardry, the OPPONENT casts Shock at seat 0: no prowess trigger. Then seat 0 casts Pestilent Haze: one trigger, 1/1 +1/+1 -2/-2 = 0/0, both tokens die. Had the opponent's Shock triggered prowess, they would survive.",
+ "notes": "Printed prowess: 'Whenever YOU cast a noncreature spell'. After Goblin Wizardry, the OPPONENT casts Shock at seat 0: no prowess trigger. Then seat 0 casts Pestilent Haze: one trigger, 1/1 +1/+1 -2/-2 = 0/0, both tokens die. Had the opponent's Shock triggered prowess, they would survive. The trigger-order words (CR 603.3b, asked since 2026-11-11) put the simultaneous triggers in the order they triggered; that order does not change the outcome here.",
  "cards": [
   {
    "key": "wiz",
@@ -67,6 +67,13 @@
    "key": "haze",
    "decisions": [
     "0"
+   ],
+   "hold": true
+  },
+  {
+   "op": "pass",
+   "decisions": [
+    "first-legal"
    ]
   }
  ],

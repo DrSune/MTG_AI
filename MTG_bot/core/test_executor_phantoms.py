@@ -38,7 +38,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.decisions import site_digest
+from MTG_bot.core.executor.decisions import in_trigger_order, site_digest
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
 from MTG_bot.core.test_executor_binding import (
@@ -184,6 +184,9 @@ class TestTwoMayOffersOneSource(PhantomCase):
         self.ex.attach_card(self.recipient, rec)
         self.tag_a = f"may:{self.recipient}:{site_digest(a)}"
         self.tag_b = f"may:{self.recipient}:{site_digest(b)}"
+        # The two triggers go on the stack in the order they triggered (CR 603.3b); each
+        # may-offer is primed under its own site whichever asks first.
+        self.ex.decisions.provider = in_trigger_order
 
     def _enter_and_life(self):
         self.ex.execute(

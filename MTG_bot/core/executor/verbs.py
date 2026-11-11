@@ -567,7 +567,7 @@ def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
     """TRIGGER_ADDITIONAL (Sanctum of All): re-queue the ability THIS firing matched
     `count` extra times. The AbilityTriggerEvent fan-out stored the matched
     firing payload in the synthetic event's data; the re-queued firings are
-    marked additional=True — CR 603.2e: an extra trigger is created without
+    marked additional=True — CR 603.2d: an extra trigger is created without
     a triggering event, so it never re-arms an AbilityTriggerEvent (this is
     what keeps two extra-trigger carriers, or a self-counting carrier,
     from chasing each other forever). Each re-queued firing is a FULL
