@@ -188,3 +188,40 @@ P4-P7, S1 and S2 are scored when the window ends.
   - it would take about 3 hours at n = 64's rate;
   - none of the three uses of n could afford it, since n = 64 already takes 79 s per searched
     decision at p50.
+
+## 5. The simulator (2026-11-11 22:11 - 2026-11-12 00:01)
+
+**How it ran.**
+- The capture: 40,000 games in 28 minutes, 2,291,252 positions. The 1,600 held-out games (seed
+  % 25 = 0) hold 91,910 positions. Training used the other 2,199,342.
+- Training: 4 epochs in 81 minutes. The training loss by epoch was 143.6, 132.6, 129.3 and 124.9,
+  so it was still falling at the fourth, as E0's was.
+- The learning rate was 1e-3. §1 says "E0's settings" and gives lr 3e-4, but 3e-4 was E0's
+  pre-registered value. E0 changed to 1e-3 after its pilot (186 §2), and 1e-3 is the simulator's
+  default (`tools/selfplay/simulator.py:429`). So the run used E0's settings and §1's text was wrong.
+- Scored with `simulator eval` on the held-out positions (`tools/selfplay/simulator.py:363-396`,
+  40 s).
+
+**Scored:**
+
+| # | Result | Verdict |
+|---|---|---|
+| S1 | Hand NLL 11.23, against 15.77 for the uniform pool prior: ratio 0.712, 95% [0.705, 0.720] by bootstrap over the 1,600 games | met (predicted 0.55-0.80) |
+| S2 | ECE 0.0015 over 23.9M (position, card) pairs in 15 equal-mass bins. The largest bin error is 0.011 | met (predicted under 0.01) |
+
+**Context.** This is exploratory, not pre-registered.
+- By game phase the ratio is 0.658 at turns 0-6, 0.705 at turns 7-12 and 0.756 at turns 13+. E0's
+  ratio against the deck-aware yardstick went the other way (0.975 early, 0.821 late). Against
+  uniform, much of the gain is probably what a coherent deck implies, and that matters most while
+  the hand is large.
+- By set: M20 0.713, M21 0.712.
+- By who plays:
+  - the network predicting the network: 0.698;
+  - the heuristic predicting the network: 0.731;
+  - the network predicting the heuristic: 0.709.
+- Over each position's 24 likeliest cards the ECE is 0.0093 (E0: 0.0025).
+- Library NLL is 70.15 per position. It is not compared with a prior here; in E0 the library was
+  no better than the prior's.
+
+**What it means.** S1 and S2 are met, so N5 runs: simulator worlds against uniform worlds at
+n = 16, started 00:01. P7 then decides whether simulator worlds become the default (§2).
