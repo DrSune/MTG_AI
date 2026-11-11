@@ -128,7 +128,7 @@ def _handle_token(token: str) -> Handle | None:
     its triggered abilities waiting at once), names the same card."""
     namespace, _, index = token.partition(":")
     index = index.split(":", 1)[0]
-    if namespace in ("card", "player", "emblem") and index.isdigit():
+    if namespace in ("card", "player", "emblem", "ability") and index.isdigit():
         return Handle(namespace, int(index))
     return None
 

@@ -318,8 +318,9 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         # ZONE_STACK slot created on first use), the SAME source the query
         # side reads, so query and runtime enumerate one population. TOP =
         # the last entry = the top frame (LIFO order-preserving, the stack's
-        # own convention).
-        from MTG_bot.core.executor.stack import stack_zone
+        # own convention). The player's abilities on the stack follow its spells
+        # (stack.stack_abilities).
+        from MTG_bot.core.executor.stack import stack_abilities, stack_zone
 
         stack_handles: list[Handle] = []
         for player in players_for_ref(ref, ctx):
@@ -331,6 +332,7 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
                 stack_handles.extend(entries[:1])  # bottom frame = first
             else:
                 stack_handles.extend(entries)
+                stack_handles.extend(stack_abilities(ctx.executor, player))
         return stack_handles
     state_kind = ZONE_KIND_TO_STATE[kind]
     handles: list[Handle] = []

@@ -266,8 +266,7 @@ def target_spell(filter_: Filter | None = None) -> Selector:
 def target_stack_ability(*kinds: str) -> Selector:
     """"target activated or triggered ability": a STACK-zone TARGET selector
     whose object is an ability of one of ``kinds`` ("ACTIVATED",
-    "TRIGGERED"). This engine never puts an ability on the stack, so the
-    selector has no legal candidate yet (BACKLOG B-110)."""
+    "TRIGGERED"), enumerated by ``stack.stack_abilities``."""
     atoms = tuple(FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value=k) for k in kinds)
     kind: Filter = atoms[0] if len(atoms) == 1 else FOr(children=atoms)
     return Selector(

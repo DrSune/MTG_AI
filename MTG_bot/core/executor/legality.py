@@ -405,7 +405,8 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
     controller ref becomes the activation owner's zone.
 
     ``Zone(STACK)`` answers each seat's ``ZONE_STACK`` slot
-    (:func:`stack.stack_zone`). A card whose TARGET selector names the
+    (:func:`stack.stack_zone`) and then its abilities on the stack
+    (:func:`stack.stack_abilities`). A card whose TARGET selector names the
     stack (M21 Unsubstantiate prints ``BATTLEFIELD + STACK``) must enumerate
     here, or :func:`legal_casts` would fold its cost and call it castable
     while :func:`spell_target_slots` raised on the very next question. The
@@ -418,14 +419,17 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
     world = ctx.world
     if zone.kind is ZoneKind.STACK:
         from MTG_bot.core.executor.selectors import players_for_ref
-        from MTG_bot.core.executor.stack import stack_zone
+        from MTG_bot.core.executor.stack import stack_abilities, stack_zone
 
-        if zone.controller is ControllerRef.OWNER:
-            return list(stack_zone(world, source_owner(world, ctx)).entries)
+        seats = (
+            [source_owner(world, ctx)]
+            if zone.controller is ControllerRef.OWNER
+            else players_for_ref(zone.controller, ctx)
+        )
         return [
             handle
-            for seat in players_for_ref(zone.controller, ctx)
-            for handle in stack_zone(world, seat).entries
+            for seat in seats
+            for handle in (*stack_zone(world, seat).entries, *stack_abilities(ctx.executor, seat))
         ]
     from MTG_bot.core.executor.selectors import existing  # CR 702.26b
 

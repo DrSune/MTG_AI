@@ -188,20 +188,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
   should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
   redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
-- **B-110 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: "counter target activated or
-  triggered ability" has no legal target** (engine gap).
-  - Gap: abilities are stack objects since 2026-11-10 (`stack.StackObject`, DESIGN_PRIORITY §11
-    steps 2-3), but no selector enumerates them, so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for
-    nothing. Sublime Epiphany's second mode and Tale's End's ability half are never offered (CR
-    700.2a), which is weaker than printed. Remove with the stack target enumeration of
-    DESIGN_PRIORITY §2.3.
-  - Not done (outside R5-10's registered blast radius): M21 Unsubstantiate's "Return target spell
-    or creature" compiles the spell half as `FNot(IS_PERMANENT)` over the stack, so it cannot take
-    an artifact, enchantment or planeswalker spell (weaker than printed; reachable once players act
-    at every priority point, DESIGN_PRIORITY §11 5b-2). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ
-    Creature)`, one golden.
-  - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
-    bullets only when every option set is one mode); it is representable but not described.
+- **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
+  bullets only when every option set is one mode); it is representable but not described.
 - **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
   restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
   returned before resolution is still hit because handles survive zone changes (CR 400.7).
@@ -401,6 +389,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   10E), and CR 505.4's Saga lore counters (precombat main phase only).
 
 ### To triage
+
+- **Sublime Epiphany crashes a random game in the `all` pool (2026-11-11, before and after
+  B-110).** `play_game(112, pool_mode="all", deck_mode="stress")`, turn 17: the random player
+  casts Sublime Epiphany with an empty stack and `designate_slots` refuses the menu's targets,
+  "illegal target selection: selection:off_population:card:120" (`stack.py`). The card is not
+  dealt in verified games (not playable); the same soak (150 `all`/stress games) also hits
+  "verb COPY not implemented" twice. Verified pools: 0 crashes in 300 games.
 
 - **B-73 [2026-10-29 soaks] The anomaly detectors flag about 2% of M21 games on `main`.**
   - Measured: 18 flags in 800 castable games (400 stress + 400 coherent), all pre-existing. On
@@ -689,6 +684,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
+  and its notes call it weaker than printed because no ability on the stack could be targeted.
+  Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
+  text plays; M21 Sublime Epiphany's packs `sublime_epiphany_1/2` show the same target.
 - **M20 Mystic Forge (needs-atom): re-map it.** Its permission cast can be countered (851d652; its
   pack `pack_forge_cast_can_be_countered.json` passed against its draft with the old counter window,
   so re-run it with a response cast while the spell waits on the stack); the target half is "The

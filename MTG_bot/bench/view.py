@@ -211,6 +211,11 @@ class SeatLens:
         if handle in world.players:
             seat = self.seat_of(executor, handle)
             return f"seat {seat} ({'you' if seat == self.seat_index else 'opponent'})"
+        if handle.namespace == "ability":  # an ability on the stack: public, named by its source
+            frame = next((f for f in executor.stack.frames if f.handle == handle), None)
+            if frame is not None:
+                kind = "triggered" if frame.spell_kind == "TRIGGERED" else "activated"
+                return f"the {kind} ability of {self.describe(executor, frame.source, offered=True)}"
         if handle not in world.cards:
             return "an unknown object"
         if not (offered or self.can_see(executor, handle)):

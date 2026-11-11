@@ -573,7 +573,7 @@ def _build_return_spell_creature_owner_hand(m: re.Match[str]) -> SentenceOutcome
                         SelectorMode.TARGET,
                         FOr(
                             children=(
-                                FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),
+                                FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"),
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
                             )
                         ),

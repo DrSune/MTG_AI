@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sky", "real": "Skyscanner", "zone": "hand", "controller": 0},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 6}},
+ "steps": [
+  {"op": "enter", "key": "sky", "hold": true},
+  {"op": "cast", "key": "se", "real": "Sublime Epiphany", "controller": 1, "targets": ["ability:sky"], "decisions": ["1"]}
+ ],
+ "expect": {"hand": {"0": 0}, "zone": {"sky": "battlefield", "se": "graveyard"}},
+ "notes": "Printed: 'Choose one or more — ... • Counter target activated or triggered ability.' Skyscanner enters and its trigger ('draw a card') goes on the stack when its controller would receive priority (CR 117.5). The opponent casts Sublime Epiphany choosing that mode alone (the word '1') and counters the trigger: it leaves the stack without resolving (CR 701.6b), so seat 0 draws nothing."
+}

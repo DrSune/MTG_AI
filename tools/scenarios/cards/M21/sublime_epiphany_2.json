@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sky", "real": "Skyscanner", "zone": "hand", "controller": 0},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 6}},
+ "steps": [
+  {"op": "enter", "key": "sky"},
+  {"op": "cast", "key": "se", "real": "Sublime Epiphany", "controller": 1, "expect_raise": "needs a decision from ('2', '4', '13')"}
+ ],
+ "expect": {"hand": {"0": 1}, "zone": {"sky": "battlefield", "se": "hand"}},
+ "notes": "Falsifier of sublime_epiphany_1: once the trigger has resolved (seat 0 drew), no ability is on the stack, so the counter-an-ability mode has no target and no set holding it is offered (CR 700.2a). Neither is countering a spell (none on the stack) nor copying a creature (the caster has none): the sets offered are {return a nonland permanent} = 2, {a player draws} = 4 and both = 13."
+}

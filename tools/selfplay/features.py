@@ -401,7 +401,7 @@ def _parse_option(tok: str) -> tuple:
 def _handle(text: str) -> Handle | None:
     ns, _, idx = text.partition(":")
     idx = idx.split(":", 1)[0]  # card:12:2, a second triggered ability of card:12
-    if ns in ("card", "player", "emblem") and idx.isdigit():
+    if ns in ("card", "player", "emblem", "ability") and idx.isdigit():
         return Handle(ns, int(idx))
     return None
 

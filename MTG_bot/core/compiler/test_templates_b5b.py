@@ -1133,18 +1133,21 @@ class TestStructuralAssertions(unittest.TestCase):
                 Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),
             ),
         )
-        # Spell-or-creature disjunction: FOr(FNot(IS_PERMANENT), TYPE_EQ Creature)
+        # Spell-or-creature disjunction: FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature); an
+        # ability on the stack is neither (CR 113.7a), and any spell is (not only a
+        # nonpermanent one: an artifact spell too).
         flt = cards.filter
         self.assertIsInstance(flt, FOr)
         # FOr children are sorted at construction, so the members are pinned by
         # identity and their order by canonical_json.
         self.assertEqual(list(flt.children), sorted(flt.children, key=canonical_json))
-        self.assertEqual(len(flt.children), 2)
-        negation = next(c for c in flt.children if isinstance(c, FNot))
-        creature = next(c for c in flt.children if isinstance(c, FAtom))
-        self.assertIs(negation.inner.pred, FAtomPred.IS_PERMANENT)
-        self.assertEqual(creature.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(creature.string_value, "Creature")
+        self.assertEqual(
+            set(flt.children),
+            {
+                FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value="SPELL"),
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            },
+        )
         dest = p["destination"]
         self.assertIsInstance(dest, Zone)
         self.assertEqual(dest.kind, ZoneKind.HAND)

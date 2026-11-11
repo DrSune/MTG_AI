@@ -68,13 +68,7 @@
    "real": "Pestilent Haze",
    "key": "haze",
    "decisions": [
-    "0"
-   ],
-   "hold": true
-  },
-  {
-   "op": "pass",
-   "decisions": [
+    "0",
     "first-legal"
    ]
   }

@@ -519,6 +519,18 @@ Step 5 goes in two commits:
   heuristic against heuristic, 200 coherent M21 games: 0.4 `trigger` asks per game, 0 crashes;
   random games, 150 coherent and 150 stress: 0 crashes. Until §3.2 the network sees an option
   as its source card only, so two triggers of one card look alike to it.
+- **Abilities on the stack are targets, 2026-11-11 (BACKLOG B-110 closed).** A selector over the
+  stack adds each player's abilities to its spells (`stack.stack_abilities`, read by
+  `selectors.enumerate_zone` and `legality._zone_handles`); an ability matches only
+  STACK_KIND_EQ of its own kind (CR 113.7a: it has no characteristics); COUNTER_SPELL removes a
+  countered ability from the stack and moves nothing (CR 701.6b). Unsubstantiate's target is now
+  `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`: any spell, never an ability (one golden, and the
+  new branching registered in `reports/ontology_census_2026-11-11_b110_post_full.json`). The
+  network points an ability option at its stack entity, the bench names it "the triggered
+  ability of ...". The pack runner: a held step puts the waiting triggers on the stack (the
+  player receives priority again, CR 117.5), a target `ability:<key>` names that card's ability
+  on the stack, and a cast step's own mode and target words are no longer read twice. New packs
+  `sublime_epiphany_1/2`, `unsubstantiate_1/2`.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

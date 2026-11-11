@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "battlefield", "controller": 1},
+  {"key": "un", "real": "Unsubstantiate", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "activate", "key": "tome", "seat": 1, "idx": 0, "hold": true, "decisions": ["top"]},
+  {"op": "cast", "key": "un", "real": "Unsubstantiate", "targets": ["ability:tome"], "expect_raise": "illegal target"}
+ ],
+ "expect": {"zone": {"tome": "battlefield", "un": "hand"}},
+ "notes": "Falsifier of unsubstantiate_1: an ability on the stack is neither a spell nor a creature (CR 113.7a), so the opponent's Mazemind Tome ability ('{T}, Put a page counter: Scry 1') is not a legal target."
+}

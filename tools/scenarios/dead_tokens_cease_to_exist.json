@@ -9,8 +9,7 @@
  "mana": {"0": {"R": 4, "B": 6}},
  "steps": [
   {"op": "cast", "key": "wiz", "real": "Goblin Wizardry"},
-  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["0"], "hold": true},
-  {"op": "pass", "decisions": ["first-legal"]}
+  {"op": "cast", "key": "haze", "real": "Pestilent Haze", "decisions": ["0", "first-legal"]}
  ],
  "expect": {
   "tokens": {"Goblin Wizard": 0},

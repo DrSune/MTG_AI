@@ -40,11 +40,9 @@ Pack vocabulary (all keys required as noted):
               "decisions": [str...]},       each word must be offered by the ask it
                                             answers (a pack key resolves to its handle;
                                             "first-legal" takes the first offered word).
-                                            The cast also reads the words as its own
-                                            modes and designations (CR 601.2b-c), and
-                                            those stay in the step's queue: a modal cast
-                                            followed by a trigger order (CR 603.3b) casts
-                                            with "hold" and orders in a "pass" step
+                                            The cast reads its modes and designations
+                                            from the front (CR 601.2b-c); the step's
+                                            later asks take the words after them
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
@@ -108,13 +106,14 @@ Pack vocabulary (all keys required as noted):
                                             it put on the stack waits too),
              {"op": "pass"}                 both players pass until the stack
                                             is empty,
-             "hold": true on a cast, activate or act step: the player keeps
-                                            priority (CR 117.3c) and nobody
-                                            passes, so what the step put on
-                                            the stack waits for the next steps
-                                            to respond to; every other step
-                                            ends with both players passing
-                                            until the stack is empty,
+             "hold": true on any step: the player keeps
+                                            priority and receives it again (CR
+                                            117.3c): the waiting triggers go on
+                                            the stack (CR 117.5), nobody passes,
+                                            and what is on the stack waits for
+                                            the next steps to respond to; every
+                                            other step ends with both players
+                                            passing until the stack is empty,
              "tap": true on a cast step: the caster taps the mana sources
                                             that pay it (the menu's automatic
                                             payment, CR 601.2g, 605.3a),
@@ -284,6 +283,8 @@ class ScenarioRunner:
         #: pack-written decision words an ask did not offer; the ask took a default instead,
         #: so the pack did not test what it says (reported as failures by run_pack)
         self.unoffered: list[str] = []
+        #: the running step's queue of decision words (None outside a step with words)
+        self.queue: list[str] | None = None
         world_cfg = pack.get("world", {})
         self.world = GameWorld(
             num_players=2,
@@ -464,10 +465,12 @@ class ScenarioRunner:
                 return answer
 
             self.ex.decisions.provider = prov
+            self.queue = queue
             try:
                 self._dispatch(step)
             finally:
                 self.ex.decisions.provider = None
+                self.queue = None
             return
         if step["op"] != "combat":
             # A step WITHOUT a decisions queue still answers kickback asks
@@ -492,13 +495,16 @@ class ScenarioRunner:
         self._dispatch(step)
 
     def _dispatch(self, step: dict) -> None:
-        """One step. ``"hold": true`` on a cast, activate or act step: the step's
-        player keeps priority and nobody passes yet, so what it put on the stack
-        waits there for the next steps to respond to (CR 117.3c); any step
-        without it ends with both players passing until the stack is empty."""
+        """One step. ``"hold": true``: the step's player keeps priority and
+        receives it again (CR 117.3c), so state-based actions are checked and
+        the waiting triggers go on the stack (CR 117.5), and nobody passes yet:
+        what is on the stack waits there for the next steps to respond to. Any
+        step without it ends with both players passing until the stack is
+        empty."""
         if step.get("hold"):
             with self.ex.holding_priority():
                 self._dispatch_op(step)
+                self.ex._priority_check()
             return
         self._dispatch_op(step)
         if step["op"] != "resolve" and not self.ex.driven and self.ex.stack.frames:
@@ -544,15 +550,22 @@ class ScenarioRunner:
                 if taps is None:
                     raise PackError(f"cast {spell_key}: its mana sources cannot pay it")
                 tap_for_payment(self.ex, seat, taps)
-            cast(
-                self.ex,
-                self.seats[step.get("controller", 0)],
-                self.handles[spell_key],
-                x=step.get("x"),
-                kicked=bool(step.get("kicked", False)),
-                targets=tuple(targets),
-                decisions=tuple(step.get("decisions", ())),
-            )
+            words = tuple(step.get("decisions", ()))
+            with self.ex.holding_priority():
+                frame = cast(
+                    self.ex,
+                    self.seats[step.get("controller", 0)],
+                    self.handles[spell_key],
+                    x=step.get("x"),
+                    kicked=bool(step.get("kicked", False)),
+                    targets=tuple(targets),
+                    decisions=words,
+                )
+            if self.queue is not None:
+                # The cast read its modes and designations from the front of the words
+                # (CR 601.2b-c); the step's later asks take the words after them.
+                del self.queue[: len(words) - len(frame.decisions)]
+            self.ex._finish_op()  # undriven: both players pass until the stack is empty
         elif op == "resolve":
             # Every player passes once (CR 117.4): the top object resolves, and
             # what it put on the stack waits until the next step says so.
@@ -695,10 +708,18 @@ class ScenarioRunner:
             raise PackError(f"unknown op {op!r}")
 
     def _target_handle(self, key: str):
-        """A ``targets`` entry: a pack key, or ``p0``/``p1`` for a player, so a "target
-        player" slot can name the caster in a cast or an activate step."""
+        """A ``targets`` entry: a pack key, ``p0``/``p1`` for a player (so a "target
+        player" slot can name the caster in a cast or an activate step), or
+        ``ability:<key>`` for that card's topmost ability on the stack."""
         if key in ("p0", "p1") and key not in self.handles:
             return self.seats[int(key[1])]
+        if key.startswith("ability:"):  # the topmost ability on the stack of that pack card
+            source = self.handles[key.split(":", 1)[1]]
+            frame = next((f for f in reversed(self.ex.stack.frames) if f.source == source
+                          and f.spell_kind in ("ACTIVATED", "TRIGGERED")), None)
+            if frame is None:
+                raise PackError(f"no ability of {key.split(':', 1)[1]!r} is on the stack")
+            return frame.handle
         return self.handles[key]
 
     def _resolve_word(self, word: str) -> str:

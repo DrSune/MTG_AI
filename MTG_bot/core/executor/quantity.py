@@ -752,6 +752,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return ctx.source in ctx.designation_union
         bound = ctx.binding_handles("target")
         return bound is not None and ctx.source in bound
+    if handle.namespace == "ability":
+        # An ability on the stack (stack.StackObject) is no card and has no
+        # characteristics (CR 113.7a): only its kind tells it apart.
+        if pred is not FAtomPred.STACK_KIND_EQ or ctx.executor is None:
+            return False
+        frame = next((f for f in ctx.executor.stack.frames if f.handle == handle), None)
+        return frame is not None and frame.spell_kind == atom.string_value
     if pred is FAtomPred.IS_TAPPED:
         return world.cards[handle].tapped
     if pred is FAtomPred.IS_UNTAPPED:
@@ -1701,13 +1708,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return any(isinstance(a, KickerAbility) for a in record.abilities)
     if pred is FAtomPred.STACK_KIND_EQ:
         # CR 405.1, 111.1/112.1: a card or a copy of a card on the stack is a
-        # spell; abilities on the stack are not (CR 113.7a). Abilities are
-        # stack objects (stack.StackObject, handles in the "ability"
-        # namespace), but no selector enumerates them yet (DESIGN_PRIORITY
-        # stage 1), so the only candidates are spell cards in the stack zone:
-        # SPELL holds for them, ACTIVATED and TRIGGERED hold for nothing. A
-        # mode or target that needs an ability on the stack has no legal
-        # candidate and is never offered (CR 700.2a), not guessed.
+        # spell; abilities on the stack are not (CR 113.7a) and are answered
+        # above, by their own kind.
         from MTG_bot.core.state import ZONE_STACK
 
         if atom.string_value != "SPELL":

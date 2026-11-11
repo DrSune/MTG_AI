@@ -2300,13 +2300,13 @@ def _v_attach(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
-    """COUNTER_SPELL: counter the designated spell on the stack.
+    """COUNTER_SPELL: counter the designated spell or ability on the stack.
 
-    The designated target is the framed CARD (the window casts the counter
-    with ``targets=(frame.handle,)``). The handler removes the victim's
+    The designated target is the framed card, or the ability's own handle.
+    The handler removes the victim's
     :class:`~MTG_bot.core.executor.stack.StackObject` from the stack (CR
-    701.6a), so it never resolves, and the card moves to its owner's
-    graveyard (CR 400.7).
+    701.6a-b), so it never resolves; a spell's card moves to its owner's
+    graveyard (CR 400.7), an ability ceases to exist.
 
     The ``unless`` role (CR 601.2h "unless its controller pays <cost>", the
     Miscast/Lofty Denial shape) is an ASK-TIME decision, not a guess: when
@@ -2377,17 +2377,19 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         if ctx.journal is not None:
             ctx.journal.emit(KIND_KICKBACK, spell, ctx.source, "KICKBACK", (answer,))
 
-    if ex.replacements.prevents_countering(spell):
+    ability = frame.spell_kind in ("ACTIVATED", "TRIGGERED")
+    if not ability and ex.replacements.prevents_countering(spell):
         # CR 101.2, 701.6a: the spell can't be countered. The
         # counterspell targeted it legally and resolves, and its other
         # instructions happen; this one does nothing. Nothing was countered,
         # so there is no COUNTER row.
         ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
         return
-    ex.stack.frames.remove(frame)  # CR 701.6a: a countered spell leaves the stack
+    ex.stack.frames.remove(frame)  # CR 701.6a-b: a countered spell or ability leaves the stack
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
-    _move_to(ctx, spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)
+    if not ability:  # a spell goes to its owner's graveyard; an ability ceases to exist
+        _move_to(ctx, spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)
     ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
 
 

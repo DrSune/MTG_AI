@@ -205,6 +205,18 @@ def stack_zone(world: GameWorld, seat: Handle) -> ZoneState:
     return zone
 
 
+def stack_abilities(executor: Executor | None, seat: Handle) -> list[Handle]:
+    """The abilities ``seat`` controls on the stack, bottom to top (CR 113.7a,
+    405.1): stack objects in no zone, so a selector over the stack adds them to
+    the spells of :func:`stack_zone`."""
+    if executor is None:
+        return []
+    return [
+        f.handle for f in executor.stack.frames
+        if f.controller == seat and f.spell_kind in ("ACTIVATED", "TRIGGERED")
+    ]
+
+
 def park(executor: Executor, seat: Handle, handle: Handle) -> ZoneState:
     """Move ``handle`` from its current zone into the stack zone (CR
     601.2h: the spell LEAVES its origin zone). Journalled by the caller's

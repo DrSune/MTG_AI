@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tome", "real": "Mazemind Tome", "zone": "hand", "controller": 1},
+  {"key": "un", "real": "Unsubstantiate", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 2}},
+  {"op": "mana", "seat": 1, "add": {"C": 2}},
+  {"op": "cast", "key": "tome", "real": "Mazemind Tome", "controller": 1, "hold": true},
+  {"op": "cast", "key": "un", "real": "Unsubstantiate", "targets": ["tome"]}
+ ],
+ "expect": {"zone": {"tome": "hand", "un": "graveyard"}, "turn_seats": [0, 1]},
+ "notes": "Printed: 'Return target spell or creature to its owner's hand.' Any spell: in its own main phase the opponent casts the artifact Mazemind Tome, and in response it goes back to its owner's hand from the stack, so it never resolves."
+}
