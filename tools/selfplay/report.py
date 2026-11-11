@@ -4,8 +4,9 @@
 
 Prints the frozen versions (when, which stage), the latest Elo ladder (uniform random = 0),
 the gate and teacher-gate results, the greedy evaluations against the heuristic, the
-training-game win rates in blocks of 10 iterations, and the most recent iterations. An
-iteration redone after a resume is shown once (its last run).
+training-game win rates in blocks of 10 iterations, the most recent iterations, and the last
+one's statistics by ask kind (when it reports them). An iteration redone after a resume is
+shown once (its last run).
 """
 
 from __future__ import annotations
@@ -75,6 +76,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  it {r['it']:>4} {r.get('stage', ''):<8} win {r.get('win', r.get('vs'))} "
                   f"kl {r.get('kl')} ent {r.get('ent')} ev {r.get('ev')} games/s {r.get('games_s')} "
                   f"upd {r.get('upd_s')}s mem {r.get('mem_gib')}G")
+        kinds = iters[-1].get("kinds")
+        if kinds:
+            print(f"\nby ask kind, iteration {iters[-1]['it']} (pass = declined to act; ent / log|A|):")
+            for name, k in sorted(kinds.items(), key=lambda kv: -kv[1]["n"]):
+                print(f"  {name:<16} n {k['n']:>6}  pass {k['pass']:.3f}  adv {k['adv']:+.3f}  "
+                      f"ent {k['ent']}  kl {k['kl']}")
     return 0
 
 

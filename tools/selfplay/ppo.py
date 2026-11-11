@@ -14,6 +14,12 @@ previous update ran (the overlap, ~40% of a batch) were sampled by the previous 
 measured against them the first minibatch would already carry the previous update's movement.
 The clipped ratio still uses the behaviour log-probs (the data's policy); ``kl`` stays the KL
 from them, ``kl_update`` is the stop's measure.
+
+``kinds`` reports each ask kind on its own (DESIGN_PRIORITY §3.5): near-certain passes dilute
+the means, so a policy that always passes, or an act menu that moves far, would not show. Per
+kind: the decisions, the share that declined to act (PASS, DECLINE, NONE, skip), the mean
+advantage, and from each decision's last minibatch the entropy normalised by log |A| over asks
+with two options or more (METRICS §17 VAR-1) and the KL from the behaviour policy.
 """
 
 from __future__ import annotations
@@ -27,7 +33,10 @@ from typing import Any
 import numpy as np
 import torch
 
+from tools.selfplay import features as FT
 from tools.selfplay import model as M
+
+_DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip")]
 
 
 def chunks(lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
@@ -57,6 +66,8 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     ev = 1.0 - float(np.var(ret - v_old)) / max(float(np.var(ret)), 1e-8)
     model.eval()
     stats: dict[str, list] = defaultdict(list)
+    ent_last = np.full(n, np.nan, dtype=np.float32)  # per decision, its last minibatch's
+    kl_last = np.full(n, np.nan, dtype=np.float32)
     stop = False
     t_col = time.perf_counter()
     chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget)
@@ -109,7 +120,13 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
             # every decision weighs the same.
             loss = loss * (len(act_t) * n_batches / max(n, 1))
             with torch.no_grad():
-                kl = ((ratio - 1) - (lp - old_logp)).mean().item()
+                kl_each = (ratio - 1) - (lp - old_logp)
+                kl = kl_each.mean().item()
+                n_opt = b["opt_mask"].sum(-1).float()
+                ent_n = torch.where(n_opt >= 2, ent / torch.log(n_opt.clamp(min=2)),
+                                    torch.full_like(ent, float("nan")))
+                ent_last[ch] = ent_n.float().cpu().numpy()
+                kl_last[ch] = kl_each.float().cpu().numpy()
                 if kl_stop:
                     d0 = lp - torch.from_numpy(lp0_arr[ch]).to(device)
                     kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
@@ -154,7 +171,28 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     out.update({"nonfinite": len(stats.get("nonfinite", [])), "collate_s": round(collate_s, 1),
                 "train_s": round(time.perf_counter() - t_train, 1), "minibatches": n_batches,
                 "steps": n, "epochs": stats["epochs"][-1] if stats["epochs"] else 0,
-                "kl_stop": stop, "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4)})
+                "kl_stop": stop, "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4),
+                "kinds": per_kind(packed, act, adv, ent_last, kl_last)})
+    return out
+
+
+def per_kind(packed: M.Packed, act: np.ndarray, adv: np.ndarray, ent: np.ndarray,
+             kl: np.ndarray) -> dict[str, dict]:
+    """The update's statistics by ask kind (see the module docstring)."""
+    kind = packed.ask_i[:, 0].astype(np.int64)
+    chosen = packed.opts_i[packed.o_off[:-1] + act.astype(np.int64), 0]
+    declined = np.isin(chosen, _DECLINE)
+    out = {}
+    for k in np.unique(kind):
+        sel = kind == k
+        e, d = ent[sel], kl[sel]
+        out[FT.ASK_KINDS[k] if k < len(FT.ASK_KINDS) else str(k)] = {
+            "n": int(sel.sum()),
+            "pass": round(float(declined[sel].mean()), 4),
+            "adv": round(float(adv[sel].mean()), 4),
+            "ent": round(float(np.nanmean(e)), 4) if np.isfinite(e).any() else None,
+            "kl": round(float(np.nanmean(d)), 5) if np.isfinite(d).any() else None,
+        }
     return out
 
 

@@ -610,6 +610,12 @@ Stage 2 (the players), 2026-11-11:
   in its beginning of combat. The strength barely moves, since instants are a small part of these
   decks and the old one cast them on its own turn; what changes is that the anchor and teacher now
   use the stack.
+- **Per-kind metrics, §3.5** (METRICS PH-9, checked against §17): each PPO update reports, per
+  ask kind, the decisions, the share that declined to act, the mean advantage, the entropy over
+  log |A| (asks with two options or more) and the KL from the behaviour policy (`ppo.per_kind`,
+  the iter row's `kinds`); `report.py` prints the last iteration's. "Games per update" was
+  already in every iter row (`games`). The KL stop still stops on the mean: r26 runs without
+  it (`target_kl` 0.0) and so will the next run; a per-kind stop waits for a run that uses one.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

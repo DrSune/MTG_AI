@@ -895,6 +895,14 @@ def test_ppo_without_a_kl_stop_reads_each_minibatch_once(table) -> None:
     out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"))
     assert not out["kl_stop"] and "kl_update" not in out
     assert len(passes) == out["minibatches"] > 1
+    # DESIGN_PRIORITY §3.5: every ask kind of the batch reported on its own
+    kinds = out["kinds"]
+    assert sum(k["n"] for k in kinds.values()) == n
+    prio = packed.ask_i[:, 0] == FT.ASK_INDEX["priority"]
+    chosen = packed.opts_i[packed.o_off[:-1] + acts, 0]
+    passed = (chosen[prio] == FT.OPT_INDEX["PASS"]).mean()
+    assert {"act", "priority"} <= set(kinds) and kinds["priority"]["pass"] == round(float(passed), 4)
+    assert all(k["ent"] is None or 0.0 <= k["ent"] <= 1.0 + 1e-3 for k in kinds.values())
 
 
 def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:
