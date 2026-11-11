@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "taunter", "real": "Brash Taunter", "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "activate", "key": "taunter", "idx": 1, "seat": 0, "targets": ["ox"], "hold": true},
+  {"op": "move", "key": "taunter", "to": "exile", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {"zone": {"taunter": "exile", "ox": "battlefield"}, "damage": {}, "life": {"0": 20, "1": 20}},
+ "notes": "Printed: '{2}{R}, {T}: Brash Taunter fights another target creature.' The ability waits on the stack and the Taunter is exiled in response. The ability still resolves (CR 113.7a), but a creature no longer on the battlefield deals and is dealt no damage in a fight (CR 701.12b): the Ox is untouched. It raised before (2026-11-11, tools/cards/respond.py)."
+}

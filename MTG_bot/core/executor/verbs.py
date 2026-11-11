@@ -857,8 +857,12 @@ def _fight_attacker(ctx: ExecCtx) -> Handle | None:
     An EMPTY register means the preceding atom acted on nothing: Primal
     Might's own creature left or became an illegal target while its fight
     target is still legal, so the spell resolves. CR 701.14b: neither
-    creature fights, so None, never a raise. No register at all raises (no
-    antecedent was compiled)."""
+    creature fights, so None, never a raise. So does a permanent's ability
+    whose source left the battlefield (its last known information is kept,
+    ``departed_lki``) while it waited on the stack: "this creature fights",
+    and CR 701.12b: a creature no longer on the battlefield deals and is dealt
+    no damage. Otherwise no register at all raises (no antecedent was
+    compiled)."""
     if (
         ctx.source.namespace == "card"
         and ctx.source in ctx.world.cards
@@ -868,7 +872,7 @@ def _fight_attacker(ctx: ExecCtx) -> Handle | None:
     result = ctx.binding_handles("result")
     if result:
         return result[0]
-    if result is not None:
+    if result is not None or (ctx.executor is not None and ctx.source in ctx.executor.departed_lki):
         return None
     raise NotImplementedError(
         f"executor: FIGHT has no attacker — {ctx.source} is not a battlefield "

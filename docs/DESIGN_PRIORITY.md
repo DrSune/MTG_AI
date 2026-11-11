@@ -551,6 +551,15 @@ Step 5 goes in two commits:
   `flicker_trigger_target_is_a_new_object` (Bone Pit Brute's +4/+0 misses the returned Ox; it
   made it 6 power before). The source half of §2.3 (an ability acting on its own source that
   left and came back) is open in BACKLOG.
+- **Step 6, §4 item 2, 2026-11-11: `tools/cards/respond.py`.** On the probe's standard board,
+  every castable spell with card targets and every activatable ability of a set's dealt cards
+  goes on the stack with its player holding priority; in response the targets are exiled, or an
+  ability's source is; then both players pass. A raise, a stack left non-empty, or an object
+  that resolved with every target gone is a finding. First run: M21, M20, FDN and ZNR, 1,958
+  cases. One finding, fixed: Brash Taunter's fight raised when the Taunter left first; a
+  creature no longer on the battlefield now deals and is dealt no fight damage (CR 701.12b,
+  pack `brash_taunter_2`). Triggered abilities are not covered (their stimuli differ per card).
+  `tools/cards/test_respond.py` runs it on three cards.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the
