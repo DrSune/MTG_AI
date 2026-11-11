@@ -34,6 +34,7 @@ import argparse
 import json
 import math
 import multiprocessing as mp
+import pickle
 import platform
 import random
 import signal
@@ -63,6 +64,8 @@ from tools.selfplay.trainer import trainer_main
 REPO = Path(__file__).resolve().parents[2]
 TRAIN_SET = "M21"  # the set training games are dealt from (--mix-sets adds others)
 EVAL_SEED0 = 900_000
+#: --search-record: targets per shard file (each ~16 KB, so ~320 MB a shard)
+TARGETS_PER_SHARD = 20_000
 # Gates draw a fresh block of deals each time (GATE_SEED0 + 1000 * gate number): re-testing a
 # learner on the same deals until one snapshot clears the bar selects luck on those deals.
 GATE_SEED0 = 2_000_000
@@ -208,6 +211,7 @@ class Learner:
         self.run = Path(args.run)
         self.run.mkdir(parents=True, exist_ok=True)
         write_manifest(self.run, args)
+        self.targets: list[dict] = []  # --search-record (_save_targets)
         self.device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu"
                                    else "cpu")
         self.cuda = self.device.type == "cuda"
@@ -465,7 +469,8 @@ class Learner:
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
                 "blocks": a.search_blocks, "root": a.search_root, "n": a.search_n,
                 "m": a.search_m, "continuation": a.search_continuation,
-                "horizon": a.search_horizon, "kinds": tuple(a.search_kinds.split(","))}
+                "horizon": a.search_horizon, "kinds": tuple(a.search_kinds.split(",")),
+                "record": a.search_record}
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -659,6 +664,13 @@ class Learner:
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
+                if not void and r.get("targets"):
+                    for t in r["targets"]:  # the searcher's own result is its value target
+                        t["z"] = self.reward(r["outcome"], r["winner"], t["seat"])
+                        t["seed"] = r.get("seed")
+                    self.targets.extend(r["targets"])
+                    if len(self.targets) >= TARGETS_PER_SHARD:
+                        self._save_targets()
             elif kind == "capture":
                 self.eval_pending.discard(r["gid"])
                 if not void:
@@ -886,6 +898,20 @@ class Learner:
         self.log({"event": "capture", "shards": self.shards, "games": len(games),
                   "positions": len(rows), "counts": dict(self.counts)})
 
+    def _save_targets(self) -> None:
+        """--search-record: the searched decisions of finished games as training targets
+        (search.target_record plus the game's result for the searcher, ``z``), in shards of
+        <run>/targets."""
+        if not self.targets:
+            return
+        out = self.run / "targets"
+        out.mkdir(exist_ok=True)
+        k = len(list(out.glob("shard_*.pkl")))
+        with (out / f"shard_{k:04d}.pkl").open("wb") as fh:
+            pickle.dump(self.targets, fh)
+        self.log({"event": "targets", "shard": k, "targets": len(self.targets)})
+        self.targets = []
+
     def eval_only(self) -> None:
         """Evaluate --init (as the "eval" seat, optionally with search) and exit."""
         a = self.args
@@ -896,6 +922,7 @@ class Learner:
         self.models["eval"] = self.model  # start_eval made a frozen copy; same weights
         self.phase = "idle"
         self.serve(lambda: not self.eval_pending)
+        self._save_targets()
         self.log(self.eval_summary())
 
     # ------------------------------------------------------------------ curriculum
@@ -1247,6 +1274,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="how the network plays both seats inside a simulation")
     p.add_argument("--search-horizon", type=int, default=1,
                    help="simulate to the start of the searcher's N-th next turn; 0: to the end")
+    p.add_argument("--search-record", action="store_true",
+                   help="keep each searched act or priority decision as a training target, in "
+                        "shards of <run>/targets (search.target_record)")
     p.add_argument("--search-kinds", default="act",
                    help="ask kinds searched at their own decision, comma-separated: act, priority")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask (topk)")

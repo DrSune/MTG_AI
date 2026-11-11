@@ -1307,12 +1307,19 @@ def test_the_search_answers_instant_speed_decisions(table) -> None:
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
                         set_code="M21", root="gumbel", n=2, m=2, skip_p=1.01,
-                        kinds=("priority",), seed=41)
+                        kinds=("priority",), seed=41, record=True)
     res = play_game(41, [_PrioritySearcher(searcher, table, limit=2), HeuristicAgent()],
                     deck_mode="coherent")
     assert res["crash"] is None and searcher.stats["sim_errors"] == 0
     assert searcher.stats["searched:priority"] == 2
     assert ms_percentiles(searcher.stats)["n"] == 2
+    # record=True keeps each searched decision as a training target: its encoding, the
+    # network's probabilities, and per compared option its mean, worlds and variance
+    assert len(searcher.targets) == 2
+    for t in searcher.targets:
+        assert t["kind"] == "priority" and set(t["feats"]) >= {"cards_i", "cards_f"}
+        assert sum(t["n"]) <= 2 and all(-1.0 <= q <= 1.0 for q in t["q"])
+        assert len(t["probs"]) > max(t["alts"]) and t["pick"] in range(len(t["probs"]))
 
 
 def test_a_sampled_continuation_shares_its_draws_within_a_world(table) -> None:

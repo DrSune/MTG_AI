@@ -213,7 +213,8 @@ class Searcher:
                  set_code: str, k: int = 4, d: int = 2, skip_p: float = 0.97,
                  seed: int = 0, root: str = "topk", n: int = 16, m: int = 16,
                  continuation: str = "greedy", horizon: int = 1,
-                 kinds: tuple[str, ...] = ("act",), noise: bool = False) -> None:
+                 kinds: tuple[str, ...] = ("act",), noise: bool = False,
+                 record: bool = False) -> None:
         if root not in ROOTS or continuation not in CONTINUATIONS:
             raise ValueError(f"search root {root!r} or continuation {continuation!r} unknown")
         if not set(kinds) <= set(SEARCH_KINDS):
@@ -234,6 +235,10 @@ class Searcher:
         self.horizon = horizon
         self.kinds = frozenset(kinds)
         self.noise = noise  # Gumbel noise at the root: on in sampled (training) play only
+        # record: keep each searched act or priority decision as a training target (``targets``)
+        self.record = record
+        self.targets: list[dict] = []
+        self.last: dict[int, list[tuple[float, float]]] = {}  # the last comparison's results
         self.rng = random.Random(seed)
         # the supply the searched game was dealt from: forks share its compiled cards (fork.py)
         # and the opponent's hidden cards are re-drawn from its deckable pool (determinize)
@@ -256,8 +261,10 @@ class Searcher:
         in which any of them crashed is left out for all of them (``mean_scores``)."""
         if self.root == "topk":
             worlds = self.draw_worlds(self.d)
-            q = mean_scores({i: [run(c, w) for w, _ in worlds] for i, c in enumerate(cands)},
-                            [x for _, x in worlds])
+            raw = {i: [run(c, w) for w, _ in worlds] for i, c in enumerate(cands)}
+            keep = [j for j in range(len(worlds)) if all(v[j] is not None for v in raw.values())]
+            self.last = {i: [(v[j], worlds[j][1]) for j in keep] for i, v in raw.items()}
+            q = mean_scores(raw, [x for _, x in worlds])
             if q is None:
                 return max(range(len(cands)), key=lambda i: logits[i]), {}
             return max(q, key=lambda i: (q[i], logits[i])), q
@@ -288,6 +295,7 @@ class Searcher:
                 res[i].extend((raw[i][j], worlds[j][1]) for j in keep)
             if len(alive) > 1:
                 alive = sorted(alive, key=key, reverse=True)[: math.ceil(len(alive) / 2)]
+        self.last = res
         q = {i: sum(z * w for z, w in v) / sum(w for _, w in v) for i, v in res.items() if v}
         if not q:
             return max(range(len(cands)), key=lambda i: logits[i]), {}
@@ -328,6 +336,9 @@ class Searcher:
         pick, q = self.compare(cands, logits, lambda i, w: self.simulate(
             obs.game, ask.seat, ask.options[i].token, world=w))
         self._record(ask.kind, pick, cands.index(int(a0)) if int(a0) in cands else -1, q, t0)
+        if self.record:
+            self.targets.append(target_record(feats, probs, cands, self.last, int(cands[pick]),
+                                              ask.kind, ask.seat))
         return int(cands[pick])
 
     def plan_attacks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
@@ -480,6 +491,27 @@ class Searcher:
         feats = FT.encode(clone.executor, seat, ask, self.table, FT.AskContext())
         _, value = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 1))
         return float(value)
+
+
+def target_record(feats: dict, probs: list[float], cands: list[int],
+                  results: dict[int, list[tuple[float, float]]], pick: int, kind: str,
+                  seat: int) -> dict:
+    """One searched decision as a training target (PLAN_CEILING §6.2): its encoding, the
+    network's probabilities, and per compared option (an index of the ask's options) the
+    weighted mean result, the number of worlds and their variance, so the target's rule (the
+    paper's sigma, a step scaled by the standard error) is chosen when training, not here."""
+    rows = []
+    for i, c in enumerate(cands):
+        v = results.get(i) or []
+        if not v:
+            continue
+        total = sum(w for _, w in v)
+        mean = sum(z * w for z, w in v) / total
+        var = sum(w * (z - mean) ** 2 for z, w in v) / total
+        rows.append((c, mean, len(v), var))
+    return {"feats": feats, "probs": list(probs), "alts": [r[0] for r in rows],
+            "q": [r[1] for r in rows], "n": [r[2] for r in rows], "var": [r[3] for r in rows],
+            "pick": pick, "kind": kind, "seat": seat}
 
 
 def horizon_stop(me: Any, start: int, horizon: int) -> Any:
