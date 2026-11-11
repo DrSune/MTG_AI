@@ -1,7 +1,7 @@
 {
  "name": "uncounterable_shifting_ceratops_twin",
  "set": "M20",
- "note": "Twin of uncounterable_shifting_ceratops: the same window and the same unpayable Convolute, cast at a Centaur Courser, which can be countered. It is, and goes to the graveyard. So the Ceratops pack's green is the 'can't be countered' ability, not the window or the unless cost.",
+ "note": "Twin of uncounterable_shifting_ceratops: the same window and the same unpayable Convolute, cast at a Centaur Courser, which can be countered. It is, and goes to the graveyard. So the Ceratops pack's green is the 'can't be countered' ability, not the window or the unless cost. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -33,20 +33,23 @@
    "op": "cast",
    "real": "Centaur Courser",
    "key": "courser",
-   "decisions": [
-    "convolute"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "convolute",
+   "controller": 1,
+   "targets": [
+    "courser"
+   ],
+   "tap": true,
+   "real": "Convolute"
   }
  ],
  "expect": {
   "zone": {
    "courser": "graveyard",
    "convolute": "graveyard"
-  },
-  "window_asks": {
-   "1": [
-    "convolute"
-   ]
   },
   "kickback_asks": {
    "0": []

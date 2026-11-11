@@ -481,6 +481,14 @@ Step 5 goes in two commits:
   `end_turn` and `advance_turn` become "both players pass until" the boundaries they stop at
   today (first main with an empty stack, attackers declared, second main, turn closed). The
   combat window stays inside the declare-blockers turn-based action until 5b.
+- **5b-1, the windows deleted** (landed 2026-11-11). `cast` puts the spell on the stack and ends
+  its op: outside a game loop both players then pass until the stack is empty;
+  `Executor.holding_priority()` keeps it waiting so a test or pack can respond, and
+  `Executor.all_pass()` lets the top object resolve once. Paying taps are atomic with what they
+  pay for. Packs say `"hold": true`, `{"op": "resolve"}`, `{"op": "pass"}`, `"tap": true` and
+  a combat step's `"respond": {STEP: [...]}`; 51 window packs and about 35 window tests were
+  converted, a few window-only tests deleted. Until 5b-2 nobody responds in a game: the windows
+  are gone and the loop still asks only in the main phases.
 - **5b, the driven loop.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

@@ -1,6 +1,6 @@
 {
  "name": "miscast_kickback_unpayable",
- "note": "wave7 (kickback UNPAYABLE lane, R17-1 ruling A): the identical Miscast world, but P0's pool is {R:1} \u2014 after Shock's own {R} the payer can offer NOTHING toward the {3} unless-cost. The engine builds no payment plan and therefore issues NO pay ask at all (the vocab lane cannot offer PAY it cannot honor); Miscast resolves as a plain counter. Shock is countered (Rager lives), both cards hit graveyards, P0's pool empties to {}. This is the negative control that keeps miscast_kickback_pay.json's ASK non-vacuous: same engine, same card, mana-only delta flips ask->silence.",
+ "note": "wave7 (kickback UNPAYABLE lane, R17-1 ruling A): the identical Miscast world, but P0's pool is {R:1} — after Shock's own {R} the payer can offer NOTHING toward the {3} unless-cost. The engine builds no payment plan and therefore issues NO pay ask at all (the vocab lane cannot offer PAY it cannot honor); Miscast resolves as a plain counter. Shock is countered (Rager lives), both cards hit graveyards, P0's pool empties to {}. This is the negative control that keeps miscast_kickback_pay.json's ASK non-vacuous: same engine, same card, mana-only delta flips ask->silence. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -44,9 +44,17 @@
    "targets": [
     "rager"
    ],
-   "decisions": [
-    "miscast"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "miscast",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true,
+   "real": "Miscast"
   }
  ],
  "expect": {
@@ -62,11 +70,6 @@
   "mana_pool": {
    "0": {},
    "1": {}
-  },
-  "window_asks": {
-   "1": [
-    "miscast"
-   ]
   },
   "kickback_asks": {
    "0": []

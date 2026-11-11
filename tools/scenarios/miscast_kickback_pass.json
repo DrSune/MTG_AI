@@ -1,6 +1,6 @@
 {
  "name": "miscast_kickback_pass",
- "note": "wave7 (kickback PASS lane): the identical Miscast world, but P0 declines the {3} kickback. The counter lands \u2014 Shock is COUNTERED, its effect never runs (the Rager lives), and the counter card still makes its graveyard trip (CR 601.4 + 400.7). P0 pays NOTHING: the R pool holds 4 after Shock's own {R}. The falsifiable pair against miscast_kickback_pay.json is the zone lanes plus the mana lane.",
+ "note": "wave7 (kickback PASS lane): the identical Miscast world, but P0 declines the {3} kickback. The counter lands — Shock is COUNTERED, its effect never runs (the Rager lives), and the counter card still makes its graveyard trip (CR 601.4 + 400.7). P0 pays NOTHING: the R pool holds 4 after Shock's own {R}. The falsifiable pair against miscast_kickback_pay.json is the zone lanes plus the mana lane. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -44,10 +44,17 @@
    "targets": [
     "rager"
    ],
-   "decisions": [
-    "miscast",
-    "PASS"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "miscast",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true,
+   "real": "Miscast"
   }
  ],
  "expect": {

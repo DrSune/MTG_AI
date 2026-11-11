@@ -85,11 +85,8 @@ class TestThisSpellCantBeCountered(UncounterableCase):
         self.mana(self.p0, R=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, bolt, targets=(self.p1,))
-        # the window offered Cancel (a legal target), and Cancel was cast and resolved
-        ((vocab, _what),) = self.asks
-        self.assertEqual(vocab, ("PASS", str(cancel)))
+        self.countered_by(cancel, self.p0, bolt, targets=(self.p1,))
+        # Cancel could be cast at it (a legal target) and resolved
         self.assertEqual(self.zone_kind(cancel), ZONE_GRAVEYARD)
         self.assertFalse(self.world.players[self.p1].mana_pool.get("U"))
         # the bolt was not countered: it resolved
@@ -103,9 +100,8 @@ class TestThisSpellCantBeCountered(UncounterableCase):
         self.mana(self.p0, R=1, G=2)
         leak = self.counterspell("Leak", self.p1, unless=2)
         self.mana(self.p1, U=1)
-        self.script(str(leak), "PASS")  # the window, then the payer declines to pay
-        self.ex_cast(self.p0, bolt, targets=(self.p1,))
-        self.assertEqual([what.split(":")[0] for _v, what in self.asks], ["counter", "pay"])
+        self.countered_by(leak, self.p0, bolt, targets=(self.p1,), answers=("PASS",))
+        self.assertEqual([what.split(":")[0] for _v, what in self.asks], ["pay"])
         self.assertEqual(self.world.players[self.p1].life, 18)
         self.assertEqual(self.world.players[self.p0].mana_pool.get("G"), 2)  # nothing paid
         self.assertEqual(self.counters_rows(), [])
@@ -128,8 +124,7 @@ class TestThisSpellCantBeCountered(UncounterableCase):
         self.mana(self.p1, U=1)
         hand = self.world.players[self.p1].zone(ZONE_HAND).entries
         self.assertEqual(hand, [dig])
-        self.script(str(dig))
-        self.ex_cast(self.p0, bolt, targets=(self.p1,))
+        self.countered_by(dig, self.p0, bolt, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 18)
         # the counterspell left the hand and its draw happened
         self.assertEqual(self.zone_kind(dig), ZONE_GRAVEYARD)
@@ -141,8 +136,7 @@ class TestThisSpellCantBeCountered(UncounterableCase):
         self.mana(self.p0, R=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.countered_by(cancel, self.p0, shock, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(len(self.counters_rows()), 1)
 
@@ -168,14 +162,12 @@ class TestSpellsYouControlThisTurn(UncounterableCase):
     def test_a_spell_cast_after_the_veil(self) -> None:
         veil = self.veil()
         self.mana(self.p0, G=1)
-        self.script("PASS")  # p1 holds no counter yet; the veil resolves
         self.ex_cast(self.p0, veil)
         shock = self.shock()
         self.mana(self.p0, R=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.countered_by(cancel, self.p0, shock, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 18)  # not countered (CR 611.2c)
         self.assertEqual(self.counters_rows(), [])
 
@@ -189,8 +181,7 @@ class TestSpellsYouControlThisTurn(UncounterableCase):
         self.mana(self.p0, R=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.countered_by(cancel, self.p0, shock, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 20)  # countered next turn
         self.assertEqual(len(self.counters_rows()), 1)
 
@@ -203,8 +194,7 @@ class TestSpellsYouControlThisTurn(UncounterableCase):
         self.mana(self.p1, G=1)
         cancel = self.counterspell("Cancel", self.p0)
         self.mana(self.p0, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p1, bear)
+        self.countered_by(cancel, self.p1, bear)
         self.assertEqual(self.zone_kind(bear), ZONE_GRAVEYARD)  # p0's veil covers p0's spells
         self.assertEqual(len(self.counters_rows()), 1)
 
@@ -233,8 +223,7 @@ class TestStaticOnAPermanent(UncounterableCase):
         self.mana(self.p0, G=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, herald)
+        self.countered_by(cancel, self.p0, herald)
         self.assertEqual(self.zone_kind(herald), ZONE_GRAVEYARD)
         self.assertEqual(len(self.counters_rows()), 1)
 
@@ -253,16 +242,14 @@ class TestStaticOnAPermanent(UncounterableCase):
         self.mana(self.p0, G=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, bear)
+        self.countered_by(cancel, self.p0, bear)
         self.assertEqual(self.zone_kind(bear), ZONE_GRAVEYARD)  # P0's spell: not protected now
         self.ex.advance_turn()
         cub = self.creature_spell("Cub", seat=self.p1)
         self.mana(self.p1, G=1)
         cancel2 = self.counterspell("Cancel 2", self.p0)
         self.mana(self.p0, U=1)
-        self.script(str(cancel2))
-        self.ex_cast(self.p1, cub)
+        self.countered_by(cancel2, self.p1, cub)
         self.assertEqual(self.zone_kind(cub), ZONE_BATTLEFIELD)  # P1's spell: protected
 
     def test_creature_spells_only_while_it_is_on_the_battlefield(self) -> None:
@@ -271,15 +258,13 @@ class TestStaticOnAPermanent(UncounterableCase):
         self.mana(self.p0, G=1)
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, bear)
+        self.countered_by(cancel, self.p0, bear)
         self.assertEqual(self.zone_kind(bear), ZONE_BATTLEFIELD)  # not countered
         shock = self.shock()  # not a creature spell
         self.mana(self.p0, R=1)
         cancel2 = self.counterspell("Cancel 2", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel2))
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.countered_by(cancel2, self.p0, shock, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 20)
         # the herald leaves: creature spells can be countered again
         self.ex.execute(
@@ -292,6 +277,5 @@ class TestStaticOnAPermanent(UncounterableCase):
         self.mana(self.p0, G=1)
         cancel3 = self.counterspell("Cancel 3", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel3))
-        self.ex_cast(self.p0, bear2)
+        self.countered_by(cancel3, self.p0, bear2)
         self.assertEqual(self.zone_kind(bear2), ZONE_GRAVEYARD)

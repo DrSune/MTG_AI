@@ -1,6 +1,6 @@
 {
  "name": "rewind",
- "note": "wave7 (Rung-1 window, no-kickback + after-effect lane): P0 casts the REAL Shock at the Rager; P1 answers the WINDOW with the REAL Rewind ({2}{U}{U}, no unless-cost). At resolution Rewind counters the Shock (Rager lives) AND its Seq's second atom UNTAPS up to four lands \u2014 with only three tapped Plains seeded, the CHOOSE selector issues NO ask and untaps them all deterministically (an extra ask here would drain the one-word queue and CRASH the pack, so the empty decisions tail is itself a falsifier). P1 pays 2U+2 generic from six U (same-color-first) leaving {U:2}; P0 keeps {R:1} from Shock's own {R}.",
+ "note": "wave7 (Rung-1 window, no-kickback + after-effect lane): P0 casts the REAL Shock at the Rager; P1 answers the WINDOW with the REAL Rewind ({2}{U}{U}, no unless-cost). At resolution Rewind counters the Shock (Rager lives) AND its Seq's second atom UNTAPS up to four lands — with only three tapped Plains seeded, the CHOOSE selector issues NO ask and untaps them all deterministically (an extra ask here would drain the one-word queue and CRASH the pack, so the empty decisions tail is itself a falsifier). P1 pays 2U+2 generic from six U (same-color-first) leaving {U:2}; P0 keeps {R:1} from Shock's own {R}. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -68,9 +68,17 @@
    "targets": [
     "rager"
    ],
-   "decisions": [
-    "rewind"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "rewind",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true,
+   "real": "Rewind"
   }
  ],
  "expect": {
@@ -95,11 +103,6 @@
    "1": {
     "U": 2
    }
-  },
-  "window_asks": {
-   "1": [
-    "rewind"
-   ]
   },
   "kickback_asks": {
    "0": []

@@ -25,7 +25,7 @@ are neutral; each one is teaching the agent something.
 | **`TURN_CAP = 60`** (registered 2026-10-24) | `core/executor/games.py:138,1554`; `tools/selfplay/learner.py` `reward` (`--draw-reward`) | A non-rules safety rail. Scored as a draw (0 > loss = -1) it would pay a losing policy to stall (D10), so self-play scores it `--draw-reward` (default -1, a loss for both seats) and reports it as `draw-cap`. Remove once a real match clock exists. |
 | **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:159,1499-1511` | Same incentive problem as the cap; self-play scores it like the cap (`draw-stall`). Keep it as a progress probe until optional-loop actions exist. |
 | **10 acts per main phase** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; since 2026-11-06 every turn has both main phases' act windows, B-74, so the cap is 10 in each) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`RandomPolicy.take_acts`, `_play_turns`); `MTG_bot/bench/router.py` `SeatRouter.take_acts` | A rail, not a rule: CR 505 sets no limit on how often the active player acts in a main phase. It ends the window of a policy that never passes (a free ability activated forever). A priority system would not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. |
-| **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `stack._window_taps` (counter and combat windows), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution and the response windows use free sources only. Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
+| **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later act window adds the mana at that step, standing in for the lands the player taps there (the act window does not tap for the player). Remove with the act window's explicit taps, when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
 | **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
@@ -176,9 +176,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     (`slot_designations`); "fire" and the activation target offered only for a card whose targets
     can be chosen (`query.cast_designee_ok`); a target's cost increase priced (`cast_card` builds
     its plan before any target exists, stack.py:1556, where `cast` re-prices, stack.py:1220, V29);
-    and the targets checked again on resolution (CR 608.2b: `cast` does, stack.py:1285;
-    `cast_card` does not, which now matters because a response window comes first). Each changes
-    what the network is asked.
+    and the targets checked again on resolution (CR 608.2b; both lanes do since 2026-11-10,
+    `stack.resolve_top`). Each changes what the network is asked.
   - The X half: `_v_cast` passes X = 0 unless the ability announced an X, so Chandra's -2, which
     pays the spell's mana cost, recasts Volcanic Geyser with X = 0 (the caster chooses X, CR
     601.2b; 107.3b makes X = 0 only when no mana cost is paid, as for Idol of Endurance).
@@ -190,33 +189,26 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
   should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
   redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
-- **B-110 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: abilities never sit on the
-  stack, so "counter target activated or triggered ability" has no legal target** (engine gap).
-  - Gap: `activate()` and the trigger drain resolve abilities at once (CR 602.2 and 603.3 put
-    them on the stack), so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for nothing. Sublime Epiphany's
-    second mode and Tale's End's ability half are never offered (CR 700.2a), which is weaker than
-    printed. Remove with the priority and stack rung: abilities as stack objects. Design:
-    `docs/DESIGN_PRIORITY.md` (proposed 2026-11-10).
+- **B-110 [2026-10-30, branch `engine/r5b-go-items`] Ontology R5-10: "counter target activated or
+  triggered ability" has no legal target** (engine gap).
+  - Gap: abilities are stack objects since 2026-11-10 (`stack.StackObject`, DESIGN_PRIORITY §11
+    steps 2-3), but no selector enumerates them, so STACK_KIND_EQ ACTIVATED/TRIGGERED holds for
+    nothing. Sublime Epiphany's second mode and Tale's End's ability half are never offered (CR
+    700.2a), which is weaker than printed. Remove with the stack target enumeration of
+    DESIGN_PRIORITY §2.3.
   - Not done (outside R5-10's registered blast radius): M21 Unsubstantiate's "Return target spell
     or creature" compiles the spell half as `FNot(IS_PERMANENT)` over the stack, so it cannot take
-    an artifact, enchantment or planeswalker spell (weaker than printed, latent: no window offers it
-    with a spell on the stack). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ Creature)`, one golden.
+    an artifact, enchantment or planeswalker spell (weaker than printed; reachable once players act
+    at every priority point, DESIGN_PRIORITY §11 5b-2). Fix: `FOr(STACK_KIND_EQ SPELL, TYPE_EQ
+    Creature)`, one golden.
   - The bench labels a multi-mode `choose` token "choice N" (`bench/protocol.py` maps tokens to
     bullets only when every option set is one mode); it is representable but not described.
-- **Triggered abilities choose their targets as they resolve** (binding.py ~1621; B-110: abilities
-  never go on the stack), so CR 608.2b never applies to them, and in a simultaneous-trigger race
-  the active player now chooses after the other player's trigger has resolved (CR 603.3b/d: all
-  are put on the stack, targets chosen, before any resolves). Stronger for the active player in
-  rare races (two Pitchburn Devils). Red-team rt3b, 2026-11-05.
 - **One player's simultaneous triggers resolve oldest first, never asked** (CR 603.3b lets the
   player order them): weaker only, e.g. Terror of the Peaks + Bone Pit Brute deals 4 where 8 is
   possible; ~9 of 481 same-player batches per 2,000 games care.
 - **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
   restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
   returned before resolution is still hit because handles survive zone changes (CR 400.7).
-- **The counter window casts X spells only at X = 0** (red-team 2026-11-05): the act menu and,
-  since 448eeea, the combat window have one row per payable X; the counter window
-  (`stack._counter_vocab`) does not. Give it the same X rows.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
@@ -351,10 +343,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `Executor.empty_mana_pools`. The rest of B-90 (no mana outside the active player's main phase)
   is the automatic-payment scaffold: option (a) built, (b) the `PAYMENT:PTR` asks of
   `DESIGN_ACTION_SPACE.md` §1.3 the design target.
-- **Creature mana cannot pay in counter or combat windows** (by design in fix/menu-mana, weaker
-  than printed): Llanowar Visionary cannot pay for Cancel in response; Vodalian Arcanist's mana is
-  unusable at instant speed. 0 of 15,473 window menus in 600 games would have changed. Fix: offer
-  the window cast once per payment that uses a creature source, like the act menu's mana rows.
 - **The payment rule's "most colours stay makeable" is greedy**: 102 of 32,717 random boards
   (0.31%; 0 of 7,204 real-game casts) had a payment leaving a strict superset of colours
   (Conclave Mentor with Blossoming Sands, Temple of Silence, Thornwood Falls, Swiftwater Cliffs).
@@ -634,8 +622,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   per combat however many creatures block (CR 509.3c), BecomesBlockedEvent is anchored to the
   source, and DeclareBlockersEvent(blocked=...) fires once per blocker.
 - **Ancient Hellkite** now compiles "{R}: This creature deals 1 damage to target creature defending
-  player controls." but not "Activate only if this creature is attacking."; and the combat window
-  offers instants only (`stack.open_combat_window`), so no ability can be activated while attacking.
+  player controls." but not "Activate only if this creature is attacking."; and until players act
+  at every priority point (DESIGN_PRIORITY §11 5b-2) no ability can be activated while attacking.
 - **"You may pay <mana>." composes with any trigger frame**, so the payment half of a pair whose
   second half has no template now parses on partly compiled cards (Llanowar Sentinel, Tenacious
   Dead, Frenzied Goblin in M15 and FDN, Skyrider Patrol, Sparktongue Dragon, Eternal Taskmaster,
@@ -695,9 +683,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
-- **M20 Mystic Forge (needs-atom): re-map it.** Its permission cast now gets the counter window
-  (851d652; its pack `pack_forge_cast_can_be_countered.json` passes against its draft); the target
-  half is "The CAST atom has no target channel" under the engine faults.
+- **M20 Mystic Forge (needs-atom): re-map it.** Its permission cast can be countered (851d652; its
+  pack `pack_forge_cast_can_be_countered.json` passed against its draft with the old counter window,
+  so re-run it with a response cast while the spell waits on the stack); the target half is "The
+  CAST atom has no target channel" under the engine faults.
 - **FDN Joraga Invocation can go back to G2**: it was refused because a must-be-blocked
   requirement forced the first able blocker; the defender chooses since 62a1ae2 (2026-11-06).
 - **FDN round 1 record findings** (2026-11-06; neither card is verified):
@@ -746,16 +735,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **The `cast` op still gives its words to two lanes.** It passes the step's words to the cast
     as its decision pool (where `stack.cast_modes` takes a mode word) and to the provider. The
     provider's queue does not drop a word the pool took, so a cast step that names a mode by word
-    and then answers a counter window would hand the window the mode word. No pack does that
-    today. The `activate` op stopped passing a pool on 2026-11-06 (7a40f78), for the same fault
+    and then answers an ask its resolution makes would hand that ask the mode word. No pack does
+    that today. The `activate` op stopped passing a pool on 2026-11-06 (7a40f78), for the same fault
     with a permission row's "fire" (all 729 packs ran identically either way).
   - In cast steps decision words reach the engine raw (pack keys are not translated) and a
     skipped word restarts the queue.
   - In a combat step, a creature missing from the `attack` map takes its attack answer from the
     step's `decisions`, which shifts the words meant for a trigger.
   - The deal_damage op cannot target a player.
-  - The docstring omits the `life` op and lanes the runner reads (window_asks, kickback_asks,
-    battlefield_pt, battlefield_keywords, combat_window_*).
+  - The docstring omits the `life` op and lanes the runner reads (kickback_asks, battlefield_pt,
+    battlefield_keywords).
 - **Packs bind every placed card's record; games bind none until a card is cast, played or
   enters** (2026-11-06): the pack runner calls `attach_pool` after placing the cards, which binds
   `handle_record` for every zone, while `_setup_game` attaches the pool before the decks are dealt.
@@ -866,13 +855,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **The observation cannot see the return rows** (B-97, `tools/selfplay/features.py`): a policy
   trained on it does not know that killing Banishing Light returns its card (AGENTS §10). Add the
   row (anchor, card, return zone) at the next observation-schema change.
-- **Response-window journal rows reveal hands** (2026-11-06, found building E0's event window):
-  the engine opens a counter or combat window, and journals WINDOW_OPEN / WINDOW_PASS (and
-  KICKBACK), only for a seat that holds a castable answer (`stack.py` `_response_window`,
-  `_combat_window`: "a seat with nothing to offer is skipped without an ask and without a journal
-  row"). Paper Magic passes priority whatever a player holds. Any history input (the per-turn table
-  of PLAN_LEARNING §7, an event window) must leave those rows out, as E0's event window did
-  (KNOWLEDGE/2026-11-06/186).
 - **Duress / Kitesail Freebooter's choose ask lists each card twice** (index tokens plus handle
   aliases, verbs._v_choose, r19c), so an agent sees two options per choice and splits its
   probability. One token per choice (the handle) was tried on 2026-11-05 and reverted: r19c made

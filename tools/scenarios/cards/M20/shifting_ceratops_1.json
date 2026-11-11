@@ -1,7 +1,7 @@
 {
  "set": "M20",
  "name": "shifting_ceratops_convolute_cannot_counter_it",
- "notes": "Printed: 'This spell can't be countered.' P1 responds with Convolute (counter unless its controller pays {4}); P0 spent all its mana, so the unless-cost is unpayable and never asked. Convolute resolves but the Ceratops is not countered and enters the battlefield.",
+ "notes": "Printed: 'This spell can't be countered.' P1 responds with Convolute (counter unless its controller pays {4}); P0 spent all its mana, so the unless-cost is unpayable and never asked. Convolute resolves but the Ceratops is not countered and enters the battlefield. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "ceratops", "real": "Shifting Ceratops", "zone": "hand", "controller": 0},
@@ -9,11 +9,11 @@
  ],
  "mana": {"0": {"G": 4}, "1": {"U": 3}},
  "steps": [
-  {"op": "cast", "key": "ceratops", "decisions": ["convolute"]}
+  {"op": "cast", "key": "ceratops", "hold": true},
+  {"op": "cast", "key": "convolute", "controller": 1, "targets": ["ceratops"], "tap": true, "real": "Convolute"}
  ],
  "expect": {
   "zone": {"ceratops": "battlefield", "convolute": "graveyard"},
-  "window_asks": {"1": ["convolute"]},
   "kickback_asks": {"0": []}
  }
 }

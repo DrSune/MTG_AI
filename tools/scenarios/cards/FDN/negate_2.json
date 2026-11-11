@@ -1,7 +1,7 @@
 {
  "set": "FDN",
  "name": "negate_2",
- "notes": "P6b6f29d9b9 G4 (verifier v1). Printed: 'Counter target noncreature spell.' Seat 0 casts Bear Cub (a creature spell); seat 1 holds Negate and {1}{U}, but a creature spell is no legal target, so seat 1 is never offered a counter: the Cub resolves and Negate stays in hand.",
+ "notes": "P6b6f29d9b9 G4 (verifier v1). Printed: 'Counter target noncreature spell.' Seat 0 casts Bear Cub (a creature spell); seat 1 holds Negate and {1}{U}, but a creature spell is no legal target, so seat 1 is never offered a counter: the Cub resolves and Negate stays in hand. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone; the counterspell cannot be cast at this spell (an illegal target), where the window never offered it.",
  "world": {
   "life": 20,
   "seed": 7
@@ -33,16 +33,27 @@
  "steps": [
   {
    "op": "cast",
-   "key": "cub"
+   "key": "cub",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "negate",
+   "controller": 1,
+   "targets": [
+    "cub"
+   ],
+   "expect_raise": "illegal target",
+   "real": "Negate"
+  },
+  {
+   "op": "pass"
   }
  ],
  "expect": {
   "zone": {
    "cub": "battlefield",
    "negate": "hand"
-  },
-  "window_asks": {
-   "1": []
   }
  }
 }

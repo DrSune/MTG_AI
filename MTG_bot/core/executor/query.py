@@ -1389,9 +1389,8 @@ def spell_target_slots(
 
     ``pay``: how a target-dependent total is priced, as
     ``pay(targets) -> bool`` (:func:`_affordable_target_slots`). None prices it
-    against the pool alone, as :func:`stack.cast` pays; a caller that taps free
-    sources before casting (the bench menu, the response windows) passes its
-    own."""
+    against the pool alone, as :func:`stack.cast` pays; a caller that taps
+    mana sources before casting (``executor.menu``) passes its own."""
     if modes is not None and modal_choose(node) is not None:
         node = with_modes(node, modes)
     slots: list[TargetSlot] = []

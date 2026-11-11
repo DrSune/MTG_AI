@@ -71,7 +71,7 @@ class AskRoutingError(RuntimeError):
 #: ``mulligan:<seat>:<mulligans taken>`` (keep or mulligan) and
 #: ``mulligan_bottom:<seat>:<cards still to put on the bottom>`` (a card of the hand).
 SEAT_IN_TAG = frozenset(
-    {"target", "tap", "sacrifice", "discard", "scry", "pay", "counter", "cw", "legend", "x",
+    {"target", "tap", "sacrifice", "discard", "scry", "pay", "legend", "x",
      "replace", "mulligan", "mulligan_bottom"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
@@ -209,8 +209,6 @@ def engine_ask(
         "target": f"{about}: choose a target.",
         "scry": "Scry: keep the next card on top, or put it on the bottom?",
         "pay": "A spell asks whether you pay its cost.",
-        "counter": "A spell is on the stack: respond with a counterspell, or pass?",
-        "cw": "Combat: cast an instant now, or pass?",
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
         "legend": "Legend rule: you control legendary permanents with the same name. Choose the one to keep; the others go to the graveyard.",

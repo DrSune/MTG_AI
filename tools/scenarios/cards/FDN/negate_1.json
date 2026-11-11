@@ -1,7 +1,7 @@
 {
  "set": "FDN",
  "name": "negate_1",
- "notes": "P6b6f29d9b9 G4 (verifier v1). Printed: 'Counter target noncreature spell.' Seat 0 casts Crash Through (a sorcery: 'Creatures you control gain trample until end of turn. Draw a card.'). Seat 1 holds Negate with exactly {1}{U}, is offered it in the response window and casts it: Crash Through is countered (CR 701.6a), so seat 0 draws nothing; both spells end in graveyards.",
+ "notes": "P6b6f29d9b9 G4 (verifier v1). Printed: 'Counter target noncreature spell.' Seat 0 casts Crash Through (a sorcery: 'Creatures you control gain trample until end of turn. Draw a card.'). Seat 1 holds Negate with exactly {1}{U}, is offered it in the response window and casts it: Crash Through is countered (CR 701.6a), so seat 0 draws nothing; both spells end in graveyards. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -33,9 +33,17 @@
   {
    "op": "cast",
    "key": "crash",
-   "decisions": [
-    "negate"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "negate",
+   "controller": 1,
+   "targets": [
+    "crash"
+   ],
+   "tap": true,
+   "real": "Negate"
   }
  ],
  "expect": {
@@ -47,17 +55,6 @@
    "0": 0,
    "1": 0
   },
-  "window_asks": {
-   "1": [
-    "negate"
-   ]
-  },
-  "window_vocab": [
-   [
-    "PASS",
-    "negate"
-   ]
-  ],
   "mana_pool": {
    "0": {},
    "1": {}

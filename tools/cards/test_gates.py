@@ -497,7 +497,10 @@ def test_target_to_all_on_a_twin_stack_designation_is_dead() -> None:
         if flier:
             cards.append({"key": "bird", "name": "Sky Bird", "type": "Creature — Bird", "power": "1",
                           "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1})
-        pack = _pack(cards, [{"op": "cast", "key": "mate", "decisions": ["lofty", "PAY"]}],
+        # the Shieldmate waits on the stack; Lofty Denial is cast at it, and its controller pays
+        pack = _pack(cards, [{"op": "cast", "key": "mate", "hold": True},
+                             {"op": "cast", "key": "lofty", "real": "Lofty Denial", "controller": 1,
+                              "targets": ["mate"], "decisions": ["PAY"]}],
                      {"0": {"W": 1, "R": 2}, "1": {"U": 2}})
         real = _game(pack)
         assert next(o for o in real[0].values() if o[0] == "Staunch Shieldmate")[1] == (

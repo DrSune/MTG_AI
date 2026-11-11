@@ -240,18 +240,22 @@ def test_vanilla_token_does_not_inherit_a_same_named_tokens_abilities() -> None:
 
 
 def _countered_through_permission(g, permission, spell, mana) -> None:
-    """Activate ``permission``'s cast row (index 1) and fire it; the opponent, holding Cancel and
-    {U}{U}{U}, answers the counter window with it. A spell cast through a permission is cast like
-    one from hand, so it gets the same window (CR 601.2i, 117.3c, 608.1)."""
+    """Activate ``permission``'s cast row (index 1) and let it resolve while the players keep
+    priority: the spell it casts waits on the stack like one cast from hand (CR 601.2i, 117.3c,
+    608.1), and the opponent, holding Cancel and {U}{U}{U}, counters it there."""
     from MTG_bot.core.executor.legality import activate
+    from MTG_bot.core.state import ZONE_STACK
 
     cancel = g.one(g.p1, "Cancel", ZONE_LIBRARY)
     g.to_hand(cancel)
     _pool(g, g.p0, **mana)
     _pool(g, g.p1, U=3)
-    g.answers = {"may:": "fire", "counter:": str(cancel)}
-    activate(g.ex, permission, 1, seat=g.p0)
-    assert any(what.startswith(f"counter:{g.p1}:") for what, _ in g.asks), g.asks
+    g.answers = {"may:": "fire"}
+    with g.ex.holding_priority():
+        activate(g.ex, permission, 1, seat=g.p0)
+        g.ex.all_pass()  # the ability resolves: the spell is cast and waits
+    assert g.zone(spell) == ZONE_STACK, g.zone(spell)
+    cast(g.ex, g.p1, cancel, targets=(spell,))
     assert g.zone(spell) == ZONE_GRAVEYARD, "countered: into its owner's graveyard (CR 400.7)"
     assert g.zone(cancel) == ZONE_GRAVEYARD
 

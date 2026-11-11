@@ -1,7 +1,7 @@
 {
  "set": "M20",
  "name": "thought_distortion_uncounterable_exiles_noncreature_nonland_from_hand_and_graveyard",
- "notes": "Printed: 'This spell can't be countered. Target opponent reveals their hand. Exile all noncreature, nonland cards from that player's hand and graveyard.' P1 responds with Negate; Negate resolves but Thought Distortion is not countered. From P1's hand the instant is exiled; the land, the creature and the artifact creature stay. From P1's graveyard the sorcery, the enchantment and the resolved Negate are exiled; the land and the creature stay. P0's own hand and graveyard are untouched.",
+ "notes": "Printed: 'This spell can't be countered. Target opponent reveals their hand. Exile all noncreature, nonland cards from that player's hand and graveyard.' P1 responds with Negate; Negate resolves but Thought Distortion is not countered. From P1's hand the instant is exiled; the land, the creature and the artifact creature stay. From P1's graveyard the sorcery, the enchantment and the resolved Negate are exiled; the land and the creature stay. P0's own hand and graveyard are untouched. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "td", "real": "Thought Distortion", "zone": "hand", "controller": 0},
@@ -19,7 +19,8 @@
  ],
  "mana": {"0": {"B": 2, "C": 4}, "1": {"U": 2}},
  "steps": [
-  {"op": "cast", "key": "td", "targets": ["p1"], "decisions": ["negate"]}
+  {"op": "cast", "key": "td", "targets": ["p1"], "hold": true},
+  {"op": "cast", "key": "negate", "controller": 1, "targets": ["td"], "tap": true, "real": "Negate"}
  ],
  "expect": {
   "zone": {
@@ -28,7 +29,6 @@
    "gy_land": "graveyard", "gy_sorcery": "exile", "gy_creature": "graveyard", "gy_ench": "exile",
    "my_instant": "graveyard", "my_sorcery": "hand"
   },
-  "window_asks": {"1": ["negate"]},
   "hand": {"0": 1, "1": 3}
  }
 }

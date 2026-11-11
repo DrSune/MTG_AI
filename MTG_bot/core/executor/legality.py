@@ -1903,7 +1903,6 @@ def activate(
     )
     if plan is None:  # pragma: no cover - ability_playable just checked
         raise ValueError(f"executor: illegal activation: {plan_reason}")
-    floor = len(executor.stack.frames)
     with executor.atomic():  # CR 602.2b: the costs are paid as part of activating
         pay_costs(executor, plan, source=handle, controller=seat)
     loyalty_ability = is_loyalty_ability(ability)
@@ -1976,7 +1975,7 @@ def activate(
         # What activating triggered goes on the stack above the ability and
         # resolves first (CR 117.5), then the ability (both players pass).
         executor.stack.push(obj)
-    executor._finish_op(floor)
+    executor._finish_op()
     return tuple(executor.events[start:])
 
 
@@ -2023,15 +2022,14 @@ def resolve_activated(executor: Executor, obj) -> str:
 # --------------------------------------------- mana abilities while paying
 # CR 601.2g / 605.3a: a player may activate mana abilities while paying a
 # cost, including in the middle of a resolution. The engine pays from the
-# pool, and the pool empties as each step and phase ends, so a payment
-# asked OUTSIDE the active player's act window (a response window, a "you
-# may pay", an "unless its controller pays") would have no mana. These
-# helpers let such a payment tap the payer's FREE sources (non-creature
-# permanents whose mana ability costs only {T}: lands, plain mana rocks): a
-# minimal set the payment planner proves sufficient, never all. The act
-# window's menu pays the same way (bench/router.py). Every other mana
-# ability (a creature's, a sacrifice, a mana-cost filter) has a cost of its
-# own and is never activated on the player's behalf.
+# pool, and the pool empties as each step and phase ends, so these helpers
+# let a payment tap the payer's mana sources: a minimal set the payment
+# planner proves sufficient, never all. The menu (executor/menu.py) pays
+# with free sources (non-creature permanents whose mana ability costs only
+# {T}: lands, plain mana rocks), then costly ones (_source_tier); a payment
+# inside a resolution ("you may pay", "unless its controller pays") with
+# free sources only. A mana-cost filter is never activated on the
+# player's behalf.
 # SCAFFOLD (BACKLOG "scaffolds to remove"): the engine picks the sources, a
 # decision hidden from the player (AGENTS §10); removed by the PAYMENT asks
 # of DESIGN_ACTION_SPACE §1.3 (a learned payment choice).
@@ -2337,8 +2335,9 @@ def tap_for_payment(
     *,
     inside_atom: bool = False,
 ) -> None:
-    """Activate the planned mana abilities. At top level (a response window)
-    each is the ordinary journalled activation move. Inside a running atom ("you
+    """Activate the planned mana abilities. At top level (paying for a cast or
+    an activation) each is the ordinary journalled activation move, with no
+    priority point between them. Inside a running atom ("you
     may pay", "unless its controller pays") a mana ability resolves at once
     without the stack (CR 605.3b): the permanent taps and its mana is added in
     place, and the running atom's journal diff records the tap once. A nested
@@ -2352,10 +2351,15 @@ def tap_for_payment(
     sees a mana ability activated while paying. The planner only picks
     ability_playable sources, so an activation lock (CR 602.5) already keeps a
     locked mana ability out of the plan."""
+    if not inside_atom:
+        # Paying is part of the cast or activation (CR 601.2g, 605.3a): no
+        # priority point between the taps, and what they trigger waits for
+        # the one after the spell or ability is on the stack.
+        with executor.atomic():
+            for tap in taps:
+                activate(executor, tap.source, tap.ability_idx, seat=payer, decisions=tap.decisions)
+        return
     for tap in taps:
-        if not inside_atom:
-            activate(executor, tap.source, tap.ability_idx, seat=payer, decisions=tap.decisions)
-            continue
         executor.world.cards[tap.source].tapped = True
         color, n, tags = tap.production
         pool = executor.world.players[payer].mana_pool

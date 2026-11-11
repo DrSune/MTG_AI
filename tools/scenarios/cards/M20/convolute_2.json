@@ -1,5 +1,5 @@
 {"set": "M20", "name": "convolute_unpaid_spell_countered",
- "notes": "P87cbe0b609 G4. Printed: 'Counter target spell unless its controller pays {4}.' Same world as convolute_paid_spell_resolves, but seat 0 declines to pay: Disfigure is countered, the Bear stays 2/2, and seat 0 keeps its four mana.",
+ "notes": "P87cbe0b609 G4. Printed: 'Counter target spell unless its controller pays {4}.' Same world as convolute_paid_spell_resolves, but seat 0 declines to pay: Disfigure is countered, the Bear stays 2/2, and seat 0 keeps its four mana. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
@@ -8,12 +8,12 @@
  ],
  "mana": {"0": {"B": 1, "C": 4}, "1": {"U": 1, "C": 2}},
  "steps": [
-  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "decisions": ["convolute", "PASS"]}
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "convolute", "controller": 1, "targets": ["disfigure"], "tap": true, "real": "Convolute"}
  ],
  "expect": {
   "zone": {"disfigure": "graveyard", "convolute": "graveyard", "bear": "battlefield"},
   "power": {"bear": 2},
-  "window_asks": {"1": ["convolute"]},
   "kickback_asks": {"0": ["PASS"]},
   "mana_pool": {"0": {"C": 4}, "1": {}}
  }

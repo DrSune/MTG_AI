@@ -31,9 +31,20 @@
    "op": "cast",
    "real": "Staunch Shieldmate",
    "key": "cre",
-   "decisions": [
-    "miscast"
-   ]
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "miscast",
+   "controller": 1,
+   "targets": [
+    "cre"
+   ],
+   "expect_raise": "illegal target",
+   "real": "Miscast"
+  },
+  {
+   "op": "pass"
   }
  ],
  "expect": {
@@ -41,14 +52,11 @@
    "cre": "battlefield",
    "miscast": "hand"
   },
-  "window_asks": {
-   "1": []
-  },
   "mana_pool": {
    "1": {
     "U": 1
    }
   }
  },
- "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: a creature spell is not an instant or sorcery spell, so Miscast cannot target it; the opponent is offered no Miscast response, keeps Miscast and its {U}, and the creature resolves."
+ "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: a creature spell is not an instant or sorcery spell, so Miscast cannot target it; the opponent is offered no Miscast response, keeps Miscast and its {U}, and the creature resolves. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone; the counterspell cannot be cast at this spell (an illegal target), where the window never offered it."
 }

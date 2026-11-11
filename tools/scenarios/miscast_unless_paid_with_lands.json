@@ -64,8 +64,18 @@
    "targets": [
     "ogre"
    ],
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "miscast",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true,
+   "real": "Miscast",
    "decisions": [
-    "miscast",
     "PAY"
    ]
   }
@@ -93,5 +103,5 @@
    "ogre": 2
   }
  },
- "notes": "B-90 (a) (2026-10-29). Seat 1 answers the Shock with Miscast ('Counter target instant or sorcery spell unless its controller pays {3}'), tapping its Island for {U}. Seat 0 is asked PAY/PASS: it can pay {3} by tapping its three Plains while paying (CR 605.3a, 601.2g), pays, and the Shock resolves: 2 damage to the Ogre."
+ "notes": "B-90 (a) (2026-10-29). Seat 1 answers the Shock with Miscast ('Counter target instant or sorcery spell unless its controller pays {3}'), tapping its Island for {U}. Seat 0 is asked PAY/PASS: it can pay {3} by tapping its three Plains while paying (CR 605.3a, 601.2g), pays, and the Shock resolves: 2 damage to the Ogre. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
 }

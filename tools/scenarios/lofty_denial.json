@@ -1,6 +1,6 @@
 {
  "name": "lofty_denial",
- "note": "wave7 (Rung-1 window, creature-spell filter lane): P0 casts the REAL Staunch Shieldmate (vanilla {W} creature); the WINDOW opens and the Lofty filter (STACK + TYPE_EQ Creature) matches, so P1 \u2014 holding the REAL Lofty Denial ({1}{U}) \u2014 is asked. P1 answers with its KEY; at resolution the engine builds the {1} kickback plan against P0 (the caster, NOT the counter's controller) and asks pay:<P0>. P0 PAYS: the generic drains its lone R (deterministic), the creature spell LIVES and resolves onto the battlefield. Lofty's colored {U} plus generic {1} drain both seeded blues (same-color-first law). Falsified by flipping the pay answer (zones invert) or by P0 holding nothing to pay (no ask at all).",
+ "note": "wave7 (Rung-1 window, creature-spell filter lane): P0 casts the REAL Staunch Shieldmate (vanilla {W} creature); the WINDOW opens and the Lofty filter (STACK + TYPE_EQ Creature) matches, so P1 — holding the REAL Lofty Denial ({1}{U}) — is asked. P1 answers with its KEY; at resolution the engine builds the {1} kickback plan against P0 (the caster, NOT the counter's controller) and asks pay:<P0>. P0 PAYS: the generic drains its lone R (deterministic), the creature spell LIVES and resolves onto the battlefield. Lofty's colored {U} plus generic {1} drain both seeded blues (same-color-first law). Falsified by flipping the pay answer (zones invert) or by P0 holding nothing to pay (no ask at all). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -33,8 +33,18 @@
    "op": "cast",
    "real": "Staunch Shieldmate",
    "key": "mate",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "lofty",
+   "controller": 1,
+   "targets": [
+    "mate"
+   ],
+   "tap": true,
+   "real": "Lofty Denial",
    "decisions": [
-    "lofty",
     "PAY"
    ]
   }
@@ -57,11 +67,6 @@
     "R": 3
    },
    "1": {}
-  },
-  "window_asks": {
-   "1": [
-    "lofty"
-   ]
   },
   "kickback_asks": {
    "0": [

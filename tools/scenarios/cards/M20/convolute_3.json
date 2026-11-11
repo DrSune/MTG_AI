@@ -1,5 +1,5 @@
 {"set": "M20", "name": "convolute_three_extra_mana_cannot_pay",
- "notes": "P87cbe0b609 G4. Printed: '... unless its controller pays {4}.' Seat 0 has only three mana left after casting Disfigure: {4} cannot be paid, so seat 0 is never asked to pay and Disfigure is countered; the Bear lives and seat 0 keeps its three mana.",
+ "notes": "P87cbe0b609 G4. Printed: '... unless its controller pays {4}.' Seat 0 has only three mana left after casting Disfigure: {4} cannot be paid, so seat 0 is never asked to pay and Disfigure is countered; the Bear lives and seat 0 keeps its three mana. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
@@ -8,12 +8,12 @@
  ],
  "mana": {"0": {"B": 1, "C": 3}, "1": {"U": 1, "C": 2}},
  "steps": [
-  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "decisions": ["convolute"]}
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "convolute", "controller": 1, "targets": ["disfigure"], "tap": true, "real": "Convolute"}
  ],
  "expect": {
   "zone": {"disfigure": "graveyard", "convolute": "graveyard", "bear": "battlefield"},
   "power": {"bear": 2},
-  "window_asks": {"1": ["convolute"]},
   "kickback_asks": {"0": []},
   "mana_pool": {"0": {"C": 3}, "1": {}}
  }

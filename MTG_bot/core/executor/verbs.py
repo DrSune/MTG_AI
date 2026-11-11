@@ -2430,8 +2430,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.CHOOSE: _v_choose,
     Verb.CHOOSE_NAME: _v_choose_name,
     Verb.MANA_POLICY: _v_mana_policy,
-    # The counter verb, with the stack.cast response window and its
-    # unless-kickback ask.
+    # The counter verb, with its unless-kickback ask.
     Verb.COUNTER_SPELL: _v_counter_spell,
     # The permission/effect verbs — emblem acquisition, static type
     # grants, the additional-land allowance and the activation-window

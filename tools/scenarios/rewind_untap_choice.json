@@ -1,6 +1,6 @@
 {
  "set": "M21",
- "notes": "Rewind, printed: 'Untap UP TO FOUR lands.' The lands are chosen by Rewind's controller on resolution. P0 taps its Mountain for {R} and casts Shock at P1's Rager; P1 answers with Rewind, counters the Shock, and chooses four of its five tapped Plains (p1-p4): those untap, p5 stays tapped (four at most), and P0's Mountain stays tapped (not chosen).",
+ "notes": "Rewind, printed: 'Untap UP TO FOUR lands.' The lands are chosen by Rewind's controller on resolution. P0 taps its Mountain for {R} and casts Shock at P1's Rager; P1 answers with Rewind, counters the Shock, and chooses four of its five tapped Plains (p1-p4): those untap, p5 stays tapped (four at most), and P0's Mountain stays tapped (not chosen). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
@@ -16,7 +16,8 @@
  "mana": {"0": {"R": 1}, "1": {"U": 6}},
  "steps": [
   {"op": "activate", "key": "m1", "idx": 0, "seat": 0},
-  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["rager"], "decisions": ["rewind", "p1", "p2", "p3", "p4"]}
+  {"op": "cast", "real": "Shock", "key": "shock", "targets": ["rager"], "hold": true},
+  {"op": "cast", "key": "rewind", "controller": 1, "targets": ["shock"], "tap": true, "real": "Rewind", "decisions": ["p1", "p2", "p3", "p4"]}
  ],
  "expect": {
   "zone": {"shock": "graveyard", "rewind": "graveyard", "rager": "battlefield"},

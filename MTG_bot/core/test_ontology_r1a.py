@@ -451,13 +451,10 @@ class TestUnwrapExecution(Rung1Case):
         neg = self._give_real(rec_neg, self.p1)
         self.mana(self.p0, R=1)
         self.mana(self.p1, U=2)
-        # the ONE ask is the RUNG-1 counter offer (Negate's stack target is
-        # a single candidate and auto-resolves); answer it with the real card
-        self.script(str(neg))
-        try:
-            self.ex_cast(self.p0, zap, targets=(self.p1,))
-        finally:
-            self.ex.decisions.provider = None
+        # cast while the Shock waits on the stack: Negate's stack target is a
+        # single candidate and auto-resolves (no ask)
+        self.script()
+        self.countered_by(neg, self.p0, zap, targets=(self.p1,))
         self.assertEqual(self.zone_kind(zap), ZONE_GRAVEYARD)  # countered
         self.assertEqual(self.zone_kind(neg), ZONE_GRAVEYARD)  # resolved
         self.assertGreaterEqual(len(self.journal_rows("COUNTER")), 1)
@@ -465,18 +462,21 @@ class TestUnwrapExecution(Rung1Case):
 
     def test_negate_cannot_counter_a_creature_spell_falsifier(self):
         """The FNot[TYPE_EQ Creature] filter, EXECUTED: a creature spell on
-        the stack is NOT a legal target, so Negate is never even OFFERED
-        (the script is empty — any ask fails loudly), the creature resolves,
-        and its ETB trigger still runs the FAtom creature menu."""
+        the stack is NOT a legal target, so Negate is not in its holder's
+        menu while it waits; the creature resolves, and its ETB trigger still
+        runs the FAtom creature menu (no ask: the script is empty)."""
         rec_neg = _compiled_znr("Negate")
         rec_ds = _compiled_znr("Dauntless Survivor")
         ds = self._give_real(rec_ds, self.p0)
-        self._give_real(rec_neg, self.p1)
+        neg = self._give_real(rec_neg, self.p1)
         self.mana(self.p0, G=2)
         self.mana(self.p1, U=2)
+        with self.ex.holding_priority():
+            self.ex_cast(self.p0, ds)
+        self.assertNotIn(f"cast:{neg}", self.menu_tokens(self.p1))
         self.script()  # zero permitted asks: any ask raises unexpected-ask
         try:
-            self.ex_cast(self.p0, ds)
+            self.ex.fire_triggers()  # both players pass
         finally:
             self.ex.decisions.provider = None
         self.assertEqual(self.zone_kind(ds), ZONE_BATTLEFIELD)  # NOT countered

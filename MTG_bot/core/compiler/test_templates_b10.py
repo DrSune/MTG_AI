@@ -607,10 +607,10 @@ class TestAnticognitionCounter(StackCase):
             )
 
 
-class TestAnticognitionResponseWindow(Rung1Case):
-    """The compiled counter and its flat {2} unless cost in the real response window: PASS
-    counters the spell (COUNTER row, card to graveyard); PAY pays from the spell controller's
-    pool and the spell lives."""
+class TestAnticognitionInResponse(Rung1Case):
+    """The compiled counter and its flat {2} unless cost, cast at a creature spell waiting on
+    the stack: PASS counters the spell (COUNTER row, card to graveyard); PAY pays from the
+    spell controller's pool and the spell lives."""
 
     def _pup(self):
         pup = self.give(
@@ -636,40 +636,16 @@ class TestAnticognitionResponseWindow(Rung1Case):
         self.mana(self.p1, U=1)
         return anti
 
-    def _prov(self, counter, kick):
-        def prov(vocab, what):
-            # the kickback ask vocab is exactly ("PASS", "PAY"); the
-            # window-offer vocab is ("PASS", <counter handle>) — the
-            # handle presence is what tells the two apart.
-            if "PAY" in vocab:
-                return kick
-            for v in vocab:
-                if str(v) == str(counter):
-                    return v
-            return vocab[0]
-
-        return prov
-
     def test_pass_counters_the_creature_spell(self):
         pup = self._pup()
-        anti = self._anti()
-        self.ex.decisions.provider = self._prov(anti, "PASS")
-        try:
-            self.ex_cast(self.p0, pup)
-        finally:
-            self.ex.decisions.provider = None
+        self.countered_by(self._anti(), self.p0, pup, answers=("PASS",))
         self.assertEqual(self.zone_kind(pup), ZONE_GRAVEYARD)  # countered
         self.assertEqual(len(self.journal_rows("COUNTER")), 1)
         self.assertEqual(len(self.journal_rows("KICKBACK")), 1)
 
     def test_pay_lets_the_spell_live(self):
         pup = self._pup()
-        anti = self._anti()
-        self.ex.decisions.provider = self._prov(anti, "PAY")
-        try:
-            self.ex_cast(self.p0, pup)
-        finally:
-            self.ex.decisions.provider = None
+        self.countered_by(self._anti(), self.p0, pup, answers=("PAY",))
         self.assertEqual(self.zone_kind(pup), ZONE_BATTLEFIELD)  # lived
         rows = self.journal_rows("KICKBACK")
         self.assertEqual(len(rows), 1)

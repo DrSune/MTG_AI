@@ -2331,7 +2331,9 @@ class StallRuleTest(unittest.TestCase):
         # assertion.
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
-        self.assertEqual(game.turns, 51)
+        # 2026-11-11: 51 -> 59 when the response windows went (DESIGN_PRIORITY
+        # §11 5b-1; the random players answered them); double-run identical.
+        self.assertEqual(game.turns, 59)
         self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

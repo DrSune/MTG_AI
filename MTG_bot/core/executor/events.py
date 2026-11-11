@@ -124,22 +124,12 @@ KIND_ABILITY_ACTIVATED = "ABILITY_ACTIVATED"
 # never journalled (the matcher feeds AbilityTriggerEvent nodes from
 # _queue at firing-queue time), so it never reaches the fingerprint.
 KIND_ABILITY_TRIGGERED = "ABILITY_TRIGGERED"
-# The response-window feed. WINDOW_OPEN carries ONE row per seat that was
-# ASKED for a response to a stack frame (subject = the framed spell, cause
-# = the responding seat, data = the offered vocabulary — PASS plus the
-# payable counters it holds) or in the combat window (subject None,
-# cause_verb COMBAT_WINDOW, PASS plus the castable instants); a seat with
-# nothing to offer is never asked and gets NO row. WINDOW_PASS is the same
-# seat's explicit refusal row (the scripted audit — an unanswered window
-# cannot silently exist).
-# COUNTER is the flag row of a countered frame (subject = the countered
+# COUNTER is the flag row of a countered spell (subject = the countered
 # spell, cause = the countering spell card). KICKBACK is the "unless its
 # controller pays <cost>" site of a COUNTER_SPELL resolution: one row
 # per counter WITH an unless cost, WHETHER OR NOT a decision was asked
 # (an unpayable payer is never asked — the row then carries the honest
 # "UNPAYABLE" witness instead of a fabricated answer).
-KIND_WINDOW_OPEN = "WINDOW_OPEN"
-KIND_WINDOW_PASS = "WINDOW_PASS"
 KIND_COUNTER = "COUNTER"
 KIND_KICKBACK = "KICKBACK"
 
@@ -205,11 +195,6 @@ class GameEvent:
         player; ``mana`` is the CR 605.1a verdict, ``loyalty`` the paid
         loyalty delta or None for a non-loyalty ability (the
         AbilityActivatedEvent feed; one row per activation, mana included).
-      * WINDOW_OPEN   — ``(vocab,)``, subject the framed spell (None in the
-        combat window), cause the asked seat (the response-window audit;
-        one row per seat actually asked).
-      * WINDOW_PASS   — ``()``, subject as for WINDOW_OPEN, cause the
-        passing seat.
       * COUNTER       — ``()``, subject the countered spell card, cause
         the countering spell card (the flag row).
       * KICKBACK      — ``(answer,)``, subject the framed spell, cause
@@ -368,7 +353,7 @@ class EventJournal:
         data: tuple[object, ...] = (),
     ) -> GameEvent:
         """Public emit for a rule-relevant change no atom diff sees (the
-        untap step's TapStateEvent, combat declarations, response windows,
+        untap step's TapStateEvent, combat declarations,
         audit rows): the journal must carry it for triggers and the
         fingerprint."""
         return self._emit(kind, subject, cause, cause_verb, data)

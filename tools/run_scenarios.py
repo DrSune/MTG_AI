@@ -96,6 +96,22 @@ Pack vocabulary (all keys required as noted):
                                             words are used up. A word an ask
                                             does not offer raises, naming the
                                             ask and its words,
+             {"op": "resolve"}              every player passes once: the
+                                            top object of the stack resolves
+                                            (CR 117.4), nothing after it (what
+                                            it put on the stack waits too),
+             {"op": "pass"}                 both players pass until the stack
+                                            is empty,
+             "hold": true on a cast, activate or act step: the player keeps
+                                            priority (CR 117.3c) and nobody
+                                            passes, so what the step put on
+                                            the stack waits for the next steps
+                                            to respond to; every other step
+                                            ends with both players passing
+                                            until the stack is empty,
+             "tap": true on a cast step: the caster taps the mana sources
+                                            that pay it (the menu's automatic
+                                            payment, CR 601.2g, 605.3a),
              {"op": "combat", "seat": 0|1, "attack": {key: bool|pwKey},
                                             (a planeswalker's pack key
                                             attacks that planeswalker)
@@ -104,7 +120,12 @@ Pack vocabulary (all keys required as noted):
               "order": {attackerKey: [slot...]},        order asks
               "trample": {attackerKey: [amount...]},    excess asks
               "policy": {attackerKey: "UNBLOCKED"|
-                                  "AS_BLOCKED"}}        damage-assignment policy
+                                  "AS_BLOCKED"},        damage-assignment policy
+              "respond": {STEP: [step...]}}  steps run when that combat step
+                                            (DECLARE_ATTACKERS,
+                                            DECLARE_BLOCKERS, ...) has
+                                            priority with an empty stack: an
+                                            instant cast after blocks
                                             the whole COMBAT phase; the
                                             ask provider answers ONLY from
                                             these maps (the engine narrows
@@ -347,9 +368,9 @@ class ScenarioRunner:
         # The asks the engine made, and libraries deep enough for real
         # begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
-        # Every response-window / kickback ask the engine made, as (tag,
-        # vocab, ANSWER) triples; the expect lanes window_asks /
-        # kickback_asks / window_vocab read these.
+        # Every kickback ask the engine made ("unless its controller pays"),
+        # as (tag, vocab, ANSWER) triples; the expect lane kickback_asks reads
+        # these.
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
         # The filler below lands ON TOP of a pack's typed library cards, so
         # library-peek/scry asks would offer opaque "Library N" candidates.
@@ -411,10 +432,9 @@ class ScenarioRunner:
 
             def prov(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
-                rung1 = what.startswith(("counter:", "pay:", "cw:"))
-                # A window/kickback ask the queue does not reach takes
-                # "PASS" (queue exhaustion never crashes a window; a pack
-                # that wants another answer says so with a word).
+                rung1 = what.startswith("pay:")
+                # A kickback ask the queue does not reach takes "PASS" (a
+                # pack that wants another answer says so with a word).
                 if not queue:
                     answer = "PASS" if rung1 else vocab[0]
                     if rung1:
@@ -444,12 +464,12 @@ class ScenarioRunner:
                 self.ex.decisions.provider = None
             return
         if step["op"] != "combat":
-            # A step WITHOUT a decisions queue still answers response-window
-            # and kickback asks with PASS. Every OTHER ask raises the
-            # engine's own exhaustion message verbatim.
+            # A step WITHOUT a decisions queue still answers kickback asks
+            # with PASS. Every OTHER ask raises the engine's own exhaustion
+            # message verbatim.
             def quiet(vocab, what):
                 self.asks_seen.append((what, tuple(vocab)))
-                if what.startswith(("counter:", "pay:", "cw:")):
+                if what.startswith("pay:"):
                     self.rung1_asks.append((what, tuple(vocab), "PASS"))
                     return "PASS"
                 raise ValueError(
@@ -466,6 +486,19 @@ class ScenarioRunner:
         self._dispatch(step)
 
     def _dispatch(self, step: dict) -> None:
+        """One step. ``"hold": true`` on a cast, activate or act step: the step's
+        player keeps priority and nobody passes yet, so what it put on the stack
+        waits there for the next steps to respond to (CR 117.3c); any step
+        without it ends with both players passing until the stack is empty."""
+        if step.get("hold"):
+            with self.ex.holding_priority():
+                self._dispatch_op(step)
+            return
+        self._dispatch_op(step)
+        if step["op"] != "resolve" and not self.ex.driven and self.ex.stack.frames:
+            self.ex.fire_triggers()  # what an earlier step held resolves now
+
+    def _dispatch_op(self, step: dict) -> None:
         op = step["op"]
         if op in ("deal_damage", "fight"):
             verb = Verb.DEAL_DAMAGE if op == "deal_damage" else Verb.FIGHT
@@ -491,6 +524,20 @@ class ScenarioRunner:
             for tok in step.get("decisions", ()):
                 if isinstance(tok, str) and tok.startswith("player:"):
                     targets.append(self.seats[int(tok.split(":", 1)[1])])
+            seat = self.seats[step.get("controller", 0)]
+            if step.get("tap"):
+                # "tap": the caster taps the mana sources that pay it, as a player
+                # does while casting (CR 601.2g, 605.3a; the menu's automatic payment).
+                from MTG_bot.core.executor.legality import tap_for_payment
+                from MTG_bot.core.executor.menu import cast_taps
+
+                taps = cast_taps(
+                    self.ex, seat, self.handles[spell_key], bool(step.get("kicked", False)),
+                    step.get("x"), tuple(targets),
+                )
+                if taps is None:
+                    raise PackError(f"cast {spell_key}: its mana sources cannot pay it")
+                tap_for_payment(self.ex, seat, taps)
             cast(
                 self.ex,
                 self.seats[step.get("controller", 0)],
@@ -500,6 +547,14 @@ class ScenarioRunner:
                 targets=tuple(targets),
                 decisions=tuple(step.get("decisions", ())),
             )
+        elif op == "resolve":
+            # Every player passes once (CR 117.4): the top object resolves, and
+            # what it put on the stack waits until the next step says so.
+            with self.ex.holding_priority():
+                self.ex.all_pass()
+        elif op == "pass":
+            # Both players pass until the stack is empty.
+            self.ex.fire_triggers()
         elif op == "end_turn":
             self.ex.end_turn()
         elif op == "advance_turn":
@@ -624,7 +679,8 @@ class ScenarioRunner:
                 # absent, X is asked through the decision channel.
                 x=step.get("x"),
             )
-            self.ex.fire_triggers()
+            if not self.ex.driven:
+                self.ex.fire_triggers()
         elif op == "combat":
             self._combat(step)
         elif op == "act":
@@ -740,21 +796,6 @@ class ScenarioRunner:
 
         def answer(vocab, what):
             self.asks_seen.append((what, tuple(vocab)))
-            # The combat instant window. Its tag (cw:<seat>:<digest>) is
-            # claimed by NO answer map, so its scripted words ride the
-            # ``decisions`` script IN ARRIVAL ORDER (window asks precede
-            # post-damage dies asks); a pack key or a ``key@key``
-            # composite resolves through _resolve_word, and an unreached
-            # word defaults to "PASS" (queue exhaustion never crashes a
-            # window). Answers are journalled for the combat_window_asks
-            # / combat_window_vocab expect lanes.
-            if what.startswith("cw:"):
-                got = self._resolve_word(script.pop(0)) if script else "PASS"
-                if got not in vocab:
-                    self.unoffered.append(f"{what}: pack word {got!r} not offered in {tuple(vocab)}")
-                    got = "PASS"
-                self.rung1_asks.append((what, tuple(vocab), got))
-                return got
             # Handle strings carry a colon ("card:5"), so a site tag is
             # FOUR segments; match the answer keys as longest prefixes.
             got = next(
@@ -789,9 +830,26 @@ class ScenarioRunner:
                     got = "DECLINE"
             return got if got in vocab else vocab[0]
 
+        # "respond": {step: [steps]}: the combat stops when that step's players
+        # have priority with an empty stack, and those steps run there (an
+        # instant after blockers are declared), each ending with both players
+        # passing; then the combat goes on.
         self.ex.decisions.provider = answer
         try:
-            self.ex.combat_step(self.seats[int(step.get("seat", 0))])
+            seat = self.seats[int(step.get("seat", 0))]
+            self.ex.combat_attacks(seat)
+            for name, responses in step.get("respond", {}).items():
+                if self.ex.phase != name:
+                    self.ex.pass_until(name)
+                if self.ex.phase != name:
+                    raise PackError(f"combat: the step {name} never came")
+                for inner in responses:
+                    self.ex.decisions.provider = None
+                    try:
+                        self.run_step(inner)
+                    finally:
+                        self.ex.decisions.provider = answer
+            self.ex.combat_blocks(seat)
         finally:
             self.ex.decisions.provider = None
 
@@ -1000,62 +1058,20 @@ class ScenarioRunner:
                 )
             if "x" in want and got_x != want["x"]:
                 fails.append(f"kick_rows[{key}].x: expected {want['x']}, got {got_x}")
-        # Response-window lanes. window_asks / kickback_asks: per SEAT, the
-        # ordered ANSWERS the pack gave to the engine's counter:/pay: tags (a
-        # pack key names the counter spell; "PASS"/"PAY" are literals).
-        # window_vocab: the ordered VOCABULARIES of the counter: asks. Absent
-        # lanes are unchecked; an explicit [] pins "this seat was never asked".
-        want_tag = {
-            lane: prefix
-            for lane, prefix in (
-                ("window_asks", "counter:"),
-                ("kickback_asks", "pay:"),
-                # the combat instant window: the same shape, its own prefix
-                ("combat_window_asks", "cw:"),
-            )
-        }
-        for lane, prefix in want_tag.items():
-            for seat, wants in expect.get(lane, {}).items():
-                seat_str = str(self.seats[int(seat)])
-                got_ans = [
-                    a
-                    for (w, _, a) in self.rung1_asks
-                    # tags are "<kind>:<seat handle>:<digest>" and the
-                    # seat Handle str itself carries a colon ("player:1")
-                    if w.startswith(prefix) and ":".join(w.split(":")[1:3]) == seat_str
-                ]
-                want_ans = [self._resolve_word(w) for w in wants]
-                if got_ans != want_ans:
-                    fails.append(
-                        f"{lane}[{seat}]: expected {want_ans!r}, got {got_ans!r}"
-                    )
-        if "window_vocab" in expect:
-            want_vocab = [
-                [self._resolve_word(t) for t in vocab]
-                for vocab in expect["window_vocab"]
+        # kickback_asks: per SEAT, the ordered ANSWERS the pack gave to the
+        # engine's pay: tags ("PASS"/"PAY"). Absent, the lane is unchecked; an
+        # explicit [] pins "this seat was never asked".
+        for seat, wants in expect.get("kickback_asks", {}).items():
+            seat_str = str(self.seats[int(seat)])
+            got_ans = [
+                a
+                for (w, _, a) in self.rung1_asks
+                # tags are "pay:<seat handle>:<digest>" and the seat Handle
+                # str itself carries a colon ("player:1")
+                if w.startswith("pay:") and ":".join(w.split(":")[1:3]) == seat_str
             ]
-            got_vocab = [
-                list(v) for (w, v, _) in self.rung1_asks if w.startswith("counter:")
-            ]
-            if got_vocab != want_vocab:
-                fails.append(
-                    f"window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
-                )
-        if "combat_window_vocab" in expect:
-            # Ordered vocabularies of the cw: asks; every token
-            # is a "card@target" composite, pack keys resolvable both
-            # sides.
-            want_vocab = [
-                [self._resolve_word(t) for t in vocab]
-                for vocab in expect["combat_window_vocab"]
-            ]
-            got_vocab = [
-                list(v) for (w, v, _) in self.rung1_asks if w.startswith("cw:")
-            ]
-            if got_vocab != want_vocab:
-                fails.append(
-                    f"combat_window_vocab: expected {want_vocab!r}, got {got_vocab!r}"
-                )
+            if got_ans != list(wants):
+                fails.append(f"kickback_asks[{seat}]: expected {list(wants)!r}, got {got_ans!r}")
         for key, kinds in expect.get("counters", {}).items():
             got = dict(self.world.cards[self.handles[key]].counters)
             if got != dict(kinds):

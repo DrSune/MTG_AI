@@ -1,6 +1,6 @@
 {
  "name": "cw_burn_then_pump",
- "note": "Rung-2 combat window, BOTH seats act in player order: P0's Shock answers the block (non-lethal - the 3/3 Guard survives with 2 marked), then P1's Titanic Growth (in the SAME window, on the POST-BURN state - the Guard is still a legal target) raises it to 6/6. The damage step reads the ledger: the pumped Guard out-fights the 3/3 Brute (dies), taking only 3 of its 6 marked. Pins that the second seat's vocabulary is computed AFTER the first seat's cast has settled. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a).",
+ "note": "Rung-2 combat window, BOTH seats act in player order: P0's Shock answers the block (non-lethal - the 3/3 Guard survives with 2 marked), then P1's Titanic Growth (in the SAME window, on the POST-BURN state - the Guard is still a legal target) raises it to 6/6. The damage step reads the ledger: the pumped Guard out-fights the 3/3 Brute (dies), taking only 3 of its 6 marked. Pins that the second seat's vocabulary is computed AFTER the first seat's cast has settled. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -85,10 +85,30 @@
    "block": {
     "guard": "brute"
    },
-   "decisions": [
-    "shock@guard",
-    "growth@guard"
-   ]
+   "respond": {
+    "DECLARE_BLOCKERS": [
+     {
+      "op": "cast",
+      "key": "shock",
+      "controller": 0,
+      "targets": [
+       "guard"
+      ],
+      "tap": true,
+      "real": "Shock"
+     },
+     {
+      "op": "cast",
+      "key": "growth",
+      "controller": 1,
+      "targets": [
+       "guard"
+      ],
+      "tap": true,
+      "real": "Titanic Growth"
+     }
+    ]
+   }
   }
  ],
  "expect": {
@@ -105,14 +125,6 @@
   "mana_pool": {
    "0": {},
    "1": {}
-  },
-  "combat_window_asks": {
-   "0": [
-    "shock@guard"
-   ],
-   "1": [
-    "growth@guard"
-   ]
   },
   "damage": {
    "guard": 5

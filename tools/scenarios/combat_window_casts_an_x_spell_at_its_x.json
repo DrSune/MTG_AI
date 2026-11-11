@@ -1,6 +1,6 @@
 {
  "set": "M21",
- "notes": "Volcanic Geyser, printed: '{X}{R}{R}, instant: Volcanic Geyser deals X damage to any target.' Cast in the combat window with six untapped Mountains, X may be up to 4 (CR 601.2f, 107.3a). The defender casts it at the 4/4 attacker for X = 4, which dies before damage. Until 2026-11-05 the combat window offered X spells only at X = 0 (no :x token), so Geyser dealt 0.",
+ "notes": "Volcanic Geyser, printed: '{X}{R}{R}, instant: Volcanic Geyser deals X damage to any target.' Cast in the combat window with six untapped Mountains, X may be up to 4 (CR 601.2f, 107.3a). The defender casts it at the 4/4 attacker for X = 4, which dies before damage. Until 2026-11-05 the combat window offered X spells only at X = 0 (no :x token), so Geyser dealt 0. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -65,9 +65,21 @@
    "attack": {
     "atk": true
    },
-   "decisions": [
-    "gey@atk:x4"
-   ]
+   "respond": {
+    "DECLARE_BLOCKERS": [
+     {
+      "op": "cast",
+      "key": "gey",
+      "controller": 1,
+      "targets": [
+       "atk"
+      ],
+      "tap": true,
+      "real": "Volcanic Geyser",
+      "x": 4
+     }
+    ]
+   }
   }
  ],
  "expect": {

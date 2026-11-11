@@ -1,27 +1,17 @@
-"""The spell stack and the casting pipeline.
+"""The stack and the casting pipeline.
 
-A cast is one engine call, as an activation is, in CR 601.2 order: re-check
-legality, choose modes/targets/X (601.2c–e), determine and LOCK the total cost
-(601.2f), pay (601.2g), put the spell on the stack (601.2h), resolve it
-(601.4), move the card to its after-resolution zone (601.2j / 400.7).
-
-**Response window vs CR 608.2.** A real spell waits on the stack while
-players get a RESPONSE WINDOW (CR 608.2: mana abilities first, then
-spells/abilities in APNAP order). Here, after the cast's triggers settle and
-BEFORE resolution, every opponent in seat order is asked (decision tag
-``counter:<seat>:<digest>``) whether they respond — ``PASS`` or the handle of
-a payable counterspell from hand, which is cast at the frame in a nested LIFO
-push (a counter can itself be countered). The window is ONE response round,
-in seat order, with no priority re-asks; the engine taps free mana sources to
-pay (:func:`_window_taps`), and other mana abilities, non-counter replies and
-real priority stay a documented gap. A frame a counter flags is popped
-without its effect running (601.4 interrupted; the card still goes to its
-graveyard, 400.7). A seat with nothing castable is never asked (an empty
-choice set is never offered). Every declaration field the CR makes public
-(601.2b–e: modes, targets, X, total cost, timing choices) is stored on
-:class:`StackObject` and journalled, so the window reads a complete frame
-instead of re-deriving one. :func:`open_combat_window` is the same kind of
-round for instants after blockers are declared.
+A cast is one action (CR 601.2), as an activation is: re-check legality,
+choose modes/targets/X (601.2b-c), determine and LOCK the total cost
+(601.2f), pay (601.2g, inside ``Executor.atomic``), put the spell on the
+stack (601.2h). It waits there: the caster receives priority again (CR
+117.3c), what casting triggered goes on the stack above it, and when every
+player has passed in succession the top object resolves (CR 117.4,
+:func:`resolve_top`), the spell's card then moving to its
+after-resolution zone (601.2j / 400.7). In a game loop the players decide
+at every priority point (``Executor.driven``); outside one both pass at
+once. A countered spell leaves the stack (CR 701.6a). Every declaration
+field the CR makes public (601.2b-e: modes, targets, X, total cost, timing
+choices) is stored on :class:`StackObject` and journalled.
 
 Stack placement: :mod:`MTG_bot.core.state` declares ``ZONE_STACK`` but keeps
 it OUT of ``PLAYER_ZONES``, and the world fingerprint
@@ -34,37 +24,28 @@ differing only by a card on the stack MUST produce different executor
 fingerprints (pinned by ``test_stack_frame_fold_changes_the_fingerprint``).
 
 LIFO: :attr:`Executor.stack` is a list, append = push, resolve = pop the top
-(CR 405). A counterspell cast in the response window is pushed above the
-frame it answers and resolves first.
+(CR 405). A spell cast in response is pushed above what it answers and
+resolves first.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass, field, fields, is_dataclass
-from itertools import combinations, count
+from dataclasses import dataclass, field
+from itertools import combinations
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
-    Atom,
     BackFace,
     Choose,
     Cost,
     FAtom,
     FAtomPred,
-    Selector,
-    Seq,
     SpellAbility,
     SpellKind,
-    Verb,
     walk,
 )
 from MTG_bot.core.executor.decisions import site_digest
-from MTG_bot.core.executor.events import (
-    KIND_WINDOW_OPEN,
-    KIND_WINDOW_PASS,
-    parse_handle_tag,
-)
 from MTG_bot.core.executor.legality import (
     MAIN_PHASES,
     PaymentPlan,
@@ -72,12 +53,10 @@ from MTG_bot.core.executor.legality import (
     build_payment_plan,
     ctx_for,
     pay_costs,
-    plan_mana_taps,
     protected_from,
     spell_castable,
     spell_cost,
     spell_record,
-    tap_for_payment,
 )
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding
@@ -111,8 +90,7 @@ _PERMANENT_KINDS = frozenset(
 @dataclass
 class StackObject:
     """One object on the stack (CR 405.1): the 601.2b–e declaration record,
-    public on the stack, and what its resolution reads (CR 608). The
-    response window reads this frame instead of re-deriving it.
+    public on the stack, and what its resolution reads (CR 608).
 
     * ``node`` — the :class:`SpellAbility` IR (the same object
       ``legal_casts`` returned and resolution runs);
@@ -128,7 +106,7 @@ class StackObject:
     * ``kicked`` — CR 702.27a: was the optional kicker cost paid with the
       total cost? The same truth rides the journalled CAST row (the
       durable carrier WAS_KICKED reads); the frame keeps it visible on the
-      stack for the response window and the diagnostics dump;
+      stack for the players and the diagnostics dump;
     * ``decisions``, ``slot_designations``, ``target_node`` — what the
       resolution reads and the declaration made: the per-op decision pool
       left after the modes and targets were taken from it, a multi-target
@@ -557,24 +535,6 @@ def cast_modes(
         pick = offer_or_autopick(ctx, vocab, f"choose:{handle}:{digest}")
     token = int(pick)
     return token, dict(legal)[token], remaining
-def _option_sets(executor: Executor, node: SpellAbility, handle: Handle, seat: Handle):
-    """The legal option sets of a Choose spell, in ``query.choose_options``'
-    canonical order (the runtime Choose's own token contract: token = the
-    set's index here)."""
-    from MTG_bot.core.executor.query import choose_options
-
-    assert isinstance(node.effect, Choose)
-    return choose_options(executor, node.effect, source=handle, controller=seat)
-
-
-def _chosen_effect(choose, chosen: tuple[int, ...]):
-    """The effect a declared mode set amounts to: the one option, or the
-    options in printed order (CR 700.2d; how the runtime Choose runs them)."""
-    if len(chosen) == 1:
-        return choose.options[chosen[0]]
-    return Seq(steps=tuple(choose.options[i] for i in chosen))
-
-
 def _plan_cast_designation(
     executor: Executor,
     seat: Handle,
@@ -697,412 +657,6 @@ def _plan_cast_designation(
     return targets, slot_designations, remaining, modes, node
 
 
-def _tree_verb_closure(node: object, acc: set) -> set:
-    """Every Atom verb inside an IR subtree (SpellAbility effect trees,
-    Seq/Choose/Conditional shapes). Generic dataclass walk, so it does not
-    re-encode the effect grammar; the IR is a finite tree (no cycles), so
-    the recursion terminates. The windows' engine-support gate asks for the
-    FULL closure, not just the counter atom: a card that counters a spell
-    but also executes COPY (Sublime Epiphany) is not executable by the
-    engine, so a vocab that promises executability must not offer it."""
-    if isinstance(node, Atom):
-        acc.add(node.verb)
-    elif is_dataclass(node) and not isinstance(node, Handle):
-        for f in fields(node):
-            value = getattr(node, f.name)
-            if isinstance(value, (list, tuple)):
-                for item in value:
-                    _tree_verb_closure(item, acc)
-            else:
-                _tree_verb_closure(value, acc)
-    return acc
-
-
-def _counter_vocab(
-    executor: Executor, seat: Handle, frame_handle: Handle
-) -> tuple[str, ...]:
-    """The response vocabulary for one seat facing ONE stack frame: PASS
-    plus the handle string of every hand card that is a counterspell it
-    could legally cast AGAINST THAT FRAME right now. Four gates:
-
-    * a COUNTER_SPELL atom, and castable now (:func:`_window_taps`:
-      window, mana with the free sources the window may tap, record);
-      nothing the seat cannot pay is offered;
-    * **verb closure** — every atom of the spell node lies in HANDLERS
-      (the runtime twin of the compile-time ``engine_supported`` gate; a
-      counterspell with a COPY mode is not offered);
-    * **designability** — the frame passes the counter's own TARGET-slot
-      legality via :func:`validate_target_selection` (Miscast's
-      instant/sorcery filter is never offered at a creature spell);
-      ``spell_castable`` cannot see this because it is target-blind;
-    * **declaration** — a modeless counter has exactly one TARGET slot
-      and the frame passes it: the window casts it with
-      ``targets=(frame,)``. A Choose-based counter ("choose one or more")
-      is offered when some legal mode set counters the frame
-      (:func:`_modal_counter_sets`); answering it opens the visible mode
-      ask, then the target asks (:func:`_declare_modal_counter`), so no
-      mode is ever a silent pick.
-
-    Handle-sorted."""
-    from MTG_bot.core.executor.query import (
-        spell_target_slots,
-        validate_target_selection,
-    )
-    from MTG_bot.core.executor.verbs import HANDLERS
-
-    world = executor.world
-    hand = world.players[seat].zone("hand")
-    options: list[str] = []
-    for handle in hand.entries:
-        record = spell_record(executor, handle)
-        if record is None:
-            continue
-        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
-        if (
-            node is None
-            or node.effect is None
-            or Verb.COUNTER_SPELL not in _tree_verb_closure(node.effect, set())
-        ):
-            continue
-        if not _tree_verb_closure(node, set()) <= set(HANDLERS):
-            continue
-        if _window_taps(executor, seat, handle) is None:
-            continue
-        if isinstance(node.effect, Choose):
-            if _modal_counter_sets(executor, seat, handle, node, frame_handle):
-                options.append(str(handle))
-            continue
-        slots = spell_target_slots(
-            executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle)
-        )
-        if len(slots) != 1 or validate_target_selection(slots[0], (frame_handle,)):
-            continue
-        options.append(str(handle))
-    return ("PASS",) + tuple(sorted(options))
-
-
-def _window_taps(
-    executor: Executor, seat: Handle, handle: Handle, targets: tuple[Handle, ...] = (),
-    x: int | None = None,
-):
-    """The free sources ``seat`` taps to cast ``handle`` at ``targets`` (with
-    ``x`` for an X spell) in a response window (CR 601.2g, 605.3a: mana
-    abilities may be activated while paying; 601.2f: the total includes X
-    and a target's cost increase), () when the pool already pays, None when
-    the spell cannot be cast (then it is never offered)."""
-    return plan_mana_taps(
-        executor, seat, lambda: spell_castable(executor, seat, handle, x=x, targets=targets)[0]
-    )
-
-
-def _window_pay(executor: Executor, seat: Handle, handle: Handle, x: int | None = None):
-    """How a window prices a target (``spell_target_slots``' ``pay``): the
-    pool plus the free sources the window would tap, as it pays."""
-    return lambda targets: _window_taps(executor, seat, handle, targets, x) is not None
-
-
-def _window_cast(
-    executor: Executor, seat: Handle, handle: Handle, target: Handle, x: int | None = None
-) -> None:
-    """Cast a response-window answer: tap the planned mana abilities, then the
-    ordinary :func:`cast` (which re-checks legality and pays from the pool)."""
-    tap_for_payment(executor, seat, _window_taps(executor, seat, handle, (target,), x) or ())
-    cast(executor, seat, handle, x=x, targets=(target,))
-
-
-def _counter_selectors(effect: object) -> set[str]:
-    """The ``repr`` of every COUNTER_SPELL atom's target selector in an IR
-    subtree (the slot identity the cast lane designates by)."""
-    out: set[str] = set()
-    if isinstance(effect, Atom):
-        if effect.verb is Verb.COUNTER_SPELL:
-            target = effect.args.get("target")
-            if isinstance(target, Selector):
-                out.add(repr(target))
-        return out
-    if is_dataclass(effect) and not isinstance(effect, Handle):
-        for f in fields(effect):
-            value = getattr(effect, f.name)
-            for item in value if isinstance(value, (list, tuple)) else (value,):
-                out |= _counter_selectors(item)
-    return out
-
-
-def _modal_counter_sets(
-    executor: Executor,
-    seat: Handle,
-    handle: Handle,
-    node: SpellAbility,
-    frame_handle: Handle,
-) -> list[tuple[int, tuple[int, ...], list]]:
-    """CR 601.2b, 700.2a: the mode sets a Choose-based counterspell
-    may declare in the counter window against ``frame_handle``, as
-    ``(option-set index, modes, target slots)`` in ``query.choose_options``'
-    canonical order (the runtime Choose's own token contract). A set is
-    offered when every one of its slots has a legal target (700.2a: a mode
-    that cannot choose legal targets can't be chosen; "counter target
-    activated or triggered ability" is never offered, as abilities never sit
-    on this engine's stack) and one of its COUNTER_SPELL slots accepts the
-    frame (the window answers this frame). Two limits narrow the menu, never
-    guessing past them: this window's declaration asks exactly one target
-    per slot (:func:`_declare_modal_counter`), and slots are keyed by their
-    selector (the repr-keyed slot map), so a set with another slot shape or
-    two equal selectors is left out."""
-    from dataclasses import replace
-
-    from MTG_bot.core.executor.query import (
-        spell_target_slots,
-        validate_target_selection,
-    )
-
-    assert isinstance(node.effect, Choose)
-    out: list[tuple[int, tuple[int, ...], list]] = []
-    for i, option_set in enumerate(_option_sets(executor, node, handle, seat)):
-        modes = option_set.option_idxs
-        if not modes:
-            continue  # the empty set counters nothing
-        effect = _chosen_effect(node.effect, modes)
-        slots = spell_target_slots(
-            executor,
-            replace(node, effect=effect),
-            spell_handle=handle,
-            seat=seat,
-            pay=_window_pay(executor, seat, handle),
-        )
-        if any(len(slot.candidates) < slot.min_count for slot in slots):
-            continue
-        if len(slots) > 1 and (
-            any(slot.min_count != 1 or slot.max_count != 1 for slot in slots)
-            or len({repr(slot.selector) for slot in slots}) != len(slots)
-        ):
-            continue
-        counters = _counter_selectors(effect)
-        if not any(
-            repr(slot.selector) in counters
-            and validate_target_selection(slot, (frame_handle,)) is None
-            for slot in slots
-        ):
-            continue
-        out.append((i, modes, slots))
-    return out
-
-
-def _window_pick(executor: Executor, vocab: tuple[str, ...], what: str, seat: Handle) -> str:
-    """One counter-window declaration ask. A one-option surface is forced:
-    journalled, never asked (the shared phantom rule of
-    :func:`~MTG_bot.core.executor.offers.offer_or_autopick`)."""
-    if len(vocab) == 1:
-        executor.decisions.journal.append((what, vocab[0]))
-        return vocab[0]
-    return executor.decisions.take(vocab, what, seat=seat)
-
-
-def _declare_modal_counter(
-    executor: Executor,
-    seat: Handle,
-    handle: Handle,
-    node: SpellAbility,
-    frame_handle: Handle,
-) -> tuple[tuple[int, ...], tuple[Handle, ...]]:
-    """The declaration of a Choose-based counterspell answering the
-    counter window, in CR 601.2b-c order. First the mode set (a ``choose``
-    ask whose tokens are the runtime Choose's option-set indices, offering
-    only the legal sets of :func:`_modal_counter_sets`), then the targets of
-    the chosen modes slot by slot in walk order (a ``target`` ask over each
-    slot's live candidates). The window's own frame is the target of the
-    first counter slot that accepts it: answering the window with this card
-    means countering that frame. Returns ``(modes, targets)`` for
-    :func:`cast`'s ``mode_choices``/``targets``."""
-    sets = _modal_counter_sets(executor, seat, handle, node, frame_handle)
-    if not sets:
-        raise ValueError(f"executor: counter window: {handle} has no legal mode set")
-    vocab = tuple(str(i) for i, _modes, _slots in sets)
-    digest = site_digest(("counter-modes", str(frame_handle), tuple(m for _i, m, _s in sets)))
-    pick = _window_pick(executor, vocab, f"choose:{handle}:{digest}", seat)
-    _i, modes, slots = next(row for row in sets if str(row[0]) == pick)
-    counters = _counter_selectors(_chosen_effect(node.effect, modes))
-    from MTG_bot.core.executor.query import validate_target_selection
-
-    targets: list[Handle] = []
-    frame_taken = False
-    for slot in slots:
-        if (
-            not frame_taken
-            and repr(slot.selector) in counters
-            and validate_target_selection(slot, (frame_handle,)) is None
-        ):
-            targets.append(frame_handle)
-            frame_taken = True
-            continue
-        candidates = tuple(sorted(slot.candidates))
-        words = tuple(str(c) for c in candidates)
-        answer = _window_pick(
-            executor, words, f"target:{seat}:{handle}:{site_digest(words)}", seat
-        )
-        targets.append(next(c for c in candidates if str(c) == answer))
-    return modes, tuple(targets)
-
-
-#: The effect atoms that make an instant worth asking about in the
-#: post-declare-blockers window (:func:`open_combat_window`) — the
-#: combat-relevant payloads the corpus actually prints (burn a blocker /
-#: attacker, pump your own creature's P/T). Deliberately NARROW, the same
-#: way the counter vocab is narrow: an instant whose every atom is
-#: combat-irrelevant (a discard, a draw) is never offered here — the
-#: window exists to model the fight, not to re-open every decision.
-_COMBAT_INSTANT_ATOMS = frozenset({Verb.DEAL_DAMAGE, Verb.MODIFY_PT, Verb.SET_PT})
-
-
-def _combat_instant_vocab(executor: Executor, seat: Handle) -> tuple[str, ...]:
-    """The response vocabulary for one seat in the combat instant window:
-    PASS plus one ``<card>@<target>`` token per legal (instant,
-    single-target designation) pair it could cast RIGHT NOW; an X spell
-    gets one token per payable X, ``:x<N>`` appended when X > 0. The four
-    gates of :func:`_counter_vocab` are re-applied with the combat shape
-    swapped in for the counter shape:
-
-    * INSTANT kind + a combat-relevant atom (:data:`_COMBAT_INSTANT_ATOMS`)
-      and castable now (:func:`_window_taps`: mana, record);
-    * **verb closure** ⊆ HANDLERS (the runtime twin of engine_supported);
-    * **designability** — exactly one TARGET slot with 1 inside its
-      cardinality range, and EVERY token is candidate-checked through
-      :func:`validate_target_selection` (the target rides INSIDE the
-      token: unlike the counter lane there is no forced frame to
-      auto-designate — burn has a whole population);
-    * **modeless declaration** — a ``Choose`` fan can never open here
-      (the lane casts with one target and no mode)."""
-    from MTG_bot.core.executor.query import (
-        spell_target_slots,
-        validate_target_selection,
-    )
-    from MTG_bot.core.executor.verbs import HANDLERS
-
-    world = executor.world
-    hand = world.players[seat].zone("hand")
-    options: list[str] = []
-    for handle in hand.entries:
-        record = spell_record(executor, handle)
-        if record is None:
-            continue
-        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
-        if (
-            node is None
-            or node.effect is None
-            or node.kind is not SpellKind.INSTANT
-            or _COMBAT_INSTANT_ATOMS.isdisjoint(_tree_verb_closure(node.effect, set()))
-        ):
-            continue
-        if isinstance(node.effect, Choose):
-            continue
-        if not _tree_verb_closure(node, set()) <= set(HANDLERS):
-            continue
-        # one token per payable X, as the act menu offers
-        record_cost = spell_cost(record, tuple(node.additional_costs))
-        for x in count() if _cost_has_x(record_cost) else (None,):
-            if _window_taps(executor, seat, handle, (), x) is None:
-                break  # a larger X costs more: none is payable either
-            slots = spell_target_slots(
-                executor, node, spell_handle=handle, seat=seat, pay=_window_pay(executor, seat, handle, x)
-            )
-            if len(slots) != 1 or not slots[0].min_count <= 1 <= slots[0].max_count:
-                break
-            for target in slots[0].candidates:
-                if validate_target_selection(slots[0], (target,)) is None:
-                    options.append(f"{handle}@{target}" + (f":x{x}" if x else ""))
-    return ("PASS",) + tuple(sorted(options))
-
-
-def open_combat_window(executor: Executor) -> None:
-    """The post-declare-blockers combat INSTANT window (CR 506.4/510's
-    first slice). After blockers are declared and their triggers have
-    settled, BEFORE the damage step, both players may cast instants (kill
-    a blocker, pump a defender). One round in ``player_order`` (the active
-    player gets the first priority of the step, CR 506.4), no priority
-    re-asks: the same documented narrowing as the counter window, and
-    every answer is a full-payload ``card@target`` token the lane casts via
-    the SAME :func:`cast` pipeline (which nests its own counter window, so
-    the windows compose, and settles triggers + SBAs internally, so a dead
-    blocker is gone and a pumped creature's ledger is live before
-    ``_combat_damage`` reads it).
-
-    A seat with NOTHING castable is never asked and gets NO row.
-    Journal rows reuse WINDOW_OPEN/WINDOW_PASS with cause_verb
-    ``COMBAT_WINDOW`` and subject=None (no stack frame to point at); the
-    decision tag is ``cw:<seat>:<digest>``, a lane of its own, apart from
-    the counter window's ``counter:`` and the ``pay:`` asks."""
-    digest = site_digest(("combat-window", str(executor.journal.clock)))
-    for seat in executor.world.player_order:
-        vocab = _combat_instant_vocab(executor, seat)
-        if len(vocab) <= 1:
-            continue
-        executor.journal.emit(KIND_WINDOW_OPEN, None, seat, "COMBAT_WINDOW", (vocab,))
-        answer = executor.decisions.take(vocab, f"cw:{seat}:{digest}", seat=seat)
-        if answer == "PASS":
-            executor.journal.emit(KIND_WINDOW_PASS, None, seat, "COMBAT_WINDOW", ())
-            continue
-        card_tag, _, target_tag = answer.partition("@")
-        target_tag, _, x_tag = target_tag.partition(":x")
-        _window_cast(executor, seat, parse_handle_tag(card_tag), parse_handle_tag(target_tag),
-                     int(x_tag) if x_tag else None)
-
-
-def _response_window(executor: Executor, frame: StackObject) -> None:
-    """The RESPONSE WINDOW of a spell just cast (CR 608.2's first slice),
-    after its cast triggers have settled and before it resolves. Every
-    opponent of its caster, in seat order, MAY answer the frame with a
-    counterspell. One round, seat-ordered, no priority re-asks (the
-    documented narrowing in the module docstring); a dead frame ends the
-    round early; a seat with nothing to offer is skipped WITHOUT an ask
-    and without a journal row. The nested ``cast`` is the LIFO push:
-    the counter resolves ON TOP of this frame, and its own window opens
-    recursively (a counter can be countered). Answers come from
-    ``executor.decisions.take`` DIRECTLY, bypassing the pool, because the
-    per-op ``decisions=`` pool belongs to the spell's declaration
-    (modes/targets), and letting a window answer consume it would silently
-    re-target the cast (pinned by
-    ``test_window_bypasses_the_declaration_pool``).
-
-    Both cast lanes open it: :func:`cast` and the CAST atom's
-    :func:`cast_card`. A spell cast through a permission or by an effect is
-    a spell on the stack like one cast from hand (CR 601.2i, 117.3c,
-    608.1), so it gets the same chances to be answered."""
-    world = executor.world
-    handle, seat = frame.handle, frame.controller
-    digest = site_digest((str(handle), frame.declared_clock))
-    for responder in world.player_order:
-        if responder == seat:
-            continue
-        if frame not in executor.stack.frames:
-            break
-        vocab = _counter_vocab(executor, responder, handle)
-        if len(vocab) <= 1:
-            continue
-        executor.journal.emit(KIND_WINDOW_OPEN, handle, responder, "WINDOW", (vocab,))
-        answer = executor.decisions.take(vocab, f"counter:{responder}:{digest}", seat=responder)
-        if answer == "PASS":
-            executor.journal.emit(KIND_WINDOW_PASS, handle, responder, "WINDOW", ())
-            continue
-        counter = parse_handle_tag(answer)
-        counter_record = spell_record(executor, counter)
-        counter_node = next(
-            (a for a in counter_record.abilities if isinstance(a, SpellAbility)), None
-        ) if counter_record is not None else None
-        if counter_node is not None and isinstance(counter_node.effect, Choose):
-            # CR 601.2b-c: a modal counter declares its mode set, then its
-            # targets, through visible asks; the window never picks a mode.
-            modes, chosen = _declare_modal_counter(
-                executor, responder, counter, counter_node, handle
-            )
-            # CR 601.2g: the mana abilities are activated after the
-            # declaration (601.2b-c), while the cost is paid.
-            tap_for_payment(
-                executor, responder, _window_taps(executor, responder, counter, chosen) or ()
-            )
-            cast(executor, responder, counter, mode_choices=modes, targets=chosen)
-            continue
-        _window_cast(executor, responder, counter, handle)
-
-
 def cast(
     executor: Executor,
     seat: Handle,
@@ -1151,8 +705,8 @@ def cast(
        lands on the frame and the CAST row.
     6. **push** (601.2h) — park in the stack zone, push the frame, emit
        the journalled ``CAST`` event (the cast-trigger feed, ordinals
-       included) and settle — cast triggers resolve ABOVE the spell; then
-       the response window (:func:`_response_window`).
+       included); the caster keeps priority (CR 117.3c), and cast triggers
+       go on the stack ABOVE the spell.
     7. **resolve + put** (608, 601.2j) — :func:`resolve_top`.
     """
     reason, node, _record, plan = spell_castable(
@@ -1230,7 +784,6 @@ def cast(
         slot_designations=dict(slot_designations),
         target_node=target_node,
     )
-    floor = len(executor.stack.frames)
     before = executor.journal.snapshot()
     start = len(executor.events)
     with executor.atomic():  # CR 601.2g-h: the costs are paid as part of casting
@@ -1245,14 +798,11 @@ def cast(
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
-    # What casting triggered (its costs included) goes on the stack above the
-    # spell and resolves first (CR 117.5, 601.2i).
-    executor._settle(floor + 1)
-    _response_window(executor, frame)  # 6b
-    if frame in executor.stack.frames:  # not countered
-        assert executor.stack.frames[-1] is frame  # LIFO: every response above it resolved
-        resolve_top(executor)
-    executor._finish_op(floor)  # an effect that ended the turn goes first (CR 724.1)
+    # CR 117.3c: the caster receives priority again; what casting triggered (its
+    # costs included) goes on the stack above the spell first (CR 117.5, 601.2i).
+    # Outside a game loop both players then pass until the stack is empty
+    # (Executor._finish_op; Executor.holding_priority keeps it waiting).
+    executor._finish_op()
     return frame
 
 
@@ -1467,7 +1017,7 @@ def cast_card(
     cost_override: Cost | None,
     targets: tuple[Handle, ...] = (),
     x: int | None = 0,
-) -> bool:
+) -> None:
     """The effect-side CAST verb's engine (``verbs._v_cast``): cast a
     DESIGNATED card from wherever it sits, with the spell's printed cost
     paid as normal when ``cost_override is None``; an EMPTY Cost is the
@@ -1478,10 +1028,8 @@ def cast_card(
     effect casts while it resolves, outside the normal timing; a
     permission's timing is judged before the cast,
     ``query.cast_designee_ok``). The spell is on the stack like one cast
-    from hand (CR 601.2i, 117.3c, 608.1), so after its cast triggers it
-    gets the same counter window (:func:`_response_window`) and resolves
-    through :func:`resolve_top`. Returns ``False`` when it was countered,
-    else ``True``.
+    from hand (CR 601.2i, 117.3c, 608.1): it waits there for both players
+    to pass and resolves through :func:`resolve_top`.
 
     ``targets`` (CR 603.3: an effect that lets you cast a spell still
     gets its normal target choices — the effect's caster designates them
@@ -1498,13 +1046,14 @@ def cast_card(
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
     triggers see it (CR 601.2i).
 
-    CR 704.3: the spell is resolved here, inside the resolution that cast
-    it, and the two settles below stand for the priority points that
-    follow that resolution (its cast triggers above the spell, then the
-    response window and the spell, then its ETB triggers). That holds
-    because every compiled CAST is the last instruction of its effect
-    (Idol of Endurance, Coveted Prize). The cost payment above is part of
-    the resolution and does not settle (Executor._run_resolution)."""
+    In a game loop (``executor.driven``) the spell stays on the stack and
+    the resolution that cast it goes on; the players get priority after it.
+    Outside one, both players pass at once and the spell resolves here,
+    inside the resolution that cast it (its cast triggers first, then the
+    spell, then its ETB triggers), which holds because every compiled CAST
+    is the last instruction of its effect (Idol of Endurance, Coveted
+    Prize). The cost payment is part of the resolution and does not settle
+    (Executor._run_resolution)."""
     from MTG_bot.core.executor.legality import effect_cast_cost
 
     world = executor.world
@@ -1584,14 +1133,8 @@ def cast_card(
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
     executor.journal.emit_cast(handle, caster, node.kind.name, frame.from_zone, x)
-    executor._settle(floor + 1)
-    _response_window(executor, frame)
-    if frame not in executor.stack.frames:
-        return False  # CR 701.6a: removed from the stack, none of its effects occur
-    assert executor.stack.frames[-1] is frame
-    resolve_top(executor)
-    executor._settle(floor)
-    return True
+    if not executor.driven:
+        executor._settle(floor)
 
 
 def play_land(
@@ -1636,4 +1179,4 @@ def play_land(
     if turn != world.turn:
         plays = 0
     executor.land_ledger[seat] = (world.turn, plays + 1)
-    executor._settle()
+    executor._finish_op()

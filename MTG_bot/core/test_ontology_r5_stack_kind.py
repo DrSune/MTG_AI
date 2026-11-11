@@ -1,9 +1,9 @@
 """Stack objects say what they are (docs/DESIGN_ATOM_ONTOLOGY.md §10):
 ``FAtom(STACK_KIND_EQ, string_value ∈ {SPELL, ACTIVATED, TRIGGERED})``, the
 closed per-predicate ``string_value`` vocabulary, "counter target spell" =
-SPELL, and the counter window's visible mode ask for a Choose-based
-counterspell (CR 601.2b: modes, then 601.2c: targets; 700.2a: a mode that
-can't choose legal targets can't be chosen).
+SPELL, and a Choose-based counterspell cast at a spell waiting on the stack
+(CR 601.2b: modes, then 601.2c: targets; 700.2a: a mode that can't choose
+legal targets can't be chosen).
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
+    SpellAbility,
     SpellKind,
     Verb,
     Zone,
@@ -132,7 +133,8 @@ def was_countered(ex, frame) -> bool:
     """CR 701.6a: a countered spell left the stack, with a COUNTER row."""
     return any(e.kind == KIND_COUNTER and e.subject == frame.handle for e in ex.journal.events)
 
-class ModalWindowCase(Rung1Case):
+
+class ModalCounterCase(Rung1Case):
     def setUp(self) -> None:
         super().setUp()
         self.shock_card = self.shock()
@@ -167,57 +169,51 @@ class ModalWindowCase(Rung1Case):
     def set_token(self, modes: tuple[int, ...]) -> str:
         return str(self.option_sets().index(modes))
 
+    def hold_the_shock(self):
+        """P0's Shock at P1 waits on the stack (P0 keeps priority)."""
+        with self.ex.holding_priority():
+            return cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
 
-class TestStackKindEvaluation(ModalWindowCase):
+    def legal_sets(self, card):
+        from MTG_bot.core.executor.query import cast_mode_options
+        from MTG_bot.core.executor.stack import spell_record
+
+        node = next(a for a in spell_record(self.ex, card).abilities if isinstance(a, SpellAbility))
+        return sorted(idxs for _token, idxs in cast_mode_options(self.ex, node, spell_handle=card, seat=self.p1))
+
+
+class TestStackKindEvaluation(ModalCounterCase):
     def test_only_a_spell_on_the_stack_is_a_spell(self) -> None:
         ctx = ctx_for(self.ex, source=self.epiphany, controller=self.p1)
         self.assertFalse(eval_filter(SPELL_ON_STACK, self.shock_card, ctx))  # in hand
-        self.script("PASS")
-        frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertFalse(was_countered(self.ex, frame))
-        # while the Shock was on the stack the window asked p1 (the vocab
-        # offered the modal counter): the spell was a legal SPELL target
-        (vocab, what), = self.asks
-        self.assertEqual(vocab, ("PASS", str(self.epiphany)))
-        self.assertTrue(what.startswith(f"counter:{self.p1}:"))
+        self.hold_the_shock()
+        self.assertTrue(eval_filter(SPELL_ON_STACK, self.shock_card, ctx))  # waiting
+        self.ex.fire_triggers()  # both players pass: it resolves
+        self.assertFalse(eval_filter(SPELL_ON_STACK, self.shock_card, ctx))  # graveyard
 
-    def test_abilities_are_never_on_the_stack(self) -> None:
+    def test_no_card_or_player_is_an_ability_on_the_stack(self) -> None:
         ctx = ctx_for(self.ex, source=self.epiphany, controller=self.p1)
         for handle in (self.shock_card, self.bear, self.p0):
             self.assertFalse(eval_filter(ABILITY_ON_STACK, handle, ctx), handle)
 
 
-class TestModalCounterWindow(ModalWindowCase):
-    """The window's mode ask (601.2b) precedes the target asks (601.2c)."""
+class TestModalCounter(ModalCounterCase):
+    """Cast at a waiting spell, a modal counterspell announces its modes (601.2b) before its
+    targets (601.2c), and only modes with legal targets can be chosen (700.2a)."""
 
     def test_mode_set_then_targets_then_resolution(self) -> None:
-        chosen = (0, 2, 3)  # counter the Shock, bounce, target player draws
-        seen: dict[str, tuple[str, ...]] = {}
-
-        def mode_answer(vocab, what):
-            seen["modes"] = tuple(vocab)
-            return self.set_token(chosen)
-
-        # "target player" is any player, the caster included (CR 115.1), so mode 3's
-        # player is a real target ask. It names p0, the pin's drawer.
-        self.script(str(self.epiphany), mode_answer, str(self.giant), str(self.p0))
-        book = self.give("Book", SpellKind.SORCERY, zone=ZONE_LIBRARY, seat=self.p0)
-        frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        kinds = [what.split(":", 1)[0] for _vocab, what in self.asks]
-        self.assertEqual(kinds, ["counter", "choose", "target", "target"])
-        self.assertEqual(self.asks[3][0], tuple(sorted((str(self.p0), str(self.p1)))))
-        # CR 700.2a: no offered set holds mode 1 (no ability is on the stack),
-        # and every offered set counters the frame (mode 0) — no phantom.
-        offered = [self.option_sets()[int(t)] for t in seen["modes"]]
-        self.assertTrue(offered)
-        self.assertTrue(all(0 in s and 1 not in s for s in offered), offered)
+        frame = self.hold_the_shock()
+        # CR 700.2a: no legal set holds mode 1 (no ability is on the stack).
         self.assertEqual(
-            sorted(offered), sorted([(0,), (0, 2), (0, 3), (0, 2, 3)])
+            self.legal_sets(self.epiphany),
+            sorted([(0,), (2,), (3,), (0, 2), (0, 3), (2, 3), (0, 2, 3)]),
         )
-        # the bounce ask offered both nonland permanents
-        self.assertEqual(self.asks[2][0], tuple(sorted((str(self.bear), str(self.giant)))))
-        # resolution: the Shock is countered, the Giant bounced, p0 drew
-        # (designated above)
+        self.script(lambda vocab, what: self.set_token((0, 2, 3)))
+        book = self.give("Book", SpellKind.SORCERY, zone=ZONE_LIBRARY, seat=self.p0)
+        # counter the Shock, bounce the Giant, P0 draws ("target player" is any player,
+        # CR 115.1): the modes are asked, the targets declared slot by slot.
+        cast(self.ex, self.p1, self.epiphany, targets=(self.shock_card, self.giant, self.p0))
+        self.assertEqual([what.split(":", 1)[0] for _vocab, what in self.asks], ["choose"])
         self.assertTrue(was_countered(self.ex, frame))
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.world.zone_of(self.shock_card).kind, ZONE_GRAVEYARD)
@@ -225,24 +221,21 @@ class TestModalCounterWindow(ModalWindowCase):
         self.assertEqual(self.world.zone_of(self.bear).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.world.zone_of(book).kind, ZONE_HAND)
         # the runtime Choose honoured the declaration: no resolution re-ask
-        self.assertEqual(len(self.asks), 4)
+        self.assertEqual(len(self.asks), 1)
 
     def test_a_mode_without_legal_targets_is_not_offered(self) -> None:
         # CR 700.2a: with no nonland permanent, the bounce mode can't be chosen.
         for h in (self.bear, self.giant):
             self.world.move_to_zone(h, self.p0, ZONE_GRAVEYARD)
-        self.script(str(self.epiphany), lambda vocab, what: self.set_token((0,)))
-        frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
+        frame = self.hold_the_shock()
+        self.assertEqual(self.legal_sets(self.epiphany), [(0,), (0, 3), (3,)])
+        cast(self.ex, self.p1, self.epiphany, mode_choices=(0,), targets=(self.shock_card,))
         self.assertTrue(was_countered(self.ex, frame))
-        kinds = [what.split(":", 1)[0] for _vocab, what in self.asks]
-        self.assertEqual(kinds, ["counter", "choose"])
-        offered = [self.option_sets()[int(t)] for t in self.asks[1][0]]
-        self.assertEqual(sorted(offered), [(0,), (0, 3)])
 
     def test_a_forced_mode_set_is_journalled_not_asked(self) -> None:
         # Counter / counter-ability / bounce with nothing to bounce: the one
         # legal set {counter} is forced, so it is journalled and never asked
-        # (a one-option ask is a phantom, AGENTS.md §10).
+        # (a one-option ask is a phantom, AGENTS.md §10); its one target too.
         three = Choose(count=QAtLeast(1), options=modal_counter_effect().options[:3])
         for h, owner in ((self.bear, self.p0), (self.giant, self.p0), (self.epiphany, self.p1)):
             self.world.move_to_zone(h, owner, ZONE_GRAVEYARD)
@@ -253,17 +246,17 @@ class TestModalCounterWindow(ModalWindowCase):
             effect=three,
             seat=self.p1,
         )
-        self.script(str(card))
-        frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
+        frame = self.hold_the_shock()
+        self.script()
+        cast(self.ex, self.p1, card)
         self.assertTrue(was_countered(self.ex, frame))
-        self.assertEqual([what.split(":", 1)[0] for _v, what in self.asks], ["counter"])
+        self.assertEqual(self.asks, [])
         forced = [(w, a) for w, a in self.ex.decisions.journal if w.startswith(f"choose:{card}:")]
         self.assertEqual(forced, [(forced[0][0], "0")])  # the set (0,) is index 0
 
-    def test_no_counterable_frame_means_no_offer(self) -> None:
-        # A mode set must counter THIS frame: with the counter mode narrowed
-        # to creature spells, a Shock gets no window at all (a seat with
-        # nothing to offer is never asked).
+    def test_a_counter_mode_with_no_legal_spell_cannot_be_chosen(self) -> None:
+        # The counter mode narrowed to creature spells has no legal target in a
+        # Shock (CR 700.2a): the card can still be cast for its other modes.
         creature_only = target_spell(FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))
         effect = modal_counter_effect()
         narrowed = Choose(
@@ -271,18 +264,16 @@ class TestModalCounterWindow(ModalWindowCase):
             options=(atom(Verb.COUNTER_SPELL, target=creature_only), *effect.options[1:]),
         )
         self.world.move_to_zone(self.epiphany, self.p1, ZONE_GRAVEYARD)
-        self.give(
+        card = self.give(
             "Narrow Epiphany",
             SpellKind.INSTANT,
             cost=Cost((CostManaColor("U", QConst(1)),)),
             effect=narrowed,
             seat=self.p1,
         )
-        self.script()
-        frame = cast(self.ex, self.p0, self.shock_card, targets=(self.p1,))
-        self.assertFalse(was_countered(self.ex, frame))
-        self.assertEqual(self.asks, [])
-        self.assertEqual(self.world.players[self.p1].life, 18)
+        self.hold_the_shock()
+        self.assertTrue(all(0 not in s for s in self.legal_sets(card)))
+        self.assertIn((2,), self.legal_sets(card))
 
     def test_cast_lane_refuses_an_illegal_mode_set(self) -> None:
         # a "choose one" spell declared with two modes (CR 700.2: the count)
@@ -295,6 +286,5 @@ class TestModalCounterWindow(ModalWindowCase):
             effect=one,
             seat=self.p1,
         )
-        self.script("PASS")
         with pytest.raises(ValueError, match="not a legal choice"):
             cast(self.ex, self.p1, card, mode_choices=(0, 2), targets=(self.bear, self.giant))

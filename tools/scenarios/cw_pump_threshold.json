@@ -1,6 +1,6 @@
 {
  "name": "cw_pump_threshold",
- "note": "Rung-2 combat window, the DEFENDER's kill-shot answer: a lone Titanic Growth in P1's hand raises the blocking 3/3 Guard over the lethality threshold (6/6 vs 3 damage). P0 holds no instant and is NEVER asked (C15, no row); P1 is asked once and pumps. Falsified by cw_pump_threshold_negative.json: no growth, mutual kill. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a).",
+ "note": "Rung-2 combat window, the DEFENDER's kill-shot answer: a lone Titanic Growth in P1's hand raises the blocking 3/3 Guard over the lethality threshold (6/6 vs 3 damage). P0 holds no instant and is NEVER asked (C15, no row); P1 is asked once and pumps. Falsified by cw_pump_threshold_negative.json: no growth, mutual kill. Re-pinned 2026-10-29 (V2 + B-90 (a)): mana empties as each step and phase ends (CR 500.5), so the setup mana (formerly banked across two turns) is now untapped basic lands, which the combat window taps while paying (CR 601.2g, 605.3a). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -73,9 +73,20 @@
    "block": {
     "guard": "brute"
    },
-   "decisions": [
-    "growth@guard"
-   ]
+   "respond": {
+    "DECLARE_BLOCKERS": [
+     {
+      "op": "cast",
+      "key": "growth",
+      "controller": 1,
+      "targets": [
+       "guard"
+      ],
+      "tap": true,
+      "real": "Titanic Growth"
+     }
+    ]
+   }
   }
  ],
  "expect": {
@@ -90,12 +101,6 @@
   },
   "mana_pool": {
    "1": {}
-  },
-  "combat_window_asks": {
-   "0": [],
-   "1": [
-    "growth@guard"
-   ]
   },
   "damage": {
    "guard": 3

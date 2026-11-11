@@ -1,6 +1,6 @@
 {
  "name": "cw_no_instant_negative",
- "note": "Rung-2 NEGATIVE twin of cw_burn_blocker: the same Ogre-vs-Corpse fight with NO instant in either hand. No seat has a non-empty combat vocabulary, so the window is NEVER ASKED and NO journal row exists (C15) - combat_window_asks pins both seats to the empty list and combat_window_vocab to []. The old block_save_trade semantics (mutual kill, faces untouched) hold byte-identical.",
+ "note": "Rung-2 NEGATIVE twin of cw_burn_blocker: the same Ogre-vs-Corpse fight with NO instant in either hand. No seat has a non-empty combat vocabulary, so the window is NEVER ASKED and NO journal row exists (C15) - combat_window_asks pins both seats to the empty list and combat_window_vocab to []. The old block_save_trade semantics (mutual kill, faces untouched) hold byte-identical. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window and its audit lanes are gone; nobody responds here.",
  "world": { "life": 20, "seed": 7 },
  "cards": [
   { "key": "ogre", "real": "Onakke Ogre", "zone": "hand", "controller": 0 },
@@ -13,17 +13,10 @@
   { "op": "advance_turn" },
   { "op": "end_turn" },
   { "op": "advance_turn" },
-  {
-   "op": "combat",
-   "seat": 0,
-   "attack": { "ogre": true },
-   "block": { "corpse": "ogre" }
-  }
+  { "op": "combat", "seat": 0, "attack": {"ogre": true}, "block": {"corpse": "ogre"} }
  ],
  "expect": {
   "life": { "0": 20, "1": 20 },
-  "zone": { "ogre": "graveyard", "corpse": "graveyard" },
-  "combat_window_asks": { "0": [], "1": [] },
-  "combat_window_vocab": []
+  "zone": { "ogre": "graveyard", "corpse": "graveyard" }
  }
 }

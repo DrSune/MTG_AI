@@ -1,5 +1,5 @@
 {"set": "FDN", "name": "cancel_counters_a_creature_spell",
- "notes": "P744a5c3831 G4. Printed: 'Counter target spell.' Seat 0 casts Highborn Vampire (a creature spell, {3}{B}). The response window asks seat 1, who holds Cancel and exactly {1}{U}{U}; it casts Cancel at the Vampire, which is countered: it goes to its owner's graveyard and never enters. Cancel goes to the graveyard and seat 1's pool is spent.",
+ "notes": "P744a5c3831 G4. Printed: 'Counter target spell.' Seat 0 casts Highborn Vampire (a creature spell, {3}{B}). The response window asks seat 1, who holds Cancel and exactly {1}{U}{U}; it casts Cancel at the Vampire, which is countered: it goes to its owner's graveyard and never enters. Cancel goes to the graveyard and seat 1's pool is spent. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "vamp", "real": "Highborn Vampire", "zone": "hand", "controller": 0},
@@ -7,15 +7,14 @@
  ],
  "mana": {"0": {"B": 1, "C": 3}, "1": {"U": 2, "C": 1}},
  "steps": [
-  {"op": "cast", "key": "vamp", "decisions": ["cancel"]}
+  {"op": "cast", "key": "vamp", "hold": true},
+  {"op": "cast", "key": "cancel", "controller": 1, "targets": ["vamp"], "tap": true, "real": "Cancel"}
  ],
  "expect": {
   "zone": {"vamp": "graveyard", "cancel": "graveyard"},
   "hand": {"0": 0, "1": 0},
   "graveyard": {"0": ["Highborn Vampire"], "1": ["Cancel"]},
   "mana_pool": {"0": {}, "1": {}},
-  "window_asks": {"1": ["cancel"]},
-  "window_vocab": [["PASS", "cancel"]],
   "life": {"0": 20, "1": 20}
  }
 }

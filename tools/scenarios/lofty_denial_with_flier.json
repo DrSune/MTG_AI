@@ -43,8 +43,18 @@
    "op": "cast",
    "real": "Staunch Shieldmate",
    "key": "mate",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "lofty",
+   "controller": 1,
+   "targets": [
+    "mate"
+   ],
+   "tap": true,
+   "real": "Lofty Denial",
    "decisions": [
-    "lofty",
     "PAY"
    ]
   }
@@ -59,5 +69,5 @@
    "1": {}
   }
  },
- "notes": "m21-fidelity item 5 (2026-10-29). Printed: 'Counter target spell unless its controller pays {1}. If you control a creature with flying, counter that spell unless its controller pays {4} instead.' Seat 1 controls a flier, so Staunch Shieldmate's caster must pay {4} (R 4 -> 0) to keep it; lofty_denial.json is the {1} control. Before the fix the {4} was a +3 CostModifier whose condition never held, so seat 0 paid {1}."
+ "notes": "m21-fidelity item 5 (2026-10-29). Printed: 'Counter target spell unless its controller pays {1}. If you control a creature with flying, counter that spell unless its controller pays {4} instead.' Seat 1 controls a flier, so Staunch Shieldmate's caster must pay {4} (R 4 -> 0) to keep it; lofty_denial.json is the {1} control. Before the fix the {4} was a +3 CostModifier whose condition never held, so seat 0 paid {1}. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
 }

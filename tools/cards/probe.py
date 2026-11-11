@@ -63,7 +63,7 @@ from MTG_bot.core.identity import Handle
 BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 MAX_PER_ACTION = 8  # variants per action after branching (a probe budget, not a game rule)
 MAX_TARGET_SETS = 12
-WINDOW = ("counter:", "pay:", "cw:")
+WINDOW = ("pay:",)  # an "unless its controller pays" ask: PASS by default
 
 # key, zone, seat, name, type line, power, toughness, mana value
 BOARD: tuple[tuple[str, str, int, str, str, str | None, str | None, int], ...] = (
@@ -366,7 +366,7 @@ class Probe:
     def render_event(self, r: ScenarioRunner, e: Any) -> str | None:
         name = self.names(r)
         kind, d = e.kind, tuple(e.data)
-        if kind in ("WINDOW_OPEN", "WINDOW_PASS", "TURN_PHASE"):
+        if kind == "TURN_PHASE":
             return None
         s = name(e.subject) if e.subject is not None else "-"
         c = name(e.cause) if e.cause is not None else "-"
@@ -401,8 +401,9 @@ class Probe:
     # ------------------------------------------------------------------ runs
     def run(self, where: str | None, label: str, action: Callable[[ScenarioRunner], None],
             choice: tuple[int, int] | None = None, end_turn: bool = False) -> Variant:
-        """One variant in a fresh world. Every ask takes its default (PASS in a response window,
-        else the first word), except ask ``choice[0]``, which takes word ``choice[1]``."""
+        """One variant in a fresh world. Every ask takes its default (PASS for an "unless its
+        controller pays", else the first word), except ask ``choice[0]``, which takes word
+        ``choice[1]``."""
         r = self.runner(where)
         before = self.snapshot(r)
         start = len(r.ex.journal.events)

@@ -1,20 +1,18 @@
-"""The counter window on the cast pipeline.
+"""Responses on the stack (CR 117, 405, 601.2, 608, 701.6): a spell waits there while the
+players hold priority, and a spell cast in response resolves first.
 
-  * the window ASKS each opponent holding a payable counter (a seat with
-    nothing to offer is never asked, and gets no journal row);
-  * PASS resolves the spell untouched (WINDOW_PASS audit row); a counter
-    answer casts LIFO and INTERRUPTS the resolution (CR 601.4): effect
-    never runs, card still goes to its graveyard (CR 400.7), a COUNTER
-    row lands;
-  * the ``unless`` kickback is an honest ask — PAY runs the plan through
-    the payment lane and the spell LIVES; PASS counters; an unpayable
-    payer is NEVER ASKED (the KICKBACK row carries "UNPAYABLE");
-  * the window answers through ``executor.decisions.take`` DIRECTLY —
-    the cast's per-op decisions POOL stays reserved for the spell's own
-    declaration (contamination pin);
-  * a counter can itself be countered (nested windows, LIFO);
-  * a spell the CAST atom casts gets the same window;
-  * replay identity holds across the window fold.
+  * a counterspell cast while the spell waits counters it: the spell's effect never runs, its
+    card goes to its owner's graveyard (CR 400.7) and a COUNTER row lands (CR 701.6a);
+  * with no response the spell resolves, the counter stays in hand and nobody is asked;
+  * the menu of a player with priority offers a counterspell only when it can be cast at a
+    spell on the stack: payable, and with a legal target (an instant-only counter has none in
+    a creature spell);
+  * a counter can itself be countered (LIFO, CR 405.5);
+  * a spell an effect casts waits on the stack too, and can be countered (CR 601.2i, 117.3c);
+  * the ``unless`` kickback is an honest ask: PAY runs the plan through the payment lane and
+    the spell lives; PASS counters; an unpayable payer is never asked (the KICKBACK row carries
+    "UNPAYABLE");
+  * replay identity holds across a response.
 """
 
 from __future__ import annotations
@@ -28,13 +26,13 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
-    Seq,
     SpellKind,
     Verb,
     Zone,
     ZoneKind,
 )
 from MTG_bot.core.executor.events import KIND_COUNTER
+from MTG_bot.core.executor.menu import menu
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_binding import UNIV, card_id
@@ -42,7 +40,6 @@ from MTG_bot.core.test_executor_stack import (
     ANY_ZONE,
     INSTANT_OR_SORCERY,
     StackCase,
-    any_target,
     atom,
 )
 
@@ -109,87 +106,70 @@ class Rung1Case(StackCase):
     def zone_kind(self, handle):
         return self.world.zone_of(handle).kind
 
-
-class TestResponseWindow(Rung1Case):
-    def test_counter_answer_interrupts_the_resolution(self):
+    def hold_shock(self, r=2):
+        """P0 casts a Shock at P1 and keeps priority: it waits on the stack."""
         shock = self.shock()
-        self.mana(self.p0, R=2)
+        self.mana(self.p0, R=r)
+        with self.ex.holding_priority():
+            frame = self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.assertEqual(self.ex.stack.frames, [frame])
+        return shock, frame
+
+    def menu_tokens(self, seat):
+        return [row.token for row in menu(self.ex, seat)]
+
+    def countered_by(self, counter, seat, spell, *, targets=(), answers=()):
+        """``seat`` casts ``spell`` and keeps priority; the other player casts ``counter`` at it
+        in response, ``answers`` scripting the asks after that (an unless payment); then both
+        players pass."""
+        with self.ex.holding_priority():
+            frame = self.ex_cast(seat, spell, targets=targets)
+        self.script(*answers)
+        self.ex_cast(self.p1 if seat == self.p0 else self.p0, counter, targets=(spell,))
+        return frame
+
+
+class TestResponses(Rung1Case):
+    def test_a_counterspell_cast_in_response_counters_the_spell(self):
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        cast_frame = self.ex_cast(self.p0, shock, targets=(self.p1,))
-        # the interruption: effect never ran, card in the graveyard.
+        shock, frame = self.hold_shock()
+        self.ex_cast(self.p1, cancel, targets=(shock,))
+        # the effect never ran; the card went to its graveyard (CR 400.7).
         self.assertEqual(self.world.players[self.p1].life, 20)
         self.assertEqual(self.zone_kind(shock), ZONE_GRAVEYARD)
-        self.assertTrue(was_countered(self.ex, cast_frame))
-        # counter paid, moved to its own graveyard, stack popped clean.
+        self.assertTrue(was_countered(self.ex, frame))
         self.assertEqual(self.zone_kind(cancel), ZONE_GRAVEYARD)
         self.assertEqual(self.ex.stack.frames, [])
-        # Cancel costs {U}: the pool key is drained to nothing.
         self.assertFalse(self.world.players[self.p1].mana_pool.get("U"))
-        # journal audit: one OPEN (the ask), one COUNTER, zero PASS rows.
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 1)
-        self.assertEqual(len(self.journal_rows("WINDOW_PASS")), 0)
         counters = self.journal_events("COUNTER")
-        self.assertEqual(len(counters), 1)
-        self.assertEqual(counters[0].subject, shock)
-        self.assertEqual(counters[0].cause, cancel)
-        # the ask itself: vocab PASS+cancel, tag counter:<p1>:<digest>.
-        ((vocab, what),) = self.asks
-        self.assertEqual(vocab, ("PASS", str(cancel)))
-        self.assertTrue(what.startswith(f"counter:{self.p1}:"))
+        self.assertEqual([(e.subject, e.cause) for e in counters], [(shock, cancel)])
 
-    def test_pass_resolves_the_spell_untouched(self):
-        shock = self.shock()
-        self.mana(self.p0, R=2)
+    def test_with_no_response_the_spell_resolves_and_nobody_is_asked(self):
         cancel = self.counterspell("Cancel", self.p1)
-        self.mana(self.p1, U=2)
-        self.script("PASS")
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
-        self.assertEqual(self.world.players[self.p1].life, 18)
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 1)
-        self.assertEqual(len(self.journal_rows("WINDOW_PASS")), 1)
-        self.assertEqual(len(self.journal_rows("COUNTER")), 0)
-        # a PASSing counter stays in hand, untouched.
-        self.assertEqual(self.zone_kind(cancel), ZONE_HAND)
-
-    def test_nothing_to_offer_never_asks(self):
-        # An empty choice set is never offered — P1 has no counter,
-        # so no provider call, no window rows, spell resolves normally.
+        self.mana(self.p1, U=1)
         shock = self.shock()
         self.mana(self.p0, R=2)
-        self.script()  # any ask trips the AssertionError
-
-        def prov(vocab, what):  # must never be consulted
-            raise AssertionError(f"C15 violation: asked {what}")
-
-        self.ex.decisions.provider = prov
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
-        self.assertEqual(self.world.players[self.p1].life, 18)
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
-
-    def test_unpayable_counter_not_in_vocab(self):
-        # The vocab side: a counter the seat cannot PAY is not
-        # offered (window skips the seat, no ask at all).
-        shock = self.shock()
-        self.mana(self.p0, R=2)
-        self.counterspell("Cancel", self.p1)  # cost U1, empty pool
 
         def prov(vocab, what):
-            raise AssertionError(f"C15 violation: asked {what}")
+            raise AssertionError(f"asked {what}")
 
         self.ex.decisions.provider = prov
         self.ex_cast(self.p0, shock, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 18)
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
+        self.assertEqual(self.zone_kind(cancel), ZONE_HAND)
+        self.assertEqual(len(self.journal_rows("COUNTER")), 0)
 
-    def test_frame_filter_excludes_the_offer(self):
-        # Vocab gate, designability lane: an instant-only counter
-        # (Miscast's FOr(Instant,Sorcery) shape) is NOT offered against a
-        # CREATURE spell frame. spell_castable is target-blind; the window
-        # must consult the frame itself or it promises an answer the
-        # designation planner then rejects (selection:off_population). The
-        # creature resolves into play.
+    def test_the_menu_offers_a_counterspell_only_when_it_can_be_paid(self):
+        cancel = self.counterspell("Cancel", self.p1)
+        self.hold_shock()
+        self.assertNotIn(f"cast:{cancel}", self.menu_tokens(self.p1))  # nothing pays {U}
+        self.mana(self.p1, U=1)
+        self.assertIn(f"cast:{cancel}", self.menu_tokens(self.p1))
+
+    def test_an_instant_only_counter_has_no_target_in_a_creature_spell(self):
+        # Miscast's FOr(Instant, Sorcery) target: a creature spell on the stack is
+        # no legal target (selection:off_population), so the row is not offered.
         pup = self.give(
             "Pup",
             SpellKind.CREATURE,
@@ -200,7 +180,7 @@ class TestResponseWindow(Rung1Case):
             toughness="1",
         )
         self.mana(self.p0, R=1)
-        self.give(
+        miscast = self.give(
             "Miscast",
             SpellKind.INSTANT,
             cost=Cost((CostManaColor("U", QConst(1)),)),
@@ -216,77 +196,38 @@ class TestResponseWindow(Rung1Case):
             seat=self.p1,
         )
         self.mana(self.p1, U=1)
-
-        def prov(vocab, what):
-            raise AssertionError(f"gate violation: asked {what} {vocab}")
-
-        self.ex.decisions.provider = prov
-        self.ex_cast(self.p0, pup)
+        with self.ex.holding_priority():
+            self.ex_cast(self.p0, pup)
+        self.assertNotIn(f"cast:{miscast}", self.menu_tokens(self.p1))
+        self.ex.fire_triggers()  # both players pass
         self.assertEqual(self.zone_kind(pup), ZONE_BATTLEFIELD)
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
 
-    def test_unsupported_closure_excludes_the_offer(self):
-        # Vocab gate, verb-closure lane: a card that counts AND executes
-        # COPY (Sublime Epiphany's shape) is engine-unsupported — the
-        # window offers only what the runtime can execute, so the closure
-        # of EVERY atom in the spell node must lie in HANDLERS. A
-        # COPY-bearing counter in a payable hand against a counterable
-        # instant still produces NO ask.
-        shock = self.shock()
-        self.mana(self.p0, R=2)
-        self.give(
-            "Sublime",
-            SpellKind.INSTANT,
-            cost=Cost((CostManaColor("U", QConst(1)),)),
-            effect=Seq(
-                steps=(
-                    atom(Verb.COUNTER_SPELL, target=STACK_TARGET),
-                    atom(Verb.COPY, source=any_target()),
-                )
-            ),
-            seat=self.p1,
-        )
-        self.mana(self.p1, U=1)
-
-        def prov(vocab, what):
-            raise AssertionError(f"gate violation: asked {what} {vocab}")
-
-        self.ex.decisions.provider = prov
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
-        self.assertEqual(self.world.players[self.p1].life, 18)
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 0)
-
-    def test_counter_on_counter_nests_lifo(self):
-        # P0 Shock <- P1 Cancel <- P0 Counteria. The outer frame survives
-        # (its would-be counter was itself countered).
-        shock = self.shock()
-        self.mana(self.p0, R=2)
+    def test_a_counter_can_be_countered(self):
+        # P0 Shock <- P1 Cancel <- P0 Counteria: the Shock survives, its would-be
+        # counter having been countered (LIFO, CR 405.5).
         cancel = self.counterspell("Cancel", self.p1)
         counteria = self.counterspell("Counteria", self.p0)
         self.mana(self.p1, U=2)
-        self.mana(self.p0, R=2, U=2)
-        self.script(str(cancel), str(counteria))
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
-        self.assertEqual(self.world.players[self.p1].life, 18)  # shock lived
+        self.mana(self.p0, U=2)
+        shock, _frame = self.hold_shock()
+        with self.ex.holding_priority():
+            self.ex_cast(self.p1, cancel, targets=(shock,))
+        self.ex_cast(self.p0, counteria, targets=(cancel,))
+        self.assertEqual(self.world.players[self.p1].life, 18)
         for card in (shock, cancel, counteria):
             self.assertEqual(self.zone_kind(card), ZONE_GRAVEYARD)
-        # exactly ONE COUNTER row — for cancel, not for shock.
-        counters = self.journal_events("COUNTER")
-        self.assertEqual([e.subject for e in counters], [cancel])
-        # two windows opened: p1 asked about shock, p0 asked about cancel.
-        self.assertEqual(len(self.journal_rows("WINDOW_OPEN")), 2)
+        self.assertEqual([e.subject for e in self.journal_events("COUNTER")], [cancel])
         self.assertEqual(self.ex.stack.frames, [])
 
 
-class TestEffectCastWindow(Rung1Case):
+class TestEffectCast(Rung1Case):
     """CR 601.2i, 117.3c, 608.1: a spell the CAST atom casts (an effect's "you may cast", and the
     permission rows of Idol of Endurance and Conspicuous Snoop) is on the stack like a spell cast
-    from hand, so the opponents get the same counter window before it resolves."""
+    from hand."""
 
     def cast_from_exile(self):
         """Run "you may cast it without paying its mana cost" on an exiled instant that gains
-        its caster 3 life; the pool answers the may-offer, so only the window reaches the
-        provider."""
+        its caster 3 life; the pool answers the may-offer."""
         exiled = self.give(
             "Exiled Spell",
             SpellKind.INSTANT,
@@ -304,115 +245,75 @@ class TestEffectCastWindow(Rung1Case):
         )
         return exiled
 
-    def test_the_counter_window_opens_and_counters_it(self):
+    def test_it_waits_on_the_stack_and_can_be_countered(self):
         cancel = self.counterspell("Cancel", self.p1)
         self.mana(self.p1, U=1)
-        self.script(str(cancel))
-        exiled = self.cast_from_exile()
-        ((vocab, what),) = self.asks
-        self.assertEqual(vocab, ("PASS", str(cancel)))
-        self.assertTrue(what.startswith(f"counter:{self.p1}:"))
+        with self.ex.holding_priority():
+            exiled = self.cast_from_exile()
+        self.assertEqual([f.handle for f in self.ex.stack.frames], [exiled])
+        self.ex_cast(self.p1, cancel, targets=(exiled,))
         self.assertEqual(self.world.players[self.p0].life, 20)  # its effect never ran
         self.assertEqual(self.zone_kind(exiled), ZONE_GRAVEYARD)  # CR 400.7
         self.assertEqual(self.zone_kind(cancel), ZONE_GRAVEYARD)
         self.assertEqual([e.subject for e in self.journal_events("COUNTER")], [exiled])
         self.assertEqual(self.ex.stack.frames, [])
 
-    def test_pass_lets_it_resolve(self):
-        self.counterspell("Cancel", self.p1)
-        self.mana(self.p1, U=1)
-        self.script("PASS")
+    def test_outside_a_game_loop_it_resolves_inside_the_effect(self):
         exiled = self.cast_from_exile()
-        self.assertEqual(len(self.journal_rows("WINDOW_PASS")), 1)
         self.assertEqual(self.world.players[self.p0].life, 23)
         self.assertEqual(self.zone_kind(exiled), ZONE_GRAVEYARD)  # an instant resolved
         self.assertEqual(self.ex.stack.frames, [])
 
 
 class TestKickback(Rung1Case):
-    def test_pay_lane_keeps_the_spell_alive(self):
-        # Miscast shape: "counter target instant or sorcery spell unless
-        # its controller pays {3}". P0 PAYS — shock resolves.
-        shock = self.shock()
-        self.mana(self.p0, R=2)
+    def kicked_shock(self, answers, r=2, **payer_mana):
+        """P1 answers P0's waiting Shock with a Miscast-shaped counter: "counter target spell
+        unless its controller pays {3}"."""
         miscast = self.counterspell("Miscast", self.p1, colored=("U", 1), unless=3)
         self.mana(self.p1, U=2)
-        self.mana(self.p0, G=5)  # the kickback comes from the payer's pool
-        self.script(str(miscast), "PAY")
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        shock, frame = self.hold_shock(r)
+        if payer_mana:
+            self.mana(self.p0, **payer_mana)  # the kickback comes from the payer's pool
+        self.script(*answers)
+        self.ex_cast(self.p1, miscast, targets=(shock,))
+        return shock
+
+    def test_pay_lane_keeps_the_spell_alive(self):
+        shock = self.kicked_shock(("PAY",), G=5)
         self.assertEqual(self.world.players[self.p1].life, 18)  # lived
         # {3} generic on top of the shock's R: four mana paid from the
         # seeded R2+G5, so exactly three mana remain in the payer's pool.
         self.assertEqual(sum(self.world.players[self.p0].mana_pool.values()), 3)
         self.assertEqual(self.zone_kind(shock), ZONE_GRAVEYARD)  # normal put
         kick = self.journal_events("KICKBACK")
-        self.assertEqual(len(kick), 1)
-        self.assertEqual(kick[0].data, ("PAY",))
-        self.assertEqual(kick[0].subject, shock)
+        self.assertEqual([(k.data, k.subject) for k in kick], [(("PAY",), shock)])
         self.assertEqual(len(self.journal_rows("COUNTER")), 0)
         # the ask: pay:<payer seat>:<digest>, vocab PASS/PAY.
-        pay_asks = [a for a in self.asks if a[1].startswith("pay:")]
-        self.assertEqual(pay_asks[0][0], ("PASS", "PAY"))
-        self.assertTrue(pay_asks[0][1].startswith(f"pay:{self.p0}:"))
+        ((vocab, what),) = self.asks
+        self.assertEqual(vocab, ("PASS", "PAY"))
+        self.assertTrue(what.startswith(f"pay:{self.p0}:"))
 
     def test_pass_on_kickback_counters(self):
-        shock = self.shock()
-        self.mana(self.p0, R=2)
-        miscast = self.counterspell("Miscast", self.p1, unless=3)
-        self.mana(self.p1, U=2)
-        self.mana(self.p0, G=5)
-        self.script(str(miscast), "PASS")
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        self.kicked_shock(("PASS",), G=5)
         self.assertEqual(self.world.players[self.p1].life, 20)  # countered
         self.assertEqual(self.world.players[self.p0].mana_pool.get("G"), 5)
-        kick = self.journal_events("KICKBACK")
-        self.assertEqual(kick[0].data, ("PASS",))
+        self.assertEqual(self.journal_events("KICKBACK")[0].data, ("PASS",))
         self.assertEqual(len(self.journal_rows("COUNTER")), 1)
 
     def test_unpayable_payer_is_never_asked(self):
-        # No plan, no ask — the KICKBACK row carries the honest
-        # "UNPAYABLE" witness instead of a fabricated PASS.
-        shock = self.shock()
-        miscast = self.counterspell("Miscast", self.p1, unless=3)
-        self.mana(self.p1, U=2)
-        # P0's pool: shock costs R1 — after the cast P0 holds nothing,
-        # so the {3} kickback is unpayable at resolution time.
-        self.mana(self.p0, R=1)
-        self.script(str(miscast))  # exactly ONE ask allowed
-
-        def prov(vocab, what):
-            if what.startswith("pay:"):
-                raise AssertionError(f"C15 violation: asked {what}")
-            return self._script.pop(0)
-
-        self.asks = []
-        self.ex.decisions.provider = prov
-        self.ex_cast(self.p0, shock, targets=(self.p1,))
+        # P0's pool: the Shock costs R1, so after casting it P0 holds nothing and
+        # the {3} kickback is unpayable: no ask, the KICKBACK row says so.
+        self.kicked_shock((), r=1)
+        self.assertEqual(self.asks, [])
         self.assertEqual(self.world.players[self.p1].life, 20)
         kick = self.journal_events("KICKBACK")
-        self.assertEqual(len(kick), 1)
-        self.assertEqual(kick[0].data, ("UNPAYABLE",))
+        self.assertEqual([k.data for k in kick], [("UNPAYABLE",)])
         self.assertEqual(len(self.journal_rows("COUNTER")), 1)
 
 
-class TestChannelDiscipline(Rung1Case):
-    def test_window_bypasses_the_declaration_pool(self):
-        # The cast's per-op decisions POOL belongs to the spell's own
-        # declaration. A window answer must reach the PROVIDER — had the
-        # window consumed the pool lane, the provider would never see the
-        # counter: ask (the pool token isn't even in the vocab).
-        shock = self.shock()
-        self.mana(self.p0, R=2)
-        cancel = self.counterspell("Cancel", self.p1)
-        self.mana(self.p1, U=2)
-        self.script(str(cancel))
-        self.ex_cast(self.p0, shock, targets=(self.p1,), decisions=("pool-token",))
-        self.assertEqual(len(self.asks), 1)
-        self.assertTrue(self.asks[0][1].startswith("counter:"))
-        self.assertEqual(self.world.players[self.p1].life, 20)
-
-    def test_replay_identity_across_the_window(self):
-        # same script, two fresh worlds: byte-identical fingerprints.
+class TestReplay(Rung1Case):
+    def test_replay_identity_across_a_response(self):
+        # same play, two fresh worlds: byte-identical fingerprints.
         fps = []
         for _ in range(2):
             import itertools
@@ -428,13 +329,14 @@ class TestChannelDiscipline(Rung1Case):
             p0, p1 = world.player_order
             ex = Executor(world)
             ex.begin_turn(p0)
-            case = TestChannelDiscipline("test_replay_identity_across_the_window")
+            case = TestReplay("test_replay_identity_across_a_response")
             case.world, case.p0, case.p1, case.ex = world, p0, p1, ex
             shock = case.shock()
             case.mana(p0, R=2)
             cancel = case.counterspell("Cancel", p1)
             case.mana(p1, U=2)
-            case.ex.decisions.provider = lambda vocab, what, _c=cancel: str(_c)
-            case.ex_cast(p0, shock, targets=(p1,))
+            with ex.holding_priority():
+                case.ex_cast(p0, shock, targets=(p1,))
+            case.ex_cast(p1, cancel, targets=(shock,))
             fps.append(ex.state_fingerprint())
         self.assertEqual(fps[0], fps[1])

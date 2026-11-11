@@ -9,11 +9,12 @@
  "mana": {"0": {"W": 1, "C": 1}, "1": {"U": 3}},
  "steps": [
   {"op": "enter", "key": "i"},
-  {"op": "activate", "key": "i", "idx": 1, "seat": 0, "decisions": ["fire", "cancel"]}
+  {"op": "activate", "key": "i", "idx": 1, "seat": 0, "hold": true},
+  {"op": "resolve", "decisions": ["fire"]},
+  {"op": "cast", "key": "cancel", "real": "Cancel", "controller": 1, "targets": ["wc"], "tap": true}
  ],
  "expect": {
-  "zone": {"i": "battlefield", "wc": "graveyard", "cancel": "graveyard"},
-  "window_asks": {"1": ["cancel"]}
+  "zone": {"i": "battlefield", "wc": "graveyard", "cancel": "graveyard"}
  },
- "notes": "Idol of Endurance's permission ('you may cast a creature spell from among cards exiled with this artifact without paying its mana cost') casts Walking Corpse as a spell cast from hand is cast: it goes on the stack and the opponent gets the same counter window before it resolves (CR 601.2i, 117.3c, 608.1). Cancel counters it, so it goes to its owner's graveyard (CR 701.6a). The engine used to resolve it at once and never offered Cancel (2026-11-06)."
+ "notes": "Idol of Endurance's permission ('you may cast a creature spell from among cards exiled with this artifact without paying its mana cost') casts Walking Corpse as a spell cast from hand is cast: it goes on the stack and the opponent gets the same counter window before it resolves (CR 601.2i, 117.3c, 608.1). Cancel counters it, so it goes to its owner's graveyard (CR 701.6a). The engine used to resolve it at once and never offered Cancel (2026-11-06). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
 }

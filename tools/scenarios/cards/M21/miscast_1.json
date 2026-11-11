@@ -43,8 +43,18 @@
    "targets": [
     "rager"
    ],
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "miscast",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true,
+   "real": "Miscast",
    "decisions": [
-    "miscast",
     "PAY"
    ]
   }
@@ -59,11 +69,6 @@
    "0": {},
    "1": {}
   },
-  "window_asks": {
-   "1": [
-    "miscast"
-   ]
-  },
   "kickback_asks": {
    "0": [
     "PAY"
@@ -74,5 +79,5 @@
    "1": 20
   }
  },
- "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: the opponent counters Shock with Miscast; Shock's controller has exactly {3} left after Shock's {R} and pays it, so Shock is not countered and kills the 2/2 Rager; the pool is empty afterwards."
+ "notes": "Verifier K, wave 4. Printed Miscast: 'Counter target instant or sorcery spell unless its controller pays {3}.' Expectation from the text: the opponent counters Shock with Miscast; Shock's controller has exactly {3} left after Shock's {R} and pays it, so Shock is not countered and kills the 2/2 Rager; the pool is empty afterwards. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
 }

@@ -12,13 +12,13 @@
   ],
   "mana": {"0": {"W": 1}, "1": {"U": 4}},
   "steps": [
-    {"op": "cast", "real": "Staunch Shieldmate", "key": "cre", "decisions": ["rewind", "p1", "p2", "p3", "p4"]}
+    {"op": "cast", "real": "Staunch Shieldmate", "key": "cre", "hold": true},
+    {"op": "cast", "key": "rewind", "controller": 1, "targets": ["cre"], "tap": true, "real": "Rewind", "decisions": ["p1", "p2", "p3", "p4"]}
   ],
   "expect": {
     "zone": {"cre": "graveyard", "rewind": "graveyard"},
-    "window_asks": {"1": ["rewind"]},
     "tapped": {"p1": false, "p2": false, "p3": false, "p4": false, "p5": true},
     "mana_pool": {"0": {}, "1": {}}
   },
-  "notes": "Verifier K, wave 4. Printed Rewind: 'Counter target spell. Untap up to four lands.' Expectation from the text: 'target spell' is any single spell, so the opponent can answer a creature spell with Rewind and counter it (it goes to its owner's graveyard, never the battlefield); then Rewind's controller untaps at most four lands of their choice (p1-p4 untap, p5 stays tapped). Rewind's {2}{U}{U} is paid from seat 1's four blue."
+  "notes": "Verifier K, wave 4. Printed Rewind: 'Counter target spell. Untap up to four lands.' Expectation from the text: 'target spell' is any single spell, so the opponent can answer a creature spell with Rewind and counter it (it goes to its owner's graveyard, never the battlefield); then Rewind's controller untaps at most four lands of their choice (p1-p4 untap, p5 stays tapped). Rewind's {2}{U}{U} is paid from seat 1's four blue. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
 }

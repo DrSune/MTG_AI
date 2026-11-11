@@ -120,7 +120,7 @@ from MTG_bot.core.executor.selectors import (
     atom_target_slot_key as _atom_target_slot_key,
 )
 from MTG_bot.core.executor.selectors import players_for_ref
-from MTG_bot.core.executor.stack import SpellStack, open_combat_window
+from MTG_bot.core.executor.stack import SpellStack
 from MTG_bot.core.executor.verbs import HANDLERS, damage_source, run_atom
 from MTG_bot.core.identity import Handle, HandleSpace
 from MTG_bot.core.state import (
@@ -416,6 +416,12 @@ class Executor:
         self.priority_holder: Handle | None = None
         self.passes = 0
         self.first_strikers: frozenset[Handle] | None = None
+        # Who passes priority (DESIGN_PRIORITY §11). Driven: a game loop asks the
+        # player who holds it at every priority point (games._play_turns). Not
+        # driven (a unit test, a pack's set-up, a tool): an op ends with both
+        # players passing until the stack is down to where it was. Set by the
+        # driver, not replayed state.
+        self.driven = False
         # CR 103.8a: the first player skips the draw of their first turn.
         # A function of the turn counter, so not folded.
         self._skip_draw = False
@@ -756,14 +762,13 @@ class Executor:
         op leaves its events to the outermost op's settle, whose journal pass sees them
         (TriggerBinder.on_events reads every unseen row)."""
         nested = self._resolving > 0
-        floor = len(self.stack.frames)
         self._resolving += 1
         try:
             self._run_effect(effect, ctx)
         finally:
             self._resolving -= 1
         if not nested:
-            self._finish_op(floor)
+            self._finish_op()
 
     @contextmanager
     def atomic(self) -> Iterator[None]:
@@ -1762,9 +1767,10 @@ class Executor:
         (DESIGN_PRIORITY §11, the undriven auto-pass): at each priority point
         the CR 117.5 check (:meth:`_priority_check`), then the top object
         resolves (CR 117.4, 608; ``stack.resolve_top``), and an effect that
-        ended the turn ends it there (CR 724.1). ``floor`` is the depth an op
-        found when it began, so an op never resolves what was on the stack
-        under it. Returns the number of triggered abilities resolved.
+        ended the turn ends it there (CR 724.1). A spell an effect casts
+        outside a game loop resolves inside that resolution, down to the
+        depth it found (``stack.cast_card``). Returns the number of triggered
+        abilities resolved.
 
         The tripwire: after ``MAX_TRIGGER_FIRES`` triggered abilities in one
         settle, the source that resolved most is quarantined (its objects
@@ -1802,15 +1808,50 @@ class Executor:
         self.layers.recompute()
         return fired
 
-    def _finish_op(self, floor: int = 0) -> None:
+    def _finish_op(self) -> None:
         """The end of a public op. CR 724.1: when the op's own effect
         ended the turn, the turn ends BEFORE any settle, so the abilities
         its resolution triggered cease to exist (724.1a) instead of
-        resolving; otherwise the settle runs, then any request a trigger
-        made during it."""
-        if not self._consume_end_turn():
-            self._settle(floor)
-            self._consume_end_turn()
+        resolving; otherwise, outside a game loop, both players pass
+        (:meth:`_settle`), then any request a trigger made during it ends
+        the turn. In a game loop the loop gives priority next (CR 117.3c).
+        An op made inside an action or a resolution (:meth:`atomic`: a mana
+        ability activated while paying) leaves all of it to the action's
+        end."""
+        if self._resolving:
+            return
+        if self._consume_end_turn() or self.driven:
+            return
+        self._settle()
+        self._consume_end_turn()
+
+    @contextmanager
+    def holding_priority(self) -> Iterator[None]:
+        """Outside a game loop: the ops made inside end with their player keeping
+        priority (CR 117.3c) and nobody passing, so what they put on the stack
+        waits there for the next op to respond to. An op made after it ends
+        with both players passing until the stack is empty, as usual."""
+        was, self.driven = self.driven, True
+        try:
+            yield
+        finally:
+            self.driven = was
+
+    def all_pass(self) -> None:
+        """Every player passes in succession (CR 117.4), after the CR 117.5
+        check: the top object of the stack resolves and the active player
+        receives priority (CR 117.3b); with an empty stack the step ends."""
+        from MTG_bot.core.executor.stack import resolve_top
+
+        self._priority_check()
+        self.passes = 0
+        if not self.stack.frames:
+            self._end_step()
+            return
+        resolve_top(self)
+        self._consume_end_turn()
+        if self.phase != TURN_ENDED:
+            self.priority_holder = self.world.active_player
 
     def _consume_end_turn(self) -> bool:
         """An END_TURN atom only SETS the request flag (mid-op state
@@ -1842,7 +1883,7 @@ class Executor:
         self.declaring = False
         self.first_strikers = None
         self._begin_step(CLEANUP)
-        return self._auto_pass_until(TURN_ENDED)
+        return self.pass_until(TURN_ENDED)
 
     def _end_the_turn_process(self) -> None:
         """CR 724.1a-d, the part of ending the turn before its cleanup step.
@@ -1942,7 +1983,7 @@ class Executor:
         self._closing_turn = False
         self.journal.begin_turn(player)
         self._begin_step(UNTAP)
-        return self._auto_pass_until(FIRST_MAIN)
+        return self.pass_until(FIRST_MAIN)
 
     # ------------------------------------------------ the step machine (CR 500-514, 117)
     #
@@ -1978,7 +2019,7 @@ class Executor:
             return True
         return False
 
-    def _auto_pass_until(self, step: str) -> int:
+    def pass_until(self, step: str) -> int:
         """Both players pass at every priority point (the undriven auto-pass)
         until ``step`` holds priority with an empty stack, or the turn has
         ended. Returns how many triggered abilities resolved."""
@@ -2042,12 +2083,8 @@ class Executor:
             self._declare_attackers(active)
             return True
         if step == DECLARE_BLOCKERS:
-            # CR 509; the block triggers resolve, then (until the driven loop of
-            # DESIGN_PRIORITY §11 5b) the combat window's one round of instants.
             assert active is not None
-            self._declare_blockers(active)
-            self._settle()
-            open_combat_window(self)
+            self._declare_blockers(active)  # CR 509
             return True
         if step == FIRST_STRIKE_DAMAGE:
             # CR 510.4: only creatures with first or double strike deal damage
@@ -2244,9 +2281,8 @@ class Executor:
     #
     # The beginning of combat, declare attackers (each attacks the defending
     # player or a planeswalker that player controls, CR 506.2, 508.1b; the
-    # attack ask names the choice), declare blockers (CR 509; until the
-    # driven loop, one instant window after the blocks,
-    # stack.open_combat_window), the combat damage step or steps with the CR
+    # attack ask names the choice), declare blockers (CR 509), the combat
+    # damage step or steps with the CR
     # 510 assignment asks (TRAMPLE, DEATHTOUCH, the Herald AS_UNBLOCKED
     # policy) and the end of combat, each a step of the machine with its
     # priority point (CR 117.3a, 704.3).
@@ -2276,7 +2312,7 @@ class Executor:
             raise ValueError(f"combat_step: {seat} has no defending player")
         if self.phase not in (BEGIN_COMBAT, DECLARE_ATTACKERS):
             self._jump_to(BEGIN_COMBAT)
-        return self._auto_pass_until(DECLARE_ATTACKERS)
+        return self.pass_until(DECLARE_ATTACKERS)
 
     def combat_blocks(self, seat: Handle) -> int:
         """The rest of the combat phase with both players passing (CR 509-511):
@@ -2290,7 +2326,7 @@ class Executor:
         del seat  # the active player's combat, as declared
         if self.phase == TURN_ENDED:
             return 0
-        return self._auto_pass_until(SECOND_MAIN)
+        return self.pass_until(SECOND_MAIN)
 
     def _declare_attackers(self, seat: Handle) -> None:
         """The CR 508.1 asks + the whole-set check, then the
@@ -2835,7 +2871,7 @@ class Executor:
             )
             if not power or power < 0:
                 # 0, a negative, or an unmaterialized * : CR 120.7 - not
-                # dealt at all. A -X/-X instant cast in the combat window
+                # dealt at all. A -X/-X instant cast after blockers
                 # can push a dealer's effective power below zero; damage is
                 # never negative.
                 continue
@@ -2920,7 +2956,7 @@ class Executor:
             return 0
         if self.phase not in (END_STEP, CLEANUP):
             self._jump_to(END_STEP)
-        return self._auto_pass_until(TURN_ENDED)
+        return self.pass_until(TURN_ENDED)
 
     def _discard_to_hand_size(self) -> None:
         """CR 514.1 (a turn-based action, no stack): the active player

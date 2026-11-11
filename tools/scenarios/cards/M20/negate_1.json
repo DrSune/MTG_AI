@@ -1,5 +1,5 @@
 {"set": "M20", "name": "negate_counters_noncreature_spell",
- "notes": "P0e39720e5e G4. Printed: 'Counter target noncreature spell.' Seat 0 casts Disfigure (an instant) at seat 1's 2/2 Bear. The response window asks seat 1, who holds Negate and exactly {1}{U}; it casts Negate on Disfigure, which is countered (CR 701.5a): its effect never happens, the Bear stays 2/2, both spells end in their owners' graveyards and seat 1's pool is spent.",
+ "notes": "P0e39720e5e G4. Printed: 'Counter target noncreature spell.' Seat 0 casts Disfigure (an instant) at seat 1's 2/2 Bear. The response window asks seat 1, who holds Negate and exactly {1}{U}; it casts Negate on Disfigure, which is countered (CR 701.5a): its effect never happens, the Bear stays 2/2, both spells end in their owners' graveyards and seat 1's pool is spent. Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
@@ -8,14 +8,13 @@
  ],
  "mana": {"0": {"B": 1}, "1": {"U": 1, "C": 1}},
  "steps": [
-  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "decisions": ["negate"]}
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "negate", "controller": 1, "targets": ["disfigure"], "tap": true, "real": "Negate"}
  ],
  "expect": {
   "zone": {"disfigure": "graveyard", "negate": "graveyard", "bear": "battlefield"},
   "power": {"bear": 2},
   "toughness": {"bear": 2},
-  "window_asks": {"1": ["negate"]},
-  "window_vocab": [["PASS", "negate"]],
   "mana_pool": {"0": {}, "1": {}},
   "life": {"0": 20, "1": 20}
  }
