@@ -2,7 +2,8 @@
 # Window 1 (KNOWLEDGE/2026-11-11/192): the n-curve, gate A's confirmation, the simulator on the new
 # game, and the n = 16 variants. Runs from the pinned worktree; one GPU job at a time; a step that
 # finished (its .done file) is skipped on a restart. DEALS sets the n-curve points' deals; PILOT=1
-# plays only the pilot (n = 4 and 16, 50 deals each), which times a searched game.
+# plays only the pilot (n = 4 and 16, 50 deals each), which times a searched game; ONLY=a,b runs
+# only the named steps (the simulator's, while a search fix is under way).
 #   systemd-run --user --unit mtg-window1 --setenv=DEALS=300 /bin/bash \
 #     /home/sune/Desktop/MTG_AI-w1/reports/window1_2026-11-11/queue.sh
 set -u
@@ -20,6 +21,7 @@ log() { echo "{\"t\": $(date +%s), \"step\": \"$1\", \"what\": \"$2\"}" >> "$O/q
 step() {
   local name=$1; shift
   [ -f "$O/$name.done" ] && return 0
+  [ -n "${ONLY:-}" ] && [[ ",$ONLY," != *",$name,"* ]] && return 0
   log "$name" start
   "$@" > "$O/$name.out" 2>&1
   local rc=$?
@@ -62,4 +64,4 @@ point n16_h2 16 "$DEALS" --search-horizon 2
 step heur_raw .venv/bin/python -m tools.selfplay.learner --run "$O/heur_raw" $COMMON --eval-only \
   --eval-seat eval --eval-opponents heuristic --eval-set M21 --eval-deals "$DEALS"
 point heur_n16 16 "$DEALS" --eval-opponents heuristic
-log window done
+log window "done${ONLY:+ (only $ONLY)}"
