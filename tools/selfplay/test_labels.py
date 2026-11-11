@@ -234,7 +234,7 @@ def test_the_search_plays_the_answer_the_threats_share(table) -> None:
     for proposal in (_BELIEF, {"A": 0.8, "B": 0.1, "C": 0.1}):
         draws = random.Random(1).choices(list(proposal), list(proposal.values()), k=searcher.d)
         searcher.draw_worlds = lambda count, draws=draws, q=proposal: [(w, _BELIEF[w] / q[w]) for w in draws]
-        assert searcher.choose(ask, SimpleNamespace(game=None), None) == 1
+        assert searcher.choose(ask, SimpleNamespace(game=None, ctx=None), None) == 1
 
 
 def test_distilling_per_world_labels_learns_the_shared_answer() -> None:
