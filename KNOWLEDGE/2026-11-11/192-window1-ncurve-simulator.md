@@ -225,3 +225,40 @@ P4-P7, S1 and S2 are scored when the window ends.
 
 **What it means.** S1 and S2 are met, so N5 runs: simulator worlds against uniform worlds at
 n = 16, started 00:01. P7 then decides whether simulator worlds become the default (§2).
+
+## 6. The clock's latency, after the window (pre-registered 2026-11-12 00:40, before it runs)
+
+**Why now.** Choosing n for play under a clock (PLAN_CEILING §3.3, NORTH_STAR §1a) needs a single
+game's latency on an idle machine. The window's timings carry the load of 288 games. The machine is
+next idle only between the window and r27, so the measurement runs there and r27 starts after it.
+That is about 30 minutes later, and at most 1 h 45 min, because each point has a time cap.
+
+**How.**
+- `reports/window1_2026-11-11/clock.sh` runs as the transient unit `mtg-clock1`.
+- It runs from the window's worktree at e462628. Its search code is the same at r27's commit
+  f473c44.
+- One game at a time (`--workers 1 --slots 1 --groups 1`). Otherwise the settings are those of the
+  n-curve's points: gumbel, m 16, horizon 1, uniform worlds, deals 900,000+.
+- The points:
+  - clock_n16: n = 16, 10 deals (20 games), capped at 40 minutes;
+  - clock_n4: n = 4, 5 deals, capped at 20 minutes;
+  - clock_n64: n = 64, 5 deals, capped at 45 minutes.
+- A CPU smoke test of these flags passed (n = 2, one deal, one throttled thread: 0.93 s per
+  simulation).
+
+**Predictions:**
+
+| # | Measure | Prediction | Falsifier |
+|---|---|---|---|
+| C1 | Seconds per simulation at n = 16 (mean ms per searched decision over simulations per searched decision) | 0.05-0.30 (under the window's load: 1.30) | above 0.6: the load was not the main cost |
+| C2 | A searched decision's p99 at n = 16 | 2-15 s | — |
+| C3 | The searching seat's search time per game at n = 16 | 10-90 s | — |
+| C4 | Seconds per simulation at n = 4 and at n = 64, against n = 16 | within 30% | — (it decides whether a decision's time can be read as proportional to n) |
+
+**What it means.**
+- The clock to fit is the hard-loss one of `docs/CLOCK_TARGETS.md`. On Magic Online that is 25
+  minutes per player per match, ticking only while the player has priority: about 500 s per game
+  over three games.
+- The owner reads n for play from C1-C4.
+- A decision's simulations run one after another (`search.py:321`). Running them in parallel would
+  cut the latency, and is not measured here.
