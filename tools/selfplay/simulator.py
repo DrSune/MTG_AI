@@ -367,7 +367,7 @@ def evaluate(a: argparse.Namespace) -> None:
     net, table = load(a.ckpt, dev)
     data = Data.load(a.data, table)
     idx = np.flatnonzero(held_out(data.a["seed"]))
-    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib")}
+    rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib", "uniform_hand")}
     pairs: dict[str, list] = {k: [] for k in ("pos", "card", "p_sim", "y")}
     for ch in np.array_split(idx, max(1, len(idx) // a.mb)):
         b = data.batch(ch, dev)
@@ -377,6 +377,8 @@ def evaluate(a: argparse.Namespace) -> None:
         cap, hand = b["cap"].cpu().numpy(), b["hand"].cpu().numpy()
         p_sim = torch.sigmoid(marg).cpu().numpy()
         for j, i in enumerate(ch):
+            rows["uniform_hand"].append(uniform_hand_nll(
+                hand[j, :data.a["h"][i]], int(pool_rows(table, str(data.a["set"][i]))[0].sum())))
             cand = np.flatnonzero(cap[j] > 0)
             pairs["pos"].append(np.full(len(cand), i))
             pairs["card"].append(cand)
@@ -388,7 +390,28 @@ def evaluate(a: argparse.Namespace) -> None:
                 if k in data.a})
     np.savez(a.out, idx=idx, **out)
     print(json.dumps({"positions": len(idx), **{k: round(float(v.mean()), 4)
-                                                 for k, v in out.items() if k in rows}}))
+                                                 for k, v in out.items() if k in rows},
+                      "hand_vs_uniform": round(float(out["sim_hand"].mean()
+                                                     / out["uniform_hand"].mean()), 4),
+                      "ece": round(ece(out["p_sim"], out["y"]), 5)}))
+
+
+def uniform_hand_nll(hand: np.ndarray, pool: int) -> float:
+    """-log P of a hand (a multiset of table rows) when every hidden card is drawn uniformly
+    from the ``pool`` deckable cards, as the search's ``uniform`` worlds draw them."""
+    counts = np.unique(hand, return_counts=True)[1]
+    return len(hand) * math.log(pool) - math.lgamma(len(hand) + 1) + sum(
+        math.lgamma(c + 1) for c in counts)
+
+
+def ece(p: np.ndarray, y: np.ndarray, bins: int = 15) -> float:
+    """Expected calibration error over equal-mass bins of the predicted probabilities."""
+    order = np.argsort(p)
+    err = 0.0
+    for part in np.array_split(order, bins):
+        if len(part):
+            err += len(part) * abs(float(p[part].mean()) - float(y[part].mean()))
+    return err / max(len(p), 1)
 
 
 def main(argv: list[str] | None = None) -> int:
