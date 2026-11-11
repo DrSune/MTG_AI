@@ -94,9 +94,11 @@ tools/selfplay/launch.sh /home/sune/Desktop/MTG_AI/runs/selfplay/r27_priority_pp
 As note 189 §4, plus PH-9's row per ask kind on every update: decisions, pass share, mean
 advantage, normalised entropy and KL.
 
-The gates now deal coherent decks only (`learner.py:863` with `--coherent-share 1.0`). r26's
-pinned code dealt half stress decks. So a gate's standard error of ~0.011 is all on the
-distribution trained on.
+Every evaluation now deals coherent decks only (`learner.py:800`, since decad93; r26's pinned code
+dealt half stress decks). So a gate's standard error of ~0.011 is all on the distribution trained
+on. r26's read at 1,000 shows why it matters: its coherent halves rose to 0.546 against v2 while
+its five-colour halves fell to 0.476, and the pooled gate froze nothing after update 378
+(189 §11).
 
 **Start values** (CPU census of r26's `last.pt` against itself, both seats sampled, 30 games;
 scratch script `selfplay_census.py`, numbers in NUMBERS):
