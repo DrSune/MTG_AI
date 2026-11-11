@@ -1,7 +1,8 @@
 # 191 — r27: outcome PPO on the game with priority (pre-registration, before any r27 game)
 
-**Frozen at launch (2026-11-11), after r26's read at update 1,000.** The commit that holds this
-line is r27's launch commit, checked out at `/home/sune/Desktop/MTG_AI-r27`.
+**Frozen at launch (2026-11-11), after r26's read at update 1,000.** Not edited after r27's
+launch commit, which the run's `preregistration.json` and manifest record. The run's worktree
+`/home/sune/Desktop/MTG_AI-r27` is pinned there.
 
 **Sources.**
 - DESIGN_PRIORITY stage 5. Decisions 3 and 4 of its §7 were approved on 2026-11-10: start from

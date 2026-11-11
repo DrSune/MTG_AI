@@ -22,6 +22,7 @@ def _mem_available_gib() -> float:
 
 
 def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
+    import numpy as np
     import torch
 
     from tools.selfplay import features as FT
@@ -29,6 +30,7 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
     from tools.selfplay.ppo import ppo_train
 
     a = SimpleNamespace(**args)
+    np.random.seed(a.seed)  # the minibatches' order (ppo.chunks); a spawned process starts unseeded
     device = torch.device("cuda" if torch.cuda.is_available() and a.device != "cpu" else "cpu")
     table = FT.CardTable.from_json(ckpt["table"])
     cfg = {k: v for k, v in ckpt["config"].items() if k not in ("n_cards", "n_ir")}

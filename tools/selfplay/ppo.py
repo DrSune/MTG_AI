@@ -24,7 +24,6 @@ with two options or more (METRICS §17 VAR-1) and the KL from the behaviour poli
 
 from __future__ import annotations
 
-import random
 import time
 from collections import defaultdict
 from collections.abc import Callable
@@ -51,8 +50,7 @@ def chunks(lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
         cur_max = max(cur_max, length)
     if cur:
         out.append(np.array(cur))
-    random.shuffle(out)
-    return out
+    return [out[i] for i in np.random.permutation(len(out))]
 
 
 def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
@@ -91,8 +89,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     t_train = time.perf_counter()
     for epoch in range(a.epochs):
         kls = []
-        epoch_chunks = list(chunk_list)
-        random.shuffle(epoch_chunks)
+        epoch_chunks = [chunk_list[i] for i in np.random.permutation(n_batches)]
         for step, ch in enumerate(epoch_chunks):
             if check:
                 check()
