@@ -251,3 +251,15 @@ The plan that follows this, with its gates and the owner's decisions: `docs/PLAN
   +200 Elo above the learner's start (PLAN_CEILING §6.4). On this project's scale (random 0, the
   heuristic ~300, today's best ~450-465 on the old game), 1000 would win about 96% against today's
   best: the direction, not a gate.
+- The owner, approving the plan: "If we train the search, opponent predictor and value function, in
+  a more fast/compute efficient way, but lower cieling, then that might improve more, faster. If
+  lowering gamma and lambda doesnt help with this at all, I guess it doesnt make sense. We just
+  need them to improve. Making the drafter, and training that for maximizing learning, would also be
+  really great (learning is probably winrate agains frozen opponents from a very varied pool,
+  weighted based on ELO). You get the main point, go ahead" (DECISIONS D22). Notes: for the
+  learner, lambda 0.95 bought only 2.2M against 2.65M decisions per useful update (D20), so it keeps
+  gamma = lambda = 1. F1 may use faster value targets (auxiliary short-term search values, or a
+  result-and-search mix) where they measure faster (PLAN_CEILING §6.3). The learning score is the
+  learner's Elo against a very varied frozen pool: an Elo fit weights a win by the opponent's
+  strength. The Teacher picks deck families by measured progress, and the drafter is trained for it
+  later (PLAN_CEILING §9).

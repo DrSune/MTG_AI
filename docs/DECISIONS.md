@@ -661,6 +661,34 @@ If E1 or E3 fails, the fallback is slow outcome PPO plus throughput work.
   holds what to revisit and the data on disk. The labeller and its guards stay in main
   (`search.Labeller`): play-time search shares its machinery.
 
+## D22 — The path to the ceiling: fast models first, then the learner against them
+**2026-11-11. Owner: "You get the main point, go ahead."** The plan is `docs/PLAN_CEILING.md`.
+
+**The order:**
+1. r27, outcome PPO on the game with priority, starts after r26's read at update 1,000.
+2. The search becomes one family with every setting a flag. Its strength against n is measured
+   before anything trains on search.
+3. The simulator is recaptured on the new game and trained at every level of the search, through
+   truth lines that feed its labels only. Consequence enters through position weights and exact
+   importance sampling, so its probabilities stay calibrated.
+4. F1, search-improved training, passes gates A and B, then trains high: to its plateau or the
+   owner's target ("like 1000 Elo", about +535 over today's best), with a review at 14
+   machine-days. It keeps a ladder of checkpoints.
+5. H1, the learner against F1's ladder and its searched versions (PFSP), starts once F1 is at
+   least +200 Elo above it.
+6. The ceiling read.
+7. H2, from fresh weights and explorative from the first update.
+8. Alongside, the Teacher and then the drafter choose decks for learning. The learning score L is
+   the learner's Elo against a very varied frozen pool.
+
+**D21 amended.** Distillation from search is un-parked as F1, behind gates A and B. F1 may use
+faster, lower-ceiling value targets only where they measure faster: auxiliary short-term values, or
+a mix of the result and the search's value. The learner stays outcome PPO with gamma = lambda = 1:
+lambda 0.95 bought only 2.2M against 2.65M decisions per useful update (D20).
+
+**Unchanged:** D15 (the Teacher is a curator plus a critic, the drafter a generative policy, and
+they share the critic); OWNER_PREFERENCES #1 and #6; no privileged critic.
+
 ## Deferred pending information
 
 **The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in

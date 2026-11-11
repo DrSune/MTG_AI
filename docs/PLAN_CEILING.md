@@ -1,8 +1,9 @@
 # From fast opponents to the ceiling: search, the simulator and the league
 
-**Status: draft for the owner, 2026-11-11 (Claude).** Nothing here is built until the owner
-approves it. One exception: r27, DESIGN_PRIORITY's stage 5 (approved 2026-11-10), is step 0 of
-this plan either way.
+**Status: approved by the owner on 2026-11-11** ("You get the main point, go ahead"; DECISIONS
+D22), after two changes of theirs: F1 trained high before the learner meets it (§6.4), and decks
+chosen for learning by the Teacher and the drafter (§9). Written by Claude the same day. The red
+team's findings amend it in §13.
 
 Builds on:
 - OWNER_VISION_LEARNING §9-§11, the owner's words;
@@ -53,6 +54,7 @@ owner's rulings:
 | 3 | **F1, trained high first** (owner, 2026-11-11), only if step 1 shows the search well above its own network and a cheap distillation probe moves the network. A checkpoint every ~50 Elo builds the opponents' ladder | at 48 h: faster per machine-hour than r27, or stop. Then on to its plateau or the owner's target (§6.4) | days, up to 2 weeks |
 | 4 | **H1**: the learner trains against F1's ladder and its searched versions; it starts only when F1's best is at least +200 Elo above the learner | the **ceiling read** (§7) | 1-2 weeks |
 | 5 | **H2**: explorative self-play from the beginning | your call after the ceiling read | weeks |
+| with 4-5 | **Decks chosen for learning** (§9): the learning score L, the learner's Elo against a very varied frozen pool; the Teacher picking deck families by measured progress; then the drafter, trained for learning | at least 1.3x the Elo per machine-day of uniform deals | alongside H1, then for H2 |
 
 **Three earlier attempts at training from search failed. The difference this time** (§6.2):
 - the search's strength is measured against n first, so we no longer train on a weak search;
@@ -71,7 +73,7 @@ owner's rulings:
   cards at every level of the real game's possible lines. The consequence learns from the search's
   own per-world results.
 
-**Decisions for you: §11.**
+**Decisions: §12** (approved as recommended, 2026-11-11).
 
 ---
 
@@ -88,6 +90,9 @@ owner's rulings:
 | "utilizes lower cieling but faster improvement models to get our high-cieling model up to speed fast by playing difficult opponents" | §6, §7 |
 | "That will help assess the cieling" | §7.3 |
 | "shouldnt we train the F1 and F0 models to some high ELO? Like 1000 ELO and then start training? If we just play it like it is but plus search, is that really good enough to test what we want to find out?" | §6.4 |
+| "If we train the search, opponent predictor and value function, in a more fast/compute efficient way, but lower cieling, then that might improve more, faster. If lowering gamma and lambda doesnt help with this at all, I guess it doesnt make sense. We just need them to improve." | §6.3 |
+| "Making the drafter, and training that for maximizing learning, would also be really great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based on ELO)." | §9 |
+| "You get the main point, go ahead" | status; DECISIONS D22 |
 | "after which we can do the cieling-striving training run that is explorative self-play from the beginning" | §8 |
 | "Only challenge is whether enemy deck is coherent, or completely random" | §5.5 |
 
@@ -345,6 +350,18 @@ F1 is not run.
   - the rest get n/8, enough for play.
 - **Value targets**: game results (gamma = 1) at about 10 sampled positions per game and seat.
   Positions of one game share a result and are near copies (183 §12).
+- **Faster value learning, if it measures faster.** The owner: F1 may trade ceiling for speed, and
+  a lower gamma or lambda is worth it only if it helps. Two settings, each kept only if the value
+  head predicts held-out results better per machine-hour and the search gets stronger:
+  - auxiliary heads that predict the search's own root value a few turns ahead, exponentially
+    averaged. These are KataGo's short-term value targets [11]: by its author's partial test,
+    slightly faster training and a slightly better main head. The main head keeps the game
+    result;
+  - a main target mixing the result with the search's value. This is a lower lambda by another
+    name, and it lowers the ceiling.
+- **The learner keeps gamma = lambda = 1.** For outcome PPO, lambda below 1 bought little: one
+  useful update needed 2.2M decisions at 0.95, against at least 2.65M at 1 (D20). That is not worth
+  the full credit, so r27, H1 and H2 keep gamma = lambda = 1.
 - **Simulator data**: every game, both seats, plus the truth lines of §5.2.
 - **Replay buffer in RAM**:
   - An encoded decision is about 8-16 KB: up to 112 card entities of 62 floats and 7 ids, plus the
@@ -461,7 +478,8 @@ added if the headroom row says capacity.
   and the strong networks of r27, F1 and H1.
   - PFSP keeps the strong ones mostly out until it can win some games against them.
   - It plays them, never copies them, so they shape what it must beat, not how it plays.
-- **Kept learning**: partial resets if it stalls (§9's remedies), and the magnet against cycling.
+- **Kept learning**: partial resets if it stalls (OWNER_VISION_LEARNING §9's remedies), and the
+  magnet against cycling.
 - **The same learner rules**: gamma = lambda = 1, +1/-1, no privileged critic, on-policy.
 
 **A pilot first**, a 6-8 hour window during H1:
@@ -471,7 +489,78 @@ added if the headroom row says capacity.
 - If it does not learn, H2 needs a different start, such as search from the beginning as AlphaZero
   did. That decision is the owner's.
 
-## 9. Order and machine time
+## 9. Decks chosen for learning: the Teacher and the drafter (owner, 2026-11-11)
+
+The owner: "Making the drafter, and training that for maximizing learning, would also be really
+great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based
+on ELO)."
+
+### 9.1 The learning score L
+
+**What it is.** L is the learner's Elo fitted against a fixed, very varied pool of frozen
+opponents, on held-out deals that are never trained on. The fit is Bradley-Terry, as `fit_elo`
+does.
+
+**The pool:**
+- players of every track and strength: r26's and r27's versions, F1's ladder raw and searched,
+  the heuristic, and later niche specialists and exploiters;
+- each with decks of every shape: coherent, the niche set (D14), and later real decklists and the
+  drafter's.
+
+**Why an Elo and not a plain win rate.** An Elo fit weights each result by the opponent's
+strength: a win against a strong opponent raises it far more than a win against a weak one. That
+is the owner's "weighted based on ELO" without hand-set weights.
+
+**Stability.** The pool only grows within a phase, so L stays comparable. It is the progress
+measure of every run here from H1 on, and the reward of the Teacher below.
+
+### 9.2 The Teacher (a curator plus a critic, D15)
+
+It chooses the training deals (both decks, and the opponent) so that L rises fastest per
+machine-hour.
+
+**v0, with H1** [9]:
+- A bandit over deck families: the generator's settings, meaning colours, curve, land count and
+  D16's niche knob, crossed with opponents.
+- Each family's reward is the learner's measured progress on that family's held-out deals over a
+  window: Teacher-Student Curriculum Learning.
+- The families with the most progress are sampled most, with a floor of uniform sampling so that
+  nothing is forgotten.
+- No network.
+
+**v1.** The critic of D15 predicts a matchup's result and how much the learner gains from it, and
+the curator samples by that (Prioritized Level Replay's scores [10]).
+
+**Its gate** is PLAN_LEARNING's Phase 3 bar: at least 1.3x the Elo per machine-day of uniform
+deals, 3 seeds per arm.
+
+### 9.3 The drafter (NORTH_STAR §4a)
+
+**What it is.** A generative policy that builds a deck pick by pick, with D16's two knobs
+(nicheness, randomness). It is trained against the critic it shares with the Teacher (D15).
+
+**Trained for learning**, as the owner asks: the Teacher asks it for decks in the families with
+the most progress, and its fine-tuning reward is the rise of L its decks bring.
+
+**What else its decks feed:**
+- the varied pool;
+- the simulator, which needs coherent, realistic decks (§5.5);
+- later the product's three modes.
+
+### 9.4 Guards and timing
+
+**Guards:**
+- The Teacher picks families, not deals: every deal stays fresh, so nothing is memorised
+  (OWNER_VISION_LEARNING §2; D20 guard d).
+- The held-out deals of L never train.
+
+**When:**
+- L and the pool come with H1, because the ceiling read needs them anyway.
+- The Teacher v0 runs in H1.
+- The drafter is built after the ceiling read, for H2: explorative training from the beginning
+  gains the most from a curriculum.
+
+## 10. Order and machine time
 
 | When | Machine | My work |
 |---|---|---|
@@ -482,12 +571,13 @@ added if the headroom row says capacity.
 | days 4-6 | r27; then F1's gate B probe (~4 h) | the F1 loop, the RAM buffer, PFSP, the consequence head |
 | days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (at most 14 machine-days before a review) | PFSP, the exploiter |
 | then 1-2 weeks | H1, from when F1 is at least +200 Elo above the learner | H2's pilot window |
-| after H1 | — | **the ceiling read**, to the owner |
-| after | H2 | — |
+| with H1 | — | the learning score L and its varied pool; the Teacher v0 (§9) |
+| after H1 | — | **the ceiling read**, to the owner; the drafter (§9) |
+| after | H2, with the Teacher and the drafter's decks | — |
 
 These are machine days, not promises: each window may move with what the previous one found.
 
-## 10. Risks
+## 11. Risks
 
 1. **The search gains little at every n**, because the value head's accuracy limits it. Then F0 is
    barely harder than the learner and F1 is gated off. The difficult opponents come from the
@@ -503,7 +593,7 @@ These are machine days, not promises: each window may move with what the previou
 7. **The clock.** Play-time n must fit a match clock. The n-curve's p99 is the input.
 8. **Many comparisons in the n-curve.** The grid is pre-registered and every point reported.
 
-## 11. Decisions for the owner
+## 12. Decisions (approved as recommended, 2026-11-11)
 
 1. **The order**: r27 now; the n-curve first; F1 only through gates A and B; then H1; then the
    ceiling read; then H2. Recommended.
@@ -521,6 +611,14 @@ These are machine days, not promises: each window may move with what the previou
 8. **F1's target** (§6.4): as high as it climbs, with a review at 14 machine-days. H1 starts once
    F1 is at least +200 Elo above the learner's start. Your "1000" (about +535 over today's best)
    is the direction.
+9. **Decks chosen for learning** (§9): the learning score L is the learner's Elo against a fixed,
+   very varied pool. The Teacher v0 is a bandit over deck families, from H1 on. The drafter comes
+   after the ceiling read, for H2.
+
+## 13. Red team
+
+Pending (2026-11-11): a fresh-eyes review of the draft is running; its findings and the changes
+they made go here.
 
 ## References
 
@@ -539,3 +637,10 @@ These are machine days, not promises: each window may move with what the previou
    Learning.* AISTATS 2017.
 8. Grimm, Barreto, Singh, Silver. *The Value Equivalence Principle for Model-Based Reinforcement
    Learning.* NeurIPS 2020.
+9. Matiisen, Oliver, Cohen, Schulman. *Teacher-Student Curriculum Learning.* arXiv:1707.00183,
+   2017 (IEEE TNNLS 2019).
+10. Jiang, Grefenstette, Rocktäschel. *Prioritized Level Replay.* ICML 2021. Regret-based
+    generators: Dennis et al., *PAIRED*, NeurIPS 2020; Parker-Holder et al., *ACCEL*, ICML 2022.
+11. Wu. *KataGo methods*, "Short-term Value and Score Targets"
+    (github.com/lightvector/KataGo, docs/KataGoMethods.md): exponentially averaged future root
+    values, mean horizons of about 6, 16 and 50 turns.
