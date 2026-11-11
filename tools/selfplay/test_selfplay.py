@@ -803,6 +803,39 @@ def test_a_determinized_world_cannot_foresee_the_real_games_randomness() -> None
     assert 4 < sum(f == real for f in flips) < 28  # about half agree, not all of them
 
 
+def test_a_redrawn_card_that_was_played_before_binds_its_new_identity() -> None:
+    """A card played stays bound to its compiled record after it leaves the battlefield. When a
+    bounce returns it to its owner's hand, a world re-draws it like any hidden card, and the copy
+    must bind the new identity when it plays it: window 1's pilot lost 0.1-0.3% of its
+    simulations to "attach_card: ... already carries ..." (KNOWLEDGE/2026-11-11/192)."""
+    import random as _random
+
+    from MTG_bot.core.state import ZONE_BATTLEFIELD
+    from tools.selfplay import rig
+    from tools.selfplay.search import determinize, fork
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    world, ex = game.world, game.executor
+    opp = world.player_order[1]
+    land = next(h for h in world.players[opp].zone(ZONE_LIBRARY).entries
+                if world.cards[h].identity.name in ("Plains", "Island", "Swamp", "Mountain", "Forest"))
+    old = world.cards[land].identity.oracle_id
+    world.move_to_zone(land, opp, ZONE_BATTLEFIELD)
+    ex.binder.attach_card(land, ex.binder.records[old])  # played: bound, as stack.play_land binds
+    world.move_to_zone(land, opp, ZONE_HAND)  # bounced
+    hand = [world.cards[h].identity.oracle_id for h in world.players[opp].zone(ZONE_HAND).entries]
+    lib = [world.cards[h].identity.oracle_id for h in world.players[opp].zone(ZONE_LIBRARY).entries]
+    new = next(o for o in supply.deckable if o != old)
+    hand[world.players[opp].zone(ZONE_HAND).entries.index(land)] = new
+    clone = fork(game, supply)
+    determinize(clone, 0, supply, _random.Random(0), (hand, lib))
+    assert clone.world.cards[land].identity.oracle_id == new
+    clone.executor.binder.attach_card(land, clone.executor.binder.records[new])  # raised before
+    assert clone.executor.binder.handle_record[land].oracle_id == new
+    assert ex.binder.handle_record[land].oracle_id == old  # the real game keeps its own binding
+
+
 def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
     """A deal's two seat-swapped games are anti-correlated, so the deal is the independent unit;
     and the teacher gate, like the self-play gate, never decides a freeze on the ladder's fixed
@@ -1365,7 +1398,7 @@ def test_the_n_curve_reads_paired_points_and_fits_log_n(tmp_path) -> None:
     b = ncurve.point(run("b", 16, [1, 1, 1, 1, 0, 1, 1, 0]))
     assert (a["score"], b["score"]) == (0.5, 0.75) and a["deals"] == 4
     assert a["searched_per_game"] == 5.0 and a["changed"] == 0.25 and a["clear_per_game"] == 0.5
-    slope, se, icpt = ncurve.fit([a, b])
+    slope, se, _ = ncurve.fit([a, b])
     assert slope == pytest.approx(0.125) and se > 0  # +0.25 over two doublings
 
 
@@ -1374,8 +1407,14 @@ def test_simulator_worlds_keep_the_rules_and_the_sizes(table) -> None:
     the searching seat's own view; every draw has the view's sizes, only cards of the dealt pool,
     and no more copies of a card than the rules allow next to its public copies; a search plays
     in those worlds without a simulation error."""
-    from MTG_bot.core.executor.games import MAX_COPIES, TURN_CAP, RandomPolicy, _play, get_supply
     from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.games import (
+        MAX_COPIES,
+        TURN_CAP,
+        RandomPolicy,
+        _play,
+        get_supply,
+    )
     from tools.selfplay import rig
     from tools.selfplay import simulator as S
     from tools.selfplay.search import Searcher

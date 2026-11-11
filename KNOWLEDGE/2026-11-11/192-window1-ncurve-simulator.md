@@ -74,3 +74,51 @@ of a point is about 0.011):
 - P3 falsified: F1 does not run. The difficult opponents come from the learner's own league, and the
   levers are the value function (its accuracy limits the search) and the simulator.
 - P7 met: simulator worlds become the default for the search and for gate B's generation.
+
+## 3. Before the points: the pilot, one fix, one correction (2026-11-11, 18:03-18:40)
+
+**The pilot** (`reports/window1_2026-11-11/queue.sh` with `PILOT=1`, network `u1000.pt`, deals
+900,000-900,049; nothing else on the GPU):
+
+| | n = 4 | n = 16 |
+|---|---|---|
+| Score against the raw network (50 deals) | 0.62 (SE 0.031) | 0.60 (SE 0.032) |
+| Wall time, 100 games | 297 s | 922 s |
+| Searched decisions per game | 11.8 (act 9.3, attack plans 2.5) | 11.9 |
+| Changed by the search | 17% | 19% |
+| Clear corrections per game | 0.70 | 0.67 |
+| Time per searched decision, p50 / p90 | 6.3 / 15.8 s | 20.0 / 50.1 s |
+| Simulations / failed | 6,250 / 20 | 17,299 / 22 |
+
+The scores are not read: 50 deals, and simulations that failed. The n = 16 timing ran beside a CPU
+reproduction, so it is high. The 927 recorded targets of n = 4 are complete (encoding,
+probabilities, value, options with mean, worlds and variance, result, seed). 20% of them had no
+difference in result among the compared options.
+
+**P11 falsified by the pilot, and the cause.** Every failure was one engine refusal:
+`attach_card: card:N already carries 'X'; detach before swapping a permanent's compiled record`
+(`MTG_bot/core/executor/binding.py:474`).
+- A card that is cast or played is bound to its compiled record, and nothing unbinds it when it
+  leaves the battlefield.
+- When a bounce returned such a card to the opponent's hand, `determinize` re-drew it like any
+  hidden card. The binding kept the old identity, and the copy's engine refused the new one when it
+  played it.
+- A CPU reproduction found the same error, and only it: 48 failures in 5,020 simulations. They fell
+  in 3 of 43 games, every simulation after the bounce (cards: Kinetic Augur, Stormwing Entity,
+  Chrome Replicator, Wall of Runes, Selfless Savior).
+
+The fix: `determinize` unbinds each re-drawn card, as a dealt card is unbound. The regression test is
+`test_a_redrawn_card_that_was_played_before_binds_its_new_identity`, which fails without the fix with
+the pilot's error. Replayed on CPU, the failing games now run the same simulations with no failure:
+seed 900140 (82 simulations, 17 failures before) and 900180 (93, 29 before). A failed simulation
+now also logs its error and source line in the evaluation's summary (`sim_error:...`). So any
+further failure shows what to fix.
+
+**One correction, before any simulator training.** §1 gives E0's settings with lr 3e-4. E0 chose
+1e-3 on its pilot (186 §2). 3e-4 was the command-line default it rejected. The default is now 1e-3,
+so the queue's `simulator train` uses E0's setting.
+
+**The order.** While the fix was under way, the capture ran on its own (`ONLY=`) for 7 minutes. It
+was stopped at 5,000 games and set aside (`runs/window1/capture_stopped_1832`). The queue then runs
+in §2's order from the commit holding this section: N1, gate A's confirmation, the capture, the
+simulator, N5, N2-N4, N6. At 300 deals the pilot puts the whole window at 10-13 hours.

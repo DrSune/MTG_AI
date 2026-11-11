@@ -55,7 +55,9 @@ from __future__ import annotations
 import math
 import random
 import time
+import traceback
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
 from MTG_bot.bench.protocol import Ask, Option
@@ -133,6 +135,10 @@ def determinize(game: Any, seat: int, supply: Any, rng: random.Random,
             if ident is None:
                 ident = _IDENT_CACHE[oid] = identity_of(ex.binder.records[oid])
             world.cards[h].identity = ident
+            # A card cast or played stays bound to its record after it leaves the battlefield,
+            # so one returned to a hidden zone (a bounce) would refuse its new identity when the
+            # copy plays it ("already carries", binding.attach_card): unbound, as a dealt card is.
+            ex.binder.handle_record.pop(h, None)
 
 
 class SimAgent:
@@ -503,8 +509,11 @@ class Searcher:
         agents[seat].block_plan = block_plan
         stop = horizon_stop(clone.world.player_order[seat], clone.world.turn, self.horizon)
         router = play_out(clone, agents, self.supply, self.set_code, stop)
-        if router is None:
+        if isinstance(router, Exception):
             self.stats["sim_errors"] += 1
+            frame = traceback.extract_tb(router.__traceback__)[-1]
+            self.stats[f"sim_error:{type(router).__name__}@{Path(frame.filename).name}"
+                       f":{frame.lineno}"] += 1  # what to fix (192 P11), in the eval's summary
             return None
         z = outcome(clone, seat)
         return z if z is not None else self.leaf_value(router, clone, seat)
@@ -588,11 +597,11 @@ def fork_live(game: Any, supply: Any) -> Any:
 
 
 def play_out(clone: Any, agents: list, supply: Any, set_code: str,
-             stop: Any = None) -> SelfplayRouter | None:
+             stop: Any = None) -> SelfplayRouter | Exception:
     """Play a copy on from where it was taken: the decision being searched is asked again (the
     searching agent's ``forced`` token answers it), or the combat declaration comes (its attack
     or block plan); ``agents`` then play until ``stop`` says so, else to the end of the game.
-    None when the engine crashed."""
+    The exception when the engine crashed."""
     oracle = _ORACLES.get(set_code) or OracleIndex.for_sets(set_code)
     router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
                             supply=supply)
@@ -602,8 +611,8 @@ def play_out(clone: Any, agents: list, supply: Any, set_code: str,
               stop_after=stop)
     except GameOver:
         pass  # the candidate itself ended the game (CR 704.3: the loss check ends it there)
-    except Exception:  # noqa: BLE001 - a crashed playout is counted by the caller, never scored
-        return None
+    except Exception as error:  # noqa: BLE001 - a crashed playout is counted by the caller, never scored
+        return error
     return router
 
 
@@ -760,7 +769,7 @@ class Labeller:
         st["fp"] += sum(a.decisions for a in agents)
         st["rails"] += (any(a.decisions >= MAX_SIM_DECISIONS for a in agents)
                         or (clone.reason or "").startswith(("turn cap", "STALL")))
-        if router is None:
+        if isinstance(router, Exception):
             st["crashes"] += 1
             return None
         return outcome(clone, seat)

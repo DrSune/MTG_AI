@@ -426,7 +426,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--heads", type=int, default=8)
     p.add_argument("--ff", type=int, default=1024)
     p.add_argument("--epochs", type=int, default=4)
-    p.add_argument("--lr", type=float, default=3e-4)
+    p.add_argument("--lr", type=float, default=1e-3)  # E0 chose it on its pilot (186 §2)
     p.add_argument("--wd", type=float, default=0.01)
     p.add_argument("--mb", type=int, default=512)
     p.add_argument("--tok-budget", type=int, default=131072)
