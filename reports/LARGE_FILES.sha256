@@ -40,3 +40,9 @@ d2408dff336dbb62c993adb68eed371f911d9b2a2d15431aa7767f58c7a8609b  runs/selfplay/
 f97c4728b8012e26eaecf6a985e18724695e9e2f2ef7b8da1dfd16ea2a04d374  runs/v0_probes_2026-11-10/ppo_0.pkl
 e7fad5f65aef9cd024aa00730a25b733686f6831080863249d21d7f17a771678  runs/v0_probes_2026-11-10/ppo_1.pkl
 6b88c4da5e1a8482cbd3c25302f852f2f810c3fd76bbe53bfa7c003588910de5  runs/v0_probes_2026-11-10/ppo_2.pkl
+# r26 (KNOWLEDGE/2026-11-10/189 §9-11): u1000.pt is last.pt at update 1,000, copied before the stop,
+#   the network of window 1 (KNOWLEDGE/2026-11-11/192) and r27's --init (191); v1 and v2 are the
+#   versions r26 froze at updates 202 and 378 (candidates for the held-out pool, PLAN_CEILING §7.2).
+d71e2b2598456e65fba34ff1825fb68c19385902f0e2c93c01cd64a64472cc94  runs/selfplay/r26_outcome_ppo/u1000.pt
+3a06ddf35b823ff361bdf1d70a2488f9b9b283ccffdc6ea77e0fa5a7efae5376  runs/selfplay/r26_outcome_ppo/v1.pt
+a69e7fda0f8c4418be13319481af8bef7000b23702becad4799b7ca691d5f304  runs/selfplay/r26_outcome_ppo/v2.pt
