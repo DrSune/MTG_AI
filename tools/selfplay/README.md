@@ -33,6 +33,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
 | `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
+| `ncurve.py`, `distill.py`, `rate.py` | docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
 
