@@ -1407,3 +1407,40 @@ def test_simulator_worlds_keep_the_rules_and_the_sizes(table) -> None:
     assert weight == 1.0 and len(world[1]) == view["h"]
     assert searcher.simulate(game, 0, "PASS", world=world) is not None
     assert searcher.stats["sim_errors"] == 0
+
+
+def test_distilling_search_targets_moves_the_network_toward_the_better_move(table) -> None:
+    """tools/selfplay/distill.py (PLAN_CEILING §6.2): the "se" rule leaves the policy unchanged
+    when every compared option had the same result and moves it toward the better one otherwise;
+    "sigma" is a distribution favouring the better one; training on such records raises the
+    better option's probability."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play, get_supply
+    from tools.selfplay import distill as D
+    from tools.selfplay import rig
+
+    pi = np.array([0.6, 0.3, 0.1])
+    tie = {"alts": [0, 1], "q": [1.0, 1.0], "n": [4, 4], "var": [0.0, 0.0], "v": 0.0}
+    clear = {**tie, "q": [-1.0, 1.0]}
+    assert np.allclose(D.improved(tie, pi, "se"), pi)
+    se = D.improved(clear, pi, "se")
+    assert se[1] > pi[1] and se[0] < pi[0] and se[2] == pytest.approx(pi[2])
+    sg = D.improved(clear, pi, "sigma")
+    assert sg.sum() == pytest.approx(1.0) and sg.argmax() == 1
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    _play(game, RandomPolicy(0), game.world.player_order, TURN_CAP,
+          stop_after=lambda g, boundary: boundary == "turn_top" and g.world.turn >= 3)
+    me = game.world.player_order[0]
+    ask = Ask(seat=0, kind="act", site=f"act:{me}:3", prompt="",
+              options=(Option("PASS", "PASS"), Option("x", "x")), refuse=0)
+    feats = FT.encode(game.executor, 0, ask, table, FT.AskContext())
+    recs = [{"feats": feats, **clear, "pick": 1, "seed": g} for g in range(40)]
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    before = D.policy(net.eval(), [feats], torch.device("cpu"))[0][1]
+    (trained, rep), = D.distil(net, recs, "se", [40], torch.device("cpu"), lr=1e-3,
+                               epochs=3).values()
+    after = D.policy(trained, [feats], torch.device("cpu"))[0][1]
+    assert after > before and rep["val"] == 2 and rep["held_out_agreement"] == 1.0

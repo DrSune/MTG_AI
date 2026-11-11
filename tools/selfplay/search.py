@@ -348,7 +348,7 @@ class Searcher:
     def choose(self, ask: Any, obs: Any, feats: dict) -> int:
         """The searched option index for one act or priority ask (feats: its encoding)."""
         n = len(ask.options)
-        a0, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
+        a0, v0, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
         if max(probs) >= self.skip_p:
             self._skip(ask.kind)
             return int(a0)
@@ -361,8 +361,8 @@ class Searcher:
             obs.game, ask.seat, ask.options[i].token, world=w))
         self._record(ask.kind, pick, cands.index(int(a0)) if int(a0) in cands else -1, q, t0)
         if self.record:
-            self.targets.append(target_record(feats, probs, cands, self.last, int(cands[pick]),
-                                              ask.kind, ask.seat))
+            self.targets.append(target_record(feats, probs, v0, cands, self.last,
+                                              int(cands[pick]), ask.kind, ask.seat))
         return int(cands[pick])
 
     def plan_attacks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
@@ -520,13 +520,13 @@ class Searcher:
         return float(value)
 
 
-def target_record(feats: dict, probs: list[float], cands: list[int],
+def target_record(feats: dict, probs: list[float], value: float, cands: list[int],
                   results: dict[int, list[tuple[float, float]]], pick: int, kind: str,
                   seat: int) -> dict:
     """One searched decision as a training target (PLAN_CEILING §6.2): its encoding, the
-    network's probabilities, and per compared option (an index of the ask's options) the
-    weighted mean result, the number of worlds and their variance, so the target's rule (the
-    paper's sigma, a step scaled by the standard error) is chosen when training, not here."""
+    network's probabilities and value, and per compared option (an index of the ask's options)
+    the weighted mean result, the number of worlds and their variance, so the target's rule (the
+    paper's sigma, a step scaled by the standard error; distill.py) is chosen when training."""
     rows = []
     for i, c in enumerate(cands):
         v = results.get(i) or []
@@ -536,7 +536,7 @@ def target_record(feats: dict, probs: list[float], cands: list[int],
         mean = sum(z * w for z, w in v) / total
         var = sum(w * (z - mean) ** 2 for z, w in v) / total
         rows.append((c, mean, len(v), var))
-    return {"feats": feats, "probs": list(probs), "alts": [r[0] for r in rows],
+    return {"feats": feats, "probs": list(probs), "v": float(value), "alts": [r[0] for r in rows],
             "q": [r[1] for r in rows], "n": [r[2] for r in rows], "var": [r[3] for r in rows],
             "pick": pick, "kind": kind, "seat": seat}
 
