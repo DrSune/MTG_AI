@@ -382,7 +382,7 @@ def test_a_dealt_game_names_cards_from_its_pool_so_name_asks_are_not_leaky() -> 
 
 
 def test_the_second_main_phase_has_its_own_act_window() -> None:
-    # CR 505.1, 305.2: after combat the active player gets a second act window, where a land not
+    # CR 505.1, 305.2: after combat the active player acts again in its second main phase, where a land not
     # played before combat can still be played, and the prompt says which main phase it is.
     game, supply = _arranged(hand0=("Forest",), field0=("Walking Corpse",))
     forest = _handle(game, "Forest", zone=ZONE_HAND)
@@ -391,7 +391,7 @@ def test_the_second_main_phase_has_its_own_act_window() -> None:
     assert f"land:{forest}" in _menu(router, game)
     game.executor.combat_step(P0)  # declines the attack: the land is still unplayed
     assert game.executor.phase == "SECOND_MAIN"
-    router.take_acts(game, P0)
+    assert router.take_priority(game, P0)
     assert game.world.zone_of(forest).kind == ZONE_BATTLEFIELD
     act = next(ask for ask in picker.asks if ask.kind == "act")
     assert act.prompt.startswith("Your second main phase")
@@ -448,7 +448,7 @@ def test_primal_might_is_offered_and_fights_in_a_dealt_game() -> None:
     game, supply, pm, corpse, shieldmate, ogre, crab = _two_targets("Primal Might")
     picker = _Picker(f"cast:{pm}:x3", corpse, ogre)
     router = _router(game, supply, picker)
-    router.take_acts(game, P0)
+    assert router.take_priority(game, P0)
     assert _target_asks(picker) == [
         ("0:0", sorted([str(corpse), str(shieldmate)])),          # only my creatures, no way out
         ("1:0", sorted([str(ogre), str(crab)]) + ["DONE"]),       # only theirs, or none ("up to")
@@ -463,7 +463,7 @@ def test_primal_might_is_offered_and_fights_in_a_dealt_game() -> None:
 def test_primal_might_may_leave_its_fight_partner_unchosen() -> None:
     game, supply, pm, corpse, _shieldmate, ogre, crab = _two_targets("Primal Might")
     router = _router(game, supply, _Picker(f"cast:{pm}:x1", corpse, "DONE"))
-    router.take_acts(game, P0)
+    assert router.take_priority(game, P0)
     assert game.world.zone_of(pm).kind == "graveyard"
     assert game.executor.damage == {}                             # nobody fought
     assert {game.world.zone_of(h).kind for h in (ogre, crab)} == {ZONE_BATTLEFIELD}
@@ -485,7 +485,7 @@ def test_a_two_target_spell_never_offers_and_never_takes_an_illegal_pair() -> No
     world.players[P0].mana_pool.clear()
     picker = _Picker(f"cast:{edge}", corpse, ogre)
     router = _router(game, supply, picker)
-    router.take_acts(game, P0)
+    assert router.take_priority(game, P0)
     assert _target_asks(picker) == [("0:0", sorted([str(corpse), str(shieldmate)])),
                                     ("1:0", sorted([str(ogre), str(crab)]))]
     assert world.cards[corpse].counters == {"PLUS_1_PLUS_1": 1}
@@ -497,7 +497,7 @@ def test_a_fight_partner_made_illegal_before_primal_might_resolves_is_not_fought
     # affected, so there is no fight, and the Corpse still gets +X/+X.
     game, supply, pm, corpse, _shieldmate, ogre, crab = _two_targets("Primal Might", watcher="Onakke Ogre")
     router = _router(game, supply, _Picker(f"cast:{pm}:x2", corpse, ogre))
-    router.take_acts(game, P0)
+    assert router.take_priority(game, P0)
     assert game.world.zone_of(ogre).kind == "graveyard"           # the cast trigger destroyed it
     assert game.world.zone_of(crab).kind == ZONE_BATTLEFIELD
     assert game.executor.damage == {}

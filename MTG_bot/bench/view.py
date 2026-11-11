@@ -50,11 +50,11 @@ PUBLIC_ZONES = (ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, ZONE_COMMAND)
 #: Disclosed with every view: the engine is "batch Magic", and an agent should be told the game
 #: it is playing.
 ENGINE_NOTES = (
-    "Engine notes: no priority passing yet; one action window in each main phase, before and "
-    "after combat, and nobody responds to a spell; mana pools empty at the end of every step "
-    "and phase (CR 500.4); a cast or activation taps the mana sources it needs (lands and mana "
-    "rocks first, then mana creatures, then Treasures), so mana abilities are never actions of "
-    "their own."
+    "Engine notes: real priority (CR 117): in every step but untap and cleanup the active player "
+    "and then the opponent may act or pass, and a spell or ability waits on the stack until both "
+    "pass in a row; mana pools empty at the end of every step and phase (CR 500.4); a cast or "
+    "activation taps the mana sources it needs (lands and mana rocks first, then mana creatures, "
+    "then Treasures), so mana abilities are never actions of their own."
 )
 
 

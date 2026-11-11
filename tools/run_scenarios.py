@@ -81,9 +81,10 @@ Pack vocabulary (all keys required as noted):
                                             X-cost activation (CR 602.2b);
                                             absent, the X ask takes a word
              {"op": "act", "seat": 0|1, "words": [word...]}
-                                            one act window of the seat through
-                                            the bench router, as a dealt game
-                                            opens it (bench/router.py). The
+                                            the seat's priority decisions
+                                            through the bench router until it
+                                            passes, as a dealt game asks them
+                                            (bench/router.py). The
                                             words answer its asks in order,
                                             one word per ask: the menu row
                                             ("cast:<key>[:k][:x<N>]",
@@ -711,7 +712,8 @@ class ScenarioRunner:
         return word
 
     def _act_window(self, step: dict) -> None:
-        """The ``act`` op: one act window of the bench router, its asks answered by the step's
+        """The ``act`` op: the seat's priority decisions through the bench router until it
+        passes (at most ``games.MAX_ACTS_PER_STEP`` actions), its asks answered by the step's
         words in order (the vocabulary above)."""
         from MTG_bot.bench.router import SeatRouter
         from MTG_bot.bench.view import OracleIndex, SeatLens
@@ -725,7 +727,7 @@ class ScenarioRunner:
             def decide(self, ask, obs) -> int:
                 tokens = tuple(o.token for o in ask.options)
                 if not words:
-                    if ask.kind == "act":
+                    if ask.kind in ("act", "priority"):
                         return tokens.index("PASS")
                     raise PackError(f"act: no word left for the {ask.kind} ask {ask.site}; it offers {tokens}")
                 word = words.pop(0)
@@ -738,9 +740,14 @@ class ScenarioRunner:
         game = Game(executor=self.ex, seed=0, pool_mode="all")
         router = SeatRouter(game, [Words(), Words()], [SeatLens(0, oracle), SeatLens(1, oracle)],
                             supply=self.supply)
+        from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP
+
         self.ex.decisions.provider = router.answer
+        seat = self.seats[int(step.get("seat", 0))]
         try:
-            router.take_acts(game, self.seats[int(step.get("seat", 0))])
+            for _ in range(MAX_ACTS_PER_STEP):
+                if not router.take_priority(game, seat):
+                    break
         finally:
             self.ex.decisions.provider = None
         if words:

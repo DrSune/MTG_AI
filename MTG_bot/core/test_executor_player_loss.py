@@ -33,6 +33,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.games import Game, _play
+from MTG_bot.core.executor.menu import sorcery_timing
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, ZONE_LIBRARY
 from MTG_bot.core.test_executor_combat import CombatCase
@@ -253,20 +254,28 @@ class TestDrawFromEmptyLibrary(LossCase):
 
 
 class ScriptedPolicy:
-    """A ``_play`` policy: ``acts(game, seat)`` runs in each act window; asks
-    take ATTACK when offered, else the first word."""
+    """A ``_play`` policy: ``acts(game, seat)`` runs once in each main phase, at the active
+    player's first priority point there with an empty stack (logged in ``windows``); it passes
+    everywhere else. Asks take ATTACK when offered, else the first word."""
 
     def __init__(self, acts=None) -> None:
         self.acts = acts
         self.windows: list[tuple[int, object]] = []
+        self.seen: set[tuple[int, str | None]] = set()
 
     def answer(self, vocab, what):
         return "ATTACK" if "ATTACK" in vocab else vocab[0]
 
-    def take_acts(self, game, seat) -> None:
+    def take_priority(self, game, seat) -> bool:
+        key = (game.world.turn, game.executor.phase)
+        if not sorcery_timing(game.executor, seat) or key in self.seen:
+            return False
+        self.seen.add(key)
         self.windows.append((game.world.turn, seat))
-        if self.acts is not None:
-            self.acts(game, seat)
+        if self.acts is None:
+            return False
+        self.acts(game, seat)
+        return True
 
 
 class TestTheGameEnds(LossCase):

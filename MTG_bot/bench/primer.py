@@ -54,7 +54,7 @@ STRUCTURAL = frozenset(
     {"AtomArgs", "CardRecord", "Zone", "QConst", "Cost", "SpellAbility", "FAnd", "FOr", "FNot", "BackFace"}
 )
 ENGINE_SIMPLIFICATIONS = (
-    "No priority passing yet: the active player gets one action window in each main phase, before and after combat, and nobody responds to a spell.",
+    "Priority as in the rules (CR 117): in every step but untap and cleanup the active player and then the opponent may act or pass; a spell or ability waits on the stack until both pass in a row, and a player who acts keeps priority.",
     "Mana pools empty at the end of every step and phase (CR 500.4). A cast or activation taps the mana sources it needs: lands and mana rocks first, then mana creatures, then Treasures; mana abilities are never actions of their own.",
     "Drawing from an empty library loses the game at the draw (CR 121.3); two simultaneous losers draw.",
     "Spells with more than one separate target slot cannot be cast yet.",

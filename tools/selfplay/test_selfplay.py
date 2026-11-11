@@ -205,9 +205,9 @@ def test_block_search_plans_at_the_pre_blocks_boundary(table) -> None:
     assert planned >= 1 and answered >= 1
 
 
-def test_pre_blocks_boundary_is_opt_in() -> None:
-    """Only a policy with a before_blocks hook sees the pre_blocks boundary; every other
-    caller's stop_after sees turn_top, pre_combat and post_combat, never pre_blocks."""
+def test_every_router_sees_every_boundary() -> None:
+    """stop_after is consulted at the turn top, before the declarations of attackers and of
+    blockers, and at every priority point, whichever router plays."""
     from MTG_bot.bench.router import SeatRouter
     from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
     from MTG_bot.core.executor.games import TURN_CAP, _play, _setup_game, deal_decks
@@ -229,8 +229,8 @@ def test_pre_blocks_boundary_is_opt_in() -> None:
 
         _play(game, router, game.world.player_order, TURN_CAP, stop_after=stop)
         seen[cls.__name__] = boundaries
-    assert {"turn_top", "pre_combat", "post_combat"} <= seen["SeatRouter"]
-    assert "pre_blocks" not in seen["SeatRouter"] and "pre_blocks" in seen["SelfplayRouter"]
+    for name in ("SeatRouter", "SelfplayRouter"):
+        assert seen[name] == {"turn_top", "pre_attacks", "pre_blocks", "priority"}, name
 
 
 def test_feature_caches_are_bounded() -> None:
@@ -498,13 +498,21 @@ def _named(game, name):
     return next(h for h, c in game.world.cards.items() if c.identity.name == name)
 
 
+def _main_phase(router, game, seat, limit=10) -> None:
+    """``seat``'s decisions where it holds priority, until it passes (an undriven world: each
+    action resolves before the next decision)."""
+    for _ in range(limit):
+        if not router.take_priority(game, seat):
+            return
+
+
 def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
     game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Forest", "Llanowar Visionary"))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
     assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped  # the lands paid
     game, router, me = _teach(hand0=("Fierce Empath",), field0=("Forest", "Forest", "Llanowar Visionary"))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Fierce Empath")).kind == "battlefield"
     assert game.world.cards[_named(game, "Llanowar Visionary")].tapped  # its {G} was the third mana
 
@@ -512,14 +520,14 @@ def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
 def test_heuristic_never_trades_two_mana_for_one() -> None:
     # Prismite's "{2}: Add one mana of any color" is a mana-cost filter: it never adds mana.
     game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert not any(a.card == "Prismite" for a in router.acts)
 
 
 def test_heuristic_casts_an_x_spell_at_its_largest_x() -> None:
     game, router, me = _teach(hand0=("Volcanic Geyser",), field0=("Mountain", "Mountain", "Island", "Island", "Island"),
                               field1=("Walking Corpse",))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert [a.detail for a in router.acts if a.card == "Volcanic Geyser"] == ["1t:x3"]
 
 
@@ -535,7 +543,7 @@ def test_heuristic_names_the_opponents_most_expensive_public_card() -> None:
 def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
     # Only X = 0 is payable ({G} for Wildwood Scourge): a 0/0 that dies at once is not a play.
     game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Forest",))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert not any(a.card == "Wildwood Scourge" for a in router.acts)
 
 
@@ -543,14 +551,14 @@ def test_heuristic_names_the_colour_its_treasure_is_for() -> None:
     # The colour comes from the spell the mana is for: a Treasure sacrificed for Walking Corpse
     # ({1}{B}) next to a Plains makes {B}, so the Corpse is cast.
     game, router, me = _teach(hand0=("Walking Corpse",), field0=("Plains",), tokens0=("Treasure",))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
 
 
 def test_heuristic_never_taps_mana_for_a_play_it_will_not_make() -> None:
     # Wildwood Scourge with one {G} source is castable only at X = 0, which the teacher never casts.
     game, router, me = _teach(hand0=("Wildwood Scourge",), field0=("Llanowar Visionary",))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped and router.acts == []
 
 
@@ -559,7 +567,7 @@ def test_heuristic_aims_minus_n_at_the_opponent() -> None:
     # Darkness is aimed at the opponent's creature, not the teacher's own.
     game, router, me = _teach(hand0=("Grasp of Darkness",), field0=("Swamp", "Swamp", "Walking Corpse"),
                               field1=("Onakke Ogre",))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
     assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
 
@@ -578,29 +586,35 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
 
 def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
     """The engine ends a game with GameOver at the loss check (CR 704.3, 704.5a): a candidate act
-    that wins inside the search's own take_acts scores as a win, not as a crashed simulation."""
+    that wins inside the simulation scores as a win, not as a crashed simulation."""
     from MTG_bot.core.executor.games import get_supply
     from tools.selfplay import rig
     from tools.selfplay.search import Searcher
 
+    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play
+
     supply = get_supply("castable")
     game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    # the game's first priority point (turn 1's upkeep), where the simulation resumes
+    _play(game, RandomPolicy(0), game.world.player_order, TURN_CAP,
+          stop_after=lambda _g, boundary: boundary == "priority")
     torch.manual_seed(0)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
                         set_code="M21", k=2, d=1, seed=0)
 
-    def winning_act(self, g, seat) -> None:  # the act drains the opponent to 0: the check ends it
+    def winning_act(self, g, seat) -> bool:  # the act drains the opponent to 0: the check ends it
         opp = next(p for p in g.world.player_order if p != seat)
         g.world.players[opp].life = 0
         g.executor._player_losses()
+        return True
 
-    orig = rig.SelfplayRouter.take_acts
-    rig.SelfplayRouter.take_acts = winning_act
+    orig = rig.SelfplayRouter.take_priority
+    rig.SelfplayRouter.take_priority = winning_act
     try:
         score = searcher.simulate(game, 0, "PASS")
     finally:
-        rig.SelfplayRouter.take_acts = orig
+        rig.SelfplayRouter.take_priority = orig
     assert score == 1.0 and searcher.stats["sim_errors"] == 0
 
 
@@ -726,10 +740,10 @@ def test_heuristic_casts_a_raid_creature_after_it_attacks() -> None:
     for field, held in ((("Mountain",) * 3 + ("Bear Cub",), True), (("Mountain",) * 3, False)):
         game, router, me = _teach(hand0=("Goblin Boarders",), field0=field, set_code="FDN")
         boarders = _named(game, "Goblin Boarders")
-        router.take_acts(game, me)
+        _main_phase(router, game, me)
         assert game.world.zone_of(boarders).kind == ("hand" if held else "battlefield")
         game.executor.combat_step(me)
-        router.take_acts(game, me)
+        _main_phase(router, game, me)
         assert game.world.zone_of(boarders).kind == "battlefield"
         assert game.world.cards[boarders].counters.get("PLUS_1_PLUS_1", 0) == int(held)
 
@@ -745,13 +759,12 @@ class _CombatPlanLog(HeuristicAgent):
 
 
 def test_combat_is_planned_once_per_turn_before_combat() -> None:
-    """The search plans its attack at the pre-combat boundary, not at the end of an act window:
-    the second main phase's comes after combat, and planning there would search an attack that
-    cannot happen."""
+    """The search plans its attack at the pre-attacks boundary, before the declare-attackers
+    step's declaration, once per turn."""
     agent = _CombatPlanLog()
     res = play_game(41, [agent, HeuristicAgent()], deck_mode="coherent")
     assert res["crash"] is None and agent.plans
-    assert {phase for _, phase in agent.plans} == {"FIRST_MAIN"}
+    assert {phase for _, phase in agent.plans} == {"DECLARE_ATTACKERS"}
     turns = [turn for turn, _ in agent.plans]
     assert len(turns) == len(set(turns))
 
@@ -837,8 +850,9 @@ def test_the_network_and_the_heuristic_both_answer_the_mulligan(table) -> None:
 
 def test_an_old_checkpoint_loads_and_plays_the_mulligan(table, tmp_path) -> None:
     """A checkpoint from before the mulligan has neither its ask kinds nor its option types; they
-    grow from "other", what they were encoded as before. Played greedily it keeps: its keep and
-    mulligan rows start equal, and the tie goes to the first option."""
+    grow from "other", what they were encoded as before (the priority kind, newer still, from
+    "cw": features.ASK_GROWN_FROM). Played greedily it keeps: its keep and mulligan rows start
+    equal, and the tie goes to the first option."""
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     for p in net.parameters():
         p.data.normal_(0, 0.1)
@@ -850,11 +864,11 @@ def test_an_old_checkpoint_loads_and_plays_the_mulligan(table, tmp_path) -> None
         ck["state"][key] = ck["state"][key][:n_old].clone()
     torch.save(ck, path)
     old, _, _ = M.load(str(path))
-    for key, names, index in (("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX),
-                              ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX)):
+    for key, names, index, grown_from in (("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX, FT.ASK_GROWN_FROM),
+                                          ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX, {})):
         w, n_old = old.state_dict()[key], cut[key]
         assert w.shape[0] == len(names) and torch.equal(w[:n_old], net.state_dict()[key][:n_old])
-        assert all(torch.equal(w[index[k]], w[index["other"]]) for k in names[n_old:])
+        assert all(torch.equal(w[index[k]], w[index[grown_from.get(k, "other")]]) for k in names[n_old:])
     game, slot, _ = _net_vs_heuristic(old, table, slot_force=False)
     assert game.world.turn == 1 and game.turns == 1
     declarations = slot.of("mulligan")
@@ -902,14 +916,14 @@ def test_heuristic_judges_each_target_slot_by_its_own_effect() -> None:
     deal it. Primal Might pumps the first target and fights the second."""
     game, router, me = _teach(hand0=("Rabid Bite",), field0=("Forest", "Forest", "Centaur Courser", "Coral Merfolk"),
                               field1=("Barony Vampire", "Goblin Assailant"), set_code="M20")
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     assert [a.detail for a in router.acts if a.card == "Rabid Bite"] == ["2t"]
     assert game.world.zone_of(_named(game, "Barony Vampire")).kind == "graveyard"  # 3 from the Courser
     assert game.world.zone_of(_named(game, "Goblin Assailant")).kind == "battlefield"
     game, router, me = _teach(hand0=("Primal Might",),
                               field0=("Forest",) * 4 + ("Walking Corpse", "Staunch Shieldmate"),
                               field1=("Onakke Ogre", "Staunch Shieldmate"))
-    router.take_acts(game, me)
+    _main_phase(router, game, me)
     corpse = _named(game, "Walking Corpse")
     assert [a.detail for a in router.acts if a.card == "Primal Might"] == ["2t:x3"]
     assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
@@ -943,7 +957,7 @@ class _CastSlot:
 
 def _net_casts_primal_might(net, table):
     """Seat 0 a network (NetAgent through _CastSlot) with Primal Might, four Forests, Walking Corpse
-    and Staunch Shieldmate; seat 1 Onakke Ogre and Wishcoin Crab. One act window."""
+    and Staunch Shieldmate; seat 1 Onakke Ogre and Wishcoin Crab. Its main phase."""
     from MTG_bot.bench.test_router import P0, _arranged
     from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
     from tools.selfplay.actor import NetAgent
@@ -957,7 +971,7 @@ def _net_casts_primal_might(net, table):
     router = SelfplayRouter(game, [NetAgent(slot, job, 0, table), HeuristicAgent()],
                             [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)], supply=supply)
     game.executor.decisions.provider = router.answer
-    router.take_acts(game, P0)
+    _main_phase(router, game, P0)
     return game, slot
 
 

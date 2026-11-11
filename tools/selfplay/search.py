@@ -21,13 +21,14 @@ every simulated coin flip would equal the real one, and the search would play on
 Known approximation: coherent two-colour decks are sampled as five-colour piles.
 
 Searched decisions are the clean points of this rig, where no engine call is in flight: the
-router's act loop in both main phases, and the pre-combat boundary (the end of the first main
-phase), where whole attack plans are compared (``plan_attacks``) and the engine's per-creature
-attack asks are then answered from the chosen plan. Blocks (--search-blocks) are planned the same
-way at the engine's pre-blocks boundary, where the opponent's attack is declared and no block
-asked yet. A candidate act is played forward from the window it was offered in: the copy resumes
-after that window (``skip_next_acts``), and the phase clock keeps a second-main-phase copy from
-replaying its combat.
+``act`` decisions (a main phase with an empty stack, either main phase), and the pre-attacks
+boundary (before the declare-attackers step's declaration), where whole attack plans are compared
+(``plan_attacks``) and the engine's per-creature attack asks are then answered from the chosen
+plan. Blocks (--search-blocks) are planned the same way at the pre-blocks boundary, where the
+opponent's attack is declared and no block asked yet. The game's state, the step and priority
+included, lives in the executor, so a copy resumes exactly where it was taken: at a candidate act
+the same decision is asked again and answered with the candidate. ``priority`` decisions are not
+searched yet (DESIGN_PRIORITY §3.4).
 
 A crashed simulation leaves out its world for every candidate, so the candidates stay compared on
 the same worlds (``mean_scores``). ``draw_worlds`` is where the worlds come from: uniform re-samples
@@ -341,9 +342,9 @@ class Searcher:
     def simulate(self, game: Any, seat: int, token: str | None,
                  attack_plan: frozenset | None = None, world: int = 0,
                  block_plan: frozenset | None = None) -> float | None:
-        """Score one candidate: ``token`` is a main-phase option to play now (the copy finishes
-        this act window), or None with ``attack_plan`` to start at the pre-combat boundary, or
-        with ``block_plan`` at the pre-blocks boundary (the opponent's attack declared)."""
+        """Score one candidate: ``token`` is a main-phase option to play now, or None with
+        ``attack_plan`` at the pre-attacks boundary, or with ``block_plan`` at the pre-blocks
+        boundary (the opponent's attack declared)."""
         self.stats["sims"] += 1
         clone = fork_live(game, self.supply)
         determinize(clone, seat, self.supply, random.Random(world))
@@ -357,7 +358,7 @@ class Searcher:
         def stop(g: Any, boundary: str) -> bool:
             return boundary == "turn_top" and g.world.active_player == me and g.world.turn > start
 
-        router = play_out(clone, seat, agents, self.supply, self.set_code, token, block_plan, stop)
+        router = play_out(clone, agents, self.supply, self.set_code, stop)
         if router is None:
             self.stats["sim_errors"] += 1
             return None
@@ -387,21 +388,17 @@ def fork_live(game: Any, supply: Any) -> Any:
         decisions.provider = saved
 
 
-def play_out(clone: Any, seat: int, agents: list, supply: Any, set_code: str, token: str | None,
-             block_plan: frozenset | None = None, stop: Any = None) -> SelfplayRouter | None:
-    """Play a copy on from the decision ``seat`` is searching: ``token`` is the act it plays now
-    (the copy finishes that act window), or None to resume at a combat boundary (``block_plan``:
-    the pre-blocks one); ``agents`` then play until ``stop`` says so, else to the end of the
-    game. None when the engine crashed."""
+def play_out(clone: Any, agents: list, supply: Any, set_code: str,
+             stop: Any = None) -> SelfplayRouter | None:
+    """Play a copy on from where it was taken: the decision being searched is asked again (the
+    searching agent's ``forced`` token answers it), or the combat declaration comes (its attack
+    or block plan); ``agents`` then play until ``stop`` says so, else to the end of the game.
+    None when the engine crashed."""
     oracle = _ORACLES.get(set_code) or OracleIndex.for_sets(set_code)
     router = SelfplayRouter(clone, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
                             supply=supply)
     clone.executor.decisions.provider = router.answer
     try:
-        if token is not None:
-            router.take_acts(clone, clone.world.player_order[seat])
-        clone.skip_next_acts = True
-        clone.skip_to_blocks = block_plan is not None
         _play(clone, router, list(clone.world.player_order), TURN_CAP, resumed=True,
               stop_after=stop)
     except GameOver:
@@ -558,7 +555,7 @@ class Labeller:
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
                            None if self.greedy else random.Random(f"{seed}:{s}")) for s in (0, 1)]
         agents[seat].forced = token
-        router = play_out(clone, seat, agents, self.supply, self.set_code, token)
+        router = play_out(clone, agents, self.supply, self.set_code)
         st = self.stats
         st["playouts"] += 1
         st["fp"] += sum(a.decisions for a in agents)

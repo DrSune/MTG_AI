@@ -80,6 +80,7 @@ from MTG_bot.core.executor.games import (
     run_games,
 )
 from MTG_bot.core.executor.legality import activate, ctx_for, spell_castable
+from MTG_bot.core.executor.menu import menu, sorcery_timing
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     activation_target_slots,
@@ -2332,9 +2333,11 @@ class StallRuleTest(unittest.TestCase):
         game = play_game(73, "all", SMOKE_DECK_PAIRS)
         self.assertFalse(game.reason.startswith("STALL"), game.reason)
         # 2026-11-11: 51 -> 59 when the response windows went (DESIGN_PRIORITY
-        # §11 5b-1; the random players answered them); double-run identical.
-        self.assertEqual(game.turns, 59)
-        self.assertEqual(game.reason, "game over: player:1(life<=0)")
+        # §11 5b-1; the random players answered them), then 46 with a new loser
+        # when the loop asked at every priority point and the random player
+        # stopped tapping mana by hand (5b-2); double-run identical each time.
+        self.assertEqual(game.turns, 46)
+        self.assertEqual(game.reason, "game over: player:0(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()
@@ -2393,24 +2396,26 @@ class ChooseNamePoolTest(unittest.TestCase):
         self.assertIn("Shock", vocab)
 
 
-class _WindowLog:
-    """A ``_play`` policy that never acts and logs each act window as (turn, seat, phase). An ask
-    takes DECLINE when offered (nobody attacks), else its first word."""
+class _PriorityLog:
+    """A ``_play`` policy that never acts and logs each priority decision it is asked for as
+    (turn, seat, step). An ask takes DECLINE when offered (nobody attacks), else its first word."""
 
     def __init__(self) -> None:
-        self.windows: list[tuple[int, Handle, str | None]] = []
+        self.decisions: list[tuple[int, Handle, str | None]] = []
 
     def answer(self, vocab: tuple[str, ...], what: str) -> str:
         return "DECLINE" if "DECLINE" in vocab else vocab[0]
 
-    def take_acts(self, game: Game, seat: Handle) -> None:
-        self.windows.append((game.world.turn, seat, game.executor.phase))
+    def take_priority(self, game: Game, seat: Handle) -> bool:
+        self.decisions.append((game.world.turn, seat, game.executor.phase))
+        return False
 
 
-class BothMainPhasesDriverTest(unittest.TestCase):
-    """CR 505.1: the turn loop gives the active player an act window in each
-    main phase, the second one after combat, and a game resumed inside a turn never replays that
-    turn's combat (the search resumes forks inside both act windows)."""
+class PriorityLoopTest(unittest.TestCase):
+    """CR 117: the turn loop gives priority in every step but the untap step and a quiet cleanup
+    step, to the active player first (117.3a) and then to the other (117.3d); with no attackers
+    there are no blockers or damage steps (508.8); and a game stopped at a priority point resumes
+    there, never replaying a step (the search resumes its forks so)."""
 
     @staticmethod
     def _game() -> Game:
@@ -2424,56 +2429,60 @@ class BothMainPhasesDriverTest(unittest.TestCase):
             if e.kind == "TURN_PHASE" and e.phase[0] == "COMBAT"
         )
 
-    def test_each_turn_has_an_act_window_in_both_main_phases(self) -> None:
+    def test_every_step_with_priority_asks_the_active_player_first(self) -> None:
         game = self._game()
-        log = _WindowLog()
-        _play(game, log, game.world.player_order, turn_cap=4)
+        log = _PriorityLog()
+        _play(game, log, game.world.player_order, turn_cap=2)
         p0, p1 = game.world.player_order
-        self.assertEqual(
-            log.windows,
-            [
-                (turn, seat, phase)
-                for turn, seat in ((1, p0), (2, p1), (3, p0), (4, p1))
-                for phase in ("FIRST_MAIN", "SECOND_MAIN")
-            ],
-        )
+        steps = ("UPKEEP", "DRAW", "FIRST_MAIN", "COMBAT", "DECLARE_ATTACKERS", "END_OF_COMBAT",
+                 "SECOND_MAIN", "END_TURN")
+        expected = [
+            (turn, seat, step)
+            for turn, active, other in ((1, p0, p1), (2, p1, p0))
+            for step in steps
+            if not (turn == 1 and step == "DRAW")  # CR 103.8a: no draw on the first turn
+            for seat in (active, other)
+        ]
+        self.assertEqual(log.decisions, expected)
 
-    def test_a_resume_in_the_second_main_phase_never_replays_combat(self) -> None:
-        # A game stopped at the post_combat boundary resumes INTO its second main phase's act
-        # window; one whose caller already played that window (skip_next_acts, as the search
-        # does after its candidate's window) resumes at the end of the turn.
-        for skip, first in ((False, (2, "SECOND_MAIN")), (True, (3, "FIRST_MAIN"))):
-            game = self._game()
-            _play(game, _WindowLog(), game.world.player_order, turn_cap=10,
-                  stop_after=lambda g, b: b == "post_combat" and g.world.turn == 2)
-            self.assertEqual((game.world.turn, game.executor.phase), (2, "SECOND_MAIN"))
-            self.assertEqual(self._combats(game), 2)
-            game.skip_next_acts = skip
-            log = _WindowLog()
-            _play(game, log, game.world.player_order, turn_cap=3, resumed=True)
-            self.assertEqual(log.windows[0][::2], first)
-            self.assertEqual(self._combats(game), 3)  # turn 3's combat only
-            self.assertEqual(game.turns, 3)
+    def test_a_game_stopped_at_a_priority_point_resumes_there(self) -> None:
+        game = self._game()
+        p1 = game.world.player_order[1]
+        _play(game, _PriorityLog(), game.world.player_order, turn_cap=10,
+              stop_after=lambda g, b: b == "priority" and g.world.turn == 2
+              and g.executor.phase == "SECOND_MAIN")
+        self.assertEqual((game.world.turn, game.executor.phase), (2, "SECOND_MAIN"))
+        self.assertEqual(self._combats(game), 2)
+        log = _PriorityLog()
+        _play(game, log, game.world.player_order, turn_cap=3, resumed=True)
+        self.assertEqual(log.decisions[0], (2, p1, "SECOND_MAIN"))  # the same point, asked again
+        self.assertEqual(self._combats(game), 3)  # turn 3's combat only
+        self.assertEqual(game.turns, 3)
 
 
 class _LoopDeckPolicy(RandomPolicy):
     """Deterministic policy: each turn, cast exactly one legal spell, in the
-    first main phase (the second main phase's window passes).
+    first main phase; pass everywhere else.
 
     RandomPolicy's dice would take an expected ~250 turns per candidate
     cast window here, making the stall statistically unreachable inside the
     cap; a fixed single-cast policy exercises the detector squarely.
     """
 
-    def take_acts(self, game: Game, seat: Handle) -> None:
-        if game.executor.phase != "FIRST_MAIN":
-            return
-        self.turn = game.world.turn
+    cast_turn = -1
+
+    def take_priority(self, game: Game, seat: Handle) -> bool:
+        executor = game.executor
+        turn = game.world.turn
+        if executor.phase != "FIRST_MAIN" or not sorcery_timing(executor, seat) or self.cast_turn == turn:
+            return False
+        self.turn = turn
         self.seat_index = game.world.player_order.index(seat)
-        rows = [r for r in legal_casts(game.world, game.executor, seat) if not r.land]
-        if rows:
-            self.play_cast(game, seat, rows[0])
-        game.digest.append(f"T{self.turn}.end")
+        rows = [r for r in menu(executor, seat) if r.kind == "cast"]
+        if not rows:
+            return False
+        self.cast_turn = turn
+        return self.play_row(game, seat, rows[0])
 
 
 def _oid(n: int) -> str:

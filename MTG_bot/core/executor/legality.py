@@ -2236,6 +2236,7 @@ def plan_mana_taps(
     *,
     exclude: frozenset[Handle] = frozenset(),
     costly: bool = False,
+    sources: dict[bool, list[list[ManaTap]]] | None = None,
 ) -> tuple[ManaTap, ...] | None:
     """The mana sources ``payer`` taps so a payment can be made (pool first).
     ``check()`` returns None when the payment is plannable, else the planner's
@@ -2246,7 +2247,9 @@ def plan_mana_taps(
     with ``costly`` (a cast or activation from the menu, ``executor.menu``) the
     dearer sources pay what they cannot, a creature's before a sacrifice
     (:func:`_source_tier`). A payment inside a resolution taps free sources only
-    (:func:`tap_for_payment` taps them in place).
+    (:func:`tap_for_payment` taps them in place). ``sources``: a dict a caller
+    pricing many payments in one unchanged position (the menu) shares, so the
+    payer's sources are listed once (:func:`_mana_tap_options`, by ``costly``).
 
     One deterministic rule, which keeps the most mana options open: each
     shortfall the planner names (coloured symbols before generic ones) is
@@ -2261,14 +2264,17 @@ def plan_mana_taps(
     reason = check()
     if reason is None:
         return ()
+    if _mana_shortfall(reason) is None:
+        return None  # not short of mana (the timing, a target, another cost): no source helps
     any_colour = executor.mana_permission(payer)
     chosen = None
     for dear in (False, True) if costly else (False,):
-        options = [
-            taps
-            for taps in _mana_tap_options(executor, payer, dear)
-            if taps[0].source not in exclude
-        ]
+        listed = sources.get(dear) if sources is not None else None
+        if listed is None:
+            listed = _mana_tap_options(executor, payer, dear)
+            if sources is not None:
+                sources[dear] = listed
+        options = [taps for taps in listed if taps[0].source not in exclude]
         chosen = _fill(executor, payer, check, options, any_colour, [], reason, set())
         if chosen is not None:
             break

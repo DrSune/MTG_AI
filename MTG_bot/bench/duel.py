@@ -118,7 +118,7 @@ def manifest(
         if deals
         else {},
         "view": asdict(opts),
-        "engine_notes": "batch Magic: no priority yet, one act window per main phase, no responses, mana pools empty as each step and phase ends",
+        "engine_notes": "priority in every step but untap and cleanup (CR 117), mana pools empty as each step and phase ends",
     }
 
 

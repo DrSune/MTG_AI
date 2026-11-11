@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     is_mana_ability,
 )
 from MTG_bot.core.executor.legality import (
+    MAIN_PHASES,
     _ability_discards_its_source,
     _cost_has_x,
     ability_playable,
@@ -86,21 +87,24 @@ def menu(executor: Executor, seat: Handle, hidden: Counter | None = None) -> lis
     activations in :func:`activated_abilities` order."""
     world = executor.world
     rows: list[Row] = []
+    sources: dict = {}  # the seat's mana sources, listed once for every row priced here
     for handle in sorted(world.players[seat].zone(ZONE_HAND).entries):
         if land_playable(executor, seat, handle) is None:
             rows.append(Row(f"land:{handle}", "land", handle))
         else:
-            rows.extend(_cast_rows(executor, seat, handle, hidden))
+            rows.extend(_cast_rows(executor, seat, handle, hidden, sources))
     for source, idx, ability in activated_abilities(executor, seat):
         if is_mana_ability(ability):
             continue  # activated while paying (CR 605.3a), never a row
-        row = _activation_row(executor, seat, source, idx, ability, hidden)
+        row = _activation_row(executor, seat, source, idx, ability, hidden, sources)
         if row is not None:
             rows.append(row)
     return rows
 
 
-def _cast_rows(executor: Executor, seat: Handle, handle: Handle, hidden: Counter | None) -> list[Row]:
+def _cast_rows(
+    executor: Executor, seat: Handle, handle: Handle, hidden: Counter | None, sources: dict
+) -> list[Row]:
     """One row per payable declaration of a spell in hand: base and kicked, and one per X."""
     record = spell_record(executor, handle)
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
@@ -113,7 +117,7 @@ def _cast_rows(executor: Executor, seat: Handle, handle: Handle, hidden: Counter
         for x in count() if _cost_has_x(spell_cost(record, extra)) else (None,):
 
             def pay(targets: Sequence[Handle], kicked: bool = kicked, x: int | None = x) -> bool:
-                return cast_taps(executor, seat, handle, kicked, x, tuple(targets)) is not None
+                return cast_taps(executor, seat, handle, kicked, x, tuple(targets), sources) is not None
 
             if not pay(()):
                 break  # a larger X costs more: no larger X is payable either
@@ -136,12 +140,12 @@ def _cast_rows(executor: Executor, seat: Handle, handle: Handle, hidden: Counter
 
 def _activation_row(
     executor: Executor, seat: Handle, source: Handle, idx: int, ability: ActivatedAbility,
-    hidden: Counter | None,
+    hidden: Counter | None, sources: dict,
 ) -> Row | None:
     # An ability whose cost taps its own source cannot also tap that source for mana.
     own_tap = any(isinstance(part, CostTap) and part.target is None for part in ability.cost.parts)
     exclude = frozenset({source}) if own_tap else frozenset()
-    if activation_taps(executor, seat, source, idx, exclude) is None:
+    if activation_taps(executor, seat, source, idx, exclude, sources) is None:
         return None
     if inert_row(executor, ability, source, seat):
         return None  # a phantom option: it could do nothing (Radha's land row)
@@ -151,6 +155,17 @@ def _activation_row(
             hidden["hidden_rows"] += 1
         return None
     return Row(f"act:{source}:{idx}", "activate", source, ability, ability_idx=idx, slots=slots, exclude=exclude)
+
+
+def sorcery_timing(executor: Executor, seat: Handle) -> bool:
+    """Whether ``seat`` may act at sorcery speed now (CR 117.1a, 307.1): its own turn, one of its
+    main phases, an empty stack."""
+    return (
+        executor.world.active_player == seat
+        and executor.turn_open
+        and executor.phase in MAIN_PHASES
+        and not executor.stack.frames
+    )
 
 
 def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, int, ActivatedAbility]]:
@@ -180,21 +195,26 @@ def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, 
 
 
 def cast_taps(
-    executor: Executor, seat: Handle, handle: Handle, kicked: bool, x: int | None, targets: tuple[Handle, ...]
+    executor: Executor, seat: Handle, handle: Handle, kicked: bool, x: int | None,
+    targets: tuple[Handle, ...], sources: dict | None = None,
 ) -> Any:
     """The mana sources that pay this declaration's total cost (CR 601.2f-h) with what the pool
-    holds: () when the pool pays it, None when nothing does."""
+    holds: () when the pool pays it, None when nothing does. ``sources``: a menu build's shared
+    listing (``legality.plan_mana_taps``)."""
     return plan_mana_taps(
         executor, seat, lambda: spell_castable(executor, seat, handle, x=x, kicked=kicked, targets=targets)[0],
-        costly=True,
+        costly=True, sources=sources,
     )
 
 
-def activation_taps(executor: Executor, seat: Handle, source: Handle, idx: int, exclude: frozenset) -> Any:
+def activation_taps(
+    executor: Executor, seat: Handle, source: Handle, idx: int, exclude: frozenset,
+    sources: dict | None = None,
+) -> Any:
     """The mana sources, never one in ``exclude``, that pay an activation; as :func:`cast_taps`."""
     return plan_mana_taps(
         executor, seat, lambda: ability_playable(executor.world, executor, source, idx, seat=seat),
-        exclude=exclude, costly=True,
+        exclude=exclude, costly=True, sources=sources,
     )
 
 

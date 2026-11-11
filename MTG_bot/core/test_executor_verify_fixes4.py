@@ -24,10 +24,8 @@ planeswalkers, and what can be dealt damage.
 """
 
 import unittest
-from unittest import mock
 
 from MTG_bot.bench.protocol import engine_ask
-from MTG_bot.bench.router import SeatRouter
 from MTG_bot.bench.view import OracleIndex, SeatLens
 from MTG_bot.core.ability_tree import (
     ControllerRef,
@@ -54,10 +52,9 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor import MAX_HAND_SIZE, Executor
-from MTG_bot.core.executor import games as games_module
 from MTG_bot.core.executor.events import KIND_DAMAGE, KIND_TURN_PHASE, KIND_ZONE_CHANGE
 from MTG_bot.core.executor.games import (
-    RandomPolicy,
+    _play,
     _setup_game,
     deal_decks,
     get_supply,
@@ -69,8 +66,7 @@ from MTG_bot.core.executor.legality import (
     blocker_askable,
 )
 from MTG_bot.core.executor.quantity import eval_filter
-from MTG_bot.core.executor.query import legal_activations
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -359,54 +355,38 @@ class FirstActAgent:
         return 1 if len(ask.options) > 1 else 0
 
 
-class ActWindowAfterTheTurnEndedTest(unittest.TestCase):
-    """Once an effect has ended the turn, no player gets priority in it
-    again (CR 724.1f), so the act windows offer nothing."""
+class _EndsItsFirstTurn:
+    """A ``_play`` policy whose player ends its first turn (an END_TURN effect) at its first
+    priority point in its first main phase, then only passes; it logs every decision."""
 
-    def game_with_a_land(self):
-        """The first seeded deal whose opening hand holds a basic land, played: the
-        act menu then offers its mana ability."""
+    def __init__(self) -> None:
+        self.decisions: list[tuple[int, object, str | None]] = []
+        self.ended = False
+
+    def answer(self, vocab, what):
+        return "DECLINE" if "DECLINE" in vocab else vocab[0]
+
+    def take_priority(self, game, seat) -> bool:
+        self.decisions.append((game.world.turn, seat, game.executor.phase))
+        if self.ended or game.executor.phase != "FIRST_MAIN":
+            return False
+        self.ended = True
+        game.executor.execute(atom(Verb.END_TURN), source=seat, controller=seat)
+        return True
+
+
+class NoPriorityAfterTheTurnEndedTest(unittest.TestCase):
+    """Once an effect has ended the turn, no player gets priority in it again (CR 724.1f): the
+    loop runs its cleanup step and begins the next turn."""
+
+    def test_the_next_decision_is_in_the_next_turn(self):
         supply = get_supply("castable", "M21")
-        basics = ("Plains", "Island", "Swamp", "Mountain", "Forest")
-        for seed in range(1, 40):
-            game = _setup_game(seed, supply, deal_decks(seed, 1409, supply))
-            world = game.world
-            p0 = world.player_order[0]
-            game.executor.begin_turn(p0)
-            hand = world.players[p0].zone(ZONE_HAND).entries
-            lands = [h for h in hand if world.cards[h].identity.name in basics]
-            if not lands:
-                continue
-            play_land(game.executor, p0, lands[0])
-            self.assertTrue(legal_activations(world, game.executor, p0))
-            return game, supply, p0
-        self.fail("no seed deals a basic land")
-
-    def end_the_turn(self, game, p0):
-        game.executor.execute(atom(Verb.END_TURN), source=p0, controller=p0)
-        self.assertFalse(game.executor.turn_open)
-
-    def test_the_engine_policy_takes_no_act(self):
-        game, _supply, p0 = self.game_with_a_land()
-        policy = RandomPolicy(3)
-        game.executor.decisions.provider = policy.answer
-        self.end_the_turn(game, p0)
-        # A policy that never walks away and always taps mana when it can: with the
-        # window still open it would tap the land at once.
-        with mock.patch.object(games_module, "PASS_P", 0.0), mock.patch.object(
-            games_module, "TAP_MANA_P", 1.0
-        ):
-            policy.take_acts(game, p0)
-        self.assertEqual(game.acts, 0)
-
-    def test_the_bench_router_takes_no_act(self):
-        game, supply, p0 = self.game_with_a_land()
-        lenses = [SeatLens(0, OracleIndex.for_sets("M21")), SeatLens(1, OracleIndex.for_sets("M21"))]
-        router = SeatRouter(game, [FirstActAgent(), FirstActAgent()], lenses, supply=supply)
-        game.executor.decisions.provider = router.answer
-        self.end_the_turn(game, p0)
-        router.take_acts(game, p0)
-        self.assertEqual(game.acts, 0)
+        game = _setup_game(1, supply, deal_decks(1, 1409, supply))
+        policy = _EndsItsFirstTurn()
+        _play(game, policy, game.world.player_order, turn_cap=2)
+        ended = policy.decisions.index((1, game.world.player_order[0], "FIRST_MAIN"))
+        self.assertTrue(policy.ended)
+        self.assertEqual({turn for turn, _seat, _step in policy.decisions[ended + 1:]}, {2})
 
 
 class QuirionDryadColorTest(unittest.TestCase):

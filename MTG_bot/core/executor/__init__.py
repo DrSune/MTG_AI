@@ -415,6 +415,7 @@ class Executor:
         self.tba_done = False
         self.priority_holder: Handle | None = None
         self.passes = 0
+        self.step_actions: dict[Handle, int] = {}
         self.first_strikers: frozenset[Handle] | None = None
         # Who passes priority (DESIGN_PRIORITY §11). Driven: a game loop asks the
         # player who holds it at every priority point (games._play_turns). Not
@@ -1883,6 +1884,8 @@ class Executor:
         self.declaring = False
         self.first_strikers = None
         self._begin_step(CLEANUP)
+        if self.driven:
+            return 0  # the game loop runs the cleanup step
         return self.pass_until(TURN_ENDED)
 
     def _end_the_turn_process(self) -> None:
@@ -1969,6 +1972,13 @@ class Executor:
         before the draw step (CR 503.1a, 504), the draw step's before the main
         phase. The first turn of a two-player game has no draw step (CR
         103.8a)."""
+        self.start_turn(player)
+        return self.pass_until(FIRST_MAIN)
+
+    def start_turn(self, player: Handle) -> None:
+        """``player``'s turn begins (active rotation, turn clock, per-turn
+        event trackers reset) with its untap step; a game loop then runs it
+        (CR 500.1)."""
         if player not in self.world.players:
             raise ValueError(f"begin_turn: {player} is not a player of this world")
         # CR 103.8a: in a two-player game the player who plays first skips the
@@ -1983,7 +1993,6 @@ class Executor:
         self._closing_turn = False
         self.journal.begin_turn(player)
         self._begin_step(UNTAP)
-        return self.pass_until(FIRST_MAIN)
 
     # ------------------------------------------------ the step machine (CR 500-514, 117)
     #
@@ -2001,6 +2010,28 @@ class Executor:
         self.tba_done = False
         self.priority_holder = None
         self.passes = 0
+        self.step_actions = {}
+
+    def pass_priority(self) -> None:
+        """The player holding priority passes (CR 117.3d): the next player in
+        turn order receives it, or, every player having passed in succession,
+        :meth:`all_pass`. In a game loop; the loop gives priority next."""
+        self.passes += 1
+        if self.passes >= len(self.world.player_order):
+            self.all_pass()
+            return
+        order = self.world.player_order
+        assert self.priority_holder is not None
+        self.priority_holder = order[(order.index(self.priority_holder) + 1) % len(order)]
+
+    def acted(self, seat: Handle) -> None:
+        """``seat``, holding priority, cast a spell, activated an ability or
+        played a land: it receives priority again (CR 117.3c), and the passes
+        in succession start over. Counted per player and step (the act cap,
+        ``games.MAX_ACTS_PER_STEP``)."""
+        self.priority_holder = seat
+        self.passes = 0
+        self.step_actions[seat] = self.step_actions.get(seat, 0) + 1
 
     def _to_priority(self) -> bool:
         """Run the game on until a player receives priority (CR 117.3a-b): the
@@ -2054,9 +2085,8 @@ class Executor:
         if step == DRAW:
             # The draw (CR 504.1), journalled inside the skeleton so "whenever
             # you draw" triggers and the fingerprint see it.
-            if not self._skip_draw:
-                assert active is not None
-                self._turn_draw(active)
+            assert active is not None
+            self._turn_draw(active)
             return True
         if step == BEGIN_COMBAT:
             # CR 506.2: in a two-player game the non-active player defends.
@@ -2115,10 +2145,13 @@ class Executor:
         )
 
     def _next_step(self, step: str) -> str:
-        """The step after ``step`` (CR 500.1): no blockers and no damage without
+        """The step after ``step`` (CR 500.1): no draw step in the first turn of
+        a two-player game (CR 103.8a), no blockers and no damage without
         attackers (CR 508.8), a first-strike damage step when a creature in
         combat has first or double strike (CR 510.4), another cleanup step after
         one in which players received priority (CR 514.3a)."""
+        if step == UPKEEP and self._skip_draw:
+            return FIRST_MAIN  # CR 103.8a: the first player skips the draw step of the first turn
         if step == DECLARE_ATTACKERS:
             return DECLARE_BLOCKERS if self.attackers else END_OF_COMBAT
         if step == DECLARE_BLOCKERS:
@@ -2921,24 +2954,27 @@ class Executor:
         ``normal_turn_seat`` is not folded into :meth:`state_fingerprint`:
         it is a function of the folded history (the EXTRA_TURN rows and
         the journal's turn markers), like ``starting_life``."""
-        order = self.world.player_order
         if self.world.active_player is None or not self._turn_started:
-            nxt = order[0]
-        else:
-            self.end_turn()
-            if self.extra_turn_queue:
-                if self.normal_turn_seat is None:
-                    # The extras follow the first turn, a normal turn.
-                    self.normal_turn_seat = self.world.active_player
-                nxt = self.extra_turn_queue.pop(0)
-            else:
-                base = self.normal_turn_seat
-                if base is None:
-                    base = self.world.active_player
-                assert base is not None
-                nxt = order[(order.index(base) + 1) % len(order)]
-                self.normal_turn_seat = nxt
-        return self.begin_turn(nxt)
+            return self.begin_turn(self.world.player_order[0])
+        self.end_turn()
+        return self.begin_turn(self.next_turn_seat())
+
+    def next_turn_seat(self) -> Handle:
+        """Whose turn is next, once a turn has ended (CR 500.7: a pending extra
+        turn first, else the seat after the last normal turn's)."""
+        order = self.world.player_order
+        if self.extra_turn_queue:
+            if self.normal_turn_seat is None:
+                # The extras follow the first turn, a normal turn.
+                self.normal_turn_seat = self.world.active_player
+            return self.extra_turn_queue.pop(0)
+        base = self.normal_turn_seat
+        if base is None:
+            base = self.world.active_player
+        assert base is not None
+        nxt = order[(order.index(base) + 1) % len(order)]
+        self.normal_turn_seat = nxt
+        return nxt
 
     def end_turn(self) -> int:
         """The end step, then the cleanup step (CR 513-514), with both players
@@ -3332,6 +3368,7 @@ class Executor:
                     self.tba_done,
                     str(self.priority_holder),
                     self.passes,
+                    tuple(sorted((str(k), v) for k, v in self.step_actions.items())),
                     None
                     if self.first_strikers is None
                     else tuple(sorted(map(str, self.first_strikers))),

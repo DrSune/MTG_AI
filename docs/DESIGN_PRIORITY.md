@@ -489,7 +489,23 @@ Step 5 goes in two commits:
   a combat step's `"respond": {STEP: [...]}`; 51 window packs and about 35 window tests were
   converted, a few window-only tests deleted. Until 5b-2 nobody responds in a game: the windows
   are gone and the loop still asks only in the main phases.
-- **5b, the driven loop.** `_play_turns` asks the holder at every priority point
+- **5b-2, the driven loop** (landed 2026-11-11). `_play_turns` gives priority in every step:
+  `Executor.start_turn`, `pass_priority`, `acted` (CR 117.3c-d), `next_turn_seat`; the act cap
+  counts per player and step; `stop_after` stops at "turn_top", "pre_attacks", "pre_blocks"
+  and "priority", and a game resumes where its executor stands (the search's skip flags are
+  gone). `take_priority(game, seat) -> bool` replaces `take_acts` in `RandomPolicy` (the
+  engine menu, `PRIORITY_PASS_P` 0.9 away from its own main phases), the router (`act` and
+  `priority` asks; a PASS-only menu is no ask), the bench protocol and the test drivers. The
+  heuristic passes every `priority` ask until §3.3; `priority` grows from `cw` in old
+  checkpoints; an ability waiting on the stack is encoded as its source card until §3.2.
+  CR 103.8a now skips the whole draw step of the first turn (the new loop test caught it).
+  Measured, heuristic against heuristic, 20 coherent M21 games, one core: 68.9 asks per game
+  before (41e774c) and 145.2 after (75.7 of them `priority`), the same 15.3 turns, and 0.244
+  s per game before against 0.356 after, once the payment planner stopped listing sources for
+  a cost no mana can fix and shared one listing per menu (it was 0.618). Left in stage 1: the
+  trigger-order ask, step 6's tests, the zone-entry clocks of §2.3 (CR 400.7) and the stack
+  target enumeration of abilities (BACKLOG B-110).
+- **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the
   search and the packs move to priority; the act cap per player per step; the trigger-order ask;

@@ -42,7 +42,7 @@ class _Scripted:
     """A ``_play`` policy that never acts. A seat's mulligan declarations are its words in order,
     then "keep"; any other ask takes its highest offered card. ``log`` holds (what, vocab, asking
     seat, answer, the seat's hand size, whether a turn had begun) per ask; ``first_window`` the
-    hand and library of each seat at the first act window, before anyone acts."""
+    hand and library of each seat at the first priority point, before anyone acts."""
 
     def __init__(self, game: Game, declarations: dict | None = None) -> None:
         self.game = game
@@ -61,9 +61,10 @@ class _Scripted:
         self.log.append((what, vocab, seat, answer, hand, world.active_player is not None))
         return answer
 
-    def take_acts(self, game: Game, seat) -> None:
+    def take_priority(self, game: Game, seat) -> bool:
         if self.first_window is None:
             self.first_window = {s: _zones(game, s) for s in game.world.player_order}
+        return False
 
     def asked(self, seat, prefix: str = "mulligan") -> list[str]:
         return [row[0] for row in self.log if row[2] == seat and row[0].startswith(prefix)]

@@ -3,7 +3,7 @@
 An agent has a ``name`` and answers an ``Ask`` with an option index, ``decide(ask, obs) -> int``.
 Two kinds of seat driver plug into ``SeatRouter``:
 - agents (decide per Ask; what LLM seats and the floors are);
-- raw engine policies with ``answer(vocab, what)`` and ``take_acts(game, seat)``, such as
+- raw engine policies with ``answer(vocab, what)`` and ``take_priority(game, seat)``, such as
   ``RandomPolicy`` or a future adapter around our network. These pass straight through.
 
 The floors (docs/DESIGN_BENCHMARK.md §4; METRICS §17):
@@ -70,7 +70,7 @@ class AgentForfeitError(AgentError):
 class RawPolicy(Protocol):
     def answer(self, vocab: tuple[str, ...], what: str) -> str: ...
 
-    def take_acts(self, game: Any, seat: Any) -> None: ...
+    def take_priority(self, game: Any, seat: Any) -> bool: ...
 
 
 def is_raw(driver: object) -> bool:

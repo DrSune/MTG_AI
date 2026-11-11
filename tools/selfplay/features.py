@@ -56,11 +56,15 @@ ASK_KINDS = (
     # the London mulligan before the first turn (CR 103.5): keep or mulligan, then which card
     # of the hand goes to the bottom of the library
     "mulligan", "mulligan_bottom",
+    # a priority point where the player may act at instant speed only (DESIGN_PRIORITY §3.1)
+    "priority",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
-#: "other". An old network plays the second main phase's menu as it plays the first's.
-ASK_GROWN_FROM = {"act_second_main": "act"}
+#: "other". An old network plays the second main phase's menu as it plays the first's, and an
+#: instant-speed priority point as it played the combat window's "act now or pass" (DESIGN_PRIORITY
+#: §3.1: the main-phase row would fire instants at once, PASS there meaning "end my phase").
+ASK_GROWN_FROM = {"act_second_main": "act", "priority": "cw"}
 
 ZONES = ("pad", ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, "stack", ZONE_COMMAND,
          ZONE_LIBRARY)
@@ -452,8 +456,14 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
 
     # --- the visible cards, in a fixed zone order
     ents: list[tuple[Handle, str, Handle]] = []  # (handle, zone, owner)
+    # An ability on the stack shows as its source card, a public one, under its own handle (an
+    # emblem's is left out); DESIGN_PRIORITY §3.2 gives abilities entities of their own.
+    stack_card: dict[Handle, Handle] = {}
     for frame in reversed(executor.stack.frames):  # top first
-        ents.append((frame.handle, "stack", frame.controller))
+        card_of = frame.source if frame.spell_kind in ("ACTIVATED", "TRIGGERED") else frame.handle
+        if card_of in world.cards:
+            ents.append((frame.handle, "stack", frame.controller))
+            stack_card[frame.handle] = card_of
     groups = []
     for ph in (me_h, opp_h):
         zones = world.players[ph].zones
@@ -513,7 +523,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     layers = executor.layers
     cards = world.cards
     for j, (h, zone, owner) in enumerate(ents):
-        card = cards[h]
+        card = cards[stack_card.get(h, h)]
         ident = card.identity
         types, colors, kws, pp, pt, cmc, oid, is_token, is_creature = _static(ident)
         on_bf = zone == ZONE_BATTLEFIELD

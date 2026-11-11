@@ -10,6 +10,8 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   are never used. In the first main phase, when the spell it would cast reads whether it attacked
   this turn (raid) and it has a creature that can attack, it passes instead: that spell and the
   rest of its plays come in the second main phase, after the attack.
+* priority (any priority point but its own main phase with an empty stack): pass. Responding with
+  instants and abilities is DESIGN_PRIORITY §3.3, not built yet.
 * target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
   creature, then the opponent; a helpful one at its own best creature, then itself. A spell with
   several targets (CR 601.2c) is judged slot by slot, by what it does to that slot's own target:
@@ -198,6 +200,9 @@ class HeuristicAgent:
         return list(zone.entries) if zone else []
 
     # -------------------------------------------------------------------- asks
+
+    def _priority(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        return ask.refuse  # pass (DESIGN_PRIORITY §3.3 adds instant-speed play)
 
     def _act(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         lands = [i for i, t in enumerate(tokens) if t.startswith("land:")]

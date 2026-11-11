@@ -1,17 +1,19 @@
 """``SeatRouter``: per-seat agents inside the engine's own game loop.
 
 ``_play`` (``core/executor/games.py`` ``_play_turns``) takes one policy object: it registers
-``policy.answer`` as the decision provider for every seat and calls ``policy.take_acts(game,
-seat)`` once in each main phase, before and after combat (CR 505.1). The router satisfies that
-contract and dispatches each call to the right seat's driver:
+``policy.answer`` as the decision provider for every seat and calls ``policy.take_priority(game,
+seat)`` at every priority point for the player holding priority (CR 117). The router satisfies
+that contract and dispatches each call to the right seat's driver:
 - engine asks go to the seat the engine names (``protocol.resolve_ask_seat``);
-- the act window goes to the active seat.
+- the priority decision goes to the seat holding priority.
 
-The act window offers PASS and the engine's menu (``core/executor/menu.py``: land drops, casts
+The decision offers PASS and the engine's menu (``core/executor/menu.py``: land drops, casts
 with their kicker and X rows, non-mana activations from the battlefield and the hand, priced with
 automatic payment from the pool, free sources and then costly ones; mana abilities are activated
-while paying, never rows). Its limits are registered as scaffolds in BACKLOG. The router labels the
-rows for its seat and asks:
+while paying, never rows). Its ask kind is ``act`` where the player could act at sorcery speed
+(its own main phase with an empty stack) and ``priority`` everywhere else; a menu with nothing
+but PASS on it is a pass, not an ask, so a pass looks the same whatever a player holds. Its
+limits are registered as scaffolds in BACKLOG. The router labels the rows for its seat and asks:
 - **Targets are asked slot by slot, one question per pick** (CR 601.2c: each word "target" is
   announced in turn), site ``pick:<source>:<slot>:<picks so far>``, over the candidates
   ``stack.slot_options`` leaves: none already picked for that slot (CR 115.3) and none that would
@@ -22,8 +24,7 @@ rows for its seat and asks:
 - **X and modes come first** (CR 601.2b): X is part of the row (``cast:<card>:x<N>``), and a modal
   spell's modes are announced by ``stack.cast_modes`` (the engine's ``choose:`` question over the
   legal mode sets) before only the chosen modes' targets are asked.
-- **At most ``MAX_ACTS_PER_STEP`` acts per window**, the engine's own cap: one window per main
-  phase, the prompt naming which.
+- **At most ``MAX_ACTS_PER_STEP`` actions per player and step**, the loop's own cap.
 
 The router consumes no randomness, so a raw ``RandomPolicy`` behind it reproduces
 ``play_game`` exactly (``test_router.py``).
@@ -45,9 +46,9 @@ from MTG_bot.bench.protocol import (
     executor_text,
     resolve_ask_seat,
 )
-from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP, Act
+from MTG_bot.core.executor.games import Act
 from MTG_bot.core.executor.legality import SECOND_MAIN
-from MTG_bot.core.executor.menu import Row, menu, perform
+from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
 from MTG_bot.core.executor.query import spell_target_slots
 from MTG_bot.core.executor.stack import cast_modes, slot_options
 
@@ -155,42 +156,47 @@ class SeatRouter:
 
     # ----------------------------------------------------------- act window
 
-    def take_acts(self, game: Game, seat: Handle) -> None:
+    def take_priority(self, game: Game, seat: Handle) -> bool:
+        """One decision of ``seat``, which holds priority: True when it acted, False when it
+        passed (``games._play_turns``)."""
         i = self._index(seat)
         driver = self.drivers[i]
         self._scry_index.clear()
         if is_raw(driver):
-            driver.take_acts(game, seat)
-            return
-        main = "second main phase (after combat)" if game.executor.phase == SECOND_MAIN else "first main phase"
-        prompt = f"Your {main}: choose an action. PASS ends this main phase."
-        for _ in range(MAX_ACTS_PER_STEP):
-            if game.over_reason() is not None:
-                return
-            if not game.executor.turn_open:
-                break  # an effect ended the turn (CR 724.1): the act window is over
-            menu = self._act_menu(game, seat, i)
-            if len(menu) == 1:  # PASS is the only legal act: not a decision
-                break
-            ask = Ask(
-                seat=i,
-                kind="act",
-                site=f"act:{seat}:{game.world.turn}",
-                prompt=prompt,
-                options=tuple(option for option, _ in menu),
-                refuse=0,
-            )
-            option, payload = menu[self._decide(driver, ask)]
-            if option.token == "PASS":
-                break
-            self._execute(game, seat, i, option, payload)
-        game.digest.append(f"T{game.world.turn}.end")
+            return driver.take_priority(game, seat)
+        executor = game.executor
+        menu = self._act_menu(game, seat, i)
+        if len(menu) == 1:  # PASS is the only legal action: not a decision
+            return False
+        if sorcery_timing(executor, seat):
+            kind = "act"
+            main = "second main phase (after combat)" if executor.phase == SECOND_MAIN else "first main phase"
+            prompt = f"Your {main}: choose an action, or PASS."
+        else:
+            kind = "priority"
+            whose = "your" if game.world.active_player == seat else "your opponent's"
+            depth = len(executor.stack.frames)
+            waiting = f"; {depth} object{'s' if depth != 1 else ''} on the stack" if depth else ""
+            step = _STEP_WORDS.get(executor.phase or "", str(executor.phase).lower())
+            prompt = f"You have priority ({whose} {step}{waiting}): act at instant speed, or PASS."
+        ask = Ask(
+            seat=i,
+            kind=kind,
+            site=f"{kind}:{seat}:{game.world.turn}",
+            prompt=prompt,
+            options=tuple(option for option, _ in menu),
+            refuse=0,
+        )
+        option, row = menu[self._decide(driver, ask)]
+        if option.token == "PASS":
+            return False
+        return self._execute(game, seat, i, option, row)
 
     def _act_menu(self, game: Game, seat: Handle, i: int) -> list[tuple[Option, Any]]:
         """PASS and the engine's menu (``executor.menu``), each row labelled for the seat."""
         executor = game.executor
         lens = self.lenses[i]
-        out: list[tuple[Option, Any]] = [(Option("PASS", "PASS: end this main phase"), None)]
+        out: list[tuple[Option, Any]] = [(Option("PASS", "PASS: do nothing now"), None)]
         for row in menu(executor, seat, hidden=self.stats[i]):
             out.append((Option(row.token, self._label(executor, lens, row)), row))
         return out
@@ -253,20 +259,22 @@ class SeatRouter:
         self.targets_so_far = ()
         return groups[0] if len(slots) == 1 else tuple(groups)
 
-    def _execute(self, game: Game, seat: Handle, i: int, option: Option, row: Row) -> None:
+    def _execute(self, game: Game, seat: Handle, i: int, option: Option, row: Row) -> bool:
+        """Carry out the chosen row, asking its modes and targets; False when nothing happened
+        (the targets together cost more than the sources pay)."""
         executor = game.executor
         name = game.name_of(row.handle)
         if row.kind == "land":
             game.attempted = f"land:{name}"
             perform(executor, seat, row)
             self._log(i, "land", row.handle)
-            return
+            return True
         if row.kind == "activate":
             targets = self._targets(game, row.slots, i, row.handle) if row.slots else ()
             game.attempted = f"act:{name}#{row.ability_idx}"
             perform(executor, seat, row, targets)
             self._log(i, "act", row.handle, f"#{row.ability_idx}")
-            return
+            return True
         modes: tuple[int, ...] = ()
         slots = row.slots
         if slots is None:
@@ -282,5 +290,23 @@ class SeatRouter:
             # sources pay (two taxed targets, CR 601.2f): the cast is illegal and nothing
             # happens. Counted.
             self.stats[i]["unpayable_targets"] += 1
-            return
+            return False
         self._log(i, "cast", row.handle, f"{len(flat)}t" + ("" if row.x is None else f":x{row.x}"))
+        return True
+
+
+#: How a step is named in the priority prompt.
+_STEP_WORDS = {
+    "UPKEEP": "upkeep",
+    "DRAW": "draw step",
+    "FIRST_MAIN": "first main phase",
+    "COMBAT": "beginning of combat",
+    "DECLARE_ATTACKERS": "declare attackers step",
+    "DECLARE_BLOCKERS": "declare blockers step",
+    "FIRST_STRIKE_DAMAGE": "first-strike damage step",
+    "COMBAT_DAMAGE": "combat damage step",
+    "END_OF_COMBAT": "end of combat step",
+    "SECOND_MAIN": "second main phase",
+    "END_TURN": "end step",
+    "CLEANUP": "cleanup step",
+}

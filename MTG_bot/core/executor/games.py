@@ -19,25 +19,23 @@ compile pass marks engine-supported (where a raise is always a bug);
 or a card carrying a ``SpellAbility`` node), which is where the deep
 cross-cutting bugs live.
 
-**The policy** (:class:`RandomPolicy`). It plays through the *query surface*:
-:func:`legal_casts` for the land drop and the spells,
-:func:`legal_activations` for activations, :func:`spell_target_slots` /
-:func:`legal_targets` with :func:`validate_target_selection` for targets
-(including the synthesized player slot of "target player" / "target
-opponent", whose population comes from the engine's own rule). Effect
-decisions are never pre-enumerated: the policy registers its seeded uniform
-choice as the executor's ask-time
+**The policy** (:class:`RandomPolicy`). It plays from the engine's menu
+(``executor.menu``): land drops, casts and activations, each priced with
+automatic payment, with random legal designations of their targets
+(:func:`spell_target_slots` / :func:`legal_targets` with
+:func:`validate_target_selection`, including the synthesized player slot of
+"target player" / "target opponent", whose population comes from the engine's
+own rule). Effect decisions are never pre-enumerated: the policy registers its
+seeded uniform choice as the executor's ask-time
 :attr:`~MTG_bot.core.executor.decisions.DecisionStream.provider`, and the
-engine hands it the exact vocabulary at the moment of demand, the same
-enumeration the query surface exposes. A may-offer arrives already narrowed
-by the query oracle (CR 117.3), and a demand with no answer still raises —
-which is the finding.
+engine hands it the exact vocabulary at the moment of demand. A may-offer
+arrives already narrowed by the query oracle (CR 117.3), and a demand with no
+answer still raises — which is the finding.
 
-Batch style, no priority simulation: a dealt game's mulligans (CR 103.5, the
-policy deciding), then each turn ``begin_turn`` (which draws, CR 504.1), then
-up to :data:`MAX_ACTS_PER_STEP` acts in the first main phase's batch, the
-combat phase, up to as many again in the second main phase's batch (CR
-505.1), then ``end_turn``.
+**The loop** (:func:`_play_turns`): a dealt game's mulligans (CR 103.5, the
+policy deciding), then every step of every turn with priority (CR 117, 500-514):
+at each priority point the player holding priority makes one decision, an
+action or a pass, at most :data:`MAX_ACTS_PER_STEP` actions per player and step.
 
 **Stats + crash ledger** (:func:`run_games`). Per seed: turns survived, whether
 the full cap was reached, how the game ended, the act digest, and on a crash the
@@ -46,11 +44,9 @@ the stack contents at the moment of the raise. Every crash becomes a seed-pinned
 repro test in ``test_executor_games.py``; ``--repro SEED`` replays one game with
 the traceback printed.
 
-Mana: the pool empties as each step and phase ends (CR 500.5); a main phase's
-batch pays from what the policy tapped, and a payment outside it (a response
-window, "you may pay", "unless ... pays") taps a minimal set of the payer's
-{T}-only mana abilities, chosen by the engine (a scaffold registered in
-docs/BACKLOG.md: CR 605.3a lets the player choose).
+Mana: the pool empties as each step and phase ends (CR 500.4); a cast or
+activation taps a minimal set of the payer's mana sources, chosen by the engine
+(a scaffold registered in docs/BACKLOG.md: CR 605.3a lets the player choose).
 
 Run it::
 
@@ -83,7 +79,6 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
-    is_mana_ability,
     walk,
 )
 from MTG_bot.core.compiler.card_records import is_verified, load_records
@@ -95,22 +90,26 @@ from MTG_bot.core.compiler.coverage import (
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.errors import StateCorruptionError
-from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, GameOver, activate
+from MTG_bot.core.executor import SUPPORTED_VERBS_V2, Executor, GameOver
 from MTG_bot.core.executor.events import KIND_GAME_LOST, KIND_STALL_BREAK
-from MTG_bot.core.executor.legality import SECOND_MAIN
+from MTG_bot.core.executor.legality import (
+    BEGIN_COMBAT,
+    COMBAT_DAMAGE,
+    DECLARE_ATTACKERS,
+    DECLARE_BLOCKERS,
+    END_OF_COMBAT,
+    FIRST_MAIN,
+    FIRST_STRIKE_DAMAGE,
+    TURN_ENDED,
+)
+from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
 from MTG_bot.core.executor.query import (
-    ActivationOption,
-    CastOption,
     TargetSlot,
-    activation_target_slots,
     cast_mode_options,
-    legal_activations,
-    legal_casts,
-    modal_choose,
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import another_target_reason, cast, cast_modes, play_land
+from MTG_bot.core.executor.stack import another_target_reason, cast_modes
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -129,8 +128,10 @@ OPENING_HAND = 7
 TURN_CAP = 60
 MAX_COPIES = 4
 MIN_MANA_SOURCES = 10
-#: At most this many acts in each main phase's act window: a rail, not a rule (CR 505 sets no
-#: limit), registered in docs/BACKLOG.md "Scaffolds to remove".
+#: At most this many actions by one player in one step (CR 117: a player who acts keeps
+#: priority, so one who never passes would never let a step end); a rail, not a rule, registered
+#: in docs/BACKLOG.md "Scaffolds to remove". The loop passes for a player at the cap, recorded as
+#: any pass is.
 MAX_ACTS_PER_STEP = 10
 
 # Stall rule (CR 104.4b): a game whose
@@ -151,10 +152,12 @@ REPEAT_ROUNDS = 3
 
 # Policy weights. Constants, not knobs: a seed must identify ONE policy, or the
 # replay pin in test_executor_games.py is meaningless.
-TAP_MANA_P = 0.75  # tap a legal mana source
-CAST_P = 0.7  # cast a spell the query says is payable
-ACTIVATE_P = 0.4  # run a non-mana activation
-PASS_P = 0.15  # walk away from the batch (beginner's luck)
+CAST_P = 0.7  # cast a spell the menu offers
+ACTIVATE_P = 0.4  # activate an ability the menu offers
+PASS_P = 0.15  # pass in an own main phase with an empty stack (beginner's luck)
+#: Pass at any other priority point: most of them are not worth acting at, and uniform play would
+#: fire every instant at the first point it sees.
+PRIORITY_PASS_P = 0.9
 
 _BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 
@@ -570,10 +573,9 @@ class RandomPolicy:
     coin flips), which the policy never touches.
     """
 
-    def __init__(self, seed: int, max_acts: int = MAX_ACTS_PER_STEP) -> None:
+    def __init__(self, seed: int) -> None:
         self.seed = seed
         self.rng = random.Random(seed)
-        self.max_acts = max_acts
         self.acts: list[Act] = []
         self.turn = 0
         self.seat_index = 0
@@ -628,171 +630,82 @@ class RandomPolicy:
             return None
         return tuple(groups)
 
-    # -- the act surface
-    @staticmethod
-    def is_mana_activation(option: ActivationOption) -> bool:
-        """A mana ability, recognised from the IR of the option the query
-        handed over (the very ``ActivatedAbility`` the executor will run), not
-        from a card-name table: the one CR 605.1a classifier
-        (:func:`~MTG_bot.core.ability_tree.is_mana_ability`) decides."""
-        return is_mana_ability(option.ability)
+    # -- the priority decision
+    def take_priority(self, game: Game, seat: Handle) -> bool:
+        """One decision at a priority point (``_play_turns``): pass (False), or one action of
+        the engine's menu (``executor.menu``), performed (True). A land drop first; then a pass
+        with :data:`PASS_P` in the player's own main phase with an empty stack and
+        :data:`PRIORITY_PASS_P` elsewhere; then a cast with :data:`CAST_P`, an activation with
+        :data:`ACTIVATE_P`. A menu with nothing on it is a pass without a roll.
 
-    def mana_activations(
-        self, options: list[ActivationOption]
-    ) -> list[ActivationOption]:
-        return [option for option in options if self.is_mana_activation(option)]
+        The pass is not decoration: a policy that always acts can deadlock on a
+        sacrifice-into-a-dies-trigger loop, and MTG's answer is 'you may do nothing'. Every
+        candidate is a menu row; only the *choice among* legal rows is the policy's."""
+        executor = game.executor
+        self.turn = game.world.turn
+        self.seat_index = game.world.player_order.index(seat)
+        rows = menu(executor, seat)
+        if not rows:
+            return False
+        lands = [row for row in rows if row.kind == "land"]
+        if lands:
+            return self.play_row(game, seat, self.choose(lands))
+        if self.rng.random() < (PASS_P if sorcery_timing(executor, seat) else PRIORITY_PASS_P):
+            return False
+        spells = [row for row in rows if row.kind == "cast"]
+        if spells and self.rng.random() < CAST_P:
+            return self.play_row(game, seat, self.pick_spell(game, spells))
+        others = [row for row in rows if row.kind == "activate"]
+        if others and self.rng.random() < ACTIVATE_P:
+            return self.play_row(game, seat, self.choose(others))
+        return False
 
-    def other_activations(
-        self, options: list[ActivationOption]
-    ) -> list[ActivationOption]:
-        mana = {
-            (option.source, option.ability_idx)
-            for option in self.mana_activations(options)
-        }
-        return [
-            option
-            for option in options
-            if (option.source, option.ability_idx) not in mana
-        ]
+    def pick_spell(self, game: Game, rows: list[Row]) -> Row:
+        """Half the time the most expensive row, otherwise uniform — a policy that always
+        dumped its whole hand would empty it and stop exercising the cast path."""
 
-    def pick_spell(self, game: Game, rows: list[CastOption]) -> CastOption:
-        """Half the time the most expensive payable row, otherwise uniform — a
-        policy that always dumped its whole hand would empty it and stop
-        exercising the cast path."""
-
-        def cmc(row: CastOption) -> int:
+        def cmc(row: Row) -> int:
             return game.world.cards[row.handle].identity.cmc or 0
 
         return max(rows, key=cmc) if self.coin() else self.choose(rows)
 
-    # -- the three acts
-    def play_land(self, game: Game, seat: Handle, row: CastOption) -> None:
-        name = game.name_of(row.handle)
-        game.attempted = f"land:{name}"
-        play_land(game.executor, seat, row.handle)
-        self._log(game, "land", name)
-        if game.trace is not None:
-            game.trace.record_action(seat, "land-drop", name, row.handle, ())
-
-    def play_cast(self, game: Game, seat: Handle, row: CastOption) -> None:
+    def play_row(self, game: Game, seat: Handle, row: Row) -> bool:
+        """Carry out ``row``: a modal spell's modes first (CR 601.2b, through the decision
+        channel), then a random legal designation of its targets (CR 601.2c). False, counted in
+        ``infeasible_skips``, when no designation came out or the targets together cost more
+        than the sources pay."""
         executor = game.executor
-        node = row.node
-        assert isinstance(node, SpellAbility)  # a non-land legal_casts row has one
         name = game.name_of(row.handle)
-        game.attempted = f"cast:{name}"
-        # CR 601.2b-c: a modal spell's modes are announced first, through the
-        # decision channel, and only the chosen modes' targets are designated.
-        modes: tuple[int, ...] | None = None
-        if modal_choose(node) is not None:
-            if not cast_mode_options(executor, node, spell_handle=row.handle, seat=seat):
+        kind = {"land": "land", "cast": "cast", "activate": "act"}[row.kind]
+        modes: tuple[int, ...] = ()
+        slots = row.slots
+        if row.kind == "cast" and slots is None:
+            if not cast_mode_options(executor, row.node, spell_handle=row.handle, seat=seat, pay=row.pay):
                 game.infeasible_skips += 1  # no mode can be chosen (CR 700.2a)
-                return
-            _token, modes, _rest = cast_modes(executor, seat, row.handle, node)
-        slots = spell_target_slots(executor, node, spell_handle=row.handle, seat=seat, modes=modes)
-        targets = self.select_targets(slots)
+                return False
+            _token, modes, _rest = cast_modes(executor, seat, row.handle, row.node, pay=row.pay)
+            slots = spell_target_slots(
+                executor, row.node, spell_handle=row.handle, seat=seat, modes=modes, pay=row.pay
+            )
+        targets = self.select_targets(slots) if slots else ()
         if targets is None:
             game.infeasible_skips += 1
-            return
-        # A synthesized slot ("target player" / "target opponent", and also an
-        # aura's enchant slot) was designated above like any other.
-        if any(slot.synthetic for slot in slots):
+            return False
+        # A synthesized slot ("target player" / "target opponent", and also an aura's enchant
+        # slot) was designated above like any other.
+        if row.kind == "cast" and any(slot.synthetic for slot in slots or ()):
             game.player_target_designations += 1
-        cast(
-            executor,
-            seat,
-            row.handle,
-            kicked=row.kicked,
-            mode_choices=modes or (),
-            targets=targets,
-        )
-        flat = _flat_targets(slots, targets)
-        self._log(game, "cast", name, f"{len(flat)}t")
-        if game.trace is not None:
-            game.trace.record_action(seat, "cast", name, row.handle, flat, f"{len(flat)}t")
-
-    def play_activation(
-        self, game: Game, seat: Handle, option: ActivationOption
-    ) -> None:
-        executor = game.executor
-        name = game.name_of(option.source)
-        game.attempted = f"act:{name}#{option.ability_idx}"
-        # The activation twin of the spell lane's slot question: TARGET-mode
-        # Selectors AND the synthesized player slot (Liliana's Steward).
-        slots = list(
-            activation_target_slots(
-                executor,
-                option.ability.effect,
-                source=option.source,
-                seat=seat,
-            )
-        )
-        targets = self.select_targets(slots)
-        if targets is None:
+        game.attempted = f"{kind}:{name}" + (f"#{row.ability_idx}" if row.kind == "activate" else "")
+        if not perform(executor, seat, row, targets, modes):
             game.infeasible_skips += 1
-            return
-        activate(
-            executor,
-            option.source,
-            option.ability_idx,
-            seat=seat,
-            targets=targets,
-        )
-        self._log(game, "act", name, f"#{option.ability_idx}")
+            return False
+        flat = _flat_targets(slots or [], targets) if slots else ()
+        detail = f"#{row.ability_idx}" if row.kind == "activate" else (f"{len(flat)}t" if row.kind == "cast" else "")
+        self._log(game, kind, name, detail)
         if game.trace is not None:
-            game.trace.record_action(
-                seat,
-                "activate",
-                name,
-                option.source,
-                _flat_targets(slots, targets),
-                f"#{option.ability_idx}",
-            )
-
-    # -- the turn
-    def take_acts(self, game: Game, seat: Handle) -> None:
-        """One main phase's batch: at most :data:`MAX_ACTS_PER_STEP` acts, then
-        stop. Land drop first (CR 305.2, 505.6b: one per turn, in either main
-        phase, and :func:`legal_casts` stops offering it after that), then a
-        weighted roll between tapping mana, casting, activating, and walking
-        away.
-
-        The pass is not decoration: a policy that always acts can deadlock on a
-        sacrifice-into-a-dies-trigger loop, and MTG's answer is 'you may do
-        nothing'. Every candidate set is a query-surface list; only the *choice
-        among* legal rows is the policy's."""
-        executor = game.executor
-        world = executor.world
-        self.turn = world.turn
-        self.seat_index = world.player_order.index(seat)
-        if game.trace is not None:
-            game.trace.record_turn(seat)
-        for _ in range(self.max_acts):
-            if game.over_reason() is not None:
-                return
-            if not executor.turn_open:
-                break  # CR 724.1: an effect ended the turn; no one acts in it again
-            rows = legal_casts(world, executor, seat)
-            lands = [row for row in rows if row.land]
-            spells = [row for row in rows if not row.land]
-            options = legal_activations(world, executor, seat)
-            if lands:
-                self.play_land(game, seat, self.choose(lands))
-                continue
-            if self.rng.random() < PASS_P:
-                break
-            taps = self.mana_activations(options)
-            if taps and self.rng.random() < TAP_MANA_P:
-                self.play_activation(game, seat, self.choose(taps))
-                continue
-            if spells and self.rng.random() < CAST_P:
-                self.play_cast(game, seat, self.pick_spell(game, spells))
-                continue
-            others = self.other_activations(options)
-            if others and self.rng.random() < ACTIVATE_P:
-                self.play_activation(game, seat, self.choose(others))
-                continue
-            break
-        game.digest.append(f"T{self.turn}.end")
+            label = {"land": "land-drop", "cast": "cast", "act": "activate"}[kind]
+            game.trace.record_action(seat, label, name, row.handle, flat, detail)
+        return True
 
     def _log(self, game: Game, kind: str, card: str, detail: str = "") -> None:
         act = Act(self.turn, self.seat_index, kind, card, detail)
@@ -1119,18 +1032,9 @@ class Game:
     # identical-observation streak so far). A round trip with ANY net change
     # anywhere resets the streak to 1.
     stall_seen: dict[Handle, tuple[tuple, int]] = field(default_factory=dict)
-    # For the search: a fork resumed with ``_play(..., resumed=True)`` right
-    # after an act window its caller played itself sets this, so the loop
-    # re-enters after that window instead of replaying it. The executor's
-    # phase clock says which main phase it was (combat is over once it reads
-    # SECOND_MAIN), so a resume never replays a combat either. Default False:
-    # a fork at a turn top or at the post_combat boundary resumes with its
-    # next act window.
-    skip_next_acts: bool = False
-    # PRE_BLOCKS (attackers declared, no block asked yet): the resumed loop
-    # skips the declare-attackers half of combat. Only a policy with a
-    # ``before_blocks`` hook has this boundary (see _play_turns).
-    skip_to_blocks: bool = False
+    # The turn whose turn top (_play_turns) was last observed: the stall rule and the
+    # "turn_top" boundary happen once per turn, also in a fork resumed after it.
+    turn_top_seen: int = -1
     # A dealt game (_setup_game) has drawn its opening hands and not yet run
     # the mulligans (CR 103.5): _play runs them before the first turn. A
     # position built by hand keeps the hands it was given.
@@ -1431,119 +1335,130 @@ def _play_turns(
     resumed: bool = False,
     stop_after: Any = None,
 ) -> None:
-    """The turn loop. A dealt game first runs the mulligans (:func:`mulligans`,
-    CR 103.5) with the policy answering. Turn 1 opens with ``begin_turn``; every later turn goes
-    through ``advance_turn`` so the CR 500.7 extra-turn queue is popped (and the
-    seat is the ENGINE's choice, read back off ``active_player``, not ours). A
-    turn's work is the first main phase's act window, the combat phase and the
-    second main phase's act window (CR 500.1, 505.1): ``policy.take_acts`` runs
-    once per main phase, and the executor's phase clock says which one it is.
+    """The game loop (CR 500-514, 117; docs/DESIGN_PRIORITY.md §2.6). A dealt game first runs
+    the mulligans (:func:`mulligans`, CR 103.5) with the policy answering, then turn 1 opens;
+    every later turn's seat is the ENGINE's choice (``Executor.next_turn_seat``: the CR 500.7
+    extra-turn queue first). The executor runs each step's turn-based actions and the CR 117.5
+    check; at every priority point the loop asks the player holding priority for one decision,
+    ``policy.take_priority(game, seat)``: True when it acted (it keeps priority, CR 117.3c),
+    False when it passed (``Executor.pass_priority``: the next player, or every player having
+    passed, the top object resolves or the step ends). A player at :data:`MAX_ACTS_PER_STEP`
+    actions in the step passes without being asked. A policy with nothing to do but pass is not
+    asked either: it returns False without a decision, and a pass looks the same either way.
 
-    For the search, ``resumed=True`` starts the loop on an ALREADY-OPEN turn,
-    a fork of a game stopped at a boundary.
-    ``stop_after(game, boundary)`` is consulted at the CLEAN boundaries, the
-    points where no executor call is in flight: ``"turn_top"`` (a seat's turn
-    has just opened, pre-stall-check, pre-acts), ``"pre_combat"`` (its first
-    main phase's acts are done, its combat has not started) and
-    ``"post_combat"`` (its combat ended, its second main phase not yet played).
-    Returning True returns from the loop right there with the position
-    consistent, and a fork taken there resumes as is. A fork whose caller plays
-    an act window itself (the search's candidate move) resumes with
-    ``skip_next_acts`` set, after that window, in whichever main phase it was. A
-    policy with a ``before_attacks(game, seat)`` hook runs it at the pre-combat
-    boundary (the search plans its attack there). A policy with a
-    ``before_blocks(game, seat)`` hook adds a fourth boundary, ``"pre_blocks"``
-    (the attackers are declared, no block asked): the hook runs there and a fork
-    taken there resumes with ``skip_next_acts`` and ``skip_to_blocks`` set.
+    The machine's state lives in the executor (``phase``, ``tba_done``, ``priority_holder``,
+    ``passes``), so ``resumed=True`` continues a game stopped anywhere the loop stops, a fork
+    included. ``stop_after(game, boundary)`` is consulted where no executor call is in flight,
+    and True returns from the loop right there: ``"turn_top"`` (once per turn, the active
+    player's first priority point of its first main phase with an empty stack: after its untap,
+    upkeep and draw), ``"pre_attacks"`` and ``"pre_blocks"`` (before the declare-attackers and
+    declare-blockers steps' turn-based actions) and ``"priority"`` (every priority point, before
+    the holder is asked). A policy with a ``before_attacks(game, seat)`` or
+    ``before_blocks(game, seat)`` hook runs it before those steps' declarations (the search
+    plans its attack and its blocks there).
 
-    The stall rule rides at the top of every turn:
-    one :func:`_stall_fingerprint` per turn, compared against the SAME
-    seat's previous turn-top observation (a per-seat streak = comparison
-    one FULL round later, when that seat acts again — the only fixed
-    phase point both players' churn is inside). :data:`REPEAT_ROUNDS`
-    identical consecutive per-seat observations end the game as a STALL
-    draw, CR 104.4b's practical generalisation."""
+    The stall rule rides at the turn top: one :func:`_stall_fingerprint` per turn, compared
+    against the SAME seat's previous turn-top observation (a per-seat streak = comparison one
+    FULL round later, when that seat acts again). :data:`REPEAT_ROUNDS` identical consecutive
+    per-seat observations end the game as a STALL draw, CR 104.4b's practical generalisation.
+    The turn cap ends the game once its last turn is over."""
     executor = game.executor
     world = executor.world
     # The policy IS the executor's decision answerer — the engine asks with
     # the exact vocabulary at every demand site. The registration lives HERE
     # so every driver of the loop gets it.
     executor.decisions.provider = policy.answer
-    if not resumed:
-        if game.mulligans_pending:
-            mulligans(executor, order)
-            game.mulligans_pending = False
-        executor.begin_turn(order[0])
-    while True:
-        seat = world.active_player
-        assert seat is not None  # begin_turn/advance_turn always set it
-        # The first iteration of a resume with skip_next_acts set re-enters
-        # right after an act window, never at a fresh turn top: neither the
-        # turn_top stop nor the stall bookkeeping fires there. Combat is over
-        # once the phase clock reads SECOND_MAIN, so no resume replays it.
-        resuming, game.skip_next_acts = game.skip_next_acts, False
-        before_combat = executor.phase != SECOND_MAIN
-        if before_combat and not resuming:
-            if stop_after is not None and stop_after(game, "turn_top"):
-                return
-            # --- stall rule: per-seat round fingerprint streak (CR 104.4b) ---
-            fingerprint = _stall_fingerprint(executor)
-            previous, streak = game.stall_seen.get(seat, (None, 0))
-            streak = streak + 1 if fingerprint == previous else 1
-            game.stall_seen[seat] = (fingerprint, streak)
-            if streak >= REPEAT_ROUNDS:
+    driven, executor.driven = executor.driven, True
+    try:
+        if not resumed:
+            if game.mulligans_pending:
+                mulligans(executor, order)
+                game.mulligans_pending = False
+            executor.start_turn(order[0])
+        while True:
+            if executor.phase == TURN_ENDED:
                 game.turns = world.turn
-                executor.journal.emit(
-                    KIND_STALL_BREAK, None, seat, "STALL", (REPEAT_ROUNDS,)
-                )
-                game.reason = (
-                    f"STALL (CR 104.4b repeated-loop draw: world fingerprint "
-                    f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
-                )
-                return
-            policy.take_acts(game, seat)  # the first main phase
-        if before_combat and executor.turn_open:
-            resume_blocks, game.skip_to_blocks = game.skip_to_blocks, False
-            if not resume_blocks:
-                if stop_after is not None and stop_after(game, "pre_combat"):
+                if game.turns >= turn_cap:
+                    game.reason = f"turn cap {turn_cap} reached (no loser)"
                     return
-                before_attacks = getattr(policy, "before_attacks", None)
-                if before_attacks is not None:
-                    before_attacks(game, seat)
-            # The COMBAT phase rides between the two main phases, guarded on
-            # turn_open because an END_TURN atom played during take_acts
-            # already closed the turn (no combat after the end of the turn,
-            # CR 724.1). Lives crossing 0 across the phase are counted as
-            # combat losses, apart from crashes.
-            before = {s: world.players[s].life for s in world.player_order}
+                executor.start_turn(executor.next_turn_seat())
+                continue
+            active = world.active_player
+            assert active is not None  # start_turn always sets it
+            if not executor.tba_done and executor.phase in (DECLARE_ATTACKERS, DECLARE_BLOCKERS):
+                boundary = "pre_attacks" if executor.phase == DECLARE_ATTACKERS else "pre_blocks"
+                if stop_after is not None and stop_after(game, boundary):
+                    return
+                hook = getattr(
+                    policy, "before_attacks" if boundary == "pre_attacks" else "before_blocks", None
+                )
+                if hook is not None:
+                    hook(game, active)
+            lives = {s: world.players[s].life for s in world.player_order}
+            in_combat = executor.phase in _COMBAT_STEPS
             try:
-                if not resume_blocks:
-                    executor.combat_attacks(seat)
-                    # PRE_BLOCKS exists only for a policy that plans blocks (a
-                    # ``before_blocks`` hook): every other caller's stop_after
-                    # sees only the other three boundaries.
-                    before_blocks = getattr(policy, "before_blocks", None)
-                    if before_blocks is not None:
-                        if stop_after is not None and stop_after(game, "pre_blocks"):
-                            return
-                        before_blocks(game, seat)
-                executor.combat_blocks(seat)
+                if not executor._to_priority():
+                    continue  # the turn ended (CR 724.1)
             finally:  # a combat death ends the game inside combat (GameOver)
-                for s, life in before.items():
-                    if life > 0 and world.players[s].life <= 0:
-                        game.combat_losses += 1
-            if stop_after is not None and stop_after(game, "post_combat"):
+                if in_combat:
+                    game.combat_losses += sum(
+                        1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
+                    )
+            seat = executor.priority_holder
+            assert seat is not None
+            if (
+                executor.phase == FIRST_MAIN
+                and seat == active
+                and not executor.stack.frames
+                and game.turn_top_seen != world.turn
+            ):
+                game.turn_top_seen = world.turn
+                if stop_after is not None and stop_after(game, "turn_top"):
+                    return
+                if _stalled(game, active):
+                    return
+                if game.trace is not None:
+                    game.trace.record_turn(active)
+            if stop_after is not None and stop_after(game, "priority"):
                 return
-        # The second main phase (CR 505.1), unless an effect ended the turn
-        # (CR 724.1) or the resume came right after its act window.
-        if executor.turn_open and (before_combat or not resuming):
-            policy.take_acts(game, seat)
-        game.turns = world.turn
-        if game.turns >= turn_cap:
-            game.reason = f"turn cap {turn_cap} reached (no loser)"
-            return
-        executor.end_turn()
-        executor.advance_turn()
+            if executor.step_actions.get(seat, 0) < MAX_ACTS_PER_STEP and policy.take_priority(game, seat):
+                executor.acted(seat)
+            else:
+                lives = {s: world.players[s].life for s in world.player_order}
+                in_combat = executor.phase in _COMBAT_STEPS
+                try:
+                    executor.pass_priority()
+                finally:
+                    if in_combat:
+                        game.combat_losses += sum(
+                            1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
+                        )
+    finally:
+        executor.driven = driven
+
+
+#: The steps of the combat phase: a life crossing 0 in them is a combat loss (Game.combat_losses).
+_COMBAT_STEPS = frozenset(
+    {BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOCKERS, FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT}
+)
+
+
+def _stalled(game: Game, seat: Handle) -> bool:
+    """The stall rule at ``seat``'s turn top (see :func:`_play_turns`): True, with the game's
+    reason set and a STALL row journalled, when the rule ends the game."""
+    fingerprint = _stall_fingerprint(game.executor)
+    previous, streak = game.stall_seen.get(seat, (None, 0))
+    streak = streak + 1 if fingerprint == previous else 1
+    game.stall_seen[seat] = (fingerprint, streak)
+    if streak < REPEAT_ROUNDS:
+        return False
+    game.turns = game.world.turn
+    game.executor.journal.emit(KIND_STALL_BREAK, None, seat, "STALL", (REPEAT_ROUNDS,))
+    game.reason = (
+        f"STALL (CR 104.4b repeated-loop draw: world fingerprint "
+        f"unchanged for {REPEAT_ROUNDS} consecutive rounds)"
+    )
+    return True
 
 
 def _safe_coverage(game: Game, outcome: GameOutcome) -> None:
