@@ -226,7 +226,7 @@ P4-P7, S1 and S2 are scored when the window ends.
 **What it means.** S1 and S2 are met, so N5 runs: simulator worlds against uniform worlds at
 n = 16, started 00:01. P7 then decides whether simulator worlds become the default (§2).
 
-## 6. The clock's latency, after the window (pre-registered 2026-11-12 00:40, before it runs)
+## 6. The clock's latency, after the window (pre-registered 2026-11-12 00:12, before it runs)
 
 **Why now.** Choosing n for play under a clock (PLAN_CEILING §3.3, NORTH_STAR §1a) needs a single
 game's latency on an idle machine. The window's timings carry the load of 288 games. The machine is
