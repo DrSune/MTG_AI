@@ -58,7 +58,7 @@ from tools.selfplay import model as M
 from tools.selfplay import simulator as S
 from tools.selfplay.actor import is_net, worker_main
 from tools.selfplay.ppo import chunks, pack_buffer
-from tools.selfplay.search import CONTINUATIONS, ROOTS, ms_percentiles
+from tools.selfplay.search import CONTINUATIONS, ROOTS, WORLDS, ms_percentiles
 from tools.selfplay.trainer import trainer_main
 
 REPO = Path(__file__).resolve().parents[2]
@@ -92,8 +92,8 @@ def length_buckets(items: list, ratio: float = 1.4, min_n: int = 8) -> list[list
     to its single longest decision. ``items`` are (message index, request index, request); the
     request's features are req[5]."""
     def length(it: tuple) -> int:
-        f = it[2][5]
-        return f["cards_i"].shape[0] + f["opts_i"].shape[0]
+        f = it[2][5]  # a simulator view (a "sim" request) has no options
+        return f["cards_i"].shape[0] + (f["opts_i"].shape[0] if "opts_i" in f else 0)
 
     out: list[list] = []
     cur: list = []
@@ -212,6 +212,7 @@ class Learner:
         self.run.mkdir(parents=True, exist_ok=True)
         write_manifest(self.run, args)
         self.targets: list[dict] = []  # --search-record (_save_targets)
+        self.sim = None  # --search-sim: the opponent simulator that draws the search's worlds
         self.device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu"
                                    else "cpu")
         self.cuda = self.device.type == "cuda"
@@ -470,7 +471,7 @@ class Learner:
                 "blocks": a.search_blocks, "root": a.search_root, "n": a.search_n,
                 "m": a.search_m, "continuation": a.search_continuation,
                 "horizon": a.search_horizon, "kinds": tuple(a.search_kinds.split(",")),
-                "record": a.search_record}
+                "record": a.search_record, "worlds": a.search_worlds}
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -575,6 +576,9 @@ class Learner:
             for bucket in length_buckets(items, self.args.bucket_ratio, self.args.bucket_min):
                 groups.append((key, bucket))
         for key, items in groups:
+            if key == "sim":
+                self._sample_worlds(items, answers)
+                continue
             model = self._infer_net(key)
             bf16 = next(model.parameters()).dtype == torch.bfloat16
             b = M.collate([it[2][5] for it in items], self.device)
@@ -897,6 +901,25 @@ class Learner:
             self.shards += 1
         self.log({"event": "capture", "shards": self.shards, "games": len(games),
                   "positions": len(rows), "counts": dict(self.counts)})
+
+    def _sample_worlds(self, items: list, answers: list) -> None:
+        """The "sim" requests of searches with --search-worlds sim: req[5] is the searching
+        seat's view (features.sim_view), req[7] how many hidden states, req[8] the set dealt;
+        each answer is that many (hand, library) lists of oracle ids drawn by --search-sim."""
+        if self.sim is None:
+            a = self.args
+            if not a.search_sim:
+                raise ValueError("--search-worlds sim needs --search-sim CKPT")
+            net, table = S.load(a.search_sim, self.device)
+            if table.oracle_ids != self.table.oracle_ids:
+                raise ValueError(f"{a.search_sim} was trained on another card table than the "
+                                 "searching network's; its rows would name other cards")
+            self.sim = net
+        drawn = S.sample_for_views(self.sim, self.table, [it[2][5] for it in items],
+                                   [it[2][8] for it in items], [it[2][7] for it in items],
+                                   self.device)
+        for (mi, ri, _), worlds in zip(items, drawn, strict=True):
+            answers[mi][ri] = worlds
 
     def _save_targets(self) -> None:
         """--search-record: the searched decisions of finished games as training targets
@@ -1274,6 +1297,11 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="how the network plays both seats inside a simulation")
     p.add_argument("--search-horizon", type=int, default=1,
                    help="simulate to the start of the searcher's N-th next turn; 0: to the end")
+    p.add_argument("--search-worlds", choices=WORLDS, default="uniform",
+                   help="where a simulation's hidden cards come from: uniform from the pool, or "
+                        "sim: drawn by the opponent simulator --search-sim")
+    p.add_argument("--search-sim", default="", help="the opponent simulator's checkpoint "
+                   "(simulator.py train) for --search-worlds sim")
     p.add_argument("--search-record", action="store_true",
                    help="keep each searched act or priority decision as a training target, in "
                         "shards of <run>/targets (search.target_record)")

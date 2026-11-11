@@ -278,13 +278,22 @@ class LocalSlot:
     """In-process stand-in for an actor slot: answers inference requests in the worker protocol
     (actor.py) synchronously and greedily, each spec's network on its own device and dtype."""
 
-    def __init__(self, nets: dict[str, nn.Module]) -> None:
+    def __init__(self, nets: dict[str, nn.Module], sim: tuple | None = None) -> None:
         self.nets = nets
+        self.sim = sim  # (simulator, its card table): answers the "sim" requests of a search
 
     @torch.no_grad()
     def infer(self, req: tuple) -> Any:
         spec, feats = req[2], req[5]
         want = req[6] if len(req) > 6 else 0
+        if want == 3:  # the simulator's hidden states for a search's worlds (req[7] of them)
+            from tools.selfplay import simulator as S
+
+            if self.sim is None:
+                raise ValueError("a 'sim' request needs LocalSlot(..., sim=(simulator, table))")
+            sim, table = self.sim
+            return S.sample_for_views(sim, table, [feats], [req[8]], [req[7]],
+                                      next(sim.parameters()).device)[0]
         net = self.nets[spec]
         p = next(net.parameters())
         b = {k: (v.to(p.dtype) if v.is_floating_point() else v)

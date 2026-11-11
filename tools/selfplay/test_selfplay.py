@@ -1367,3 +1367,43 @@ def test_the_n_curve_reads_paired_points_and_fits_log_n(tmp_path) -> None:
     assert a["searched_per_game"] == 5.0 and a["changed"] == 0.25 and a["clear_per_game"] == 0.5
     slope, se, icpt = ncurve.fit([a, b])
     assert slope == pytest.approx(0.125) and se > 0  # +0.25 over two doublings
+
+
+def test_simulator_worlds_keep_the_rules_and_the_sizes(table) -> None:
+    """worlds="sim" (PLAN_CEILING §3.2): the simulator draws the opponent's hand and library from
+    the searching seat's own view; every draw has the view's sizes, only cards of the dealt pool,
+    and no more copies of a card than the rules allow next to its public copies; a search plays
+    in those worlds without a simulation error."""
+    from MTG_bot.core.executor.games import MAX_COPIES, TURN_CAP, RandomPolicy, _play, get_supply
+    from MTG_bot.bench.protocol import Ask, Option
+    from tools.selfplay import rig
+    from tools.selfplay import simulator as S
+    from tools.selfplay.search import Searcher
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    _play(game, RandomPolicy(0), game.world.player_order, TURN_CAP,
+          stop_after=lambda g, boundary: boundary == "turn_top" and g.world.turn >= 5)
+    torch.manual_seed(0)
+    sim = S.Simulator(table, d=32, layers=1, heads=4, ff=64).eval()
+    me = game.world.player_order[0]
+    ask = Ask(seat=0, kind="act", site=f"act:{me}:{game.world.turn}", prompt="",
+              options=(Option("PASS", "PASS"),), refuse=0)
+    view = FT.sim_view(game.executor, 0, ask, table, FT.AskContext())
+    worlds = S.sample_for_views(sim, table, [view], ["M21"], [16], "cpu")[0]
+    pool = set(supply.deckable)
+    public = Counter(table.oracle_ids[r] for r in view["public"])
+    assert len(worlds) == 16
+    for hand, lib in worlds:
+        assert (len(hand), len(lib)) == (view["h"], view["l"]) and set(hand + lib) <= pool
+        for oid, n in Counter(hand + lib).items():
+            if not supply.metas[oid].is_basic:
+                assert n + public[oid] <= MAX_COPIES
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    searcher = Searcher(M.LocalSlot({"learner": net}, sim=(sim, table)), 0, "learner", table,
+                        pool_mode="castable", set_code="M21", worlds="sim", seed=0)
+    searcher.root_pos = (game, 0, ask, FT.AskContext())
+    (world, weight), = searcher.draw_worlds(1)
+    assert weight == 1.0 and len(world[1]) == view["h"]
+    assert searcher.simulate(game, 0, "PASS", world=world) is not None
+    assert searcher.stats["sim_errors"] == 0

@@ -89,6 +89,9 @@ LOGODDS_PER_SE = 0.5
 
 ROOTS = ("topk", "gumbel")
 CONTINUATIONS = ("greedy", "sampled")
+#: Where a simulation's hidden cards come from: drawn uniformly from the pool, or from the
+#: opponent simulator's beliefs (the learner's --search-sim network).
+WORLDS = ("uniform", "sim")
 #: The ask kinds a searcher can search at their own decision (combat plans are separate).
 SEARCH_KINDS = ("act", "priority")
 #: Gumbel MuZero's sigma: a candidate's mean result q in [-1, 1] enters the logits as
@@ -103,7 +106,11 @@ CLEAR_MARGIN = 0.1
 _IDENT_CACHE: dict[str, Any] = {}
 
 
-def determinize(game: Any, seat: int, supply: Any, rng: random.Random) -> None:
+def determinize(game: Any, seat: int, supply: Any, rng: random.Random,
+                assigned: tuple[list[str], list[str]] | None = None) -> None:
+    """Re-sample what ``seat`` cannot see in a copy: its own library's order, and the
+    opponent's hand and library, drawn uniformly from the pool, or set to ``assigned`` (hand and
+    library oracle ids drawn by the simulator; the library in an order drawn here)."""
     world = game.world
     ex = game.executor
     me = world.player_order[seat]
@@ -113,9 +120,15 @@ def determinize(game: Any, seat: int, supply: Any, rng: random.Random) -> None:
     world.master_seed = rng.randrange(1 << 62)
     rng.shuffle(world.players[me].zone(ZONE_LIBRARY).entries)
     pool = supply.deckable
+    if assigned is not None:
+        hand, lib = assigned[0], list(assigned[1])
+        rng.shuffle(lib)
     for zone in (ZONE_HAND, ZONE_LIBRARY):
-        for h in world.players[opp].zone(zone).entries:
-            oid = pool[rng.randrange(len(pool))]
+        for i, h in enumerate(world.players[opp].zone(zone).entries):
+            if assigned is None:
+                oid = pool[rng.randrange(len(pool))]
+            else:
+                oid = (hand if zone == ZONE_HAND else lib)[i]
             ident = _IDENT_CACHE.get(oid)
             if ident is None:
                 ident = _IDENT_CACHE[oid] = identity_of(ex.binder.records[oid])
@@ -214,9 +227,10 @@ class Searcher:
                  seed: int = 0, root: str = "topk", n: int = 16, m: int = 16,
                  continuation: str = "greedy", horizon: int = 1,
                  kinds: tuple[str, ...] = ("act",), noise: bool = False,
-                 record: bool = False) -> None:
-        if root not in ROOTS or continuation not in CONTINUATIONS:
-            raise ValueError(f"search root {root!r} or continuation {continuation!r} unknown")
+                 record: bool = False, worlds: str = "uniform") -> None:
+        if root not in ROOTS or continuation not in CONTINUATIONS or worlds not in WORLDS:
+            raise ValueError(f"search root {root!r}, continuation {continuation!r} or worlds "
+                             f"{worlds!r} unknown")
         if not set(kinds) <= set(SEARCH_KINDS):
             raise ValueError(f"search kinds {kinds!r}: only {SEARCH_KINDS} are searched")
         self.slot = slot
@@ -233,6 +247,8 @@ class Searcher:
         self.m = m
         self.continuation = continuation
         self.horizon = horizon
+        self.worlds = worlds
+        self.root_pos: tuple = ()  # (game, seat, ask, ctx) of the decision being searched
         self.kinds = frozenset(kinds)
         self.noise = noise  # Gumbel noise at the root: on in sampled (training) play only
         # record: keep each searched act or priority decision as a training target (``targets``)
@@ -247,11 +263,18 @@ class Searcher:
         self.stats: Counter = Counter({"searched": 0, "skipped": 0, "sims": 0, "changed": 0,
                                        "sim_errors": 0})
 
-    def draw_worlds(self, count: int) -> list[tuple[int, float]]:
-        """The worlds the candidates of one comparison are played in, with their weights:
-        re-samples from public information (``determinize``), weight 1 each. Belief futures
-        replace them (PLAN_CEILING §5)."""
-        return [(self.rng.randrange(1 << 31), 1.0) for _ in range(count)]
+    def draw_worlds(self, count: int) -> list[tuple[Any, float]]:
+        """The worlds the candidates of one comparison are played in, with their weights, 1
+        each: an engine seed for a uniform re-sample (``determinize``), or with ``worlds="sim"``
+        the seed and the opponent's hidden cards drawn by the simulator from the searching
+        seat's own view of the decision (``features.sim_view``; the learner's ``sim``
+        requests)."""
+        if self.worlds == "uniform":
+            return [(self.rng.randrange(1 << 31), 1.0) for _ in range(count)]
+        game, seat, ask, ctx = self.root_pos
+        view = FT.sim_view(game.executor, seat, ask, self.table, ctx)
+        drawn = self.slot.infer((self.gid, seat, "sim", True, False, view, 3, count, self.set_code))
+        return [((self.rng.randrange(1 << 31), hand, lib), 1.0) for hand, lib in drawn]
 
     def compare(self, cands: list, logits: list[float], run: Any) -> tuple[int, dict[int, float]]:
         """Choose among ``cands``, whose network log-probabilities are ``logits``: the index of
@@ -330,6 +353,7 @@ class Searcher:
             self._skip(ask.kind)
             return int(a0)
         t0 = time.perf_counter()
+        self.root_pos = (obs.game, ask.seat, ask, obs.ctx)
         ranked = sorted(range(n), key=lambda i: -probs[i])
         cands = ranked[: self.k] if self.root == "topk" else ranked
         logits = [math.log(probs[i]) if probs[i] > 0 else -math.inf for i in cands]
@@ -372,6 +396,7 @@ class Searcher:
             self._skip("attack")
             return None
         t0 = time.perf_counter()
+        self.root_pos = (game, seat, ask, FT.AskContext())  # the last attack ask built above
         base = frozenset(declared)
         plans = [base, frozenset(asked), frozenset()]
         for c in sorted(asked, key=lambda c: abs(p_attack[c] - 0.5)):
@@ -433,6 +458,7 @@ class Searcher:
             self._skip("block")
             return None
         t0 = time.perf_counter()
+        self.root_pos = (game, seat, ask, FT.AskContext())  # the last block ask built above
         base = frozenset(declared.items())
         plans = [base, frozenset()]
         for b in sorted(choices, key=lambda b: choices[b][0][0]):
@@ -458,7 +484,7 @@ class Searcher:
         return uniq[pick]
 
     def simulate(self, game: Any, seat: int, token: str | None,
-                 attack_plan: frozenset | None = None, world: int = 0,
+                 attack_plan: frozenset | None = None, world: Any = 0,
                  block_plan: frozenset | None = None) -> float | None:
         """Score one candidate: ``token`` is an option of the searched act or priority menu to
         play now, or None with ``attack_plan`` at the pre-attacks boundary, or with
@@ -467,10 +493,11 @@ class Searcher:
         every candidate played in one world meets the same hands and the same draws."""
         self.stats["sims"] += 1
         clone = fork_live(game, self.supply)
-        determinize(clone, seat, self.supply, random.Random(world))
+        seed, assigned = (world[0], world[1:]) if isinstance(world, tuple) else (world, None)
+        determinize(clone, seat, self.supply, random.Random(seed), assigned)
         sampled = self.continuation == "sampled"
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
-                           random.Random(f"{world}:{s}") if sampled else None) for s in (0, 1)]
+                           random.Random(f"{seed}:{s}") if sampled else None) for s in (0, 1)]
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
         agents[seat].block_plan = block_plan

@@ -253,6 +253,55 @@ class Simulator(nn.Module):
             hand[:, t] = torch.where(h > t, pick, 0)
         return hand
 
+    @torch.no_grad()
+    def sample_worlds(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """One hidden state per position, for the search's ``sim`` worlds (PLAN_CEILING §3.2):
+        a whole hand from the hand decoder, so combinations keep their joint probability, and the
+        library's contents drawn card by card in proportion to the marginal head's expected
+        counts, within the copies the rules leave. E0 found the library decoder no better than
+        the prior, so the cheap head serves. Table rows, [B, max h] and [B, max l]."""
+        hand = self.sample_hands(b)
+        o, _, cards = self.run(b, [])  # view tokens never see the decoder's
+        rate = F.softplus((self.marg(o[:, 0]).chunk(2, -1)[1] @ cards.T
+                           + self.marg_bias[1]).float())
+        h, n, cap = b["h"], b["l"], b["cap"]
+        left = cap - counts(hand, h, cap.shape[1]).long()
+        lib = torch.zeros(len(n), max(1, int(n.max())), dtype=torch.long, device=n.device)
+        for t in range(lib.shape[1]):
+            w = rate * (left > 0)
+            w = torch.where(w.sum(-1, keepdim=True) > 0, w, (cap > 0).float())  # no copies left
+            pick = torch.multinomial(w, 1)[:, 0]
+            real = n > t
+            lib[:, t] = torch.where(real, pick, 0)
+            left = left - F.one_hot(pick, cap.shape[1]) * real[:, None]
+        return hand, lib
+
+
+def load(path: str, device: Any = "cpu") -> tuple[Simulator, FT.CardTable]:
+    """A trained simulator (``train``'s checkpoint), in evaluation mode, and its card table."""
+    ck = torch.load(path, map_location="cpu", weights_only=False)
+    table = FT.CardTable.from_json(ck["table"])
+    net = Simulator(table, **ck["config"]).to(device).eval()
+    net.load_state_dict(ck["state"])
+    return net, table
+
+
+def sample_for_views(net: Simulator, table: FT.CardTable, views: list[dict], sets: list[str],
+                     k: list[int], device: Any) -> list[list[tuple[list[str], list[str]]]]:
+    """For each seat's view (``features.sim_view``) and set, ``k`` hidden states of the
+    opponent drawn by ``net``: (hand, library) lists of oracle ids, sized as the view says."""
+    rows = [j for j, kj in enumerate(k) for _ in range(kj)]
+    vs = [views[j] for j in rows]
+    data = Data.from_records(vs, [([0] * v["h"], [0] * v["l"]) for v in vs],
+                             [sets[j] for j in rows], table)
+    hand, lib = net.sample_worlds(data.batch(np.arange(len(vs)), device))
+    hand, lib = hand.cpu().numpy(), lib.cpu().numpy()
+    ids = table.oracle_ids
+    out: list[list] = [[] for _ in views]
+    for r, j in enumerate(rows):
+        out[j].append(([ids[x] for x in hand[r, :vs[r]["h"]]], [ids[x] for x in lib[r, :vs[r]["l"]]]))
+    return out
+
 
 def loss(net: Simulator, b: dict[str, torch.Tensor]) -> torch.Tensor:
     """Per position: the joint NLL of hand and library plus the marginal head's losses."""
@@ -314,11 +363,8 @@ def train(a: argparse.Namespace) -> None:
 def evaluate(a: argparse.Namespace) -> None:
     """Every held-out position's hand and library NLL, and every (position, pool card) pair's
     P(card in hand), to ``--out``."""
-    ck = torch.load(a.ckpt, map_location="cpu", weights_only=False)
-    table = FT.CardTable.from_json(ck["table"])
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    net = Simulator(table, **ck["config"]).to(dev).eval()
-    net.load_state_dict(ck["state"])
+    net, table = load(a.ckpt, dev)
     data = Data.load(a.data, table)
     idx = np.flatnonzero(held_out(data.a["seed"]))
     rows: dict[str, list] = {k: [] for k in ("sim_hand", "sim_lib")}

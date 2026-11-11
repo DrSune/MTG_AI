@@ -80,7 +80,10 @@ raw v1 (§25). Every search setting is a flag (docs/PLAN_CEILING.md §3.2), and 
 setting's result goes to NUMBERS: `--search-root topk|gumbel` (Gumbel sequential halving of
 `--search-n` simulations over at most `--search-m` candidates), `--search-continuation
 greedy|sampled`, `--search-horizon N` (0: to the game's end), `--search-kinds act,priority`
-(instant-speed decisions), with `--search-k/-d/-skip-p/-blocks` as before. An evaluation row's
+(instant-speed decisions), `--search-worlds uniform|sim` with `--search-sim CKPT` (the opponent's
+hidden cards drawn by the simulator from the searching seat's view: whole hands from its hand
+decoder, library contents from its expected counts), `--search-record` (each searched decision kept
+as a training target in `<run>/targets`), with `--search-k/-d/-skip-p/-blocks` as before. An evaluation row's
 `search_ms` holds a searched decision's p50/p90/p99 milliseconds.
 
 **Resuming (`--resume DIR`).** `state.pkl` (iteration, stage, versions, rating games, job ids,
