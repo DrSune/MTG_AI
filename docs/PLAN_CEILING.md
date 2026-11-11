@@ -368,7 +368,11 @@ and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
 - Realistic decks change what is worth playing around, so they are a parallel item, not on this
   plan's critical path:
   - 17lands' public game data carries each game's deck (card counts), per the `spells` tool's
-    documentation. Its usage guidelines need a browser to read, and are unread;
+    documentation. The public datasets are under CC BY 4.0 unless noted: credit 17Lands, without
+    implying its endorsement. The usage guidelines leave them out of their scope and discourage
+    scraping the site's API. The game data starts at Kaldheim (2021): the M21 and M20 files are
+    not available (HTTP 403, where KHM and DSK return 200), so it holds no decks of this game.
+    All of this was read on 2026-11-12;
   - "decks with a shape" (DESIGN_PRIORITY §9);
   - the drafter (§9) is the long-term source.
 - The held-out niche set (D14) shows how far beliefs carry to decks unlike the training decks.

@@ -214,8 +214,8 @@ Notes (2026-11-11):
 - The opponent simulator learns the decks it meets. The "coherent" decks are two colours with an
   even land split and a uniform sample of the pool in those colours (`games.build_coherent_deck`):
   coherent in colour, random in everything else. Human decks: 17lands publishes per-game data of
-  Arena drafts with each deck (which sets, and its usage terms, still to check); the drafter of
-  section 6 is the long-term source.
+  Arena drafts with each deck under CC BY 4.0, but only from Kaldheim (2021) on, not for M20 or
+  M21 (checked 2026-11-12, PLAN_CEILING §5.5); the drafter of section 6 is the long-term source.
 - The strength-against-n curve is measured, and every search setting stays selectable with its
   measured results recorded, so any setting can be revisited.
 - The replay buffer of the search phase lives in RAM (121 GiB on this box, shared with the GPU).
