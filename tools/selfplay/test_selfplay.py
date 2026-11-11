@@ -1444,3 +1444,31 @@ def test_distilling_search_targets_moves_the_network_toward_the_better_move(tabl
                                epochs=3).values()
     after = D.policy(trained, [feats], torch.device("cpu"))[0][1]
     assert after > before and rep["val"] == 2 and rep["held_out_agreement"] == 1.0
+
+
+def test_a_player_is_rated_against_frozen_pool_ratings(tmp_path) -> None:
+    """tools/selfplay/rate.py (PLAN_CEILING §7.2): the pool's ratings are fitted once from games
+    among its members; a player is then rated against them held fixed. An even score against a
+    member at 0 and one at 400 puts the player at 200."""
+    import json
+    from pathlib import Path
+
+    from tools.selfplay import rate as R
+
+    def run(name: str, init: str, opp: str, wins: list[float]) -> Path:
+        d = tmp_path / name
+        d.mkdir()
+        args = {"init": init, "eval_opponents": "snap:opp", "opp_ckpt": opp}
+        (d / "manifest.json").write_text(json.dumps([{"args": args}]))
+        rows = [{"seed": i // 2, "a_seat": i % 2, "outcome": "win",
+                 "winner": i % 2 if w else 1 - i % 2} for i, w in enumerate(wins)]
+        (d / "eval_rows.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+        return d
+
+    ratings = R.fit([run("ab", "a.pt", "b.pt", [1, 1, 1, 0] * 25)])  # a scores 0.75 against b
+    assert ratings["a.pt"] == 0.0 and -200 < ratings["b.pt"] < -180
+    pool = {"a.pt": 0.0, "b.pt": 400.0}
+    out = R.rate(pool, [run("pa", "p.pt", "a.pt", [1, 0] * 50),
+                        run("pb", "p.pt", "b.pt", [1, 0] * 50)])
+    assert out["player"] == "p.pt" and out["elo"] == pytest.approx(200, abs=0.5)
+    assert out["ci95"][0] <= 200 <= out["ci95"][1] and out["deals"] == 100
