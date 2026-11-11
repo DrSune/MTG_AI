@@ -671,20 +671,26 @@ If E1 or E3 fails, the fallback is slow outcome PPO plus throughput work.
 3. The simulator is recaptured on the new game and trained at every level of the search, through
    truth lines that feed its labels only. Consequence enters through position weights and exact
    importance sampling, so its probabilities stay calibrated.
-4. F1, search-improved training, passes gates A and B, then trains high: to its plateau or the
-   owner's target ("like 1000 Elo", about +535 over today's best), with a review at 14
-   machine-days. It keeps a ladder of checkpoints.
-5. H1, the learner against F1's ladder and its searched versions (PFSP), starts once F1 is at
-   least +200 Elo above it.
-6. The ceiling read.
+4. F1, search-improved training, passes gate A (confirmed on fresh deals) and gate B (300k
+   targets, unseen deals), then trains high: to its plateau or the owner's target ("like 1000
+   Elo", about +535 over today's best), with a review at 14 machine-days. It keeps a ladder of
+   checkpoints.
+5. H1 starts from r27's network (D8: inherit representations, not policy) and trains against F1's
+   ladder (PFSP x(1 - x); searched opponents at most 3% of games). It starts once F1 is at least
+   +200 Elo above r27, beside a control arm on r27's league for the same machine time.
+6. The ceiling read, on a held-out pool with frozen ratings. The learning score L is a player's
+   Elo against it.
 7. H2, from fresh weights and explorative from the first update.
-8. Alongside, the Teacher and then the drafter choose decks for learning. The learning score L is
-   the learner's Elo against a very varied frozen pool.
+8. After the read, the Teacher and then the drafter choose decks for learning, scored by L.
+
+Amended the same day by the plan's red team (PLAN_CEILING §13), which changed items 5 and 8 and the
+opponent weighting; the owner is told.
 
 **D21 amended.** Distillation from search is un-parked as F1, behind gates A and B. F1 may use
 faster, lower-ceiling value targets only where they measure faster: auxiliary short-term values, or
 a mix of the result and the search's value. The learner stays outcome PPO with gamma = lambda = 1:
-lambda 0.95 bought only 2.2M against 2.65M decisions per useful update (D20).
+lambda 0.95 bought only 2.2M decisions per useful update, against a bound of at least 2.65M at
+lambda 1 (D20).
 
 **Unchanged:** D15 (the Teacher is a curator plus a critic, the drafter a generative policy, and
 they share the critic); OWNER_PREFERENCES #1 and #6; no privileged critic.

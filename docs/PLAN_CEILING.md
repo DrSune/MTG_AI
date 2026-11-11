@@ -1,14 +1,17 @@
 # From fast opponents to the ceiling: search, the simulator and the league
 
 **Status: approved by the owner on 2026-11-11** ("You get the main point, go ahead"; DECISIONS
-D22), after two changes of theirs: F1 trained high before the learner meets it (§6.4), and decks
-chosen for learning by the Teacher and the drafter (§9). Written by Claude the same day. The red
-team's findings amend it in §13.
+D22), after two changes of theirs:
+- F1 trained high before the learner meets it (§6.4);
+- decks chosen for learning by the Teacher and the drafter (§9).
+
+Written by Claude the same day, and amended the same day by a fresh-eyes red team (§13). The
+amendment changed decisions 3-5 and 9 of §12, which the owner is told about.
 
 Builds on:
 - OWNER_VISION_LEARNING §9-§11, the owner's words;
 - PLAN_LEARNING §5 (the league) and §8 (the simulator);
-- DECISIONS D20 and D21;
+- DECISIONS D8 (inherit representations, not policy), D20, D21 and D22;
 - DESIGN_PRIORITY stage 5.
 
 Bound by OWNER_PREFERENCES #1 (no hidden information in play) and #6 (full credit), and by the
@@ -31,49 +34,54 @@ owner's rulings:
 | Name | What it is | Ceiling | Cost |
 |---|---|---|---|
 | **Learner** (r27, then H1, later H2) | outcome PPO, gamma = lambda = 1, reward +1/-1 | high | cheap games, slow learning |
-| **Searcher F0** | a frozen network (the learner's or F1's) plus search at play time | that network's, raised by its search | 5-20x a plain game, measured in step 1 |
+| **Searcher F0** | a frozen network plus search at play time | that network's, raised by its search | about 1 + 2.3n plain games each (24x measured at n = 6) |
 | **Search-trained network F1** | expert iteration: the network is trained toward what its search chose | lower | cheap to play against, costly to train |
 | **Simulator** | predicts the opponent's hidden cards from what a player can see | (serves the search) | — |
 
-**Why F1's ceiling is lower and the learner's higher.**
-- F1's targets are the search's choices, which inherit the value network's errors and the
-  simulator's belief errors.
-- A search that maximises against a model of its own play settles on fixed answers. A stronger
-  opponent can read those. Magic rewards mixed play, such as holding a trick up only some of the
-  time.
-- Outcome PPO has none of these biases. It is slow because one game's result is a noisy signal
-  spread over a hundred decisions.
+**Why F1's ceiling is lower.**
+- F1's targets are the search's choices, so they inherit the value network's errors and the
+  simulator's belief errors. Outcome PPO's credit, the game's result, has neither.
+- PPO has biases of its own: the value term moves the shared trunk, and the entropy bonus pulls
+  (189 §8).
+- Both can settle on fixed answers against their own versions. The league and an exploiter are
+  there for both.
+- PPO is slow because one game's result is a noisy signal spread over a hundred decisions.
 
 **Steps and gates.**
 
 | Step | What runs or is built | What decides | Machine time |
 |---|---|---|---|
-| 0 | **r27**: outcome PPO on the new game from r26's newest network | its pre-registration (stage 5) | continuous; paused only for measurement windows |
-| 1 | the **search family**, every setting a flag; the simulator recaptured on the new game | **the n-curve**: strength against the number of simulations n | ~1 day of windows |
-| 2 | the **simulator at every level of the search**: truth lines, consequence | E0 again on the new game; belief regret | inside step 1's and 3's windows |
-| 3 | **F1, trained high first** (owner, 2026-11-11), only if step 1 shows the search well above its own network and a cheap distillation probe moves the network. A checkpoint every ~50 Elo builds the opponents' ladder | at 48 h: faster per machine-hour than r27, or stop. Then on to its plateau or the owner's target (§6.4) | days, up to 2 weeks |
-| 4 | **H1**: the learner trains against F1's ladder and its searched versions; it starts only when F1's best is at least +200 Elo above the learner | the **ceiling read** (§7) | 1-2 weeks |
-| 5 | **H2**: explorative self-play from the beginning | your call after the ceiling read | weeks |
-| with 4-5 | **Decks chosen for learning** (§9): the learning score L, the learner's Elo against a very varied frozen pool; the Teacher picking deck families by measured progress; then the drafter, trained for learning | at least 1.3x the Elo per machine-day of uniform deals | alongside H1, then for H2 |
+| 0 | **r27**: outcome PPO on the new game from r26's newest network | its pre-registration (stage 5) | continuous; paused for measurement windows and F1 |
+| 1 | the **search family**, every setting a flag; the simulator recaptured on the new game | **the n-curve**: strength against log n, fitted over all points | one or two windows of ~12 h |
+| 2 | **F1, trained high first**, only through gate A (the search well above its own network, confirmed on fresh deals) and gate B (at least 300k targets move the network on unseen deals). It keeps a ladder of checkpoints | at 48 h: faster per machine-hour than r27, with a confidence bound. Then on to its plateau or the owner's target (§6.4) | ~15 h for gate B; days, up to 2 weeks |
+| 3 | **H1**: the learner from r27's network (D8) trains against F1's ladder, beside a control arm on r27's league for the same machine time | the **ceiling read** (§7), on a held-out pool | 1-2 weeks per arm |
+| 4 | **H2**: explorative self-play from the beginning | your call after the ceiling read | weeks |
+| after 3 | **Decks chosen for learning** (§9): the Teacher, then the drafter, trained for learning | at least 1.3x the Elo per machine-day of uniform deals | own runs, for H2 |
 
-**Three earlier attempts at training from search failed. The difference this time** (§6.2):
-- the search's strength is measured against n first, so we no longer train on a weak search;
-- a cheap probe shows whether the network can learn the search's corrections at all before any
-  long run;
-- Gumbel targets carry the value of every searched move, not only the winner;
-- the replay buffer is in RAM, so labels pile up over many generations;
-- if F1 still stalls, we know within days, before the learner is trained against it (§6.4).
+**Three earlier attempts at training from search failed. What is honestly different** (§6.2):
+- The earlier stalls were the network failing to generalise the search's corrections. The labels
+  were reproducible (183 §15-16), and E3 saw no growth from 100k to 300k labels. Nothing here
+  removes that by construction.
+- What may differ:
+  - a stronger search at larger n gives more clear corrections per game (the n-curve counts them);
+  - the instant-speed decisions are untrained (grown from `cw`), and the search's corrections there
+    may be easier to learn;
+  - targets scaled by their standard error, so the 92% of differences that are ties (E3) do not
+    move the network.
+- Gate B tests exactly this, at 300k targets on unseen deals, before any long run.
+- If it fails, F1 does not run, and the difficult opponents are the learner's own versions plus
+  searched anchors.
 
 **Your "consequence x probability"** (§5).
 - The simulator's probabilities stay honest (calibrated).
 - Consequence decides two things: where the simulator spends its capacity (the positions whose
-  decision depends on the hidden cards), and which futures the search looks at (rare devastating
-  hands sampled more often, then weighted down exactly).
-- It learns from every branch the search explores. The probabilities learn from the true hidden
-  cards at every level of the real game's possible lines. The consequence learns from the search's
-  own per-world results.
+  decision depends on the hidden cards), and which futures the search looks at. Rare devastating
+  hands are sampled more often, then weighted down to their probability.
+- The consequence is learned from the search's own per-world results, at every searched decision.
+- Labels from deeper levels of the search ("truth lines") wait until something reads the simulator
+  there (§5.2).
 
-**Decisions: §12** (approved as recommended, 2026-11-11).
+**Decisions: §12.**
 
 ---
 
@@ -89,38 +97,44 @@ owner's rulings:
 | "opponent simulator can be trained for every branching/deeper level of the search, making it really good at predicting the cards we care about (consequence * proability)" | §5 |
 | "utilizes lower cieling but faster improvement models to get our high-cieling model up to speed fast by playing difficult opponents" | §6, §7 |
 | "That will help assess the cieling" | §7.3 |
+| "after which we can do the cieling-striving training run that is explorative self-play from the beginning" | §8 |
 | "shouldnt we train the F1 and F0 models to some high ELO? Like 1000 ELO and then start training? If we just play it like it is but plus search, is that really good enough to test what we want to find out?" | §6.4 |
 | "If we train the search, opponent predictor and value function, in a more fast/compute efficient way, but lower cieling, then that might improve more, faster. If lowering gamma and lambda doesnt help with this at all, I guess it doesnt make sense. We just need them to improve." | §6.3 |
-| "Making the drafter, and training that for maximizing learning, would also be really great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based on ELO)." | §9 |
+| "Making the drafter, and training that for maximizing learning, would also be really great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based on ELO)." | §7.2, §9 |
 | "You get the main point, go ahead" | status; DECISIONS D22 |
-| "after which we can do the cieling-striving training run that is explorative self-play from the beginning" | §8 |
 | "Only challenge is whether enemy deck is coherent, or completely random" | §5.5 |
 
 ## 1. Where we are (measured)
 
-- **The learner learns.** r26 (outcome PPO, gamma = lambda = 1, 98k decisions per update) froze v1
-  at update 202 and v2 at 378. v2 is 76 Elo above v0 and scores 0.684 against the old heuristic
-  (KNOWLEDGE 2026-11-10/189 §10). Its gates against v2 since then:
-  - 0.542 at 801, 0.524 at 827, 0.519 at 852, 0.508 at 877;
-  - none passed (the gate needs 0.55).
+- **The learner learns.** r26 (outcome PPO, gamma = lambda = 1, 98k decisions per update):
+  - it froze v1 at update 202 and v2 at 378;
+  - v2 is 76 Elo above v0 and scores 0.684 against the old heuristic (KNOWLEDGE 2026-11-10/189
+    §10);
+  - its gates against v2 since then: 0.542 at 801, 0.524 at 827, 0.519 at 852, 0.508 at 877, none
+    passed (0.55 needed);
+  - the coherent half of those gates is 0.53-0.57.
 - **Search at play time adds a little.** On the old game, the old network plus search (k = 3
-  candidates, d = 2 worlds, one turn deep) beat its raw network by +0.045 to +0.060 (NUMBERS,
-  2026-11-04). The gain shrank as the network improved (183 §28).
+  candidates, d = 2 worlds, one turn deep) raised its score against the heuristic by +0.045 to
+  +0.060 over the raw network, paired (NUMBERS, 2026-11-04). The gain shrank as the network
+  improved (183 §28). Head to head against its raw network it was never measured.
 - **Training from search stalled three times:**
   - October, on the old stack: one-shot distillation and search labels were negative (NUMBERS
     2026-10-12, 2026-10-15).
   - r5-r14, November 4:
     - the raw network gained +0.07 over its start in two generations, then stopped;
     - the search corrected about one move per game clearly;
-    - the network could not predict those corrections on new positions and learned the
-      generating network's style instead (183 §16).
+    - its corrections were reproducible, but the network could not predict them on new positions
+      and learned the generating network's style instead (183 §15-16);
+    - a separate value network did not change that (183 §12-13).
   - E3 (D21): one round of distillation of playout labels changed ~3% of choices and gained
-    nothing in games.
-- **The simulator works on hands.** Its NLL on hidden hands is 11% below a deck-aware yardstick's
-  (18% by mid-game), with honest probabilities. On library contents it is no better than the
-  prior (D21).
+    nothing in games, with no growth from 100k to 300k labels (NUMBERS, "E3 LABEL SCALING"). 92% of
+    its result differences were ties (186-phase0-labels).
+- **The simulator works on hands.** Its NLL on hidden hands is below a deck-aware yardstick's: 11%
+  overall, 12% mid-game, 18% late. Its probabilities are honest. On library contents it is no
+  better than the prior (D21; NUMBERS, "E0").
 - **The new game.** r26's network transfers to the game with priority: 35/40 greedy and 30/40
-  sampled against the new heuristic (NUMBERS, PRIORITY STAGES 1-4).
+  sampled against the new heuristic. A seat makes 74.3 recorded decisions per game, against 52.8
+  on the old game (note 191).
 
 ## 2. What each piece may know ("as little unrealistic knowledge as possible")
 
@@ -128,8 +142,8 @@ owner's rulings:
 |---|---|---|
 | Policy and value, in play and in every search | its own seat's view only (OWNER_PREFERENCES #1) | game results (+1/-1), and search targets computed on belief worlds |
 | The search, at play and in training | worlds sampled from the simulator's beliefs, never the true hidden cards | — |
-| The simulator | its own seat's view only | the true hidden cards, as labels (D20: supervised on finished games) |
-| The belief-regret yardstick (§5.4) | the true hidden cards: an omniscient mode for measurement only (OWNER_PREFERENCES #1) | nothing; it never plays or trains |
+| The simulator | its own seat's view only | the true hidden cards, as labels (D20: supervised on finished games), released only after their game ends (§5.2) |
+| The belief-regret yardstick (§5.4) | the true hidden cards: an omniscient mode for measurement only (OWNER_PREFERENCES #1) | nothing; it never plays or trains, and writes only its numbers |
 
 What this plan does **not** do:
 - **No policy or value target from a search on the true state.** It would teach the network to
@@ -142,92 +156,106 @@ What this plan does **not** do:
 
 ### 3.1 Today's search
 
-`tools/selfplay/search.py`:
-- The network's top k options are tried (`Searcher.choose`, `search.py:211`). Each is tried in d
-  worlds: copies of the game whose hidden cards are re-drawn uniformly from the pool
-  (`draw_worlds`, `:206`; `determinize`, `:81`).
+`tools/selfplay/search.py`, before 2026-11-11:
+- The network's top k options were tried (`Searcher.choose`). Each was tried in d worlds: copies of
+  the game whose hidden cards are re-drawn uniformly from the pool (`draw_worlds`, `determinize`).
 - The network plays both seats, each from its own view, to the start of the searcher's next turn
-  (`simulate`, `:342`), where the value head scores the position (`leaf_value`, `:368`).
+  (`simulate`), where the value head scores the position (`leaf_value`).
 - Searched decisions: the act menu, whole attack plans and (opt-in) whole block plans.
-- Any seat named `<version>+search` is a searcher (`actor.py:85`), so a searcher can already sit at
-  a training game's table.
+- Any seat named `<version>+search` is a searcher (`actor.py`), so a searcher can already sit at a
+  training game's table.
 
 ### 3.2 The settings
 
 Every row is a flag. Each measured setting and its result goes into NUMBERS.md, so any setting can
 be revisited (owner: "Save all of the search options").
 
-| Setting | Values | Today |
+| Setting | Values | Default |
 |---|---|---|
-| **root** | `topk`: top k by the network, each on the same d worlds; `gumbel`: Gumbel top-m, then sequential halving over n simulations [1] | `topk`, k 3, d 2 |
-| **n**, simulations per searched decision | 2 to 256 | 6 |
-| **worlds** | `uniform` (today); `sim`: samples from the simulator's joint decoder; `sim-is`: the same, tilted toward consequential hands and reweighted exactly (§5.3) | `uniform` |
-| **continuation** | the policy plays both seats from their own views, `greedy` or `sampled`; `tree`: the searcher's own later choices in one tree over its information sets (information-set MCTS [2]) | `greedy` |
-| **horizon** | the searcher's next turn (one turn cycle), two cycles, the end of the game | one cycle |
+| **root** (`--search-root`) | `topk`: top k by the network, each on the same d worlds; `gumbel`: Gumbel top-m, then sequential halving over n simulations [1] | `topk`, k 4, d 2 |
+| **n** (`--search-n`), simulations per searched decision | 2 to 256 | 16 |
+| **m** (`--search-m`), candidates at most | m = min(this, n, options) | 16 |
+| **worlds** | `uniform` (built); `sim`: samples from the simulator's joint decoder, h + l decoder steps each (`simulator.py`), costed in the pilot; `sim-is`: the same, tilted toward consequential hands and weighted back (§5.3) | `uniform` |
+| **continuation** (`--search-continuation`) | the policy plays both seats from their own views, `greedy` or `sampled` (each seat's draws seeded by the world, so every candidate of a world meets the same draws); later `tree`: the searcher's own later choices in one tree over its information sets (information-set MCTS [2]) | `greedy` |
+| **horizon** (`--search-horizon`) | the start of the searcher's N-th next turn; 0 = the end of the game | 1 |
 | **leaf** | the value head, or the result when the game ends inside the horizon | value |
-| **searched asks** | act, attack plan, block plan (today); priority and target (new) | act, attack; block opt-in |
-| **skip** | search only where the network's top option is below p | 0.99 |
+| **searched asks** (`--search-kinds`, `--search-blocks`) | act, attack plan, block plan; priority (built 2026-11-11). Target asks happen inside an engine call, where a copy cannot be taken (DESIGN_PRIORITY §2.1); the network answers them inside each simulation | act, attack |
+| **skip** (`--search-skip-p`) | search only where the network's top option is below p | 0.97 |
 
 **Why the continuation is policy-only by default.** Inside one sampled world, a tree that chooses
 the searcher's later moves knows that world's cards: strategy fusion (OWNER_VISION_LEARNING §10).
 - The policy reads only its own view, so a policy continuation has no strategy fusion.
 - An information-set tree avoids it differently: it shares one node across all worlds the
-  searcher cannot tell apart.
+  searcher cannot tell apart. It keeps a second flaw, non-locality: what the opponent's earlier
+  play revealed is not reflected in the worlds.
 - `tree` is a setting to measure against the default, not the default.
 
 **Gumbel at the root** [1]:
 - Sample m candidates without replacement from the network's logits plus Gumbel noise. The noise
-  is off in evaluation games, which take the top m.
-- Split n simulations over log2(m) rounds. In each round every remaining candidate is played on the
-  same worlds (common random numbers), and the better half survives.
-- Play the survivor with the highest logit + σ(q).
-- The training target is π' = softmax(logits + σ(completed q)): unvisited options get a value
-  estimate mixed from the value head and the visited ones.
-- It improves the policy whenever its value estimates are right, from n = 2 on. It replaces
-  today's k x d grid, which spends equal effort on a hopeless candidate and a close one.
+  is off in greedy (evaluation) play, which takes the top m.
+- Split n simulations over ceil(log2 m) rounds. In each round every remaining candidate is played
+  on the same worlds (common random numbers), and the better half survives.
+- In play, take the survivor with the highest logit + σ(q), with the paper's constants: σ(q) =
+  (50 + the most simulations any candidate had) x (q + 1) / 2 for q in [-1, 1].
+- The training target (F1) is π' = softmax(logits + step x completed q). Unvisited options get a
+  value estimate mixed from the value head and the visited ones.
+  - The step is scaled by the standard error of the means, as `mmd_target` does: one standard
+    error moves the log-odds by at most 0.5.
+  - With the paper's fixed constants a target moves ~25 logits per unit of score, whether the
+    difference is evidence or noise. That is r12's soft target again (20 per unit; 183 §13-16).
+- It improves the policy whenever its value estimates are right, from n = 2 on. It replaces the
+  k x d grid's equal effort on hopeless and close candidates.
 
 ### 3.3 The n-curve (pre-registered, before anything is trained on search)
 
 - **Network**: r27's newest frozen version at the time, fixed for the whole curve.
-- **Match**: the searcher against the same network raw, greedy. 300 fixed deals, each played
-  twice with seats swapped; coherent M21 decks from the verified pool. The score's standard error
-  is about 0.011: a pair's mean has 0.15 of one game's variance (KNOWLEDGE 184 §26, 185).
+- **Match**: the searcher against the same network raw, both greedy, head to head.
+  - 300 fixed deals, each played twice with seats swapped; coherent M21 decks from the verified
+    pool.
+  - The score's standard error is about 0.011: a pair's mean has 0.15 of one game's variance
+    (KNOWLEDGE 184 §26, 185).
 - **Grid**:
   - n ∈ {2, 4, 8, 16, 32, 64}, with `gumbel` and the best available worlds (`sim` if the simulator
     passes E0 on the new game, else `uniform`);
   - at n = 16, one change at a time: `topk` instead of `gumbel`; `uniform` instead of `sim`;
-    priority and target asks searched or not; horizon one cycle or two;
-  - n = 128 on 150 deals, only if the curve still rises at 64;
-  - against the heuristic, at n = 0 and at the two best n.
+    priority asks searched or not; horizon 1 or 2;
+  - against the heuristic, at n = 0 and at the best n.
+- **The read is a fit, not a knee read pointwise.**
+  - Each doubling of n gains perhaps 0.01, under one standard error.
+  - So strength is regressed on log2 n over all the points, and the slope and its interval are the
+    result.
+  - n = 128 runs only if that slope's lower bound is above 0 at 64.
+- **Gate A's confirmation**: the n chosen for F1 is measured again on 300 fresh deals. The best of
+  several n on one set of deals overstates: a true +0.03 would pass a +0.04 bar 20-25% of the time.
 - **Reported per point**:
-  - paired score against the raw network, and its Elo equivalent;
-  - milliseconds per searched decision, p50 and p99 (the clock is a rank-1 goal; NORTH_STAR §1a);
-  - searched decisions per game;
+  - paired score and its Elo equivalent;
+  - milliseconds per searched decision, p50, p90 and p99 (`search.ms_percentiles`);
+  - searched decisions per game, by kind;
   - share of moves the search changes;
-  - clear corrections (score margin ≥ 0.1) per game.
-- **The read**:
-  - where strength stops rising with log n;
-  - what each doubling costs;
-  - three choices of n, made by the owner on these numbers: n for opponents (F0), n for training
-    targets (F1), and n for play under a clock.
-- **Cost**: a pilot first measures the seconds per simulation. Estimate: about 0.15 s per
-  simulation and 20 searched decisions per game, so 600 games at n = 64 take about 2 hours on 18
-  workers, and the whole grid 8-12 hours. r27 pauses during the window ("one run at a time"), and
-  its log records the pause.
+  - clear corrections (margin ≥ 0.1) per game.
+- **Latency for the clock is measured apart.** The batched timing under 18 workers includes the
+  queue. The clock (NORTH_STAR §1a) needs a single game's p99 on an idle machine, measured at the
+  chosen n.
+- **Cost**:
+  - a pilot first measures the seconds per simulation;
+  - a heuristic game asks 155 decisions of both seats, twice the old game's (DESIGN_PRIORITY
+    §11), so simulations are about twice as long as the old ones;
+  - the grid may need two windows of ~12 hours;
+  - r27 pauses during a window ("one run at a time"), and its log records the pause.
+- **What the owner chooses on these numbers**: n for training targets (F1), n for the searched
+  anchor, and n for play under a clock.
 
 ## 4. Step 0: r27, the learner on the new game
 
-- DESIGN_PRIORITY stage 5, as approved: outcome PPO from r26's newest network (`last.pt`), its
+- DESIGN_PRIORITY stage 5, as approved: outcome PPO from r26's network at update 1,000, its
   `priority` row grown from `cw`.
-- Changes from r26:
-  - a fresh `--seed`;
-  - main's code (the game with priority, the new heuristic as the anchor opponent);
-  - a smaller entropy bonus, read per decision kind (189 §10: 0.0075 was too strong; PH-9).
-- Pre-registered in its own note before launch, with r26's protocol (189 §9).
-- r27 is the learner of this plan. Steps 1-3 build its difficult opponents while it runs, and its
-  frozen versions are the networks the search amplifies.
-- **Launch**: after r26's registered read at update 1,000 (about 18:00 today), r26 stops and r27
-  starts. Stage 5 was approved on 2026-11-10 to follow once ready.
+- Pre-registered in note 191 before launch, with r26's protocol (189 §9):
+  - seed 27;
+  - entropy bonus 0.004;
+  - 139,264 decisions per update, which keeps r26's ~1,875 games per update.
+- r27 is the learner of this plan, and its frozen versions are the networks the search amplifies.
+- **Launch**: after r26's registered read at update 1,000 (about 18:00 on 2026-11-11), r26 stops
+  and r27 starts.
 
 ## 5. The simulator, trained at every level of the search (owner §5, §10, 2026-11-11)
 
@@ -240,26 +268,41 @@ the searcher's later moves knows that world's cards: strategy fusion (OWNER_VISI
   calibration error under 0.05.
 - Until it passes, the search's worlds stay `uniform`.
 
-### 5.2 Every level: truth lines
+### 5.2 Every level: truth lines, deferred until something reads them
 
 **Where the simulator is asked:**
-- The search samples worlds once per simulation, at the real position, so today the simulator is
-  asked only at real positions. Real positions with their true hidden cards (both seats, every
-  decision) are therefore matched training data, and plentiful.
-- Once the network reads the simulator's belief (PLAN_LEARNING §8, ruling 6), every decision of
-  every simulated line asks it, including positions the real game never reached.
+- The search samples worlds once per simulation, at the real position. So today the simulator is
+  asked only at real positions, and real positions with their true hidden cards (both seats, every
+  decision) are matched training data, and plentiful.
+- Positions the real game never reached are asked about only once the network reads the
+  simulator's belief at every decision (PLAN_LEARNING §8, ruling 6), and then at every decision of
+  every simulated line.
+- r27 and H1 do not have that input.
 
-**The owner's deeper levels, made honest.** In a training game the engine knows the truth.
-- At a share of searched decisions, the lines the search explored are replayed once from the real
-  position without resampling: the candidate move, then the policy for both seats, to the horizon.
+**The owner's deeper levels, made honest, when that input exists.** In a training game the engine
+knows the truth:
+- At a share of searched decisions, the lines the search explored are replayed from the real
+  position without re-sampling: the candidate move, then the policy for both seats, to the horizon.
 - At every decision along such a line, the simulator gets one example: the deciding seat's view,
   and the true hidden cards at that point.
-- These truth lines are data for the simulator only:
-  - their results are never read;
-  - the real game's decision is made before them, from belief worlds;
-  - a guard test checks that every decision of the real game is byte-identical with truth lines on
-    and off (the same kind of test as `test_labels.py`'s).
-- Fresh deals only (D20 guard d), so nothing about a deal can be memorised.
+- They are kept only if they lower the held-out NLL at the positions the belief input asks about:
+  an A/B on E0's metrics.
+
+**The release rule, for all simulator data, now:**
+- A copy carries the real game's random stream (`fork.py`: the engine's randomness is
+  sha256(master seed, operation count, tag)). So a truth line's later draws are the real game's
+  future.
+- So is every label of library contents.
+- So no simulator data from a game is trained on before that game ends.
+- Each game keeps one simulator snapshot from its deal to its end.
+- A byte-identical test with a frozen simulator cannot see a leak through retrained weights; this
+  rule closes it.
+
+**Further guards:**
+- truth lines' results are never read;
+- the real game's decision is made before them, from belief worlds, and a guard test checks that
+  every decision is byte-identical with truth lines on and off;
+- fresh deals only (D20 guard d).
 
 ### 5.3 Consequence x probability
 
@@ -271,19 +314,26 @@ the searcher's later moves knows that world's cards: strategy fusion (OWNER_VISI
 **1. Where the simulator spends its capacity.**
 - Each training position is weighted by how much the search's decision there depends on the hidden
   cards: how much the gap between the top two candidates varies across the sampled worlds.
-- The weight is a function of the position, not of the answer, so the probabilities stay
-  calibrated. The training set's mix of positions changes, but not what the right answer is at
-  any one of them.
-- The simulator gets better where it matters.
-- This is the model-learning field's "value-aware" idea [7, 8], kept calibrated.
+- The weight is a function of the position, not of the answer, so the conditional probabilities
+  stay calibrated. The training set's mix of positions changes, but not what the right answer is
+  at any one of them.
+- The weights come from the simulator's own samples, so they are floored, and calibration is
+  reported per weight band.
+- This borrows the "value-aware" idea of [7, 8]. There it replaces the likelihood; here it only
+  reweights positions, so the likelihood stays.
 
 **2. Which futures the search looks at** (`sim-is`; PLAN_LEARNING §8, approved):
 - Every searched decision's worlds give data on consequence. In each world, the gap between the
   candidates' values against the hands in that world shows which cards decide the move.
 - A small consequence head learns this per position and card.
-- The hand decoder's sampling is tilted by it, and every world is weighted back by p/q, so the
-  estimate of each move's win probability stays exact.
-- Result: a 0.1% disaster is seen often enough to be weighed, and counts at 0.1%.
+- The hand decoder's sampling is tilted by it, and every world is weighted back by p/q:
+  - the proposal's normaliser is known, so plain weights are used, not `mean_scores`'
+    self-normalised ones, which are biased at a handful of worlds;
+  - the estimate is unbiased with respect to the simulator's beliefs: sampling changes which worlds
+    are looked at, not what they are worth;
+  - errors in the beliefs themselves remain.
+- Result: a 0.1% disaster is seen often enough to be weighed, and counts at 0.1% of the
+  simulator's belief.
 - Hands are sampled whole, so threats that share an answer add up (D20: 30% + 25% beats 45%).
 
 ### 5.4 The measure that matches the goal: belief regret
@@ -293,6 +343,9 @@ At a sample of searched decisions:
   hidden cards (the omniscient yardstick);
 - belief regret is the win probability given up by the belief search's choice, valued by the
   omniscient search.
+
+**Isolation.** The omniscient search runs in its own measurement process and writes only its
+numbers. It never touches a snapshot, buffer or label.
 
 It measures exactly "predicting the cards we care about". It is reported for the `uniform`, `sim`
 and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
@@ -304,78 +357,104 @@ and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
   (`games.build_coherent_deck`): coherent in colour, random in everything else.
 - Realistic decks change what is worth playing around, so they are a parallel item, not on this
   plan's critical path:
-  - check 17lands' public data for the sets in the pool (M21, M20, ZNR, FDN) and its usage terms;
+  - 17lands' public game data carries each game's deck (card counts), per the `spells` tool's
+    documentation. Its usage guidelines need a browser to read, and are unread;
   - "decks with a shape" (DESIGN_PRIORITY §9);
-  - the drafter (PLAN_LEARNING §9, phase 4) is the long-term source.
+  - the drafter (§9) is the long-term source.
 - The held-out niche set (D14) shows how far beliefs carry to decks unlike the training decks.
 
 ## 6. The fast models
 
 ### 6.1 F0: the searcher
 
-- F0 is a frozen learner version plus the search at the opponent's n from the n-curve.
-- It needs no training, gets stronger whenever the learner does, and can sit at a training table
-  today (`actor.py:85`).
-- Its price is the search's cost per game. That cost caps its share of the learner's games (§7.1).
+- F0 is a frozen network plus the search.
+- It needs no training, gets stronger whenever its network does, and can sit at a training table
+  today (`actor.py`).
+- **Its price.** With s seconds per simulation and about 20 searched decisions per game, a game
+  costs about 1 + 2.3n plain games. Measured on the old stack at n = 6: 24x (0.96 searched games/s
+  in 183 §14, against 22-24 plain games/s in 183 §6).
+- So as a training opponent it is affordable only at small n and in a small share of games (§7.1).
+  Its main roles are the searched anchor and the play-time player.
 
 ### 6.2 F1: search-improved training (expert iteration), gated
 
-**Gate A, from the n-curve.** At an n whose searched game costs at most 20x a plain game, the
-search beats its own network by at least +0.04 paired (about 28 Elo, 3.5 standard errors). If not,
-F1 is not run.
+**Gate A, from the n-curve.**
+- The search at some n beats its own network head to head by at least +0.04 paired: about 28 Elo,
+  3.5 standard errors.
+- That n is confirmed on 300 fresh deals (§3.3).
+- If not, F1 is not run.
 
-**Gate B, the distillation probe.**
-- Material: the n-curve's full-search targets.
-- The network is trained on 25%, 50% and 100% of them.
-- It must gain at least +0.015 against its original over 450 paired deals at 100% (E3's bar), and
-  its agreement with the search on held-out positions must rise with the amount of data.
-- That second condition is the question r5-r14 left open: does generalisation grow with volume?
-- If not, F1 is not run, and the difficult opponents are F0 and the league.
+**Gate B, the distillation probe, at a scale that can answer.**
+- Its own generation: searched self-play at the chosen n until 300k full-search targets exist,
+  about 15k games, roughly 12-15 machine-hours at n = 16. E3 saw no growth from 100k to 300k, so
+  less cannot answer the question.
+- The network is trained on 100k and on 300k targets (SE-scaled steps, §3.2) and tested on unseen
+  deals:
+  - it must gain at least +0.015 over its original over 450 paired deals at 300k (E3's bar);
+  - its agreement with the search on held-out positions must rise from 100k to 300k.
+- The tie share of the targets is reported against E3's 92%.
+- If gate B fails, F1 is not run, and the difficult opponents are the learner's own versions plus
+  searched anchors.
 
-**What is different from the three failures:**
+**What is the same and what differs from the three failures:**
 
 | Earlier | Now |
 |---|---|
-| k x d grid, 6 simulations, equal effort on hopeless candidates | Gumbel sequential halving at the n the curve chose |
-| hard or prior-times-exp targets; half the changes were ties (183 §16) | π' from completed q: a tie moves the target by a tie's worth |
-| ~1.6K clear labels per generation, 1-4 epochs, then discarded | a replay buffer in RAM over many generations (§6.3) |
-| value head damaged by distillation (183 §10) | value trained only on game results at sampled positions (183 §12-13), its own head or network |
-| uniform worlds, five-colour piles for two-colour decks (`search.py:21`) | simulator worlds |
+| k x d grid, 6 simulations | Gumbel sequential halving at the n the curve chose, whose clear corrections per game are counted |
+| soft targets with a fixed temperature (r12); E3's 92% ties | the step scaled by the standard error of the means, so a tie moves the target by a tie's worth |
+| ~1.6K clear labels per generation, then discarded | a replay buffer in RAM over generations (§6.3) |
+| value head damaged by distillation; a separate value network did not lift the plateau (183 §10-13) | value trained only on game results at sampled positions; a separate network is a setting, not a fix |
+| uniform worlds, five-colour piles for two-colour decks (`search.py`) | simulator worlds once E0 passes on the new game |
+| the network failed to generalise the corrections (183 §15-16) | **not removed by construction**: gate B tests it at 300k targets on unseen deals |
 | no check that the search was strong enough to learn from | gates A and B first |
 
 ### 6.3 The loop
 
-- **Self-play with search on both seats**, with KataGo's playout cap randomisation [3]:
-  - a quarter of decisions get the full n, and only those give policy targets;
-  - the rest get n/8, enough for play.
-- **Value targets**: game results (gamma = 1) at about 10 sampled positions per game and seat.
-  Positions of one game share a result and are near copies (183 §12).
+**Self-play with search on both seats**, with KataGo's playout cap randomisation [3]:
+- a quarter of decisions get the full n, and only those give policy targets;
+- the rest get n/8, enough for play.
+
+**Value targets.**
+- Game results (gamma = 1) at about 10 sampled positions per game and seat. Positions of one game
+  share a result and are near copies (183 §12).
 - **Faster value learning, if it measures faster.** The owner: F1 may trade ceiling for speed, and
   a lower gamma or lambda is worth it only if it helps. Two settings, each kept only if the value
   head predicts held-out results better per machine-hour and the search gets stronger:
   - auxiliary heads that predict the search's own root value a few turns ahead, exponentially
     averaged. These are KataGo's short-term value targets [11]: by its author's partial test,
-    slightly faster training and a slightly better main head. The main head keeps the game
-    result;
+    slightly faster training and a slightly better main head. The main head keeps the game result;
   - a main target mixing the result with the search's value. This is a lower lambda by another
     name, and it lowers the ceiling.
 - **The learner keeps gamma = lambda = 1.** For outcome PPO, lambda below 1 bought little: one
-  useful update needed 2.2M decisions at 0.95, against at least 2.65M at 1 (D20). That is not worth
-  the full credit, so r27, H1 and H2 keep gamma = lambda = 1.
-- **Simulator data**: every game, both seats, plus the truth lines of §5.2.
-- **Replay buffer in RAM**:
-  - An encoded decision is about 8-16 KB: up to 112 card entities of 62 floats and 7 ids, plus the
-    option rows (`features.py:126-153`).
-  - 2-4 million decisions fit in 32 GB, beside a run's ~35 GiB, inside the 15 GiB memory
-    floor. A measurement sizes it.
-- **Training**:
-  - minibatches drawn uniformly from the buffer;
-  - loss KL(π' ‖ π_θ) plus the value loss;
-  - weights published to the actors every few minutes;
-  - every generation scored on the anchors (§7.2).
-- **The 48-hour check**: after 48 machine-hours, F1 must have gained at least as much anchor Elo
-  per machine-hour as r27 over its latest comparable stretch. If it has not, it is not a fast model,
-  and it stops. Otherwise it goes on (§6.4).
+  useful update needed 2.2M decisions at 0.95, against a bound of at least 2.65M at 1 (D20). That
+  is not worth the full credit, so r27, H1 and H2 keep gamma = lambda = 1.
+
+**Simulator data**: every game, both seats, under §5.2's release rule.
+
+**Replay buffer in RAM:**
+- An encoded decision is at most ~16 KB: up to 112 card entities of 62 floats and 7 ids, plus the
+  option rows (`features.py`).
+- It lives in shared memory that the trainer reads directly. Today's batches reach the trainer
+  through a pipe (`learner.py`, `ppo.py`), which cannot carry gigabytes.
+- **Fixed replay ratio.** The trainer could consume ~1,200 decisions/s against 1-5 new targets/s.
+  So each target is used a set number of times on average (a setting, 4-8), and the trainer waits
+  rather than overfit.
+- **Size by measurement.** During F1, r27 is paused, so F1's own workers, trainer and buffer must
+  keep MemAvailable well above the 15 GiB floor that stopped r24. Start at 16 GB, about 1M
+  decisions; measure, then grow.
+
+**Training:**
+- minibatches drawn from the buffer at the replay ratio;
+- loss KL(π' ‖ π_θ) plus the value loss;
+- weights published to the actors every few minutes.
+
+**The 48-hour check.** After 48 machine-hours, F1's checkpoints are rated jointly with r27's on
+the held-out pool (§7.2), mostly near-even games, about 8 Elo standard error. F1 goes on only if:
+- it has gained at least +30 Elo, lower 95% bound above 0;
+- its Elo per machine-hour exceeds r27's latest measured rate, lower 95% bound of the difference
+  above 0.
+
+Otherwise it is not a fast model, and it stops.
 
 ### 6.4 Train F1 high before the learner meets it (owner, 2026-11-11)
 
@@ -384,7 +463,8 @@ training? If we just play it like it is but plus search, is that really good eno
 want to find out?"
 
 **No, it is not enough.**
-- Today's network plus search won by +0.045 to +0.060 (about 30-40 Elo), about one gate.
+- Today's network plus search added +0.045 to +0.060 against the heuristic (about 30-40 Elo),
+  about one gate.
 - Against it the learner would train much as in plain self-play.
 - Passing it would say little about the learner's ceiling.
 - The read needs opponents far above where the learner starts.
@@ -392,12 +472,14 @@ want to find out?"
 **So F1 trains first, and high:**
 - After gates A and B, F1 gets the machine; r27 pauses.
 - At 48 machine-hours comes the check of §6.3.
-- Then F1 goes on while it climbs, scored daily on the anchors: 300 paired deals, about 8 Elo of
-  standard error.
-- It stops at its plateau: less than 25 Elo per machine-day over two days. Or it stops at the
-  owner's target. After 14 machine-days the owner reviews it either way.
-- A checkpoint every ~50 Elo builds a ladder of opponents, and each checkpoint plus search sits
-  above it.
+- Then F1 goes on while it climbs, rated daily in the joint fit.
+  - Near-even games give about 8 Elo of standard error.
+  - Lopsided ones give 11-19 Elo at a 0.85-0.95 score.
+- It stops at its plateau: less than 25 Elo per machine-day over two days, with the upper 95% bound
+  below 50. Or it stops at the owner's target. After 14 machine-days the owner reviews it either
+  way.
+- A checkpoint every ~50 Elo builds a ladder of opponents. Every fourth checkpoint is withheld
+  from training and goes to the held-out pool (§7.2).
 
 **The number.** Our Elo puts uniform random play at 0. On the old game:
 - the heuristic is at 302, r26's v2 at 436, and its newest about 450-465;
@@ -405,67 +487,105 @@ want to find out?"
 - "1000" is about +535 over today's best, winning about 96%.
 
 The plan takes 1000 as the direction, not a gate: F1 goes as high as it keeps climbing.
-- **H1 starts when F1's best is at least +200 Elo above the learner's start**, so the learner wins
-  about a quarter of its games against the top.
+- **H1 starts when F1's best is at least +200 Elo above r27's newest**, lower 95% bound above
+  +150. The learner then wins about a quarter of its games against the top.
 - Below that the read is weak, and the owner decides.
 
 **Why a ladder, not only the top.**
 - With +1/-1 results, a learner that loses 95% of its games gets little signal.
-- PFSP plays it mostly against checkpoints near its level, and the top comes up as it wins.
+- PFSP weighted x(1 - x) (§7.1) plays it mostly against checkpoints near its level, and the top
+  comes up as it wins.
 
 **If F1 stalls low**, as r5-r14 did after +0.07:
 - the fast-model premise fails, and we know it within days;
-- the strongest opponents are then the learner's own versions, plus search at high n as a measured
-  anchor.
+- the strongest opponents are then the learner's own versions, plus searched anchors.
 
 ## 7. H1: the learner against difficult opponents (the ceiling probe)
 
 ### 7.1 The league
 
-- **Start**: r27's newest network. Alternative: F1's network with a fading pull toward it
-  (kickstarting [4]), the owner's "3." of 2026-11-11, whichever scores higher on the anchors. The
-  pull is an arm only if F1 is the stronger one.
-- **The opponent pool**:
-  - the learner's frozen versions;
-  - F0 (frozen versions plus search);
-  - F1's ladder of checkpoints, raw and searched (§6.4);
-  - the heuristic, kept against forgetting.
-- **Who plays whom: prioritised fictitious self-play** (PFSP [5]; PLAN_LEARNING §5):
-  - 35% of games against the newest frozen version;
-  - the rest drawn from the pool in proportion to (1 - x)², x being the learner's recent win rate
-    against that opponent, so the opponents it loses to come up most ("difficult");
-  - x(1 - x), which favours even matches and so carries the most signal per game, is a setting.
-- **The searchers' cap**: games against F0 may take at most half the collection time. This is a
-  new scaffold, registered in BACKLOG; it goes when searched play is cheap enough or the n-curve
-  shows a small n suffices.
-- **Learning stays on-policy**: the learner learns only from its own moves, whoever the opponent is.
-- **Pre-registration**: H1 is its own pre-registered run (r28 or later), because its league
-  differs from r27's.
+**Start: r27's newest network.** D8 (the owner's): inherit representations, not policy; keep the
+small model in the opponent league, so the large one is rewarded for beating it, not imitating it.
+- Starting from F1's network would make the ceiling read a read of F1 plus PPO.
+- The owner's earlier "3." (a fading pull toward F1, kickstarting [4]) stays an option only under
+  D8's gate: the student exceeds the teacher's Elo within a stated number of updates, or the run
+  restarts without it.
 
-### 7.2 Anchors
+**The opponent pool:**
+- the learner's frozen versions;
+- F1's ladder, raw: the cheap difficult opponents, and the main ones;
+- searched opponents (F0), at most 3% of the learner's games, at the smallest n the curve shows
+  still clearly stronger. At n = 16 one such game costs ~38 plain ones, so 3% of games already takes
+  about half the collection time. This is a registered scaffold that goes when searched play is
+  cheap;
+- the heuristic, kept against forgetting.
 
-A fixed ladder for this whole plan, never retrained:
-- the new heuristic;
-- r26's newest network (r27's v0);
-- r27's v0 plus search at the opponent's n.
+**Who plays whom: prioritised fictitious self-play** (PFSP [5]; PLAN_LEARNING §5):
+- 35% of games against the newest frozen version;
+- the rest drawn from the pool in proportion to x(1 - x), x being the learner's recent win rate
+  against that opponent;
+- even matches carry the most signal per game for a +1/-1 learner;
+- the hardest opponents take more weight as the learner nears them;
+- (1 - x)², which favours the opponents it loses to, is a setting. As a default it would send a
+  weak learner mostly into games it cannot win.
 
-Every frozen version of every track (r27, F1, H1, H2) is placed on it. Paired deals, coherent and
-the niche set (D14).
+**The value baseline cannot see the opponent.** That adds variance, not bias. Advantages centred
+per opponent are a setting.
+
+**Learning stays on-policy.** The learner records only its own seat, with its own probabilities,
+whoever the opponent is.
+
+**The premise is tested, not assumed.** A control arm runs beside H1:
+- the same learner from the same checkpoint, on r27's league (its own versions and the heuristic);
+- the same machine time, about a week each;
+- both rated on the held-out pool.
+
+If H1 does not climb faster than the control, playing difficult opponents did not speed it up.
+
+**Pre-registration.** H1 and its control are pre-registered runs (r28, r29).
+
+### 7.2 The held-out pool and the learning score L (owner: "a very varied pool, weighted based on ELO")
+
+**What it is.** A fixed, very varied pool of frozen opponents that never appears in any training
+league:
+- r26's v0-v2 and r23's network;
+- every fourth F1 checkpoint;
+- r27's v0 plus search at the anchor's n;
+- later, specialists and exploiters;
+- each with decks of every shape: coherent, the niche set (D14), and later real decklists and the
+  drafter's.
+
+**Ratings frozen.** The pool's ratings are fitted once (Bradley-Terry, `fit_elo`) and frozen. A
+player is rated against those fixed ratings. A joint refit with a draw prior would move every
+number whenever the pool grows.
+
+**L, the learning score**, is a player's Elo against the frozen pool. An Elo weights each result by
+the opponent's strength: a win against a strong opponent raises it far more than a win against a
+weak one. That is the owner's "weighted based on ELO" without hand-set weights.
+
+**It is the progress measure** of every run from F1 on, and of the ceiling read. The heuristic,
+which is in the training leagues, is reported beside it, not in it.
 
 ### 7.3 The ceiling read
 
-H1 runs until it plateaus: no gate passed in 300 updates, and the anchor Elo rising by less than
-10 per doubling of machine time over the last two doublings. Then it is read:
+**When.** H1 runs until it plateaus:
+- no gate passed in 300 updates;
+- L rising by less than 10 per doubling of machine time over the last two doublings, upper 95%
+  bound below 25.
+
+Then it is read:
 
 | Measured | If high | If low |
 |---|---|---|
-| **search headroom**: Elo of H1's newest plus search, minus H1's newest raw | the network cannot learn what its own search finds: the signal or the optimiser limits it; next levers are search targets, larger batches, the belief input | the network's evaluation limits it: capacity, inputs (memory, deck knowledge, names), the value head |
-| **exploiter score**: a fresh learner trained only against H1 for a fixed budget (AlphaStar's main exploiter [5]) | H1 is exploitable: more league diversity, exploration, the magnet (PLAN_LEARNING §5) | robust at its level |
-| **H1 against F0 and F1** | the learner climbed past the fast models: its ceiling is genuinely higher | the fast models' biases cost less than the learner's noise at this compute |
+| **H1 against its control** (L per machine-hour) | difficult opponents speed the learner up: the premise holds | they do not; the plan's step 2 is not worth its machine time for the learner |
+| **search headroom**: L of H1's newest plus search, minus H1's newest raw | the network cannot learn what its own search finds: the signal or the optimiser limits it. Next levers: search targets, larger batches, the belief input | the network's evaluation limits it: capacity, inputs (memory, deck knowledge, names), the value head |
+| **exploiter score**: a learner started from r26's network, trained only against H1's newest for one machine-day (AlphaStar's main exploiter [5]); its score against H1 | H1 is exploitable: more league diversity, exploration, the magnet (PLAN_LEARNING §5) | robust at its level |
+| **H1 against the fast models' held-out checkpoints** | the learner climbed past the fast models: its ceiling is genuinely higher | the fast models' biases cost less than the learner's noise at this compute |
 | **per-kind entropy** (PH-9) | still exploring | collapsed: a reason to start H2 fresh |
 
-The read is a report to the owner. A capacity probe (a 2x network, the same setup and budget) is
-added if the headroom row says capacity.
+Strength is read greedy (189 §9: greedy beats sampled). The read is a report to the owner. A
+capacity probe (a 2x network, the same setup and budget) is added if the headroom row says
+capacity.
 
 ## 8. H2: the ceiling-striving run (explorative self-play from the beginning)
 
@@ -476,13 +596,15 @@ added if the headroom row says capacity.
   bonus, and fresh deals.
 - **The league from the start**: random play, the heuristic, its own frozen versions, an exploiter,
   and the strong networks of r27, F1 and H1.
-  - PFSP keeps the strong ones mostly out until it can win some games against them.
+  - PFSP weighted x(1 - x) keeps the strong ones mostly out until it can win some games against
+    them.
   - It plays them, never copies them, so they shape what it must beat, not how it plays.
 - **Kept learning**: partial resets if it stalls (OWNER_VISION_LEARNING §9's remedies), and the
   magnet against cycling.
 - **The same learner rules**: gamma = lambda = 1, +1/-1, no privileged critic, on-policy.
+- **Decks chosen for learning**, if the Teacher has passed its gate (§9).
 
-**A pilot first**, a 6-8 hour window during H1:
+**A pilot first**, a 6-8 hour window before H2:
 - from random weights against random play, the heuristic and its own versions;
 - does outcome PPO learn this game from nothing, and how fast?
 - The answer sets H2's cost.
@@ -493,132 +615,142 @@ added if the headroom row says capacity.
 
 The owner: "Making the drafter, and training that for maximizing learning, would also be really
 great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based
-on ELO)."
+on ELO)." The measure is §7.2's L.
 
-### 9.1 The learning score L
+### 9.1 The Teacher (a curator plus a critic, D15)
 
-**What it is.** L is the learner's Elo fitted against a fixed, very varied pool of frozen
-opponents, on held-out deals that are never trained on. The fit is Bradley-Terry, as `fit_elo`
-does.
+**Its job.** It chooses the training deals (both decks, and the opponent) so that L rises fastest
+per machine-hour.
 
-**The pool:**
-- players of every track and strength: r26's and r27's versions, F1's ladder raw and searched,
-  the heuristic, and later niche specialists and exploiters;
-- each with decks of every shape: coherent, the niche set (D14), and later real decklists and the
-  drafter's.
+**Not inside H1.**
+- It would compete with PFSP for the opponent choice and confound the ceiling read.
+- It gets its own runs after the read.
 
-**Why an Elo and not a plain win rate.** An Elo fit weights each result by the opponent's
-strength: a win against a strong opponent raises it far more than a win against a weak one. That
-is the owner's "weighted based on ELO" without hand-set weights.
-
-**Stability.** The pool only grows within a phase, so L stays comparable. It is the progress
-measure of every run here from H1 on, and the reward of the Teacher below.
-
-### 9.2 The Teacher (a curator plus a critic, D15)
-
-It chooses the training deals (both decks, and the opponent) so that L rises fastest per
-machine-hour.
-
-**v0, with H1** [9]:
-- A bandit over deck families: the generator's settings, meaning colours, curve, land count and
-  D16's niche knob, crossed with opponents.
-- Each family's reward is the learner's measured progress on that family's held-out deals over a
-  window: Teacher-Student Curriculum Learning.
-- The families with the most progress are sampled most, with a floor of uniform sampling so that
+**Its signal cannot be per-family Elo progress.**
+- r26's late progress was 1-2 Elo per hour in all, far below one rating's 8-19 Elo standard error.
+- So v0 uses Prioritized Level Replay's per-game scores [10]: the learnability p(1 - p) of a
+  matchup and the learner's value error on its games, both available after every game.
+- Families of decks (the generator's settings: colours, curve, land count, D16's niche knob)
+  crossed with opponents are sampled by those scores, with a floor of uniform sampling so that
   nothing is forgotten.
-- No network.
+- Teacher-Student Curriculum Learning [9] is the frame. No network.
 
-**v1.** The critic of D15 predicts a matchup's result and how much the learner gains from it, and
-the curator samples by that (Prioritized Level Replay's scores [10]).
+**v1.** The critic of D15 predicts a matchup's result and its learning value.
 
-**Its gate** is PLAN_LEARNING's Phase 3 bar: at least 1.3x the Elo per machine-day of uniform
-deals, 3 seeds per arm.
+**Its gate** is PLAN_LEARNING's Phase 3 bar: at least 1.3x the L per machine-day of uniform deals,
+3 seeds per arm. That is six runs or more, costed in §10.
 
-### 9.3 The drafter (NORTH_STAR §4a)
+### 9.2 The drafter (NORTH_STAR §4a)
 
 **What it is.** A generative policy that builds a deck pick by pick, with D16's two knobs
 (nicheness, randomness). It is trained against the critic it shares with the Teacher (D15).
 
-**Trained for learning**, as the owner asks: the Teacher asks it for decks in the families with
-the most progress, and its fine-tuning reward is the rise of L its decks bring.
+**Trained for learning**, as the owner asks: the Teacher asks it for decks in the families it
+scores highest, and its fine-tuning reward is the rise of L its decks bring.
 
 **What else its decks feed:**
-- the varied pool;
+- the held-out pool;
 - the simulator, which needs coherent, realistic decks (§5.5);
 - later the product's three modes.
 
-### 9.4 Guards and timing
+### 9.3 Guards
 
-**Guards:**
 - The Teacher picks families, not deals: every deal stays fresh, so nothing is memorised
   (OWNER_VISION_LEARNING §2; D20 guard d).
-- The held-out deals of L never train.
-
-**When:**
-- L and the pool come with H1, because the ceiling read needs them anyway.
-- The Teacher v0 runs in H1.
-- The drafter is built after the ceiling read, for H2: explorative training from the beginning
-  gains the most from a curriculum.
+- The held-out pool and its deals never train.
 
 ## 10. Order and machine time
 
 | When | Machine | My work |
 |---|---|---|
-| today ~18:00 | r26's read at 1,000; r26 stops; r27 starts | r27's pre-registration (before 18:00) |
-| days 1-3 | r27 | the search family (§3.2), the n-curve harness, simulator capture on the new game, truth lines, tests |
-| window 1 (~12 h, r27 paused) | simulator capture and training; the n-curve | — |
+| 2026-11-11 ~18:00 | r26's read at 1,000; r26 stops; r27 starts | r27's pre-registration (note 191) |
+| days 1-3 | r27 | the search family (§3.2: root, n, m, continuation, horizon, priority asks, timing; built 2026-11-11), the n-curve harness, the simulator on the new game, the held-out pool, tests |
+| window 1 (~12 h, r27 paused) | simulator capture and training; the n-curve pilot and first points | — |
+| window 2 if needed | the rest of the n-curve; gate A's confirmation | — |
 | — | r27 | report: the n-curve and E0 on the new game; **the owner chooses the three n** |
-| days 4-6 | r27; then F1's gate B probe (~4 h) | the F1 loop, the RAM buffer, PFSP, the consequence head |
-| days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (at most 14 machine-days before a review) | PFSP, the exploiter |
-| then 1-2 weeks | H1, from when F1 is at least +200 Elo above the learner | H2's pilot window |
-| with H1 | — | the learning score L and its varied pool; the Teacher v0 (§9) |
-| after H1 | — | **the ceiling read**, to the owner; the drafter (§9) |
-| after | H2, with the Teacher and the drafter's decks | — |
+| days 4-6 | r27; then gate B's generation and probe (~15 h) | the F1 loop: shared-memory buffer, replay ratio, SE-scaled targets; PFSP |
+| days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (review at 14 machine-days) | the exploiter; the held-out pool's ratings |
+| then ~2 weeks | H1 and its control, about a week each, from when F1 is at least +200 Elo above r27 | — |
+| after H1 | — | **the ceiling read**, to the owner |
+| after the read | the H2 pilot (6-8 h); the Teacher's runs (6 or more); then H2 | the Teacher v0; the drafter |
 
 These are machine days, not promises: each window may move with what the previous one found.
 
 ## 11. Risks
 
-1. **The search gains little at every n**, because the value head's accuracy limits it. Then F0 is
-   barely harder than the learner and F1 is gated off. The difficult opponents come from the
-   league alone, and the next levers are the value function and the simulator. The n-curve says
-   this in a day, before anything is trained.
-2. **Searched opponents slow the learner.** Each searched game costs 5-20x. Mitigations: the cap
-   (§7.1), Gumbel at small n, F1's cheap networks.
-3. **Learning to beat one opponent's quirks.** The anchors and the niche set measure general
-   strength, and PFSP spreads the games.
-4. **A truth line leaks into a decision.** The byte-identical guard test (§5.2).
-5. **Beliefs fit our own decks.** §5.5, and the niche set.
-6. **Memory.** The buffer is sized by measurement against the 15 GiB floor.
-7. **The clock.** Play-time n must fit a match clock. The n-curve's p99 is the input.
-8. **Many comparisons in the n-curve.** The grid is pre-registered and every point reported.
+1. **The search gains little at every n**, because the value head's accuracy limits it. F1 is then
+   gated off, and the difficult opponents come from the league alone. The next levers are the
+   value function and the simulator. The n-curve says this in a day or two, before anything is
+   trained.
+2. **F1 stalls again** for the reason r5-r14 did: the corrections do not generalise. Gate B is
+   built to find this at 300k targets, before a long run.
+3. **Searched opponents slow the learner.** About 1 + 2.3n plain games each. Hence the 3% cap,
+   small n, and F1's raw networks as the main opponents.
+4. **Learning to beat one opponent's quirks.** The held-out pool measures general strength, and
+   PFSP spreads the games.
+5. **A leak through retrained weights.** §5.2's release rule: no simulator data before its game
+   ends, one snapshot per game.
+6. **Beliefs fit our own decks.** §5.5, and the niche set.
+7. **Memory.** The buffer starts at 16 GB and grows only by measurement against the 15 GiB floor.
+8. **The clock.** Play-time n must fit a match clock, read from a single game's p99 on an idle
+   machine.
+9. **Noise read as a trend.** Fits over all points, confirmations on fresh deals, confidence bounds
+   on every stopping rule.
 
-## 12. Decisions (approved as recommended, 2026-11-11)
+## 12. Decisions
 
-1. **The order**: r27 now; the n-curve first; F1 only through gates A and B; then H1; then the
-   ceiling read; then H2. Recommended.
+Approved as recommended on 2026-11-11 (DECISIONS D22). Items 3, 4, 5 and 9 were changed the same
+day by the red team (§13), and the owner is told.
+
+1. **The order**: r27 now; the n-curve first; F1 only through gates A and B; then H1 and its
+   control; then the ceiling read; then H2.
 2. **Distillation un-parked** (D21): F1 is search-improved training. D21 said "we will look at it
    closely at a later point"; gates A and B are that look.
-3. **The searchers' cap**: at most half the learner's collection time in games against F0.
-   Recommended as a registered scaffold.
-4. **PFSP weighting**: (1 - x)² ("difficult") with 35% against the newest version. Recommended,
-   with x(1 - x) kept as a setting.
-5. **H1's start**: whichever of r27's newest and F1's network is stronger on the anchors, with the
-   fading pull only if it is F1's. Recommended.
-6. **H2 "from the beginning"** means fresh random weights, no imitation, no warm start. Confirm.
-7. **r26 stops** after its 1,000-update read and r27 starts (approved as stage 5 on 2026-11-10).
-   Going ahead unless you say otherwise.
+3. **Searched opponents in training**: at most 3% of the learner's games, at small n. They serve
+   mainly as anchors. *Was: half the collection time, which would have given them only 5-9% of the
+   learner's decisions at ~50% throughput.*
+4. **PFSP weighting**: x(1 - x) with 35% against the newest version; (1 - x)² a setting. *Was:
+   (1 - x)², which contradicted the ladder's purpose and would have sent a weak learner into games
+   it cannot win.*
+5. **H1's start**: r27's newest network, with F1 in the league (D8). The fading pull toward F1 only
+   under D8's gate. *Was: whichever is stronger, which always meant F1's network and would have
+   made the ceiling read a read of F1.*
+6. **H2 "from the beginning"** means fresh random weights, no imitation, no warm start.
+7. **r26 stops** after its 1,000-update read and r27 starts (stage 5, approved 2026-11-10).
 8. **F1's target** (§6.4): as high as it climbs, with a review at 14 machine-days. H1 starts once
-   F1 is at least +200 Elo above the learner's start. Your "1000" (about +535 over today's best)
-   is the direction.
-9. **Decks chosen for learning** (§9): the learning score L is the learner's Elo against a fixed,
-   very varied pool. The Teacher v0 is a bandit over deck families, from H1 on. The drafter comes
-   after the ceiling read, for H2.
+   F1 is at least +200 Elo above r27's newest. Your "1000" (about +535 over today's best) is the
+   direction.
+9. **The learning score and decks** (§7.2, §9): L is a player's Elo against a held-out pool with
+   frozen ratings. The Teacher runs after the ceiling read, scored by PLR-style per-game signals;
+   the drafter follows. *Was: L's pool included training opponents, and the Teacher ran inside H1.*
+10. **H1's control arm** (§7.1): about a week of machine time, to test the premise rather than
+    assume it. New.
 
-## 13. Red team
+## 13. Red team (2026-11-11)
 
-Pending (2026-11-11): a fresh-eyes review of the draft is running; its findings and the changes
-they made go here.
+A fresh-eyes agent reviewed the approved text against the code, the history and the literature,
+with 84 tool uses. Its findings were checked against the cited files before acting on them. Each
+row: the finding, the verdict, and what changed.
+
+| # | Finding | Verdict | Change |
+|---|---|---|---|
+| 1 | (1 - x)² contradicts "plays mostly near its level", and H2 from random weights would mostly play unwinnable games. Searched games cost ~1 + 2.3n plain games (24x measured at n = 6), so a cap by collection time gives them 5-9% of decisions at ~53% throughput | right | x(1 - x) by default; searched opponents at most 3% of games, at small n (§7.1) |
+| 2 | "H1 starts when F1 is +200 above" plus "start from whichever is stronger" always picks F1's network: the high-ceiling run inherits F1's policy, which D8 gates | right | H1 starts from r27's network, F1 in the league, the pull only under D8's gate (§7.1) |
+| 3 | The premise, that difficult opponents speed the learner up, is never tested | right | a control arm on r27's league, equal machine time (§7.1, §7.3) |
+| 4 | §6.2 did not show why F1 would not stall. π' with the paper's constants is r12's soft target again (~25 against 20 logits per unit), the separate value network existed in r9-r14, labels were reproducible but did not generalise, E3 did not grow from 100k to 300k, and gate B's ~12k targets cannot answer | right | an honest table; SE-scaled target steps; gate B at 300k targets on unseen deals with its own generation (§3.2, §6.2) |
+| 5 | Gate A picks the best of several n on one deal set (a true +0.03 passes 20-25%); a doubling's gain is under one SE; the 8 Elo SE holds only near 0.5 (11-19 at 0.85-0.95); the 48-hour check had no interval | right | a fresh-deal confirmation; a fit over log n; joint ratings near 0.5; bounds on every stopping rule (§3.3, §6.3, §6.4, §7.3) |
+| 6 | Truth lines have no reader yet. A fork carries the real random stream, so if the simulator retrains inside a game's lifetime, its future draws can reach a snapshot the same game uses | right, and it holds for library labels too | truth lines deferred until the belief input exists; the release rule for all simulator data (§5.2) |
+| 7 | L's pool included training opponents (Goodhart); per-family progress is below a rating's SE; three seeds per arm is six runs; a Teacher inside H1 confounds the read; `fit_elo` refits jointly | right | a held-out pool with frozen ratings; the Teacher after the read, on PLR-style per-game signals, its runs costed (§7.2, §9, §10) |
+| 8 | 32 GB leaves ~16 GiB against the 15 GiB floor; batches reach the trainer through a pipe; no replay ratio | right | shared memory, a fixed replay ratio, a 16 GB start sized by measurement (§6.3) |
+| 9 | "Fixed answers" applies to PPO too; play is read greedy; PPO has biases of its own; one row read H1 against its own training opponents; one anchor was also a training opponent | right | the ceiling argument made modest; the held-out pool (summary, §7.2, §7.3) |
+| 10 | 155 decisions per heuristic game doubles simulation cost; `sim` worlds cost decoder steps; target asks cannot be forked; m(n) unset; a batched p99 is not deployment latency | right | the cost and m rows; target asks out; latency measured apart (§3.2, §3.3) |
+| 11 | `mean_scores` self-normalises (biased at few worlds); "exact" only relative to the simulator's beliefs; position weights feed back; [7, 8] replace the likelihood | right | plain IS weights; the wording; floored weights with ECE per band (§5.3) |
+| 12 | +0.045-0.060 was against the heuristic; the simulator's 18% is late, mid-game 12%; 2.65M is a lower bound; the exploiter's start and budget were unset | right | facts fixed; the exploiter starts from r26's network with one machine-day (§1, §6.3, §7.3) |
+
+The red team found sound: §3.1's description of the code, the 0.011 standard error, the gates'
+power, the Elo table, the decision size (16.3 KB or less), that no target is computed from the
+true state, on-policy learning against any opponent, and the literature claims of [1]-[8] and
+[11]. It noted that information-set MCTS keeps non-locality, now in §3.2.
 
 ## References
 
@@ -626,7 +758,8 @@ they made go here.
 2. Cowling, Powley, Whitehouse. *Information Set Monte Carlo Tree Search.* IEEE TCIAIG 4(2), 2012.
    On Magic itself: Cowling, Ward, Powley, *Ensemble Determinization in Monte Carlo Tree Search for
    the Imperfect Information Card Game Magic: The Gathering*, IEEE TCIAIG 4(4), 2012. On strategy
-   fusion: Frank and Basin, *Search in games with incomplete information*, AIJ 1998.
+   fusion and non-locality: Frank and Basin, *Search in games with incomplete information*, AIJ
+   1998.
 3. Wu. *Accelerating Self-Play Learning in Go* (KataGo). arXiv:1902.10565, 2019.
 4. Schmitt et al. *Kickstarting Deep Reinforcement Learning.* arXiv:1803.03835, 2018.
 5. Vinyals et al. *Grandmaster level in StarCraft II using multi-agent reinforcement learning*
