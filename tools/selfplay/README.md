@@ -76,7 +76,12 @@ the engine's opt-in pre-blocks boundary (whole block assignments), the top candi
 played forward in copies of the game whose hidden zones were re-sampled from public
 information, through the opponent's next turn, and scored by the outcome or the network's own
 value head; candidates share sampled worlds. v1 + search: 0.651 vs the heuristic, +0.060 over
-raw v1 (§25).
+raw v1 (§25). Every search setting is a flag (docs/PLAN_CEILING.md §3.2), and each measured
+setting's result goes to NUMBERS: `--search-root topk|gumbel` (Gumbel sequential halving of
+`--search-n` simulations over at most `--search-m` candidates), `--search-continuation
+greedy|sampled`, `--search-horizon N` (0: to the game's end), `--search-kinds act,priority`
+(instant-speed decisions), with `--search-k/-d/-skip-p/-blocks` as before. An evaluation row's
+`search_ms` holds a searched decision's p50/p90/p99 milliseconds.
 
 **Resuming (`--resume DIR`).** `state.pkl` (iteration, stage, versions, rating games, job ids,
 the opponent-draw RNG, gate count, queued evaluations, pool) is saved with `last.pt` and every

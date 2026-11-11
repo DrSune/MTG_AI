@@ -57,6 +57,7 @@ from tools.selfplay import model as M
 from tools.selfplay import simulator as S
 from tools.selfplay.actor import is_net, worker_main
 from tools.selfplay.ppo import chunks, pack_buffer
+from tools.selfplay.search import CONTINUATIONS, ROOTS, ms_percentiles
 from tools.selfplay.trainer import trainer_main
 
 REPO = Path(__file__).resolve().parents[2]
@@ -462,7 +463,9 @@ class Learner:
     def search_opts(self) -> dict:
         a = self.args
         return {"k": a.search_k, "d": a.search_d, "skip_p": a.search_skip_p,
-                "blocks": a.search_blocks}
+                "blocks": a.search_blocks, "root": a.search_root, "n": a.search_n,
+                "m": a.search_m, "continuation": a.search_continuation,
+                "horizon": a.search_horizon, "kinds": tuple(a.search_kinds.split(","))}
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -831,6 +834,7 @@ class Learner:
                         "turns": round(float(np.mean(turns)) if turns else 0.0, 1)}
         if search_stats:
             out["search"] = dict(search_stats)
+            out["search_ms"] = ms_percentiles(search_stats)
         return out
 
     def save(self, name: str, extra: dict | None = None) -> None:
@@ -1230,8 +1234,20 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--p-past", type=float, default=0.1, help="selfplay games vs older versions")
     p.add_argument("--search-blocks", action="store_true",
                    help="searching seats also plan their blocks at the pre-blocks boundary")
-    p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask")
-    p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option")
+    p.add_argument("--search-root", choices=ROOTS, default="topk",
+                   help="topk: the top --search-k options, each in the same --search-d worlds; "
+                        "gumbel: sequential halving of --search-n simulations over at most "
+                        "--search-m candidates (docs/PLAN_CEILING.md §3.2)")
+    p.add_argument("--search-n", type=int, default=16, help="simulations per searched decision (gumbel)")
+    p.add_argument("--search-m", type=int, default=16, help="candidates gumbel considers at most")
+    p.add_argument("--search-continuation", choices=CONTINUATIONS, default="greedy",
+                   help="how the network plays both seats inside a simulation")
+    p.add_argument("--search-horizon", type=int, default=1,
+                   help="simulate to the start of the searcher's N-th next turn; 0: to the end")
+    p.add_argument("--search-kinds", default="act",
+                   help="ask kinds searched at their own decision, comma-separated: act, priority")
+    p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask (topk)")
+    p.add_argument("--search-d", type=int, default=2, help="sampled worlds per option (topk)")
     p.add_argument("--search-skip-p", type=float, default=0.97,
                    help="no search when the network's top option has at least this probability")
     p.add_argument("--save-every", type=int, default=5)

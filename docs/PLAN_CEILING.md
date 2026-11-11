@@ -66,8 +66,11 @@ owner's rulings:
   - a stronger search at larger n gives more clear corrections per game (the n-curve counts them);
   - the instant-speed decisions are untrained (grown from `cw`), and the search's corrections there
     may be easier to learn;
-  - targets scaled by their standard error, so the 92% of differences that are ties (E3) do not
-    move the network.
+  - targets scaled by their standard error, so a comparison where both moves led to the same
+    result does not move the network. That was 92% of E3's comparisons. A tie here is not a drawn
+    game: 99.7% of r26's 81,000 evaluation games had a winner. It is two candidate moves that,
+    played on the same futures, both won or both lost, because most single moves do not decide a
+    game of Magic.
 - Gate B tests exactly this, at 300k targets on unseen deals, before any long run.
 - If it fails, F1 does not run, and the difficult opponents are the learner's own versions plus
   searched anchors.
@@ -127,8 +130,15 @@ owner's rulings:
       and learned the generating network's style instead (183 §15-16);
     - a separate value network did not change that (183 §12-13).
   - E3 (D21): one round of distillation of playout labels changed ~3% of choices and gained
-    nothing in games, with no growth from 100k to 300k labels (NUMBERS, "E3 LABEL SCALING"). 92% of
-    its result differences were ties (186-phase0-labels).
+    nothing in games, with no growth from 100k to 300k labels (NUMBERS, "E3 LABEL SCALING").
+    - In 92% of its comparisons the two moves had the same result on the same future: both won or
+      both lost (186-phase0-labels).
+    - Games themselves almost always have a winner: 99.7% of r26's 81,000 evaluation games did;
+      0.26% hit the turn cap.
+    - What ties a comparison is that one move rarely decides a game.
+    - The remedies make each comparison graded, not the games decisive: more futures per
+      comparison, the value network at a horizon, effort spent on close decisions, and steps
+      scaled by the standard error (§3.2, §6.2).
 - **The simulator works on hands.** Its NLL on hidden hands is below a deck-aware yardstick's: 11%
   overall, 12% mid-game, 18% late. Its probabilities are honest. On library contents it is no
   better than the prior (D21; NUMBERS, "E0").
@@ -392,7 +402,7 @@ and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
   deals:
   - it must gain at least +0.015 over its original over 450 paired deals at 300k (E3's bar);
   - its agreement with the search on held-out positions must rise from 100k to 300k.
-- The tie share of the targets is reported against E3's 92%.
+- The share of comparisons with no difference in result is reported against E3's 92%.
 - If gate B fails, F1 is not run, and the difficult opponents are the learner's own versions plus
   searched anchors.
 
@@ -401,7 +411,7 @@ and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
 | Earlier | Now |
 |---|---|
 | k x d grid, 6 simulations | Gumbel sequential halving at the n the curve chose, whose clear corrections per game are counted |
-| soft targets with a fixed temperature (r12); E3's 92% ties | the step scaled by the standard error of the means, so a tie moves the target by a tie's worth |
+| soft targets with a fixed temperature (r12); in 92% of E3's comparisons both moves had the same result | the step scaled by the standard error of the means, so a comparison with no difference moves the target by nothing; graded leaf values and more worlds per comparison make fewer of them |
 | ~1.6K clear labels per generation, then discarded | a replay buffer in RAM over generations (§6.3) |
 | value head damaged by distillation; a separate value network did not lift the plateau (183 §10-13) | value trained only on game results at sampled positions; a separate network is a setting, not a fix |
 | uniform worlds, five-colour piles for two-colour decks (`search.py`) | simulator worlds once E0 passes on the new game |

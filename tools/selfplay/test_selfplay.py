@@ -1218,3 +1218,117 @@ def test_the_search_plays_a_two_target_candidate(table, monkeypatch) -> None:
     assert played[0] == f"cast:{pm}:x3" and searcher.stats["sim_errors"] == 0
     assert score is not None and -1.0 <= score <= 1.0
     assert game.world.zone_of(pm).kind == "hand"  # the real game is untouched
+
+
+def test_gumbel_halving_spends_its_budget_on_shared_worlds(table) -> None:
+    """root="gumbel" (PLAN_CEILING §3.2): at most n simulations; every candidate of a round is
+    played in the same worlds; the better half survives each round; and a clearly better mean
+    beats a prior that prefers another candidate."""
+    from tools.selfplay.search import Searcher
+
+    s = Searcher(None, 0, "learner", table, pool_mode="castable", set_code="M21",
+                 root="gumbel", n=32, m=8, seed=0)
+    seen: dict[int, list] = {}
+
+    def run(c, world):
+        seen.setdefault(c, []).append(world)
+        return c / 10  # candidate 7 is best
+
+    logits = [2.0] + [0.0] * 7  # the network prefers candidate 0
+    pick, q = s.compare(list(range(8)), logits, run)
+    assert pick == 7 and q[7] == pytest.approx(0.7)
+    assert sum(len(w) for w in seen.values()) <= 32
+    assert seen[6] == seen[7]  # the last two met every world together
+    assert set(seen[0]) < set(seen[7])  # an early loser met only the first round's worlds
+
+
+def test_a_world_where_one_candidate_crashed_counts_for_none(table) -> None:
+    """Common random numbers under sequential halving: a world in which any candidate's
+    simulation crashed is left out for every candidate of that round."""
+    from tools.selfplay.search import Searcher
+
+    s = Searcher(None, 0, "learner", table, pool_mode="castable", set_code="M21",
+                 root="gumbel", n=24, m=2, seed=0)
+    first: list = []
+
+    def run(c, world):
+        first.append(world) if not first else None
+        if world == first[0]:  # candidate 0 wins big in the world where candidate 1 crashes
+            return 1.0 if c == 0 else None
+        return 0.0 if c == 0 else 0.05
+
+    pick, q = s.compare([0, 1], [0.0, 0.0], run)
+    assert q == {0: 0.0, 1: pytest.approx(0.05)} and pick == 1
+
+
+def test_the_horizon_stops_at_the_searchers_nth_next_turn() -> None:
+    from types import SimpleNamespace as NS
+
+    from tools.selfplay.search import horizon_stop
+
+    def at(active, turn):
+        return NS(world=NS(active_player=active, turn=turn))
+
+    assert horizon_stop("p0", 5, 0) is None  # to the end of the game
+    stop = horizon_stop("p0", 5, 2)
+    assert not stop(at("p1", 6), "turn_top")  # the opponent's turn
+    assert not stop(at("p0", 7), "priority")  # not a turn top
+    assert not stop(at("p0", 7), "turn_top")  # the searcher's first next turn
+    assert not stop(at("p1", 8), "turn_top")
+    assert stop(at("p0", 9), "turn_top")  # its second
+
+
+class _PrioritySearcher:
+    """The searching seat of a game: its first ``limit`` decisions of a searched kind go to the
+    Searcher, everything else to the heuristic (a short test)."""
+
+    def __init__(self, searcher, table, limit: int = 3) -> None:
+        self.searcher = searcher
+        self.table = table
+        self.limit = limit
+        self.inner = HeuristicAgent()
+        self.name = "priority-searcher"
+
+    def decide(self, ask, obs) -> int:
+        if (len(ask.options) > 1 and ask.kind in self.searcher.kinds
+                and self.searcher.stats["searched"] < self.limit):
+            feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
+            return self.searcher.choose(ask, obs, feats)
+        return self.inner.decide(ask, obs)
+
+
+def test_the_search_answers_instant_speed_decisions(table) -> None:
+    """kinds=("priority",): at the searcher's instant-speed decisions each copy resumes at the same
+    priority point and plays the candidate there (SimAgent.forced answers the priority ask); no
+    simulation crashes, and the game ends normally."""
+    from tools.selfplay.search import Searcher, ms_percentiles
+
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                        set_code="M21", root="gumbel", n=2, m=2, skip_p=1.01,
+                        kinds=("priority",), seed=41)
+    res = play_game(41, [_PrioritySearcher(searcher, table, limit=2), HeuristicAgent()],
+                    deck_mode="coherent")
+    assert res["crash"] is None and searcher.stats["sim_errors"] == 0
+    assert searcher.stats["searched:priority"] == 2
+    assert ms_percentiles(searcher.stats)["n"] == 2
+
+
+def test_a_sampled_continuation_shares_its_draws_within_a_world(table) -> None:
+    """continuation="sampled": the world seeds the hidden cards and each seat's draws, so a
+    candidate played twice in one world scores the same, as every candidate of a world does."""
+    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play, get_supply
+    from tools.selfplay import rig
+    from tools.selfplay.search import Searcher
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    _play(game, RandomPolicy(0), game.world.player_order, TURN_CAP,
+          stop_after=lambda _g, boundary: boundary == "priority")
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                        set_code="M21", continuation="sampled", seed=0)
+    scores = [searcher.simulate(game, 0, "PASS", world=w) for w in (5, 5, 6)]
+    assert scores[0] == scores[1] is not None and searcher.stats["sim_errors"] == 0

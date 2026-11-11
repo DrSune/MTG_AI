@@ -84,11 +84,11 @@ class NetAgent:
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
 
-            opts = job["search"]
+            opts = {k: v for k, v in job["search"].items() if k != "blocks"}
+            # Gumbel noise at the root only where the seat samples its moves (training play)
             self.searcher = Searcher(slot, job["gid"], self.spec, table,
                                      pool_mode=job["pool_mode"], set_code=job["set_code"],
-                                     k=opts["k"], d=opts["d"], skip_p=opts["skip_p"],
-                                     seed=job["seed"] * 2 + seat)
+                                     seed=job["seed"] * 2 + seat, noise=not self.greedy, **opts)
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -112,7 +112,7 @@ class NetAgent:
             if idx is not None:
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
-        if self.searcher is not None and ask.kind == "act":
+        if self.searcher is not None and ask.kind in self.searcher.kinds:
             return self.searcher.choose(ask, obs, feats)
         if self.labeller is not None and ask.kind == "act":
             a, _, probs = self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,

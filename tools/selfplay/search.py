@@ -1,16 +1,24 @@
 """Decision-time lookahead: try the candidate moves in copies of the game and keep the best.
 
-At a main-phase decision (play which land, cast what, activate, pass; either main phase) the
-searching seat:
+At a searched decision (the act menu of either main phase; with ``kinds`` also the instant-speed
+``priority`` menu) the searching seat:
 
-1. asks the network for its option probabilities and keeps the top ``k`` options;
-2. for each kept option, ``d`` times: forks the game (``tools/search/fork.py``), re-samples
-   everything this seat cannot see (see ``determinize``), plays the option, then lets the
-   network play BOTH seats greedily through the rest of this turn and the opponent's whole turn,
-   and stops at the start of this seat's next turn;
-3. scores each simulation by the outcome if the game ended, else by the network's value of the
+1. asks the network for its option probabilities;
+2. picks candidates and spends simulations on them by its ``root``: ``topk`` plays the top ``k``
+   options in the same ``d`` worlds each; ``gumbel`` takes ``m`` candidates by Gumbel-top-k (no
+   noise in greedy play) and splits ``n`` simulations over them by sequential halving (Danihelka
+   et al., ICLR 2022), every candidate of a round played in the same worlds;
+3. each simulation forks the game (``tools/search/fork.py``), re-samples everything this seat
+   cannot see (see ``determinize``), plays the candidate, then lets the network play BOTH seats
+   (``continuation``: greedily, or sampled with one draw stream per seat and world, shared by
+   every candidate) until the start of this seat's ``horizon``-th next turn (0: the game's end);
+4. scores each simulation by the outcome if the game ended, else by the network's value of the
    real next decision (the act menu at that turn start);
-4. plays the option with the best mean score.
+5. plays the candidate with the best mean score (``topk``), or with the best logit plus
+   sigma(mean) (``gumbel``).
+
+Every setting is a learner flag (``--search-*``), and each measured setting's result goes to
+KNOWLEDGE/NUMBERS.md (docs/PLAN_CEILING.md §3.2): settings are added beside the old ones.
 
 Honesty (OWNER_PREFERENCES #1): a fork copies the true hidden zones, so before simulating, the
 copy's own library is shuffled (its composition is known to its owner, its order is not) and
@@ -27,8 +35,10 @@ boundary (before the declare-attackers step's declaration), where whole attack p
 plan. Blocks (--search-blocks) are planned the same way at the pre-blocks boundary, where the
 opponent's attack is declared and no block asked yet. The game's state, the step and priority
 included, lives in the executor, so a copy resumes exactly where it was taken: at a candidate act
-the same decision is asked again and answered with the candidate. ``priority`` decisions are not
-searched yet (DESIGN_PRIORITY §3.4).
+the same decision is asked again and answered with the candidate. ``priority`` decisions (instant
+speed: outside the main phases or over a non-empty stack) come from the same point of the game
+loop (``take_priority``) and are searched when ``kinds`` names them. Target asks are answered by
+the network inside each simulation.
 
 A crashed simulation leaves out its world for every candidate, so the candidates stay compared on
 the same worlds (``mean_scores``). ``draw_worlds`` is where the worlds come from: uniform re-samples
@@ -44,6 +54,8 @@ from __future__ import annotations
 
 import math
 import random
+import time
+from collections import Counter
 from typing import Any
 
 from MTG_bot.bench.protocol import Ask, Option
@@ -75,6 +87,19 @@ CONFIDENT_SHARE = 0.10
 LABELS_PER_GAME = 4
 LOGODDS_PER_SE = 0.5
 
+ROOTS = ("topk", "gumbel")
+CONTINUATIONS = ("greedy", "sampled")
+#: The ask kinds a searcher can search at their own decision (combat plans are separate).
+SEARCH_KINDS = ("act", "priority")
+#: Gumbel MuZero's sigma: a candidate's mean result q in [-1, 1] enters the logits as
+#: (C_VISIT + the most simulations any candidate had) * C_SCALE * (q + 1) / 2 (Danihelka et al.
+#: 2022, their values).
+C_VISIT = 50.0
+C_SCALE = 1.0
+#: A change of move is a clear correction when the chosen candidate's mean beats the network's
+#: own choice by at least this (183 §16; the n-curve counts them, PLAN_CEILING §3.3).
+CLEAR_MARGIN = 0.1
+
 _IDENT_CACHE: dict[str, Any] = {}
 
 
@@ -100,8 +125,8 @@ def determinize(game: Any, seat: int, supply: Any, rng: random.Random) -> None:
 class SimAgent:
     """A network seat inside a simulation, never recorded: greedy, or with ``rng`` sampling from
     the network's probabilities with one draw per decision (a label's sampled playouts: every
-    alternative gets the same draws). ``forced`` answers the first act ask (the candidate being
-    evaluated)."""
+    alternative gets the same draws). ``forced`` answers the first act or priority ask: the
+    decision the copy was taken at, asked again, with the candidate being evaluated."""
 
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable,
                  rng: random.Random | None = None) -> None:
@@ -119,7 +144,7 @@ class SimAgent:
     block_plan: frozenset | None = None
 
     def decide(self, ask: Any, obs: Any) -> int:
-        if self.forced is not None and ask.kind == "act":
+        if self.forced is not None and ask.kind in SEARCH_KINDS:
             tok, self.forced = self.forced, None
             for i, o in enumerate(ask.options):
                 if o.token == tok:
@@ -186,7 +211,13 @@ def block_answer(ask: Any, plan: frozenset) -> int | None:
 class Searcher:
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, *, pool_mode: str,
                  set_code: str, k: int = 4, d: int = 2, skip_p: float = 0.97,
-                 seed: int = 0) -> None:
+                 seed: int = 0, root: str = "topk", n: int = 16, m: int = 16,
+                 continuation: str = "greedy", horizon: int = 1,
+                 kinds: tuple[str, ...] = ("act",), noise: bool = False) -> None:
+        if root not in ROOTS or continuation not in CONTINUATIONS:
+            raise ValueError(f"search root {root!r} or continuation {continuation!r} unknown")
+        if not set(kinds) <= set(SEARCH_KINDS):
+            raise ValueError(f"search kinds {kinds!r}: only {SEARCH_KINDS} are searched")
         self.slot = slot
         self.gid = gid
         # the network that ranks the candidates, plays both seats inside the simulations and
@@ -196,35 +227,108 @@ class Searcher:
         self.k = k
         self.d = d
         self.skip_p = skip_p
+        self.root = root
+        self.n = n
+        self.m = m
+        self.continuation = continuation
+        self.horizon = horizon
+        self.kinds = frozenset(kinds)
+        self.noise = noise  # Gumbel noise at the root: on in sampled (training) play only
         self.rng = random.Random(seed)
         # the supply the searched game was dealt from: forks share its compiled cards (fork.py)
         # and the opponent's hidden cards are re-drawn from its deckable pool (determinize)
         self.supply = get_supply(pool_mode, set_code)
         self.set_code = set_code
-        self.stats = {"searched": 0, "skipped": 0, "sims": 0, "changed": 0, "sim_errors": 0}
+        self.stats: Counter = Counter({"searched": 0, "skipped": 0, "sims": 0, "changed": 0,
+                                       "sim_errors": 0})
 
-    def draw_worlds(self) -> list[tuple[int, float]]:
-        """The worlds every candidate is played in, with their weights: d re-samples from public
-        information (``determinize``), weight 1 each. Belief futures replace them (PLAN §1.3)."""
-        return [(self.rng.randrange(1 << 31), 1.0) for _ in range(self.d)]
+    def draw_worlds(self, count: int) -> list[tuple[int, float]]:
+        """The worlds the candidates of one comparison are played in, with their weights:
+        re-samples from public information (``determinize``), weight 1 each. Belief futures
+        replace them (PLAN_CEILING §5)."""
+        return [(self.rng.randrange(1 << 31), 1.0) for _ in range(count)]
+
+    def compare(self, cands: list, logits: list[float], run: Any) -> tuple[int, dict[int, float]]:
+        """Choose among ``cands``, whose network log-probabilities are ``logits``: the index of
+        the chosen candidate, and each played candidate's mean result by index. ``run(c, world)``
+        plays candidate c in a world and gives its result in [-1, 1], or None when the engine
+        crashed. Common random numbers: the candidates of one round share its worlds, and a world
+        in which any of them crashed is left out for all of them (``mean_scores``)."""
+        if self.root == "topk":
+            worlds = self.draw_worlds(self.d)
+            q = mean_scores({i: [run(c, w) for w, _ in worlds] for i, c in enumerate(cands)},
+                            [x for _, x in worlds])
+            if q is None:
+                return max(range(len(cands)), key=lambda i: logits[i]), {}
+            return max(q, key=lambda i: (q[i], logits[i])), q
+        return self._halve(cands, logits, run)
+
+    def _halve(self, cands: list, logits: list[float], run: Any) -> tuple[int, dict[int, float]]:
+        """Gumbel sequential halving (Danihelka et al. 2022, Algorithm 2): the top m of logit
+        plus Gumbel noise, then ceil(log2 m) rounds that split n simulations evenly, each keeping
+        the better half by logit + noise + sigma(mean)."""
+        g = [self._gumbel() if self.noise else 0.0 for _ in cands]
+        m = max(1, min(self.m, len(cands), self.n))
+        alive = sorted(range(len(cands)), key=lambda i: -(g[i] + logits[i]))[:m]
+        rounds = max(1, math.ceil(math.log2(m)))
+        res: dict[int, list[tuple[float, float]]] = {i: [] for i in alive}
+
+        def key(i: int) -> float:
+            if not res[i]:
+                return -math.inf
+            q = sum(z * w for z, w in res[i]) / sum(w for _, w in res[i])
+            most = max(len(v) for v in res.values())
+            return g[i] + logits[i] + (C_VISIT + most) * C_SCALE * (q + 1) / 2
+
+        for _ in range(rounds):
+            worlds = self.draw_worlds(max(1, self.n // (rounds * len(alive))))
+            raw = {i: [run(cands[i], w) for w, _ in worlds] for i in alive}
+            keep = [j for j in range(len(worlds)) if all(raw[i][j] is not None for i in alive)]
+            for i in alive:
+                res[i].extend((raw[i][j], worlds[j][1]) for j in keep)
+            if len(alive) > 1:
+                alive = sorted(alive, key=key, reverse=True)[: math.ceil(len(alive) / 2)]
+        q = {i: sum(z * w for z, w in v) / sum(w for _, w in v) for i, v in res.items() if v}
+        if not q:
+            return max(range(len(cands)), key=lambda i: logits[i]), {}
+        return max(alive, key=key), q
+
+    def _gumbel(self) -> float:
+        return -math.log(-math.log(self.rng.random() or 1e-300))
+
+    def _skip(self, kind: str) -> None:
+        self.stats["skipped"] += 1
+        self.stats[f"skipped:{kind}"] += 1
+
+    def _record(self, kind: str, pick: int, own: int, q: dict[int, float], t0: float) -> None:
+        """Statistics of one searched decision of ``kind`` (act, priority, attack or block plan):
+        ``pick`` and ``own`` (the network's choice) index the compared candidates; its time in
+        buckets of a tenth of a decade (``ms_percentiles``). Totals and per kind."""
+        ms = 1000 * (time.perf_counter() - t0)
+        st = self.stats
+        st["searched"] += 1
+        st[f"searched:{kind}"] += 1
+        st["changed"] += int(pick != own)
+        st[f"changed:{kind}"] += int(pick != own)
+        st["clear"] += int(pick != own and own in q and q[pick] - q[own] >= CLEAR_MARGIN)
+        st["ms"] += round(ms)
+        st[f"ms_db{int(10 * math.log10(max(ms, 1.0)))}"] += 1
 
     def choose(self, ask: Any, obs: Any, feats: dict) -> int:
-        """The searched option index for one act ask (feats: its encoding)."""
+        """The searched option index for one act or priority ask (feats: its encoding)."""
         n = len(ask.options)
         a0, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
         if max(probs) >= self.skip_p:
-            self.stats["skipped"] += 1
+            self._skip(ask.kind)
             return int(a0)
-        order = sorted(range(n), key=lambda i: -probs[i])[: self.k]
-        # Common random numbers: every candidate is played in the SAME d sampled worlds, so a
-        # difference in score is the move's, not the luck of the opponent's sampled hand.
-        worlds = self.draw_worlds()
-        scores = mean_scores({i: [self.simulate(obs.game, ask.seat, ask.options[i].token, world=w)
-                                  for w, _ in worlds] for i in order}, [x for _, x in worlds])
-        best = a0 if scores is None else max(order, key=lambda i: (scores[i], probs[i]))
-        self.stats["searched"] += 1
-        self.stats["changed"] += int(best != a0)
-        return int(best)
+        t0 = time.perf_counter()
+        ranked = sorted(range(n), key=lambda i: -probs[i])
+        cands = ranked[: self.k] if self.root == "topk" else ranked
+        logits = [math.log(probs[i]) if probs[i] > 0 else -math.inf for i in cands]
+        pick, q = self.compare(cands, logits, lambda i, w: self.simulate(
+            obs.game, ask.seat, ask.options[i].token, world=w))
+        self._record(ask.kind, pick, cands.index(int(a0)) if int(a0) in cands else -1, q, t0)
+        return int(cands[pick])
 
     def plan_attacks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
         """At the pre-combat boundary: the attack set to declare this combat, or None to let the
@@ -254,8 +358,9 @@ class Searcher:
             if probs[0] >= probs[1]:
                 declared.add(c)
         if all(max(p, 1 - p) >= self.skip_p for p in p_attack.values()):
-            self.stats["plans_skipped"] = self.stats.get("plans_skipped", 0) + 1
+            self._skip("attack")
             return None
+        t0 = time.perf_counter()
         base = frozenset(declared)
         plans = [base, frozenset(asked), frozenset()]
         for c in sorted(asked, key=lambda c: abs(p_attack[c] - 0.5)):
@@ -265,13 +370,13 @@ class Searcher:
             if pl not in uniq:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
-        worlds = self.draw_worlds()
-        scores = mean_scores({pl: [self.simulate(game, seat, None, attack_plan=pl, world=w)
-                                   for w, _ in worlds] for pl in uniq}, [x for _, x in worlds])
-        best = base if scores is None else max(uniq, key=lambda pl: (scores[pl], pl == base))
-        self.stats["plans"] = self.stats.get("plans", 0) + 1
-        self.stats["plans_changed"] = self.stats.get("plans_changed", 0) + int(best != base)
-        return best | mandated
+        # a plan's prior: the network's probability of answering every ask that way
+        logits = [sum(math.log(max(p_attack[c] if c in pl else 1 - p_attack[c], 1e-12))
+                      for c in asked) for pl in uniq]
+        pick, q = self.compare(uniq, logits, lambda pl, w: self.simulate(
+            game, seat, None, attack_plan=pl, world=w))
+        self._record("attack", pick, 0, q, t0)
+        return uniq[pick] | mandated
 
     def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset(),
                     max_plans: int = 6) -> frozenset | None:
@@ -314,8 +419,9 @@ class Searcher:
             if ranked[0][1] is not None:
                 declared[b] = ranked[0][1]
         if not choices or all(r[0][0] >= self.skip_p for r in choices.values()):
-            self.stats["blocks_skipped"] = self.stats.get("blocks_skipped", 0) + 1
+            self._skip("block")
             return None
+        t0 = time.perf_counter()
         base = frozenset(declared.items())
         plans = [base, frozenset()]
         for b in sorted(choices, key=lambda b: choices[b][0][0]):
@@ -331,33 +437,33 @@ class Searcher:
             if pl not in uniq:
                 uniq.append(pl)
         uniq = uniq[:max_plans]
-        worlds = self.draw_worlds()
-        scores = mean_scores({pl: [self.simulate(game, seat, None, block_plan=pl, world=w)
-                                   for w, _ in worlds] for pl in uniq}, [x for _, x in worlds])
-        best = base if scores is None else max(uniq, key=lambda pl: (scores[pl], pl == base))
-        self.stats["blocks"] = self.stats.get("blocks", 0) + 1
-        self.stats["blocks_changed"] = self.stats.get("blocks_changed", 0) + int(best != base)
-        return best
+        # a plan's prior: the network's probability of each blocker's assignment in it
+        prob = {b: {a: p for p, a in ranked} for b, ranked in choices.items()}
+        logits = [sum(math.log(max(prob[b].get(dict(pl).get(b), 0.0), 1e-12)) for b in choices)
+                  for pl in uniq]
+        pick, q = self.compare(uniq, logits, lambda pl, w: self.simulate(
+            game, seat, None, block_plan=pl, world=w))
+        self._record("block", pick, 0, q, t0)
+        return uniq[pick]
 
     def simulate(self, game: Any, seat: int, token: str | None,
                  attack_plan: frozenset | None = None, world: int = 0,
                  block_plan: frozenset | None = None) -> float | None:
-        """Score one candidate: ``token`` is a main-phase option to play now, or None with
-        ``attack_plan`` at the pre-attacks boundary, or with ``block_plan`` at the pre-blocks
-        boundary (the opponent's attack declared)."""
+        """Score one candidate: ``token`` is an option of the searched act or priority menu to
+        play now, or None with ``attack_plan`` at the pre-attacks boundary, or with
+        ``block_plan`` at the pre-blocks boundary (the opponent's attack declared). ``world``
+        seeds the re-sampled hidden cards and, in sampled continuations, each seat's draws, so
+        every candidate played in one world meets the same hands and the same draws."""
         self.stats["sims"] += 1
         clone = fork_live(game, self.supply)
         determinize(clone, seat, self.supply, random.Random(world))
-        me = clone.world.player_order[seat]
-        start = clone.world.turn
-        agents = [SimAgent(self.slot, self.gid, self.spec, self.table) for _ in (0, 1)]
+        sampled = self.continuation == "sampled"
+        agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
+                           random.Random(f"{world}:{s}") if sampled else None) for s in (0, 1)]
         agents[seat].forced = token
         agents[seat].attack_plan = attack_plan
         agents[seat].block_plan = block_plan
-
-        def stop(g: Any, boundary: str) -> bool:
-            return boundary == "turn_top" and g.world.active_player == me and g.world.turn > start
-
+        stop = horizon_stop(clone.world.player_order[seat], clone.world.turn, self.horizon)
         router = play_out(clone, agents, self.supply, self.set_code, stop)
         if router is None:
             self.stats["sim_errors"] += 1
@@ -374,6 +480,40 @@ class Searcher:
         feats = FT.encode(clone.executor, seat, ask, self.table, FT.AskContext())
         _, value = self.slot.infer((self.gid, seat, self.spec, True, False, feats, 1))
         return float(value)
+
+
+def horizon_stop(me: Any, start: int, horizon: int) -> Any:
+    """The ``stop_after`` of a simulation: True at the top of ``me``'s ``horizon``-th turn after
+    turn ``start`` (games._play_turns consults "turn_top" once per turn); None (play to the end
+    of the game) when ``horizon`` is 0."""
+    if horizon <= 0:
+        return None
+    tops = 0
+
+    def stop(g: Any, boundary: str) -> bool:
+        nonlocal tops
+        if boundary == "turn_top" and g.world.active_player == me and g.world.turn > start:
+            tops += 1
+            return tops >= horizon
+        return False
+
+    return stop
+
+
+def ms_percentiles(stats: dict) -> dict:
+    """p50, p90 and p99 of a searched decision's time (ms), read from ``Searcher._record``'s
+    buckets (each the upper edge of a tenth of a decade, so within 26%), and the mean."""
+    buckets = sorted((int(k[5:]), v) for k, v in stats.items() if k.startswith("ms_db"))
+    n = sum(v for _, v in buckets)
+    out: dict = {"n": n, "mean": round(stats.get("ms", 0) / n, 1) if n else None}
+    for name, frac in (("p50", 0.5), ("p90", 0.9), ("p99", 0.99)):
+        seen = 0
+        for b, v in buckets:
+            seen += v
+            if seen >= frac * n:
+                out[name] = round(10 ** ((b + 1) / 10), 1)
+                break
+    return out
 
 
 def fork_live(game: Any, supply: Any) -> Any:
