@@ -17,8 +17,11 @@ the game with priority, pre-registered in `KNOWLEDGE/2026-11-11/192`. It runs as
 unit `mtg-window1` (`systemctl --user is-active mtg-window1`), which executes
 `reports/window1_2026-11-11/queue.sh` from the worktree `/home/sune/Desktop/MTG_AI-w1`. Results go
 to `runs/window1/`: `queue.log`, and one `.done` file per finished step, so a restarted queue skips
-those steps. r27 (`KNOWLEDGE/2026-11-11/191`) starts when the window ends. r26 stopped at update
-1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time, and nothing else on the GPU beside it.
+those steps. When the window ends, the transient unit `mtg-clock1`
+(`reports/window1_2026-11-11/clock.sh`) measures the clock's latency, one game at a time (192 §6,
+`runs/window1/clock.log`), and then starts r27 (`KNOWLEDGE/2026-11-11/191`, unit `mtg-r27`). r26
+stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time, and nothing else on
+the GPU beside it.
 
 ## The King Goal, in one line
 
