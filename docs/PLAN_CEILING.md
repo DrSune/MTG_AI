@@ -30,7 +30,7 @@ owner's rulings:
 | Name | What it is | Ceiling | Cost |
 |---|---|---|---|
 | **Learner** (r27, then H1, later H2) | outcome PPO, gamma = lambda = 1, reward +1/-1 | high | cheap games, slow learning |
-| **Searcher F0** | a frozen learner network plus search at play time | that network's, raised by its search | 5-20x a plain game, measured in step 1 |
+| **Searcher F0** | a frozen network (the learner's or F1's) plus search at play time | that network's, raised by its search | 5-20x a plain game, measured in step 1 |
 | **Search-trained network F1** | expert iteration: the network is trained toward what its search chose | lower | cheap to play against, costly to train |
 | **Simulator** | predicts the opponent's hidden cards from what a player can see | (serves the search) | — |
 
@@ -50,8 +50,8 @@ owner's rulings:
 | 0 | **r27**: outcome PPO on the new game from r26's newest network | its pre-registration (stage 5) | continuous; paused only for measurement windows |
 | 1 | the **search family**, every setting a flag; the simulator recaptured on the new game | **the n-curve**: strength against the number of simulations n | ~1 day of windows |
 | 2 | the **simulator at every level of the search**: truth lines, consequence | E0 again on the new game; belief regret | inside step 1's and 3's windows |
-| 3 | **F1**, only if step 1 shows the search well above its own network and a cheap distillation probe moves the network | F1 gains at least as much strength per machine-hour as r27 | 2-3 days |
-| 4 | **H1**: the learner's league gets F0 and F1 as difficult opponents | the **ceiling read** (§7) | 1-2 weeks |
+| 3 | **F1, trained high first** (owner, 2026-11-11), only if step 1 shows the search well above its own network and a cheap distillation probe moves the network. A checkpoint every ~50 Elo builds the opponents' ladder | at 48 h: faster per machine-hour than r27, or stop. Then on to its plateau or the owner's target (§6.4) | days, up to 2 weeks |
+| 4 | **H1**: the learner trains against F1's ladder and its searched versions; it starts only when F1's best is at least +200 Elo above the learner | the **ceiling read** (§7) | 1-2 weeks |
 | 5 | **H2**: explorative self-play from the beginning | your call after the ceiling read | weeks |
 
 **Three earlier attempts at training from search failed. The difference this time** (§6.2):
@@ -60,7 +60,7 @@ owner's rulings:
   long run;
 - Gumbel targets carry the value of every searched move, not only the winner;
 - the replay buffer is in RAM, so labels pile up over many generations;
-- if F1 still fails, the plan does not depend on it: F0 needs no training.
+- if F1 still stalls, we know within days, before the learner is trained against it (§6.4).
 
 **Your "consequence x probability"** (§5).
 - The simulator's probabilities stay honest (calibrated).
@@ -87,6 +87,7 @@ owner's rulings:
 | "opponent simulator can be trained for every branching/deeper level of the search, making it really good at predicting the cards we care about (consequence * proability)" | §5 |
 | "utilizes lower cieling but faster improvement models to get our high-cieling model up to speed fast by playing difficult opponents" | §6, §7 |
 | "That will help assess the cieling" | §7.3 |
+| "shouldnt we train the F1 and F0 models to some high ELO? Like 1000 ELO and then start training? If we just play it like it is but plus search, is that really good enough to test what we want to find out?" | §6.4 |
 | "after which we can do the cieling-striving training run that is explorative self-play from the beginning" | §8 |
 | "Only challenge is whether enemy deck is coherent, or completely random" | §5.5 |
 
@@ -355,8 +356,50 @@ F1 is not run.
   - loss KL(π' ‖ π_θ) plus the value loss;
   - weights published to the actors every few minutes;
   - every generation scored on the anchors (§7.2).
-- **Kill**: after 48 machine-hours, F1 must have gained at least as much anchor Elo per
-  machine-hour as r27 over its latest comparable stretch. If it has not, F1 stops and F0 serves.
+- **The 48-hour check**: after 48 machine-hours, F1 must have gained at least as much anchor Elo
+  per machine-hour as r27 over its latest comparable stretch. If it has not, it is not a fast model,
+  and it stops. Otherwise it goes on (§6.4).
+
+### 6.4 Train F1 high before the learner meets it (owner, 2026-11-11)
+
+The owner: "shouldnt we train the F1 and F0 models to some high ELO? Like 1000 ELO and then start
+training? If we just play it like it is but plus search, is that really good enough to test what we
+want to find out?"
+
+**No, it is not enough.**
+- Today's network plus search won by +0.045 to +0.060 (about 30-40 Elo), about one gate.
+- Against it the learner would train much as in plain self-play.
+- Passing it would say little about the learner's ceiling.
+- The read needs opponents far above where the learner starts.
+
+**So F1 trains first, and high:**
+- After gates A and B, F1 gets the machine; r27 pauses.
+- At 48 machine-hours comes the check of §6.3.
+- Then F1 goes on while it climbs, scored daily on the anchors: 300 paired deals, about 8 Elo of
+  standard error.
+- It stops at its plateau: less than 25 Elo per machine-day over two days. Or it stops at the
+  owner's target. After 14 machine-days the owner reviews it either way.
+- A checkpoint every ~50 Elo builds a ladder of opponents, and each checkpoint plus search sits
+  above it.
+
+**The number.** Our Elo puts uniform random play at 0. On the old game:
+- the heuristic is at 302, r26's v2 at 436, and its newest about 450-465;
+- +100 Elo wins 64%, +200 wins 76%, +400 wins 91%;
+- "1000" is about +535 over today's best, winning about 96%.
+
+The plan takes 1000 as the direction, not a gate: F1 goes as high as it keeps climbing.
+- **H1 starts when F1's best is at least +200 Elo above the learner's start**, so the learner wins
+  about a quarter of its games against the top.
+- Below that the read is weak, and the owner decides.
+
+**Why a ladder, not only the top.**
+- With +1/-1 results, a learner that loses 95% of its games gets little signal.
+- PFSP plays it mostly against checkpoints near its level, and the top comes up as it wins.
+
+**If F1 stalls low**, as r5-r14 did after +0.07:
+- the fast-model premise fails, and we know it within days;
+- the strongest opponents are then the learner's own versions, plus search at high n as a measured
+  anchor.
 
 ## 7. H1: the learner against difficult opponents (the ceiling probe)
 
@@ -368,7 +411,7 @@ F1 is not run.
 - **The opponent pool**:
   - the learner's frozen versions;
   - F0 (frozen versions plus search);
-  - F1's networks, raw and searched;
+  - F1's ladder of checkpoints, raw and searched (§6.4);
   - the heuristic, kept against forgetting.
 - **Who plays whom: prioritised fictitious self-play** (PFSP [5]; PLAN_LEARNING §5):
   - 35% of games against the newest frozen version;
@@ -437,9 +480,9 @@ added if the headroom row says capacity.
 | window 1 (~12 h, r27 paused) | simulator capture and training; the n-curve | — |
 | — | r27 | report: the n-curve and E0 on the new game; **the owner chooses the three n** |
 | days 4-6 | r27; then F1's gate B probe (~4 h) | the F1 loop, the RAM buffer, PFSP, the consequence head |
-| days 6-8 | F1 (48 h), if gates A and B pass | — |
-| days 8-20 | H1 | the exploiter, H2's pilot window |
-| ~day 20 | — | **the ceiling read**, to the owner |
+| days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (at most 14 machine-days before a review) | PFSP, the exploiter |
+| then 1-2 weeks | H1, from when F1 is at least +200 Elo above the learner | H2's pilot window |
+| after H1 | — | **the ceiling read**, to the owner |
 | after | H2 | — |
 
 These are machine days, not promises: each window may move with what the previous one found.
@@ -475,6 +518,9 @@ These are machine days, not promises: each window may move with what the previou
 6. **H2 "from the beginning"** means fresh random weights, no imitation, no warm start. Confirm.
 7. **r26 stops** after its 1,000-update read and r27 starts (approved as stage 5 on 2026-11-10).
    Going ahead unless you say otherwise.
+8. **F1's target** (§6.4): as high as it climbs, with a review at 14 machine-days. H1 starts once
+   F1 is at least +200 Elo above the learner's start. Your "1000" (about +535 over today's best)
+   is the direction.
 
 ## References
 

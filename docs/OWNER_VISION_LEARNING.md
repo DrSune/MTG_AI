@@ -243,3 +243,11 @@ The plan that follows this, with its gates and the owner's decisions: `docs/PLAN
   and, through two gates, a network trained by its search (expert iteration). Their ceiling is lower
   because their targets inherit the value network's and the simulator's errors and settle on fixed
   answers; outcome PPO has neither bias.
+- The owner, on the draft: "shouldnt we train the F1 and F0 models to some high ELO? Like 1000 ELO
+  and then start training? If we just play it like it is but plus search, is that really good
+  enough to test what we want to find out?" Agreed: today's network plus search is about one gate
+  stronger (+30-40 Elo), too close to test the learner's ceiling. F1 trains first, as high as it
+  climbs (a ladder of checkpoints every ~50 Elo), and the learner meets it only once F1 is at least
+  +200 Elo above the learner's start (PLAN_CEILING §6.4). On this project's scale (random 0, the
+  heuristic ~300, today's best ~450-465 on the old game), 1000 would win about 96% against today's
+  best: the direction, not a gate.
