@@ -114,3 +114,43 @@ def test_the_swap_is_not_vacuous() -> None:
     after = json.dumps(world_snapshot(game.executor), sort_keys=True, default=str)
     assert before != after
     assert "SENTINEL" in after
+
+
+def test_the_view_tells_the_step_the_combat_and_an_ability_on_the_stack() -> None:
+    """DESIGN_PRIORITY §3.6: the first line names the step; an ability waiting on the stack is
+    named by its source (it is no card); attackers and blockers say so."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+    from run_scenarios import ScenarioRunner
+
+    pack = {"set": "M21", "world": {"life": 20, "seed": 7}, "steps": [], "cards": [
+        {"key": "brute", "real": "Bone Pit Brute", "zone": "hand", "controller": 0},
+        {"key": "ox", "name": "Ox", "type": "Creature", "power": "2", "toughness": "2",
+         "zone": "battlefield", "controller": 0},
+        {"key": "wall", "name": "Wall", "type": "Creature", "power": "0", "toughness": "4",
+         "zone": "battlefield", "controller": 1}]}
+    r = ScenarioRunner(pack, get_supply("all", "M21"))
+    r.run_step({"op": "enter", "key": "brute", "hold": True, "decisions": ["ox"]})
+    lens = SeatLens(1, ORACLE)
+    text = render_view(lens.view(r.ex))
+    assert text.startswith("Turn 1, first main phase. Seat 0 is the active player.")
+    assert "Stack (top first): " in text and "the triggered ability of" in text
+    r.ex.fire_triggers()
+    ox, wall = str(r.handles["ox"]), r.handles["wall"]
+
+    def answer(vocab: tuple[str, ...], what: str) -> str:
+        if what.startswith("attack:"):
+            return "ATTACK" if ox in what else "DECLINE"
+        if what.startswith("block:"):
+            return ox
+        return vocab[0]
+
+    r.ex.decisions.provider = answer
+    r.ex.combat_attacks(r.seats[0])
+    r.ex.pass_until("DECLARE_BLOCKERS")
+    text = render_view(lens.view(r.ex))
+    assert ", declare blockers step." in text.splitlines()[0]
+    assert f"{lens.oid(r.handles['ox'])} Ox 6/2 tapped attacking" in text  # +4/+0 from the Brute
+    assert f"{lens.oid(wall)} Wall 0/4 blocking {lens.oid(r.handles['ox'])}" in text

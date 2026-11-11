@@ -119,6 +119,9 @@ class CardView:
     #: ("o3 leaves the battlefield", "end of turn", "seat 1's next turn"). None when it has no row.
     returns_to: str | None = None
     returns_when: str | None = None
+    #: in the current combat: attacking, and the attackers it blocks (their ids)
+    attacking: bool = False
+    blocking: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -153,6 +156,24 @@ class SeatView:
     active_seat: int
     players: tuple[PlayerView, ...]
     stack: tuple[StackItemView, ...]
+    step: str | None = None  # STEP_WORDS; None before the first turn
+
+
+#: The engine's step names, as a player reads them.
+STEP_WORDS = {
+    "UPKEEP": "upkeep",
+    "DRAW": "draw step",
+    "FIRST_MAIN": "first main phase",
+    "COMBAT": "beginning of combat",
+    "DECLARE_ATTACKERS": "declare attackers step",
+    "DECLARE_BLOCKERS": "declare blockers step",
+    "FIRST_STRIKE_DAMAGE": "first-strike damage step",
+    "COMBAT_DAMAGE": "combat damage step",
+    "END_OF_COMBAT": "end of combat step",
+    "SECOND_MAIN": "second main phase",
+    "END_TURN": "end step",
+    "CLEANUP": "cleanup step",
+}
 
 
 def _visible(zone: str, owner_seat: int, viewer_seat: int) -> bool:
@@ -271,6 +292,9 @@ class SeatLens:
             phased_out=handle in executor.phased_out,
             returns_to=returns_to,
             returns_when=returns_when,
+            attacking=on_bf and handle in executor.attackers,
+            blocking=tuple(self.oid(a) for a, blockers in executor.blocked_by.items()
+                           if handle in blockers) if on_bf else (),
         )
 
     def _returns(self, executor: Executor, handle: Handle) -> tuple[str | None, str | None]:
@@ -321,7 +345,8 @@ class SeatLens:
         stack = tuple(
             StackItemView(
                 oid=self.oid(frame.handle),
-                name=self.name(world.cards[frame.handle].identity.name),
+                name=(self.describe(executor, frame.handle) if frame.handle.namespace == "ability"
+                      else self.name(world.cards[frame.handle].identity.name)),
                 controller_seat=self.seat_of(executor, frame.controller),
                 targets=tuple(self.describe(executor, t) for t in frame.declared_targets),
                 x_value=frame.x_value,
@@ -336,6 +361,7 @@ class SeatLens:
             active_seat=self.seat_of(executor, active) if active is not None else -1,
             players=tuple(players),
             stack=stack,
+            step=STEP_WORDS.get(executor.phase or "") if executor.turn_open else None,
         )
 
 
@@ -374,6 +400,10 @@ def _card_line(card: CardView) -> str:
         bits.append(f"damage {card.damage}")
     if card.attached_to:
         bits.append(f"attached to {card.attached_to}")
+    if card.attacking:
+        bits.append("attacking")
+    if card.blocking:
+        bits.append("blocking " + ", ".join(card.blocking))
     if card.zone == ZONE_BATTLEFIELD and card.keywords:
         bits.append("keywords " + ",".join(k.lower() for k in card.keywords))
     if card.zone == ZONE_BATTLEFIELD and card.controller_seat != card.owner_seat:
@@ -392,7 +422,8 @@ def render_view(view: SeatView) -> str:
     """Canonical compact text: fixed order everywhere, one line per zone, then each distinct card
     text once. Stable byte-for-byte for the same view."""
     lines = [
-        f"Turn {view.turn}. Seat {view.active_seat} is the active player. You are seat {view.viewer_seat}.",
+        (f"Turn {view.turn}{f', {view.step}' if view.step else ''}. Seat {view.active_seat} is "
+         f"the active player. You are seat {view.viewer_seat}."),
         ENGINE_NOTES,
         "",
     ]

@@ -616,6 +616,13 @@ Stage 2 (the players), 2026-11-11:
   the iter row's `kinds`); `report.py` prints the last iteration's. "Games per update" was
   already in every iter row (`games`). The KL stop still stops on the mean: r26 runs without
   it (`target_kl` 0.0) and so will the next run; a per-kind stop waits for a run that uses one.
+- **The LLM bench, §3.6.** `SeatView` gains the step (its first line reads "Turn 3, declare
+  blockers step.") and each card whether it attacks and which attackers it blocks; an ability
+  waiting on the stack is named by its source ("the triggered ability of o2 Bone Pit Brute")
+  where the view used to look it up as a card and would have raised. The step names are one
+  table, `view.STEP_WORDS`, which the router's priority prompt reads too. The engine notes, the
+  primer and `duel.py` changed in stage 1; an LLM seat's calls and latency were already in each
+  game row.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

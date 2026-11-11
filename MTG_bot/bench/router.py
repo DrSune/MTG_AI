@@ -46,6 +46,7 @@ from MTG_bot.bench.protocol import (
     executor_text,
     resolve_ask_seat,
 )
+from MTG_bot.bench.view import STEP_WORDS
 from MTG_bot.core.executor.games import Act
 from MTG_bot.core.executor.legality import SECOND_MAIN
 from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
@@ -177,7 +178,7 @@ class SeatRouter:
             whose = "your" if game.world.active_player == seat else "your opponent's"
             depth = len(executor.stack.frames)
             waiting = f"; {depth} object{'s' if depth != 1 else ''} on the stack" if depth else ""
-            step = _STEP_WORDS.get(executor.phase or "", str(executor.phase).lower())
+            step = STEP_WORDS.get(executor.phase or "", str(executor.phase).lower())
             prompt = f"You have priority ({whose} {step}{waiting}): act at instant speed, or PASS."
         ask = Ask(
             seat=i,
@@ -296,17 +297,3 @@ class SeatRouter:
 
 
 #: How a step is named in the priority prompt.
-_STEP_WORDS = {
-    "UPKEEP": "upkeep",
-    "DRAW": "draw step",
-    "FIRST_MAIN": "first main phase",
-    "COMBAT": "beginning of combat",
-    "DECLARE_ATTACKERS": "declare attackers step",
-    "DECLARE_BLOCKERS": "declare blockers step",
-    "FIRST_STRIKE_DAMAGE": "first-strike damage step",
-    "COMBAT_DAMAGE": "combat damage step",
-    "END_OF_COMBAT": "end of combat step",
-    "SECOND_MAIN": "second main phase",
-    "END_TURN": "end step",
-    "CLEANUP": "cleanup step",
-}
