@@ -110,7 +110,8 @@ difference in result among the compared options.
 The fix: `determinize` unbinds each re-drawn card, as a dealt card is unbound. The regression test is
 `test_a_redrawn_card_that_was_played_before_binds_its_new_identity`, which fails without the fix with
 the pilot's error. Replayed on CPU, the failing games now run the same simulations with no failure:
-seed 900140 (82 simulations, 17 failures before) and 900180 (93, 29 before). A failed simulation
+seed 900140 (82 simulations, 17 failures before), 900180 (93, 29 before) and 900201 (141, 2
+before). A failed simulation
 now also logs its error and source line in the evaluation's summary (`sim_error:...`). So any
 further failure shows what to fix.
 
