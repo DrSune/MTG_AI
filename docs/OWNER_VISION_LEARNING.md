@@ -188,3 +188,35 @@ What the field reports (checked 2026-11-11):
   regularised self-play dynamics; in card games, RL agents lead Legends of Code and Magic, and no
   superhuman Magic agent is reported.
 
+## 10. Search-improved training (2026-11-11, open)
+
+The owner, on training with search before the gamma = lambda = 1 learner: "Search-iimproved
+training sounds good, especially for improving value function and opponent simulator. Why does it
+plan as if I know later cards? I actually see it, but is it even bad? It will train opponent
+simulator and value function really hard. If it gets good, it will play well around opponents
+deck. Only challenge is whether enemy deck is coherent, or completely random. For that we need the
+drafting network to work well, or steal decks that are human-made from the web." And: "For n, we
+should test the trendline of how well it performs at different. Save all of the search options so
+we can revisit later as well." And: "We should utilize the massive RAM for the replay buffer in
+search training phase."
+
+Notes (2026-11-11):
+- Sampling the hidden cards and searching each sample as if all were visible has two known flaws.
+  Strategy fusion: inside one sample the search's later choices know that sample's cards, so a
+  line that needs a guess later is valued as if the guess were free. And sampling hands without
+  what the opponent's play revealed; the opponent simulator (section 5) fixes that one. Strategy
+  fusion matters when playing around tricks and counters, when gathering information (Opt before
+  choosing: each sample already knows the top card) and when bluffing. Today's search and
+  labeller play each sample out with the network on both seats, each seeing only its own view,
+  which has no strategy fusion; a tree built inside each sample has it, and Information Set MCTS
+  (one tree over all the samples) avoids it.
+- Value targets that are real game results are unbiased whatever the search does.
+- The opponent simulator learns the decks it meets. The "coherent" decks are two colours with an
+  even land split and a uniform sample of the pool in those colours (`games.build_coherent_deck`):
+  coherent in colour, random in everything else. Human decks: 17lands publishes per-game data of
+  Arena drafts with each deck (which sets, and its usage terms, still to check); the drafter of
+  section 6 is the long-term source.
+- The strength-against-n curve is measured, and every search setting stays selectable with its
+  measured results recorded, so any setting can be revisited.
+- The replay buffer of the search phase lives in RAM (121 GiB on this box, shared with the GPU).
+
