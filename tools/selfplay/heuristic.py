@@ -3,15 +3,23 @@
 It is deliberately simple and deterministic (no RNG), and it reads only what its seat may know:
 the public board, its own hand, and the cards an ask offers. Its rules, in order of the asks:
 
-* act (in both main phases): play a land, cast the highest mana value spell (kicked when
-  offered, the largest X, never X = 0; the menu pays from lands and mana rocks first, then a
-  creature's mana, then a Treasure's), activate a planeswalker, otherwise pass. A harmful
-  non-damage spell is not cast while the opponent controls no creature. Other activated abilities
-  are never used. In the first main phase, when the spell it would cast reads whether it attacked
-  this turn (raid) and it has a creature that can attack, it passes instead: that spell and the
-  rest of its plays come in the second main phase, after the attack.
-* priority (any priority point but its own main phase with an empty stack): pass. Responding with
-  instants and abilities is DESIGN_PRIORITY §3.3, not built yet.
+* act (in both main phases): play a land, cast the highest mana value spell that is neither an
+  instant nor a flash card (those wait for the opponent's turn; kicked when offered, the largest
+  X, never X = 0; the menu pays from lands and mana rocks first, then a creature's mana, then a
+  Treasure's), activate a planeswalker, in the second main phase an ability that damages or
+  draws and costs only mana and {T}, otherwise pass. A harmful non-damage spell is not cast while
+  the opponent controls no creature. In the first main phase, when the spell it would cast reads
+  whether it attacked this turn (raid) and it has a creature that can attack, it passes instead:
+  that spell and the rest of its plays come in the second main phase, after the attack.
+* priority (any priority point but its own main phase with an empty stack; DESIGN_PRIORITY
+  §3.3): its own object on the stack resolves. The opponent's: counter a spell of mana value 3 or
+  more or one aimed at it or its permanents; else protect the creature a harmful spell aims at
+  (a hexproof or indestructible grant; a pump against damage). With an empty stack, in the
+  opponent's beginning of combat: tap its creatures; after the opponent declares attackers:
+  removal aimed at the attackers, else a flash creature to block with; after blockers: a pump or
+  first strike for its own creature in a fight it would lose or not win; in the opponent's end
+  step: removal, a flash creature, a draw spell, then an ability that damages or draws.
+  Otherwise pass.
 * target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
   creature, then the opponent; a helpful one at its own best creature, then itself. A spell with
   several targets (CR 601.2c) is judged slot by slot, by what it does to that slot's own target:
@@ -36,16 +44,27 @@ from collections import Counter
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     CostManaColor,
+    CostManaGeneric,
+    CostManaHybrid,
+    CostTap,
     DeclareAttackersEvent,
     FAtom,
     FAtomPred,
+    Keyword,
+    QConst,
     SpellAbility,
+    Verb,
     to_dict,
     walk,
 )
 from MTG_bot.core.executor.legality import (
+    BEGIN_COMBAT,
+    DECLARE_ATTACKERS,
+    DECLARE_BLOCKERS,
+    END_STEP,
     SECOND_MAIN,
     _cost_has_x,
     legal_attackers,
@@ -138,6 +157,7 @@ def cast_token(token: str) -> tuple[Handle | None, bool, int]:
 
 class HeuristicAgent:
     name = "heuristic"
+    focus: frozenset | set = frozenset()  # targets a priority play is meant for
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -147,6 +167,8 @@ class HeuristicAgent:
         self.world = self.ex.world
         self.me = self.world.player_order[ask.seat]
         self.opp = self.world.player_order[1 - ask.seat]
+        if ask.kind != "target":
+            self.focus = set()  # a priority play's target asks follow it
         tokens = [o.token for o in ask.options]
         method = getattr(self, f"_{ask.kind}", None)
         if method is not None:
@@ -202,7 +224,133 @@ class HeuristicAgent:
     # -------------------------------------------------------------------- asks
 
     def _priority(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
-        return ask.refuse  # pass (DESIGN_PRIORITY §3.3 adds instant-speed play)
+        ex, step = self.ex, self.ex.phase
+        rows = self._cast_rows(tokens)
+        theirs = self.world.active_player == self.opp
+        pick = None
+        if ex.stack.frames:
+            top = ex.stack.frames[-1]
+            pick = self._answer(top, rows) if top.controller == self.opp else None
+        elif theirs and step == BEGIN_COMBAT:
+            ready = {h for h in self._controlled(self.opp)
+                     if self._is(h, "Creature") and not self.world.cards[h].tapped}
+            pick = self._first(rows, lambda h, toks: "Verb.TAP" in toks and _harms(toks), ready)
+        elif theirs and step == DECLARE_ATTACKERS and ex.attackers:
+            pick = self._removal(rows, set(ex.attackers)) or self._flash_creature(rows)
+        elif step == DECLARE_BLOCKERS:
+            pick = self._combat_pump(rows)
+        elif theirs and step == END_STEP:
+            pick = (self._removal(rows, set()) or self._flash_creature(rows)
+                    or self._first(rows, lambda h, toks: "Verb.DRAW" in toks and not _harms(toks), set())
+                    or self._ability(tokens))
+        return ask.refuse if pick is None else pick
+
+    # ------------------------------------------ instant speed (DESIGN_PRIORITY §3.3)
+
+    def _cast_rows(self, tokens: list[str]) -> list[tuple[int, Handle, frozenset, tuple]]:
+        """(index, card, its IR tokens, preference) per cast row, the act menu's preference: the
+        highest mana value plus X, then kicked, then the earlier row; X = 0 does nothing."""
+        out = []
+        for i, t in enumerate(tokens):
+            if not t.startswith("cast:"):
+                continue
+            h, kicked, x = cast_token(t)
+            if h is None or h not in self.world.cards or (x == 0 and self._has_x(h)):
+                continue
+            toks = _record_tokens(self.ex, self.world.cards[h].identity.oracle_id)
+            out.append((i, h, toks, ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i)))
+        return out
+
+    def _instant_speed(self, h: Handle) -> bool:
+        """An instant or a card with flash: it waits for the opponent's turn."""
+        if self._is(h, "Instant"):
+            return True
+        record = spell_record(self.ex, h)
+        return record is not None and any(k.keyword is Keyword.FLASH for k in record.keywords)
+
+    def _first(self, rows: list, test: Any, focus: set) -> int | None:
+        """The preferred instant-speed row whose card passes ``test``; its targets aim at
+        ``focus``."""
+        passing = [(key, i) for i, h, toks, key in rows if self._instant_speed(h) and test(h, toks)]
+        if not passing:
+            return None
+        self.focus = focus
+        return max(passing)[1]
+
+    def _removal(self, rows: list, prefer: set) -> int | None:
+        """Removal: a harmful card that destroys, damages, exiles, bounces or shrinks."""
+        kill = {"Verb.DESTROY", "Verb.DEAL_DAMAGE", "Verb.EXILE", "Verb.MOVE_ZONE"}
+        return self._first(rows, lambda h, toks: _harms(toks) and "Verb.COUNTER_SPELL" not in toks
+                           and bool(toks & kill or "PtDirection.DECREASE" in toks), prefer)
+
+    def _flash_creature(self, rows: list) -> int | None:
+        return self._first(rows, lambda h, toks: self._is(h, "Creature"), set())
+
+    @staticmethod
+    def _pump(toks: frozenset) -> bool:
+        return not _harms(toks) and (("Verb.MODIFY_PT" in toks and "PtDirection.DECREASE" not in toks)
+                                     or "Keyword.FIRST_STRIKE" in toks)
+
+    @staticmethod
+    def _protects(toks: frozenset) -> bool:
+        return (not _harms(toks) and "Verb.GRANT_ABILITY" in toks
+                and bool({"Keyword.HEXPROOF", "Keyword.INDESTRUCTIBLE"} & toks))
+
+    def _answer(self, top: Any, rows: list) -> int | None:
+        """The opponent's spell waits on the stack: counter it when it is worth it, else protect
+        the creature it harms."""
+        if top.spell_kind in ("ACTIVATED", "TRIGGERED") or top.handle not in self.world.cards:
+            return None
+        mine = [t for t in top.declared_targets
+                if t == self.me or (t in self.world.cards and self.ex.controller_of(t) == self.me)]
+        if mine or (self.world.cards[top.handle].identity.cmc or 0) >= 3:
+            pick = self._first(rows, lambda h, toks: "Verb.COUNTER_SPELL" in toks, {top.handle})
+            if pick is not None:
+                return pick
+        creatures = [t for t in mine if t != self.me and self._is(t, "Creature")]
+        if not creatures or not is_harmful(self.ex, top.handle):
+            return None
+        damage = deals_damage(self.ex, top.handle)
+        return self._first(rows, lambda h, toks: self._protects(toks) or (damage and self._pump(toks)),
+                           {max(creatures, key=self._value)})
+
+    def _combat_pump(self, rows: list) -> int | None:
+        """After blockers: a pump or first strike for its own creature in a fight it would lose
+        (the other creature's damage kills it) or not win (its damage does not kill)."""
+        losing = []
+        for attacker, blockers in self.ex.blocked_by.items():
+            for blocker in blockers:
+                mine, foe = ((attacker, blocker) if self.ex.controller_of(attacker) == self.me
+                             else (blocker, attacker))
+                if self.ex.controller_of(mine) != self.me or mine not in self.world.cards:
+                    continue
+                mp, mt = self._pt(mine)
+                fp, ft = self._pt(foe)
+                if fp >= mt - self.ex.damage.get(mine, 0) or mp < ft - self.ex.damage.get(foe, 0):
+                    losing.append(mine)
+        if not losing:
+            return None
+        return self._first(rows, lambda h, toks: self._pump(toks), {max(losing, key=self._value)})
+
+    def _ability(self, tokens: list[str]) -> int | None:
+        """An activated ability that damages or draws and costs only mana and {T}."""
+        paid = (CostManaColor, CostManaGeneric, CostManaHybrid, CostTap)
+        for i, t in enumerate(tokens):
+            parts = t.split(":")
+            if parts[0] != "act" or len(parts) < 4 or not parts[3].isdigit():
+                continue  # a granted ability (a negative index) is left alone
+            h = _handle(f"{parts[1]}:{parts[2]}")
+            record = spell_record(self.ex, h) if h is not None and h in self.world.cards else None
+            idx = int(parts[3])
+            if record is None or idx >= len(record.abilities):
+                continue
+            ab = record.abilities[idx]
+            if not isinstance(ab, ActivatedAbility) or not all(isinstance(p, paid) for p in ab.cost.parts):
+                continue
+            toks = frozenset(ir_tokens(to_dict(ab)))
+            if "Verb.DRAW" in toks or "Verb.DEAL_DAMAGE" in toks:
+                return i
+        return None
 
     def _act(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         lands = [i for i, t in enumerate(tokens) if t.startswith("land:")]
@@ -215,7 +363,7 @@ class HeuristicAgent:
             h, kicked, x = cast_token(t)
             if h is None or h not in self.world.cards:
                 continue
-            if (x == 0 and self._has_x(h)) or self._pointless(h):
+            if (x == 0 and self._has_x(h)) or self._pointless(h) or self._instant_speed(h):
                 continue  # X = 0 does nothing (Volcanic Geyser deals 0, Wildwood Scourge dies)
             key = ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i)
             if best_key is None or key > best_key:
@@ -231,6 +379,10 @@ class HeuristicAgent:
                 h = _handle(":".join(t.split(":")[1:3]))
                 if h is not None and h in self.world.cards and self._is(h, "Planeswalker"):
                     return i
+        if self.ex.phase == SECOND_MAIN:  # after combat, so a {T} ability costs no attacker
+            pick = self._ability(tokens)
+            if pick is not None:
+                return pick
         return tokens.index("PASS") if "PASS" in tokens else None
 
     def _has_x(self, spell: Handle) -> bool:
@@ -253,6 +405,7 @@ class HeuristicAgent:
                     src = Handle("card", int(hs[j + 1]))
                     break
         harmful = self._harmful_pick(ask.site, src)
+        damage = self._fixed_damage(src) if harmful else None
         best, best_score = None, None
         for i, t in enumerate(tokens):
             if t == "DONE":
@@ -260,7 +413,7 @@ class HeuristicAgent:
             h = _handle(t)
             if h is None:
                 continue
-            score = self._target_score(h, harmful)
+            score = self._target_score(h, harmful, damage) + (30.0 if h in self.focus else 0.0)
             if best_score is None or score > best_score:
                 best, best_score = i, score
         if "DONE" in tokens and (best_score is None or best_score < 0):
@@ -285,7 +438,16 @@ class HeuristicAgent:
             return is_harmful(self.ex, src)
         return harms_slot(node.effect, slots[int(parts[3])].selector)
 
-    def _target_score(self, h: Handle, harmful: bool) -> float:
+    def _fixed_damage(self, src: Handle | None) -> int | None:
+        """The damage the source's DEAL_DAMAGE atoms deal when every one is a fixed number."""
+        record = spell_record(self.ex, src) if src is not None and src in self.world.cards else None
+        amounts = [n.args.get("amount") for n in walk(record) if isinstance(n, Atom)
+                   and n.verb is Verb.DEAL_DAMAGE] if record is not None else []
+        if not amounts or not all(isinstance(a, QConst) for a in amounts):
+            return None
+        return max(a.value for a in amounts)
+
+    def _target_score(self, h: Handle, harmful: bool, damage: int | None = None) -> float:
         if h.namespace == "player":
             mine = h == self.me
             if harmful:
@@ -297,6 +459,9 @@ class HeuristicAgent:
         on_bf = self.world.zone_of(h).kind == ZONE_BATTLEFIELD
         v = self._value(h) if on_bf else float(self.world.cards[h].identity.cmc or 0)
         creature_bonus = 10.0 if self._is(h, "Creature") else 3.0
+        if (harmful and not mine and damage is not None and on_bf and self._is(h, "Creature")
+                and self._pt(h)[1] - self.ex.damage.get(h, 0) > damage):
+            return -5.0  # the damage does not kill it: the opponent or a creature it kills
         if harmful:
             return (creature_bonus + v) if not mine else -(10.0 + v)
         return (creature_bonus + v) if mine else -(10.0 + v)

@@ -597,6 +597,19 @@ Stage 2 (the players), 2026-11-11:
   handle, so it never collides with its source permanent. All of it is public. `model.load`
   starts the new columns and pointer layers at zero: r26's `last.pt` gives the same logits and
   values, to 0.0, on 400 decisions of which 394 set the new columns.
+- **The heuristic plays at instant speed, §3.3.** Instants and flash cards wait for the
+  opponent's turn. It counters a spell of mana value 3 or more or one aimed at it or its
+  permanents, else protects the creature a harmful spell aims at; taps the opponent's creatures
+  in its beginning of combat; aims removal at the attackers once they are declared, else flashes
+  in a blocker; after blockers pumps its creature in a fight it would lose or not win; and in the
+  opponent's end step casts removal, a flash creature, a draw spell, then a damage or draw
+  ability. Burn no longer goes at a creature it cannot kill. Measured on coherent M21 decks:
+  against the previous heuristic 207 of 400 games (0.52 +- 0.05, both seats per deal); against
+  uniform random 184 of 200 (0.92). About 0.65 instant-speed plays per game: 0.28 after the
+  opponent's attackers, 0.19 in its end step, 0.09 answering a spell, 0.06 after blockers, 0.03
+  in its beginning of combat. The strength barely moves, since instants are a small part of these
+  decks and the old one cast them on its own turn; what changes is that the anchor and teacher now
+  use the stack.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

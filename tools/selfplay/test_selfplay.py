@@ -12,7 +12,7 @@ import torch
 
 from MTG_bot.bench.agents import UniformRandomAgent
 from MTG_bot.core.executor.games import get_supply
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
@@ -193,8 +193,9 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
 
 
 def test_heuristic_beats_uniform_random() -> None:
-    """The teacher works. It wins ~0.89 against uniform random, so 14 of 20 fails a working
-    teacher with p = 0.005 and passes a coin-flip one with p = 0.06."""
+    """The teacher works. It wins ~0.9 against uniform random (0.92 on 200 coherent games,
+    2026-11-11), so 14 of 20 fails a working teacher with p = 0.005 and passes a coin-flip one with
+    p = 0.06."""
     wins = 0
     for seed in range(1, 21):
         seat = seed % 2
@@ -617,9 +618,25 @@ def test_heuristic_never_trades_two_mana_for_one() -> None:
     assert not any(a.card == "Prismite" for a in router.acts)
 
 
+def _at_their_end_step(hand1=(), field1=(), field0=()):
+    """The heuristic is seat 1, holding priority in seat 0's end step (an arranged board)."""
+    from MTG_bot.bench.agents import PassAgent
+    from MTG_bot.bench.router import SeatRouter
+    from MTG_bot.bench.test_router import P1, _arranged, _lenses
+    from MTG_bot.core.executor.legality import END_STEP
+
+    game, supply = _arranged(hand1=hand1, field1=field1, field0=field0)
+    router = SeatRouter(game, [PassAgent(), HeuristicAgent()], _lenses(), supply=supply)
+    game.executor.decisions.provider = router.answer
+    game.executor.pass_until(END_STEP)
+    return game, router, P1
+
+
 def test_heuristic_casts_an_x_spell_at_its_largest_x() -> None:
-    game, router, me = _teach(hand0=("Volcanic Geyser",), field0=("Mountain", "Mountain", "Island", "Island", "Island"),
-                              field1=("Walking Corpse",))
+    # An instant waits for the opponent's turn (DESIGN_PRIORITY §3.3): cast in its end step.
+    game, router, me = _at_their_end_step(
+        hand1=("Volcanic Geyser",), field1=("Mountain", "Mountain", "Island", "Island", "Island"),
+        field0=("Walking Corpse",))
     _main_phase(router, game, me)
     assert [a.detail for a in router.acts if a.card == "Volcanic Geyser"] == ["1t:x3"]
 
@@ -655,11 +672,68 @@ def test_heuristic_never_taps_mana_for_a_play_it_will_not_make() -> None:
     assert not game.world.cards[_named(game, "Llanowar Visionary")].tapped and router.acts == []
 
 
+class _AttacksWith:
+    """Seat 0's driver: attacks with the creatures named, passes everything else."""
+
+    name = "attacks"
+
+    def __init__(self, *names: str) -> None:
+        self.names = names
+
+    def decide(self, ask, obs) -> int:
+        tokens = [o.token for o in ask.options]
+        if ask.kind == "attack" and "ATTACK" in tokens:
+            card = obs.executor.world.cards[Handle("card", int(ask.site.split(":")[2]))]
+            if card.identity.name in self.names:
+                return tokens.index("ATTACK")
+        return ask.refuse if ask.refuse is not None else 0
+
+
+def test_heuristic_answers_at_instant_speed() -> None:
+    """DESIGN_PRIORITY §3.3. Seat 1's heuristic counters seat 0's three-mana creature spell while it
+    waits on the stack, and after seat 0 declares its attacker it aims Eliminate at the attacker,
+    not at the bigger creature that stayed home."""
+    from MTG_bot.bench.router import SeatRouter
+    from MTG_bot.bench.test_router import P0, P1, _arranged, _lenses
+    from MTG_bot.core.executor.legality import DECLARE_ATTACKERS
+    from MTG_bot.core.executor.stack import cast
+
+    game, supply = _arranged(hand0=("Onakke Ogre",), hand1=("Cancel",), field1=("Island",) * 3,
+                             pool0={"R": 3})
+    router = SeatRouter(game, [_AttacksWith(), HeuristicAgent()], _lenses(), supply=supply)
+    ex = game.executor
+    ex.decisions.provider = router.answer
+    with ex.holding_priority():
+        cast(ex, P0, _named(game, "Onakke Ogre"))
+        ex.pass_priority()
+    router.take_priority(game, P1)
+    assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
+    assert game.world.zone_of(_named(game, "Cancel")).kind == "graveyard"
+
+    game, supply = _arranged(field0=("Walking Corpse", "Onakke Ogre"), hand1=("Eliminate",),
+                             field1=("Swamp", "Swamp"))
+    router = SeatRouter(game, [_AttacksWith("Walking Corpse"), HeuristicAgent()], _lenses(),
+                        supply=supply)
+    ex = game.executor
+    ex.decisions.provider = router.answer
+    ex.pass_until(DECLARE_ATTACKERS)
+    assert ex.attackers == [_named(game, "Walking Corpse")]
+    ex.pass_priority()
+    router.take_priority(game, P1)
+    assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "graveyard"
+    assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "battlefield"
+
+
 def test_heuristic_aims_minus_n_at_the_opponent() -> None:
     # "Target creature gets -4/-4" compiles to PtDelta(DECREASE, 4), which is harmful: Grasp of
-    # Darkness is aimed at the opponent's creature, not the teacher's own.
+    # Darkness is aimed at the opponent's creature, not the teacher's own. An instant: held in its
+    # own main phase, cast in the opponent's end step.
     game, router, me = _teach(hand0=("Grasp of Darkness",), field0=("Swamp", "Swamp", "Walking Corpse"),
                               field1=("Onakke Ogre",))
+    _main_phase(router, game, me)
+    assert game.world.zone_of(_named(game, "Grasp of Darkness")).kind == "hand"
+    game, router, me = _at_their_end_step(
+        hand1=("Grasp of Darkness",), field1=("Swamp", "Swamp", "Walking Corpse"), field0=("Onakke Ogre",))
     _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Onakke Ogre")).kind == "graveyard"
     assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
