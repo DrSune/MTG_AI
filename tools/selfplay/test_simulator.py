@@ -13,7 +13,13 @@ import pytest
 import torch
 
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
-from MTG_bot.core.executor.games import _play, _setup_game, deal_decks, get_supply, identity_of
+from MTG_bot.core.executor.games import (
+    _play,
+    _setup_game,
+    deal_decks,
+    get_supply,
+    identity_of,
+)
 from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
 from tools.selfplay import features as FT
 from tools.selfplay import simulator as S

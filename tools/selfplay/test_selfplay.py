@@ -75,6 +75,50 @@ def test_encoding_never_reads_hidden_cards(table) -> None:
     assert sum(kinds.values()) >= 100 and {"act", "attack", "block"} <= set(kinds), kinds
 
 
+class _Observer:
+    """The heuristic, logging every ask it answers with the encoding its seat sees."""
+
+    name = "observer"
+
+    def __init__(self, table: FT.CardTable) -> None:
+        self.inner = HeuristicAgent()
+        self.table = table
+        self.seen: list[tuple] = []
+
+    def decide(self, ask, obs) -> int:
+        feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
+        self.seen.append((ask.kind, ask.site, tuple(o.token for o in ask.options), feats))
+        return self.inner.decide(ask, obs)
+
+
+def test_a_pass_looks_the_same_whatever_the_passer_holds(table) -> None:
+    """DESIGN_PRIORITY §2.1.4, §4.4: two games differing only by the opponent's hand card, a Shock
+    it could cast at every priority point (it is asked, and passes) or an Onakke Ogre it never can
+    with one Mountain (it is not asked): the observer's asks, its encodings and the journal are the
+    same, so whether the opponent was asked reveals nothing of its hand."""
+    from MTG_bot.bench.agents import PassAgent
+    from MTG_bot.bench.test_router import _arranged, _lenses
+    from MTG_bot.core.executor.games import TURN_CAP, _play
+    from tools.selfplay.rig import SelfplayRouter
+
+    runs = []
+    for held in ("Shock", "Onakke Ogre"):
+        game, supply = _arranged(hand0=("Fierce Empath",), field0=("Forest",) * 3 + ("Staunch Shieldmate",),
+                                 field1=("Mountain",), hand1=(held,))
+        observer, opponent = _Observer(table), PassAgent()
+        router = SelfplayRouter(game, [observer, opponent], _lenses(), supply=supply)
+        _play(game, router, game.world.player_order, min(TURN_CAP, 4), resumed=True)
+        runs.append((observer.seen, game.executor.journal.dump(), router.stats[1]["ask:priority"]))
+    (seen_a, journal_a, asked_a), (seen_b, journal_b, asked_b) = runs
+    # at instant speed the Shock's holder was asked (and passed), the Ogre's never
+    assert asked_a > 0 and asked_b == 0
+    assert journal_a == journal_b
+    assert [s[:3] for s in seen_a] == [s[:3] for s in seen_b] and len(seen_a) >= 5
+    for (kind, site, _, fa), (_, _, _, fb) in zip(seen_a, seen_b, strict=True):
+        for key in fa:
+            assert np.array_equal(fa[key], fb[key]), (kind, site, key)
+
+
 def test_unbounded_numbers_stay_finite_and_ordered() -> None:
     x = np.array([0.0, 3.0, -20.0, 21.0, 59136.0, 1e30, -1e30], dtype=np.float32)
     y = FT._squash(x)
@@ -587,11 +631,9 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
 def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
     """The engine ends a game with GameOver at the loss check (CR 704.3, 704.5a): a candidate act
     that wins inside the simulation scores as a win, not as a crashed simulation."""
-    from MTG_bot.core.executor.games import get_supply
+    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play, get_supply
     from tools.selfplay import rig
     from tools.selfplay.search import Searcher
-
-    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play
 
     supply = get_supply("castable")
     game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))

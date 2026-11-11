@@ -2460,6 +2460,38 @@ class PriorityLoopTest(unittest.TestCase):
         self.assertEqual(game.turns, 3)
 
 
+class ForkResumeTest(unittest.TestCase):
+    """DESIGN_PRIORITY §4.3: a game's state, the step and priority included, lives in objects a
+    deep copy takes whole, so a game stopped at any priority point and copied plays on exactly as
+    the original does, and as the same game never stopped."""
+
+    def test_a_copy_at_a_priority_point_plays_on_identically(self) -> None:
+        import copy
+
+        supply = get_supply("verified")
+        for seed, stop_at in ((3, 57), (4, 211), (5, 150)):
+            def deal() -> Game:
+                return _setup_game(seed, supply, deal_decks(seed, SMOKE_DECK_PAIRS, supply, "coherent"))
+
+            whole = deal()
+            _play(whole, RandomPolicy(seed), whole.world.player_order, TURN_CAP)
+            game, policy = deal(), RandomPolicy(seed)
+            seen = [0]
+
+            def stop(_g, boundary, seen=seen, stop_at=stop_at) -> bool:
+                seen[0] += boundary == "priority"
+                return boundary == "priority" and seen[0] == stop_at
+
+            _play(game, policy, game.world.player_order, TURN_CAP, stop_after=stop)
+            self.assertEqual(seen[0], stop_at, "the game ended before the stop")
+            twin, twin_policy = copy.deepcopy((game, policy))
+            for g, p in ((game, policy), (twin, twin_policy)):
+                _play(g, p, g.world.player_order, TURN_CAP, resumed=True)
+            for g in (game, twin):
+                self.assertEqual((g.digest, g.reason, g.turns), (whole.digest, whole.reason, whole.turns))
+                self.assertEqual(g.executor.state_fingerprint(), whole.executor.state_fingerprint())
+
+
 class _LoopDeckPolicy(RandomPolicy):
     """Deterministic policy: each turn, cast exactly one legal spell, in the
     first main phase; pass everywhere else.

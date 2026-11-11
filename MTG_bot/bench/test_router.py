@@ -157,7 +157,8 @@ class _Picker:
         return next((tokens.index(p) for p in self.prefer if p in tokens), 0)
 
 
-def _arranged(hand0=(), field0=(), field1=(), *, life0=20, tokens0=(), pool0=None, set_code="M21"):
+def _arranged(hand0=(), field0=(), field1=(), *, hand1=(), life0=20, tokens0=(), pool0=None,
+              set_code="M21"):
     """Seat 0's first main phase with exactly the named cards of ``set_code`` in hand and on the
     battlefields (``tokens0``: token names, e.g. Treasure, on seat 0's battlefield; ``pool0``:
     floating mana). Libraries hold Islands."""
@@ -165,11 +166,11 @@ def _arranged(hand0=(), field0=(), field1=(), *, life0=20, tokens0=(), pool0=Non
     oid = {m.name: o for o, m in supply.metas.items()}
     decks = tuple(
         tuple(oid[n] for n in (*hand, *field)) + (oid["Island"],) * 20
-        for hand, field in ((hand0, field0), ((), field1))
+        for hand, field in ((hand0, field0), (hand1, field1))
     )
     game = _setup_game(1, supply, decks)
     world = game.world
-    for seat, hand, field in ((P0, hand0, field0), (P1, (), field1)):
+    for seat, hand, field in ((P0, hand0, field0), (P1, hand1, field1)):
         for h in list(world.players[seat].zone(ZONE_HAND).entries):
             world.move_to_zone(h, seat, ZONE_LIBRARY)
         for zone, names in ((ZONE_HAND, hand), (ZONE_BATTLEFIELD, field)):
