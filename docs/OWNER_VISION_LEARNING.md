@@ -155,3 +155,36 @@ Superseded in detail by docs/PLAN_LEARNING.md (owner-approved); kept as the firs
 2. Learning test: the Student must beat a fixed opponent, or learn a matchup over a block.
 3. Inputs: knowledge tracking (section 4), history (section 3), more name masking.
 4. The opponent simulator (section 5); then exploration and a league; then the Teacher (section 6).
+
+## 9. Raise the baseline first (2026-11-11, open)
+
+The owner: "Even if the end-goal is the VERY data hungry full BPTT rollouts with gamma and lambda
+1.0, it might make sense to use less data hungry models earlier, to raise baseline, so we can train
+the final network against better opponents from the beginning. I am unsure whether this destroys the
+effect of exploration-heavy starting for better end results (which is only relevant anyways once we
+have proved our model is really good and far from its cieling)." And: "How much does it matter
+whether we do exploration from the beginning, or only after it learns some basic skills, in terms of
+cieling and playing above-human level?"
+
+What the field reports (checked 2026-11-11):
+- AlphaGo Zero (Silver et al., Nature 2017): a network trained on human games "achieved better
+  initial performance", but the self-play player, learning by tree search from scratch, "performed
+  much better overall, defeating the human-trained player within the first 24 hours". The compared
+  player was supervised only, not supervised then reinforced, and the from-scratch learner improved
+  its policy by search (4.9 million games, 1,600 simulations a move), not by outcome gradients alone.
+- AlphaStar (Vinyals et al., Nature 2019) started from imitation because the action space left
+  "almost no chance" otherwise, kept human strategies in play during training against forgetting,
+  and needed a league of exploiters against strategy cycles.
+- Kickstarting (Schmitt et al. 2018): a student pulled toward teachers by a weight that fades
+  matched a from-scratch agent in about 10x fewer steps and finished 42% higher; it can surpass its
+  teachers. Reincarnating RL (Agarwal et al. 2022) argues for reusing prior policies over tabula rasa.
+- What early training can cost: deep RL agents overfit their early data and lose the ability to
+  learn later (primacy bias, Nikishin et al. 2022; loss of plasticity, Dohare et al., Nature 2024);
+  a fine-tuned pretrained policy forgets what it did well in states it stops visiting (Wolczyk et al.
+  2024). Remedies: partial resets, plasticity-keeping updates, a retention term toward the start.
+- KataGo (Wu 2019): about 50x less compute than earlier AlphaZero-style runs, partly from
+  auxiliary prediction targets that densify the learning signal without changing the reward.
+- Imperfect information: DeepNash (Stratego, 2022) reached expert level from scratch with
+  regularised self-play dynamics; in card games, RL agents lead Legends of Code and Magic, and no
+  superhuman Magic agent is reported.
+
