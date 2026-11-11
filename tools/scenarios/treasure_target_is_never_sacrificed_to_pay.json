@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dt", "real": "Destructive Tampering", "zone": "hand", "controller": 0},
+  {"key": "treasure", "real": "Treasure", "zone": "battlefield", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "cast", "key": "dt", "real": "Destructive Tampering", "targets": ["treasure"], "decisions": ["0"], "tap": true, "expect_raise": "cannot pay"}
+ ],
+ "expect": {"zone": {"dt": "hand", "treasure": "battlefield", "relic": "battlefield"}},
+ "notes": "Targets are chosen before costs are paid (CR 601.2c, 601.2h), so sacrificing the targeted Treasure for mana would leave the spell with no legal target. Automatic payment never sacrifices a permanent the spell targets (tapping one stays allowed): with only two Mountains left, the spell aimed at the Treasure cannot be paid. A random game crashed here before 2026-11-11 (verified/stress seed 105, acting at 30% of the priority points)."
+}

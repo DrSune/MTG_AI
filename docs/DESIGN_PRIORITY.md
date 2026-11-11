@@ -568,7 +568,22 @@ Step 5 goes in two commits:
   (`PriorityLoopTest`), 117.3c (`TestResponses`), 500.4 (`test_executor_rung2.py`), 508.8
   (`test_executor_games.py`), 510.4 (`sure_strike_1`, `sporeweb_weaver_first_strike_and_
   regular_trigger_twice`), 514.3a (`test_executor_verify_fixes4.py`), 603.3d (three packs).
-  Left of step 6: the interleaving soak (it needs the pre-check).
+- **The pre-check is dropped; the menu answers its yes/no questions at once instead
+  (2026-11-11).** Measured over 30 heuristic games (0.391 s per game, the menu 47% of it):
+  214 instant-speed menu builds per game end with only PASS, and a pre-check built from the
+  timing rules alone (no card in hand that may be cast now and no non-mana activated ability)
+  would have skipped 66 of them, a net 12 ms per game (3%). The time is in pricing payments:
+  the planner searched source by source, re-running the cost check each time, and minimised
+  the taps, though the menu only asks whether a payment exists. With `payable_only` one trial
+  with every source tapped answers that at once when it can (it pays; or generic mana stays
+  short while every source makes a fixed amount), else the search runs without the
+  minimising pass. 60 heuristic games are identical with it on and off (turns, asks, lives
+  and final fingerprints); 0.388 -> 0.329 s per game. The interleaving soak then ran as random
+  games acting at about 30% of the priority points outside their own main phases (600 games
+  over verified/coherent, verified/stress and castable/coherent): one crash, a spell aimed at
+  its caster's own Treasure that automatic payment sacrificed before the targets were
+  declared; fixed (payment never sacrifices a target), with packs `treasure_*`. The `all`
+  pool's Sublime Epiphany crash had the same cause. Stage 1 is done.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

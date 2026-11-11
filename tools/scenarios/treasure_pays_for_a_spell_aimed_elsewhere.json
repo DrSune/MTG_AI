@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dt", "real": "Destructive Tampering", "zone": "hand", "controller": 0},
+  {"key": "treasure", "real": "Treasure", "zone": "battlefield", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "cast", "key": "dt", "real": "Destructive Tampering", "targets": ["relic"], "decisions": ["0"], "tap": true}
+ ],
+ "expect": {"zone": {"dt": "graveyard", "relic": "graveyard", "treasure": "ceased"}},
+ "notes": "Automatic payment (BACKLOG scaffold) pays {2}{R} with two Mountains and the Treasure, sacrificed for its mana (a token, it then ceases to exist); the spell destroys the opponent's artifact. treasure_target_is_never_sacrificed_to_pay is the same board aimed at the Treasure itself."
+}

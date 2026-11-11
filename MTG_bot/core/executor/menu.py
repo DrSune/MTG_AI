@@ -117,7 +117,8 @@ def _cast_rows(
         for x in count() if _cost_has_x(spell_cost(record, extra)) else (None,):
 
             def pay(targets: Sequence[Handle], kicked: bool = kicked, x: int | None = x) -> bool:
-                return cast_taps(executor, seat, handle, kicked, x, tuple(targets), sources) is not None
+                return cast_taps(executor, seat, handle, kicked, x, tuple(targets), sources,
+                                 payable_only=True) is not None
 
             if not pay(()):
                 break  # a larger X costs more: no larger X is payable either
@@ -145,7 +146,7 @@ def _activation_row(
     # An ability whose cost taps its own source cannot also tap that source for mana.
     own_tap = any(isinstance(part, CostTap) and part.target is None for part in ability.cost.parts)
     exclude = frozenset({source}) if own_tap else frozenset()
-    if activation_taps(executor, seat, source, idx, exclude, sources) is None:
+    if activation_taps(executor, seat, source, idx, exclude, sources, payable_only=True) is None:
         return None
     if inert_row(executor, ability, source, seat):
         return None  # a phantom option: it could do nothing (Radha's land row)
@@ -196,25 +197,26 @@ def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, 
 
 def cast_taps(
     executor: Executor, seat: Handle, handle: Handle, kicked: bool, x: int | None,
-    targets: tuple[Handle, ...], sources: dict | None = None,
+    targets: tuple[Handle, ...], sources: dict | None = None, payable_only: bool = False,
 ) -> Any:
     """The mana sources that pay this declaration's total cost (CR 601.2f-h) with what the pool
     holds: () when the pool pays it, None when nothing does. ``sources``: a menu build's shared
-    listing (``legality.plan_mana_taps``)."""
+    listing; ``payable_only``: only whether it can be paid (``legality.plan_mana_taps``)."""
     return plan_mana_taps(
         executor, seat, lambda: spell_castable(executor, seat, handle, x=x, kicked=kicked, targets=targets)[0],
-        costly=True, sources=sources,
+        keep=frozenset(targets), costly=True, sources=sources, payable_only=payable_only,
     )
 
 
 def activation_taps(
     executor: Executor, seat: Handle, source: Handle, idx: int, exclude: frozenset,
-    sources: dict | None = None,
+    sources: dict | None = None, payable_only: bool = False, targets: tuple[Handle, ...] = (),
 ) -> Any:
     """The mana sources, never one in ``exclude``, that pay an activation; as :func:`cast_taps`."""
     return plan_mana_taps(
         executor, seat, lambda: ability_playable(executor.world, executor, source, idx, seat=seat),
-        exclude=exclude, costly=True, sources=sources,
+        exclude=exclude, keep=frozenset(targets), costly=True, sources=sources,
+        payable_only=payable_only,
     )
 
 
@@ -228,12 +230,15 @@ def perform(
     if row.kind == "land":
         play_land(executor, seat, row.handle)
         return True
+    flat = tuple(h for t in targets for h in ((t,) if isinstance(t, Handle) else t))
     if row.kind == "activate":
         assert row.ability_idx is not None
-        tap_for_payment(executor, seat, activation_taps(executor, seat, row.handle, row.ability_idx, row.exclude) or ())
+        taps = activation_taps(executor, seat, row.handle, row.ability_idx, row.exclude, targets=flat)
+        if taps is None:
+            return False
+        tap_for_payment(executor, seat, taps)
         activate(executor, row.handle, row.ability_idx, seat=seat, targets=targets)
         return True
-    flat = tuple(h for t in targets for h in ((t,) if isinstance(t, Handle) else t))
     taps = cast_taps(executor, seat, row.handle, row.kicked, row.x, flat)
     if taps is None:
         return False

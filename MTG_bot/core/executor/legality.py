@@ -2240,15 +2240,20 @@ def plan_mana_taps(
     check,
     *,
     exclude: frozenset[Handle] = frozenset(),
+    keep: frozenset[Handle] = frozenset(),
     costly: bool = False,
     sources: dict[bool, list[list[ManaTap]]] | None = None,
+    payable_only: bool = False,
 ) -> tuple[ManaTap, ...] | None:
     """The mana sources ``payer`` taps so a payment can be made (pool first).
     ``check()`` returns None when the payment is plannable, else the planner's
     reason. Returns () when the pool already pays, the taps when they make it
     pay, and None when no set of free sources does (the payment is then
     declined). ``exclude``: permanents the payment itself
-    taps (an ability's own {T}), never tapped for mana. Free sources pay first;
+    taps (an ability's own {T}), never tapped for mana. ``keep``: the spell's or
+    ability's own targets, chosen before the costs are paid (CR 601.2c, 601.2h),
+    never sacrificed to pay (the spell would lose them); tapping one stays
+    allowed (an aura on the land that pays for it). Free sources pay first;
     with ``costly`` (a cast or activation from the menu, ``executor.menu``) the
     dearer sources pay what they cannot, a creature's before a sacrifice
     (:func:`_source_tier`). A payment inside a resolution taps free sources only
@@ -2265,7 +2270,12 @@ def plan_mana_taps(
     payment is found whenever one exists ({R}{W} from a R/W and a B/R dual).
     With Chromatic Orrery's permission (mana of any colour pays a coloured
     symbol) every source pays every symbol. A last pass removes every tap the
-    payment does not need, so the set is inclusion-minimal."""
+    payment does not need, so the set is inclusion-minimal.
+
+    ``payable_only``: the caller asks only whether the payment can be made (the menu); the
+    taps returned are then some that pay, not the planned ones. One trial with every source
+    tapped answers at once when it can: it pays, or it leaves generic mana short while no
+    source's choice changes how much mana it makes, so no set of taps could pay."""
     reason = check()
     if reason is None:
         return ()
@@ -2273,18 +2283,30 @@ def plan_mana_taps(
         return None  # not short of mana (the timing, a target, another cost): no source helps
     any_colour = executor.mana_permission(payer)
     chosen = None
-    for dear in (False, True) if costly else (False,):
+    tiers = (costly,) if payable_only else (False, True) if costly else (False,)
+    for dear in tiers:
         listed = sources.get(dear) if sources is not None else None
         if listed is None:
             listed = _mana_tap_options(executor, payer, dear)
             if sources is not None:
                 sources[dear] = listed
-        options = [taps for taps in listed if taps[0].source not in exclude]
+        options = [
+            taps for taps in listed
+            if taps[0].source not in exclude and not (taps[0].tier == 2 and taps[0].source in keep)
+        ]
+        if payable_only:
+            every = [taps[0] for taps in options]
+            trial = _with_trial_mana(executor, payer, every, check)
+            if trial is None:
+                return tuple(every)
+            fixed = all(t.production[1:] == taps[0].production[1:] for taps in options for t in taps)
+            if fixed and _mana_shortfall(trial) == ("generic", ()):
+                return None
         chosen = _fill(executor, payer, check, options, any_colour, [], reason, set())
         if chosen is not None:
             break
-    if chosen is None:
-        return None
+    if chosen is None or payable_only:
+        return None if chosen is None else tuple(chosen)
     for tap in list(reversed(chosen)):
         rest = [t for t in chosen if t is not tap]
         if _with_trial_mana(executor, payer, rest, check) is None:
