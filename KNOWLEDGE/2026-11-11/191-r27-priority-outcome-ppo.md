@@ -1,6 +1,6 @@
 # 191 — r27: outcome PPO on the game with priority (pre-registration, before any r27 game)
 
-**Draft (2026-11-11 14:00): the census numbers (STEPS, CENSUS, SECONDS) are filled in before launch; the section is frozen at the launch commit.**
+**Draft (2026-11-11): frozen at the launch commit, after r26's read at update 1,000.**
 
 **Sources.**
 - DESIGN_PRIORITY stage 5. Decisions 3 and 4 of its §7 were approved on 2026-11-10: start from
@@ -48,7 +48,7 @@ It has:
 ```
 tools/selfplay/launch.sh /home/sune/Desktop/MTG_AI/runs/selfplay/r27_priority_ppo \
   --init /home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/u1000.pt --seed 27 --workers 18 \
-  --slots 16 --groups 4 --gamma 1.0 --lam 1.0 --steps STEPS --epochs 1 --lr 2e-5 --wd 0.01 \
+  --slots 16 --groups 4 --gamma 1.0 --lam 1.0 --steps 139264 --epochs 1 --lr 2e-5 --wd 0.01 \
   --clip 0.2 --vclip 0.5 --vcoef 0.5 --ent 0.004 --max-grad 1.0 --target-kl 0 --mb 4096 \
   --tok-budget 98304 --infer-bf16 --teacher-iters 0 --gate-every 25 --gate-deals 1000 \
   --gate-score 0.55 --ladder-deals 500 --p-heuristic 0.15 --p-past 0.15 --coherent-share 1.0 \
@@ -68,10 +68,12 @@ tools/selfplay/launch.sh /home/sune/Desktop/MTG_AI/runs/selfplay/r27_priority_pp
    - The new asks are the reason to lower it. Most `priority` asks are a pass whose alternatives
      rarely matter. A strong bonus flattens exactly those, and fills training games with instants
      cast at random.
-3. **`--steps STEPS`** (r26: 98,304): keep r26's ~1,850 games per update.
+3. **`--steps 139264`** (r26: 98,304; 34 minibatches of 4,096): keep r26's ~1,850 games per
+   update.
    - One game's result is the signal, and every decision of that game shares it. So games per
      update, not decisions, set how much signal an update carries.
-   - The new game asks more per game: CENSUS.
+   - The new game asks more per game: 74.3 recorded decisions per seat and game, against r26's
+     52.8 over updates 801-900. So 139,264 decisions is about 1,875 games.
 
 **Unchanged:**
 - gamma = lambda = 1, lr 2e-5, one epoch;
@@ -97,7 +99,17 @@ pinned code dealt half stress decks. So a gate's standard error of ~0.011 is all
 distribution trained on.
 
 **Start values** (CPU census of r26's `last.pt` against itself, both seats sampled, 30 games;
-scratch script `selfplay_census.py`, numbers in NUMBERS): CENSUS-KINDS.
+scratch script `selfplay_census.py`, numbers in NUMBERS):
+- 20.7 turns per game;
+- 74.3 recorded decisions per seat and game: `priority` 28.6, act 20.8, attack 12.2,
+  block 3.6, target 3.1, the rest under 1.3 each;
+- entropy of all asks 0.267 nats (normalised 0.268);
+- `priority`: entropy 0.171, normalised 0.208, pass share 0.851;
+- act: 0.370, normalised 0.306, pass 0.241;
+- attack: 0.187, normalised 0.261, pass 0.425.
+
+The network passes most `priority` asks and has its least spread there, so a bonus pushes those
+hardest.
 
 ## 4. Predictions (written before any r27 game)
 
@@ -105,12 +117,12 @@ scratch script `selfplay_census.py`, numbers in NUMBERS): CENSUS-KINDS.
 |---|---|---|---|
 | 1 | A freeze: a gate against v0 at 0.55 with the lower bound above 0.5 | v1 frozen by update 500. I put it at 60%: the new asks are learnable gains the start never trained on, but the instant-speed heuristic beat the old one by only 0.52 +- 0.05 | no freeze by update 500 |
 | 2 | Training win rate against the heuristic: mean of updates 401-500 less mean of updates 1-100 (~280 heuristic games per update; SE of the difference ~0.004) | +0.02 to +0.05, of which up to ~0.01 can be temperature (the entropy falls) | below +0.01: no learning against the fixed anchor |
-| 3 | Movement | `kl` 0.003-0.006 per update (r26 at the same lr: 0.0046-0.0057) | below 0.0015: moved too little to test anything |
-| 4 | Entropy (`ent`, nats, all asks) | falls over updates 2-50 from its update-1 value; mean of 401-500 within 0.22-0.36 | rising over 2-50; or 401-500 below 0.15 (collapse) or above 0.40 |
+| 3 | Movement | `kl` 0.004-0.009 per update: r26 moved 0.0046-0.0057 at the same lr, and a 1.42x batch takes 1.42x the optimizer steps per update (minibatches are cut by the token budget). With noisy gradients, KL grows about in proportion | below 0.0015: moved too little to test anything; above 0.02: too far per update |
+| 4 | Entropy (`ent`, nats, all asks; ~0.27 at the start by the census) | least-squares slope over updates 2-50 between -0.002 and -0.0003 per update. r26's 0.0075 was sized to balance r25's fall of -0.0029, so half of it leaves about half that fall. Mean of 401-500 within 0.15-0.26 | a slope at or above 0 (the bonus pushes more than that arithmetic says); 401-500 below 0.12 (collapse) or above 0.30 |
 | 5 | PH-9, `priority`: pass share in training games | between 0.70 and 0.96 in every 100-update window to 500 | above 0.97 (learning to do nothing there) or below 0.65 (acting at random) |
 | 6 | Value fit (`ev`), mean of 401-500 | 0.35-0.50 | below 0.25, or below 0 for 3 updates (K4) |
-| 7 | Memory | minimum MemAvailable above 40 GiB; updates 401-500 within 3 GiB of updates 11-100 | a steady fall: a leak |
-| 8 | Median seconds between updates, gate intervals left out | SECONDS | above SECONDS_FALSIFIER |
+| 7 | Memory | minimum MemAvailable above 35 GiB (r26: 46-50 at 98k decisions; the update's batch is 1.42x); updates 401-500 within 3 GiB of updates 11-100 | below 30 GiB, or a steady fall: a leak |
+| 8 | Median seconds between updates, gate intervals left out | 175-230 (r26: 138 s at 98k; the update and the collection both scale with the 1.42x batch, and the new game's engine costs more per decision) | above 250 |
 | 9 | Start ladder: v0 against the new heuristic, 500 deals, greedy | 0.80-0.90 (CPU: 35/40) | outside |
 
 **What each outcome means:**
