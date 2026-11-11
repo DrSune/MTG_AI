@@ -10,11 +10,15 @@ a replacement — read the real thing.
 `KNOWLEDGE/2026-11-06/187-handoff.md`); the owner chose outcome PPO as the learner and search at
 play time, with the distillation parked (DECISIONS D21).
 
-**Running since 2026-11-10:** r26, outcome PPO, as the systemd user unit `mtg-r26`
-(`systemctl --user is-active mtg-r26`; `systemctl --user stop mtg-r26` pauses it, `start`
-continues it from its last save). Its pre-registration and how to read it are in
-`KNOWLEDGE/2026-11-10/189` §9; the audit of that day is `KNOWLEDGE/2026-11-10/190`. One run at a
-time, and nothing else on the GPU beside it.
+**Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
+
+**Running since 2026-11-11 18:03:** window 1 of that plan: the n-curve, gate A and the simulator on
+the game with priority, pre-registered in `KNOWLEDGE/2026-11-11/192`. It runs as the transient user
+unit `mtg-window1` (`systemctl --user is-active mtg-window1`), which executes
+`reports/window1_2026-11-11/queue.sh` from the worktree `/home/sune/Desktop/MTG_AI-w1`. Results go
+to `runs/window1/`: `queue.log`, and one `.done` file per finished step, so a restarted queue skips
+those steps. r27 (`KNOWLEDGE/2026-11-11/191`) starts when the window ends. r26 stopped at update
+1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
 

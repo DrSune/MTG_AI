@@ -430,3 +430,46 @@ alone: r26 differs from r20-r23 in learning rate, gamma and lambda, batch and ga
 successor, which is the first run on the game with priority (`docs/DESIGN_PRIORITY.md` stage 5):
 a smaller bonus, read per decision kind. Next looks: update 1,000 (about 18:00 on 2026-11-11)
 and 2,000 (about 10:00 on 2026-11-13).
+
+## 11. r26 at update 1,000: the second registered read, and the stop (2026-11-11 18:03)
+
+Numbers in NUMBERS ("r26 AT UPDATE 1,000"). No gate passed after v2 (378), so every gate and
+`win.frozen` since then compare with v2. The run was stopped by hand at update 1,002, once the gate
+at 1,000 was logged: r27 starts from this network (`docs/PLAN_CEILING.md` §4,
+`KNOWLEDGE/2026-11-11/191`). `u1000.pt` is its save at update 1,000, pinned.
+
+| # | Read | Verdict |
+|---|---|---|
+| 1 | `win.frozen` 0.530 (updates 1-100, against v0), 0.543 (901-1000, against v2) | not comparable: different opponents. The gates answer it |
+| 2 | The nine gates of updates 800-1,000 against v2, pooled with deal-level SE: coherent half 0.546 (0.004), stress half 0.476 (0.004), both 0.511 (0.003) | above 0.508 on the coherent half: a gain over v2, about +32 Elo on the decks it trains on. About -16 Elo on five-colour piles |
+| 3 | `kl` 0.0052 per update | above the range, as at 500 |
+| 4b | Entropy 0.446 over 901-1000; slope -0.0003 per update there | falsified as at 500: the bonus is too strong |
+| 5 | `ev` 0.407 | met |
+| 6 | Minimum MemAvailable 46.7 GiB over 901-1000, 49.4 over 11-100 | met: 2.7 GiB lower, inside the 3 |
+| 7 | 136 s between updates | met |
+
+Predictions 4a (slope over updates 2-10) and 8 (the start ladder) were scored at 500. They do not
+repeat.
+
+Kill criteria: K1 fired a second time, at update 921. It was the same non-finite inference input as
+at 173 (dump `nonfinite_infer_it921.pt`), fixed in main as `features._squash` but not in the pinned
+worktree. The unit restarted the run from its save at 920. No other criterion fired: no non-finite
+update, `ev` never below 0, no memory-floor trip.
+
+**What it means.** r26 kept learning after v2 on the decks it trains on, and lost a little on decks
+it never sees.
+- Two-colour decks, every training deal: 0.546 against v2. v2 itself was 76 Elo above v0 at its
+  freeze, both halves together.
+- Five-colour piles, never dealt in training: 0.476.
+- The freeze rule pooled both halves, so 0.55 was out of reach after 378. The league kept the same
+  three versions for 620 updates, and the learner trained against opponents it had outgrown on the
+  only decks it played. The coherent halves of the gates at 850 (0.568) and 950 (0.5625) were above
+  the bar.
+- Main has evaluated on two-colour decks only since the audit (190 §3.1, decad93,
+  `tools/selfplay/learner.py:800`), so r27 gates on the decks it trains on. A league version now
+  freezes when it is stronger in the games the learner plays.
+- No evaluation in main deals five-colour piles: they are not the game being learned.
+
+Outcome PPO at gamma = lambda = 1 with this batch is still learning at update 1,000. That is the
+read r27 and `docs/PLAN_CEILING.md` rest on. The entropy bonus held the policy at 0.45 nats where
+4b asked for 0.18-0.30; r27 uses 0.004 (191).
