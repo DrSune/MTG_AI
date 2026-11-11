@@ -92,6 +92,18 @@ def left_zone_since(journal: EventJournal, card: Handle, zone: str, clock: int) 
     return False
 
 
+def moved_since(journal: EventJournal, card: Handle, clock: int) -> bool:
+    """Did ``card`` change zones after ``clock``? CR 400.7: an object that moves from one zone to
+    another becomes a new object with no memory of its previous existence, so a spell or ability
+    that targeted it before the move no longer targets it."""
+    for event in reversed(journal.events):
+        if event.clock <= clock:
+            return False
+        if event.kind == KIND_ZONE_CHANGE and event.subject == card:
+            return True
+    return False
+
+
 def battlefield_entry_clock(journal: EventJournal, card: Handle) -> int:
     """The clock of ``card``'s latest arrival on the battlefield; 0 when no such row exists (a card
     placed there before the journal began, as a pack's setup does)."""

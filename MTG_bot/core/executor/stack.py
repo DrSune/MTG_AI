@@ -102,7 +102,9 @@ class StackObject:
       set's index in ``query.choose_options`` order: the token the runtime
       Choose consumes at resolution instead of asking again;
     * ``payment`` — the determined-and-locked plan (601.2f's total);
-    * ``declared_clock`` — the journal clock the frame was pushed at;
+    * ``declared_clock`` — the journal clock the frame was pushed at; a card
+      target that changes zones after it is a new object and no longer a
+      target (CR 400.7, :func:`recheck_targets`);
     * ``kicked`` — CR 702.27a: was the optional kicker cost paid with the
       total cost? The same truth rides the journalled CAST row (the
       durable carrier WAS_KICKED reads); the frame keeps it visible on the
@@ -443,6 +445,7 @@ def recheck_targets(
     *,
     own: Handle | None = None,
     designations: dict[str, tuple[Handle, ...]] | None = None,
+    since: int | None = None,
 ) -> tuple[tuple[Handle, ...], dict[str, tuple[Handle, ...]] | None]:
     """CR 608.2b: as a spell or ability resolves, each of its targets is checked again against
     the slot it was chosen for, ``slots`` recomputed now (the same populations the choice
@@ -454,10 +457,18 @@ def recheck_targets(
     resolve the spell or ability. ``own`` is a spell's own handle, the self-clause
     designation trusted by construction (CR 115.4, _plan_cast_designation). On a
     synthesized player slot a card stands for its controller, as when it was chosen
-    (legality.activation_target_reason)."""
+    (legality.activation_target_reason). ``since``, the clock the targets were chosen at: a
+    card that changed zones after it is a new object (CR 400.7) and no longer a target."""
+    from MTG_bot.core.executor.returns import moved_since
 
     def legal(slot, handle: Handle) -> bool:
-        if handle == own or handle in slot.candidates:
+        if handle == own:
+            return True
+        if since is not None and handle.namespace == "card" and moved_since(
+            executor.journal, handle, since
+        ):
+            return False
+        if handle in slot.candidates:
             return True
         return (
             slot.synthetic
@@ -863,6 +874,7 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
             targets,
             own=handle,
             designations=slot_designations or None,
+            since=frame.declared_clock,
         )
         if not legal_now:
             # Every target is illegal: the spell doesn't resolve. It is removed from

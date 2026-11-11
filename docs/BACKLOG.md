@@ -190,9 +190,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
-- **Target recheck gaps (not reachable in current games)**: Enthralling Hold's "as you cast it"
-  restriction is re-read at resolution, so it fizzles if its target untaps; a target exiled and
-  returned before resolution is still hit because handles survive zone changes (CR 400.7).
+- **Target recheck gap (not reachable in current games)**: Enthralling Hold's "as you cast it"
+  restriction is re-read at resolution, so it fizzles if its target untaps.
+- **An ability whose source left and came back still acts on the source** (CR 400.7, found
+  2026-11-11). Targets are rechecked against zone changes since they were chosen
+  (`stack.recheck_targets`, `returns.moved_since`), but an ability's own source is not: "this
+  creature gets +1/+1" activated, then the creature exiled and returned in response, pumps the new
+  creature. The new object should be untouched, while information about the source (its power for
+  "deals damage equal to its power") comes from its last known information (CR 608.2h), which
+  `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
+  dealt pools.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.

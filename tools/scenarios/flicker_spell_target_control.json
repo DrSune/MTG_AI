@@ -1,0 +1,14 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "targets": ["ox"], "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {"zone": {"ox": "battlefield", "shock": "graveyard"}, "damage": {"ox": 2}},
+ "notes": "Falsifier of flicker_spell_target_is_a_new_object: with no move in between, the held Shock resolves and deals 2 to the Ox."
+}

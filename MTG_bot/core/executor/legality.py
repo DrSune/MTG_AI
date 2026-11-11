@@ -2001,7 +2001,8 @@ def resolve_activated(executor: Executor, obj) -> str:
         # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
         slots = activation_target_slots(executor, ability.effect, source=source, seat=seat)
         legal_now, kept = recheck_targets(
-            executor, slots, obj.declared_targets, designations=slot_designations
+            executor, slots, obj.declared_targets, designations=slot_designations,
+            since=obj.declared_clock,
         )
         if not legal_now:
             executor.events.append(

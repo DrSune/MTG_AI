@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "targets": ["ox"], "hold": true},
+  {"op": "move", "key": "ox", "to": "exile", "hold": true},
+  {"op": "move", "key": "ox", "to": "battlefield", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {"zone": {"ox": "battlefield", "shock": "graveyard"}, "damage": {}},
+ "notes": "CR 400.7: an object that moves from one zone to another becomes a new object. Shock waits on the stack aimed at the Ox; the Ox is exiled and returned in response, so the Ox now on the battlefield is a new object that Shock never targeted. Its only target is illegal at resolution and it does nothing (CR 608.2b): the Ox takes no damage. flicker_spell_target_control is the same without the flicker."
+}

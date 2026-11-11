@@ -542,6 +542,15 @@ Step 5 goes in two commits:
   (`waker_of_waves_4`); first strike, then a pump in the first-strike damage step
   (`sure_strike_1`). Left of step 6: the interleaving soak, the generated remove-the-source and
   remove-the-target tests, and the per-rule tests of item 5 not yet covered.
+- **Zone-entry clocks for targets (§2.3), 2026-11-11.** A card target that changed zones after
+  its spell or ability went on the stack is a new object and no longer a target (CR 400.7):
+  `recheck_targets` takes the object's `declared_clock` and reads the journal
+  (`returns.moved_since`); the trigger recheck does the same. Packs
+  `flicker_spell_target_is_a_new_object` (Shock does nothing to an Ox exiled and returned in
+  response; it dealt 2 before), its control without the flicker, and
+  `flicker_trigger_target_is_a_new_object` (Bone Pit Brute's +4/+0 misses the returned Ox; it
+  made it 6 power before). The source half of §2.3 (an ability acting on its own source that
+  left and came back) is open in BACKLOG.
 - **5b, the driven loop, as planned.** `_play_turns` asks the holder at every priority point
   (`take_priority`); `cast`, `activate` and `play_land` in a driven game return with the object on
   the stack; the windows go; `RandomPolicy`, the router, the heuristic, the test drivers, the

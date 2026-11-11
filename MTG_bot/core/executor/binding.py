@@ -1657,7 +1657,14 @@ class TriggerBinder:
                 bindings=bindings,
             )
             slot = _widen_any_target(self.executor, obj.target_node, slot, obj.source) or slot
-            kept = [h for h in obj.declared_targets if h in slot.candidates]
+            from MTG_bot.core.executor.returns import moved_since
+
+            kept = [
+                h for h in obj.declared_targets
+                if h in slot.candidates
+                and not (h.namespace == "card"
+                         and moved_since(self.executor.journal, h, obj.declared_clock))
+            ]  # CR 400.7: a target that changed zones since is a new object
             if not kept:
                 self.executor.events.append(
                     (len(self.executor.events), "NO_LEGAL_TARGETS", str(obj.source), "trigger")

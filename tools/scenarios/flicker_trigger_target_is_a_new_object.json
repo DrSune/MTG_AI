@@ -1,0 +1,15 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "brute", "real": "Bone Pit Brute", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "brute", "hold": true, "decisions": ["ox"]},
+  {"op": "move", "key": "ox", "to": "exile", "hold": true},
+  {"op": "move", "key": "ox", "to": "battlefield", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {"zone": {"ox": "battlefield", "brute": "battlefield"}, "power": {"ox": 2, "brute": 4}},
+ "notes": "CR 400.7 for a triggered ability: Bone Pit Brute's trigger ('target creature gets +4/+0 until end of turn') goes on the stack aimed at the Ox; the Ox is exiled and returned in response, so the new Ox is not its target. The trigger's only target is illegal and it does nothing (CR 608.2b): the Ox stays 2 power."
+}
