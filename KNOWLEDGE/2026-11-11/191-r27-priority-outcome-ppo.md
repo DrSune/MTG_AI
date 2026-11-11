@@ -1,11 +1,12 @@
 # 191 — r27: outcome PPO on the game with priority (pre-registration, before any r27 game)
 
-**Draft (2026-11-11): frozen at the launch commit, after r26's read at update 1,000.**
+**Frozen at launch (2026-11-11), after r26's read at update 1,000.** The commit that holds this
+line is r27's launch commit, checked out at `/home/sune/Desktop/MTG_AI-r27`.
 
 **Sources.**
 - DESIGN_PRIORITY stage 5. Decisions 3 and 4 of its §7 were approved on 2026-11-10: start from
   r26's newest network, and keep r26 running until this is ready.
-- Step 0 of `docs/PLAN_CEILING.md` (draft).
+- Step 0 of `docs/PLAN_CEILING.md` (approved, DECISIONS D22).
 - Template: note 189 §9 (r26). This section is written before launch and is never edited.
   Results are appended below it.
 
@@ -19,7 +20,7 @@
 
 **r27 is the learner of PLAN_CEILING.**
 - Its frozen versions are the networks the search amplifies.
-- It recaptures the opponent simulator.
+- Its start network recaptures the opponent simulator (window 1, note 192).
 - It is the start of the high-ceiling track.
 
 **The start transfers** (NUMBERS, "PRIORITY STAGES 1-4"):
