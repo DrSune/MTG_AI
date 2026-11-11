@@ -220,6 +220,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Triggers, events and the journal
 
+- **Yarok, the Desecrated and Sanctum of All make their extra trigger with a trigger of their own
+  (2026-11-11).** CR 603.2d: the ability triggers that many times at once, so the copies go on
+  the stack with everything else that triggered (CR 603.3b). The engine instead queues a trigger
+  of the carrier (`compiler/templates_b5b.py:2482-2501`, fed by `binding._fan_ability_triggers`),
+  which goes on the stack as an object of its own; the extra copy is queued only when that
+  resolves (`Verb.TRIGGER_ADDITIONAL`). Since priority, players get priority between the
+  original and the extra copy, and the trigger-order ask offers the carrier's trigger as an
+  option (`test_executor_t5d.py`). Life totals agree in the packs. Fix: count the copies when
+  the ability triggers and queue them with the original, with no carrier trigger.
+
 - **B-92 [vfix V8, 2026-10-29; updated at the d955f67 merge, 2026-10-30] A fight's two DAMAGE
   journal rows both name the fight's source as the cause** (CR 701.12b: each creature deals damage
   equal to its power to the other). Since V44 `verbs._v_fight` applies each blow with the fighting
