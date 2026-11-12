@@ -46,6 +46,22 @@ def test_routing_rejects_unknown_kinds_and_disagreeing_tags() -> None:
         resolve_ask_seat("brand_new_site:card:1", P0)
 
 
+def test_an_arrange_ask_is_routed_to_its_owner_and_told_its_end() -> None:
+    # verbs._arrange: arrange:<owner>:<TOP|BOTTOM>:<cards still to place>, asked top first
+    from MTG_bot.bench.protocol import Ask, engine_ask
+
+    assert resolve_ask_seat("arrange:player:0:TOP:3", P0) == P0
+    with pytest.raises(AskRoutingError):
+        resolve_ask_seat("arrange:player:0:TOP:3", P1)
+    game, supply = _game(3)
+    router = SeatRouter(game, [PassAgent(), PassAgent()], _lenses(), supply=supply)
+    context = router._context("arrange:player:0:TOP:3", P0, 0)
+    assert context == "They go to the top of your library. Cards still to place: 3."
+    ask = engine_ask(_lenses()[0], game.executor, ("card:1", "card:2"), "arrange:player:0:BOTTOM:2", 0,
+                     context=router._context("arrange:player:0:BOTTOM:2", P0, 0))
+    assert isinstance(ask, Ask) and "the one that goes highest" in ask.prompt and "bottom" in ask.prompt
+
+
 def test_a_raw_policy_behind_the_router_reproduces_play_game() -> None:
     # The router consumes no randomness and adds no engine calls, so the engine's own random
     # policy routed through it plays the identical game.

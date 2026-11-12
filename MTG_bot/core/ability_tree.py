@@ -107,6 +107,11 @@ _ATTACK_POLICY_SCOPES = ("AS_NO_DEFENDER",)
 # AtomArgs-level check is complete.
 _MOVE_JOURNAL_KINDS = ("MOVE", "MILL")
 _MOVE_POP_ORDERS = ("TOP",)
+# _MOVE_ARRANGE: the MOVE_ZONE "arrange" role vocabulary. Two or more cards an effect puts into one
+# position of a library at the same time are arranged by their owner (CR 401.4), so "in any order"
+# only restates the rule and has no encoding of its own (the role is absent). "In a random order"
+# overrides the rule: RANDOM, the one value.
+_MOVE_ARRANGE = ("RANDOM",)
 # _STACK_KINDS: the closed string vocabulary of
 # FAtomPred.STACK_KIND_EQ — the three kinds of stack object (CR 405.1: spells,
 # activated abilities, triggered abilities).
@@ -2663,6 +2668,11 @@ class AtomArgs:
                     f"AtomArgs: role 'pop_order' must be one of "
                     f"{_MOVE_POP_ORDERS}, got {value!r}"
                 )
+            if role == "arrange" and value not in _MOVE_ARRANGE:
+                raise ValueError(
+                    f"AtomArgs: role 'arrange' must be one of {_MOVE_ARRANGE} (absent: the owner "
+                    f"arranges the cards, CR 401.4), got {value!r}"
+                )
         # The mill lane is defined by TOP-pop; a journal_kind="MILL" site
         # that forgets pop_order would silently fall through to the generic
         # MOVE lane (wrong bookkeeping).
@@ -2726,6 +2736,14 @@ class Atom:
             raise ValueError(
                 f"Atom: {self.verb.name} needs one of the cards/target/"
                 "amount object axes"
+            )
+        # CR 401.4: "arrange" only where several cards go into one end of a library
+        # together (orders_a_library); anywhere else it would order nothing, a second
+        # encoding of the move without it.
+        if "arrange" in roles and not orders_a_library(self):
+            raise ValueError(
+                "Atom: arrange orders several cards a MOVE_ZONE puts into a library's TOP or "
+                "BOTTOM through `cards` (CR 401.4); this move cannot hold an order"
             )
         # CR 610.3: a zone move "until" something returns the
         # object when that event happens, so only durations that END ON AN
@@ -2895,6 +2913,32 @@ class EachPlayer:
             raise ValueError(
                 f"EachPlayer: effect must be an Effect, got {type(self.effect).__name__}"
             )
+
+
+def orders_a_library(atom: Atom) -> bool:
+    """Can ``atom`` put several cards into one end of a library at once, so that their order is a
+    choice (CR 401.4) its ``arrange`` role may override? A MOVE_ZONE to a library TOP or BOTTOM
+    (no position means both "on the bottom" and "shuffle into", divergence D19) whose objects ride
+    ``cards`` (the general lane, and the hand lane's ``from`` HAND), not the designation lane's
+    ``target`` nor the mill lane's ``pop_order``, neither of which reads the order. Its selector
+    can hold several cards: REST or ALL, a count that allows two (not QConst(1) nor QAtMost(1)),
+    or a referent (an anaphor can bind several objects)."""
+    dest = atom.args.get("destination")
+    sel = atom.args.get("cards")
+    if not (
+        atom.verb is Verb.MOVE_ZONE
+        and atom.args.get("pop_order") is None
+        and isinstance(dest, Zone)
+        and dest.kind is ZoneKind.LIBRARY
+        and dest.position is not None
+        and isinstance(sel, Selector)
+    ):
+        return False
+    return (
+        sel.mode in (SelectorMode.REST, SelectorMode.ALL)
+        or sel.count not in (QConst(1), QAtMost(1))
+        or sel.referent is not None
+    )
 
 
 def gathers_occurrences(event: object) -> bool:
@@ -3911,6 +3955,9 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # "pop_order" — mill's top-of-library pop, pinned explicitly (never a
     # selector-order resolution); "TOP" only.
     "pop_order": (str,),
+    # "arrange" — how the cards a move puts into a library position are ordered: absent, their
+    # owner arranges them (CR 401.4, "in any order"); "RANDOM", in a random order.
+    "arrange": (str,),
 }
 
 # Verb -> {role: required?}. MODIFY_PT and SET_PT additionally require at
@@ -3983,6 +4030,8 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # duration ends, a second one-shot effect returns the object to its
     # previous zone. Only durations that end on an event are accepted
     # (_MOVE_ZONE_DURATIONS, checked in Atom.__post_init__).
+    # arrange (_MOVE_ARRANGE): "in a random order" for cards put into a library position; absent,
+    # their owner arranges them (CR 401.4). Only a move orders_a_library accepts takes it.
     Verb.MOVE_ZONE: {
         "destination": True,
         "cards": False,
@@ -3994,6 +4043,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "pop_order": False,
         "tapped_on_enter": False,
         "duration": False,
+        "arrange": False,
     },
     Verb.SEARCH: {
         "cards": True,

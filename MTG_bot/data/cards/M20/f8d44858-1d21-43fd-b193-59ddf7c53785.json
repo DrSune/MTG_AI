@@ -178,6 +178,13 @@
         "tag": "AtomArgs",
         "pairs": [
          [
+          "arrange",
+          {
+           "tag": "String",
+           "value": "RANDOM"
+          }
+         ],
+         [
           "cards",
           {
            "tag": "Selector",

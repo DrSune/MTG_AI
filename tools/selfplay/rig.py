@@ -107,12 +107,15 @@ class SelfplayRouter(SeatRouter):
         if ask.leaky:
             st["leaky_asks"] += 1
         picked = slot = 0
-        if ask.site.startswith(("pick:", "mulligan_bottom:")):
+        end = ""
+        if ask.site.startswith(("pick:", "mulligan_bottom:", "arrange:")):
             tail = ask.site.rsplit(":", 1)[-1]
             picked = int(tail) if tail.isdigit() else 0
         if ask.site.startswith("pick:"):  # pick:<source>:<slot>:<picks so far> (router._targets)
             field_ = ask.site.split(":")[-2]
             slot = int(field_) if field_.isdigit() else 0
+        if ask.site.startswith("arrange:"):  # arrange:<owner>:<TOP|BOTTOM>:<cards left> (verbs._arrange)
+            end = ask.site.split(":")[-2]
         ctx = AskContext(
             revealed=self._revealed if ask.kind == "scry" else None,
             declared_attackers=self._declared_attackers(),
@@ -120,6 +123,7 @@ class SelfplayRouter(SeatRouter):
             picked=picked,
             slot=slot,
             targeted=frozenset(self.targets_so_far) if ask.kind == "target" else frozenset(),
+            end=end,
         )
         obs = SPObservation(self.lenses[ask.seat], self.game.executor, ctx=ctx, game=self.game)
         idx = driver.decide(ask, obs)

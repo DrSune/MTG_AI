@@ -1,7 +1,7 @@
 {
  "name": "drawn_from_dreams_top_seven_two_to_hand_rest_bottom",
  "set": "M20",
- "notes": "Printed: 'Look at the top seven cards of your library. Put two of them into your hand and the rest on the bottom of your library in a random order.' P0's library reads Lib 9 (top) .. Lib 0, then six filler cards. The top seven are Lib 9..Lib 3; P0 takes Lib 9 and Lib 3 (the seventh card, so the look reaches exactly seven deep). The other five looked-at cards (Lib 8..Lib 4) go under everything, in any order; Lib 2, Lib 1, Lib 0 and the filler move up. No card was drawn.",
+ "notes": "Printed: 'Look at the top seven cards of your library. Put two of them into your hand and the rest on the bottom of your library in a random order.' P0's library reads Lib 9 (top) .. Lib 0, then six filler cards. The top seven are Lib 9..Lib 3; P0 takes Lib 9 and Lib 3 (the seventh card, so the look reaches exactly seven deep). The other five looked-at cards (Lib 8..Lib 4) go under everything, in any order; Lib 2, Lib 1, Lib 0 and the filler move up. No card was drawn. This was its G4 spec pack tools/scenarios/cards/M20/drawn_from_dreams_1.json. Parked here when the record's REST move gained arrange RANDOM ('in a random order'; without it the engine now asks the owner the order, CR 401.4): the tree changed, so the record is not applied until a verifier re-verifies it, and games play the compiler's tree, which is no spell. It passes against the record's tree (cardtool runpack), asking no order; re-verifying the card brings it back.",
  "world": {
   "life": 20,
   "seed": 7,

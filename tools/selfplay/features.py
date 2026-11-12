@@ -14,7 +14,7 @@ float16):
                          the stack: depth, ability kind and index; targeted by a stack object
 * ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
 * ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot), the
-                         step, whether the other player has just passed
+                         step, whether the other player has just passed, an arrange ask's end
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
 * ``opts_i``    [K, 4]   option type, entity ref, second entity ref, ability index
 * ``opts_f``    [K, 2]   number value, kicked
@@ -76,6 +76,8 @@ ASK_KINDS = (
     "priority",
     # which of a player's simultaneous triggered abilities resolves first (CR 603.3b)
     "trigger",
+    # the order of cards put into one end of a library at once (CR 401.4, a scry's groups)
+    "arrange",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
@@ -130,7 +132,10 @@ STEPS = (UPKEEP, DRAW, FIRST_MAIN, BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOC
          FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT, SECOND_MAIN, END_STEP, CLEANUP)
 G_STEP0 = G_SLOT + 1
 G_PASSED = G_STEP0 + len(STEPS)
-GF = G_PASSED + 1
+# An ``arrange`` ask (verbs._arrange) orders cards put into one end of a library: 1 for the top,
+# where the first card picked is drawn next, 0 for the bottom and for every other ask.
+G_TOP = G_PASSED + 1
+GF = G_TOP + 1
 # cards_i: vocab id, zone, controller, owner, then entity pointers (+1, 0 = none): the host an
 # aura or equipment is attached to, an ability's source, a stack object's first target
 C_HOST, C_SOURCE, C_TARGET = 4, 5, 6
@@ -338,9 +343,11 @@ class AskContext:
     """Facts about the current decision that the game rig knows and the engine state does not
     show yet: the card being scried, attackers declared so far this combat, blocks so far, and the
     ask's count (``picked``): the targets picked so far for a target pick's slot, the cards still
-    to put on the bottom (this one included) for a mulligan's bottom ask. A target pick also
-    carries its slot (``slot``, 0 = the first or only target slot of the spell or ability) and
-    the cards and players chosen as its targets so far (``targeted``, every slot's)."""
+    to put on the bottom (this one included) for a mulligan's bottom ask, the cards still to place
+    for an ``arrange`` ask. A target pick also carries its slot (``slot``, 0 = the first or only
+    target slot of the spell or ability) and the cards and players chosen as its targets so far
+    (``targeted``, every slot's); an ``arrange`` ask the library end it orders (``end``, "TOP" or
+    "BOTTOM")."""
 
     revealed: Handle | None = None
     declared_attackers: frozenset = frozenset()
@@ -348,6 +355,7 @@ class AskContext:
     picked: int = 0
     slot: int = 0
     targeted: frozenset = frozenset()
+    end: str = ""
 
 
 _STATIC_CACHE: dict[int, tuple] = {}
@@ -693,6 +701,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     if executor.phase in STEPS:
         glob_f[G_STEP0 + STEPS.index(executor.phase)] = 1.0
     glob_f[G_PASSED] = executor.passes > 0
+    glob_f[G_TOP] = ctx.end == "TOP"
 
     k = len(parsed)
     opts_i = np.zeros((k, 4), dtype=np.int32)

@@ -2045,6 +2045,8 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         self.assertEqual(_pairs_dict(first)["cards"].mode, SelectorMode.ONE_OF)
         self.assertEqual(_pairs_dict(rest)["cards"].mode, SelectorMode.REST)
         self.assertEqual(_pairs_dict(rest)["destination"].position, ZonePosition.BOTTOM)
+        # "in any order" is CR 401.4's default: the owner arranges them, no role
+        self.assertNotIn("arrange", _pairs_dict(rest))
 
     def test_rest_bottom_random(self) -> None:
         outcome = self._match_one(
@@ -2054,6 +2056,7 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         p = _pairs_dict(atom)
         self.assertEqual(p["cards"].mode, SelectorMode.REST)
         self.assertEqual(p["destination"].position, ZonePosition.BOTTOM)
+        self.assertEqual(p["arrange"], "RANDOM")
 
     def test_cultivate_split_search(self) -> None:
         outcome = self._match_one(

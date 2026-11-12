@@ -244,7 +244,14 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     cards.extend(_discard_picks(ctx, sel, player))
         hands = {p: ctx.world.players[p].zone(ZONE_HAND).entries for p in players}
         moved: list = []
-        for card in sorted(cards):
+        # Cards put from a hand into a library (Cavalier of Gales: "put two cards from your hand
+        # on top of your library in any order") go in the order their owner arranges.
+        bottom = _bottom_put(dest_ir, dest_kind)
+        if dest_kind == ZONE_LIBRARY:
+            placing = _library_order(ctx, atom, cards, "BOTTOM" if bottom else "TOP")
+        else:
+            placing = sorted(cards)
+        for card in reversed(placing) if bottom else placing:
             owner = next((p for p, hand in hands.items() if card in hand), None)
             if owner is None:
                 raise ValueError(
@@ -253,11 +260,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                 )
             # CR 701.9a: from its owner's hand to that player's graveyard.
             _move_to(ctx, card, owner, dest_kind, journal_kind)
+            if bottom:
+                entries = ctx.world.players[owner].zone(dest_kind).entries
+                entries.remove(card)
+                entries.insert(0, card)
             moved.append(card)
         # The DISCARDED SET is the result register, written even when empty:
         # "discard ..., then draw that many" (THAT_MANY_COUNT, Kinetic Augur)
         # reads 0, not a missing antecedent.
-        ctx.bindings["result"] = moved
+        ctx.bindings["result"] = sorted(moved)
         return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
@@ -329,20 +340,17 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             if h.namespace == "card"
         ]
         cards = pool if partition else (pool[:n] if n else pool)
-    # A destination Zone.position == BOTTOM (See the Truth) means the cards
-    # land at the BOTTOM of the pile — move_card appends (top for a library /
-    # end of order) and no-ops on a same-zone move, so the bottom-put is
-    # completed here: each card is re-inserted at index 0, iterating
-    # Handle-DESCENDING so the final bottom run reads ascending (the scry
-    # rule's sorted(bottoms)). The compiler emits NO position for "put it on
-    # the bottom of your library" (Epitaph Golem), while every other
-    # MOVE_ZONE→LIBRARY carries an explicit TOP or BOTTOM, so a position-less
-    # LIBRARY destination IS the bottom-put.
-    bottom_dest = dest_ir.position is ZonePosition.BOTTOM or (
-        dest_ir.position is None and dest_kind == ZONE_LIBRARY
-    )
+    # A bottom-put (_bottom_put): move_card appends (top for a library / end of
+    # order) and no-ops on a same-zone move, so the bottom-put is completed
+    # here: each card is re-inserted at index 0, the highest of the run first,
+    # so the run reads bottom to top as placed.
+    bottom_dest = _bottom_put(dest_ir, dest_kind)
+    if dest_kind == ZONE_LIBRARY:
+        placing = _library_order(ctx, atom, cards, "BOTTOM" if bottom_dest else "TOP")
+    else:
+        placing = sorted(cards) if bottom_dest else list(cards)
     stayed: set[Handle] = set()
-    for card in sorted(cards, reverse=True) if bottom_dest else cards:
+    for card in reversed(placing) if bottom_dest else placing:
         # The owner's zone always (CR 400.3); a battlefield controller other than
         # the owner becomes a control entry below, never a zone (CR 108.3).
         target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
@@ -381,6 +389,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         if bottom_dest:
             zone.entries.remove(card)
             zone.entries.insert(0, card)
+        elif dest_kind == ZONE_LIBRARY:  # the top: a move within the library leaves it in place
+            zone.entries.remove(card)
+            zone.entries.append(card)
         if tapped_on_enter and dest_kind == ZONE_BATTLEFIELD:
             ctx.world.cards[card].tapped = True
         ctx.events.append(
@@ -1385,6 +1396,85 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
         )
 
 
+def _arrange(ctx: ExecCtx, owner: Handle, cards: list[Handle], end: str) -> list[Handle]:
+    """CR 401.4: two or more cards put into one end of a library at the same time are arranged by
+    their owner (a scry's two groups too, CR 701.22a). Asked top first at either end, as the
+    trigger ask asks first what resolves next: the owner picks the card that goes highest of those
+    still to place, then the next, ``arrange:<owner>:<TOP|BOTTOM>:<cards left>`` over them,
+    Handle-sorted. Identical cards (one oracle id) are one option, as the trigger ask's copies
+    are: the lowest handle stands for them, and once every card left is identical nothing is
+    asked. Returns the cards bottom to top."""
+    left = sorted(cards)
+    top_down: list[Handle] = []
+    while True:
+        options: dict[str, Handle] = {}
+        for card in left:
+            options.setdefault(ctx.world.cards[card].identity.oracle_id, card)
+        if len(options) < 2:
+            break
+        vocab = tuple(str(card) for card in options.values())
+        answer = ctx.take_decision_of(owner, vocab, f"arrange:{owner}:{end}:{len(left)}")
+        pick = next(card for card in left if str(card) == answer)
+        top_down.append(pick)
+        left.remove(pick)
+    return list(reversed(top_down + left))
+
+
+def _bottom_put(dest_ir: Zone, dest_kind: str) -> bool:
+    """Does the move put its cards at the BOTTOM of the pile? A destination Zone.position BOTTOM
+    does (See the Truth). The compiler emits NO position for "put it on the bottom of your library"
+    (Epitaph Golem), while every other MOVE_ZONE→LIBRARY carries an explicit TOP or BOTTOM, so a
+    position-less LIBRARY destination IS the bottom-put."""
+    return dest_ir.position is ZonePosition.BOTTOM or (
+        dest_ir.position is None and dest_kind == ZONE_LIBRARY
+    )
+
+
+def _library_order(ctx: ExecCtx, atom: Atom, cards: list[Handle], end: str) -> list[Handle]:
+    """The order a move puts cards into one end of their owners' libraries, bottom to top: each
+    library's cards as its owner arranges them (:func:`_arrange`, CR 401.4), the owners asked in
+    APNAP order (CR 101.4), or shuffled for "in a random order" (``arrange`` RANDOM)."""
+    groups: dict[Handle, list[Handle]] = {}
+    for card in sorted(cards):
+        # CR 400.3: a card goes to its owner's library; the zone holding it names that owner.
+        groups.setdefault(ctx.world.controller_of(card), []).append(card)
+    rng = None
+    if atom.args.get("arrange") == "RANDOM":
+        # Seeded by (seed, op, tag): the event count makes each move of one operation its own
+        # stream, or two random moves would shuffle alike.
+        rng = ctx.rng(f"ARRANGE:{len(ctx.events)}")
+    order: list[Handle] = []
+    for owner in apnap_order(ctx.world, list(groups)):
+        group = groups[owner]
+        if rng is not None:
+            rng.shuffle(group)
+        elif owner != ctx.controller and len(group) > 1 and _looked_at(ctx, atom, group):
+            raise NotImplementedError(
+                f"executor: {ctx.controller} chose {owner}'s cards from a look, so the card's "
+                "'in any order' tells its controller to order them (Agonizing Memories), not "
+                "their owner (CR 401.4). No card in the 19 sets does this: it raises until one "
+                "brings tests (BACKLOG)."
+            )
+        else:
+            group = _arrange(ctx, owner, group, end)
+        order += group
+    return order
+
+
+def _looked_at(ctx: ExecCtx, atom: Atom, cards: list[Handle]) -> bool:
+    """Did the move's controller pick ``cards`` out of a look: the looked-at window of this
+    resolution, or another player's library or hand (``cards`` over an opponent's or a target
+    player's zone; every player's own, ANY or OWNER, is each owner's)?"""
+    if any(card in ctx.look_window or card in ctx.one_of_window for card in cards):
+        return True
+    sel = atom.args.get("cards")
+    return isinstance(sel, Selector) and any(
+        z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND)
+        and z.controller not in (ControllerRef.YOU, ControllerRef.ANY, ControllerRef.OWNER)
+        for z in sel.zones
+    )
+
+
 def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     player = role_player(ctx, atom)
     n = amount(ctx, atom, "count")
@@ -1401,11 +1491,12 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
             tops.append(card)
         else:
             bottoms.append(card)
-    # Canonical within-group order (the rules let the scryer order each
-    # group freely; we pin Handle-ascending, ascending = toward the top).
+    # CR 701.22a: each group goes "in any order", the scryer's (_arrange).
     # CR 701.1: a card put on the BOTTOM goes under the WHOLE library — the
     # unviewed remainder keeps its order and the tops land above it.
-    lib.entries = sorted(bottoms) + lib.entries[: len(lib.entries) - n] + sorted(tops)
+    bottom_run = _arrange(ctx, player, bottoms, "BOTTOM")
+    top_run = _arrange(ctx, player, tops, "TOP")
+    lib.entries = bottom_run + lib.entries[: len(lib.entries) - n] + top_run
     ctx.events.append((len(ctx.events), "SCRY", str(player), n))
 
 

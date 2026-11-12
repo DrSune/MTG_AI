@@ -1689,8 +1689,9 @@ def _build_one_of_other(m: re.Match[str]) -> SentenceOutcome:
 def _build_one_of_rest_bottom(m: re.Match[str]) -> SentenceOutcome:
     """``Put one of those cards into your hand and the rest on the bottom
     of your library in any order.`` (See the Truth s2) — ONE_OF/REST
-    again. Lossy: "in any order" is dropped (the destination has no
-    ordering field)."""
+    again. "In any order" is CR 401.4's default for cards put into a
+    library together (their owner arranges them), so the move carries no
+    ``arrange`` role."""
     to_hand = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1737,9 +1738,9 @@ def _build_one_of_rest_bottom(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_rest_bottom_random(m: re.Match[str]) -> SentenceOutcome:
     """``Put the rest on the bottom of your library in a random order.``
-    (Garruk's Harbinger s3) — REST over the looked-at top cards.
-    Lossy: "in a random order" is dropped; the destination has no ordering
-    field (SelectorMode.RANDOM would replace REST, not order it)."""
+    (Garruk's Harbinger s3) — REST over the looked-at top cards, with
+    ``arrange`` RANDOM: the order is random instead of the owner's choice
+    (CR 401.4)."""
     atom = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -1761,6 +1762,7 @@ def _build_rest_bottom_random(m: re.Match[str]) -> SentenceOutcome:
                         position=ZonePosition.BOTTOM,
                     ),
                 ),
+                ("arrange", "RANDOM"),
             )
         ),
     )
