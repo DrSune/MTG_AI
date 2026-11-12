@@ -30,6 +30,7 @@ STREAM_NAMES = (
     "teacher",       # curriculum and matchup curation
     "scenario",      # procedural puzzle generation
     "bench",         # benchmark agents and deals (MTG_bot/bench); per-game via substream()
+    "probe",         # which decisions a measurement probes (tools/selfplay/linevalue.py)
 )
 
 _master_seed: Optional[int] = None

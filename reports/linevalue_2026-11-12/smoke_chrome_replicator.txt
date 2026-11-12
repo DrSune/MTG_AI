@@ -1,0 +1,17 @@
+# CPU smoke of tools/selfplay/linevalue.py (PLAN_CEILING §14.2, instrument 1), from commit 7bfeba40, 2026-11-12 21:53-22:18
+# checkpoint: a copy of runs/r28_looks/r28_u75.pt (r28 at update 75), sha256 b7b347c5b6d0fefc78196707b7073a06d71dfc6d3c9b4c6e1df081669c61aa45
+# CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=2 nice -n 19 .venv/bin/python -m tools.selfplay.linevalue r28_u75.pt --cast "Chrome Replicator" --states 24 --futures 3 --games 400 --out smoke_chrome_replicator.json
+# defaults: sampled play, --per-game 2, --tops 3, --pool verified, --set M21, coherent decks, --deal0 950000, --seed 0; beside r28 on the GPU
+line 'cast Chrome Replicator': 24 states (24 measured), 3 futures each, sampled play
+value     A1 - B -0.028 +- 0.028   A* - B -0.028 +- 0.028   (mean result policy +0.000, first -0.028, through -0.028)
+unforced  33 decisions with a step in 97 games (0 void): p(step) 0.428, the top choice 0.424, played 0.455; at the states p 0.440, B's root played it 0.417; A's root differs from B's 0.583
+follow    after a forced first step the policy took 0.600 of 15 later steps (in 10 of 72 playouts; p 0.564); B took 0.557 of 88; A* forced 12
+critic    turn top 1: A1 - B +0.010 +- 0.021   A* - B +0.010 +- 0.021   A* -0.164
+critic    turn top 2: A1 - B -0.013 +- 0.028   A* - B -0.012 +- 0.028   A* -0.160
+critic    turn top 3: A1 - B -0.000 +- 0.051   A* - B -0.000 +- 0.051   A* -0.153
+cost      collect 703 s (97 games); measure 789 s, 11.0 s per state x future (3 playouts of 76 network decisions; inference 41.5 ms a call, 0.88 of the time); crashes {}, rails 0
+# per state (from the JSON): the policy's p(step) is bimodal (9 states <= 0.01, 10 >= 0.64); A1 - B is -0.048 at the 14
+# states with p < 0.5 and 0.000 at the 10 with p >= 0.5. The per-state sd of A1 - B at 3 futures is 0.136: about 47 states
+# give an SE of 0.02, 186 an SE of 0.01. A1 and A* agree at all 24 states: in the 5 futures where A1 declined a later step,
+# A* played a different game (replayed: 54 against 80 network decisions) that was already lost (value -0.96 at turn top 1).
+# The value head's level at the turn tops is -0.15 to -0.17 in every branch, against mean results 0.000 (B) and -0.028 (A).
