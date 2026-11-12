@@ -723,6 +723,10 @@ def test_the_guard_stops_a_mulligan_runaway_and_a_falling_win_rate() -> None:
     assert breach(quiet[:-10] + [row(i, 1.9, 0.70) for i in range(111, 116)] + quiet[-5:]) is None
     falling = quiet[:70] + [row(i, 1.35, 0.62) for i in range(71, 121)]
     assert "heuristic" in breach(falling)
+    swing = quiet[:-10] + [{**row(i, 1.35, 0.70), "games": g, "kinds": {"mulligan": {"n": n}}}
+                           for i, g, n in zip(range(111, 121), [3280, 2114, 1192] * 3 + [2000],
+                                              [2965, 2801, 2706] * 3 + [2700], strict=True)]
+    assert breach(swing) is None  # r28's start: per-update ratios 0.90, 1.33, 2.27, pooled 1.29
 
 
 def test_a_step_accumulates_the_mean_over_its_rows() -> None:
