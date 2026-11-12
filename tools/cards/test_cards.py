@@ -140,3 +140,14 @@ def test_a_reverification_adds_its_packs_beside_the_earlier_ones(tmp_path) -> No
     (tmp_path / "basri_ket_1.json").write_text("{}")
     (tmp_path / "basri_ket_2.json").write_text("{}")
     assert next_pack_path(tmp_path, "basri_ket").name == "basri_ket_3.json"
+
+
+def test_a_reverification_keeps_one_copy_of_a_pack_it_carries_again(tmp_path) -> None:
+    """A verdict that lists a pack already kept for the card (the same text) reuses its file, so
+    re-verifying never duplicates a spec pack in the suite; a new pack takes the next index."""
+    from cardtool import kept_pack_path
+
+    (tmp_path / "tales_end_1.json").write_text('{"a": 1}')
+    (tmp_path / "tales_end_2.json").write_text('{"b": 2}')
+    assert kept_pack_path(tmp_path, "tales_end", '{"b": 2}').name == "tales_end_2.json"
+    assert kept_pack_path(tmp_path, "tales_end", '{"c": 3}').name == "tales_end_3.json"
