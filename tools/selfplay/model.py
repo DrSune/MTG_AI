@@ -104,7 +104,7 @@ class PolicyValueNet(nn.Module):
         """The input tokens [global, me, opponent, cards..., options...] and which are real (the
         opponent simulator reads the same view through them: simulator.py)."""
         cards_i, cards_f = b["cards_i"], b["cards_f"]
-        bsz, e = cards_i.shape[:2]
+        bsz = cards_i.shape[0]
         card_idx = cards_i[..., 0]
         name_idx = card_idx
         if self.mask_names:

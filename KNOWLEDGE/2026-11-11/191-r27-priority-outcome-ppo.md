@@ -337,3 +337,39 @@ updates; 109,559 training games):
   - Actions per game, not the share, is the sign to watch for "learning to do nothing"
     (prediction 5's falsifier).
 - `ent` has been flat since update 11: slope -0.00009 (SE 0.00008) over 11-77, means 0.30-0.31.
+
+## 8. The end at update 165 (2026-11-12)
+
+- **The pause.** Window 2 resumed r27 at 15:10 from update 165's save. I stopped it at 15:24,
+  during update 170: its mulligan was running away. Updates 166-169 were played but never
+  saved. The cause was the trainer's optimizer steps, each one stratum of decision length
+  (KNOWLEDGE/2026-11-12/198).
+- **The mulligan read (registered in §7): M1, M2 and M3 met** for v0:
+  - p(mulligan) at 7 cards with 3-4 lands 0.062 [0.058, 0.065];
+  - at 0-1 land 0.971 [0.967, 0.975];
+  - the ROC-AUC of p(keep) against the result 0.579 [0.571, 0.587].
+  - v0 reads the hand. The runaway came later, in training (198 §1).
+- **r27 ends here.** The reads at 500, 1,000 and 2,000 will not be made, so predictions 1-8 stay
+  unscored; 9 was falsified at the start. The successor is r28 (199), on the fixed trainer from
+  v1.
+- **The last look** (window 2's pause, update 165; not a registered read; means per block of
+  updates; the last row per update):
+
+| | 1-10 | 71-80 | 131-140 | 151-165 |
+|---|---|---|---|---|
+| Gates against v1 | — | — | 0.508 at 100, 0.518 at 125 | 0.506 [0.490, 0.522] at 150 |
+| `priority` pass share | 0.794 | 0.874 | 0.906 | 0.913 |
+| `priority` asks / instant-speed actions per game | 19.0 / 3.91 | 25.9 / 3.27 | 28.6 / 2.67 | 27.7 / 2.40 |
+| First-main actions per game | 14.3 | 15.4 | 15.8 | 15.7 |
+| `ent` / `kl` / `ev` | 0.336 / 0.0066 / 0.372 | 0.301 / 0.0059 / 0.375 | 0.271 / 0.0051 / 0.389 | 0.271 / 0.0058 / 0.386 |
+| Training win rate against the heuristic / frozen | 0.655 / 0.507 | 0.723 / 0.535 | 0.736 / 0.529 | 0.734 / 0.515 |
+| Mulligan declarations per game | 1.32 | 1.30 | 1.34 | 1.70 |
+
+- **No kill criterion was met:** 328,142 training games with no crash, no non-finite step and
+  no void game. The lowest MemAvailable was 48.4 GiB. `overflow` was 4,601 (0.014 a game),
+  `throttled` 16. The median interval between updates was 171.8 s over 148 intervals.
+- **No freeze after v1.** For 75 updates the gates sat at 0.51 while the mulligan drifted.
+- **For r28 to watch: the pass share's rise became less acting.** Since update 80, instant-speed
+  actions per game fell 27% (3.27 to 2.40), while asks rose only 7%. First-main actions and the
+  win rate against the heuristic rose, so the network is not doing nothing overall. Prediction 5's
+  falsifier (above 0.97) was not near.

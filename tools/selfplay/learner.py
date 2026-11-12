@@ -194,7 +194,7 @@ def write_manifest(run: Path, args: argparse.Namespace) -> dict:
     def git(*cmd: str) -> str | None:
         try:
             out = subprocess.run(["git", *cmd], cwd=REPO, capture_output=True, text=True,
-                                 timeout=60)
+                                 timeout=60, check=False)
         except (OSError, subprocess.SubprocessError):
             return None
         return out.stdout if out.returncode == 0 else None

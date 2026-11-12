@@ -39,6 +39,7 @@ are neutral; each one is teaching the agent something.
 | **The heuristic's mulligan rule** (2026-11-06, with the London mulligan) | `tools/selfplay/heuristic.py` `_mulligan`, `_mulligan_bottom` | An authored keep policy, not a rule of the game, in the anchor opponent and the BC teacher: keep a hand of five cards or fewer, or a bigger one with at least two lands and at least two other cards; the card a mulligan puts on the bottom is a land while lands outnumber the rest (a copy of the land held most), else the highest mana value card. The network learns its own mulligan by PPO and imitates this one only in teacher inter-play. Remove it with the heuristic as anchor and teacher: a league of frozen versions as the fixed opponents, and runs that start from a trained network. |
 | **Simulator data: each capture seat records a share 0.4 of its decisions; capture games are half network against itself, half against the heuristic; games whose seed is a multiple of 25 are held out** (2026-11-06, E0) | `tools/selfplay/learner.py` `capture` (`--capture-p`); `tools/selfplay/simulator.py` `HOLDOUT` | Collection knobs of E0's offline data. Remove when the simulator retrains on a sliding window of the league's own recent games (PLAN_LEARNING §4), held-out games drawn there. |
 | **Entropy bonus in outcome PPO: 0.004 in r27, 0.0075 in r26** (2026-11-10, r26; r20-r23 ran 0.002; r27 since 2026-11-12) | `tools/selfplay/ppo.py` `ppo_train` (`--ent`); the unit text in `KNOWLEDGE/2026-11-10/189` §9 and the command in `KNOWLEDGE/2026-11-11/191` §2 | The one term in the loss that is not winning, sized by hand. Without it this learner lowers its own entropy by about 0.003 per update at lr 2e-5 (r25), and 0.002 does nothing against that (one update measured term by term, 189 §8). 0.0075 was the size whose measured push balances the fall; it overshot, and r26's entropy rose to 0.43-0.45 (189 §10-11). At r27's 0.004 an action costing 0.3 points of win probability keeps about 15% of the best action's weight (191 §2). It is one level for every kind of decision: r27's mulligan, the binary choice with the noisiest gradient, may carry what r26's bonus put there (191 §7). Remove when exploration no longer hangs on sampling noise: targets from search (PLAN_LEARNING Phase 2), or a learner whose entropy holds without it. |
+| **r28's guard: stop the run at 1.80 mulligan declarations per game (a 10-update mean), or at a 50-update heuristic win rate 0.05 under the first 50 updates'** (2026-11-12, KNOWLEDGE 199 §3) | `tools/selfplay/guard.py`, unit `mtg-r28-guard` | A safety rail on r27's runaway, not a learning signal: the network never sees it. Ends with r28; drop it once the mulligan's learning holds without it (R1 met to the read at 400). |
 | **One fixed `TEST_MASTER_SEED` for the test suite** (2026-09-11) | `MTG_bot/conftest.py:24` | It is the right default now, but a conformance suite should eventually run over k seeds and assert the result is seed-independent, which is what P13's seed band is for. Once P13 exists, replace the constant with a parametrised seed sweep. |
 
 ---
@@ -397,6 +398,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### To triage
 
+- **Runed Halo's NAME_CHOSEN without a CHOOSE_NAME record** (2026-11-12, window 2's H2, 192 §7.6).
+  3 of 300 castable-pool deals (900,114, 900,195, 900,283; u1000 against the heuristic, M21)
+  crashed with `NotImplementedError: executor: NAME_CHOSEN needs a CHOOSE_NAME record for the
+  source` (`core/executor/quantity.py:908`); a deck of each holds Runed Halo (castable, not
+  verified). Find when the protection check runs with no name recorded (before the "as enters"
+  choice, after a zone change, or a fork) before Runed Halo is verified. Repro:
+  `learner --eval-only --init u1000.pt --eval-opponents heuristic --pool castable --eval-set M21
+  --eval-deals 300 --eval-seed0 900000` (window 2's `heur_raw_castable`).
+- **TARGET_PLAYER resolved without a bound target** (2026-11-12, the same run). Deal 900,085
+  crashed with `ValueError: executor: TARGET_PLAYER needs a bound target (12c target prompt)`
+  (`core/executor/selectors.py:150`). Its decks' unverified spells: Garruk, Savage Herald;
+  Hooded Blightfang; Feline Sovereign; Mangara, the Diplomat; Runed Halo
+  (`reports/window2_2026-11-12/score/castable_crash_decks.py`). The verified pool had no void
+  game in r27's 328,142 training games.
 - **The journal is not a record of what players know** (2026-11-12, KNOWLEDGE/2026-11-12/197).
   SCRY journals how many cards were scried, not which went where (`verbs.py` `_v_scry`); REVEAL
   has no zone role and `_look` reads only the library, so "target opponent reveals their hand"
@@ -851,7 +866,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   learner.py's torch imports lazy. Memory, not correctness.
 - **Optimizer state is not saved for resume.** A resumed run restarts AdamW's moments, so its
   first updates differ from an uninterrupted run. Save the trainer's optimizer state with
-  state.pkl (the trainer process owns it).
+  state.pkl (the trainer process owns it). Measured at r27's resume after window 2 (198 §2): no
+  shock overall (`kl` 0.0037-0.0086 over updates 166-169).
+- **The mulligan's forgetting** (2026-11-12, KNOWLEDGE/2026-11-12/198 §4). Learning the rest of
+  the game moves the shared network so that the mulligan reads the hand less: one update without
+  any mulligan row raised its logit on decent hands by +0.2 to +0.4 (lowered it on the worst).
+  The stratified steps let the mulligan's own gradient answer in every step, and at r27's
+  update 165 it wins (net -0.3 per update), but at v1's rates its pull is weak. r28's R1 and R1b
+  (199) test whether that is enough. If not, candidates, each to be registered before use: a KL
+  anchor on mulligan decisions to a reference policy, the search deciding the mulligan, or
+  advantages with less variance at the first decision (the value knows little there: early-game
+  explained variance 0.07).
+- **The simulator and the distilled networks were trained on length-stratum steps** (198 §5).
+  Window 1's `sim.pt` (192 §5) and every distillation before f83f4db took each optimizer step on
+  one length stratum. Retrain the simulator on `ppo.steps` before its next registered use and
+  compare its held-out NLL with window 1's.
 - **The search treats copies of a card as different moves** (2026-11-12, KNOWLEDGE/2026-11-12/197).
   The engine lists one option per card object, so two Forests in hand are two candidates whose
   results differ only by noise. Gumbel halving spends simulations on copies, "moves changed" is

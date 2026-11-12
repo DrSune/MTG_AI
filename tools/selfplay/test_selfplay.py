@@ -707,6 +707,24 @@ def test_every_optimizer_step_samples_every_length() -> None:
             assert len(c) <= mb and (len(c) == 1 or len(c) * (lengths[c].max() + 3) <= tok)
 
 
+def test_the_guard_stops_a_mulligan_runaway_and_a_falling_win_rate() -> None:
+    """guard.breach reads the last row per update: a 10-update mean of mulligan declarations per
+    game above the line (r27's runaway, 198) or a 50-update heuristic win rate 0.05 under the first
+    50 updates' is a breach; a quiet run is not (KNOWLEDGE 199 §3)."""
+    from tools.selfplay.guard import breach
+
+    def row(it: int, mull: float, win: float) -> dict:
+        return {"it": it, "games": 1000, "win": {"heuristic": win},
+                "kinds": {"mulligan": {"n": int(mull * 1000)}}}
+
+    quiet = [row(i, 1.35, 0.70) for i in range(1, 121)]
+    assert breach(quiet) is None
+    assert "mulligan" in breach(quiet[:-10] + [row(i, 2.0, 0.70) for i in range(111, 121)])
+    assert breach(quiet[:-10] + [row(i, 1.9, 0.70) for i in range(111, 116)] + quiet[-5:]) is None
+    falling = quiet[:70] + [row(i, 1.35, 0.62) for i in range(71, 121)]
+    assert "heuristic" in breach(falling)
+
+
 def test_a_step_accumulates_the_mean_over_its_rows() -> None:
     """backward_step weighs each micro-batch's mean loss by its share of the step's rows: the
     gradient equals one pass over all of the step's rows."""

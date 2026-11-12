@@ -29,7 +29,8 @@ SMOKE_SEED0 = 3_000_000  # disjoint from training, evaluation and gate deals (le
 
 
 def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True).stdout.strip()
+    return subprocess.run(["git", *args], cwd=REPO, capture_output=True, text=True,
+                          check=False).stdout.strip()
 
 
 def _game(seed: int, pool: str) -> dict:
