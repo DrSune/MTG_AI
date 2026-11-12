@@ -455,7 +455,9 @@ and `sim-is` worlds. E0's NLL and calibration stay as the simulator's own gates.
 
 **Gate B, the distillation probe, at a scale that can answer.**
 - Its own generation: searched self-play at the chosen n until 300k full-search targets exist,
-  about 15k games, roughly 12-15 machine-hours at n = 16. E3 saw no growth from 100k to 300k, so
+  about 15k games, roughly 12-15 machine-hours at n = 16. *Measured in window 1 (KNOWLEDGE 192
+  §4): about 29,400 games and 22 machine-hours, because only act decisions are recorded,
+  10.2 per game, and 600 searched games take 27 minutes.* E3 saw no growth from 100k to 300k, so
   less cannot answer the question.
 - The network is trained on 100k and on 300k targets (SE-scaled steps, §3.2) and tested on unseen
   deals:
@@ -742,7 +744,7 @@ scores highest, and its fine-tuning reward is the rise of L its decks bring.
 | then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")**: 16 for F1's targets, 4 for the searched anchor, 16 for play (KNOWLEDGE 192 §9, D23) |
 | 2026-11-12 | r27 | its early speed (§4.1); the capacity probe and the drafter v0 (`PLAN_DRAFTER.md`) built and tested on CPU, beside r27 |
 | a window of about 2.5 hours, r27 paused (the pause logged) | §4.1's capacity probe; drafted-deck games (PLAN_DRAFTER G2-G4) | — |
-| days 4-6 | r27; then, if gate A passed, gate B's generation and probe (~15 h, with the tools already built) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
+| days 4-6 | r27; then, if gate A passed, gate B's generation and probe (~22 h by window 1's rate, with the tools already built) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
 | days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (review at 14 machine-days) | the exploiter; the held-out pool's ratings |
 | then ~2 weeks | H1 and its control, about a week each, from when F1 is at least +200 Elo above r27 | — |
 | after H1 | — | **the ceiling read**, to the owner |
