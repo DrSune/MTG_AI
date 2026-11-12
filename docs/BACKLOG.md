@@ -719,6 +719,30 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
+  verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
+  - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
+    Soldier": the engine takes every copy and never asks how many.
+  - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
+    the ability is offered on the battlefield, where it does nothing, and refused from the graveyard.
+    Find where an activated ability's functioning zone is read (CR 113.6).
+  - **Sorin, Imperious Bloodlord's +1.** The reflexive "when you do" target is chosen at activation,
+    a "targeted" event fires when the sacrifice is declined, and the Vampire being sacrificed is
+    offered as a target. CR 603.12 chooses the target when the reflexive trigger goes on the stack,
+    after the sacrifice. This is an engine idiom (below).
+  - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
+    one-of choice.
+  - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
+    you control have '{T}: Draw a card.'"
+  - **Cavalier of Flame.** "Discard any number of cards, then draw that many" discards the whole hand
+    with no ask.
+- **Reflexive triggers choose their targets too early** (2026-11-12, the same wave).
+  - "You may <act>. When you do, <effect with a target>" asks the target before the action.
+  - Where the action cannot change the legal targets this is benign; the batch A verifier judged
+    Tolarian Kraken's {1} payment OK.
+  - Where it can, it offers illegal targets: Sorin's sacrificed Vampire. CR 603.12 puts the reflexive
+    trigger on the stack, with its targets, after the action.
+  - One engine fix for every "when you do". A card-backlog wave-2 item.
 - **M21 Runed Halo, Garruk, Savage Herald and Rookie Mistake can go to G1 and G2** (2026-11-12,
   deaba91). They were the "probe limits" cards of KNOWLEDGE/2026-10-30/177, and Runed Halo caused
   window 2's four castable-pool crashes (192 §7.6); both crashes are fixed in deaba91:
