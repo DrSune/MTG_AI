@@ -12,16 +12,15 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Running since 2026-11-11 18:03:** window 1 of that plan: the n-curve, gate A and the simulator on
-the game with priority, pre-registered in `KNOWLEDGE/2026-11-11/192`. It runs as the transient user
-unit `mtg-window1` (`systemctl --user is-active mtg-window1`), which executes
-`reports/window1_2026-11-11/queue.sh` from the worktree `/home/sune/Desktop/MTG_AI-w1`. Results go
-to `runs/window1/`: `queue.log`, and one `.done` file per finished step, so a restarted queue skips
-those steps. When the window ends, the transient unit `mtg-clock1`
-(`reports/window1_2026-11-11/clock.sh`) measures the clock's latency, one game at a time (192 §6,
-`runs/window1/clock.log`), and then starts r27 (`KNOWLEDGE/2026-11-11/191`, unit `mtg-r27`). r26
-stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time, and nothing else on
-the GPU beside it.
+**Running since 2026-11-12 03:56:** r27 (`KNOWLEDGE/2026-11-11/191`): outcome PPO on the game
+with priority, from r26's `u1000.pt`. It runs as the user unit `mtg-r27`
+(`systemctl --user is-active mtg-r27`) from the worktree `/home/sune/Desktop/MTG_AI-r27` at d6dcdff,
+into `runs/selfplay/r27_priority_ppo/`; `stop` pauses it and `start` resumes it from the last save.
+Window 1 (the n-curve, gate A, the simulator, the variants and the clock's latency) ran
+2026-11-11 18:03 to 2026-11-12 03:57 and is scored in `KNOWLEDGE/2026-11-11/192`. Window 2
+(`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6) pauses r27 for about
+2.5 hours after its first 8. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
+at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
 
