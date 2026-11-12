@@ -477,6 +477,23 @@ until then, so they do not run there.
 | H1 | `heur_raw_fp32`: as `heur_raw` with fp32 inference, the same 300 deals; fp32 minus bf16, paired by deal | within ±0.03 (183 measured bf16 copies against fp32 autocast on the old game: the same argmax, values within 8.8e-4) | +0.04 or more with the lower bound above 0: bf16 inference costs strength, a fault to fix before any further evaluation |
 | H2 | `heur_raw_castable`: as `heur_raw` on the castable pool (other decks, so not paired) | 0.74-0.88: the castable pool's extra cards favour the network, or play badly for the heuristic | at or below 0.72: the pool does not explain the gap, which then lies with the update (~830 against 1,000) or the 40 games' noise |
 
+**Amendment, 2026-11-12 ~13:00, before `heur_raw_fp32` ran (the bug hunt, KNOWLEDGE/2026-11-12/197).**
+As queued, `heur_raw_fp32` does not run in fp32. Without `--infer-bf16`, the learner keeps fp32
+weights but runs them under bf16 autocast on CUDA. The learner at 98a48e9: `_infer_net` returns
+the fp32 model, and the forward pass runs inside
+`torch.autocast(..., dtype=torch.bfloat16, enabled=self.cuda and not bf16)`. CUDA inference had
+no fp32 path, and 183's check compared the same two bf16 paths.
+- **H1 as run** compares a bf16 copy with bf16 autocast over fp32 weights. It is read as that
+  comparison only: the same prediction and falsifier, meaning "the two bf16 paths agree". It
+  cannot test precision.
+- **H1′ is the precision check proper.** It runs once the learner has a true fp32 path. Then: u1000
+  on the verified pool, deals 900,000-900,299 with both seats, fp32 with no autocast, paired by
+  deal with window 1's `heur_raw`. It has the same prediction and falsifier as H1, and runs at
+  r27's next pause (gate B's queue).
+- A CPU measurement from the hunt, u1000 on 2,120 positions from 12 heuristic games: fp32 and
+  bf16 autocast choose a different greedy option at 9 positions (0.4%). These are CPU kernels,
+  not CUDA.
+
 **What each outcome means.**
 - **H1 met, H2 met:** nothing is broken. Prediction 9 was set on another pool's number.
 - **H1 met, H2 falsified:** nothing is broken in precision. The remaining causes are harmless (the
