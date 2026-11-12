@@ -18,8 +18,9 @@ with priority, from r26's `u1000.pt`. It runs as the user unit `mtg-r27`
 into `runs/selfplay/r27_priority_ppo/`; `stop` pauses it and `start` resumes it from the last save.
 Window 1 (the n-curve, gate A, the simulator, the variants and the clock's latency) ran
 2026-11-11 18:03 to 2026-11-12 03:57 and is scored in `KNOWLEDGE/2026-11-11/192`. Window 2
-(`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6) pauses r27 for about
-4 hours after its first 8. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
+(`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6, and 191 §7's mulligan
+read) runs from the worktree `/home/sune/Desktop/MTG_AI-w2` pinned at 98a48e9 (do not edit it) and
+pauses r27 for about 4 hours after its first 8. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
 at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
