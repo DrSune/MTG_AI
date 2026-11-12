@@ -1,0 +1,85 @@
+# 193 — The drafter v0: the deck critic and drafted decks (pre-registration)
+
+**Context.** `docs/PLAN_DRAFTER.md`, written and red-teamed on 2026-11-12 at the owner's request
+("getting started on the drafter based on value function and opponent simulator"). This note
+records what was measured while building it (§1, exploratory), then registers the gates before any
+new-game critic is fitted or any drafted-deck game is played (§2). Results are appended below and
+never edit §2.
+
+## 1. Built, and measured on the way (2026-11-12 night; exploratory)
+
+**Built:**
+- `tools/selfplay/decks.py`: `rebuild`, `check-capture`, `fit`, `swap`, `drafted_decks`.
+- `learner.py` writes every training game's deal and result to `train_rows.jsonl`. r27 has this
+  from its launch commit d6dcdff.
+- Evaluation deck modes `versus:K` and `drafted:K` (`--eval-decks`, `--draft-critic`). The mode
+  names the critic's hash.
+
+**The rebuild:**
+- Window 1's 300 deals, rebuilt at e462628 by the worker on that commit's extracted engine, equal a
+  direct deal of the same seeds, deck for deck, all legal.
+- r26's 40,500 deals were rebuilt at 4409527.
+- The capture check (every captured position's opponent hidden plus public cards against the
+  rebuilt deck, all 40 shards) is running; its result goes in §3.
+
+**G1 on the old game** (r26's coherent games between networks, 40,911 games, 20,244 deals; the red
+team had fitted it first, so this is not a test):
+
+| Model | Held-out log-loss | Penalty | Calibration error (expected / largest bin) |
+|---|---|---|---|
+| Baseline: colour pair, seat, pilots, 12 deck summaries | 0.6792 | 0.001 | 0.0097 / 0.028 |
+| Card values | 0.6720 | 0.01 | 0.0068 / 0.031 |
+
+- The gain is 0.0072 ± 0.0009 per game.
+- The top cards are Baneslayer Angel, Terror of the Peaks and Elder Gargaroth. The bottom ones are
+  Heroic Intervention, Return to Nature and Tormod's Crypt.
+- The critic's band for M21 (coherent decks, 1st-99th percentile): mean spell mana value 2.56-4.08,
+  13-28 creatures, at most 4 copies.
+
+**Construction on that critic** (1,000 M21 deals each):
+
+| k | Distinct decks | Spells in at least 1% of decks | Predicted gain (logits) | Mean spell mana value | Creatures | Decks with a 4-of |
+|---|---|---|---|---|---|---|
+| 0 | 1,000 | 237 | 0.00 | 3.26 | 20.7 | 5% |
+| 4 | 1,000 | 229 | +0.82 | 3.56 | 24.3 | 98% |
+| 8 | 1,000 | 212 | +1.38 | 3.76 | 26.4 | 99% |
+| 16 | 1,000 | 172 | +2.09 | 3.95 | 27.3 | 99% |
+
+**One change from the plan.**
+- PLAN_DRAFTER §4 fits the new game as a penalised deviation from r26's values. With r27's training
+  games logged (about 1,600 coherent games between networks per update), the new game has tens of
+  thousands of games within hours.
+- So it is fitted alone, and r26's values are reported beside it.
+
+## 2. Pre-registered (2026-11-12, before any new-game fit or drafted game)
+
+**The critic.**
+- Data: `decks fit` on r27's `train_rows.jsonl`. These are coherent games between networks: the
+  learner against frozen versions, with the heuristic's games left out (`decks.games`).
+- The decks are rebuilt at d6dcdff.
+- The penalty grid is 1e-4, 1e-3, 3e-3, 1e-2, 3e-2 and 1e-1.
+- It is fitted once r27 has 50,000 such games, about 30 updates.
+- The G2 and G4 runs use this critic, named by its hash.
+
+| # | Gate | Pass | Prediction |
+|---|---|---|---|
+| G1 | New game: held-out log-loss, 5 folds grouped by seed, cards against the baseline | the gain per game with its 95% lower bound above 0, and the cards' calibration error below 0.02 | gain 0.004-0.010 |
+| G2 | `versus:K` for K = 0, 4, 8, 16: 1,000 deals each, M21, r27's latest network on both seats (`--eval-seat eval --eval-opponents snap:opp --opp-ckpt` the same file), greedy. The drafted deck's score, paired by deal | the slope of observed on predicted score has its 95% lower bound above 0 (regressed per deal over the four arms), **and** K = 8's score has its lower bound above 0.5 | K = 0: 0.47-0.53; K = 4: 0.55-0.65; K = 8: 0.58-0.70; K = 16: 0.60-0.75. Slope 0.3-1.0: the critic overstates its gains, because the swaps select its noise |
+| G3 | 1,000 decks per K from the new-game critic, no games | at every K: 990 or more distinct, 150 or more spells in at least 1% of decks, every deck's statistics inside the band unless its deal started outside | met at K up to 16 |
+| G4 | `drafted:8` against coherent: 1,000 deals each, r27's latest network against its v0, pilots swapped within a deal. The share of deals whose winner changes when the pilots swap | 10,000 or more drafted-deck games over G2 and G4 without an engine error. The share is reported for both | drafted within ±5 points of coherent. Neither direction is predicted with confidence: stronger decks can make a game more the deck's or more the pilot's |
+
+**What each outcome means:**
+- G1 fails: the cards add nothing over the summaries on the new game, and construction stays at
+  K = 0.
+- G2 fails on the slope: the critic's values do not carry to play, and the loop (§6) cannot start
+  on them. It fails at K = 8 alone: the values carry but are too small to matter at that dose.
+- G3 fails: construction collapses, and its guard needs work before any use.
+- G4 is the purpose. A drafted share 3 points or more above coherent, with its lower bound above
+  0, means drafted decks give more skill-decided games: the knob may help a stalled run.
+  Otherwise the knob's value is realism (the simulator, the held-out pool), not signal.
+
+**Deferred:** the simulator's NLL on drafted-deck positions needs a capture with drafted decks,
+which `--capture` does not deal yet. It comes with the first loop round.
+
+**Cost.** G2 is 8,000 games and G4 4,000, at about 15 games a second: under 20 minutes of a GPU
+window.
