@@ -832,7 +832,7 @@ power, the Elo table, the decision size (16.3 KB or less), that no target is com
 true state, on-policy learning against any opponent, and the literature claims of [1]-[8] and
 [11]. It noted that information-set MCTS keeps non-locality, now in §3.2.
 
-## 14. After r27: realistic decks, signal before direction, and specialists (owner, 2026-11-12)
+## 14. After r27: realistic decks, signal before direction, and specialists (owner, 2026-11-12; revised after the red team, §15)
 
 The owner, on window 2's results:
 > "Training more realistic decks sound better though. Realistic decks probably have a higher
@@ -846,103 +846,163 @@ Also: the critic as the beginning of drafting; decks the model is especially wea
 later, "once it needs to learn how to balance niche and meta deck playing skills in the same
 model"; and fix the backlog of cards.
 
-### 14.1 Realistic decks move into the learner now, after one measurement
+### 14.1 Realistic decks: measure the ceiling, then one registered A/B
 
-**Before, in §9:** decks chosen for learning came after the ceiling read, through the Teacher.
+**Critic-drafted decks are not the realistic decks the owner means** (the red team; checked).
+- The v0 critic says how today's pilots win with a card. It ranks the skill-heavy cards near the
+  bottom of 462: Riddleform last, Spectral Sailor 3rd, Discontinuity 15th, the Sanctums 5th to
+  98th. Baneslayer Angel and Elder Gargaroth are on top.
+- Construction swaps the lowest-valued cards out, so drafted decks get more creatures and
+  heavier curves (193 §1). Their games are 1.71 ± 0.20 turns shorter (paired, G4), and the deck
+  on the play wins 0.544 against 0.519.
+- G4's drop in pilot-decided deals (−0.045) is the rise of "the deck on the play won both games"
+  (0.350 to 0.397). "The deck on the draw won both" stayed flat (0.311 to 0.310). That is a tempo
+  effect, not lopsided pairs.
+- So the earlier step A (balanced drafted pairs) and step B (r28 half on them) are withdrawn.
+  Balancing cannot remove a tempo effect. Step B could not run without restarting r28 on new
+  code, and it had no control arm.
 
-**The owner's case:** a deck that allows only one- or two-turn plans caps what can be learned.
-Realistic decks (curves, the card pool's real cards, synergies) have a higher ceiling.
+**What realistic decks are here.** Coherent decks with the card pool's real cards, completed by
+the card backlog (§14.4), and enriched with synergy packages (§14.3). Later: real decklists, and
+the drafter once a pilot that plays synergies exists to fit it on.
 
-**The evidence so far cuts the other way for signal per game.**
-- G4 (KNOWLEDGE/2026-11-12/193): between r27's update 165 and v0, the same pilot won both games
-  of a deal in 0.294 of drafted (K = 8) deals, against 0.338 of coherent ones.
-- Two readings:
-  - drafted pairs are more lopsided: the critic's swaps widen the strength gap between the two
-    decks, so the decks decide more games;
-  - or today's networks have not learned what drafted decks reward.
-- A balanced pair separates them.
+**The ceiling, measured directly, in the next free GPU window.**
+- **Skill spread per deck distribution.** The searched network (n = 4) against the raw one, and
+  the network against the heuristic, on coherent, package and critic-drafted decks.
+  - A 2x2 design per deal (pilots swap, decks swap) cancels deck and seat asymmetry without the
+    critic.
+  - The owner's hypothesis predicts larger spreads on the richer decks, above all in the search's
+    headroom: the skill that is there to be learned.
+- **Skill headroom per card (CPU, now).** Count the search's clear corrections per card in window
+  1's n = 16 records (`runs/window1/n16/targets`), and in gate B's targets later. Cards whose
+  decisions the search corrects most are where the skill is.
+- **Then one registered A/B.** r29 trains on the richer decks, beside r28 continued, at matched
+  updates. Both are rated on the held-out pool L (§14.4), which holds every deck shape.
 
-**Step A, one measurement (a 15-minute pause of r28 after its R3 read at update 75).**
-- A deck mode `balanced:K`: both decks drafted with K swaps, then the stronger deck's swaps
-  undone one at a time, from the last, until the critic's predicted score of the pair is within
-  0.5 ± 0.03.
-- The share of deals whose winner is the pilot (G4's measure), with r28's network against its
-  v0, on 1,000 deals of each:
-  - coherent;
-  - `drafted:8`, where both decks are drafted but the pair is not balanced;
-  - `balanced:8`.
-- Pre-registered in 199 before it runs.
+### 14.2 Signal before direction: two instruments
 
-**Step B, if `balanced:8` carries at least coherent's share (its 95% lower bound above
-coherent's point estimate less 0.02).**
-- r28 is amended at update 150, after R1-R3 are read: its training deals become half coherent and
-  half `balanced:8`, registered in 199 before update 150.
-- Its predictions:
-  - the gates on coherent decks do not fall;
-  - the mulligan stays (R1);
-  - the flip share on `balanced:8` rises with training.
-- If step A fails, realistic decks wait for the Teacher (§9), which picks deck families by their
-  measured learning value.
+The policy gradient per cell (198 §2) sees only what the policy already tries. For a combo or a
+multi-turn line it reads about 0 whatever the line is worth. So it cannot gate the owner's pushes.
+Two instruments instead:
+1. **The value of a direction (CPU).**
+   - Fork the game, force the line at its decisions, and play to the end on shared futures
+     against the policy as it is (the labeller's machinery, horizon 0).
+   - Report:
+     - the line's value;
+     - how often the policy plays it unforced;
+     - whether it follows through when the first step is forced;
+     - the value head's reading at the intermediate states.
+   - A positive value with near-zero use is an exploration barrier. That is where forcing pays
+     (§14.3).
+2. **Whether training follows.** After a push, split each cell's movement into its own term and
+   the drift from the rest of the update, as 198's `ablate.py` does. The mulligan's own term was
+   −0.54 while the rest moved it +0.19 to +0.41.
 
-**A known limit.** The v0 critic is linear in cards: it rates cards, not their interactions. So
-drafted decks are good-stuff decks with better curves, not synergy decks. Synergy and combos need
-the v1 critic (a set network, PLAN_DRAFTER §8) or archetype packages. That is §14.3's work.
+Horizon 2 is re-measured, with simulator worlds, only after instrument 1 shows value beyond one
+turn. At horizon 1 the search scores a setup move by the policy's own follow-up, so it cannot
+supply multi-turn signal by itself.
 
-### 14.2 Signal before direction
+### 14.3 Forcing a skill, then freezing it: specialists, with a slot now
 
-Before any push toward a skill (realistic decks, longer plans, combos), measure that the training
-signal reaches it:
-- the behaviour occurs in the learner's games;
-- its advantage points toward it.
+**Forcing works by frequency, not reward.**
+- **Package-enriched deals.** Packages are derived from typed verbs and triggers, so they carry
+  to new sets: GAIN_LIFE producers feeding "whenever you gain life" consumers. Verified examples:
+  - lifegain in W/B: Vito, Bloodthirsty Aerialist, the lifelinkers, Revitalize, Healer of the
+    Glade;
+  - the Shrines: the Sanctums;
+  - mill: Thieves' Guild Enforcer.
+- **Seeded opening hands**, and a reverse curriculum annealed back to natural deals.
+- **Forced-line steps at rate ε** are moves of the environment, not trained actions.
 
-The template is 198 §2's measurement on the mulligan: the policy gradient per hand cell on
-on-policy data (`reports/mulligan_runaway_2026-11-12/mulligan_signal.py`). It generalises to any
-decision kind and cell. A push where the signal is absent or points away is not made until
-something supplies the signal.
+**Reward shaping.** Under γ = λ = 1 Monte-Carlo returns, potential-based shaping telescopes into
+a baseline and changes nothing in expectation. Only event bonuses change behaviour, and those are
+what gets hacked. If one is used:
+- the specialist only, capped and annealed;
+- frozen at its peak win rate with package decks, not its peak return.
 
-**For multi-turn plans, the signal is the search's.** It looks ahead and finds plays the policy
-does not take. Distillation (F1) carries them into the network, and gate B (196, now on r28)
-tests whether 300k such targets move it. The search's horizon is one turn. Horizon 2 is
-re-measured after the fixes of 197 (192 §7.4's run was confounded by the replayed root plan),
-before anything leans on it.
+**The loop the owner described.**
+1. A specialist learns the forced skill.
+2. It is frozen and joins the main learner's league, as an opponent (§7.1) and, under D8's gate
+   measured on package decks, as a fading pull.
+3. The main learner keeps ±1 and γ = λ = 1, and meets the skill without inheriting an incentive.
+4. Repeat.
 
-### 14.3 Forcing a skill, then freezing it: specialists
+**Readouts.**
+- §14.2's line value before and after.
+- The critic refitted with the specialist as pilot: the package cards should leave their ranks of
+  5-98.
 
-The owner allows forcing or incentivising a skill, then freezing it and iterating.
-- **A specialist** trains with what the main learner never gets:
-  - a shaped bonus for a synergy;
-  - decks that win only through a combo or a long plan (archetype packages);
-  - or search at every decision.
-- **It is frozen and joins the league** (§7.1) as an opponent. Under D8's gate it can also be a
-  fading pull (kickstarting).
-- **The main learner keeps γ = λ = 1 and ±1.** It meets the forced skill as an opponent it must
-  beat, and inherits representations, not the incentive.
-- **Before a specialist is built,** §14.2's check runs on its target behaviour in its own games,
-  so the incentive has something to move.
+**Slot.** Package mode and the line-value tool are built on CPU now. The first specialist runs in
+a GPU window once they pass, whether or not gate B or F1 run.
 
-### 14.4 Later
+### 14.4 The yardstick, the information lever, retention, the cards, and later
 
-- **Decks the model is weak against: the exploiter drafter.** The critic with its pilot term,
-  refitted on the learner's games, rates decks by the learner's results with them and against
-  them, and construction builds counter-learner decks. They join §7.1's exploiter and §7.2's
-  held-out pool, after H1, when the learner must balance niche and meta play.
-- **The critic as the start of drafting:** PLAN_DRAFTER §8 (the pick head, booster drafting).
-- **The card backlog** (the owner: "fix the backlog of cards"):
-  - the training sets' unverified cards: M21's 18 castable, M20's 11 mapped, 2 refused and 61
-    waiting on atoms (KNOWLEDGE 177, BACKLOG);
-  - the engine fixes in waves, then blind verification (PLAN_CARD_ONBOARDING);
-  - a larger verified pool is what realistic decks are made of.
+- **The held-out pool L (§7.2) is built now, not on days 6-20.**
+  - Its members: r26's v0-v2, r27's v0 and v1, r28's frozen versions, the heuristic, random, and
+    u1000 with search at n = 4.
+  - Each is dealt coherent, package and niche decks.
+  - Ratings fitted once, in the next GPU window (about 2-3 hours).
+  - Every comparison from here (r28 against r29, specialists) is read on it.
+- **The network does not see its own decklist** (`features.py:668` gives the library's size
+  only).
+  - Deal features predict 24% of single-game outcome variance against the value head's 5% early
+    (184 §26). But that includes hidden information (both hands, the next draws), so it is an
+    upper bound.
+  - A CPU regression on 194's collect, with its decks rebuilt, measures what the own decklist
+    alone explains of the value's residual early in a game.
+  - If it is material, own-library columns (zero-initialised) come at the next run boundary.
+    That cuts PPO's noise and sharpens the search's leaf.
+- **Retention.** Rare kinds drift when the rest of the update moves the network (198 §3). r28's
+  looks at 100 and 400 split every kind's movement (§14.2, instrument 2). Before any push, a
+  retention scheme (a rehearsal share, or a KL anchor on that kind) is registered.
+- **The card backlog, now** (the owner: "fix the backlog of cards").
+  - The order:
+    1. faults that void games (Runed Halo's NAME_CHOSEN, TARGET_PLAYER without a binding);
+    2. the unverified cards' engine gaps;
+    3. package payoffs and enablers;
+    4. the rest. That is M21's 18 castable, M20's 11 mapped, 2 refused and 61 waiting on atoms.
+  - Blind verification stays strict: a wrong card is worse than a missing one.
+  - New cards enter training only at a run boundary, with the critic refitted.
+  - Every verified batch is also a zero-shot test of the King Goal's unseen cards: decks with the
+    new cards against matched decks without them, before any training on them.
+- **If r28 stalls as r27 did.** The next levers are information (above) and more on-policy data
+  per game: training both seats of learner-against-learner games, about twice the decisions per
+  game (191 §2 deferred it). Not decks.
+- **Later.**
+  - The exploiter drafter: decks the learner is weak against, from the critic with its pilot term
+    refitted on the learner's games. It joins §7.1's exploiter after H1.
+  - The critic as the start of drafting (PLAN_DRAFTER §8). A critic fitted on pilots who do not
+    play synergies cannot find them, so a specialist or a searched pilot comes first.
 
-### 14.5 Order (machine)
+### 14.5 Order
 
 | When | Machine | Work beside it |
 |---|---|---|
-| now | r28 to update 75 (R3, ~21:00) | card backlog wave 1 (three engine fixes); `balanced:K` built and tested |
-| ~21:00 | r28 paused ~15 min: step A | — |
-| to ~01:00 | r28 to 150 (R1) | step B registered if step A passes |
-| to ~13:00 tomorrow | r28 to its read at 400 (from 151 half `balanced:8` if step B) | card verification; horizon 2's re-measure registered |
-| then ~34 h | gate B on r28's network | — |
-| after | F1 and H1 per §10, with specialists and later the exploiter drafter in H1's league | — |
+| now | r28, unchanged, to update 75 (~21:00) | card backlog wave 1 merged and verified; skill headroom per card; the own-decklist regression; package mode; the line-value tool; L's members |
+| ~21:00 | R3, then a ~5-minute pause for R3b (199 §6) | — |
+| to ~15:00 tomorrow | r28 to its read at 400; looks at 100 (R1b, R2, the per-kind split) and 150 (R1) | the rest of the CPU list |
+| the read at 400 | the decision on gate B (196 §9): it runs only if r28's rate makes its best case competitive | — |
+| the next GPU window | L's ratings; the skill spread by deck distribution; the first specialist if its tools passed | — |
+| then | one registered A/B (r29), chosen by what the window found: richer decks, own-decklist inputs, or both seats | — |
+
+## 15. Red team (2026-11-12 evening, one reviewer on §14's first draft)
+
+| Finding | Severity | Disposition |
+|---|---|---|
+| Gate B starts by itself for ~34 h, though by this plan's numbers F1 can at best match PPO's late rate; its 48-hour reference was r27's stall; distillation changed (`ppo.steps`) after gate B's last smoke | BLOCKER | Accepted. The automatic start is removed; gate B is a decision at r28's read at 400 with a break-even rule, a futility look at 100k targets, r28's rate as the reference, and a re-run smoke before it runs (196 §9) |
+| Critic-drafted decks remove the skill-heavy cards and make shorter tempo games; step B could not run without restarting r28 and had no control | BLOCKER | Accepted; checked (the ranks, 1.71 turns, 0.544 on the play). Steps A and B withdrawn (§14.1) |
+| Step A tested a cause the data reject (the drop is the deck on the play winning both), with a measure that is not the ceiling; `balanced:K` undefined at its edges | MAJOR | Accepted; checked. The ceiling measured directly (§14.1) |
+| The per-cell gradient is blind to untried behaviour; horizon-1 search cannot see multi-turn plans | MAJOR | Accepted. Two instruments (§14.2) |
+| Specialists had no slot before H1; concrete designs exist in the pool | MAJOR | Accepted (§14.3) |
+| No common yardstick: L scheduled for days 6-20 | MAJOR | Accepted. L now (§14.4) |
+| Rare kinds are forgotten, only the mulligan is guarded | MAJOR | Accepted. The per-kind split in r28's looks; retention before any push (§14.4) |
+| The network cannot see its own decklist | MAJOR | Accepted as a measurement first: 184's 24% includes hidden information (§14.4) |
+| The card backlog was filed under "later" | MAJOR | Accepted; it was already running (wave 1). Order and the unseen-card test added (§14.4) |
+| R3 is biased toward r28 (the past share falls through to the newest) | MINOR | Accepted; checked (`learner.py:537-540`). R3b registered before its data (199 §6) |
+| Gate B's starter had no exit if the guard stops r28 | MINOR | Moot: the starter is removed |
+| The colour check: weight "mono"; keep against mulligan by playouts for part-castable hands | MINOR | Accepted. The playouts are §14.2's instrument 1 on the mulligan |
+| "Size is not the lever" went beyond 194, which tested the value's capacity only | MINOR | Accepted. 194's reading is about the value function; a policy-capacity probe can use gate B's targets |
+| The v1 critic cannot find synergies that no pilot plays | MINOR | Accepted (§14.4) |
 
 ## References
 

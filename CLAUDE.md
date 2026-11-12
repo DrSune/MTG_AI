@@ -21,10 +21,10 @@ away); `reports/r28_2026-11-12/start.sh` resumes it from its last save, also aft
 guard `mtg-r28-guard` (`tools/selfplay/guard.py`) stops it on a mulligan runaway or a falling win
 rate against the heuristic (199 §3). r27 ended at update 165: its mulligan ran away (191 §8, 198).
 Window 1 is scored in `KNOWLEDGE/2026-11-11/192`, window 2 in notes 193-195, 192 §7.6 and 191 §8.
-Gate B (`KNOWLEDGE/2026-11-12/196`, §8: on r28) starts by itself once r28 passes update 405, about
-2026-11-13 13:00: the transient unit `mtg-gateb-starter` waits, then starts `mtg-gateb` from the
-worktree `/home/sune/Desktop/MTG_AI-gateb` pinned at 8aabbc8 (do not edit it), which pauses r28 for
-about 34 hours. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
+Gate B (`KNOWLEDGE/2026-11-12/196`, §8: on r28; §9: no automatic start) is a decision at r28's
+read at update 400 by a registered break-even rule; its worktree `/home/sune/Desktop/MTG_AI-gateb`
+(pinned at 8aabbc8, do not edit it) is re-pinned and re-smoked before it runs. The plan after r27:
+`docs/PLAN_CEILING.md` §14-§15. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
 and nothing else on the GPU beside it.
 
 ## The King Goal, in one line

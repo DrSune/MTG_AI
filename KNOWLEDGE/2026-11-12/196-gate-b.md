@@ -349,3 +349,37 @@ What changes:
   update count, so the pause changes nothing in them.
 - H1′ (u1000 against the heuristic) and 195's confirming audit (u1000) do not involve the
   training run and are unchanged.
+
+## 9. A decision at r28's read at 400, not an automatic start (2026-11-12 ~18:15, before any data)
+
+The red team (PLAN_CEILING §15) found that gate B would commit about 34 machine-hours by itself,
+though by this plan's own numbers its best case does not beat PPO's rate:
+- one round earns 0.25-0.35 Elo per machine-hour at GB1's bar (0.515, about +10 Elo, over about
+  30 hours);
+- PPO's late rate was 1-2 Elo per hour (r26), and r27 gained +37 in its first 3.6 hours.
+
+**The starter is removed** (`mtg-gateb-starter` stopped at 18:10). If nobody decides, r28 keeps
+training, so the GPU is not idle.
+
+**The rule, applied at r28's registered read at 400:**
+1. **r28's rate.**
+   - Its newest frozen version's Elo less its v0's, from its ladder's last fit, divided by the
+     machine-hours from r28's launch to that freeze, pauses excluded.
+   - With no freeze after v0, the rate is 0.
+2. **The break-even GB1.**
+   - The rate times 30 hours is the Elo PPO would gain meanwhile; s* = 1 / (1 + 10^(-Elo/400))
+     is the gate score that matches it.
+   - **Generation runs only if s* is 0.53 or less.** Otherwise only H1′ and 195's confirming
+     audit run (about 2 hours), and r28 resumes.
+3. **Before it runs:**
+   - **a futility look:** after 100k targets, the `se` arm is distilled at 100k and GB2 is read.
+     If its agreement gain over G has a 95% lower bound at or below 0, generation stops and gate
+     B is read as failed at 100k;
+   - the queue's CPU smoke is re-run on the final pin, since `distill.ce_epoch` moved to
+     `ppo.steps` after the last smoke;
+   - the pin and the commit are registered here.
+4. **F1's 48-hour check** (PLAN_CEILING §6.2) compares against r28's rate from step 1, not r27's,
+   which was the mulligan defect's stall.
+
+H1′ and 195's confirming audit do not depend on gate B. They can run in any GPU window, and they
+take the first one if gate B does not run.
