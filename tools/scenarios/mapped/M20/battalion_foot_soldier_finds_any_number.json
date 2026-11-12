@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "battalion_foot_soldier_finds_any_number",
+ "notes": "Printed: 'When this creature enters, you may search your library for any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.' Any number is every number from zero to all of them (CR 107.1c; a search for cards with a stated quality may also fail to find, CR 701.23b): the controller searches, takes one of the two copies in the library and stops (NONE). Before 2026-11-12 the engine took every copy with no ask (BACKLOG, verification wave 1): both copies end in the hand and the pack fails.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bfs", "real": "Battalion Foot Soldier", "zone": "hand", "controller": 0},
+  {"key": "b1", "real": "Battalion Foot Soldier", "zone": "library", "controller": 0},
+  {"key": "b2", "real": "Battalion Foot Soldier", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "bfs", "decisions": ["fire", "b2", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"bfs": "battlefield", "b1": "library", "b2": "hand"},
+  "hand": {"0": 1}
+ }
+}

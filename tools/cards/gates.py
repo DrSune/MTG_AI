@@ -593,7 +593,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         #   only a battlefield destination names a player. MOVE_ZONE's top-n draw idiom reads it
         #   (zone_owner picks whose library is drawn) and is left out;
         # - a discard takes its CHOOSE/RANDOM/ALL picks from the discarding players' own hands,
-        #   reading the cards selector's filter, mode and count only (verbs.py _discard_picks): its
+        #   reading the cards selector's filter, mode and count only (verbs.py _hand_picks): its
         #   zones are dead, unless a "you may" above it enumerates them for its offer
         #   (query.optional_offer);
         # - a damage replacement whose action is a DEAL_DAMAGE rewrites the event's amount and never

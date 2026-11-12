@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "cavalier_of_flame_discards_any_number_draws_that_many",
+ "notes": "Printed: 'When this creature enters, discard any number of cards, then draw that many cards.' Any number is every number from zero to all of them (CR 107.1c): the controller discards Pitch Me, stops (NONE), keeps Keep Me, and draws one card, the number actually discarded. Before 2026-11-12 the engine discarded the whole hand with no ask and drew two (BACKLOG, verification wave 1): Keep Me ends in the graveyard and the pack fails. The mapper's repro was tools/scenarios/known_bugs/2026-11-05/discard_any_number_never_asked_and_dies_trigger_target/.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Flame", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Pitch Me", "type": "Creature — Filler", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "c2", "name": "Keep Me", "type": "Creature — Filler", "power": 1, "toughness": 1, "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "cav", "decisions": ["c1", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"cav": "battlefield", "c1": "graveyard", "c2": "hand"},
+  "hand": {"0": 2}
+ }
+}

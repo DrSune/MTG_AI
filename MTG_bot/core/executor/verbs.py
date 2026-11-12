@@ -122,37 +122,44 @@ def _move_to(
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
 
 
-def _discard_picks(ctx: ExecCtx, sel: Selector, player: Handle) -> list[Handle]:
-    """The cards ``player`` discards for one discard instruction.
+def _hand_picks(ctx: ExecCtx, sel: Selector, player: Handle, discard: bool) -> list[Handle]:
+    """The cards ``player`` moves out of their own hand for one instruction: a discard (CR
+    701.9a, to the graveyard) or a put ("put two cards from your hand on top of your library",
+    Cavalier of Gales).
 
-    A discard moves cards from the discarding player's OWN hand (CR 701.9a), so the pool is that
-    hand re-read at take time and filtered through the Selector (the raw Selector population of
-    Bad Deal spans both hands). Fewer cards than the count simply discards fewer. CR 701.9b: by
-    default the discarding player chooses which cards; a CHOOSE discard asks THAT player, one
-    card per ask over the shrinking hand, in the cost lane's ``discard:<seat>:<source>:<digest>``
-    shape (legality.pay_costs). A fixed count no smaller than the pool leaves no choice and asks
-    nothing. "Up to N" (QAtMost) lets the player stop at any pick, the first included: "up to N"
-    names every number from zero to N. RANDOM keeps the executor-seeded draw; QUnbounded takes
-    the whole pool.
+    The pool is that player's OWN hand, re-read at take time and filtered through the Selector
+    (the raw Selector population of Bad Deal spans both hands). Fewer cards than the count simply
+    moves fewer. The player whose hand it is chooses which cards (CR 701.9b for a discard): a
+    CHOOSE asks THAT player, one card per ask over the shrinking hand. A discard is asked in the
+    cost lane's ``discard:<seat>:<source>:<digest>`` shape (legality.pay_costs); a put elsewhere is
+    no discard, so it is asked as the effect lane's choice, ``choose:<source>:<i>of<n>:<digest>``
+    (selectors.resolve_selector). A fixed count no smaller than the pool leaves no choice and asks
+    nothing. "Up to N" (QAtMost) and "any number" (QUnbounded, every number from zero to the whole
+    hand, CR 107.1c) let the player stop at any pick with NONE, the first included. RANDOM keeps
+    the executor-seeded draw; ALL ("discard your hand") takes the whole pool.
     """
     live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
     pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
     if sel.mode is SelectorMode.RANDOM:
         rng = ctx.rng("RANDOM")
         rng.shuffle(pool)  # seeded: replay-identical
-    if isinstance(sel.count, QUnbounded):
+    unbounded = isinstance(sel.count, QUnbounded)
+    if unbounded and sel.mode is not SelectorMode.CHOOSE:
         return pool
-    want = resolve(sel.count, ctx)
-    optional = isinstance(sel.count, QAtMost)
+    want = len(pool) if unbounded else resolve(sel.count, ctx)
+    optional = unbounded or isinstance(sel.count, QAtMost)
     if sel.mode is not SelectorMode.CHOOSE or want <= 0 or (want >= len(pool) and not optional):
         return pool[:want]
     picks: list[Handle] = []
     remaining = list(pool)
-    for _pick in range(min(want, len(pool))):
+    for pick_no in range(min(want, len(pool))):
         vocab = tuple(str(h) for h in remaining) + (("NONE",) if optional else ())
-        answer = ctx.take_decision_of(
-            player, vocab, f"discard:{player}:{ctx.source}:{site_digest(vocab)}"
-        )
+        if discard:
+            what = f"discard:{player}:{ctx.source}:{site_digest(vocab)}"
+        else:
+            mid = f"{pick_no + 1}of{want}:" if want > 1 else ""
+            what = f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+        answer = ctx.take_decision_of(player, vocab, what)
         if answer == "NONE":
             break
         pick = next(h for h in remaining if str(h) == answer)
@@ -237,11 +244,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     in (SelectorMode.ONE_OF, SelectorMode.REST),
                 )
             else:
-                # CR 608.2e / 101.4: the discarding players choose in APNAP
-                # order, then the cards are discarded simultaneously (below).
+                # CR 608.2e / 101.4: the players choose in APNAP order, then
+                # the cards move simultaneously (below).
                 cards = []
                 for player in apnap_order(ctx.world, players):
-                    cards.extend(_discard_picks(ctx, sel, player))
+                    cards.extend(_hand_picks(ctx, sel, player, dest_kind == ZONE_GRAVEYARD))
         hands = {p: ctx.world.players[p].zone(ZONE_HAND).entries for p in players}
         moved: list = []
         # Cards put from a hand into a library (Cavalier of Gales: "put two cards from your hand
@@ -298,10 +305,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
         n = 0 if isinstance(sel.count, QUnbounded) else resolve(sel.count, ctx)
         # The ONE_OF/REST partition modes SELECT specific cards (the pick /
-        # its complement) — the top-n draw idiom and the count clamp apply
-        # to the CHOOSE/draw idioms only; a partition atom moves exactly what
-        # its Selector resolves.
-        partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+        # its complement), and so does an ALL over the looked-at cards (the
+        # top of a library: every card of the window that passes the filter,
+        # selectors.resolve_selector) — the top-n draw idiom and the count
+        # clamp apply to the CHOOSE/draw idioms only; a partition atom moves
+        # exactly what its Selector resolves.
+        partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST) or (
+            sel.mode is SelectorMode.ALL
+            and any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP for z in sel.zones)
+        )
         # The draw idiom is "move THE top n of your library to hand" — an
         # UNFILTERED, referent-less selector. A filtered CHOOSE on a library
         # zone is a SEARCH tail ("put IT into your hand", Chandra's Firemaw):
@@ -1682,6 +1694,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
             ctx,
             journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
             ask_choose=True,  # a CHOOSE search designation is a decision
+            search=True,  # its searcher sees the searched zones, hidden or not (CR 701.23a)
         )
         if h.namespace == "card"
     ]

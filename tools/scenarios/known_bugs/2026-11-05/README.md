@@ -20,10 +20,11 @@ MTG_bot/core/test_executor_r20c.py.
 - **up_to_one_none_chosen_crashes** (Cavalier of Dawn): CRASH. With no target chosen for "destroy up
   to one target ...", the next step "Its controller creates a Golem" raises "resolved to 0 players"
   (verbs.py ~1313). M20 only (not dealt).
-- **discard_any_number_never_asked_and_dies_trigger_target** (Cavalier of Flame; also Necromentia,
-  Siege Striker): "Discard any number of cards" is never asked: an unbounded CHOOSE takes the whole
-  population (the /141 deferral). Weaker than printed, never stronger. The folder's dies-trigger
-  half is fixed (fix/w2-stack).
 
 random_order_is_fixed (Drawn from Dreams) was removed on 2026-11-12: "in a random order" is
 MOVE_ZONE's `arrange` RANDOM, and without it the owner orders the cards (CR 401.4).
+discard_any_number_never_asked_and_dies_trigger_target (Cavalier of Flame; also Necromentia, Siege
+Striker) was removed on 2026-11-12: "any number" is asked pick by pick with a NONE stop (CR
+107.1c; `selectors.resolve_selector`, `verbs._hand_picks`); its pack is
+tools/scenarios/mapped/M20/cavalier_of_flame_discards_any_number_draws_that_many.json, its
+regressions are in MTG_bot/core/test_executor_any_number.py.

@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"B": 6}},
  "steps": [
-  {"op": "cast", "real": "Necromentia", "key": "nc", "decisions": ["Gloom"]},
+  {"op": "cast", "real": "Necromentia", "key": "nc", "decisions": ["Gloom", "card:2"]},
   {"op": "enter", "key": "w"}
  ],
  "expect": {
@@ -16,5 +16,5 @@
   "tokens": {"Zombie": 0},
   "life": {"1": 18, "0": 20}
  },
- "notes": "P4e22e070e6 G4: 'That player shuffles, then creates a 2/2 black Zombie creature token': the TARGET OPPONENT creates (and controls) the Zombie. Massacre Wurm then enters under you: creatures your opponents control get -2/-2, so the opponent's 2/2 Zombie dies and that player loses 2 life (Wurm's second ability). Were the Zombie yours, it would survive and nobody would lose life."
+ "notes": "P4e22e070e6 G4: 'That player shuffles, then creates a 2/2 black Zombie creature token': the TARGET OPPONENT creates (and controls) the Zombie. Massacre Wurm then enters under you: creatures your opponents control get -2/-2, so the opponent's 2/2 Zombie dies and that player loses 2 life (Wurm's second ability). Were the Zombie yours, it would survive and nobody would lose life. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved (a cast step's resolution asks read handles)."
 }

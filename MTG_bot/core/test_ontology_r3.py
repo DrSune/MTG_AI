@@ -12,7 +12,11 @@ the Handle-sorted ``ordered[:k]`` slice.
   (the CAST-lane ``ok`` clamp, quantity/count and query callers stay
   silent BY CONSTRUCTION).
 
-Silent by rule: a QUnbounded CHOOSE takes the whole population, ONE_OF over
+An effect's QUnbounded CHOOSE ("any number", CR 107.1c) asks pick by pick
+with a NONE stop, as "up to N" does (2026-11-12, the /141 deferral closed);
+a population read of it takes the whole population.
+
+Silent by rule: ONE_OF over
 QUnbounded is refused, forced segments (len(pool) == need) auto-fill without
 asking, IS_SOURCE self-costs have no choice, hand-built plans pay their
 frozen path, and a PLAYER-zone CHOOSE never asks (whose choice it is is not
@@ -492,14 +496,17 @@ class SilentLanesStaySilent(unittest.TestCase, _RecorderMixin):
         self.c = self.world.add_card(card_id("C", "1", "1"), self.p1, ZONE_BATTLEFIELD)
         self.ex = Executor(self.world)
 
-    def test_qunbounded_choose_folds_whole_population(self):
-        asks = self.recorder()
+    def test_qunbounded_choose_asks_with_a_stop(self):
+        # "Tap any number of ...": every number from zero to all of them (CR 107.1c), so
+        # each pick may stop (the /141 deferral, closed 2026-11-12).
+        answers = iter([str(self.b), "NONE"])
+        asks = self.recorder(chooser=lambda v: next(answers))
         sel = Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, zones=(BF_ANY,))
         self.ex.execute(
             atom(Verb.TAP, target=sel), source=self.source, controller=self.p0
         )
-        self.assertEqual(asks, [])
-        self.assertEqual(_tapped_handles(self.world), {self.a, self.b, self.c})
+        self.assertEqual([vocab[-1] for _, vocab in asks], ["NONE", "NONE"])
+        self.assertEqual(_tapped_handles(self.world), {self.b})
 
     def test_one_of_qunbounded_raises_never_guesses(self):
         # The Selector TYPE refuses ONE_OF x QUnbounded at construction
@@ -572,8 +579,8 @@ class DeferredDeferralTable(unittest.TestCase):
         self.assertEqual(
             merged, {("M21", "Bad Deal"), ("M21", "Liliana, Waker of the Dead")}
         )
-        # QUnbounded — the ONE_OF lane RAISES on it; stays folded (gate
-        # rule: count must be QConst, selectors._choose_lift_allowed):
+        # QUnbounded — deferred by the /141 gate (the ONE_OF lane raised on
+        # it); asked since 2026-11-12 with a NONE stop ("any number"):
         self.assertEqual(
             unbounded,
             {

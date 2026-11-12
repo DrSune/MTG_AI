@@ -443,7 +443,7 @@ AUGUR_DISCARD = "1/1/effect/steps/0/args/cards/zones/0/controller"
 
 def test_discard_selector_zones_are_dead_outside_a_may() -> None:
     """A CHOOSE/RANDOM/ALL discard takes its picks from the discarding player's own hand
-    (verbs.py _discard_picks reads filter, mode and count): Kinetic Augur's discard plays the same
+    (verbs.py _hand_picks reads filter, mode and count): Kinetic Augur's discard plays the same
     with its cards selector naming the opponent's hand. Under a "you may" the offer enumerates
     those zones (query.optional_offer), so Crypt Lurker's stays live."""
     augur = _card("Kinetic Augur")

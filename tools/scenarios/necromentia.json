@@ -36,7 +36,8 @@
    "real": "Necromentia",
    "key": "nc",
    "decisions": [
-    "Doom"
+    "Doom",
+    "card:2"
    ]
   }
  ],
@@ -50,5 +51,5 @@
    "0": 20
   }
  },
- "notes": " eval-granularity 2026-10-05: an 'Abort' instant joins the enemy graveyard (name ask now offers Abort,\nDoom, six Library fillers...): the null policy answers the alphabetically-first vocab[0]\n'Abort', gold names Doom \u2014 the exact doom-exile/Abort-stays lanes falsify (random ~0.1)."
+ "notes": " eval-granularity 2026-10-05: an 'Abort' instant joins the enemy graveyard (name ask now offers Abort,\nDoom, six Library fillers...): the null policy answers the alphabetically-first vocab[0]\n'Abort', gold names Doom \u2014 the exact doom-exile/Abort-stays lanes falsify (random ~0.1). 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved (a cast step's resolution asks read handles)."
 }

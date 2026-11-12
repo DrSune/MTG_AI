@@ -38,7 +38,10 @@
    "op": "activate",
    "key": "ch",
    "idx": 2,
-   "seat": 0
+   "seat": 0,
+   "decisions": [
+    "ct"
+   ]
   },
   {
    "op": "cast",
@@ -58,5 +61,5 @@
    "0": 0
   }
  },
- "notes": "B-49 follow-up #1 twin. 'You may cast them this turn.' is suppressed (CR 611.2a), so the card the [-9] exiled cannot be cast from exile: the cast is refused (not in hand) and Crash Through stays exiled."
+ "notes": "B-49 follow-up #1 twin. 'You may cast them this turn.' is suppressed (CR 611.2a), so the card the [-9] exiled cannot be cast from exile: the cast is refused (not in hand) and Crash Through stays exiled. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved."
 }
