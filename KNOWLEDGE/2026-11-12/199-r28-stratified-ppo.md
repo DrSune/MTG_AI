@@ -210,3 +210,34 @@ last row per update; each gate 2,000 games against v0 = r27's v1 weights, both s
 - The per-kind look at 100 (`kinds_split.py`: each kind's own learning against the drift the
   rest of the batch causes on it) reads where an update's signal goes. It is PLAN_CEILING §15's
   "signal before direction" applied to the trainer itself.
+
+## 7. Registered before update 100's data (2026-11-12 21:35, r28 saved at update 80)
+
+**The per-kind split** (PLAN_CEILING §14.2, instrument 2; §14.4, retention).
+- `reports/r28_2026-11-12/kinds_split.py` runs on one on-policy batch of r28's update-100 weights
+  (`collect.sh runs/r28_looks/r28_u100.pt runs/r28_looks/c100 2800`), in a pause of r28 after
+  its gate at 100 is read.
+- It measures each kind's alignment twice: after a full update, and after an update without that
+  kind's rows (the drift the rest of the batch causes). The alignment is mean(A·Δlog p) over
+  mean(A²) on the kind's decisions.
+- Each figure carries a bootstrap SE over the kind's decisions. It does not cover an update's own
+  randomness: this is one batch and one update.
+- Kinds with fewer than 500 probe decisions are reported, not scored.
+
+| # | Metric | Prediction | Falsifier |
+|---|---|---|---|
+| K1 | Each kind's alignment after the full update | positive beyond 2 SE for every kind | a kind at or below 0: the update does not teach that kind along its own advantages |
+| K2 | The mulligan's alignment after an update without its rows | negative beyond 2 SE: the drift found by 198 §3 (variant E) survives stratification, while the mulligan's own rows hold it (R1) | within 2 SE of 0, or positive |
+| K3 | The other kinds' alignment without their own rows | none negative beyond 2 SE | one or more negative beyond 2 SE: the drift reaches beyond the narrow kinds |
+
+**Decision.**
+- **Trigger:** a kind whose drift is negative beyond 2 SE and at least half the size of its full
+  alignment.
+- **Action:** that kind gets a retention scheme (a rehearsal share, or a KL anchor on it),
+  registered before any push (§14.4).
+- **Repeat:** the read at 400 runs the same split.
+
+**R1b's mechanics.**
+- R1b is scored with `reports/mulligan_runaway_2026-11-12/timeline.py` on the CPU, from main.
+- That is valid because main's `features.py`, `model.py` and `ppo.py` are byte-identical to r28's
+  pinned 44a62d9 (`git diff 44a62d9 main` over those three files is empty at 0f96134b).

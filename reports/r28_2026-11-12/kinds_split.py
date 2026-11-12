@@ -77,8 +77,13 @@ def update(rows_ix):
 
 
 def align(ix, d):
+    """The alignment and its bootstrap SE over the kind's probe decisions (500 resamples, seed 1:
+    the spread over decisions, not over an update's own randomness)."""
     A = adv_n[ix]
-    return float((A * d).mean() / max((A * A).mean(), 1e-9))
+    a0 = float((A * d).mean() / max((A * A).mean(), 1e-9))
+    b = np.random.default_rng(1).integers(0, len(ix), (500, len(ix)))
+    boot = (A[b] * d[b]).mean(1) / np.maximum((A[b] ** 2).mean(1), 1e-9)
+    return f"{a0:+.4f} ({boot.std():.4f})"
 
 
 base = load()
@@ -90,7 +95,7 @@ after_full = {k: taken_logp(full, ix) for k, ix in probe.items()}
 del full
 torch.cuda.empty_cache()
 print(f"rows {n}; full update {time.time() - t0:.0f} s")
-print(f"{'kind':16s} {'n':>6s} {'align full':>11s} {'align without its rows':>23s} {'mean |dlogp| full':>18s}")
+print(f"{'kind':16s} {'n':>6s} {'align full (SE)':>18s} {'align without its rows (SE)':>28s} {'mean |dlogp| full':>18s}")
 for k in kinds:
     ix = probe[k]
     keep = np.flatnonzero(kind != FT.ASK_KINDS.index(k))
@@ -99,5 +104,5 @@ for k in kinds:
     del net
     torch.cuda.empty_cache()
     d_full = after_full[k] - before[k]
-    print(f"{k:16s} {len(ix):6d} {align(ix, d_full):+11.4f} {align(ix, d_wo):+23.4f} {np.abs(d_full).mean():18.4f}",
+    print(f"{k:16s} {len(ix):6d} {align(ix, d_full):>18s} {align(ix, d_wo):>28s} {np.abs(d_full).mean():18.4f}",
           flush=True)
