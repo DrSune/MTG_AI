@@ -7,8 +7,9 @@ router labels the rows and asks its seat; :func:`perform` carries one out. Rows:
 - ``cast:<card>[:k][:x<N>]``: a spell in hand, base and kicked (CR 702.27), one row per X from 0
   to the largest payable X (CR 601.2b, 107.3a; no ``:x`` for X = 0).
 - ``act:<card>:<index>``: a non-mana activated ability, printed or granted (a granted one is
-  numbered -k-1), of a permanent the seat controls, or of a card in its hand whose cost discards
-  it ("Discard this card:", Waker of Waves; ``legality.ability_playable`` opens no other zone).
+  numbered -k-1), of a permanent the seat controls, or of the seat's card elsewhere whose
+  ability works there (CR 113.6: "Discard this card:" in the hand, Sanitarium Skeleton's
+  return in the graveyard; ``legality.activation_zone``).
 
 Mana abilities are not rows: they are activated while paying (CR 601.2g, 605.3a). A row is offered
 when the pool and the seat's mana sources pay its whole cost, a target's cost increase included
@@ -37,11 +38,11 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.legality import (
     MAIN_PHASES,
-    _ability_discards_its_source,
     _cost_has_x,
     ability_playable,
     activate,
     kicker_of,
+    off_battlefield_activations,
     plan_mana_taps,
     spell_castable,
     spell_cost,
@@ -171,8 +172,8 @@ def sorcery_timing(executor: Executor, seat: Handle) -> bool:
 
 def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, int, ActivatedAbility]]:
     """Every activated ability ``seat`` may consider, unpriced: of the permanents it controls,
-    printed and granted (a granted one is numbered -k-1), and of the cards in its hand the ones
-    that work there (``legality._ability_discards_its_source``); sorted by source and index."""
+    printed and granted (a granted one is numbered -k-1), and of its cards elsewhere the ones
+    that work there (``legality.off_battlefield_activations``); sorted by source and index."""
     world = executor.world
     rows: list[tuple[Handle, int, ActivatedAbility]] = []
     for handle in (h for p in world.player_order for h in world.players[p].zone(ZONE_BATTLEFIELD).entries):
@@ -182,15 +183,7 @@ def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, 
         printed = list(enumerate(record.abilities)) if record is not None else []
         granted = [(-k - 1, entry.node) for k, entry in enumerate(executor.layers.granted_activated(handle))]
         rows += [(handle, idx, ab) for idx, ab in printed + granted if isinstance(ab, ActivatedAbility)]
-    for handle in world.players[seat].zone(ZONE_HAND).entries:
-        record = spell_record(executor, handle)
-        if record is None:
-            continue
-        rows += [
-            (handle, idx, ab)
-            for idx, ab in enumerate(record.abilities)
-            if isinstance(ab, ActivatedAbility) and _ability_discards_its_source(ab)
-        ]
+    rows += off_battlefield_activations(executor, seat)
     rows.sort(key=lambda row: (row[0], row[1]))
     return rows
 

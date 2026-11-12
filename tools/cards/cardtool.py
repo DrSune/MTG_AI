@@ -365,6 +365,17 @@ def next_pack_path(dest: Path, stem: str) -> Path:
     return dest / f"{stem}_{i}.json"
 
 
+def kept_pack_path(dest: Path, stem: str, text: str) -> Path:
+    """Where a verified spec pack goes: this card's existing pack with the same text, so a
+    re-verification that carries a pack again keeps one copy of it; else the next free index."""
+    i = 1
+    while (dest / f"{stem}_{i}.json").exists():
+        if (dest / f"{stem}_{i}.json").read_text() == text:
+            return dest / f"{stem}_{i}.json"
+        i += 1
+    return dest / f"{stem}_{i}.json"
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     """Stamp a card verified when every gate agrees: G0 clean, G1 no engine error and the trace the
     reviewer read, G2 verdict OK, G3 no critical survivor that no spec pack kills, G4 packs pass."""
@@ -423,10 +434,15 @@ def cmd_verify(args: argparse.Namespace) -> int:
     stem = raw.identity.name.lower().replace(' ', '_').replace(',', '')
     dest.mkdir(parents=True, exist_ok=True)
     for pack in packs:
-        target = next_pack_path(dest, stem)
-        target.write_text(pack.read_text())
+        text = pack.read_text()
+        target = kept_pack_path(dest, stem, text)
+        if not target.exists():
+            target.write_text(text)
         kept.append(str(target.relative_to(REPO)))
     path = card_records.RECORDS_DIR / args.set / f"{oid}.json"
+    earlier = json.loads(path.read_text()).get("verified", {}).get("packs", []) if path.exists() else []
+    for gone in sorted(set(earlier) - set(kept)):
+        print(f"  no longer listed (still in the suite until removed): {gone}")
     record = json.loads(path.read_text()) if path.exists() else {
         "schema": card_records.SCHEMA, "set": args.set, "oracle_id": oid, "name": raw.identity.name,
         "text_sha": card_records.text_sha(raw)}

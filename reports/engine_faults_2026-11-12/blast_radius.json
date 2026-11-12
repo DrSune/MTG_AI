@@ -1,0 +1,332 @@
+{
+ "10E": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "DOM": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "ELD": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "FDN": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   175,
+   175
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [
+   "Empyrean Eagle",
+   "Garruk's Uprising",
+   "Imperious Perfect",
+   "Enigma Drake",
+   "Blanchwood Armor",
+   "Goblin Oriflamme",
+   "Death Baron",
+   "Regal Caracal",
+   "Gnarlid Colony",
+   "Anthem of Champions"
+  ],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "IKO": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "KHM": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M10": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M11": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M12": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M13": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M14": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M15": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M19": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M20": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   257,
+   257
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [
+   "Aggressive Mammoth",
+   "Empyrean Eagle",
+   "Gift of Paradise",
+   "Nightpack Ambusher",
+   "Daggersail Aeronaut",
+   "Hard Cover",
+   "Creeping Trailblazer",
+   "Elvish Reclaimer",
+   "Thicket Crasher",
+   "Blood Burglar",
+   "Master Splicer",
+   "Ironroot Warlord",
+   "Thirsting Bloodlord",
+   "Vivien's Crocodile",
+   "Serra's Guardian",
+   "Celestial Messenger",
+   "Chandra's Embercat"
+  ],
+  "steal_carriers": [
+   "Sorin, Vampire Lord",
+   "Act of Treason"
+  ],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "M21": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   270,
+   270
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [
+   "Runed Halo",
+   "Vodalian Arcanist",
+   "Nine Lives",
+   "Garruk's Uprising",
+   "Pack Leader",
+   "Waker of Waves",
+   "Infernal Scarring",
+   "Setessan Training",
+   "Gadrak, the Crown-Scourge",
+   "Fiery Emancipation",
+   "Light of Promise",
+   "Azusa, Lost but Seeking",
+   "Warded Battlements",
+   "Thieves' Guild Enforcer",
+   "Chromatic Orrery",
+   "Kinetic Augur",
+   "Predatory Wurm",
+   "Conclave Mentor",
+   "Liliana's Devotee",
+   "Gnarled Sage",
+   "Carrion Grub",
+   "Glorious Anthem",
+   "Tome Anima",
+   "Teferi, Master of Time",
+   "Drowsing Tyrannodon",
+   "Pridemalkin"
+  ],
+  "steal_carriers": [
+   "Enthralling Hold",
+   "Traitorous Greed"
+  ],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": [
+   "Waker of Waves"
+  ]
+ },
+ "ORI": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "THB": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "WAR": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ },
+ "ZNR": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": 0,
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "fault1_reads_its_controller": [],
+  "steal_carriers": [],
+  "fault2_shuffle_owner": [],
+  "fault3_off_battlefield": []
+ }
+}

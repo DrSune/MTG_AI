@@ -329,7 +329,10 @@ def test_reveal_read_by_a_conditional_keeps_controller_live_and_count_dead() -> 
                    "zone": "library", "controller": 0},
                   {"key": "spell", "name": "Spell", "type": "Instant", "zone": "library", "controller": 0},
                   {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0}],
-                 [{"op": "cast", "key": "td", "decisions": ["top", "top", "top"]}], {"0": {"G": 2}})
+                 # all three stay on top, in the order asked top first (verbs._arrange): the Spell
+                 # (card:3) on top, then Beast One (card:2)
+                 [{"op": "cast", "key": "td", "decisions": ["top", "top", "top", "card:3", "card:2"]}],
+                 {"0": {"G": 2}})
     real = _game(pack)
     assert next(o for o in real[0].values() if o[0] == "Spell")[1] == "library"  # no draw
     for n in (2, 3):
@@ -620,6 +623,38 @@ def test_partitioned_search_destination_is_a_placeholder() -> None:
     dest = _at(cult, CULTIVATE_SEARCH)
     for new in (dataclasses.replace(dest, kind=ZoneKind.HAND), dataclasses.replace(dest, controller=ControllerRef.OPPONENT)):
         assert _game(pack, _mutant(cult, CULTIVATE_SEARCH, new)) == real
+
+
+SEE_THE_TRUTH_REST = "1/0/effect/steps/1/steps/1"
+
+
+def test_library_order_mutants_only_where_several_cards_go_to_a_library() -> None:
+    """MOVE_ZONE arrange (CR 401.4), both directions critical: dropping RANDOM would let Garruk's
+    Harbinger's controller choose the order of the rest, and adding it would take See the Truth's
+    choice away. Offered where ability_tree.orders_a_library says a move can hold an order, the
+    validator's own predicate, so an anaphor's move ("put them on the bottom") gets one too:
+    the executor orders whatever it binds. Never on a move of one card (Teferi, Timeless
+    Voyager's -3), nor on Garruk, Savage Herald's +1, whose "it" is a one-card look's result
+    (gates._one_card_result_moves): no order there, so that mutant would be equivalent."""
+    assert "library order: random -> the owner's" in {op for op, _w in _where(_card("Garruk's Harbinger"))}
+    truth = _card("See the Truth")
+    assert ("library order: the owner's -> random", SEE_THE_TRUTH_REST) in _where(truth)
+    assert gates.is_critical("library order: random -> the owner's")
+    assert gates.is_critical("library order: the owner's -> random")
+    for name in ("Teferi, Timeless Voyager", "Garruk, Savage Herald"):
+        assert not {op for op, _w in _where(_card(name)) if op.startswith("library order")}, name
+    them = Selector(QConst(1), SelectorMode.CHOOSE, FAnd(children=()),
+                    zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result")
+    anaphor = _mutant(truth, f"{SEE_THE_TRUTH_REST}/args/cards", them)
+    assert ("library order: the owner's -> random", SEE_THE_TRUTH_REST) in _where(anaphor)
+
+
+def test_a_random_order_keeps_its_zone_mutant() -> None:
+    """"zone LIBRARY->GRAVEYARD" stays critical on a move "in a random order": the swap drops
+    arrange with the library (the validator refuses arrange off a library), so the mutant is not
+    stillborn. Garruk's Harbinger, Drawn from Dreams and Brightwood Tracker kept it before the
+    role existed."""
+    assert ("zone LIBRARY->GRAVEYARD", "1/0/effect/steps/2/args/destination") in _where(_card("Garruk's Harbinger"))
 
 
 def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() -> None:

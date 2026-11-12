@@ -1,0 +1,2483 @@
+{
+ "summary": {
+  "cards": 207,
+  "by_state": {
+   "compiled": 9,
+   "verified": 4,
+   "partly": 189,
+   "mapped": 2,
+   "refused": 3
+  },
+  "by_text_zone": {
+   "graveyard": 81,
+   "hand": 88,
+   "exile": 69,
+   "library": 1
+  },
+  "compiled_trees_off_the_battlefield": [
+   "M21 Silversmote Ghoul [verified]: [0] triggered, bound in the graveyard (TurnPhaseEvent)",
+   "M21 Waker of Waves [verified]: [1] activated, works in the hand",
+   "M20 Cavalier of Gales [mapped]: [1] triggered, bound in the graveyard (CreatureDiesEvent)",
+   "M20 Cavalier of Thorns [verified]: [1] triggered, bound in the graveyard (CreatureDiesEvent)",
+   "M20 Immortal Phoenix [verified]: [0] triggered, bound in the graveyard (CreatureDiesEvent)",
+   "M20 Sanitarium Skeleton [mapped]: [0] activated, works in the graveyard"
+  ]
+ },
+ "cards": [
+  {
+   "set": "M21",
+   "name": "Demonic Embrace",
+   "state": "compiled",
+   "text": {
+    "graveyard": [
+     "You may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M21",
+   "name": "Silversmote Ghoul",
+   "state": "verified",
+   "text": {
+    "graveyard": [
+     "At the beginning of your end step, if you gained 3 or more life this turn, return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": [
+    "[0] triggered, bound in the graveyard (TurnPhaseEvent)"
+   ]
+  },
+  {
+   "set": "M21",
+   "name": "Waker of Waves",
+   "state": "verified",
+   "text": {
+    "hand": [
+     "{1}{U}, Discard this card: Look at the top two cards of your library."
+    ]
+   },
+   "tree": [
+    "[1] activated, works in the hand"
+   ]
+  },
+  {
+   "set": "ZNR",
+   "name": "Moss-Pit Skeleton",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever one or more +1/+1 counters are put on a creature you control, if this card is in your graveyard, you may put this card on top of your library."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ZNR",
+   "name": "Skyclave Shade",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Landfall — Whenever a land you control enters, if this card is in your graveyard and it's your turn, you may cast it from your graveyard this turn."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ZNR",
+   "name": "Zareth San, the Trickster",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "{2}{U}{B}, Return an unblocked attacking Rogue you control to its owner's hand: Put this card from your hand onto the battlefield tapped and attacking."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M20",
+   "name": "Cavalier of Gales",
+   "state": "mapped",
+   "text": {},
+   "tree": [
+    "[1] triggered, bound in the graveyard (CreatureDiesEvent)"
+   ]
+  },
+  {
+   "set": "M20",
+   "name": "Cavalier of Thorns",
+   "state": "verified",
+   "text": {},
+   "tree": [
+    "[1] triggered, bound in the graveyard (CreatureDiesEvent)"
+   ]
+  },
+  {
+   "set": "M20",
+   "name": "Immortal Phoenix",
+   "state": "verified",
+   "text": {},
+   "tree": [
+    "[0] triggered, bound in the graveyard (CreatureDiesEvent)"
+   ]
+  },
+  {
+   "set": "M20",
+   "name": "Kethis, the Hidden Hand",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Exile two legendary cards from your graveyard: Until end of turn, each legendary card in your graveyard gains \"You may play this card from your graveyard.\""
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M20",
+   "name": "Sanitarium Skeleton",
+   "state": "mapped",
+   "text": {
+    "graveyard": [
+     "{2}{B}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": [
+    "[0] activated, works in the graveyard"
+   ]
+  },
+  {
+   "set": "KHM",
+   "name": "Alrund's Epiphany",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {4}{U}{U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Augury Raven",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Battle Mammoth",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {2}{G}{G} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Behold the Multiverse",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Cleaving Reaper",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Pay 3 life: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Cosima, God of the Voyage // The Omenkeel",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "If you do, it gains \"Whenever a land you control enters, if Cosima is exiled, you may put a voyage counter on it."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Cosmos Charger",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {2}{U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Crush the Weak",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {R} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Demon Bolt",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {R} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Depart the Realm",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Doomskar",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{W}{W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Doomskar Oracle",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Doomskar Titan",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {4}{R} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Dual Strike",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {R} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Dwarven Reinforcements",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{R} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Gilded Assault Cart",
+   "state": "refused",
+   "text": {
+    "graveyard": [
+     "Sacrifice two Treasures: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Glimpse the Cosmos",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "As long as you control a Giant, you may cast this card from your graveyard by paying {U} rather than paying its mana cost."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Glorious Protector",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Gods' Hall Guardian",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {3}{W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Haunting Voyage",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {5}{B}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Iron Verdict",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Jarl of the Forsaken",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Kaya's Onslaught",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Mammoth Growth",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {G} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Mystic Reflection",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Narfi, Betrayer King",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{S}{S}{S}: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Orvar, the All-Form",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "When a spell or ability an opponent controls causes you to discard this card, create a token that's a copy of target permanent."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Poison the Cup",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Quakebringer",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "This ability triggers only if Quakebringer is on the battlefield or if Quakebringer is in your graveyard and you control a Giant."
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Ravenform",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Return Upon the Tide",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {3}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Rise of the Dread Marn",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Sarulf's Packmate",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{G} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Saw It Coming",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{U} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Scorn Effigy",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {0} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Shepherd of the Cosmos",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {3}{W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Skull Raid",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Spectral Steel",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{W}, Exile this card from your graveyard: Return another target Aura or Equipment card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Starnheim Unleashed",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {X}{X}{W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Struggle for Skemfar",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {G} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Tergrid's Shadow",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {2}{B}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Vengeful Reaper",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {1}{B} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "KHM",
+   "name": "Warhorn Blast",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Foretell {2}{W} (During your turn, you may pay {2} and exile this card from your hand face down. Cast it on a later turn for its foretell cost.)"
+    ],
+    "exile": [
+     "keyword Foretell"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "10E",
+   "name": "Guerrilla Tactics",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "When a spell or ability an opponent controls causes you to discard this card, it deals 4 damage to any target."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "10E",
+   "name": "Squee, Goblin Nabob",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "At the beginning of your upkeep, you may return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M10",
+   "name": "Magma Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{R}{R}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M11",
+   "name": "Magma Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{R}{R}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M11",
+   "name": "Obstinate Baloth",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "If a spell or ability an opponent controls causes you to discard this card, put it onto the battlefield instead of putting it into your graveyard."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M11",
+   "name": "Reassembling Skeleton",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{B}: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M12",
+   "name": "Chandra's Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever an opponent is dealt damage by a red instant or sorcery spell you control or by a red planeswalker you control, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M12",
+   "name": "Reassembling Skeleton",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{B}: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M12",
+   "name": "Vengeful Pharaoh",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever combat damage is dealt to you or a planeswalker you control, if this card is in your graveyard, destroy target attacking creature, then put this card on top of your library."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M13",
+   "name": "Firewing Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{R}{R}{R}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M13",
+   "name": "Serra Avatar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "When Serra Avatar is put into a graveyard from anywhere, shuffle it into its owner's library."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M13",
+   "name": "Veilborn Ghoul",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever a Swamp you control enters, you may return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M14",
+   "name": "Chandra's Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever an opponent is dealt damage by a red instant or sorcery spell you control or by a red planeswalker you control, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of Innistrad",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{B}{B}, Exile this card from your graveyard: Return up to three target creature cards from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of New Phyrexia",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{5}, Exile this card from your graveyard: Permanents you control gain indestructible until end of turn."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of Ravnica",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{5}{U}{U}, Exile this card from your graveyard: Draw a card for each color among permanents you control."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of Shandalar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{R}{R}, Exile this card from your graveyard: It deals 3 damage to target player or planeswalker and 3 damage to up to one target creature that player or that planeswalker's controller controls."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of Theros",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{4}{W}{W}, Exile this card from your graveyard: Creatures you control get +2/+2 and gain first strike and lifelink until end of turn."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Soul of Zendikar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{G}{G}, Exile this card from your graveyard: Create a 3/3 green Beast creature token."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M15",
+   "name": "Vineweft",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{4}{G}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ORI",
+   "name": "Despoiler of Souls",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{B}{B}, Exile two other creature cards from your graveyard: Return this card from your graveyard to the battlefield."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ORI",
+   "name": "Erebos's Titan",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "If you do, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Ajani's Last Stand",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "When a spell or ability an opponent controls causes you to discard this card, if you control a Plains, create a 4/4 white Avatar creature token with flying."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Bone Dragon",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{3}{B}{B}, Exile seven other cards from your graveyard: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Reassembling Skeleton",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{B}: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Spit Flame",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "If you do, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Talons of Wildwood",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{2}{G}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "M19",
+   "name": "Vivien's Jaguar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{2}{G}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Darigaaz Reincarnated",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "At the beginning of your upkeep, if this card is exiled with an egg counter on it, remove an egg counter from it."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Gaea's Blessing",
+   "state": "partly",
+   "text": {
+    "library": [
+     "When this card is put into your graveyard from your library, shuffle your graveyard into your library."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Lingering Phantom",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "If you do, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Multani, Yavimaya's Avatar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{G}, Return two lands you control to their owner's hand: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Squee, the Immortal",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "You may cast this card from your graveyard or from exile."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "DOM",
+   "name": "Warcry Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "If you do, return this card from your graveyard to the battlefield tapped and attacking."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Bulk Up",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {4}{R}{R} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Electroduplicate",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {2}{R}{R} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Flamewake Phoenix",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "If you do, return this card from your graveyard to the battlefield."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Gate Colossus",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Whenever a Gate you control enters, you may put this card from your graveyard on top of your library."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Inspiration from Beyond",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {5}{U}{U} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Mystical Teachings",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {5}{B} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Quilled Greatwurm",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "You may cast this card from your graveyard by removing six counters from among creatures you control in addition to paying its other costs."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Reassembling Skeleton",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{1}{B}: Return this card from your graveyard to the battlefield tapped."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Revenge of the Rats",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {2}{B}{B} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Self-Reflection",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {3}{U} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Suspicious Shambler",
+   "state": "refused",
+   "text": {
+    "graveyard": [
+     "{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Think Twice",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Flashback {2}{U} (You may cast this card from your graveyard for its flashback cost. Then exile it.)",
+     "keyword Flashback"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "FDN",
+   "name": "Wilt-Leaf Liege",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "If a spell or ability an opponent controls causes you to discard this card, put it onto the battlefield instead of putting it into your graveyard."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Animating Faerie // Bring to Life",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Ardenvale Tactician // Dizzying Swoop",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Bartered Cow",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "When this creature dies and when you discard this card, create a Food token."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Beanstalk Giant // Fertile Footsteps",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Bonecrusher Giant // Stomp",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Brazen Borrower // Petty Theft",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Cauldron Familiar",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Sacrifice a Food: Return this card from your graveyard to the battlefield."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Curious Pair // Treats to Share",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Deathless Knight",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "When you gain life for the first time each turn, return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Embereth Shieldbreaker // Battle Display",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Fae of Wishes // Granted",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Faerie Guidemother // Gift of the Fae",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Feasting Troll King",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "Sacrifice three Foods: Return this card from your graveyard to the battlefield."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Flaxen Intruder // Welcome Home",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Foulmire Knight // Profane Insight",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Garenbrig Carver // Shield's Might",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Giant Killer // Chop Down",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Hypnotic Sprite // Mesmeric Glare",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Lochmere Serpent",
+   "state": "refused",
+   "text": {
+    "graveyard": [
+     "Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Lonesome Unicorn // Rider in Need",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Lovestruck Beast // Heart's Desire",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Merchant of the Vale // Haggle",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Merfolk Secretkeeper // Venture Deeper",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Murderous Rider // Swift End",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Oakhame Ranger // Bring Back",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Order of Midnight // Alter Fate",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Queen of Ice // Rage of Winter",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Realm-Cloaked Giant // Cast Off",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Reaper of Night // Harvest Fear",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Rimrock Knight // Boulder Rush",
+   "state": "compiled",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Rosethorn Acolyte // Seasonal Ritual",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Shepherd of the Flock // Usher to Safety",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Silverflame Squire // On Alert",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Smitten Swordmaster // Curry Favor",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "ELD",
+   "name": "Tuinvale Treefolk // Oaken Boon",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "adventure layout (cast from exile, CR 715.4)"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Chainweb Aracnir",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Cling to Dust",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Elspeth, Sun's Nemesis",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Escape Velocity",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Fruit of Tizerus",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Glimpse of Freedom",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Kroxa, Titan of Death's Hunger",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Loathsome Chimera",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Mogis's Favor",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Ox of Agonas",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Pharika's Spawn",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Phoenix of Ash",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Polukranos, Unchained",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Satyr's Cunning",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Sentinel's Eyes",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Sleep of the Dead",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Sweet Oblivion",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Underworld Charger",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Underworld Rage-Hound",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Uro, Titan of Nature's Wrath",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Voracious Typhon",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "THB",
+   "name": "Woe Strider",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "(You may cast this card from your graveyard for its escape cost.)",
+     "keyword Escape"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Avian Oddity",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2}{U} ({2}{U}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Barrier Breach",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Boon of the Wish-Giver",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Brokkos, Apex of Forever",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "You may cast this card from your graveyard using its mutate ability."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Coordinated Charge",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Drannith Healer",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Drannith Stinger",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Durable Coilbug",
+   "state": "partly",
+   "text": {
+    "graveyard": [
+     "{4}{B}: Return this card from your graveyard to your hand."
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Easy Prey",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Flourishing Fox",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Footfall Crater",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Frostveil Ambush",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Go for Blood",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Greater Sandwurm",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Hampering Snare",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Imposing Vantasaur",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Indatha Crystal",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Indatha Triome",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {3} ({3}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Ketria Crystal",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Ketria Triome",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {3} ({3}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Lava Serpent",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Lukka, Coppercoat Outcast",
+   "state": "partly",
+   "text": {
+    "exile": [
+     "Creature cards exiled this way gain \"You may cast this card from exile as long as you control a Lukka planeswalker.\""
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Memory Leak",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Migration Path",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Monstrous Step",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Neutralize",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Ominous Seas",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Raking Claws",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Raugrin Crystal",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Raugrin Triome",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {3} ({3}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Reconnaissance Mission",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Rooting Moloch",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Sanctuary Smasher",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2}{R} ({2}{R}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Savai Crystal",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Savai Triome",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {3} ({3}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Shark Typhoon",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {X}{1}{U} ({X}{1}{U}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Shredded Sails",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Splendor Mare",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1}{W} ({1}{W}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Startling Development",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1} ({1}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Suffocating Fumes",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Titanoth Rex",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {1}{G} ({1}{G}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Unpredictable Cyclone",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Valiant Rescuer",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Void Beckoner",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2}{B} ({2}{B}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Will of the All-Hunter",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Wilt",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Yidaro, Wandering Monster",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Zagoth Crystal",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {2} ({2}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  },
+  {
+   "set": "IKO",
+   "name": "Zagoth Triome",
+   "state": "partly",
+   "text": {
+    "hand": [
+     "Cycling {3} ({3}, Discard this card: Draw a card.)",
+     "keyword Cycling"
+    ]
+   },
+   "tree": []
+  }
+ ]
+}

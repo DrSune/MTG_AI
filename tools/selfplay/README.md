@@ -33,8 +33,10 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
 | `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
 | `decks.py` | The drafter v0 (docs/PLAN_DRAFTER.md): a recorded game's decks rebuilt with the code of the run's commit (`rebuild`, under `runs/code/<sha>`), the card-value critic fitted on games' results against a baseline of deck summaries (`fit`, gate G1), and construction by k swaps on a fresh deal inside the coherent decks' band (`swap`), which the learner's drafted deck modes use. |
+| `packages.py` | Package mode (docs/PLAN_CEILING.md §14.3): synergy packages read off the compiled trees (consumers of an event or property: a trigger's event and subject, a counted property, a static over your permanents; producers: the cards or tokens the subject filter picks, or the verbs, keywords and costs that cause it), never off names; decks built around one per deck from the deal's seed (`package_decks`, deck mode `package`), which the learner's `--package-share` deals for that share of coherent training and evaluation deals. `python -m tools.selfplay.packages M21` reports a pool's packages and what was dropped. |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run (with the per-kind rows: pass share, advantage, entropy, KL); paired comparison of two evaluations on the same deals. |
 | `preflight.py`, `launch.sh` | A run's pre-flight checks (docs/TRAINING_REVIEW_PROTOCOL.md §1: clean tree, a smoke slate, games ending by a loss, seeded replay); the launcher a systemd unit runs, which resumes from the last save. |
+| `linevalue.py` | docs/PLAN_CEILING.md §14.2's instrument 1, the value of a line of play. At states of the checkpoint's own games where a line's next step is legal (`cast_line`: a card whenever castable; `order_line`: a consumer before its producers, two sets of oracle ids), three branches are played to the end on shared true futures against the policy: B the policy chooses, A1 the step forced, A* every later step forced too. Reports the paired value A - B with its SE over states, the policy's unforced use of the step, the follow-through after a forced first step, and the value head's reading at the next turn tops (the search's leaf) against the realised result. In-process (`LocalSlot`), CPU by default. |
 | `evalrows.py`, `ncurve.py`, `distill.py`, `rate.py` | the one reading of evaluation rows and one name per player that every scorer uses; docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2; rules `se`, `se1` on the first halving round's shared worlds, and `sigma`; `--placebo`, `--save-epochs`; KNOWLEDGE/2026-11-12/196); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
@@ -140,6 +142,9 @@ host, Python and torch versions, start time.
     --out EVAL.npz
 # drafted decks (PLAN_DRAFTER): --eval-decks versus:K (one seat's dealt deck drafted with K swaps,
 # the two games of a deal swap decks) or drafted:K (both drafted), with --draft-critic CRITIC.json
+# synergy-package decks (PLAN_CEILING §14.3): a pool's packages; on a run or an --eval-only,
+# --package-share P deals that share of coherent training and evaluation deals on them
+.venv/bin/python -m tools.selfplay.packages M21 M20 FDN
 # a training batch written to disk instead of an update (PLAN_CEILING §4.1): --collect OUT.pkl
 .venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl
 .venv/bin/python -m tools.selfplay.report runs/selfplay/NAME
@@ -181,7 +186,7 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (80 tests in four files on 2026-11-12; `test_selfplay.py` holds 63): hidden-information
+`.venv/bin/python -m pytest tools/selfplay -q` (87 tests in five files on 2026-11-12; `test_selfplay.py` holds 63): hidden-information
 metamorphic test (rewriting the opponent's hand and both libraries leaves the encoding
 byte-identical), encoding consistency over whole games, heuristic vs uniform random,
 option-permutation equivariance, batch-padding invariance and save/load round-trip, packed
@@ -212,3 +217,14 @@ knowledge, or our own library order, are rewritten; a labelled game makes the sa
 ends in the same state as an unlabelled one; the second future (and a true world) reshuffles both
 libraries whole; a crashed future is dropped for every alternative; and the owner's 45/30/25 example
 (§1.4) in search and in distillation.
+
+`test_linevalue.py` (7 tests) holds the line-value instrument's validity checks: a null line reads
+exactly 0 on shared futures (greedy: the policy's top choice; sampled: any option, the forced move
+spending the policy's own draw); two runs from one master seed agree to the last digit, and a
+state's futures are distinct games; forcing the policy's least preferred option changes the move at
+every state; a line never legal, or whose steps never begin it, gives no states and a printable
+report; and the two families pick their steps on arranged boards. Each failed on a plausible bug
+planted for it (futures keyed by branch, a forced move spending no draw, the kept copy played in
+place, unseeded or shared streams, one future for all, the root not forced, the policy's move
+where the step was forced, an empty report, collection ignoring where a line begins, producers
+before consumers).

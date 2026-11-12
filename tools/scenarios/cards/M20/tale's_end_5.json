@@ -1,0 +1,67 @@
+{
+ "set": "M20",
+ "name": "tales_end_counters_activated_ability_soulmender",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Counter target activated ability, triggered ability, or legendary spell.' Seat 0 activates Soulmender ({T}: You gain 1 life) and holds; seat 1 answers with Tale's End targeting that activated ability. The ability is countered (CR 701.5a): no life is gained (seat 0 stays at 20), but its cost was already paid, so Soulmender stays tapped.",
+ "cards": [
+  {
+   "key": "sm",
+   "real": "Soulmender",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "te",
+   "real": "Tale's End",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "sm",
+   "idx": 0,
+   "seat": 0,
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "te",
+   "controller": 1,
+   "targets": [
+    "ability:sm"
+   ],
+   "tap": true,
+   "real": "Tale's End"
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "te": "graveyard",
+   "sm": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "sm": true
+  },
+  "mana_pool": {
+   "1": {}
+  }
+ }
+}

@@ -281,6 +281,11 @@ class Worker:
             decks = DK.drafted_decks(job["seed"], job["deck_mode"], job.get("a_seat"),
                                      get_supply(job["pool_mode"], job["set_code"]),
                                      self.critics[path], job["set_code"])
+        elif job["deck_mode"] == "package":  # synergy packages (packages.package_decks)
+            from MTG_bot.core.executor.games import get_supply
+            from tools.selfplay import packages as PK
+
+            decks = PK.package_decks(job["seed"], get_supply(job["pool_mode"], job["set_code"]))
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
                         set_code=job["set_code"], pool_mode=job["pool_mode"], decks=decks)
         res["gid"] = job["gid"]

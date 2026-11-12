@@ -21,6 +21,7 @@ are neutral; each one is teaching the agent something.
 | Scaffold | Where | Removal condition |
 |---|---|---|
 | **Drafted decks stay inside the critic's band** (2026-11-12, docs/PLAN_DRAFTER.md §5): a critic swap that would take a deck's mean spell mana value, creature count or most copies of one card outside the coherent decks' 1st-99th percentile is skipped | `tools/selfplay/decks.py` `band_of`, `drafted_decks` | It guards the critic's range, not a rule of the game: the critic is fitted on coherent decks, so outside their range its values are extrapolation. Remove it when the critic is fitted on drafted decks' games too (PLAN_DRAFTER §6's loop) and G2's calibration holds outside the band |
+| **Package decks** (2026-11-12, docs/PLAN_CEILING.md §14.3): a deck holds 8 copies of its package's consumers (4 when its pair holds one) and 8 copies of other producers, the rest filled as a coherent deck; a package is kept only when a colour pair holds a consumer and 8 producer copies (a consumer that produces, and a basic at 12, count); the pair is the one holding the most consumers, then the most producer copies; consumers and producers are drawn uniformly | `tools/selfplay/packages.py` `CONSUMER_COPIES`, `PRODUCER_COPIES`, `derive`, `build` | Chosen so that a player sees a consumer in 93% of games (16 cards of 60 by their ninth turn, an 18-turn game), not measured to be best; they set how much of a deck is the package and which packages exist at all. Remove when decks come from the drafter fitted on a pilot that plays synergies (§14.4 "Later"), or when the Teacher sets a package's density from measured skill headroom (§9.1, §14.1) |
 | **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
 | **Trigger quarantine after `MAX_TRIGGER_FIRES = 200`** (registered 2026-10-24) | `core/executor/binding.py:31-34,147,1458` | A rules deviation: the runaway source's trigger is switched off for the rest of the game, so combos silently die. Replace with the loop shortcut and CR 104.4b handling in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md). |
 | **`TURN_CAP = 60`** (registered 2026-10-24) | `core/executor/games.py:138,1554`; `tools/selfplay/learner.py` `reward` (`--draw-reward`) | A non-rules safety rail. Scored as a draw (0 > loss = -1) it would pay a losing policy to stall (D10), so self-play scores it `--draw-reward` (default -1, a loss for both seats) and reports it as `draw-cap`. Remove once a real match clock exists. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
@@ -221,6 +222,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   (CR 120.3a, 702.15b). Every history and trigger reader inherits it (EVENT_THIS_TURN, bloodthirst,
   LIFE_GAINED_THIS_TURN_GE, "whenever you gain life"). Fix: journal player damage and lifelink gains
   from the verbs' own tuples, not the life diff.
+- **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
+  fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
+  a graveyard as graveyard-only, while the activation lane reads the same rule in
+  `legality.activation_zone`. It skips 113.6m's "unless its trigger condition ... specifies that
+  the object is put into that zone", so three dies triggers that do it are bound in the graveyard
+  instead of looking back from the battlefield (CR 603.10a): M20 Cavalier of Gales, Cavalier of
+  Thorns, Immortal Phoenix. Its IS_SOURCE test also counts "another" (FNot). No game difference
+  is known (the dies row is matched by the graveyard binding, with the controller from last-known
+  information); fold the two readings into one classifier when the trigger lane is free.
 - **A created token's ability record is keyed by its name alone** (2026-11-06): `_v_create_token`
   (verbs.py ~1340) registers the binder record under `token_oracle_id(spec.name)` once per game, so
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first
@@ -234,6 +244,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
+- **A move from a hand asks its cards as a discard** (2026-11-12): MOVE_ZONE `from` HAND takes the
+  discard lane (`verbs._v_move_zone`, `_discard_picks`), whose ask is `discard:<seat>:...`, so
+  Cavalier of Gales's "put two cards from your hand on top of your library" reaches a bench seat
+  as "choose what to discard" (protocol.py's prompt for the kind). The cards and their order are
+  right; the label is not. Name the ask by its destination, or give the move its own kind.
+- **Cards a controller picks from a look at another player's library or hand raise as they go
+  into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
+  `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
+  but a card's own "in any order" can tell its controller to: 10E Agonizing Memories (unparsed),
+  "Look at target player's hand and choose two cards from it. Put them on top of that player's
+  library in any order." No compiled card in the 19 sets does it, so the engine raises rather
+  than guess who orders. When one compiles: ask its controller, with its tests.
 - **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
   (`core/executor/games.py:402` `identity_of`).
 - **B-64 [verifier, FDN round 2] A may-offer, and a Choose inside it, still offer an action that
@@ -271,28 +293,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
     trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
     consequence.
-- **A permanent's static records keep the controller they were attached with** (fresh-eyes
-  review, 2026-11-06): `layers._new_static` registers a static PREVENT_EFFECT with the controller
-  of the moment, and GAIN_CONTROL does not re-register it, so "you" in a stolen permanent's static
-  still means the old controller in `prevents_activation`, the attack/block consults
-  (`_rec_ctx`), and possibly the layer statics. `prevents_countering` reads the source's current
-  controller (test `test_you_follows_the_permanents_controller`); the other consults need the same
-  (CR 109.5), with packs for a stolen "can't block" or anthem static.
-  - M20 Blightbeetle shows it (2026-11-12, verification wave 1's G3 pass):
-    `prevents_counter_placement` judges "creatures your opponents control" from the stored
-    controller (`rec_ctx`, replacements.py ~710), and `Executor._recompute_control` refreshes no
-    record. Stolen with Act of Treason, it still bars counters from the thief's own creatures (its
-    owner's opponents) and from none of the owner's. Red pack:
-    `reports/g3_equivalence_2026-11-12/red/B11_blightbeetle_stolen_reads_its_new_controller.json`.
-    Blightbeetle passes G3 now (its survivor was a dead role) but stays out of the verified pool
-    until this is fixed.
-- **SHUFFLE of "its owner's library" shuffles the ability controller's** (2026-11-12, M20 Cavalier
-  of Gales): `verbs._v_shuffle` resolves Zone(LIBRARY, OWNER) with `zone_owner(ctx, zone_ir,
-  owner=ctx.controller)` (verbs.py:1418), so a Cavalier that dies under a thief goes to the bottom
-  of its owner's library unshuffled while the thief's library is shuffled. The owner is the moved
-  card's (CR 108.3; "shuffle it into its owner's library"). Red pack:
-  `reports/g3_equivalence_2026-11-12/red/B08_cavalier_stolen_shuffles_its_owners_library.json`.
-  Cavalier of Gales stays out of the verified pool until it is fixed.
+- **The top-n lane of MOVE_ZONE reads the destination's player's library** (2026-11-12, found
+  with the SHUFFLE fix; latent: no compiled tree in the 19 sets takes the lane):
+  `verbs._v_move_zone`'s "top n of a library into a hand" lane takes the cards from
+  `zone_owner(ctx, dest_ir, owner=ctx.controller)`'s library, so an OWNER or ANY destination reads
+  the ability controller's library, and a selector over another player's library is ignored.
+  The library is the selector zone's player, and its cards go to their owner's hand (CR 108.3,
+  400.3). Left for the agent changing MOVE_ZONE (the `arrange` role), with a test that fails first.
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
@@ -301,16 +308,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   triggers, and keeps a token that a queued firing names in the world as its last-known
   information until that firing resolves, so a trigger that moves "it" could still move such a
   token, as before W4-4.
-- **Order choices are never asked** (M20 verification round, 2026-11-05; 21/21 planted faults
-  caught):
-  - Scry keeps the cards it leaves on top in handle order (verbs._v_scry): the player's "any order"
-    choice is removed. Weaker only, but live on verified M21 scry cards (B-81: alters options).
-  - "Any order" is never asked (Anticipate, Cavalier of Gales, Goblin Ringleader: WRONG); "random
-    order" is fixed (Drawn from Dreams, Brightwood Tracker: OK under B-81, information only).
-- **Abilities that work from the graveyard are refused** (CR 113.6k; M20 Sanitarium Skeleton), and
-  the same row on the battlefield is a paid no-op (the Demonic Embrace shape; extend
-  query.inert_row to "moves its own source from a zone it is not in"). Repro:
-  `known_bugs/2026-11-05/graveyard_abilities_never_activatable`.
 - **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
   the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
   "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap
@@ -382,7 +379,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **No copy effects and no layer dependencies** (the 2026-09-10 audit's list for the pre-rebuild
   engine, still true of this one): `Verb.COPY` has no handler in `verbs.HANDLERS`, so no copy
   effect runs (Sublime Epiphany's COPY mode is never offered), and the layer system applies
-  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`).
+  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`). Layer 2 has one:
+  an Aura's "You control enchanted creature" applies after what changes the Aura's control
+  (`Executor._recompute_control`, 2026-11-12). Timestamps are approximate too: a static's P/T
+  entry for an object it newly covers (a creature entering, or one a stolen anthem now reaches)
+  is stamped when it is covered, not with the static's timestamp (CR 613.7a). Only a "set P/T"
+  static over other objects could tell; the three that compile (Kinetic Augur, Ironroot Warlord,
+  Enigma Drake) set their own power.
 - **Not modelled, because no card in the pools needs it** (B-74 residue; the postcombat main phase
   landed 2026-11-06, 46c7288): a trigger at the beginning of a second
   main phase (the frozen `Phase` has no member for it; the three Sanctums' "first main phase"
@@ -435,6 +438,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **D19: a MOVE_ZONE into a library with no position means two things** (2026-11-12, ontology
+  gate round 5, m5; ATOM_DIVERGENCES D19): "put it on the bottom of your library" (M21 Epitaph
+  Golem) and "shuffle it into its owner's library" (M20 Cavalier of Gales: the move, then a
+  SHUFFLE) both write `Zone(LIBRARY, ...)` with no `position`, and `verbs._bottom_put` takes it as
+  the bottom. Both play right today (one card each). A several-card shuffle-into move would ask
+  its owner an order (`verbs._arrange`) the shuffle then discards; `orders_a_library` refuses
+  `arrange` with no position. None exists in the 19 sets. Fold: "on the bottom" writes BOTTOM,
+  and the executor arranges only an explicit end.
 - **B-41 The grammar does not generalize to unseen text**: at first touch PC-2 on sentence shapes
   absent from M21/ZNR is 0.080 (M20) and 0.111 (KHM), against 0.89 on seen shapes. On cards with
   new text, PC-1 is 0.11 (M20) and 0.03 (KHM) (KNOWLEDGE /159). Tied rank 1 needs compositional
@@ -552,8 +563,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
     replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
     18afa85 (2026-10-30): tree unchanged, still unreachable.
-  - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
-    information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
+  - Not significant, kept: Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
     Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
     Equipment); Barrin's unconstrained "a permanent" (anything moving from the battlefield is
@@ -625,8 +635,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     of Souls, Jalira, Esika, Lukka; to the graveyard with the match: Consuming Aberration), count
     several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
     replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
-    selector reads it yet, and "in a random order" has no IR (known_bugs/2026-11-05
-    random_order_is_fixed).
+    selector reads it yet. "In a random order" is MOVE_ZONE's `arrange` RANDOM (2026-11-12,
+    ontology gate round 5).
 - **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
   D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
   controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
@@ -762,8 +772,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
     Soldier": the engine takes every copy and never asks how many.
   - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
-    the ability is offered on the battlefield, where it does nothing, and refused from the graveyard.
-    Find where an activated ability's functioning zone is read (CR 113.6).
+    the ability was offered on the battlefield, where it does nothing, and refused from the
+    graveyard. Engine fixed 2026-11-12 (`legality.activation_zone`, CR 113.6m; packs
+    `tools/scenarios/mapped/M20/sanitarium_skeleton_*`): the record, unchanged, goes back to
+    blind G2 (its G1 trace changed; its mapping notes still describe the old engine).
   - **Sorin, Imperious Bloodlord's +1.** Re-mapped 2026-11-12 as a reflexive trigger (CR 603.12),
     its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs wait
     in `tools/scenarios/known_bugs/sorin_imperious_bloodlord_*` (`cardtool runpack M20 <pack>`).
@@ -791,10 +803,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - M21 Garruk, Savage Herald: its "you may" mutant is dead; its duration mutant is killed by
     `packs/A06_garruk_grant_ends_with_the_turn.json`, which goes through a verifier first.
   - M20 Cavalier of Gales: its scry mutant is killed by
-    `packs/B08_cavalier_dies_you_scry_your_library.json`, but the card shuffles the wrong library
-    when stolen (engine faults, "SHUFFLE of its owner's library").
-  - M20 Blightbeetle: G3 clear, but wrong when stolen (engine faults, "static records keep the
-    controller they were attached with").
+    `packs/B08_cavalier_dies_you_scry_your_library.json`. The stolen Cavalier shuffled the
+    thief's library; fixed 2026-11-12 (`verbs._v_shuffle`), pack
+    `tools/scenarios/mapped/M20/cavalier_of_gales_stolen_shuffles_its_owners_library.json`.
+  - M20 Blightbeetle: G3 clear. Stolen, it read its old controller; fixed 2026-11-12 (the records
+    of a permanent's own abilities follow its controller, `Executor._recompute_control`), pack
+    `tools/scenarios/mapped/M20/blightbeetle_stolen_reads_its_new_controller.json`.
+  - Both trees are unchanged and go back to verification with their packs.
   - M21 Tolarian Kraken: the reflexive trigger landed (2026-11-12, trigger lane); its two
     "target->all" survivors now differ from the card where a pack can show it (Gates, below).
     M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
@@ -838,6 +853,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   six verified packs kills; `cards/M21/subira_draws_for_each_small_creature_that_connects.json`
   kills it, for its next verification. FDN Battlesong Berserker's record (not verified) got the
   same flag.
+- **Re-verify M21 Garruk's Harbinger, M20 Drawn from Dreams and M20 Brightwood Tracker**
+  (2026-11-12, MOVE_ZONE `arrange`, ontology gate round 5). Their "in a random order" move
+  gained `arrange` RANDOM (Garruk's Harbinger from the compiler's B5b-rest-bottom-random, the two
+  M20 cards in their records' `ir`), so their tree shas changed and they left the verified pool
+  (measured against main acfb1926: M21 270 -> 269, M20 257 -> 255, FDN 175). Without the role
+  the engine asks the owner the order (CR 401.4). Garruk's Harbinger plays as before in the other
+  pools (its packs pass; its bottom order is random now, which none of them pins). The M20
+  records are not applied while unverified, so in the other pools Brightwood Tracker plays the
+  compiler's tree (a vanilla creature) and Drawn from Dreams none (no spell); their spec packs
+  wait in
+  `tools/scenarios/known_bugs/{brightwood_tracker,drawn_from_dreams}_rest_to_bottom_in_a_random_order.json`
+  (both pass against the records' trees, asking no order). G3 mutates the role both ways,
+  critical ("library order: random -> the owner's" / "the owner's -> random"), and keeps each
+  card's "zone LIBRARY->GRAVEYARD"; all three G1 traces kill the first. Re-probe Anticipate,
+  Stormwing Entity and Track Down too (their traces show `arrange` asks, now asked top first),
+  and write the two M20 records through `cardtool try --write`.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
@@ -906,6 +937,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Dire Fleet Warmonger, Elder Gargaroth, Garruk's Harbinger, Goblin Arsonist, Jeskai Elder,
   Pitchburn Devils, Siege Striker, Spined Megalodon, Steadfast Sentry, Tomebound Lich); their
   records' `probe_sha` only matters to a re-run of `cardtool verify`.
+  - The same day the engine began asking the order of cards put into a library together
+    (MOVE_ZONE `arrange`, CR 401.4, 701.22a) and stopped letting a damage trigger's dealer stand
+    in for a printed target: packets A07 (See the Truth), B05 (Goblin Ringleader), B07
+    (Anticipate) and B08 (Cavalier of Gales) now show `arrange` asks, and the verified M21 Brash
+    Taunter (TARGETING rows), Stormwing Entity and Track Down (scry order asks) trace
+    differently too.
 - **Pack runner (`tools/run_scenarios.py`)** (pack-repair agent and verifiers, 2026-11-05 and
   2026-11-06):
   - **Decision words no ask uses pass silently** (the third silent-pass hole, after unread expect

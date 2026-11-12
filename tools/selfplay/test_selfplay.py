@@ -1528,6 +1528,39 @@ def test_the_network_answers_one_target_ask_per_slot_and_sees_which(table) -> No
     assert game.world.zone_of(_named(game, "Primal Might")).kind == "graveyard"
 
 
+def test_an_arrange_ask_says_which_end_of_the_library(table) -> None:
+    """Cards put into one end of a library together are ordered by an ``arrange`` ask
+    (verbs._arrange, CR 401.4). The rig reads the end and the cards still to place from its site
+    (AskContext.end, ``picked``), and the encoding shows the end: glob_f[G_TOP] reads 1 for the
+    top, where the first pick is drawn next, and 0 for the bottom and for any other ask."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.bench.test_router import _arranged
+    from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+    from tools.selfplay.rig import SelfplayRouter
+
+    game, supply = _arranged(hand0=("Forest", "Island"))
+    me = game.world.player_order[0]
+    options = tuple(Option(str(h), str(h)) for h in game.world.players[me].zone(ZONE_HAND).entries)
+    seen = []
+
+    class Capture:
+        name = "capture"
+
+        def decide(self, ask, obs) -> int:
+            seen.append((ask, obs.ctx))
+            return 0
+
+    oracle = OracleIndex.for_sets("M21")
+    router = SelfplayRouter(game, [Capture(), Capture()], [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
+                            supply=supply)
+    for site in (f"arrange:{me}:TOP:3", f"arrange:{me}:BOTTOM:2", f"scry:{me}:2"):
+        router._decide(router.drivers[0], Ask(seat=0, kind=site.split(":")[0], site=site, prompt="", options=options))
+    (_, top), (_, bottom), _ = seen
+    assert (top.end, top.picked, bottom.end, bottom.picked) == ("TOP", 3, "BOTTOM", 2)
+    glob = [float(FT.encode(game.executor, 0, ask, table, ctx)["glob_f"][FT.G_TOP]) for ask, ctx in seen]
+    assert glob == [1.0, 0.0, 0.0]
+
+
 def test_an_old_checkpoint_loads_and_plays_two_target_spells(table, tmp_path) -> None:
     """A checkpoint from before the slot features has narrower card, player and global inputs. The
     new columns load with zero weights, so it computes what it computed before, and it plays the

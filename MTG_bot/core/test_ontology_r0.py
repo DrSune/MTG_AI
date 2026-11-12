@@ -7,7 +7,7 @@ The lanes, as the test names label them:
   L4  the graveyard-sweep clause (``selectors.graveyard_sweep_shape``);
   L5  the blind-draw guard (a SINGLETON library);
   L6  the hand window of a self-discard cost
-      (``legality._ability_discards_its_source``).
+      (``legality.activation_zone``).
 
 The lane tests pin the zone set of each REAL selector from the committed
 goldens and run the PRODUCTION predicate on it; where a twin selector is
@@ -41,8 +41,8 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import (
-    _ability_discards_its_source,
     ability_playable,
+    activation_zone,
 )
 from MTG_bot.core.executor.query import legal_targets
 from MTG_bot.core.executor.selectors import graveyard_sweep_shape
@@ -279,8 +279,8 @@ class TestTwinLaneDivergence(unittest.TestCase):
         target = from_dict("Selector", parts["CostDiscard"]["target"])
         self.assertEqual(target.zones, (HAND_YOU,))  # a singleton
         # The PRODUCTION legality predicate on the singleton:
-        discards = _ability_discards_its_source(from_dict("ActivatedAbility", ab))
-        self.assertTrue(discards)  # the hand window opens
+        zone = activation_zone(from_dict("ActivatedAbility", ab))
+        self.assertEqual(zone, ZONE_HAND)  # the hand window opens
         # naive-∃ twin: a HAND ∪ GRAVEYARD discard target.
         twin = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(GV_YOU, HAND_YOU))
         naive = any(z.kind is ZoneKind.HAND for z in twin.zones)
@@ -600,14 +600,14 @@ class TestL6WakerWindowExecutor(LegalityCase):
             zones=(GV_YOU, HAND_YOU),
         )
         abil = ability(cost(CostDiscard(twin)))
-        self.assertFalse(_ability_discards_its_source(abil))  # production
+        self.assertEqual(activation_zone(abil), ZONE_BATTLEFIELD)  # production
         self.assertTrue(
             any(z.kind is ZoneKind.HAND for z in twin.zones)
         )  # naive-∃ would open the window
         h = self.put_in_hand(self.OID_TWIN, abil, "R0 Twin")
         self.assertEqual(
             ability_playable(self.world, self.ex, h, 0, seat=self.p0),
-            f"window:not_on_battlefield:{h}",
+            f"window:not_in_battlefield:{h}",
         )
 
 

@@ -211,7 +211,7 @@ last row per update; each gate 2,000 games against v0 = r27's v1 weights, both s
   rest of the batch causes on it) reads where an update's signal goes. It is PLAN_CEILING §15's
   "signal before direction" applied to the trainer itself.
 
-## 7. Registered before update 100's data (2026-11-12 21:35, r28 saved at update 80)
+## 7. Registered before update 100's data (2026-11-12 21:20, r28 resumed from its save at 75)
 
 **The per-kind split** (PLAN_CEILING §14.2, instrument 2; §14.4, retention).
 - `reports/r28_2026-11-12/kinds_split.py` runs on one on-policy batch of r28's update-100 weights
@@ -241,3 +241,60 @@ last row per update; each gate 2,000 games against v0 = r27's v1 weights, both s
 - R1b is scored with `reports/mulligan_runaway_2026-11-12/timeline.py` on the CPU, from main.
 - That is valid because main's `features.py`, `model.py` and `ppo.py` are byte-identical to r28's
   pinned 44a62d9 (`git diff 44a62d9 main` over those three files is empty at 0f96134b).
+
+**The look at 100** (2026-11-12 22:38-23:07; `look.py runs/selfplay/r28_stratified_ppo 100`; r28
+paused 22:47:43-23:06:50 for the split):
+
+- **The gate at 100 is 0.5445 [0.529, 0.560]** against v0, logged at update 102. It is the first
+  clear rise: 75's was 0.5165, about 2.5 SE below. It is still under the 0.55 that freezes v1.
+  r28 is learning, and R3's verdict over 25-75 stands as registered.
+- **R1 holds:** the mulligan per game for updates 76-100 is 1.280 (1.25-1.45).
+- **R1b holds** (`timeline.py runs/diag_mull_2026-11-12/collect165.pkl runs/r28_looks/r28_u100.pt`,
+  CPU, from main at 1e958e36, whose features, model and PPO code still match the pin):
+  - p(mulligan) is 0.058 on update 165's 1,043 seven-card hands with 3-4 lands.
+  - The prediction was 0.05-0.12; v1 had 0.081 and r27 at 165 had 0.264.
+  - The other cells: 0-1 lands 0.951; 2 lands 0.306; 5+ lands 0.101; 6 cards 0.224; 5 or fewer
+    cards 0.306.
+- **R2 holds:** the mulligan's KL over act's has a median of 2.40 over updates 1-100 (quartiles
+  1.89 and 3.00, highest 5.03).
+- **R5 holds:** `kl` median 0.0064 (0.0032-0.0080).
+- **R6 is falsified as registered:** the lowest MemAvailable was 20.8 GiB, at update 80 (21:28).
+  - It was not r28's own growth. The dip spans updates 79-83 (21:24-21:39), when the coordinator
+    loaded update 165's whole 532 MB batch to cut a 3,000-row dry-run sample, with no memory cap,
+    and four agents started their test suites.
+  - r28's floor (15 GiB) throttled its collection once, at update 79. Updates 96-100 read
+    50-54 GiB.
+  - The fix: heavy side jobs beside a run go under a memory cap (`systemd-run --user --scope -p
+    MemoryMax=... -p MemorySwapMax=0`).
+
+**The per-kind split** (`kinds_split.py runs/r28_looks/r28_u100.pt runs/r28_looks/c100/batch.pkl`,
+GPU, from main at 1e958e36; the batch from `collect.sh ... 2800`, 139,274 rows; the full update
+140 s):
+
+| Kind | Probe decisions | Alignment, full update (SE) | Without its own rows (SE) | Mean abs. Δlog p, full |
+|---|---|---|---|---|
+| mulligan | 2,467 | +0.0052 (0.0027) | −0.0065 (0.0048) | 0.048 |
+| mulligan_bottom | 868 | +0.0207 (0.0037) | +0.0003 (0.0017) | 0.057 |
+| priority | 4,000 | +0.0022 (0.0017) | +0.0006 (0.0012) | 0.023 |
+| act | 4,000 | +0.0060 (0.0015) | +0.0022 (0.0016) | 0.037 |
+| attack | 4,000 | +0.0173 (0.0052) | +0.0045 (0.0029) | 0.040 |
+| block | 4,000 | +0.0154 (0.0023) | +0.0007 (0.0021) | 0.055 |
+| target | 4,000 | +0.0177 (0.0040) | +0.0010 (0.0026) | 0.054 |
+
+- **K1 is neither met nor falsified.**
+  - Every kind moves along its own advantages in point estimate.
+  - The mulligan (1.9 SE) and priority (1.3 SE) are not beyond 2 SE, so the prediction ("every
+    kind beyond 2 SE") is not met.
+  - The falsifier ("a kind at or below 0") is not met either.
+- **K2 is falsified.** The drift the rest of the batch causes on the mulligan is −0.0065 ± 0.0048:
+  negative in point estimate, but within 2 SE of 0.
+- **K3 holds.** No other kind drifts against its own advantages: +0.0003 to +0.0045.
+- **The decision rule does not fire.** No kind has a drift negative beyond 2 SE, so no retention
+  scheme is registered now. The read at 400 repeats the split.
+- **What it says about the slow learning (R3).**
+  - The kinds learn from their own rows, with little transfer from the others.
+  - Per update the clearest learners are attack, block, target and the bottom choice.
+  - Priority, the most frequent decision, moves least along its advantages (+0.0022, the
+    smallest Δlog p). That fits its confident passes: the pass share is about 0.9 in r27's later
+    updates, and a log-probability near 0 has a small gradient. Whether its slow learning is
+    that, or noise in its advantages, is not separated here.

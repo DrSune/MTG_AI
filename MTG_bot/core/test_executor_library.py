@@ -33,6 +33,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
+    Seq,
     TriggeredAbility,
     TurnPhaseEvent,
     Verb,
@@ -282,6 +283,69 @@ class TestSearchUnit(LibraryCase):
             len(self.zone(self.p0, ZONE_LIBRARY)),
             2,  # 4 - 2 searched
         )
+
+
+class TestShuffleIntoItsOwnersLibrary(LibraryCase):
+    """SHUFFLE of an OWNER zone shuffles the library of the owner of what the previous
+    instruction put there (CR 108.3, 400.3), never the ability controller's (M20 Cavalier of
+    Gales: "When this creature dies, shuffle it into its owner's library, then scry 2.")."""
+
+    LIB_OWNER = Zone(ZoneKind.LIBRARY, ControllerRef.OWNER)
+
+    def shuffled(self):
+        return [row[2] for row in self.ex.events if row[1] == "SHUFFLE"]
+
+    def cavalier(self):
+        """P1's creature that died under P0's control; its dies trigger is P0's (CR 603.3a)."""
+        it = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAtom(FAtomPred.IS_SOURCE),
+            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),),
+        )
+        effect = Seq(
+            (
+                atom(Verb.MOVE_ZONE, cards=it, destination=self.LIB_OWNER),
+                atom(Verb.SHUFFLE, zone=self.LIB_OWNER),
+            )
+        )
+        cav = self.world.add_card(card_id("Cavalier"), self.p1, ZONE_GRAVEYARD)
+        return cav, effect
+
+    def test_a_stolen_card_is_shuffled_into_its_owners_library(self):
+        cav, effect = self.cavalier()
+        self.ex.apply_effect(effect, source=cav, controller=self.p0)
+        self.assertIn(cav, self.zone(self.p1, ZONE_LIBRARY))
+        self.assertEqual(self.shuffled(), [str(self.p1)])
+        self.assertEqual(self.zone(self.p0, ZONE_LIBRARY), self.libs)  # untouched
+
+    def test_its_owners_library_is_shuffled_even_when_it_left_the_graveyard(self):
+        # CR 701.24c: exiled in response, it is not put into the library, which is shuffled
+        # all the same.
+        cav, effect = self.cavalier()
+        self.world.move_to_zone(cav, self.p1, ZONE_EXILE)
+        self.ex.apply_effect(effect, source=cav, controller=self.p0)
+        self.assertIn(cav, self.zone(self.p1, ZONE_EXILE))
+        self.assertEqual(self.shuffled(), [str(self.p1)])
+
+    def test_two_owners_shuffle_each_their_own(self):
+        # Void Stalker: "Put this creature and target creature on top of their owners'
+        # libraries, then those players shuffle their libraries."
+        stalker = self.world.add_card(card_id("Stalker"), self.p1, ZONE_BATTLEFIELD)
+        bear = self.world.add_card(card_id("Bear"), self.p0, ZONE_BATTLEFIELD)
+        both = Selector(QConst(2), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))
+        effect = Seq(
+            (
+                atom(Verb.MOVE_ZONE, target=both, destination=self.LIB_OWNER),
+                atom(Verb.SHUFFLE, zone=self.LIB_OWNER),
+            )
+        )
+        self.ex.apply_effect(
+            effect, source=stalker, controller=self.p1, bindings={"target": [stalker, bear]}
+        )
+        self.assertIn(stalker, self.zone(self.p1, ZONE_LIBRARY))
+        self.assertIn(bear, self.zone(self.p0, ZONE_LIBRARY))
+        self.assertEqual(self.shuffled(), [str(self.p0), str(self.p1)])
 
 
 # -------------------------------------------------------------- Bad Deal

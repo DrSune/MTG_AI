@@ -136,6 +136,10 @@ anomalies corpus-wide, erased by R1a flatten).
 **Registration law**: new branching = map row (dated, card-cited) + NUMBERS.md count
 IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 
+| registered | branching | cards | volume |
+|---|---|---|---|
+| 2026-11-12, gate round 5 | MOVE_ZONE x `arrange` ("RANDOM": "put the rest on the bottom of your library in a random order"; absent = the owner arranges, CR 401.4), accepted only where `ability_tree.orders_a_library` holds | M21 Garruk's Harbinger (compiler, B5b-rest-bottom-random); M20 Drawn from Dreams and Brightwood Tracker (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12); 54 cards of the 19 sets print "in a random order", most still unparsed |
+
 ## 6. Identity + conformance
 
 **Identity law**: byte-equal canonical IR under N := {role-sort :2541; FAnd/FOr
@@ -349,7 +353,53 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
       - Vito, Kitesail Freebooter, Teferi's Tutelage and Sage's Row Denizen fall under the 603.3d
         removal and the 608.2b re-check.
     - Replay fingerprints of games with those tokens shift.
-- BINDING STATE: rounds 1–4 complete; further ontology changes require a NEW gated
+- R5 round 5 (adversarial, 2026-11-12; one reviewer on 31c7c2f0, MOVE_ZONE `arrange`):
+  **FIX-THEN-GO.**
+  - **Upheld:** the name `arrange`; its home on MOVE_ZONE (not a Zone field); the one value
+    "RANDOM"; and absent = the owner arranges (CR 401.4: "in any order" restates the rule, as
+    `once_per_event` absent is CR 603.2c's default). "In a random order" is the commoner wording
+    (54 cards of the 19 sets to 22), but the absent value is the rule's.
+  - **MAJOR, fixed:**
+    - M1. The validator accepted `arrange` where it means nothing, a second encoding (round 4
+      refused the same for `once_per_event`): on a one-card TARGET move, the designation lane
+      (`target`, which never reads it), the mill lane (`pop_order` TOP) and a library with no
+      position. One predicate, `ability_tree.orders_a_library`: a library TOP or BOTTOM; the
+      objects on `cards` (the hand lane's `from` HAND included); no `pop_order`; a selector that
+      can hold several cards (REST or ALL, a count that allows two, or a referent). It refuses the
+      role in `Atom.__post_init__`, and G3's library-order mutants use it (they had left out
+      referents, which the executor orders). The move of a one-card look's result (Garruk, Savage
+      Herald's +1) is a dead role for G3 (`gates._one_card_result_moves`). Tests:
+      `test_arrange_is_random_only_and_only_where_several_cards_go_into_a_library`, one refusal
+      per case; `test_gates.py::test_library_order_mutants_only_where_several_cards_go_to_a_library`.
+    - M2. G3's critical "zone LIBRARY->GRAVEYARD" mutant of every RANDOM move was stillborn, so
+      the three random cards lost it: the swap now drops `arrange` with the library. Test:
+      `test_a_random_order_keeps_its_zone_mutant` (Garruk's Harbinger).
+    - M4. The network could not see which end it orders (AGENTS §10). The rig parses
+      `arrange:<owner>:<END>:<n>` into AskContext (`picked` = n, `end`), and one appended glob
+      column, `features.G_TOP`, reads 1 for the top (model.load zero-fills it; ASK_KINDS and every
+      other column keep their index). Test: `test_an_arrange_ask_says_which_end_of_the_library`.
+    - M3. Tale's End's spec pack activated Brightwood Tracker, whose record is no longer applied:
+      re-verified on main on another activated ability (tale's_end_5, Soulmender).
+  - **MINOR, fixed before any network trains on the kind:**
+    - m1: asked top first at both ends, as the trigger ask asks first what resolves next and
+      mulligan_bottom's first pick ends highest; m2: identical cards (one oracle id) are one
+      option, as the trigger ask's copies are; m3: owners asked in APNAP order (CR 101.4).
+    - m4: a tripwire. A move whose cards its controller picked from a look at another player's
+      library or hand raises (Agonizing Memories: by its text the controller orders them, not the
+      owner); no card in the 19 sets does it.
+    - m6: tests for the hand lane (Cavalier of Gales), a two-owner move, that RANDOM permutes, and
+      the router's context line. m9: each RANDOM move draws its own stream (one tag shuffled two
+      moves of one operation alike); the pool numbers corrected to main's (M21 270 -> 269, M20
+      257 -> 255, FDN 175).
+    - m5: D19 registered in ATOM_DIVERGENCES (no position means both "on the bottom" and "shuffle
+      into"), no code. m7, m8 (re-probing Anticipate, Stormwing Entity and Track Down; re-writing
+      the two M20 records through `cardtool try --write`) are the coordinator's re-verification.
+  - **Blast radius** (by script): 3 of 5,678 trees change, all verified and all "in a random
+    order" (M21 Garruk's Harbinger, M20 Drawn from Dreams, Brightwood Tracker), and wait for
+    re-verification. Behaviour: an `arrange` ask on See the Truth, Anticipate, Cavalier of Gales and
+    Goblin Ringleader ("in any order"), and on a scry of two or more that keeps two in one group
+    (verified: Stormwing Entity, Track Down).
+- BINDING STATE: rounds 1–5 complete; further ontology changes require a NEW gated
   round (any R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)

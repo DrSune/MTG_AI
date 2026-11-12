@@ -169,7 +169,7 @@
   "packs": [
    "tools/scenarios/cards/M20/tale's_end_1.json",
    "tools/scenarios/cards/M20/tale's_end_2.json",
-   "tools/scenarios/cards/M20/tale's_end_3.json",
+   "tools/scenarios/cards/M20/tale's_end_5.json",
    "tools/scenarios/cards/M20/tale's_end_4.json"
   ],
   "mutation": {
