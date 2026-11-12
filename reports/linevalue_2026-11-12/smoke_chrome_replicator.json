@@ -1,0 +1,2536 @@
+{
+ "ckpt": "/tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/linevalue/r28_u75.pt",
+ "ckpt_it": 75,
+ "args": {
+  "ckpt": "/tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/linevalue/r28_u75.pt",
+  "cast": [
+   "Chrome Replicator"
+  ],
+  "consumer": [],
+  "producer": [],
+  "states": 24,
+  "per_game": 2,
+  "games": 400,
+  "futures": 3,
+  "tops": 3,
+  "greedy": false,
+  "pool": "verified",
+  "set": "M21",
+  "deal0": 950000,
+  "seed": 0,
+  "out": "/tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/linevalue/smoke_chrome.json"
+ },
+ "line": "cast Chrome Replicator",
+ "futures": 3,
+ "greedy": false,
+ "states": 24,
+ "measured": 24,
+ "value": {
+  "first": {
+   "mean": -0.02777777777777778,
+   "se": 0.027777777777777783,
+   "n": 24
+  },
+  "through": {
+   "mean": -0.02777777777777778,
+   "se": 0.027777777777777783,
+   "n": 24
+  }
+ },
+ "result": {
+  "policy": 2.3129646346357427e-18,
+  "first": -0.027777777777777776,
+  "through": -0.027777777777777776
+ },
+ "unforced": {
+  "games": 97,
+  "voided": 0,
+  "eligible": 33,
+  "p_step": 0.4284501321410999,
+  "top": 0.42424242424242425,
+  "played": 0.45454545454545453,
+  "states_p_step": 0.44019042074864956,
+  "states_top": 0.4166666666666667,
+  "b_root_played": 0.4166666666666667
+ },
+ "root_changed": 0.5833333333333334,
+ "follow": {
+  "policy": {
+   "playouts": 72,
+   "with_a_step": 43,
+   "steps": 88,
+   "forced": 0,
+   "taken": 0.5568181818181818,
+   "p_step": 0.5653478314266326
+  },
+  "first": {
+   "playouts": 72,
+   "with_a_step": 10,
+   "steps": 15,
+   "forced": 0,
+   "taken": 0.6,
+   "p_step": 0.5643294388435607
+  },
+  "through": {
+   "playouts": 72,
+   "with_a_step": 10,
+   "steps": 12,
+   "forced": 12,
+   "taken": 1.0,
+   "p_step": 0.5395978270689739
+  }
+ },
+ "critic": [
+  {
+   "turn_top": 1,
+   "first": {
+    "mean": 0.009922061218983607,
+    "se": 0.020732915623171193,
+    "n": 24
+   },
+   "through": {
+    "mean": 0.009922061218983607,
+    "se": 0.020732915623171193,
+    "n": 24
+   },
+   "through_level": -0.1639229910344713
+  },
+  {
+   "turn_top": 2,
+   "first": {
+    "mean": -0.013476634501583047,
+    "se": 0.02842966684591764,
+    "n": 24
+   },
+   "through": {
+    "mean": -0.012345240658356078,
+    "se": 0.027516014380974566,
+    "n": 24
+   },
+   "through_level": -0.1603105819473664
+  },
+  {
+   "turn_top": 3,
+   "first": {
+    "mean": -0.00041744795938333627,
+    "se": 0.05116538511295959,
+    "n": 24
+   },
+   "through": {
+    "mean": -0.00010961728791396574,
+    "se": 0.051010512398055874,
+    "n": 24
+   },
+   "through_level": -0.1530219349078834
+  }
+ ],
+ "crashes": {},
+ "playouts": 216,
+ "rails": 0,
+ "decisions_per_playout": 75.62962962962963,
+ "cost": {
+  "collect_s": 702.6891855100403,
+  "collect_games": 97,
+  "collect_decisions": 17157,
+  "collect_rails": 2,
+  "measure_s": 789.2725952119799,
+  "state_futures": 72,
+  "per_state_future_s": 10.962119377944166,
+  "infer_calls": 16788,
+  "infer_ms": 41.49403829246517,
+  "infer_share": 0.8825872316861763
+ },
+ "per_state": [
+  {
+   "deal": 950005,
+   "n": 1,
+   "seat": 1,
+   "turn": 14,
+   "value": -0.8458012342453003,
+   "step": [
+    "cast:card:64",
+    "cast:card:77"
+   ],
+   "top": "cast:card:69",
+   "p_step": 0.005123242735862732,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -0.6862144072850546,
+     "first": -0.9462162852287292,
+     "through": -0.9462162852287292
+    },
+    {
+     "policy": -0.4539572199185689,
+     "first": -1.0,
+     "through": -0.9728465477625529
+    },
+    {
+     "policy": -0.40487666924794513,
+     "first": -1.0,
+     "through": -0.9926120638847351
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:69",
+     "cast:card:69",
+     "cast:card:69"
+    ],
+    "first": [
+     "cast:card:77",
+     "cast:card:77",
+     "cast:card:64"
+    ],
+    "through": [
+     "cast:card:77",
+     "cast:card:77",
+     "cast:card:64"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.708800733089447
+      ],
+      [
+       false,
+       false,
+       0.06478279083967209
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.8871942758560181
+      ],
+      [
+       false,
+       true,
+       1.0
+      ],
+      [
+       false,
+       false,
+       0.0014788801781833172
+      ],
+      [
+       false,
+       true,
+       0.9999998807907104
+      ]
+     ],
+     []
+    ],
+    "first": [
+     [
+      [
+       false,
+       false,
+       0.02500288374722004
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       1.6412708646385e-05
+      ],
+      [
+       false,
+       false,
+       0.001631604740396142
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.010454142466187477
+      ]
+     ]
+    ],
+    "through": [
+     [
+      [
+       true,
+       true,
+       0.02500288374722004
+      ]
+     ],
+     [
+      [
+       true,
+       true,
+       1.6412708646385e-05
+      ]
+     ],
+     [
+      [
+       true,
+       true,
+       0.010454142466187477
+      ]
+     ]
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 596,
+   "rails": 0
+  },
+  {
+   "deal": 950005,
+   "n": 2,
+   "seat": 1,
+   "turn": 24,
+   "value": -0.19618400931358337,
+   "step": [
+    "cast:card:77"
+   ],
+   "top": "cast:card:77",
+   "p_step": 0.9904338121414185,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:77",
+     "cast:card:77",
+     "cast:card:77"
+    ],
+    "first": [
+     "cast:card:77",
+     "cast:card:77",
+     "cast:card:77"
+    ],
+    "through": [
+     "cast:card:77",
+     "cast:card:77",
+     "cast:card:77"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 138,
+   "rails": 0
+  },
+  {
+   "deal": 950014,
+   "n": 1,
+   "seat": 0,
+   "turn": 17,
+   "value": 0.910776674747467,
+   "step": [
+    "cast:card:45"
+   ],
+   "top": "cast:card:17",
+   "p_step": 0.29777324199676514,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.9484766523043314,
+     "first": 0.9411032597223917,
+     "through": 0.9411032597223917
+    },
+    {
+     "policy": 0.9573433597882589,
+     "first": 0.9685303568840027,
+     "through": 0.9685303568840027
+    },
+    {
+     "policy": 0.9920352101325989,
+     "first": 0.9862772623697916,
+     "through": 0.9862772623697916
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:17",
+     "cast:card:17",
+     "cast:card:17"
+    ],
+    "first": [
+     "cast:card:45",
+     "cast:card:45",
+     "cast:card:45"
+    ],
+    "through": [
+     "cast:card:45",
+     "cast:card:45",
+     "cast:card:45"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       0.6143473386764526
+      ],
+      [
+       false,
+       true,
+       0.7912128567695618
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.8186531066894531
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9008062481880188
+      ],
+      [
+       false,
+       false,
+       0.482649564743042
+      ],
+      [
+       false,
+       false,
+       0.427905410528183
+      ],
+      [
+       false,
+       true,
+       0.4289715886116028
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     [
+      [
+       false,
+       true,
+       0.8307174444198608
+      ]
+     ]
+    ],
+    "through": [
+     [],
+     [],
+     [
+      [
+       true,
+       true,
+       0.8307174444198608
+      ]
+     ]
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 552,
+   "rails": 0
+  },
+  {
+   "deal": 950015,
+   "n": 3,
+   "seat": 1,
+   "turn": 12,
+   "value": -0.9598215818405151,
+   "step": [
+    "cast:card:103"
+   ],
+   "top": "land:card:66",
+   "p_step": 0.0016119229840114713,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "land:card:101",
+     "land:card:66",
+     "land:card:66"
+    ],
+    "first": [
+     "cast:card:103",
+     "cast:card:103",
+     "cast:card:103"
+    ],
+    "through": [
+     "cast:card:103",
+     "cast:card:103",
+     "cast:card:103"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       0.22657786309719086
+      ],
+      [
+       false,
+       true,
+       0.9999713897705078
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.22657829523086548
+      ],
+      [
+       false,
+       true,
+       0.9999713897705078
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.22657829523086548
+      ],
+      [
+       false,
+       true,
+       0.9999713897705078
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 138,
+   "rails": 0
+  },
+  {
+   "deal": 950015,
+   "n": 4,
+   "seat": 1,
+   "turn": 12,
+   "value": -0.954354465007782,
+   "step": [
+    "cast:card:103"
+   ],
+   "top": "cast:card:115",
+   "p_step": 0.20929673314094543,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:115",
+     "cast:card:115",
+     "cast:card:115"
+    ],
+    "first": [
+     "cast:card:103",
+     "cast:card:103",
+     "cast:card:103"
+    ],
+    "through": [
+     "cast:card:103",
+     "cast:card:103",
+     "cast:card:103"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.9999749660491943
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9999749660491943
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9999749660491943
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 97,
+   "rails": 0
+  },
+  {
+   "deal": 950019,
+   "n": 1,
+   "seat": 1,
+   "turn": 12,
+   "value": -0.6386775374412537,
+   "step": [
+    "cast:card:68"
+   ],
+   "top": "land:card:72",
+   "p_step": 5.128842531121336e-06,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -0.3333333333333333,
+    "through": -0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": 0.010156138489643732,
+     "first": 0.010156138489643732,
+     "through": 0.010156138489643732
+    },
+    {
+     "policy": -0.1384374499320984,
+     "first": -0.1384374499320984,
+     "through": -0.1384374499320984
+    },
+    {
+     "policy": -0.3126654426256816,
+     "first": -0.3126654426256816,
+     "through": -0.3126654426256816
+    }
+   ],
+   "root": {
+    "policy": [
+     "land:card:107",
+     "land:card:107",
+     "land:card:107"
+    ],
+    "first": [
+     "cast:card:68",
+     "cast:card:68",
+     "cast:card:68"
+    ],
+    "through": [
+     "cast:card:68",
+     "cast:card:68",
+     "cast:card:68"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.9996254444122314
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9996254444122314
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9996254444122314
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 888,
+   "rails": 0
+  },
+  {
+   "deal": 950019,
+   "n": 2,
+   "seat": 1,
+   "turn": 12,
+   "value": -0.6859410405158997,
+   "step": [
+    "cast:card:68"
+   ],
+   "top": "cast:card:68",
+   "p_step": 0.9996254444122314,
+   "futures": 3,
+   "z": {
+    "policy": 0.3333333333333333,
+    "first": 0.3333333333333333,
+    "through": 0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.4897037744522095,
+     "first": -0.4897037744522095,
+     "through": -0.4897037744522095
+    },
+    {
+     "policy": -0.1862273414929708,
+     "first": -0.1862273414929708,
+     "through": -0.1862273414929708
+    },
+    {
+     "policy": -0.6592936416467031,
+     "first": -0.6592936416467031,
+     "through": -0.6592936416467031
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:68",
+     "cast:card:68",
+     "cast:card:68"
+    ],
+    "first": [
+     "cast:card:68",
+     "cast:card:68",
+     "cast:card:68"
+    ],
+    "through": [
+     "cast:card:68",
+     "cast:card:68",
+     "cast:card:68"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 1128,
+   "rails": 0
+  },
+  {
+   "deal": 950029,
+   "n": 1,
+   "seat": 0,
+   "turn": 13,
+   "value": -0.7831931114196777,
+   "step": [
+    "cast:card:27"
+   ],
+   "top": "cast:card:32",
+   "p_step": 0.010202011093497276,
+   "futures": 3,
+   "z": {
+    "policy": 0.3333333333333333,
+    "first": 0.3333333333333333,
+    "through": 0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.8477745254834493,
+     "first": -0.5343885819117228,
+     "through": -0.5343885819117228
+    },
+    {
+     "policy": -0.7333167791366577,
+     "first": -0.3623204529285431,
+     "through": -0.3623204529285431
+    },
+    {
+     "policy": -0.5644135835270087,
+     "first": 0.26813169320424396,
+     "through": 0.26813169320424396
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:32",
+     "cast:card:32",
+     "cast:card:32"
+    ],
+    "first": [
+     "cast:card:27",
+     "cast:card:27",
+     "cast:card:27"
+    ],
+    "through": [
+     "cast:card:27",
+     "cast:card:27",
+     "cast:card:27"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       1.030687508318806e-05
+      ],
+      [
+       false,
+       false,
+       0.0002156389964511618
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       1.030690509651322e-05
+      ],
+      [
+       false,
+       false,
+       0.0002156389964511618
+      ],
+      [
+       false,
+       false,
+       0.0003190885472577065
+      ],
+      [
+       false,
+       false,
+       0.006905367597937584
+      ],
+      [
+       false,
+       true,
+       0.9999996423721313
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9999562501907349
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 532,
+   "rails": 0
+  },
+  {
+   "deal": 950029,
+   "n": 3,
+   "seat": 0,
+   "turn": 15,
+   "value": -0.7062811851501465,
+   "step": [
+    "cast:card:27"
+   ],
+   "top": "cast:card:19",
+   "p_step": 0.0002156389964511618,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -0.3333333333333333,
+    "through": -0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.279311366379261,
+     "first": -0.03676032026608785,
+     "through": -0.03676032026608785
+    },
+    {
+     "policy": 0.10785074532032013,
+     "first": 0.07549611230691274,
+     "through": 0.07549611230691274
+    },
+    {
+     "policy": -0.1917977867027124,
+     "first": -0.08210326234499614,
+     "through": -0.08210326234499614
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:39",
+     "cast:card:19",
+     "cast:card:19"
+    ],
+    "first": [
+     "cast:card:27",
+     "cast:card:27",
+     "cast:card:27"
+    ],
+    "through": [
+     "cast:card:27",
+     "cast:card:27",
+     "cast:card:27"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       0.0004434342554304749
+      ],
+      [
+       false,
+       true,
+       0.9994920492172241
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       5.958448673482053e-05
+      ],
+      [
+       false,
+       true,
+       0.9999970197677612
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.0424969382584095
+      ],
+      [
+       false,
+       false,
+       0.11694424599409103
+      ],
+      [
+       false,
+       true,
+       0.9690619111061096
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 520,
+   "rails": 0
+  },
+  {
+   "deal": 950038,
+   "n": 1,
+   "seat": 1,
+   "turn": 16,
+   "value": 0.28255587816238403,
+   "step": [
+    "cast:card:87"
+   ],
+   "top": "cast:card:87",
+   "p_step": 0.9863892197608948,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.21623093138138452,
+     "first": 0.21623093138138452,
+     "through": 0.21623093138138452
+    },
+    {
+     "policy": 0.607094943523407,
+     "first": 0.607094943523407,
+     "through": 0.607094943523407
+    },
+    {
+     "policy": 0.8121115763982137,
+     "first": 0.8121115763982137,
+     "through": 0.8121115763982137
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:87",
+     "cast:card:87",
+     "cast:card:87"
+    ],
+    "first": [
+     "cast:card:87",
+     "cast:card:87",
+     "cast:card:87"
+    ],
+    "through": [
+     "cast:card:87",
+     "cast:card:87",
+     "cast:card:87"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 1368,
+   "rails": 0
+  },
+  {
+   "deal": 950048,
+   "n": 1,
+   "seat": 1,
+   "turn": 16,
+   "value": 0.8827692270278931,
+   "step": [
+    "cast:card:100"
+   ],
+   "top": "cast:card:100",
+   "p_step": 0.8908688426017761,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.970953623453776,
+     "first": 0.9804597099622091,
+     "through": 0.9804597099622091
+    },
+    {
+     "policy": 0.9956055680910746,
+     "first": 0.9971980253855387,
+     "through": 0.9971980253855387
+    },
+    {
+     "policy": 1.0,
+     "first": 1.0,
+     "through": 1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:100",
+     "cast:card:86",
+     "cast:card:100"
+    ],
+    "first": [
+     "cast:card:100",
+     "cast:card:100",
+     "cast:card:100"
+    ],
+    "through": [
+     "cast:card:100",
+     "cast:card:100",
+     "cast:card:100"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [
+      [
+       false,
+       true,
+       0.8840007781982422
+      ]
+     ],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 370,
+   "rails": 0
+  },
+  {
+   "deal": 950051,
+   "n": 1,
+   "seat": 1,
+   "turn": 14,
+   "value": 0.4643719494342804,
+   "step": [
+    "cast:card:114"
+   ],
+   "top": "cast:card:114",
+   "p_step": 0.9973764419555664,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.3488388657569885,
+     "first": 0.3488388657569885,
+     "through": 0.3488388657569885
+    },
+    {
+     "policy": 0.3644658923149109,
+     "first": 0.3644658923149109,
+     "through": 0.3644658923149109
+    },
+    {
+     "policy": 0.31830761830012005,
+     "first": 0.31830761830012005,
+     "through": 0.31830761830012005
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:114",
+     "cast:card:114",
+     "cast:card:114"
+    ],
+    "first": [
+     "cast:card:114",
+     "cast:card:114",
+     "cast:card:114"
+    ],
+    "through": [
+     "cast:card:114",
+     "cast:card:114",
+     "cast:card:114"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 435,
+   "rails": 0
+  },
+  {
+   "deal": 950069,
+   "n": 1,
+   "seat": 1,
+   "turn": 10,
+   "value": -0.6309076547622681,
+   "step": [
+    "cast:card:98"
+   ],
+   "top": "cast:card:112",
+   "p_step": 0.004142145160585642,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -0.3333333333333333,
+    "through": -0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.2953077256679535,
+     "first": -0.3294459134340286,
+     "through": -0.3294459134340286
+    },
+    {
+     "policy": -0.11164998014767964,
+     "first": -0.20675384004910788,
+     "through": -0.20675384004910788
+    },
+    {
+     "policy": 0.22064310312271118,
+     "first": -0.3588337302207947,
+     "through": -0.3588337302207947
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:112",
+     "cast:card:112",
+     "cast:card:112"
+    ],
+    "first": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ],
+    "through": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       5.2862666052533314e-05
+      ],
+      [
+       false,
+       false,
+       0.006585091818124056
+      ],
+      [
+       false,
+       true,
+       0.5693042278289795
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.00025774494861252606
+      ],
+      [
+       false,
+       false,
+       0.03401218354701996
+      ],
+      [
+       false,
+       false,
+       0.15385301411151886
+      ],
+      [
+       false,
+       false,
+       0.11460324376821518
+      ],
+      [
+       false,
+       true,
+       0.5148063898086548
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.005390652921050787
+      ],
+      [
+       false,
+       false,
+       0.3385343849658966
+      ],
+      [
+       false,
+       false,
+       0.8204882740974426
+      ],
+      [
+       false,
+       true,
+       0.9481409788131714
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 1459,
+   "rails": 0
+  },
+  {
+   "deal": 950069,
+   "n": 3,
+   "seat": 1,
+   "turn": 14,
+   "value": -0.8627969622612,
+   "step": [
+    "cast:card:98"
+   ],
+   "top": "land:card:64",
+   "p_step": 1.3538523489842191e-05,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -0.9861774841944376,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "land:card:64",
+     "land:card:64",
+     "land:card:64"
+    ],
+    "first": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ],
+    "through": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       0.0015378294046968222
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.0015378294046968222
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.0015378294046968222
+      ],
+      [
+       false,
+       true,
+       0.6210529208183289
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 285,
+   "rails": 0
+  },
+  {
+   "deal": 950076,
+   "n": 1,
+   "seat": 1,
+   "turn": 10,
+   "value": 0.9586843252182007,
+   "step": [
+    "cast:card:112"
+   ],
+   "top": "cast:card:76",
+   "p_step": 0.3037232756614685,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.9676998058954874,
+     "first": 0.9120404124259949,
+     "through": 0.9120404124259949
+    },
+    {
+     "policy": 0.989831546942393,
+     "first": 0.9370003938674927,
+     "through": 0.9370003938674927
+    },
+    {
+     "policy": 0.9995753169059753,
+     "first": 0.9584259192148844,
+     "through": 0.9584259192148844
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:76",
+     "cast:card:76",
+     "cast:card:76"
+    ],
+    "first": [
+     "cast:card:112",
+     "cast:card:112",
+     "cast:card:112"
+    ],
+    "through": [
+     "cast:card:112",
+     "cast:card:112",
+     "cast:card:112"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.2549668252468109
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.13203713297843933
+      ],
+      [
+       false,
+       true,
+       0.9248085021972656
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.308893084526062
+      ],
+      [
+       false,
+       true,
+       0.4217163324356079
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 284,
+   "rails": 0
+  },
+  {
+   "deal": 950076,
+   "n": 2,
+   "seat": 1,
+   "turn": 12,
+   "value": 0.9316979646682739,
+   "step": [
+    "cast:card:112"
+   ],
+   "top": "land:card:94",
+   "p_step": 0.11963580548763275,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.9851275682449341,
+     "first": 0.9754520257314047,
+     "through": 0.9754520257314047
+    },
+    {
+     "policy": 0.9973956743876139,
+     "first": 0.9982002377510071,
+     "through": 0.9982002377510071
+    },
+    {
+     "policy": 1.0,
+     "first": 1.0,
+     "through": 1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "land:card:103",
+     "cast:card:70",
+     "cast:card:112"
+    ],
+    "first": [
+     "cast:card:112",
+     "cast:card:112",
+     "cast:card:112"
+    ],
+    "through": [
+     "cast:card:112",
+     "cast:card:112",
+     "cast:card:112"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.9349921345710754
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9931820034980774
+      ]
+     ],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 215,
+   "rails": 0
+  },
+  {
+   "deal": 950082,
+   "n": 1,
+   "seat": 1,
+   "turn": 14,
+   "value": -0.34133774042129517,
+   "step": [
+    "cast:card:64"
+   ],
+   "top": "cast:card:111",
+   "p_step": 0.0009485783521085978,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -0.08390063047409058,
+     "first": -0.08636840184529622,
+     "through": -0.08636840184529622
+    },
+    {
+     "policy": -0.5782562171419462,
+     "first": -0.5810587058464686,
+     "through": -0.5810587058464686
+    },
+    {
+     "policy": -0.8117297490437826,
+     "first": -0.598644937078158,
+     "through": -0.598644937078158
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:111",
+     "cast:card:111",
+     "cast:card:111"
+    ],
+    "first": [
+     "cast:card:64",
+     "cast:card:64",
+     "cast:card:64"
+    ],
+    "through": [
+     "cast:card:64",
+     "cast:card:64",
+     "cast:card:64"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       1.4566426216333639e-06
+      ],
+      [
+       false,
+       true,
+       0.9979367256164551
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9999724626541138
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9999996423721313
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 719,
+   "rails": 0
+  },
+  {
+   "deal": 950082,
+   "n": 3,
+   "seat": 1,
+   "turn": 16,
+   "value": -0.9005464911460876,
+   "step": [
+    "cast:card:64"
+   ],
+   "top": "cast:card:64",
+   "p_step": 0.9384096264839172,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -0.9733070135116577,
+     "first": -0.9733070135116577,
+     "through": -0.9733070135116577
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    },
+    {
+     "policy": -1.0,
+     "first": -1.0,
+     "through": -1.0
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:64",
+     "cast:card:64",
+     "cast:card:64"
+    ],
+    "first": [
+     "cast:card:64",
+     "cast:card:64",
+     "cast:card:64"
+    ],
+    "through": [
+     "cast:card:64",
+     "cast:card:64",
+     "cast:card:64"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 246,
+   "rails": 0
+  },
+  {
+   "deal": 950086,
+   "n": 1,
+   "seat": 1,
+   "turn": 12,
+   "value": -0.7389546036720276,
+   "step": [
+    "cast:card:98"
+   ],
+   "top": "land:card:90",
+   "p_step": 7.981839735293761e-05,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -0.3333333333333333,
+    "through": -0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.7689676682154337,
+     "first": -0.7689676682154337,
+     "through": -0.7689676682154337
+    },
+    {
+     "policy": -0.917802075544993,
+     "first": -0.917802075544993,
+     "through": -0.917802075544993
+    },
+    {
+     "policy": -0.9385242064793905,
+     "first": -0.9385242064793905,
+     "through": -0.9385242064793905
+    }
+   ],
+   "root": {
+    "policy": [
+     "land:card:90",
+     "land:card:90",
+     "land:card:90"
+    ],
+    "first": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ],
+    "through": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       true,
+       0.9997068047523499
+      ],
+      [
+       false,
+       true,
+       0.9997950196266174
+      ],
+      [
+       false,
+       true,
+       0.8182613849639893
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9997068047523499
+      ],
+      [
+       false,
+       false,
+       0.0024701408110558987
+      ],
+      [
+       false,
+       true,
+       0.9896092414855957
+      ],
+      [
+       false,
+       true,
+       0.9960378408432007
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.9997068047523499
+      ],
+      [
+       false,
+       true,
+       0.992405116558075
+      ]
+     ]
+    ],
+    "first": [
+     [
+      [
+       false,
+       true,
+       0.9997950196266174
+      ],
+      [
+       false,
+       true,
+       0.8182613849639893
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.0024701408110558987
+      ],
+      [
+       false,
+       true,
+       0.9896092414855957
+      ],
+      [
+       false,
+       true,
+       0.9960378408432007
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.992405116558075
+      ]
+     ]
+    ],
+    "through": [
+     [
+      [
+       true,
+       true,
+       0.9997950196266174
+      ],
+      [
+       true,
+       true,
+       0.8182613849639893
+      ]
+     ],
+     [
+      [
+       true,
+       true,
+       0.0024701408110558987
+      ],
+      [
+       true,
+       true,
+       0.9960378408432007
+      ]
+     ],
+     [
+      [
+       true,
+       true,
+       0.992405116558075
+      ]
+     ]
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 1320,
+   "rails": 0
+  },
+  {
+   "deal": 950086,
+   "n": 3,
+   "seat": 1,
+   "turn": 16,
+   "value": -0.7387638688087463,
+   "step": [
+    "cast:card:98"
+   ],
+   "top": "cast:card:98",
+   "p_step": 0.6355989575386047,
+   "futures": 3,
+   "z": {
+    "policy": -1.0,
+    "first": -1.0,
+    "through": -1.0
+   },
+   "reads": [
+    {
+     "policy": -0.9219484527905782,
+     "first": -0.9601501623789469,
+     "through": -0.9601501623789469
+    },
+    {
+     "policy": -0.9645529190699259,
+     "first": -0.9810861746470133,
+     "through": -0.9810861746470133
+    },
+    {
+     "policy": -0.9911733071009318,
+     "first": -0.9880376656850179,
+     "through": -0.9880376656850179
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:98",
+     "cast:card:108",
+     "cast:card:98"
+    ],
+    "first": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ],
+    "through": [
+     "cast:card:98",
+     "cast:card:98",
+     "cast:card:98"
+    ]
+   },
+   "later": {
+    "policy": [
+     [
+      [
+       false,
+       false,
+       0.0012652839068323374
+      ],
+      [
+       false,
+       true,
+       0.9985268115997314
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.996841311454773
+      ],
+      [
+       false,
+       true,
+       0.9982677698135376
+      ]
+     ],
+     []
+    ],
+    "first": [
+     [
+      [
+       false,
+       false,
+       0.0012652839068323374
+      ],
+      [
+       false,
+       true,
+       0.9985268115997314
+      ]
+     ],
+     [
+      [
+       false,
+       true,
+       0.7990788221359253
+      ]
+     ],
+     []
+    ],
+    "through": [
+     [
+      [
+       true,
+       true,
+       0.0012652839068323374
+      ]
+     ],
+     [
+      [
+       true,
+       true,
+       0.7990788221359253
+      ]
+     ],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 323,
+   "rails": 0
+  },
+  {
+   "deal": 950088,
+   "n": 1,
+   "seat": 1,
+   "turn": 10,
+   "value": 0.8326766490936279,
+   "step": [
+    "cast:card:81"
+   ],
+   "top": "cast:card:67",
+   "p_step": 0.1966039091348648,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.5256792505582174,
+     "first": 0.6197060346603394,
+     "through": 0.6197060346603394
+    },
+    {
+     "policy": 0.675792396068573,
+     "first": 0.713440994421641,
+     "through": 0.713440994421641
+    },
+    {
+     "policy": 0.7090431451797485,
+     "first": 0.7620716492335001,
+     "through": 0.7620716492335001
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:81",
+     "cast:card:67",
+     "cast:card:67"
+    ],
+    "first": [
+     "cast:card:81",
+     "cast:card:81",
+     "cast:card:81"
+    ],
+    "through": [
+     "cast:card:81",
+     "cast:card:81",
+     "cast:card:81"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [
+      [
+       false,
+       false,
+       0.001030441140756011
+      ],
+      [
+       false,
+       true,
+       0.9999992847442627
+      ]
+     ],
+     [
+      [
+       false,
+       false,
+       0.001030441140756011
+      ],
+      [
+       false,
+       true,
+       0.9999992847442627
+      ],
+      [
+       false,
+       false,
+       0.03087298944592476
+      ],
+      [
+       false,
+       true,
+       0.9998244643211365
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 475,
+   "rails": 0
+  },
+  {
+   "deal": 950093,
+   "n": 1,
+   "seat": 0,
+   "turn": 9,
+   "value": -0.6735130548477173,
+   "step": [
+    "cast:card:44"
+   ],
+   "top": "cast:card:44",
+   "p_step": 0.9999899864196777,
+   "futures": 3,
+   "z": {
+    "policy": -0.3333333333333333,
+    "first": -0.3333333333333333,
+    "through": -0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": -0.6146337389945984,
+     "first": -0.6146337389945984,
+     "through": -0.6146337389945984
+    },
+    {
+     "policy": -0.6597960293292999,
+     "first": -0.6597960293292999,
+     "through": -0.6597960293292999
+    },
+    {
+     "policy": -0.39871177077293396,
+     "first": -0.39871177077293396,
+     "through": -0.39871177077293396
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:44",
+     "cast:card:44",
+     "cast:card:44"
+    ],
+    "first": [
+     "cast:card:44",
+     "cast:card:44",
+     "cast:card:44"
+    ],
+    "through": [
+     "cast:card:44",
+     "cast:card:44",
+     "cast:card:44"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 2193,
+   "rails": 0
+  },
+  {
+   "deal": 950094,
+   "n": 1,
+   "seat": 0,
+   "turn": 9,
+   "value": 0.6024508476257324,
+   "step": [
+    "cast:card:26"
+   ],
+   "top": "cast:card:26",
+   "p_step": 1.0,
+   "futures": 3,
+   "z": {
+    "policy": 1.0,
+    "first": 1.0,
+    "through": 1.0
+   },
+   "reads": [
+    {
+     "policy": 0.6962141593297323,
+     "first": 0.6962141593297323,
+     "through": 0.6962141593297323
+    },
+    {
+     "policy": 0.85002068678538,
+     "first": 0.85002068678538,
+     "through": 0.85002068678538
+    },
+    {
+     "policy": 0.9633041818936666,
+     "first": 0.9633041818936666,
+     "through": 0.9633041818936666
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:26",
+     "cast:card:26",
+     "cast:card:26"
+    ],
+    "first": [
+     "cast:card:26",
+     "cast:card:26",
+     "cast:card:26"
+    ],
+    "through": [
+     "cast:card:26",
+     "cast:card:26",
+     "cast:card:26"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     [
+      [
+       false,
+       true,
+       0.9996694326400757
+      ]
+     ]
+    ],
+    "first": [
+     [],
+     [],
+     [
+      [
+       false,
+       true,
+       0.9996694326400757
+      ]
+     ]
+    ],
+    "through": [
+     [],
+     [],
+     [
+      [
+       true,
+       true,
+       0.9996694326400757
+      ]
+     ]
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 789,
+   "rails": 0
+  },
+  {
+   "deal": 950096,
+   "n": 1,
+   "seat": 1,
+   "turn": 10,
+   "value": 0.2211558073759079,
+   "step": [
+    "cast:card:65"
+   ],
+   "top": "cast:card:65",
+   "p_step": 0.9765027761459351,
+   "futures": 3,
+   "z": {
+    "policy": 0.3333333333333333,
+    "first": 0.3333333333333333,
+    "through": 0.3333333333333333
+   },
+   "reads": [
+    {
+     "policy": 0.10558853795131047,
+     "first": 0.10558853795131047,
+     "through": 0.10558853795131047
+    },
+    {
+     "policy": -0.3525729924440384,
+     "first": -0.3525729924440384,
+     "through": -0.3525729924440384
+    },
+    {
+     "policy": -0.4117296176652114,
+     "first": -0.4117296176652114,
+     "through": -0.4117296176652114
+    }
+   ],
+   "root": {
+    "policy": [
+     "cast:card:65",
+     "cast:card:65",
+     "cast:card:65"
+    ],
+    "first": [
+     "cast:card:65",
+     "cast:card:65",
+     "cast:card:65"
+    ],
+    "through": [
+     "cast:card:65",
+     "cast:card:65",
+     "cast:card:65"
+    ]
+   },
+   "later": {
+    "policy": [
+     [],
+     [],
+     []
+    ],
+    "first": [
+     [],
+     [],
+     []
+    ],
+    "through": [
+     [],
+     [],
+     []
+    ]
+   },
+   "crashes": [],
+   "playouts": 9,
+   "decisions": 1266,
+   "rails": 0
+  }
+ ]
+}
