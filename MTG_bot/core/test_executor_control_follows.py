@@ -8,7 +8,8 @@ moves those records to the new controller, keeping their timestamps (CR 613.7). 
 spell or ability made keep the controller they resolved under (CR 611.2c).
 
 The trees are the compiled ones: the "creatures you control" anthem (template
-B4-modify-pt-static-you), M20 Blightbeetle, M21 Conclave Mentor, Azusa and Predatory Wurm.
+B4-modify-pt-static-you), M20 Blightbeetle, M21 Conclave Mentor, Azusa and Predatory Wurm, and
+M21 Enthralling Hold's control entry.
 """
 
 from __future__ import annotations

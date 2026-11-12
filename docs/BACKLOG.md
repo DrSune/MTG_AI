@@ -370,7 +370,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **No copy effects and no layer dependencies** (the 2026-09-10 audit's list for the pre-rebuild
   engine, still true of this one): `Verb.COPY` has no handler in `verbs.HANDLERS`, so no copy
   effect runs (Sublime Epiphany's COPY mode is never offered), and the layer system applies
-  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`).
+  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`). Layer 2 has one:
+  an Aura's "You control enchanted creature" applies after what changes the Aura's control
+  (`Executor._recompute_control`, 2026-11-12). Timestamps are approximate too: a static's P/T
+  entry for an object it newly covers (a creature entering, or one a stolen anthem now reaches)
+  is stamped when it is covered, not with the static's timestamp (CR 613.7a). Only a "set P/T"
+  static over other objects could tell; the three that compile (Kinetic Augur, Ironroot Warlord,
+  Enigma Drake) set their own power.
 - **Not modelled, because no card in the pools needs it** (B-74 residue; the postcombat main phase
   landed 2026-11-06, 46c7288): a trigger at the beginning of a second
   main phase (the frozen `Phase` has no member for it; the three Sanctums' "first main phase"
