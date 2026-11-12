@@ -262,3 +262,78 @@ That is about 30 minutes later, and at most 1 h 45 min, because each point has a
 - The owner reads n for play from C1-C4.
 - A decision's simulations run one after another (`search.py:321`). Running them in parallel would
   cut the latency, and is not measured here.
+
+## 7. The variants at n = 16 (scored as each finishes)
+
+Every variant is paired by deal with the uniform n = 16 point of §4 (deals 900,000-900,299), as
+§2 registered. That point is the high one of the curve: it sits +0.015 ± 0.008 above the mean of
+n = 8 and n = 32 on the same deals, and scored 0.555 on fresh deals. So each verdict is also read
+against the uniform points around n = 16 (exploratory). Scripts: `variants.py` and
+`neighbours.py`, scratch, reading `eval_rows.jsonl` and the recorded targets.
+
+### 7.1 N5: simulator worlds (2026-11-12 00:01-00:25)
+
+| | uniform, n = 16 | simulator, n = 16 |
+|---|---|---|
+| Score, 300 deals | 0.5825 ± 0.012 | 0.5625 ± 0.0115 |
+| Searched decisions per game | 12.59 | 12.48 |
+| Moves changed | 15.4% | 15.0% |
+| Clear corrections per game | 0.64 | 0.61 |
+| No difference in result | 16% | 17% |
+| Seconds per simulation | 1.30 | 1.56 |
+| Simulation errors | 0 | 0 |
+
+**P7** (simulator minus uniform, predicted 0.00 to +0.03, falsified below -0.01): -0.020 ± 0.011,
+95% [-0.042, +0.002]. **Falsified on the point estimate; the interval straddles -0.01.** By §2,
+simulator worlds do not become the default, for the search or for gate B's generation.
+
+**What the result does not say.** The owner asked whether uniform worlds are simply better
+(2026-11-12). The data do not show that:
+- Against the uniform points around n = 16 on the same deals, the simulator's worlds score
+  -0.005 ± 0.011 (n = 8), -0.005 ± 0.010 (n = 32), -0.016 ± 0.010 (n = 64), and -0.009 ± 0.009
+  against the mean of 8, 32 and 64: 95% [-0.026, +0.009].
+- So about half of the -0.020 is the uniform point's own high draw. What remains is "no gain
+  detected", with a loss of up to 0.026 or a gain of up to 0.009 still possible.
+
+**Checks made after the result** (exploratory):
+- **No bug found in the path.**
+  - The worlds are drawn from the view of the decision being searched: `root_pos` is set at every
+    act decision, attack plan and block plan (`search.py:362`, `:405`, `:467`).
+  - The hand and library lengths come from that view, and `determinize` fills the opponent's real
+    zones from them (`search.py:111-142`).
+  - There were 0 simulation errors.
+- **The simulator's worlds are realistic; uniform worlds are not.** On 1,000 held-out positions of
+  the capture's first shard, with 8 worlds each (the search's own sampler,
+  `Simulator.sample_worlds`):
+
+  | | True | Simulator | Uniform |
+  |---|---|---|---|
+  | Lands in the opponent's hand | 15.0% | 15.7% | 8.7% |
+  | Lands in the opponent's library | 39.1% | 39.3% | 8.9% |
+  | Hand cards that are among the opponent's real hidden cards | — | 37.0% | 11.4% |
+  | Mean mana value of the hand's spells | 3.85 | 3.87 | 3.24 |
+
+  Uniform worlds give the opponent's library 9% lands instead of 39%, so in a simulation the
+  opponent mostly misses its land drops. By turn the simulator's share of real cards is 42% at
+  turns 0-6, 41% at 7-12 and 33% at 13+, against 13%, 12% and 10% for uniform.
+- **Not variance.**
+  - Recorded targets: a candidate's results across its worlds vary 17% more with the simulator's
+    worlds (variance 0.0352 against 0.0302).
+  - The spread between candidates is the same (0.0595 against 0.0597).
+  - 17% more variance is worth about 15% of the simulations, which by §4's slope costs about 0.002.
+
+**Why better beliefs gained nothing here.** This is a reading, not a measurement.
+- A simulation is scored by the network's value from the searcher's own view
+  (`search.py:521-529`), which never sees the opponent's hand. The hidden cards change the score
+  only through the opponent's play until the searcher's next turn (horizon 1).
+- At n = 16 the candidates' mean results differ by about one standard error of a mean: the median
+  ratio is 0.83 with uniform worlds and 0.81 with the simulator's. At n = 64 it is 0.90.
+- So most searched decisions are close calls that the search cannot resolve. Its gain comes from
+  about 0.6 clear corrections a game, and better beliefs have little room to show there.
+
+**The test that would decide it** (a later window, pre-registered when built).
+- Score the same positions' candidates three ways: uniform worlds, simulator worlds, and the true
+  hidden cards.
+- Count how often each world type picks the move the true cards pick.
+- Pairing by position removes the deal noise that a 300-deal match cannot get past. Horizon 2,
+  where the opponent's replies weigh more, is the second test.
