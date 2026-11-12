@@ -172,6 +172,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Triggers, events and the journal
 
+- **A state trigger triggers again while it waits** (2026-11-12, found reading Nine Lives'
+  rulings). CR 603.8: "When there are four or more page counters on this artifact" (Mazemind
+  Tome), "nine or more incarnation counters" (Nine Lives) trigger once and not again until the
+  ability has left the stack ("Once the first triggered ability is on the stack, it won't trigger
+  again, even if more ... counters are put onto it"). They compile as CounterPlacedEvent
+  triggers, so every further counter placed while the first waits queues another one (it does
+  nothing: the permanent is already exiled). Fix with a state-trigger encoding, or a guard keyed
+  on the waiting instance.
+
 - **Yarok, the Desecrated and Sanctum of All make their extra trigger with a trigger of their own
   (2026-11-11).** CR 603.2d: the ability triggers that many times at once, so the copies go on
   the stack with everything else that triggered (CR 603.3b). The engine instead queues a trigger
