@@ -308,3 +308,29 @@ updates; 109,559 training games):
   - The fix belongs to the next run: a smaller bonus for the mulligan, or the search deciding it.
 - **M1 and M2 met:** the mulligan reads the hand. Whether 24% is too cautious is MUL-3's
   question, which needs per-game mulligan records that no run writes yet.
+
+**The first freeze, at update 75** (2026-11-12 07:30; gate games are never rated):
+- The gate of update 75, read at 77: **0.5543 [0.5388, 0.5697]** against v0. That passes, and v1
+  was frozen at update 77.
+- r26's first freeze came at update 200 (189 §9's look at 320). Prediction 1 ("v1 frozen by
+  update 500") is met.
+- v1's ladder (500 deals each, both seats, greedy):
+
+| v1 against | Score | v0 at the start |
+|---|---|---|
+| random | 0.986 [0.979, 0.993] | 0.9695 |
+| the heuristic | 0.752 [0.728, 0.776] | 0.6995 |
+| v0 | 0.5425 [0.5195, 0.5655] | — |
+
+- Elo, refitted over every ladder game: random 0, heuristic 440.9, v0 596.6, **v1 633.6**. That
+  is +37 over v0 in 75 updates, about 3.6 hours.
+- From here the training games' frozen opponent is v1 (70% of them), so `win.frozen` starts
+  again near 0.5.
+- **The pass share, decomposed** (updates 1-10 against 71-80):
+  - `priority` asks per game rose from 19.3 to 25.9, while the instant-speed actions per game
+    fell only from 3.95 to 3.28. The first main phase's actions rose from 14.5 to 15.3.
+  - Most of the share's rise (0.794 to 0.873) is more asks, not less acting: the network now
+    builds boards with more instant-speed options.
+  - Actions per game, not the share, is the sign to watch for "learning to do nothing"
+    (prediction 5's falsifier).
+- `ent` has been flat since update 11: slope -0.00009 (SE 0.00008) over 11-77, means 0.30-0.31.
