@@ -266,6 +266,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Effects, zones and replacements
 
+- **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
+  `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
+  verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
+  another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
 - **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
   (`core/executor/games.py:402` `identity_of`).
 - **B-64 [verifier, FDN round 2] A may-offer, and a Choose inside it, still offer an action that
