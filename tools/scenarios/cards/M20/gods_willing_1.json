@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "B04_1",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Target creature you control gains protection from the color of your choice until end of turn.' Choose red (the fourth color offered, W U B R G); damage from a red source to the protected creature is prevented (CR 702.16e): the 0/3 Wall survives. Scry 1 follows.",
+ "cards": [
+  {"key": "gw", "real": "Gods Willing", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Wall", "type": "Creature — Wall", "power": 0, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "src", "name": "Colored Source", "type": "Creature", "power": 3, "toughness": 3, "colors": ["R"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "gw", "controller": 0, "targets": ["mine"], "decisions": ["3", "top"]},
+  {"op": "deal_damage", "source": "src", "target": "mine", "amount": 3}
+ ],
+ "expect": {"zone": {"gw": "graveyard", "mine": "battlefield"}}
+}

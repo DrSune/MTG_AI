@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7240037f-ddea-425e-9824-866e2bb0dc84",
+ "name": "Teferi, Timeless Voyager",
+ "text_sha": "b967260e4cd9af5b8de57102875930c428513df05acad6b34460c2573b0e7f5e",
+ "verified": {
+  "tree_sha": "43224988ce332ba71395b5a4d77d92a82e0ac913c84dedb4cb754a6abf42b823",
+  "probe_sha": "83d7647cfb256c2e1ae1f100cab690f2b9aceb3fa4ef97bcac6294bf1a6cf411",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "+1 draw a card",
+    "status": "OK",
+    "evidence": "hand 6->7, loyalty 4->5",
+    "issue": ""
+   },
+   {
+    "clause": "-3 put target creature on top of its owner's library",
+    "status": "OK",
+    "evidence": "six targets; library +1 of the owner; loyalty 4->1",
+    "issue": ""
+   },
+   {
+    "clause": "-8 phase out opp creatures, can't phase in until end of your next turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "not activatable at 4; pack A18_1 (phase out and stays out into the opponent's turn)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/teferi_timeless_voyager_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 8,
+   "score": 0.6666666666666666,
+   "survived": [
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "widen filter (drop part 0) at 1/2/effect/steps/0/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/0/args/target/filter"
+   ]
+  }
+ }
+}

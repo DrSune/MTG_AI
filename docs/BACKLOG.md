@@ -108,6 +108,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     The count reads the live attack record, as Mangara's `ATTACK_AGAINST_COUNT_GE` does, and
     that record holds creatures put onto the battlefield attacking (CR 508.4: not among "those
     creatures"); between the trigger and its resolution only an instant can add one.
+    M21 Mangara, the Diplomat has the same fault (2026-11-12, verification wave 1's G3 pass):
+    "attacks you or a planeswalker you control with two or more creatures" is its condition, so
+    one attacker leaving, or an attacked planeswalker changing control, while the trigger waits
+    draws nothing (printed: a card). `reports/g3_equivalence_2026-11-12/proof_mangara.py` S5, S6.
+    Mangara stays out of the verified pool until the fix.
 
 ### Casting, the stack and targets
 
@@ -277,6 +282,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   (`_rec_ctx`), and possibly the layer statics. `prevents_countering` reads the source's current
   controller (test `test_you_follows_the_permanents_controller`); the other consults need the same
   (CR 109.5), with packs for a stolen "can't block" or anthem static.
+  - M20 Blightbeetle shows it (2026-11-12, verification wave 1's G3 pass):
+    `prevents_counter_placement` judges "creatures your opponents control" from the stored
+    controller (`rec_ctx`, replacements.py ~710), and `Executor._recompute_control` refreshes no
+    record. Stolen with Act of Treason, it still bars counters from the thief's own creatures (its
+    owner's opponents) and from none of the owner's. Red pack:
+    `reports/g3_equivalence_2026-11-12/red/B11_blightbeetle_stolen_reads_its_new_controller.json`.
+    Blightbeetle passes G3 now (its survivor was a dead role) but stays out of the verified pool
+    until this is fixed.
+- **SHUFFLE of "its owner's library" shuffles the ability controller's** (2026-11-12, M20 Cavalier
+  of Gales): `verbs._v_shuffle` resolves Zone(LIBRARY, OWNER) with `zone_owner(ctx, zone_ir,
+  owner=ctx.controller)` (verbs.py:1418), so a Cavalier that dies under a thief goes to the bottom
+  of its owner's library unshuffled while the thief's library is shuffled. The owner is the moved
+  card's (CR 108.3; "shuffle it into its owner's library"). Red pack:
+  `reports/g3_equivalence_2026-11-12/red/B08_cavalier_stolen_shuffles_its_owners_library.json`.
+  Cavalier of Gales stays out of the verified pool until it is fixed.
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
@@ -741,6 +761,50 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
+  verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
+  - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
+    Soldier": the engine takes every copy and never asks how many.
+  - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
+    the ability is offered on the battlefield, where it does nothing, and refused from the graveyard.
+    Find where an activated ability's functioning zone is read (CR 113.6).
+  - **Sorin, Imperious Bloodlord's +1.** The reflexive "when you do" target is chosen at activation,
+    a "targeted" event fires when the sacrifice is declined, and the Vampire being sacrificed is
+    offered as a target. CR 603.12 chooses the target when the reflexive trigger goes on the stack,
+    after the sacrifice. This is an engine idiom (below).
+  - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
+    one-of choice.
+  - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
+    you control have '{T}: Draw a card.'"
+  - **Cavalier of Flame.** "Discard any number of cards, then draw that many" discards the whole hand
+    with no ask.
+- **Reflexive triggers choose their targets too early** (2026-11-12, the same wave).
+  - "You may <act>. When you do, <effect with a target>" asks the target before the action.
+  - Where the action cannot change the legal targets this is benign; the batch A verifier judged
+    Tolarian Kraken's {1} payment OK.
+  - Where it can, it offers illegal targets: Sorin's sacrificed Vampire. CR 603.12 puts the reflexive
+    trigger on the stack, with its targets, after the action.
+  - Tolarian Kraken is not quite benign either (G3 pass, 2026-11-12): with no legal target as its
+    draw trigger goes on the stack (the Kraken alone, protection from blue), the trigger is removed
+    and the {1} is never offered; and a target removed in response fizzles the whole trigger,
+    where CR 603.12 lets you pay and choose a target then. Its two G3 survivors differ from the
+    card only in that first scenario, so they wait for this fix.
+  - One engine fix for every "when you do". A card-backlog wave-2 item.
+- **Verification wave 1's eight G3-blocked cards** (2026-11-12, after the G3 equivalence rules;
+  `reports/g3_equivalence_2026-11-12/`). Verdicts in `runs/verify_wave1/verdicts/`.
+  - M20 Gods Willing: G3 clear; `cardtool verify` passes with its verdict as it stands.
+  - M21 Garruk, Savage Herald: its "you may" mutant is dead; its duration mutant is killed by
+    `packs/A06_garruk_grant_ends_with_the_turn.json`, which goes through a verifier first.
+  - M20 Cavalier of Gales: its scry mutant is killed by
+    `packs/B08_cavalier_dies_you_scry_your_library.json`, but the card shuffles the wrong library
+    when stolen (engine faults, "SHUFFLE of its owner's library").
+  - M20 Blightbeetle: G3 clear, but wrong when stolen (engine faults, "static records keep the
+    controller they were attached with").
+  - M21 Tolarian Kraken: the reflexive-trigger item above. M21 Mangara: the Tide Skimmer fault
+    (Combat). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no 2-seat M21
+    pack can kill (Gates, "G3 survivors no 2-seat same-set pack can kill").
+  - FDN Battlesong Berserker and Searslicer Goblin lost their documented equivalent mutants;
+    neither has a current verdict.
 - **M21 Runed Halo, Garruk, Savage Herald and Rookie Mistake can go to G1 and G2** (2026-11-12,
   deaba91). They were the "probe limits" cards of KNOWLEDGE/2026-10-30/177, and Runed Halo caused
   window 2's four castable-pool crashes (192 §7.6); both crashes are fixed in deaba91:
@@ -806,21 +870,32 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Gates, probe, soak and the pack runner
 
-- **G3 counts equivalent mutants as survivors** (2026-11-05, 2026-11-06): a mutant whose changed
-  part the engine never reads survives every pack, so G3 refuses a card no pack can clear.
-  - M20: Gods Willing (its colour is chosen at resolution, so the five TARGET selectors bind one
-    slot and an ALL selector in that role resolves to the designation; gates.py `_twin_targets`
-    skips abilities with a Choose) and Blightbeetle (a static prevention never reads its atom's
-    own `condition`).
-  - FDN: Battlesong Berserker (`target->all` on a trigger whose two steps share one designation:
-    identical selectors merge, binding.py ~1950, and `role_handles` returns the bound target
-    whatever the mode, selectors.py ~1315) and Searslicer Goblin (`your turn -> each turn` when
-    the condition already requires TURN_OF YOU: the actor check, binding.py ~1104, and the
-    condition test the same thing). No game can tell either mutant from the card. Both verdict
-    copies are ready to re-run (scratchpad g3kill_fdn/verdicts).
-  - Fix: an equivalent-mutant rule (a dead-role check) in `gates.mutants`. `gates._twin_targets`
-    (gates.py:339) treats only spells as sharing one target; extend it to triggers, and treat a
-    trigger-scope mutant as dead when the condition already fixes the turn.
+- **G3 survivors no 2-seat same-set pack can kill** (2026-11-12, verification wave 1's G3 pass;
+  evidence in `reports/g3_equivalence_2026-11-12/`). The equivalent classes are now dead-role
+  rules in `gates.mutants`, each proven in `tools/cards/test_gates.py`: twin TARGET selectors in a
+  resolution-time Choose of a spell (Gods Willing) and in a trigger outside any Choose
+  (Battlesong Berserker); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
+  Goblin); a printed static PREVENT_EFFECT's atom `condition` (Blightbeetle); a granted
+  damage-policy static's "you may" (Garruk, Savage Herald's -7). Over the 701 verified cards
+  only M20 Maniacal Rage and Wolfrider's Saddle lose mutants (two non-critical "widen filter"
+  each, survivors in their records). What stays:
+  - **Live only where no pack reaches.** M21 Archfiend's Vessel ("or you cast it from your
+    graveyard": the effect-cast lane can, `stack.cast_card`, but no card in the 19 sets casts a
+    creature card from a graveyard and the runner casts from hand only) and M21 Teferi's Ageless
+    Insight (its condition's `who` matters only with a second draw replacement firing on the turn
+    draw, none in the 19 sets, or with three seats, where the mutant raises). Both are proven live
+    in `proof_vessel_teferi.py`, so no rule. Options: a pack op that casts through
+    `stack.cast_card` from any zone (kills the Vessel's two), a 3-seat pack world, or a recorded
+    decision to accept the survivor.
+  - **Live only where the card itself is wrong.** M21 Tolarian Kraken's twins sit in a Choose:
+    with no legal target the card's trigger is removed as it goes on the stack and the mutant's
+    is not (test_gates `..._trigger_choice_stays_live`); printed, the trigger goes on the stack
+    and offers the {1} (CR 603.12, "Reflexive triggers choose their targets too early" under
+    Records). M21 Mangara's inner-filter mutant differs only when an attacked planeswalker changes
+    control while the trigger waits, where the card re-checks "two or more" (the Tide Skimmer
+    fault under Combat); its event-filter mutant is equivalent (`proof_mangara.py`) but its shape
+    is that one card's, so no rule.
+  - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
 - **Probe (G1) blind spots** (verifiers: M20 2026-11-05, FDN round 1 and round 3 2026-11-06).
   - Clauses left NOT_EXERCISED: granted abilities are never activated, loyalty never reaches an
@@ -831,6 +906,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     for blocks; an Equipment's attachment is invisible without a static; pools emptying at end
     of turn hide payments.
   - An animated land shows only +HASTE (no P/T or type) in G1 (Wakeroot Elemental).
+  - A scry or look at the wrong player's library is invisible (2026-11-12, M20 Cavalier of
+    Gales): the snapshot keeps each library's size only (`probe.py` `snapshot`), an ask shows its
+    kind without its player (`probe.py:121`), and SCRY writes no journal row. Its G3 survivor
+    needed a pack answering "bottom" and pinning both libraries.
 - **Regenerate the wave-1 packets whose G1 trace changed** (2026-11-12): combat stimuli now show
   the asks a combat makes (a trigger's target, a may-offer, a mode), which the pack runner's
   combat op used to answer unseen with their first word; packet A15 (Feline Sovereign) showed a

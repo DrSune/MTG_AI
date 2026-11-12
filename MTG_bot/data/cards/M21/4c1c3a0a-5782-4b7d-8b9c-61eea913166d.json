@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "4c1c3a0a-5782-4b7d-8b9c-61eea913166d",
+ "name": "Transmogrify",
+ "text_sha": "3a223ef3d23af51b4441e84624ea393081b35ed7f2d17c100a67dc48b7823ccc",
+ "verified": {
+  "tree_sha": "85b89775e9ec3ef489f73973a366533055358e3416bddf81b4b61767ee39cb8f",
+  "probe_sha": "a145c27c9ebe7636d8e86766faae8669104b5eb231feddcac54711c2f036309b",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "Exile target creature",
+    "status": "OK",
+    "evidence": "six creature targets, each battlefield->exile",
+    "issue": ""
+   },
+   {
+    "clause": "controller reveals until creature, puts it onto battlefield under their control",
+    "status": "OK",
+    "evidence": "opp targets: opp library card enters under opp; own: under you",
+    "issue": ""
+   },
+   {
+    "clause": "shuffle the rest / skip noncreatures",
+    "status": "NOT_EXERCISED",
+    "evidence": "filler library is all creatures; pack A16_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/transmogrify_1.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "drop step 1 at 1/0/effect/steps/2/effect"
+   ]
+  }
+ }
+}

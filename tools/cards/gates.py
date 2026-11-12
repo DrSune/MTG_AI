@@ -19,7 +19,7 @@ import sys
 from collections.abc import Generator, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 HERE = Path(__file__).resolve().parent
 for _p in (HERE.parents[1], HERE):
@@ -29,6 +29,8 @@ for _p in (HERE.parents[1], HERE):
 from probe import Probe
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
+    Ability,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -47,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     OptionalEffect,
+    Phase,
     QConst,
     QProp,
     QPropField,
@@ -57,6 +60,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     SpellAbility,
     StaticAbility,
+    TargetingEvent,
     TokenSpec,
     TriggeredAbility,
     TurnPhaseEvent,
@@ -72,6 +76,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.compiler import CompileResult, _engine_supported
 from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+from MTG_bot.core.executor.query import _player_widening_applies
 from MTG_bot.core.identity import LegalityFlags
 
 _NUM_WORDS = {w: i for i, w in enumerate(
@@ -223,6 +228,8 @@ def _paths(node: Any, path: tuple = ()) -> Iterator[tuple[tuple, Any]]:
 
 
 _TOKENS: list[TokenSpec] = []
+_ABILITY_TYPES: tuple[type, ...] = get_args(Ability)
+_ACTOR_YOU = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
 
 
 def _verified_tokens() -> list[TokenSpec]:
@@ -340,24 +347,124 @@ def _one_per_option(ability: Any, atoms: list[Atom]) -> bool:
 
 def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     """Paths of the TARGET selectors in ``ability`` that "target->all" cannot change (see
-    ``mutants``): a spell (the cast lane refuses a cast whose slot is not designated, so the
-    designation always binds; ``activate`` validates no targets, so activations stay out)
-    where two or more atoms carry the same TARGET selector in their ``target`` role and nothing
-    else is a TARGET selector or a mode, so there is one designation slot; an exact count >= 1,
-    battlefield or stack zones (a counterspell's COUNTER_SPELL reads its target through
-    role_handles too) and no referent anywhere in it, so none of role_handles' self-resolving
-    shapes (anaphora, referent-filtered population, player side, graveyard sweep) applies."""
-    if not isinstance(ability, SpellAbility) or any(isinstance(n, Choose) for n in walk(ability)):
+    ``mutants``). Two or more atoms carry the same TARGET selector in their ``target`` role and
+    nothing else designates (no other TARGET selector, no designated player: a second slot
+    makes a multi-slot designation, whose ALL atom would read the union binding), so there is
+    one designation slot, which the remaining twins keep whichever one is mutated, and
+    role_handles hands a referent-free ALL selector in the bound role the designation itself.
+    The selector keeps role_handles' self-resolving shapes out (anaphora, referent-filtered
+    population, player side, graveyard sweep, a player designation into a card population):
+    an exact count >= 1, battlefield or stack zones (a counterspell's COUNTER_SPELL reads its
+    target through role_handles too), no referent in it, and no "any target" player widening
+    (query._player_widening_applies). Twins under a nested ability, token or delayed trigger
+    are designated by that object, not by this one, so they stay out.
+    - A spell: the cast lane walks every TARGET selector of its effect, those in a Choose made
+      as the effect resolves included (query.spell_target_slots), and refuses a cast whose slot
+      is not designated (stack._validate_spell_targets), so the designation binds whatever
+      option resolution picks (Gods Willing's colour). A modal spell (its effect a top-level
+      Choose, query.modal_choose) announces its modes as it is cast and only their targets
+      exist (query.with_modes), so a mutant's chosen mode could hold no slot: it stays out.
+    - A triggered ability: binding.TriggerBinder._designate designates the one distinct
+      selector as the trigger goes on the stack, removes the trigger when a required slot has
+      no legal choice (CR 603.3d) and checks it again as it resolves (CR 608.2b). A slot is
+      required outside every Choose (binding._required_target_keys: the union over Seq,
+      Conditional, OptionalEffect, Repeat and EachPlayer, the intersection over a Choose's
+      options), so with no Choose above a twin every mutant's slot is required, and the
+      mutant designates, is removed and resolves exactly as the card. Twins in the options of
+      a Choose (Tolarian Kraken's "tap or untap target creature") stay out: the mutant's slot
+      is no longer required, so with no legal target its trigger still goes on the stack.
+    - Activated abilities stay out: ``activate`` validates no targets."""
+    if isinstance(ability, SpellAbility):
+        if isinstance(ability.effect, Choose):
+            return set()  # a modal spell
+    elif not isinstance(ability, TriggeredAbility):
         return set()
-    sels = [(p, n) for p, n in _paths(ability, base) if isinstance(n, Selector) and n.mode is SelectorMode.TARGET]
+    found = list(_paths(ability, base))
+    nodes = dict(found)
+    sels = [(p, n) for p, n in found if isinstance(n, Selector) and n.mode is SelectorMode.TARGET]
     if len(sels) < 2 or any(n != sels[0][1] for _, n in sels) or any(p[-2:] != ("args", "target") for p, _ in sels):
+        return set()
+    if any(isinstance(n, ControllerRef) and n in DESIGNATED_PLAYER_REFS for _, n in found):
+        return set()
+    blocked: tuple[type, ...] = (*_ABILITY_TYPES, DelayedTrigger, TokenSpec)
+    if isinstance(ability, TriggeredAbility):
+        blocked = (*blocked, Choose)
+    if any(isinstance(nodes.get(p[:k]), blocked) for p, _ in sels for k in range(len(base) + 1, len(p))):
         return set()
     sel = sels[0][1]
     if not (isinstance(sel.count, QConst) and sel.count.value >= 1) or sel.referent is not None \
             or any(getattr(n, "referent", None) is not None for n in walk(sel.filter)) \
-            or not all(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones):
+            or not all(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones) \
+            or _player_widening_applies(sel):
         return set()
     return {p for p, _ in sels}
+
+
+def _scope_fixed_by_condition(trigger: Any) -> bool:
+    """Is the "your turn -> each turn" mutant of ``trigger``'s TurnPhaseEvent dead (see
+    ``mutants``)? The event's actor is "you" (CONTROLLER_IS YOU over the active player,
+    binding._match_node) and the trigger's condition requires TURN_OF YOU at its top: the raid
+    idiom "at the beginning of your end step, if you attacked this turn" (TURN_OF YOU and an
+    attack this turn). Without the actor the event matches on another player's turn, but
+    TriggerBinder._queue checks the intervening "if" at once (CR 603.4) and queues nothing:
+    no instance, no seq, no journal row. The one thing it does first is layers.recompute(),
+    a no-op where the layers are current. They are at the end step's marker: the second main
+    phase's state checks recomputed them, and ending a step only empties mana pools
+    (Executor._end_step; combat's end recomputes in _leave_combat). The upkeep's marker comes
+    after the untap step expires "until your next turn" effects with no recompute
+    (Executor._turn_based_actions), so a recompute there could change what a later matcher
+    reads: only END_TURN takes the rule."""
+    if not isinstance(trigger, TriggeredAbility) or not isinstance(trigger.event, TurnPhaseEvent):
+        return False
+    if trigger.event.phase is not Phase.END_TURN or trigger.event.actor != _ACTOR_YOU:
+        return False
+    cond = trigger.condition
+    turn_of_you = FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU)
+    return cond == turn_of_you or isinstance(cond, FAnd) and turn_of_you in cond.children
+
+
+def _static_prevention_conditions(ability: Any, base: tuple) -> set[tuple]:
+    """Paths of the ``condition`` roles of the PREVENT_EFFECT atoms of a printed static (see
+    ``mutants``) that nothing reads. layers._new_static registers each such atom as a
+    PreventionRecord whose condition is the StaticAbility's own ``condition`` (Tome Anima's
+    "as long as"), never the atom's: the atom's ``condition`` mirrors its event's filter in
+    every corpus prevention shape, and the consumers (replacements.prevents_counter_placement,
+    the attack, block and activation vetoes, prevents_countering) judge the record's condition
+    and the event. The atom's ``condition`` has two readers: verbs._v_prevent, the resolved
+    lane (a spell, activated or triggered prevention: live), and
+    legality._own_targeting_restrictions, a static over a TargetingEvent (Enthralling Hold's
+    "you can't choose ... as you cast it"), which stays out. ``_new_static`` strips one
+    OptionalEffect and parses an Atom or a Seq of Atoms."""
+    if not isinstance(ability, StaticAbility):
+        return set()
+    effect, path = ability.effect, (*base, "effect")
+    if isinstance(effect, OptionalEffect):
+        effect, path = effect.inner, (*path, "inner")
+    steps = [(effect, path)] if isinstance(effect, Atom) else (
+        [(s, (*path, "steps", j)) for j, s in enumerate(effect.steps)] if isinstance(effect, Seq) else [])
+    return {(*p, "args", "condition") for s, p in steps
+            if isinstance(s, Atom) and s.verb is Verb.PREVENT_EFFECT
+            and not isinstance(s.args.get("event"), TargetingEvent)}
+
+
+def _granted_policy_may(atom: Any) -> bool:
+    """Is ``atom`` a GRANT_ABILITY of a static whose "you may" is the damage step's ask (see
+    ``mutants``)? Garruk, Savage Herald's -7: creatures gain "You may have this creature assign
+    its combat damage as though it weren't blocked." A granted static is never parsed as a layer
+    (layers._apply_add files it in the granted map); the one reader of its body,
+    layers.policy_as_unblocked, unwraps the OptionalEffect and the Seq, and the combat damage
+    step asks the policy question of every creature that carries it (Executor, the
+    ``policy:`` ask), wrapper or not. The other readers of granted entries take triggered or
+    activated abilities or keyword rows; LOSE_ABILITY matches a granted node by repr and no
+    card in the 19 sets loses a non-keyword ability."""
+    if not (isinstance(atom, Atom) and atom.verb is Verb.GRANT_ABILITY):
+        return False
+    granted = atom.args.get("ability")
+    if not (isinstance(granted, StaticAbility) and isinstance(granted.effect, OptionalEffect)):
+        return False
+    inner = granted.effect.inner
+    steps = inner.steps if isinstance(inner, Seq) else (inner,)
+    return all(isinstance(s, Atom) and s.verb is Verb.DAMAGE_ASSIGN_POLICY for s in steps)
 
 
 # Zones a moving card always enters as its OWNER's (CR 400.3; selectors.move_destination).
@@ -482,17 +589,22 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if isinstance(node, Seq) and any(_partition_step(step) for step in node.steps):
             dead |= {(*path, "steps", i, "args", "destination") for i, step in enumerate(node.steps)
                      if isinstance(step, Atom) and step.verb is Verb.SEARCH}
-    # Two ability-level rules (their docstrings carry the argument): a REVEAL nothing reads, and a
-    # TARGET selector whose twin keeps the one designation slot (role_handles gives a referent-free
-    # ALL selector in the bound role the designation itself).
+    # Ability-level rules (their docstrings carry the argument): a REVEAL nothing reads; a TARGET
+    # selector whose twin keeps the one designation slot (role_handles gives a referent-free ALL
+    # selector in the bound role the designation itself); an end-step trigger whose condition
+    # already requires your turn; the condition of a printed static's PREVENT_EFFECT.
     twins: set[tuple] = set()
+    scope_fixed = {(1, i, "event") for i, ability in enumerate(card.abilities) if _scope_fixed_by_condition(ability)}
     # A static permission's "you may" is stripped before its payload is parsed (layers._new_static),
     # and nothing else reads a static's top-level OptionalEffect: optional->mandatory is dead there.
+    # A granted damage-policy static's "you may" is the damage step's ask (_granted_policy_may).
     permissions = {(1, i, "effect") for i, ability in enumerate(card.abilities)
                    if isinstance(ability, StaticAbility) and isinstance(ability.effect, OptionalEffect)
                    and isinstance(ability.effect.inner, Atom) and ability.effect.inner.verb in _PERMISSION_VERBS}
+    permissions |= {(*path, "args", "ability", "effect") for path, node in _paths(root) if _granted_policy_may(node)}
     for i, ability in enumerate(card.abilities):
         twins |= _twin_targets(ability, (1, i))
+        dead |= _static_prevention_conditions(ability, (1, i))
         roles = _reveal_dead_roles(ability)
         for path, node in _paths(ability, (1, i)) if roles else ():
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:
@@ -511,9 +623,8 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
             continue  # cost victims: the payment ask designates them, mode is not a cost axis
         if isinstance(node, TurnPhaseEvent):
             if node.actor is None:
-                cands.append(("trigger scope: each turn -> your turn only",
-                              dataclasses.replace(node, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))))
-            else:
+                cands.append(("trigger scope: each turn -> your turn only", dataclasses.replace(node, actor=_ACTOR_YOU)))
+            elif path not in scope_fixed:
                 cands.append(("trigger scope: your turn -> each turn", dataclasses.replace(node, actor=None)))
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and node.once_per_event:
             cands.append(("trigger count: once per event -> each occurrence",

@@ -1,0 +1,38 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "14cefb15-d833-4c70-80c9-f2d34b6c846b",
+ "name": "Runed Halo",
+ "text_sha": "bca1e45270d1112d1d5758ad872749cdc418242882dc9467efb93ff796f3dbc6",
+ "verified": {
+  "tree_sha": "58fe16fac06769ad6153e95fbd0ae19bd6be8add1390304d3f2d4f0d1394d72a",
+  "probe_sha": "01e68d1e5bdd5c50f7d288fb152a6010b79192f3ea225ba5fa087672be076c91",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "As this enters, choose a card name",
+    "status": "OK",
+    "evidence": "name ask on cast and on non-cast entry",
+    "issue": ""
+   },
+   {
+    "clause": "You have protection from the chosen card name",
+    "status": "NOT_EXERCISED",
+    "evidence": "no effect observable in trace; pack A11_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/runed_halo_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/target/zones/0/controller"
+   ]
+  }
+ }
+}

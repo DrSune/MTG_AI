@@ -1,0 +1,62 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -6: creatures you control get +2/+2 and flying until EOT. Bear 2/2 -> 4/4; opp creature unchanged.",
+ "cards": [
+  {
+   "key": "b",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "name": "Opp",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "b",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "b",
+   "idx": 2,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 4,
+   "o": 2
+  },
+  "toughness": {
+   "bear": 4,
+   "o": 2
+  },
+  "battlefield_keywords": {
+   "Bear": [
+    "FLYING"
+   ]
+  }
+ }
+}

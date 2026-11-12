@@ -163,3 +163,81 @@ still read as registered; R3b reads the same question without that bias.
 - **What it cannot tell apart.** r27's network carried its mulligan drift (198), so a pass means
   the fixed trainer gave the stronger network. It does not say how much of the gap is the
   mulligan.
+
+**The looks at 25, 50 and 75** (2026-11-12 17:55-21:07; `reports/r28_2026-11-12/look.py`, the
+last row per update; each gate 2,000 games against v0 = r27's v1 weights, both seats, greedy):
+
+| Updates | 1-25 | 26-50 | 51-75 | Prediction |
+|---|---|---|---|---|
+| The mulligan per game, pooled | 1.326 | 1.288 | 1.278 | R1: 1.25-1.45 in every block to 150 |
+| Gate against v0, at the block's end | 0.521 [0.507, 0.535] | 0.517 [0.502, 0.532] | 0.5165 [0.501, 0.532] | R3 |
+| Training win rate against the heuristic / v0 (sampled play) | 0.715 / 0.506 | 0.728 / 0.515 | 0.730 / 0.520 | — |
+| Entropy | 0.255 | 0.248 | 0.243 | — |
+
+- **R2 so far:** the mulligan's KL over act's has a median of 2.36 over updates 1-75 (quartiles
+  1.87 and 3.04, highest 4.99). It is read at 100.
+- **R4 holds** (updates 2-50):
+  - `train_s` median 167 s (160-180);
+  - the interval between updates median 205 s (47 intervals, gate updates left out);
+  - the previous weights' share of a batch median 0.63 (lowest 0.07, at update 26).
+- **R5 holds:** `kl` median 0.0064 (0.0037-0.0080).
+- **R6 holds:** lowest MemAvailable 44.2 GiB.
+- No void game, no non-finite step, no KL stop.
+
+**R3 is falsified.**
+- The three gates' mean is 0.5182. r27's three gates against v1 averaged 0.5107. The difference
+  is +0.0075 (SE about 0.006), below the +0.01 floor.
+- §6's bias favours r28 (85% of its games against v0), so the true difference is smaller still.
+- As §2 allowed: the fix removed the mulligan's impulses (R1 and R2 hold), but r27's stall after
+  v1 was not the defect's.
+- In both runs the network stands about 0.51-0.52 against its init 25 to 75 updates later, with
+  no trend from 25 to 75.
+- The training win rate against v0 rises, 0.506 to 0.520. That is sampled play, and it is not a
+  strength measure: the learner's entropy fell 0.255 to 0.243, while v0 samples as it always
+  did. The greedy gates are the read.
+
+**R3b: inside the band, not decisive.**
+- r28 at update 75 against r27 at update 165: 0.513 [0.495, 0.531], 2,000 games (deals
+  930,000-930,999, both seats; 21:05-21:07, r28 paused for 3 minutes).
+- The falsifier (upper bound below 0.50) is not met, and the estimate lies inside 0.51-0.56.
+- The interval holds 0.50. At matched training, the fixed trainer's network is not shown to be
+  weaker than the flawed one's, and not shown to be stronger.
+
+**What R3 means for the plan.**
+- The question after v1 is the rate of learning, not the mulligan.
+- Gate B's break-even rule (196 §9) takes r28's rate at update 400. Its gates at 100-400 are
+  that rate's data.
+- The per-kind look at 100 (`kinds_split.py`: each kind's own learning against the drift the
+  rest of the batch causes on it) reads where an update's signal goes. It is PLAN_CEILING §15's
+  "signal before direction" applied to the trainer itself.
+
+## 7. Registered before update 100's data (2026-11-12 21:35, r28 saved at update 80)
+
+**The per-kind split** (PLAN_CEILING §14.2, instrument 2; §14.4, retention).
+- `reports/r28_2026-11-12/kinds_split.py` runs on one on-policy batch of r28's update-100 weights
+  (`collect.sh runs/r28_looks/r28_u100.pt runs/r28_looks/c100 2800`), in a pause of r28 after
+  its gate at 100 is read.
+- It measures each kind's alignment twice: after a full update, and after an update without that
+  kind's rows (the drift the rest of the batch causes). The alignment is mean(A·Δlog p) over
+  mean(A²) on the kind's decisions.
+- Each figure carries a bootstrap SE over the kind's decisions. It does not cover an update's own
+  randomness: this is one batch and one update.
+- Kinds with fewer than 500 probe decisions are reported, not scored.
+
+| # | Metric | Prediction | Falsifier |
+|---|---|---|---|
+| K1 | Each kind's alignment after the full update | positive beyond 2 SE for every kind | a kind at or below 0: the update does not teach that kind along its own advantages |
+| K2 | The mulligan's alignment after an update without its rows | negative beyond 2 SE: the drift found by 198 §3 (variant E) survives stratification, while the mulligan's own rows hold it (R1) | within 2 SE of 0, or positive |
+| K3 | The other kinds' alignment without their own rows | none negative beyond 2 SE | one or more negative beyond 2 SE: the drift reaches beyond the narrow kinds |
+
+**Decision.**
+- **Trigger:** a kind whose drift is negative beyond 2 SE and at least half the size of its full
+  alignment.
+- **Action:** that kind gets a retention scheme (a rehearsal share, or a KL anchor on it),
+  registered before any push (§14.4).
+- **Repeat:** the read at 400 runs the same split.
+
+**R1b's mechanics.**
+- R1b is scored with `reports/mulligan_runaway_2026-11-12/timeline.py` on the CPU, from main.
+- That is valid because main's `features.py`, `model.py` and `ppo.py` are byte-identical to r28's
+  pinned 44a62d9 (`git diff 44a62d9 main` over those three files is empty at 0f96134b).

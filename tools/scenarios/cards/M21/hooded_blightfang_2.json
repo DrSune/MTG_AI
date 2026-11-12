@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: whenever a creature you control with deathtouch attacks, each opponent loses 1 and you gain 1. Deathtouch ally + plain bear attack: one trigger only. Opp 20-1-1-2=16, you 21.",
+ "cards": [
+  {
+   "key": "bf",
+   "real": "Hooded Blightfang",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dt",
+   "name": "Viper",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "DEATHTOUCH"
+   ]
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "dt": true,
+    "bear": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 16
+  }
+ }
+}

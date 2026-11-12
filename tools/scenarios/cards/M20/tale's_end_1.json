@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "tales_end_counters_legendary_spell",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Counter target activated ability, triggered ability, or legendary spell.' Seat 0 casts a legendary spell (Sorin, Imperious Bloodlord, a legendary planeswalker, {2}{B}); seat 1 answers with Tale's End ({1}{U}) targeting it. The spell is countered (CR 701.5a): Sorin goes to the graveyard and never reaches the battlefield.",
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Imperious Bloodlord", "zone": "hand", "controller": 0},
+  {"key": "te", "real": "Tale's End", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "sorin", "real": "Sorin, Imperious Bloodlord", "hold": true},
+  {"op": "cast", "key": "te", "controller": 1, "targets": ["sorin"], "tap": true, "real": "Tale's End"}
+ ],
+ "expect": {
+  "zone": {"sorin": "graveyard", "te": "graveyard"},
+  "mana_pool": {"1": {}}
+ }
+}

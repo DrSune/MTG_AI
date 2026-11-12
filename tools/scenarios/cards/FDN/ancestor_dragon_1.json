@@ -1,0 +1,41 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: whenever one or more creatures you control attack, gain 1 life for each attacking creature. Two attack: +2 once (not 4).",
+ "cards": [
+  {
+   "key": "d",
+   "real": "Ancestor Dragon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "d": true,
+    "b": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 13
+  }
+ }
+}

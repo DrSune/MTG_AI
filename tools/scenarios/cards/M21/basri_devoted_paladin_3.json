@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -6: creatures you control get +2/+2 and flying until end of turn. After the turn ends Bear is 2/2 without flying.",
+ "cards": [
+  {
+   "key": "b",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "b",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "b",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 2
+  },
+  "toughness": {
+   "bear": 2
+  },
+  "battlefield_keywords": {
+   "Bear": []
+  }
+ }
+}

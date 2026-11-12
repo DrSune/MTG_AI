@@ -104,3 +104,42 @@ deals 900,000-900,299): 600 games, 0 voids, 0.6917 [0.659, 0.724]. Before: 4 dea
   creatures. They are needs-atom.
 - **11 "reveal … until" cards** and 5 "as though it didn't have defender" cards remain
   unparsed. The new components cover their wording; the templates do not yet.
+
+## 6. Verification wave 1: results (2026-11-12 19:35-20:05)
+
+**Calibration.** Two blind verifiers on another model family (Sonnet) judged 33 packets: batch A
+was 18 M21/FDN cards and 2 plants, batch B 11 M20 cards and 2 plants. Each batch caught both of
+its planted mutants, so both batches count. The plants were:
+- Rousing Read discarding two cards;
+- Warded Battlements pumping the opponent's attackers;
+- Spectral Sailor's cost missing its {U};
+- Ancestral Blade making two tokens.
+
+**Verified: 13 cards** (cardtool G0-G4, with the verifiers' spec packs in the suite):
+- M21: Runed Halo, Rookie Mistake, Transmogrify, Drowsing Tyrannodon, Teferi, Timeless Voyager,
+  Unsubstantiate, Hooded Blightfang, Basri, Devoted Paladin;
+- re-verified: M21 Basri Ket and Tide Skimmer, FDN Ancestor Dragon;
+- M20: Anticipate, Tale's End.
+- **Verified pools:** M21 262 → 270, M20 254 → 256, FDN 175 (174 between the merge and its
+  re-verification).
+
+**Judged WRONG: 8 real cards.**
+- **M21 See the Truth:** "the rest on the bottom in any order" is never asked.
+- **M21 Feline Sovereign:** its trigger chooses its target without asking.
+- Both are being fixed (an engine agent).
+- **Six M20 mapped records** (BACKLOG): Battalion Foot Soldier, Sanitarium Skeleton, Sorin,
+  Imperious Bloodlord, Goblin Ringleader, Mu Yanling, Sky Dancer and Cavalier of Flame. Among
+  them is an engine-wide issue: reflexive triggers choose their targets too early (CR 603.12).
+
+**Blocked by G3: 8 cards judged OK.**
+- The cards: Archfiend's Vessel, Mangara, Tolarian Kraken, Garruk, Savage Herald, Teferi's Ageless
+  Insight, Gods Willing, Cavalier of Gales and Blightbeetle.
+- Critical mutants survive packs that pin the printed behaviour.
+- Gods Willing and Blightbeetle are BACKLOG's documented equivalent mutants: the engine never
+  reads the changed role, so no game can tell the mutant from the card. The others likely are
+  too.
+- The fix is the dead-role rule in `gates.mutants`, not more packs.
+
+**A tool fault found and fixed.** `cardtool verify` named a card's kept packs from index 1, so
+re-verifying Basri Ket, Tide Skimmer and Unsubstantiate overwrote their earlier verified packs.
+They are restored, and new packs take the next free index (`next_pack_path`, tested).

@@ -355,6 +355,16 @@ def cmd_runpack(args: argparse.Namespace) -> int:
     return 1 if bad_total else 0
 
 
+def next_pack_path(dest: Path, stem: str) -> Path:
+    """The first ``<stem>_<i>.json`` in ``dest`` not yet taken. A re-verification adds its spec
+    packs beside the earlier ones, never over them: they stay regression tests (wave 1 found a
+    re-verification overwriting them, KNOWLEDGE 201)."""
+    i = 1
+    while (dest / f"{stem}_{i}.json").exists():
+        i += 1
+    return dest / f"{stem}_{i}.json"
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     """Stamp a card verified when every gate agrees: G0 clean, G1 no engine error and the trace the
     reviewer read, G2 verdict OK, G3 no critical survivor that no spec pack kills, G4 packs pass."""
@@ -410,9 +420,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
         return 1
     dest = REPO / "tools" / "scenarios" / "cards" / args.set
     kept = []
-    for i, pack in enumerate(packs, 1):
-        dest.mkdir(parents=True, exist_ok=True)
-        target = dest / f"{raw.identity.name.lower().replace(' ', '_').replace(',', '')}_{i}.json"
+    stem = raw.identity.name.lower().replace(' ', '_').replace(',', '')
+    dest.mkdir(parents=True, exist_ok=True)
+    for pack in packs:
+        target = next_pack_path(dest, stem)
         target.write_text(pack.read_text())
         kept.append(str(target.relative_to(REPO)))
     path = card_records.RECORDS_DIR / args.set / f"{oid}.json"

@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "342eb666-838c-43d0-bf52-2f704f2a80e3",
+ "name": "Hooded Blightfang",
+ "text_sha": "30cdf0459a72d721b9ad9f3425eadb2d166fe299a01fce5b4d48251b084b82ce",
+ "verified": {
+  "tree_sha": "5c0efca2ee4ae33dcb03483170b4273026081f3d22911e68f612dd518fd4a6ad",
+  "probe_sha": "11a7a05e79b650b80f00dbd427e4ec94980ea4d2ea2c3375c12a9f95e1cc570f",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "Deathtouch",
+    "status": "OK",
+    "evidence": "static: DEATHTOUCH; blocked variant kills opp_giant with 1 damage (CR 702.2)",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever a creature you control with deathtouch attacks, each opponent loses 1 and you gain 1",
+    "status": "OK",
+    "evidence": "attacks alone variants: opp 20->18/19, you 20->21 (loses 1 then combat damage)",
+    "issue": ""
+   },
+   {
+    "clause": "deathtouch creature damages a planeswalker -> destroy it",
+    "status": "NOT_EXERCISED",
+    "evidence": "no planeswalker on the standard board; pack A00_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/hooded_blightfang_1.json",
+   "tools/scenarios/cards/M21/hooded_blightfang_2.json",
+   "tools/scenarios/cards/M21/hooded_blightfang_3.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 9,
+   "score": 0.5625,
+   "survived": [
+    "each occurrence -> once per event at 1/0",
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 0) at 1/1/event/source",
+    "widen filter (drop part 1) at 1/1/event/source",
+    "widen filter (drop part 2) at 1/1/event/source",
+    "controller YOU->OPPONENT at 1/1/event/source/children/0/who"
+   ]
+  }
+ }
+}

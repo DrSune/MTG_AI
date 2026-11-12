@@ -1,0 +1,68 @@
+{
+ "set": "M20",
+ "name": "tales_end_counters_triggered_ability_ethereal_elk",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Counter target activated ability, triggered ability, or legendary spell.' Ethereal Elk enters and its 'may search for Vivien, Nature's Avenger' trigger waits on the stack. Seat 1 answers with Tale's End targeting that triggered ability: it is countered, so Vivien stays in the library and the hand stays empty.",
+ "cards": [
+  {
+   "key": "elk",
+   "real": "Ethereal Elk",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "vivien",
+   "name": "Vivien, Nature's Avenger",
+   "type": "Legendary Planeswalker \u2014 Vivien",
+   "loyalty": 3,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "te",
+   "real": "Tale's End",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "elk",
+   "hold_triggers": true,
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "te",
+   "controller": 1,
+   "targets": [
+    "ability:elk"
+   ],
+   "tap": true,
+   "real": "Tale's End"
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "elk": "battlefield",
+   "vivien": "library",
+   "te": "graveyard"
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

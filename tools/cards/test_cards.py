@@ -129,3 +129,14 @@ def test_g0_asks_no_cast_carrier_of_a_token() -> None:
     card = sc.results[oid].card
     fails, _ = gates.g0(sc.raw[oid], card, card, clauses=None, known_signatures=None)
     assert not [f for f in fails if "SpellAbility" in f], fails
+
+
+def test_a_reverification_adds_its_packs_beside_the_earlier_ones(tmp_path) -> None:
+    """cardtool verify names a kept spec pack by the first free index, so re-verifying a card
+    never overwrites the packs of its earlier verification (KNOWLEDGE 201)."""
+    from cardtool import next_pack_path
+
+    assert next_pack_path(tmp_path, "basri_ket").name == "basri_ket_1.json"
+    (tmp_path / "basri_ket_1.json").write_text("{}")
+    (tmp_path / "basri_ket_2.json").write_text("{}")
+    assert next_pack_path(tmp_path, "basri_ket").name == "basri_ket_3.json"

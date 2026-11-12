@@ -1,0 +1,56 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: whenever a creature you control with deathtouch attacks, each opponent loses 1 and you gain 1. Two deathtouch creatures attack: the drain happens once for EACH (CR 603.2): opp 20-2-2=16, you 22. Blightfang stays home.",
+ "cards": [
+  {
+   "key": "bf",
+   "real": "Hooded Blightfang",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "v1",
+   "name": "v1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "DEATHTOUCH"
+   ]
+  },
+  {
+   "key": "v2",
+   "name": "v2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "DEATHTOUCH"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "v1": true,
+    "v2": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 16
+  }
+ }
+}

@@ -1,0 +1,47 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "ee811356-ef6a-4972-b827-32c2d329b3c3",
+ "name": "Drowsing Tyrannodon",
+ "text_sha": "60a1af355d93c668d6dc06021352f59d2262e3fdd469867ccd70a1cf42e49a1d",
+ "verified": {
+  "tree_sha": "700da0d7eef7078b9ce9ea37aca9af5f04c44126e8e9fba203654d0ef58953a9",
+  "probe_sha": "5caa5fb53b9757e9cad08ec22303e36b907b379ebfcdf9b8146b9ff2506ac1b9",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "Defender",
+    "status": "OK",
+    "evidence": "keyword present",
+    "issue": ""
+   },
+   {
+    "clause": "with a creature of power 4+, can attack",
+    "status": "OK",
+    "evidence": "attacks alone with you_giant on board; unblocked 3 damage",
+    "issue": ""
+   },
+   {
+    "clause": "without such a creature it cannot attack",
+    "status": "NOT_EXERCISED",
+    "evidence": "giant always present; pack A17_2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_1.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/condition/inner_filter",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "amount-1 at 1/0/condition/inner_filter/children/1/count"
+   ]
+  }
+ }
+}

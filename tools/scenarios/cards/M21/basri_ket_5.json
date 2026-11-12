@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -2: whenever one or more nontoken creatures attack this turn, create that many 1/1 Soldiers tapped and attacking. Two nontoken attack: 2 Soldiers; opp 20-2-2-1-1=14.",
+ "cards": [
+  {
+   "key": "b",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "A",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "C",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "b",
+   "set": 3
+  },
+  {
+   "op": "activate",
+   "key": "b",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "a": true,
+    "c": true
+   }
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 2
+  },
+  "life": {
+   "1": 14
+  }
+ }
+}

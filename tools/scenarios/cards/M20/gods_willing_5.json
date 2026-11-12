@@ -1,0 +1,98 @@
+{
+ "set": "M20",
+ "name": "gods_willing_scry_one_is_my_library",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Printed: '... Scry 1.' The caster scries (not the opponent): my top card (Card A, then Card B beneath it) is put on the bottom of MY library, so my library reads Card B, the six untouched cards, then Card A. The opponent's library is unchanged (their top card stays on top).",
+ "cards": [
+  {
+   "key": "gw",
+   "real": "Gods Willing",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "name": "Wall One",
+   "type": "Creature \u2014 Wall",
+   "power": 0,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "lb",
+   "name": "Card B",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "la",
+   "name": "Card A",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "ob",
+   "name": "Opp Card B",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "oa",
+   "name": "Opp Card A",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gw",
+   "controller": 0,
+   "targets": [
+    "w1"
+   ],
+   "decisions": [
+    "0",
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "Card B",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Card A"
+   ],
+   "1": [
+    "Opp Card A",
+    "Opp Card B",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

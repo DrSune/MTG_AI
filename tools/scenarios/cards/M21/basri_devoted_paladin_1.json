@@ -1,0 +1,66 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -1: whenever a creature attacks this turn, put a +1/+1 counter on it. Two attackers get one counter each, opp 20-3-3=14.",
+ "cards": [
+  {
+   "key": "b",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "A",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c",
+   "name": "C",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "b",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "a": true,
+    "c": true
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "a": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "c": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "b": {
+    "LOYALTY": 3
+   }
+  },
+  "life": {
+   "1": 14
+  }
+ }
+}
