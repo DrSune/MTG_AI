@@ -249,3 +249,81 @@
   the read at 1,000 later.
 - Window 2's results (194, 195, 193) are read before gate B starts. If any of them changes gate B's
   design, the change is appended here before the run.
+
+## 7. The bug hunt's changes, before any data (2026-11-12 ~14:00; KNOWLEDGE/2026-11-12/197)
+
+A bug hunt went through gate B's whole pipeline before the run. Nothing of gate B has run, so
+this section changes the run, and §1-§6 stand where it does not. **The worktree is pinned at
+3c718a0, or at the later commit that records this section, not at cc6d833.**
+
+**The queue** (`reports/gate_b_2026-11-12/queue.sh`). Its control flow failed in ways that
+would have produced plausible numbers from the wrong run:
+- **`--groups ${GROUPS:-4}`.** `GROUPS` is a bash builtin holding the user's group id, so
+  production would have passed `--groups 1000` (16 groups of one slot, never measured). The old
+  smoke set `GROUPS=1` itself and so never saw this. Now `--groups 4`, as registered.
+- **A_G.** A restart after chunk 0 began skipped A_G for good. A_G is now its own saved verdict.
+  An interrupted chunk 0 is set aside unread and played again, and no other chunk runs before
+  A_G is read and passes.
+- **Failed steps.** A failed or capped step no longer lets its dependants run. A distillation
+  capped after two epochs would otherwise have been "the best of four" chosen among two.
+  Required steps stop the queue, log it, and give the GPU back to r27.
+- **Sizes.** A generation short of 300,000 targets stops the queue. It would otherwise have
+  produced networks named 300000.
+- **Restarts.** A lock and the commit that began the run guard a restart, and r27 is paused at
+  any restart that finds it running.
+- **H1′.** 192 §7.6's H1′ runs at the end: u1000 against the heuristic on `heur_raw`'s 300
+  deals, once in bf16 and once in fp32, both at this commit. It is not required for gate B.
+
+**The targets and the distillation.**
+- `distill.improved` pooled each option's variance over n, not over its degrees of freedom.
+  Sequential halving gives first-round losers one world each, which shrank the pooled variance
+  to 0.73 of the unbiased one on window 1's n = 16 records. Steps were 9% larger on average, so
+  the targets broke §2's "at most 0.5 per standard error". The variance is now pooled unbiased:
+  the sum of n × var over the sum of (n − 1).
+- `se1` leaves a record unmoved when an option has no first-round world, instead of silently
+  reading all of its rounds.
+- `--seed` now fixes the minibatches as well as the dropout: `ppo.chunks` takes the run's
+  generator.
+- `distill.json` reports §1.1's mean of q − q1 for first-round losers and survivors, which no
+  code computed before.
+- Target shards are written whole: a stop during a write left a shard cut short, and every arm
+  would have crashed on it.
+- G's description ran with name dropout on. `model.load` now returns eval mode.
+
+**The engine.** Three fixes change rare game situations:
+- a turn ended in the end step now ends at once (CR 724.1);
+- the trigger-loop tripwire now guards the game loop too;
+- a multi-target counterspell no longer crashes when its target was removed (CR 608.2b).
+
+So G plays a slightly different game in those situations than r27 trained on. Chunk 0's A_G
+gates G on this engine.
+
+**Two premises of §2, corrected.**
+- **"Seldom flips the top choice" was wrong.** On window 1's 11,740 records at n = 16, the `se`
+  target's top option differs from the network's in 13.9% of records. By menu size: 2.0% with
+  2 options, 18.4% with 4 and 28.1% with 6, close to the search's own 15-17% rate of changed
+  moves. That rate is itself inflated by copies, which the next point explains.
+- **The search treats copies of a card as distinct moves.** Window 2's audit found two Forests in
+  hand counted as two candidates. Their means differ only by noise, and 65% of the search's
+  changed moves there were swaps to an equal-prior copy. Targets can move mass between copies.
+  The network cannot tell identical tokens apart, so that part of the loss is noise it cannot
+  fit, not a wrong lesson. Gate B runs the search as registered. Collapsing copies is a search
+  change to measure on its own first (BACKLOG).
+
+**The smoke, redone.** The 08:25 smoke trained nothing:
+- one deal a chunk, and the first deal is held out, so the size-20 arm had 0 training records;
+- it also set `GROUPS=1`.
+
+The new smoke ran end to end and exited 0. G was r27's `v0.pt` on the CPU, with 2 deals a chunk
+at n = 2, sizes 30 and 60, `AG_MIN=0`, and one deal each for selection, the tests and H1′.
+- Generation reached 107 targets in two chunks.
+- A_G read 0.5.
+- Size 30 trained on 16 records and size 60 on 40, with 28 held out.
+- Every arm's four epochs played, and all seven tests ran.
+- `gb2.json` was written, both H1′ twins played, and the log ends "gateb done".
+- Mock runs covered every restart path:
+  - a stop during chunk 0, then a restart;
+  - A_G below the bar;
+  - a capped distillation;
+  - a short generation;
+  - a second queue on the same directory.
