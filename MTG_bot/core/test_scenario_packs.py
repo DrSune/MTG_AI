@@ -11,11 +11,12 @@ it; a pack without one runs on the M21 supply.
 from __future__ import annotations
 
 import json
+from functools import cache
 from pathlib import Path
 
 import pytest
 
-from MTG_bot.core.executor.games import get_supply
+from MTG_bot.core.executor.games import Supply, compile_supply, get_supply
 from tools.run_scenarios import run_pack
 
 PACK_DIR = Path(__file__).resolve().parents[2] / "tools" / "scenarios"
@@ -24,6 +25,11 @@ PACKS = sorted(PACK_DIR.glob("*.json"))
 # `tools/cards/cardtool.py verify`: tools/scenarios/cards/<SET>/<card>_<n>.json. They pin the
 # printed behaviour of every verified card, so an engine change that breaks one fails here.
 CARD_PACKS = sorted(PACK_DIR.glob("cards/*/*.json"))
+# Packs of mapped cards not verified yet, played on their records as `cardtool runpack` plays
+# them (unverified records applied): an engine fix's packs for the cards it fixes, kept here
+# while the cards wait on blind re-verification (tools/scenarios/mapped/<SET>/). Once a card is
+# verified, its packs move to cards/<SET>/.
+MAPPED_PACKS = sorted(PACK_DIR.glob("mapped/*/*.json"))
 
 
 def _set_code(path: Path) -> str:
@@ -47,4 +53,15 @@ def test_pack(path: Path) -> None:
 @pytest.mark.parametrize("path", CARD_PACKS, ids=[f"{p.parent.name}/{p.stem}" for p in CARD_PACKS])
 def test_card_pack(path: Path) -> None:
     failures = run_pack(path, get_supply("all", _set_code(path)))
+    assert not failures, "\n".join(failures)
+
+
+@cache
+def _mapped_supply(code: str) -> Supply:
+    return compile_supply("all", code, require_verified=False)
+
+
+@pytest.mark.parametrize("path", MAPPED_PACKS, ids=[f"mapped/{p.parent.name}/{p.stem}" for p in MAPPED_PACKS])
+def test_mapped_pack(path: Path) -> None:
+    failures = run_pack(path, _mapped_supply(_set_code(path)))
     assert not failures, "\n".join(failures)

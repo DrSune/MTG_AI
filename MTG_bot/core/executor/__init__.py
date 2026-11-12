@@ -3301,9 +3301,24 @@ class Executor:
         never re-inflict summoning sickness, and a recompute caused by some
         other creature never dates a period back to an older entry."""
         prev = self.control_overlay
-        overlay: dict[Handle, Handle] = {}
-        for _seq, creature, controller, _tag, _anchor, _turn in self.control_entries:
-            overlay[creature] = controller  # later entries win (CR 613.2)
+        latest = {entry[1]: entry for entry in self.control_entries}  # later win (CR 613.2)
+
+        def effective(creature: Handle, seen: frozenset[Handle]) -> Handle:
+            # An Aura's "You control enchanted creature" (Enthralling Hold) is the one entry
+            # anchored to its source with no duration (verbs._v_gain_control): it is the
+            # Aura's own static ability, so its "you" is the Aura's controller now (CR 109.5)
+            # and it applies after whatever changes the Aura's control (CR 613.8a). Every
+            # other entry, a resolved effect, keeps its controller (CR 611.2c), as does an
+            # Aura entry in a dependency loop.
+            entry = latest.get(creature)
+            if entry is None:
+                return self.world.controller_of(creature)
+            _seq, _creature, controller, tag, anchor, _turn = entry
+            if tag == "Permanent" and anchor is not None and anchor not in seen:
+                return effective(anchor, seen | {creature})
+            return controller
+
+        overlay = {creature: effective(creature, frozenset()) for creature in latest}
         self.control_overlay = overlay
         changed = [
             c
@@ -3316,6 +3331,18 @@ class Executor:
         # so the marker dict carries both directions).
         for creature in changed:
             self.control_gained_turn[creature] = self.world.turn
+        # CR 109.5, 611.3a: "you" in a permanent's own static, keyword and
+        # replacement abilities is its controller NOW, so the records they
+        # registered when it entered follow the change (a stolen Blightbeetle
+        # protects the thief's creatures). Only the control entries change a
+        # battlefield permanent's controller: a permanent entering registers
+        # under the controller it enters with.
+        for creature in changed:
+            if creature not in self.world.cards:
+                continue  # a token that ceased to exist (CR 704.5d) has no records left
+            controller = self.controller_of(creature)
+            self.layers.follow_controller(creature, controller)
+            self.replacements.follow_controller(creature, controller)
         for creature in changed:
             if creature in self.attackers:
                 self.attackers.remove(creature)

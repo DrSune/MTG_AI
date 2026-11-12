@@ -1,0 +1,46 @@
+705 cards probed; traces changed: 2
+engine errors: 0 -> 0
+== M20 Sanitarium Skeleton
+  @@ -12 +12,3 @@
+  -[activate [0] from battlefield]
+  +- ability [0] not activatable from battlefield: window:not_in_graveyard:card:24
+  +## Activated abilities, card in graveyard
+  +[activate [0] from graveyard]
+  @@ -14 +16,3 @@
+  -  change: you: mana B-1 C-2
+  +  event: card moves graveyard -> hand (by card/MOVE_ZONE)
+  +  change: card: zone graveyard -> hand
+  +  change: you: hand 6 -> 7; mana B-1 C-2
+== M21 Waker of Waves
+  @@ -16 +16,30 @@
+  -- ability [1] not activatable from battlefield: cost:discard:insufficient_candidates:0<1
+  +- ability [1] not activatable from battlefield: window:not_in_hand:card:24
+  +## Activated abilities, card in hand
+  +[activate [1] from hand]
+  +  ask one_of: [you:Library 4#1, you:Library 5#1] -> you:Library 4#1
+  +  event: card moves hand -> graveyard (by card/MOVE_ZONE)
+  +  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 1, False, None
+  +  event: you:Library 4#1 is targeted (by card/ONE_OF)
+  +  event: you:Library 4#1 moves library -> hand (by card/MOVE_ZONE)
+  +  event: you:Library 5#1 is targeted (by card/REST)
+  +  event: you:Library 5#1 moves library -> graveyard (by card/MOVE_ZONE)
+  +  change: card: zone hand -> graveyard
+  +  change: + you:Library 4#1 (hand, you)
+  +  change: + you:Library 5#1 (graveyard, you)
+  +  change: you: library 6 -> 4; mana C-1 U-1
+  +  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  +  change: after the turn ends: you: mana B-9 C-8 G-9 R-9 U-8 W-9
+  +[activate [1] from hand | ask 1 -> you:Library 5#1]
+  +  ask one_of: [you:Library 4#1, you:Library 5#1] -> you:Library 5#1
+  +  event: card moves hand -> graveyard (by card/MOVE_ZONE)
+  +  event: ABILITY_ACTIVATED card (by you/ACTIVATE) 1, False, None
+  +  event: you:Library 5#1 is targeted (by card/ONE_OF)
+  +  event: you:Library 5#1 moves library -> hand (by card/MOVE_ZONE)
+  +  event: you:Library 4#1 is targeted (by card/REST)
+  +  event: you:Library 4#1 moves library -> graveyard (by card/MOVE_ZONE)
+  +  change: card: zone hand -> graveyard
+  +  change: + you:Library 4#1 (graveyard, you)
+  +  change: + you:Library 5#1 (hand, you)
+  +  change: you: library 6 -> 4; mana C-1 U-1
+  +  change: after the turn ends: opp: mana B-9 C-9 G-9 R-9 U-9 W-9
+  +  change: after the turn ends: you: mana B-9 C-8 G-9 R-9 U-8 W-9

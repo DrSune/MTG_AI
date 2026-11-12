@@ -221,6 +221,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   (CR 120.3a, 702.15b). Every history and trigger reader inherits it (EVENT_THIS_TURN, bloodthirst,
   LIFE_GAINED_THIS_TURN_GE, "whenever you gain life"). Fix: journal player damage and lifelink gains
   from the verbs' own tuples, not the life diff.
+- **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
+  fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
+  a graveyard as graveyard-only, while the activation lane reads the same rule in
+  `legality.activation_zone`. It skips 113.6m's "unless its trigger condition ... specifies that
+  the object is put into that zone", so three dies triggers that do it are bound in the graveyard
+  instead of looking back from the battlefield (CR 603.10a): M20 Cavalier of Gales, Cavalier of
+  Thorns, Immortal Phoenix. Its IS_SOURCE test also counts "another" (FNot). No game difference
+  is known (the dies row is matched by the graveyard binding, with the controller from last-known
+  information); fold the two readings into one classifier when the trigger lane is free.
 - **A created token's ability record is keyed by its name alone** (2026-11-06): `_v_create_token`
   (verbs.py ~1340) registers the binder record under `token_oracle_id(spec.name)` once per game, so
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first
@@ -283,28 +292,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
     trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
     consequence.
-- **A permanent's static records keep the controller they were attached with** (fresh-eyes
-  review, 2026-11-06): `layers._new_static` registers a static PREVENT_EFFECT with the controller
-  of the moment, and GAIN_CONTROL does not re-register it, so "you" in a stolen permanent's static
-  still means the old controller in `prevents_activation`, the attack/block consults
-  (`_rec_ctx`), and possibly the layer statics. `prevents_countering` reads the source's current
-  controller (test `test_you_follows_the_permanents_controller`); the other consults need the same
-  (CR 109.5), with packs for a stolen "can't block" or anthem static.
-  - M20 Blightbeetle shows it (2026-11-12, verification wave 1's G3 pass):
-    `prevents_counter_placement` judges "creatures your opponents control" from the stored
-    controller (`rec_ctx`, replacements.py ~710), and `Executor._recompute_control` refreshes no
-    record. Stolen with Act of Treason, it still bars counters from the thief's own creatures (its
-    owner's opponents) and from none of the owner's. Red pack:
-    `reports/g3_equivalence_2026-11-12/red/B11_blightbeetle_stolen_reads_its_new_controller.json`.
-    Blightbeetle passes G3 now (its survivor was a dead role) but stays out of the verified pool
-    until this is fixed.
-- **SHUFFLE of "its owner's library" shuffles the ability controller's** (2026-11-12, M20 Cavalier
-  of Gales): `verbs._v_shuffle` resolves Zone(LIBRARY, OWNER) with `zone_owner(ctx, zone_ir,
-  owner=ctx.controller)` (verbs.py:1418), so a Cavalier that dies under a thief goes to the bottom
-  of its owner's library unshuffled while the thief's library is shuffled. The owner is the moved
-  card's (CR 108.3; "shuffle it into its owner's library"). Red pack:
-  `reports/g3_equivalence_2026-11-12/red/B08_cavalier_stolen_shuffles_its_owners_library.json`.
-  Cavalier of Gales stays out of the verified pool until it is fixed.
+- **The top-n lane of MOVE_ZONE reads the destination's player's library** (2026-11-12, found
+  with the SHUFFLE fix; latent: no compiled tree in the 19 sets takes the lane):
+  `verbs._v_move_zone`'s "top n of a library into a hand" lane takes the cards from
+  `zone_owner(ctx, dest_ir, owner=ctx.controller)`'s library, so an OWNER or ANY destination reads
+  the ability controller's library, and a selector over another player's library is ignored.
+  The library is the selector zone's player, and its cards go to their owner's hand (CR 108.3,
+  400.3). Left for the agent changing MOVE_ZONE (the `arrange` role), with a test that fails first.
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
@@ -313,10 +307,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   triggers, and keeps a token that a queued firing names in the world as its last-known
   information until that firing resolves, so a trigger that moves "it" could still move such a
   token, as before W4-4.
-- **Abilities that work from the graveyard are refused** (CR 113.6k; M20 Sanitarium Skeleton), and
-  the same row on the battlefield is a paid no-op (the Demonic Embrace shape; extend
-  query.inert_row to "moves its own source from a zone it is not in"). Repro:
-  `known_bugs/2026-11-05/graveyard_abilities_never_activatable`.
 - **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
   the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
   "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap
@@ -387,7 +377,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **No copy effects and no layer dependencies** (the 2026-09-10 audit's list for the pre-rebuild
   engine, still true of this one): `Verb.COPY` has no handler in `verbs.HANDLERS`, so no copy
   effect runs (Sublime Epiphany's COPY mode is never offered), and the layer system applies
-  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`).
+  effects in timestamp order with no dependency pass (CR 613.8; `layers.py`). Layer 2 has one:
+  an Aura's "You control enchanted creature" applies after what changes the Aura's control
+  (`Executor._recompute_control`, 2026-11-12). Timestamps are approximate too: a static's P/T
+  entry for an object it newly covers (a creature entering, or one a stolen anthem now reaches)
+  is stamped when it is covered, not with the static's timestamp (CR 613.7a). Only a "set P/T"
+  static over other objects could tell; the three that compile (Kinetic Augur, Ironroot Warlord,
+  Enigma Drake) set their own power.
 - **Not modelled, because no card in the pools needs it** (B-74 residue; the postcombat main phase
   landed 2026-11-06, 46c7288): a trigger at the beginning of a second
   main phase (the frozen `Phase` has no member for it; the three Sanctums' "first main phase"
@@ -767,8 +763,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
     Soldier": the engine takes every copy and never asks how many.
   - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
-    the ability is offered on the battlefield, where it does nothing, and refused from the graveyard.
-    Find where an activated ability's functioning zone is read (CR 113.6).
+    the ability was offered on the battlefield, where it does nothing, and refused from the
+    graveyard. Engine fixed 2026-11-12 (`legality.activation_zone`, CR 113.6m; packs
+    `tools/scenarios/mapped/M20/sanitarium_skeleton_*`): the record, unchanged, goes back to
+    blind G2 (its G1 trace changed; its mapping notes still describe the old engine).
   - **Sorin, Imperious Bloodlord's +1.** The reflexive "when you do" target is chosen at activation,
     a "targeted" event fires when the sacrifice is declined, and the Vampire being sacrificed is
     offered as a target. CR 603.12 chooses the target when the reflexive trigger goes on the stack,
@@ -797,10 +795,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - M21 Garruk, Savage Herald: its "you may" mutant is dead; its duration mutant is killed by
     `packs/A06_garruk_grant_ends_with_the_turn.json`, which goes through a verifier first.
   - M20 Cavalier of Gales: its scry mutant is killed by
-    `packs/B08_cavalier_dies_you_scry_your_library.json`, but the card shuffles the wrong library
-    when stolen (engine faults, "SHUFFLE of its owner's library").
-  - M20 Blightbeetle: G3 clear, but wrong when stolen (engine faults, "static records keep the
-    controller they were attached with").
+    `packs/B08_cavalier_dies_you_scry_your_library.json`. The stolen Cavalier shuffled the
+    thief's library; fixed 2026-11-12 (`verbs._v_shuffle`), pack
+    `tools/scenarios/mapped/M20/cavalier_of_gales_stolen_shuffles_its_owners_library.json`.
+  - M20 Blightbeetle: G3 clear. Stolen, it read its old controller; fixed 2026-11-12 (the records
+    of a permanent's own abilities follow its controller, `Executor._recompute_control`), pack
+    `tools/scenarios/mapped/M20/blightbeetle_stolen_reads_its_new_controller.json`.
+  - Both trees are unchanged and go back to verification with their packs.
   - M21 Tolarian Kraken: the reflexive-trigger item above. M21 Mangara: the Tide Skimmer fault
     (Combat). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no 2-seat M21
     pack can kill (Gates, "G3 survivors no 2-seat same-set pack can kill").

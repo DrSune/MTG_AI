@@ -1501,16 +1501,27 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_shuffle(ctx: ExecCtx, atom: Atom) -> None:
+    """"Shuffle it into its owner's library" (an OWNER zone) shuffles the library of the owner of
+    each card the previous instruction put there (the ``result`` register, CR 108.3), not the
+    ability controller's. With none put there ("it" left the zone it was expected in), the
+    library is shuffled all the same (CR 701.24c): the source's, as every card printing the
+    clause shuffles itself (Cavalier of Gales), or itself and its target (Void Stalker)."""
     zone_ir = atom.args.get("zone")
     assert isinstance(zone_ir, Zone)
     state_kind = ZONE_KIND_TO_STATE.get(zone_ir.kind)
     if state_kind is None:
         raise NotImplementedError("executor: SHUFFLE of a non-card zone is 12c")
-    owner = zone_owner(ctx, zone_ir, owner=ctx.controller)
-    zone = ctx.world.players[owner].zone(state_kind)
+    if zone_ir.controller is ControllerRef.OWNER:
+        moved = ctx.binding_handles("result") or []
+        owners = sorted({ctx.world.controller_of(c) for c in moved if c.namespace == "card"})
+        owners = owners or [ctx.world.controller_of(ctx.source)]
+    else:
+        owners = [zone_owner(ctx, zone_ir, owner=ctx.controller)]
     rng = ctx.rng("SHUFFLE")
-    rng.shuffle(zone.entries)  # seeded Random — replay-identical
-    ctx.events.append((len(ctx.events), "SHUFFLE", str(owner), zone.kind))
+    for owner in owners:
+        zone = ctx.world.players[owner].zone(state_kind)
+        rng.shuffle(zone.entries)  # seeded Random — replay-identical
+        ctx.events.append((len(ctx.events), "SHUFFLE", str(owner), zone.kind))
 
 
 def _look(ctx: ExecCtx, atom: Atom) -> None:

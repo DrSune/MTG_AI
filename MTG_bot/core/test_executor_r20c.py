@@ -2,9 +2,9 @@
 
 * Waker of Waves (legality.py): the printed "Discard this card:" hand activation. The window
   opens only for a cost whose HAND-zone selector filter is IS_SOURCE (the cycling family,
-  CR 702.29a); the payment plan, which keeps a cast spell out of its own discard cost
-  (CR 601.2h), lets exactly that shape discard its source; every other activation from the hand
-  is refused with ``window:not_on_battlefield``.
+  CR 702.29a, 113.6j; ``legality.activation_zone``); the payment plan, which keeps a cast spell
+  out of its own discard cost (CR 601.2h), lets exactly that shape discard its source; every
+  other activation from the hand is refused with ``window:not_in_battlefield``.
 * Hobblefiend (selectors.py): a CHOOSE-mode selector filtered on IS_SOURCE is the effect's own
   self-designation (CR 602.2c); the cost-side TARGET binding sharing the role name does not
   hijack it.
@@ -20,26 +20,36 @@
 import unittest
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     AtomArgs,
+    ControllerRef,
     Cost,
     CostDiscard,
+    CostManaColor,
+    CostManaGeneric,
     CostTap,
     CounterKind,
     FAtom,
     FAtomPred,
+    FNot,
     QConst,
     Selector,
     SelectorMode,
     Verb,
+    Zone,
+    ZoneKind,
 )
 from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
+    activation_zone,
     build_payment_plan,
     ctx_for,
 )
+from MTG_bot.core.executor.menu import menu
 from MTG_bot.core.executor.quantity import eval_filter
+from MTG_bot.core.executor.query import legal_activations
 from MTG_bot.core.executor.selectors import role_handles
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
@@ -101,7 +111,7 @@ class TestHandSelfDiscardWindow(LegalityCase):
         h = self.put_in_hand(TAP_FROM_HAND_OID, ability(cost(CostTap())), "Idle")
         self.assertEqual(
             ability_playable(self.world, self.ex, h, 0, seat=self.p0),
-            f"window:not_on_battlefield:{h}",
+            f"window:not_in_battlefield:{h}",
         )
 
     def test_unregistered_hand_card_stays_refused(self):
@@ -113,6 +123,77 @@ class TestHandSelfDiscardWindow(LegalityCase):
             ZONE_HAND,
         )
         self.assertIsNotNone(ability_playable(self.world, self.ex, h, 0, seat=self.p0))
+
+
+SKELETON_OID = "5ce1e700-1111-2222-3333-444444444444"
+GV_YOU = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
+
+
+def skeleton_return(it=IS_SOURCE) -> ActivatedAbility:
+    """M20 Sanitarium Skeleton: "{2}{B}: Return this card from your graveyard to your hand.\""""
+    sel = Selector(QConst(1), SelectorMode.CHOOSE, it, zones=(GV_YOU,))
+    return ability(
+        cost(CostManaColor("B", QConst(1)), CostManaGeneric(QConst(2))),
+        Atom(Verb.MOVE_ZONE, AtomArgs((("cards", sel), ("destination", HAND_YOU)))),
+    )
+
+
+class TestGraveyardActivation(LegalityCase):
+    """CR 113.6m: an ability whose effect moves its object out of a zone works only in that
+    zone. Sanitarium Skeleton's return works from its owner's graveyard and does not exist on
+    the battlefield (where it would be a paid no-op)."""
+
+    def skeleton(self, zone: str, seat=None) -> Handle:
+        handle = self.world.add_card(
+            card_id("Skeleton", "1", "2", oid=SKELETON_OID), seat or self.p0, zone
+        )
+        self.ex.binder.records[SKELETON_OID] = record_of(
+            [skeleton_return()], name="Skeleton", oid=SKELETON_OID
+        )
+        return handle
+
+    def test_the_zone_comes_from_the_tree(self):
+        self.assertEqual(activation_zone(skeleton_return()), ZONE_GRAVEYARD)
+        self.assertEqual(activation_zone(ability(self_discard_cost())), ZONE_HAND)
+        self.assertEqual(activation_zone(ability(cost(CostTap()))), ZONE_BATTLEFIELD)
+        # "Return another target creature card from your graveyard": not its own object
+        self.assertEqual(activation_zone(skeleton_return(FNot(IS_SOURCE))), ZONE_BATTLEFIELD)
+
+    def test_it_returns_from_the_graveyard(self):
+        h = self.skeleton(ZONE_GRAVEYARD)
+        self.pool(self.p0, B=3)
+        self.assertIsNone(ability_playable(self.world, self.ex, h, 0, seat=self.p0))
+        self.assertIn(f"act:{h}:0", [row.token for row in menu(self.ex, self.p0)])
+        self.assertEqual(
+            [(o.source, o.ability_idx) for o in legal_activations(self.world, self.ex, self.p0)],
+            [(h, 0)],
+        )
+        activate(self.ex, h, 0, seat=self.p0)
+        self.assertIn(h, self.world.players[self.p0].zone(ZONE_HAND).entries)
+        self.assertEqual(self.world.players[self.p0].mana_pool.get("B", 0), 0)
+
+    def test_it_is_not_offered_on_the_battlefield(self):
+        h = self.skeleton(ZONE_BATTLEFIELD)
+        self.ex.attach_card(h, self.ex.binder.records[SKELETON_OID])
+        self.pool(self.p0, B=3)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, h, 0, seat=self.p0),
+            f"window:not_in_graveyard:{h}",
+        )
+        self.assertNotIn(f"act:{h}:0", [row.token for row in menu(self.ex, self.p0)])
+        self.assertEqual(legal_activations(self.world, self.ex, self.p0), [])
+
+    def test_only_its_owner_activates_it(self):
+        # CR 602.2: a card in a graveyard has no controller; its owner may activate it.
+        h = self.skeleton(ZONE_GRAVEYARD, seat=self.p1)
+        self.pool(self.p0, B=3)
+        self.pool(self.p1, B=3)
+        self.assertEqual(
+            ability_playable(self.world, self.ex, h, 0, seat=self.p0),
+            f"window:not_controller:{self.p0}",
+        )
+        self.assertNotIn(f"act:{h}:0", [row.token for row in menu(self.ex, self.p0)])
+        self.assertIn(f"act:{h}:0", [row.token for row in menu(self.ex, self.p1)])
 
 
 class TestDiscardPaymentSelfLane(LegalityCase):
