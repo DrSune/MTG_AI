@@ -107,3 +107,59 @@ def test_swap_spends_k_swaps_on_the_best_gain_within_the_guard() -> None:
     assert guarded["e"] == 1 and guarded["d"] == 4  # the guard turns it to the next best card
     best = Counter({"e": 4, "d": 4})
     assert D.swap(best, value, spells, 3) == best  # nothing gains: it stops
+
+
+def _critic(supply, seed: int = 0) -> dict:
+    rng = np.random.default_rng(seed)
+    value = {c: float(rng.normal(0, 0.1)) for c in supply.deckable}
+    wide = {"mv": [0.0, 99.0], "creatures": [0.0, 99.0], "copies": 4.0, "decks": 0}
+    return {"value": value, "band": {"M21": wide}, "sha256": "ab" * 32}
+
+
+def test_drafted_decks_swap_the_right_seats_and_stay_legal() -> None:
+    from MTG_bot.core.executor.games import _BASIC_COLOR, deal_decks, get_supply
+
+    sup = get_supply("verified", "M21")
+    critic = _critic(sup)
+    dealt = deal_decks(31, D.DEAL_SEED, sup, "coherent")
+    same = D.drafted_decks(31, "versus:0:abababab", 0, sup, critic, "M21")
+    assert [Counter(d) for d in same] == [Counter(d) for d in dealt]  # k = 0 is the deal
+    v1 = D.drafted_decks(31, "versus:6:abababab", 1, sup, critic, "M21")
+    assert Counter(v1[0]) == Counter(dealt[1])  # the evaluated seat 1 holds seat 0's deck, drafted
+    mine = Counter(v1[1])
+    assert mine != Counter(dealt[0]) and sum(mine.values()) == 60
+    pair = {_BASIC_COLOR[sup.metas[c].name] for c in dealt[0] if sup.metas[c].is_basic}
+    for c, n in mine.items():
+        m = sup.metas[c]
+        assert m.is_basic or (n <= 4 and set(sup.pool.results[c].card.color_identity) <= pair)
+    assert sum(critic["value"][c] * n for c, n in mine.items()) > sum(
+        critic["value"][c] for c in dealt[0])
+    both = D.drafted_decks(31, "drafted:6:abababab", None, sup, critic, "M21")
+    assert Counter(both[0]) == mine and Counter(both[1]) != Counter(dealt[1])
+    with pytest.raises(ValueError, match="does not match critic"):
+        D.drafted_decks(31, "versus:6:cdcdcdcd", 0, sup, critic, "M21")
+
+
+def test_play_game_deals_the_decks_it_is_given(monkeypatch) -> None:
+    from tools.selfplay import rig
+
+    seen = []
+
+    def stop(seed, supply, decks, **kw):
+        seen.append(decks)
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(rig, "_setup_game", stop)
+    decks = (("a",) * 60, ("b",) * 60)
+    with pytest.raises(RuntimeError, match="stop"):
+        rig.play_game(1, [None, None], deck_mode="versus:4:abababab", decks=decks)
+    assert seen == [decks]
+
+
+def test_the_learner_wants_a_critic_for_a_drafted_deck_mode() -> None:
+    from tools.selfplay import learner as L
+
+    assert L.parse(["--run", "x", "--eval-decks", "versus:8", "--draft-critic", "c.json"])
+    for bad in (["--eval-decks", "versus:8"], ["--eval-decks", "best", "--draft-critic", "c"]):
+        with pytest.raises(SystemExit):
+            L.parse(["--run", "x", *bad])

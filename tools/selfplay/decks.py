@@ -30,6 +30,7 @@ import sys
 from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -310,6 +311,73 @@ def swap(deck: Counter, value: dict[str, float], spells: list[str], k: int,
     return deck
 
 
+def deck_stats(deck: Counter, meta: Callable[[str], tuple]) -> tuple[float, int, int]:
+    """A deck's mean spell mana value, its creatures and the most copies of one non-basic card.
+    ``meta(oid)`` gives (mana value, creature, land, basic)."""
+    spells = [(meta(c), n) for c, n in deck.items() if not meta(c)[2]]
+    total = sum(n for _, n in spells)
+    mv = sum(m[0] * n for m, n in spells) / max(total, 1)
+    return mv, sum(n for m, n in spells if m[1]), max(
+        (n for c, n in deck.items() if not meta(c)[3]), default=0)
+
+
+def band_of(decks: dict, set_code: str) -> dict:
+    """The coherent decks' 1st-99th percentile band of :func:`deck_stats` in ``set_code``: the
+    range the critic was fitted on, which construction keeps to (PLAN_DRAFTER §5)."""
+    at = {str(c): (int(m), bool(cr), bool(la), bool(b)) for c, m, cr, la, b in zip(
+        decks["card"], decks["mv"], decks["creature"], decks["land"], decks["basic"], strict=True)}
+    stats = []
+    for k in np.flatnonzero((decks["mode"] == "coherent") & (decks["set"] == set_code)):
+        for s in (0, 1):
+            a, b = decks["off"][2 * k + s], decks["off"][2 * k + s + 1]
+            deck = Counter({str(decks["card"][i]): int(n)
+                            for i, n in zip(decks["idx"][a:b], decks["cnt"][a:b], strict=True)})
+            stats.append(deck_stats(deck, at.__getitem__))
+    st = np.array(stats, float)
+    lo, hi = np.percentile(st, 1, axis=0), np.percentile(st, 99, axis=0)
+    return {"mv": [float(lo[0]), float(hi[0])], "creatures": [float(lo[1]), float(hi[1])],
+            "copies": float(hi[2]), "decks": len(stats)}
+
+
+def drafted_decks(seed: int, deck_mode: str, a_seat: int | None, supply: Any,
+                  critic: dict, set_code: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """A job's decks under a drafted deck mode, ``KIND:K:SHA8`` (PLAN_DRAFTER §5-§6): the deal's
+    coherent decks, then K swaps by ``critic`` inside its band for ``set_code``.
+    - ``drafted``: both decks, each at its dealt seat.
+    - ``versus``: seat 0's dealt deck only, and it goes to the evaluated seat ``a_seat``, so a
+      deal's two games swap the decks: with one network on both seats, a pure deck comparison."""
+    from MTG_bot.core.executor.games import _BASIC_COLOR, deal_decks
+
+    kind, k, sha = deck_mode.split(":")
+    if kind not in ("drafted", "versus") or critic["sha256"][:8] != sha:
+        raise ValueError(f"deck mode {deck_mode!r} does not match critic {critic['sha256'][:8]}")
+    metas = supply.metas
+
+    def meta(c: str) -> tuple:
+        m = metas[c]
+        return m.mana_value, "Creature" in m.type_line, m.is_land, m.is_basic
+
+    bd = critic["band"][set_code]
+
+    def ok(deck: Counter) -> bool:
+        mv, creatures, copies = deck_stats(deck, meta)
+        return (bd["mv"][0] <= mv <= bd["mv"][1]
+                and bd["creatures"][0] <= creatures <= bd["creatures"][1]
+                and copies <= bd["copies"])
+
+    def draft(deck: tuple[str, ...]) -> tuple[str, ...]:
+        pair = {_BASIC_COLOR[metas[c].name] for c in deck if metas[c].is_basic}
+        spells = [c for c in supply.deckable if not metas[c].is_land and c in critic["value"]
+                  and set(supply.pool.results[c].card.color_identity) <= pair]
+        return tuple(sorted(swap(Counter(deck), critic["value"], spells, int(k), ok).elements()))
+
+    dealt = deal_decks(seed, DEAL_SEED, supply, "coherent")
+    if kind == "drafted":
+        return draft(dealt[0]), draft(dealt[1])
+    mine = draft(dealt[0])
+    return (mine, dealt[1]) if a_seat == 0 else (dealt[1], mine)
+
+
 def calibration(p: np.ndarray, y: np.ndarray, bins: int = 15) -> tuple[float, float]:
     """Expected and largest calibration error over equal-mass bins."""
     errs = [(len(b), abs(float(p[b].mean() - y[b].mean())))
@@ -345,8 +413,9 @@ def fit_critic(out: str, sources: list[list[str]], lams: tuple[float, ...]) -> d
     names = {}
     for d, _ in loaded:
         names.update({str(c): str(nm) for c, nm in zip(d["card"], d["name"], strict=True)})
+    band = {str(sc): band_of(d, str(sc)) for d, _ in loaded for sc in np.unique(d["set"])}
     critic = {"value": value, "name": names, "seat0": b, "lam": res["cards"]["lam"],
-              "sources": sources, "report": report}
+              "band": band, "sources": sources, "report": report}
     blob = json.dumps(critic, sort_keys=True).encode()
     critic["sha256"] = hashlib.sha256(blob).hexdigest()
     Path(out).write_text(json.dumps(critic, indent=1, sort_keys=True) + "\n")

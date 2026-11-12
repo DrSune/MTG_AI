@@ -37,6 +37,7 @@ import multiprocessing as mp
 import pickle
 import platform
 import random
+import re
 import signal
 import socket
 import subprocess
@@ -801,13 +802,18 @@ class Learner:
         me = seat or a.eval_seat
         self.eval_meta["eval_seat"] = me
         search = self.search_opts()
+        mode, critic = "coherent", None  # random piles are not the game being learned (190 §3.1)
+        if a.eval_decks != "coherent":  # a drafted deck mode, named by its critic's hash
+            critic = str(Path(a.draft_critic).resolve())
+            mode = f"{a.eval_decks}:{json.loads(Path(critic).read_text())['sha256'][:8]}"
         for opp in opponents or a.eval_opponents.split(","):
             for i in range(deals or a.eval_deals):
                 seed = seed0 + i
-                mode = "coherent"  # random piles are not the game being learned (190 §3.1)
                 for a_seat in (0, 1):
                     seats = [me, opp] if a_seat == 0 else [opp, me]
                     job = self._job("eval", seed, seats, [True, True], [False, False], mode)
+                    if critic:
+                        job["draft_critic"] = critic
                     job["opp"] = opp
                     job["a_seat"] = a_seat
                     job["search"] = search
@@ -1266,6 +1272,11 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")
     p.add_argument("--eval-set", default="M21", help="the set evaluation decks are dealt from")
+    p.add_argument("--eval-decks", default="coherent",
+                   help="evaluation decks: 'coherent', or a drafted mode 'drafted:K' (both decks "
+                        "get K critic swaps) or 'versus:K' (the evaluated seat's deck only; "
+                        "docs/PLAN_DRAFTER.md §6), which needs --draft-critic")
+    p.add_argument("--draft-critic", default="", help="the critic file of decks.py fit")
     p.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
                    help="the cards every game deals from (training, mixed sets, evaluation; "
                         "games.compile_supply): 'verified' = whose current compiled tree passed "
@@ -1334,6 +1345,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     needs_init = [f for f in ("refresh_table", "extend_sets", "mask_names") if getattr(args, f)]
     if needs_init and not args.init:  # they act on the --init checkpoint; never ignore them
         p.error(", ".join("--" + f.replace("_", "-") for f in needs_init) + " require --init")
+    if args.eval_decks != "coherent" and not (
+            re.fullmatch(r"(drafted|versus):\d+", args.eval_decks) and args.draft_critic):
+        p.error(f"--eval-decks {args.eval_decks!r}: 'coherent', or drafted:K / versus:K with "
+                "--draft-critic")
     return args
 
 

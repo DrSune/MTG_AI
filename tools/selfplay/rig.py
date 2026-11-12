@@ -149,14 +149,17 @@ def outcome_of(game: Any) -> tuple[str, int | None]:
 
 def play_game(seed: int, agents: list[Any], *, deck_mode: str = "stress",
               pool_mode: str = "verified", set_code: str = "M21", deck_pairs_seed: int = 1409,
-              turn_cap: int = TURN_CAP) -> dict[str, Any]:
+              turn_cap: int = TURN_CAP,
+              decks: tuple[tuple[str, ...], tuple[str, ...]] | None = None) -> dict[str, Any]:
     """Play one game between ``agents[0]`` (seat 0) and ``agents[1]`` (seat 1), both decks
-    dealt from ``get_supply(pool_mode, set_code)`` (the learner passes its --pool)."""
+    dealt from ``get_supply(pool_mode, set_code)`` (the learner passes its --pool), or ``decks``
+    when given (a drafted deck mode, decks.drafted_decks); setup shuffles them either way."""
     supply = get_supply(pool_mode, set_code)
     oracle = _ORACLES.get(set_code)
     if oracle is None:
         oracle = _ORACLES[set_code] = OracleIndex.for_sets(set_code)
-    game = _setup_game(seed, supply, deal_decks(seed, deck_pairs_seed, supply, deck_mode))
+    game = _setup_game(seed, supply, decks if decks is not None
+                       else deal_decks(seed, deck_pairs_seed, supply, deck_mode))
     router = SelfplayRouter(game, agents, [SeatLens(s, oracle, ViewOptions()) for s in (0, 1)],
                             supply=supply)
     started = time.monotonic()

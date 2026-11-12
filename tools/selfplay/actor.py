@@ -24,11 +24,13 @@ the labels come back in the result.
 
 from __future__ import annotations
 
+import json
 import os
 import random
 import threading
 import traceback
 from collections import deque
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -249,6 +251,7 @@ class Worker:
         self.need_sent = 0
         self.stopping = False
         self.answers: dict[int, list | None] = {g: None for g in range(len(self.groups))}
+        self.critics: dict[str, dict] = {}  # drafted deck modes' critics, by path
 
     def take_job(self) -> dict | None:
         return self.jobs.popleft() if self.jobs else None
@@ -277,8 +280,19 @@ class Worker:
         if job.get("capture"):
             agents = [Capture(a, seat, self.table, job["capture"], job["seed"])
                       for seat, a in enumerate(agents)]
+        decks = None
+        if job.get("draft_critic"):  # a drafted deck mode (decks.drafted_decks)
+            from MTG_bot.core.executor.games import get_supply
+            from tools.selfplay import decks as DK
+
+            path = job["draft_critic"]
+            if path not in self.critics:
+                self.critics[path] = json.loads(Path(path).read_text())
+            decks = DK.drafted_decks(job["seed"], job["deck_mode"], job.get("a_seat"),
+                                     get_supply(job["pool_mode"], job["set_code"]),
+                                     self.critics[path], job["set_code"])
         res = play_game(job["seed"], agents, deck_mode=job["deck_mode"],
-                        set_code=job["set_code"], pool_mode=job["pool_mode"])
+                        set_code=job["set_code"], pool_mode=job["pool_mode"], decks=decks)
         res["gid"] = job["gid"]
         res["kind"] = job["kind"]
         res["seats"] = job["seats"]
