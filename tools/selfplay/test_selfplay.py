@@ -207,6 +207,38 @@ def test_heuristic_beats_uniform_random() -> None:
     assert wins >= 14, wins
 
 
+def test_grow_keeps_the_function(table, tmp_path) -> None:
+    """A grown network computes what it was grown from (PLAN_CEILING §4.1): deeper (identity
+    layers) exactly, wider (feed-forward units with zero outgoing weights) to rounding, and so
+    after save and load; the new layers are not clones of one another."""
+    recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
+    play_game(7, recs, deck_mode="coherent")
+    batch = M.collate([s[0] for s in recs[0].samples[:16]], "cpu")
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=2, heads=4, ff=64).eval()
+    for p in net.parameters():
+        p.data.normal_(0, 0.1)
+    deep = M.grow(net, table, layers=4).eval()
+    big = M.grow(net, table, layers=4, ff=128).eval()
+    M.save(str(tmp_path / "big.pt"), big, table)
+    loaded = M.load(str(tmp_path / "big.pt"))[0].eval()
+    assert (big.config["layers"], big.config["ff"]) == (4, 128) == (
+        loaded.config["layers"], loaded.config["ff"])
+    with torch.no_grad():
+        a, va = net(batch)
+        ok = torch.isfinite(a)
+        d, vd = deep(batch)
+        assert torch.equal(a, d) and torch.equal(va, vd)
+        for b, vb in (big(batch), loaded(batch)):
+            assert torch.equal(ok, torch.isfinite(b))
+            assert torch.allclose(a[ok], b[ok], atol=1e-5) and torch.allclose(va, vb, atol=1e-5)
+    layers = deep.encoder.layers
+    assert not torch.equal(layers[1].self_attn.in_proj_weight, layers[3].self_attn.in_proj_weight)
+    assert not layers[1].linear2.weight.any() and not layers[1].self_attn.out_proj.bias.any()
+    with pytest.raises(ValueError, match="grow"):
+        M.grow(net, table, layers=3)
+
+
 def test_network_is_equivariant_over_options_and_roundtrips(table, tmp_path) -> None:
     recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
     play_game(7, recs, deck_mode="coherent")
@@ -560,6 +592,24 @@ def test_every_training_game_is_logged_with_its_deal(table, tmp_path, monkeypatc
              r["outcome"], r["winner"]) for r in rows] == [
         (1, 7, 11, "coherent", "M20", ["learner", "v1"], "win", 0),
         (2, 7, 11, "coherent", "M20", ["learner", "v1"], "void-crash", None)]
+
+
+def test_training_rows_carry_their_game_and_step(table, tmp_path, monkeypatch) -> None:
+    """A finished game's recorded decisions enter the buffer with the game id, the step and the
+    game's step count, which --collect keeps for held-out games and game phases."""
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    lr = L.Learner(L.parse(["--run", str(tmp_path / "run"), "--device", "cpu", "--d", "32",
+                            "--layers", "1", "--heads", "4", "--ff", "64", "--gamma", "1",
+                            "--lam", "1"]))
+    lr.traj[(9, 0)] = [("f0", 0, -0.5, 0.1), ("f1", 1, -0.7, 0.3), ("f2", 0, -0.1, 0.6)]
+    lr.on_done([{"kind": "train", "gid": 9, "seed": 3, "deck_mode": "coherent",
+                 "set_code": "M21", "seats": ["learner", "v0"], "outcome": "win", "winner": 0,
+                 "turns": 12}])
+    assert [(b[0], b[6], b[7], b[8]) for b in lr.buffer] == [
+        ("f0", 9, 0, 3), ("f1", 9, 1, 3), ("f2", 9, 2, 3)]
+    assert [b[5] for b in lr.buffer] == pytest.approx([1.0] * 3)  # gamma = lambda = 1: z
 
 
 def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:

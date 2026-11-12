@@ -308,6 +308,51 @@ def build(table: FT.CardTable, **kw: Any) -> PolicyValueNet:
     return PolicyValueNet(len(table.oracle_ids), len(table.ir_vocab), table.ir_array(), **kw)
 
 
+def grow(model: PolicyValueNet, table: FT.CardTable, layers: int | None = None,
+         ff: int | None = None, seed: int = 0) -> PolicyValueNet:
+    """The same function in a bigger network (PLAN_CEILING §4.1). The encoder's layers are
+    pre-norm, so a layer whose attention and feed-forward outputs (weights and biases) are zero
+    adds nothing to the residual stream:
+    - ``layers`` (a multiple of the current count) follows each layer with new ones like that,
+      each with its own random inner weights (cloned layers would start identical);
+    - ``ff`` widens every feed-forward layer; the new units' outgoing weights are zero."""
+    cfg = {k: v for k, v in model.config.items() if k not in ("n_cards", "n_ir")}
+    old_layers, old_ff = cfg["layers"], cfg["ff"]
+    layers, ff = layers or old_layers, ff or old_ff
+    if layers % old_layers or ff < old_ff:
+        raise ValueError(f"grow: {old_layers} layers to {layers}, ff {old_ff} to {ff}")
+    torch.manual_seed(seed)
+    big = build(table, **{**cfg, "layers": layers, "ff": ff})
+    state = model.state_dict()
+    new = big.state_dict()
+    step = layers // old_layers
+    for key, value in new.items():
+        if not key.startswith("encoder.layers."):
+            new[key] = state[key].clone()
+            continue
+        i, rest = key[len("encoder.layers."):].split(".", 1)
+        i = int(i)
+        if i % step:  # a new layer: zero its outputs, keep its fresh inner weights
+            if rest.startswith(("self_attn.out_proj.", "linear2.")):
+                new[key] = torch.zeros_like(value)
+            elif rest == "self_attn.in_proj_weight":
+                nn.init.xavier_uniform_(new[key])
+            continue
+        old = state[f"encoder.layers.{i // step}.{rest}"]
+        if old.shape == value.shape:
+            new[key] = old.clone()
+        elif rest == "linear1.weight":  # [ff, d]: old rows, then fresh ones
+            new[key] = torch.cat([old, value[old.shape[0]:]])
+        elif rest == "linear1.bias":
+            new[key] = torch.cat([old, torch.zeros(value.shape[0] - old.shape[0])])
+        elif rest == "linear2.weight":  # [d, ff]: old columns, then zeros
+            new[key] = torch.cat([old, torch.zeros(old.shape[0], value.shape[1] - old.shape[1])], 1)
+        else:
+            raise ValueError(f"grow: no rule for {key} {tuple(old.shape)} -> {tuple(value.shape)}")
+    big.load_state_dict(new)
+    return big
+
+
 def save(path: str, model: PolicyValueNet, table: FT.CardTable, extra: dict | None = None) -> None:
     torch.save({"config": model.config, "state": model.state_dict(), "table": table.to_json(),
                 "extra": extra or {}}, path)

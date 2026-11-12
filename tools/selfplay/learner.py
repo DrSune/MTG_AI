@@ -710,8 +710,9 @@ class Learner:
             # bootstrapping makes reaching it worth what the position was worth.
             z = vals[-1] if void else self.reward(r["outcome"], r["winner"], seat)
             adv = gae(vals, z, a.gamma, a.lam)
-            for (f, act, logp, v), ad in zip(steps, adv, strict=True):
-                self.buffer.append((f, act, logp, v, ad, ad + v))
+            # the game and the step ride along for --collect (held-out games, game phase)
+            for i, ((f, act, logp, v), ad) in enumerate(zip(steps, adv, strict=True)):
+                self.buffer.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps)))
         if not void:
             seats = r["seats"]
             for seat in (0, 1):
@@ -1061,16 +1062,22 @@ class Learner:
                       "versions": self.versions})
         else:
             v0 = self.freeze(self.model)  # the starting policy (BC or --init)
-            self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
-                            a.ladder_deals)
-            self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"],
-                            a.ladder_deals)
+            if not a.collect:
+                self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
+                                a.ladder_deals)
+                self.queue_eval("ladder", f"ladder:{v0}", v0, ["random", "heuristic"],
+                                a.ladder_deals)
             self.stage = "teacher" if a.teacher_iters > 0 else "selfplay"
         self.phase = "ppo"
         for self.it in range(start, a.iters + 1):
             t0, d0 = time.time(), self.infer_items
             g0 = sum(self.counts[k] for k in ("train:games", "eval:games", "bc:games"))
             self.serve(lambda: len(self.buffer) >= a.steps)
+            if a.collect:  # the batch on disk, no update: PLAN_CEILING §4.1's capacity probe
+                with open(a.collect, "wb") as fh:
+                    pickle.dump(self.buffer, fh)
+                self.log({"event": "collect", "rows": len(self.buffer), "out": a.collect})
+                return
             t1 = time.time()
             st = self.update()
             # over the whole iteration: the workers also play while the update runs
@@ -1277,6 +1284,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                         "get K critic swaps) or 'versus:K' (the evaluated seat's deck only; "
                         "docs/PLAN_DRAFTER.md §6), which needs --draft-critic")
     p.add_argument("--draft-critic", default="", help="the critic file of decks.py fit")
+    p.add_argument("--collect", default="",
+                   help="write the first full batch of training decisions (pickled rows: "
+                        "features, action, log-prob, value, advantage, return, game id, step, "
+                        "steps) to this file and stop without an update (PLAN_CEILING §4.1)")
     p.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
                    help="the cards every game deals from (training, mixed sets, evaluation; "
                         "games.compile_supply): 'verified' = whose current compiled tree passed "
