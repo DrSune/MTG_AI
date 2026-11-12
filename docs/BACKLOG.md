@@ -360,6 +360,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### To triage
 
+- **The heuristic activates only a planeswalker's first ability row** (2026-11-12, KNOWLEDGE 201 §5).
+  `heuristic.py` `_act` never uses Garruk, Savage Herald's -2, and if it did it would judge both
+  target slots of an activation by the whole card. A weaker training and evaluation baseline, not
+  a rules fault.
+- **The G1 probe raises `GameOver: player:0` on M21 Sanctum of Calm Waters** (2026-11-12, KNOWLEDGE
+  201 §5), identically before and after wave 1. The card is verified; its next re-verification
+  needs the probe fixed.
 - **The journal is not a record of what players know** (2026-11-12, KNOWLEDGE/2026-11-12/197).
   SCRY journals how many cards were scried, not which went where (`verbs.py` `_v_scry`); REVEAL
   has no zone role and `_look` reads only the library, so "target opponent reveals their hand"
