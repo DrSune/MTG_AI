@@ -124,3 +124,22 @@ R2's prediction (1.5-3.5) and falsifier (5 or more) are unchanged.
   - The guard pools too (ff18b5c). Its first version averaged per-update ratios, which inflate
     exactly when games swing. Replayed over r27, the pooled guard still stops at update 169
     (1.850).
+
+**Does the mulligan read whether its lands can cast its spells?** (The owner's question,
+2026-11-12; `reports/mulligan_colors_2026-11-12/colors.py` on update 165's batch: 2,028 7-card
+hands whose lands are all basic.)
+- **Yes, and it reads more than the land count.** Among 3-land hands, v0's p(mulligan) is
+  0.032 when every spell is castable by the lands' colours, 0.355 when only some are, and 0.83
+  when none are (6 hands). 2- and 4-land hands show the same order.
+- **The counterfactual, paired by hand.** 492 3-land hands whose lands cast every spell had only
+  their lands' identities changed:
+  - "mono": every land becomes the deck colour fewer spells use, a hand the deck can deal. v0's
+    p(mulligan) rose 0.032 → 0.461 (+0.43 ± 0.015, raised in 94% of hands).
+  - "off": every land becomes a colour no spell uses. It rose to 0.697 (+0.66 ± 0.013, raised in
+    every hand).
+- **Every network shows it:**
+  - v1: +0.43 and +0.67;
+  - r27 at 165: +0.65 and +0.73, on its higher base rate;
+  - r28 at update 10 (its `last.pt`): +0.38 and +0.59, base 0.023.
+- **Open:** v0 throws back 36% of 3-land hands where only some spells are castable. Whether
+  that is too eager needs the cost of keeping them, which this check does not measure.
