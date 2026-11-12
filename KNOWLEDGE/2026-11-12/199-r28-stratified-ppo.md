@@ -110,8 +110,12 @@ R2's prediction (1.5-3.5) and falsifier (5 or more) are unchanged.
 | Lowest MemAvailable | 56.4 GiB | 53.3 | 53.0 | R6: above 35 |
 
 - No void game and no non-finite step.
-- **The heuristic's ladder** against random scored 0.916 [0.900, 0.932], r27's number on the same
-  deals. The bug hunt's engine fixes did not move it.
+- **The ladders** on the fixed engine (500 deals each, both seats, greedy):
+  - the heuristic against random 0.916 [0.900, 0.932], r27's number on the same deals;
+  - r28's v0 (r27's v1 weights) against random 0.986 [0.979, 0.993] and against the heuristic
+    0.753 [0.729, 0.777]. r27's v1 had 0.986 and 0.752.
+  - The bug hunt's engine fixes moved one game in 1,000.
+  - Elo: random 0, heuristic 437.8, v0 640.6.
 - **The mulligan, pooled:** 8,472 declarations over 6,586 games in updates 1-3, 1.29 a game.
   v1's rate was about 1.3.
 - **Per update the ratio swung** 0.90, 1.33 and 2.27, because the games an update counted swung
