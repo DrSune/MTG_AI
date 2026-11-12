@@ -65,6 +65,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import cache
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
@@ -1077,6 +1078,7 @@ def build_payment_plan(
 # ------------------------------------------------------------- legality
 
 
+@cache  # a function of the frozen tree; every priority's menu and payment asks it
 def activation_zone(ability: ActivatedAbility) -> str:
     """The zone an activated ability works in (CR 113.6), as a world zone kind: the
     battlefield, like every ability of a permanent, unless its cost or effect moves the object
