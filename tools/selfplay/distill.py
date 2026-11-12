@@ -14,7 +14,9 @@ policy pi' by cross-entropy over all options. The rule that turns a record into 
 
 pi is ``--init``'s own probabilities, recomputed: the step starts from the network being trained.
 Whole games are the unit: every 20th game (by seed) is held out, for the epoch choice and for the
-agreement with the search's pick.
+agreement with the search's pick. The epoch kept is the one with the lowest held-out KL, epoch 0
+(the network unchanged) included. E3 kept epoch 0 at every size, which hid its trained epochs'
+small gain (KNOWLEDGE/2026-11-06/186 §5), so ``--save-epochs`` also saves every trained epoch.
 
     .venv/bin/python -m tools.selfplay.distill --init CKPT --out DIR --sizes 100000,300000 RUN...
 """
@@ -113,9 +115,10 @@ def ce_epoch(net, feats, targets, idx, dev, opt=None, mb: int = 512) -> float:
 
 
 def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int], dev,
-           lr: float = 3e-5, epochs: int = 4, mb: int = 512) -> dict:
+           lr: float = 3e-5, epochs: int = 4, mb: int = 512, on_epoch=None) -> dict:
     """For each size n: a copy of ``base`` trained on the first n records (whole games), the
-    epoch with the lowest held-out KL kept. Returns {n: (network, report)}."""
+    epoch with the lowest held-out KL kept; ``on_epoch(n, epoch, net)`` sees every trained epoch.
+    Returns {n: (network, report)}."""
     feats = [r["feats"] for r in recs]
     base.eval()
     pis = policy(base, feats, dev)
@@ -144,6 +147,8 @@ def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int],
             vkl = ce_epoch(net, feats, targets, val, dev) - ent
             hist.append({"epoch": epoch, "train_ce": tr_ce, "val_kl": vkl,
                          "secs": round(time.time() - t0, 1)})
+            if on_epoch is not None:
+                on_epoch(n, epoch, net)
             if vkl < best[0]:
                 best = (vkl, copy.deepcopy(net.state_dict()))
         net.load_state_dict(best[1])
@@ -181,6 +186,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--lr", type=float, default=3e-5)
     ap.add_argument("--epochs", type=int, default=4)
     ap.add_argument("--mb", type=int, default=512)
+    ap.add_argument("--save-epochs", action="store_true",
+                    help="also save each trained epoch's network as distilled_N_eE.pt")
     a = ap.parse_args(argv)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     out = Path(a.out)
@@ -189,8 +196,13 @@ def main(argv: list[str] | None = None) -> None:
     recs = load_targets(a.runs)
     report = {"init": a.init, "rule": a.rule, "runs": a.runs, **describe(recs, a.rule, base, dev),
               "sizes": {}}
+    def save_epoch(n: int, epoch: int, net: torch.nn.Module) -> None:
+        M.save(str(out / f"distilled_{n}_e{epoch}.pt"), net, table,
+               {"distilled_from": a.init, "epoch": epoch})
+
     for n, (net, rep) in distil(base, recs, a.rule, [int(x) for x in a.sizes.split(",")], dev,
-                                a.lr, a.epochs, a.mb).items():
+                                a.lr, a.epochs, a.mb,
+                                save_epoch if a.save_epochs else None).items():
         M.save(str(out / f"distilled_{n}.pt"), net, table, {"distilled_from": a.init, **rep})
         report["sizes"][n] = rep
         print(json.dumps({"n": n, **{k: v for k, v in rep.items() if k != "history"}}), flush=True)

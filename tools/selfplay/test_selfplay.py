@@ -1595,10 +1595,16 @@ def test_distilling_search_targets_moves_the_network_toward_the_better_move(tabl
     torch.manual_seed(0)
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     before = D.policy(net.eval(), [feats], torch.device("cpu"))[0][1]
-    (trained, rep), = D.distil(net, recs, "se", [40], torch.device("cpu"), lr=1e-3,
-                               epochs=3).values()
+    seen: list[tuple[int, int, float]] = []
+    (trained, rep), = D.distil(net, recs, "se", [40], torch.device("cpu"), lr=1e-3, epochs=3,
+                               on_epoch=lambda n, e, m: seen.append(
+                                   (n, e, D.policy(m, [feats], torch.device("cpu"))[0][1]))
+                               ).values()
     after = D.policy(trained, [feats], torch.device("cpu"))[0][1]
     assert after > before and rep["val"] == 2 and rep["held_out_agreement"] == 1.0
+    # every trained epoch is shown, as it was then (E3 kept epoch 0 and hid them, 186 §5)
+    assert [(n, e) for n, e, _ in seen] == [(40, 1), (40, 2), (40, 3)]
+    assert after in [p for _, _, p in seen] and seen[0][2] > before
 
 
 def test_a_player_is_rated_against_frozen_pool_ratings(tmp_path) -> None:
