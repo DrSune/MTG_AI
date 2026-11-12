@@ -1,0 +1,58 @@
+{
+ "base": "b776cf74 (export)",
+ "head": "c55e7730",
+ "decks": "verified pool, even seeds stress, odd coherent; deck_pairs_seed 1409",
+ "agents": "HeuristicAgent vs HeuristicAgent",
+ "seeds": "0-299 per set",
+ "sets": {
+  "M21": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 297,
+   "play_differs": [],
+   "fingerprint_only_differs": [
+    29,
+    171,
+    195
+   ],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    131.9,
+    134.2
+   ]
+  },
+  "M20": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 299,
+   "play_differs": [],
+   "fingerprint_only_differs": [
+    167
+   ],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    113.2,
+    114.6
+   ]
+  },
+  "FDN": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 300,
+   "play_differs": [],
+   "fingerprint_only_differs": [],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    113.0,
+    112.3
+   ]
+  }
+ },
+ "fingerprint_only_cause": "a permanent stolen until end of turn (Traitorous Greed, Act of Treason): its keyword record's controller follows it (M21 seed 29 Turret Ogre, M20 seed 167 Cavalier of Thorns); the world, events and journal are identical"
+}
