@@ -137,9 +137,13 @@ Pack vocabulary (all keys required as noted):
                                             instant cast after blocks
                                             the whole COMBAT phase; the
                                             ask provider answers ONLY from
-                                            these maps (the engine narrows
+                                            these maps and the step's
+                                            "decisions" (the engine narrows
                                             the vocabulary; an unspecified
-                                            block is NONE)]
+                                            block is NONE). A caller's own
+                                            answerer (the G1 probe) keeps the
+                                            asks no map or word claims that
+                                            are not combat declarations]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},  zone may be
                                             "ceased": a token gone (CR 704.5d),
               "damage": {key: int...},      — the damage mark ledger
@@ -277,6 +281,9 @@ def _bf_target():
 #: Any other word must be one the ask offers, or the pack fails (a silent fallback would let a
 #: shifted queue pass).
 FIRST_LEGAL = "first-legal"
+#: The asks a combat step's maps describe: the combat itself (attackers, blockers, damage order,
+#: trample excess, damage policy). An unspecified one keeps the combat op's default.
+COMBAT_DECLARATIONS = ("attack:", "block:", "order:", "trample:", "policy:")
 _ORACLES: dict[str, Any] = {}  # the act op's card text, one index per set
 
 
@@ -809,7 +816,17 @@ class ScenarioRunner:
         ``policy`` maps an attacker key to AS_BLOCKED/UNBLOCKED. An
         unspecified block defaults to NONE. An answer the vocabulary does
         not offer is never forced: the ask takes its first legal word and
-        the miss fails the pack (self.unoffered)."""
+        the miss fails the pack (self.unoffered).
+
+        A caller that installed its own answerer before the step (the G1
+        probe, which shows every ask) keeps it for the asks the step does
+        not describe: no map, queue or script word claims them and they are
+        not combat declarations (a trigger's target, a may-offer). Before,
+        the combat answered those itself, unseen, with their first word: the
+        probe showed Feline Sovereign's trigger destroying a target its
+        controller was never shown to choose. A pack installs none, so its
+        defaults are unchanged."""
+        outer = self.ex.decisions.provider
         answers: dict[str, str] = {}
         queues: dict[str, list[str]] = {}
         for key, go in step.get("attack", {}).items():
@@ -863,6 +880,8 @@ class ScenarioRunner:
             if got is not None and got not in vocab:
                 self.unoffered.append(f"{what}: pack word {got!r} not offered in {tuple(vocab)}")
             if got is None:
+                if outer is not None and not what.startswith(COMBAT_DECLARATIONS):
+                    return outer(vocab, what)
                 if what.startswith("may:"):
                     got = "skip"
                 elif what.startswith("block:"):
@@ -894,7 +913,7 @@ class ScenarioRunner:
                         self.ex.decisions.provider = answer
             self.ex.combat_blocks(seat)
         finally:
-            self.ex.decisions.provider = None
+            self.ex.decisions.provider = outer
 
     def check(self) -> list[str]:
         fails = []

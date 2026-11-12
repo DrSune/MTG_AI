@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.' The opponent controls two legal targets, a Relic and a Charm. The controller chooses the target as the trigger goes on the stack (CR 603.3d, 601.2c) and picks the Charm: the Charm is destroyed, the Relic stays. With feline_sovereign_once_per_combat_damage_step (the Relic) and feline_sovereign_controller_chooses_no_target (NONE), every word of the ask is honoured; an engine that picked for its controller could not pass all three. The G1 probe once hid this ask (verification wave 1, packet A15): the scenario runner's combat op answered it unseen.",
+ "cards": [
+  {"key": "feline", "real": "Feline Sovereign", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Bronze Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "charm", "name": "Silver Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"feline": true}, "decisions": ["charm"]}
+ ],
+ "expect": {
+  "zone": {"relic": "battlefield", "charm": "graveyard"},
+  "life": {"0": 20, "1": 18}
+ }}

@@ -793,10 +793,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     the board, and the "Aura" probe card is a 2/2 creature.
   - A 0/0 X creature dies at setup (Wildwood Scourge); stimuli never end the turn, so "until end
     of turn" on a triggered effect goes unexercised; the opponent's attack stimulus never asks
-    for blocks; an Equipment's attachment is invisible without a static; combat stimuli answer
-    trigger target asks and unprimed "may" choices internally; pools emptying at end of turn
-    hide payments.
+    for blocks; an Equipment's attachment is invisible without a static; pools emptying at end
+    of turn hide payments.
   - An animated land shows only +HASTE (no P/T or type) in G1 (Wakeroot Elemental).
+- **Regenerate the wave-1 packets whose G1 trace changed** (2026-11-12): combat stimuli now show
+  the asks a combat makes (a trigger's target, a may-offer, a mode), which the pack runner's
+  combat op used to answer unseen with their first word; packet A15 (Feline Sovereign) showed a
+  target destroyed that nobody was shown to choose, although the engine had asked. A verdict read
+  from an old trace fails `cardtool verify` ("the reviewer read a different trace"). Of wave 1's
+  cards only A15 changed (16 of 1,125 M21/M20/FDN traces, draft records applied). 14 of the 688
+  verified cards' traces changed too (Battle-Rattle Shaman and Solemn Simulacrum in M21 and FDN,
+  Dire Fleet Warmonger, Elder Gargaroth, Garruk's Harbinger, Goblin Arsonist, Jeskai Elder,
+  Pitchburn Devils, Siege Striker, Spined Megalodon, Steadfast Sentry, Tomebound Lich); their
+  records' `probe_sha` only matters to a re-run of `cardtool verify`.
 - **Pack runner (`tools/run_scenarios.py`)** (pack-repair agent and verifiers, 2026-11-05 and
   2026-11-06):
   - **Decision words no ask uses pass silently** (the third silent-pass hole, after unread expect
