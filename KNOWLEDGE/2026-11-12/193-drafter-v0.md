@@ -83,3 +83,14 @@ which `--capture` does not deal yet. It comes with the first loop round.
 
 **Cost.** G2 is 8,000 games and G4 4,000, at about 15 games a second: under 20 minutes of a GPU
 window.
+
+## 3. Results
+
+**The capture check** (§1's last item; exploratory). It finished 2026-11-12 02:36 and passed.
+- It compared window 1's capture, all 40 shards: 2,291,252 positions from 40,000 games.
+- At every position, the opponent's hidden cards (true hand and library) plus its public cards
+  must equal the deck rebuilt from the game's seed at e462628 (`decks._check_capture_here`,
+  `tools/selfplay/decks.py:118`).
+- 0 mismatches. The rebuilt decks are the decks those games were played with, so a critic or a
+  simulator can be fitted on rebuilt decks without storing them.
+- It took 123 minutes on one core at nice 19, beside window 1's N3 to N4 steps.
