@@ -1,12 +1,14 @@
 """Gate B's GB2 (KNOWLEDGE/2026-11-12/196 §2): agreement with the search's pick on the held-out
-targets of the 300k distillation, which no distilled network trained on.
+targets of the larger distillation, which no distilled network trained on.
 
     PYTHONPATH=. .venv/bin/python reports/gate_b_2026-11-12/agreement.py OUT.json G.pt \\
-        NET100.pt NET300.pt RUN...
+        NET100.pt NET300.pt SIZE RUN...
 
 RUN... are the generation's chunk runs in order, as distill.py was given them; the held-out
-targets are distill.split's for 300,000. For each network it reports the share of those targets
-where its top option is the search's pick, and the share where its top option differs from G's.
+targets are distill.split's for SIZE, the larger distillation's size (300,000 as registered;
+the queue passes its own, so the two never disagree). For each network it reports the share of
+those targets where its top option is the search's pick, and the share where its top option
+differs from G's.
 GB2 is NET300 - NET100, paired by target, with a 95% interval from 2,000 bootstrap resamples of
 deals.
 """
@@ -20,9 +22,11 @@ import torch
 from tools.selfplay import model as M
 from tools.selfplay.distill import load_targets, policy, split
 
-out, g_path, n100, n300, *runs = sys.argv[1:]
+out, g_path, n100, n300, size, *runs = sys.argv[1:]
 recs = load_targets(runs)
-_, val, _ = split([r.get("seed") for r in recs], 300_000)
+if len(recs) < int(size):
+    raise SystemExit(f"{len(recs)} targets, fewer than the size {size} the networks were named for")
+_, val, _ = split([r.get("seed") for r in recs], int(size))
 held = [recs[i] for i in val]
 del recs
 dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
