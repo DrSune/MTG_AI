@@ -40,3 +40,6 @@ reports/episodes_iter1.jsonl
 runs/
 # card tooling caches (tools/cards/corpus.py), rebuilt on demand
 .cache/
+
+# agents' temporary git worktrees (Claude Code creates them here)
+.claude/worktrees/
