@@ -796,6 +796,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
+  verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
+  - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
+    into your hand instead."
+  - The tree runs the normal outcome first (one card to hand, the rest to the bottom), then a
+    Conditional moving a count-1 CHOOSE over `result` to hand. So it gives one card, not three, and
+    never "instead".
+  - Unreachable today: no compiled card casts it from elsewhere. M20 Chandra, Acolyte of Flame's −2
+    would, but it needs an atom.
+  - The fix is a compiler one: an "instead" clause on a look chooses between the two outcomes,
+    Conditional(not from hand, all looked-at cards to hand, else the normal pair). Test it with a
+    pack once the runner can cast from a zone other than the hand (the Archfiend's Vessel item
+    needs the same op).
+  - See the Truth stays unverified until then; its main branch was judged OK.
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
   - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
