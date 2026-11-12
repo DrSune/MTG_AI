@@ -361,3 +361,28 @@ searched decisions. **Met.**
 - So searching the priority stops adds about +0.01 to +0.02 at n = 16.
 - The wall time is 3.3 times the act-only point's for 1.8 times the searched decisions: one
   searched game with many priority stops ran long at the end.
+
+### 7.3 N2: the plain grid, top 4 in 4 worlds each (2026-11-12 01:57-02:16)
+
+| | gumbel, n = 16 | topk 4 x 4 |
+|---|---|---|
+| Score, 300 deals | 0.5825 ± 0.012 | 0.5742 ± 0.014 |
+| Searched decisions per game | 12.59 | 12.88 |
+| Moves changed | 15.4% | 40.0% (act 41.2%, attack 34.5%) |
+| Clear corrections per game | 0.64 | 0.78 |
+| No difference in result | 16% | 20% |
+| Seconds per simulation | 1.30 | 1.42 |
+| Wall time | 27 min | 19 min |
+
+**P4** (gumbel minus topk at 16 simulations, predicted -0.01 to +0.03, falsified below -0.02):
++0.0083 ± 0.0144, 95% [-0.020, +0.037]. **Met.**
+
+**Exploratory.**
+- Against the uniform gumbel points around n = 16: +0.007 (n = 8), +0.007 (n = 32), -0.004 (n = 64),
+  and +0.003 ± 0.0125 against their mean. The two roots are not told apart.
+- The grid changes 40% of the network's moves, against gumbel's 15%, for the same score.
+  - It compares four candidates on four worlds each, without the network's prior.
+  - So most of its extra changes are noise that neither helps nor hurts.
+  - Gumbel's halving keeps the prior in the comparison.
+- The two runs' deal scores correlate only 0.39 (against 0.56-0.79 for the other variants). The
+  different moves take the games down different paths.
