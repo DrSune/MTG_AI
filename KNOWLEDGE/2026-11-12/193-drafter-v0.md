@@ -94,3 +94,40 @@ window.
 - 0 mismatches. The rebuilt decks are the decks those games were played with, so a critic or a
   simulator can be fitted on rebuilt decks without storing them.
 - It took 123 minutes on one core at nice 19, beside window 1's N3 to N4 steps.
+
+**G1, the new game (2026-11-12 05:22, at r27's update 28): passed.**
+- Data: r27's `train_rows.jsonl` as it stood, 61,140 games from updates 1-29, copied to
+  `runs/window2/r27_train_rows_g1.jsonl`.
+  - 52,036 of them were between networks, and 52,000 of those were decided.
+  - The decks were rebuilt at d6dcdff (`runs/window2/r27_decks_g1.npz`; 61,140 deals, 462 cards).
+
+| Model | Held-out log-loss | Penalty | Calibration error (expected / largest bin) |
+|---|---|---|---|
+| Baseline: colour pair, seat, pilots, 12 deck summaries | 0.67929 | 0.003 | 0.0066 / 0.020 |
+| Card values | 0.66933 | 0.003 | 0.0081 / 0.016 |
+
+- The gain is **0.00996 ± 0.00074** per game, 95% lower bound 0.0085, above 0. The cards'
+  calibration error is 0.0081, below 0.02. The prediction was 0.004-0.010: met, at its top.
+- **The critic** is `runs/window2/critic_r27.json` (content hash 6b8014ae; the file's sha256
+  4e2e18ce…).
+- The card values correlate 0.76 with r26's on the old game (rank 0.74, 242 shared cards).
+- The top cards are Baneslayer Angel, Elder Gargaroth, Rotting Regisaur, Terror of the Peaks and
+  Massacre Wurm. The bottom ones are Riddleform, Masked Blackguard, Retributive Wand, Spectral
+  Sailor and Idol of Endurance.
+  - The values say how these pilots win with a card, not how good it is. Spectral Sailor's flash
+    and its draw ability are play the network may not have learned yet.
+- Seat 0's edge (on the play) is +0.024 logits.
+
+**G3 (2026-11-12 05:24): passed.** The decks are 1,000 per K, seat 0's dealt deck of the M21
+deals 900,000-900,999 (G2's), after K swaps (`decks.drafted_decks`, scratch `drafter_g3.py`):
+
+| K | Distinct decks | Spells in at least 1% of decks | Decks outside the band (all started outside) | Predicted gain over the dealt deck |
+|---|---|---|---|---|
+| 0 | 1,000 | 237 | 29 | 0 |
+| 4 | 1,000 | 228 | 7 | +1.00 logits |
+| 8 | 1,000 | 210 | 7 | +1.64 |
+| 16 | 1,000 | 170 | 7 | +2.45 |
+
+- The new critic predicts gains about 20% larger than r26's did (+0.82 / +1.38 / +2.09, §1).
+- G2 tests whether they are real: its predictions (K = 8: 0.58-0.70) expect the critic to
+  overstate them.
