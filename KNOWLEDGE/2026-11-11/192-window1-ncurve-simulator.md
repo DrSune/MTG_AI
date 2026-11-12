@@ -386,3 +386,72 @@ searched decisions. **Met.**
   - Gumbel's halving keeps the prior in the comparison.
 - The two runs' deal scores correlate only 0.39 (against 0.56-0.79 for the other variants). The
   different moves take the games down different paths.
+
+### 7.4 N4: horizon 2 (2026-11-12 02:16-03:18)
+
+| | horizon 1, n = 16 | horizon 2, n = 16 |
+|---|---|---|
+| Score, 300 deals | 0.5825 ± 0.012 | 0.5767 ± 0.0126 |
+| Searched decisions per game | 12.59 | 12.77 |
+| Moves changed | 15.4% | 16.2% (act 15.6%, attack 18.7%) |
+| Clear corrections per game | 0.64 | 0.82 |
+| No difference in result | 16% | 23% |
+| Seconds per searched decision, mean | 19.1 | 35.9 |
+| Seconds per simulation | 1.30 | 2.45 |
+| Wall time | 27 min | 62 min |
+
+**P6** (horizon 2 minus horizon 1, predicted -0.01 to +0.03 at about twice the time; no falsifier,
+cost-benefit only): -0.0058 ± 0.0111, 95% [-0.028, +0.016], deal correlation 0.60, at 1.88 times
+the time per searched decision. Inside the predicted range. **The cost-benefit says no:** twice
+the time for no measurable gain.
+
+**Exploratory.**
+- Against the uniform horizon-1 points around n = 16: +0.009 (n = 8), +0.009 (n = 32), -0.002
+  (n = 64), and +0.006 ± 0.010 against their mean. Horizon 2 is not better at any n here.
+- Its extra ties are finished games. In 20.4% of its searched decisions, every simulation of
+  every candidate reached the game's end with the same result, against 13.2% at horizon 1. That
+  accounts for nearly all ties at both horizons (20.3 of 22.7 points; 13.2 of 16.0).
+- So 13% of the decisions searched at horizon 1 are already decided either way. Their time is
+  spent for nothing.
+- Horizon 2 plays the opponent's whole turn from worlds whose hidden cards are uniform (§7.1:
+  9% lands in a uniform library). That may be why the second turn adds noise rather than signal,
+  but nothing here tests it. The belief audit (KNOWLEDGE/2026-11-12/195) measures what the
+  worlds cost at horizon 1.
+
+### 7.5 N6: against the heuristic (2026-11-12 03:18-03:37)
+
+| | raw (n = 0) | searched, n = 16 |
+|---|---|---|
+| Score against the new heuristic, 300 deals | 0.6917 ± 0.0171 | 0.7283 ± 0.0164 |
+| Elo over the heuristic | +140 | +171 |
+| Searched decisions per game | — | 11.04 (act 8.89, attack 2.14) |
+| Moves changed | — | 16.7% (act 17.6%, attack 13.1%) |
+| Clear corrections per game | — | 0.50 |
+| No difference in result | — | 18% |
+| Seconds per simulation | — | 1.42 |
+| Wall time | 34 s | 17.5 min |
+
+N6 had no numbered prediction (§2). Search minus raw: **+0.0367 ± 0.0121**, 95% [+0.013, +0.060],
+deal correlation 0.74, or **+31 Elo** [+11, +51].
+
+**Exploratory.**
+- **The search's gain carries to an opponent it does not model.**
+  - Its simulations play the opponent as the network. Against the raw network, that is the
+    opponent's exact policy; against the heuristic, it is not.
+  - Its gain is +31 Elo against the heuristic. Against its own network it is +38 Elo on fresh
+    deals (gate A, 0.555), and +47-58 Elo on these deals (the n = 16 point and its neighbours'
+    mean).
+  - The difference is within the noise. At this precision, most of the gain does not come from
+    knowing the opponent's policy.
+- The old search at 6 simulations raised the score against the old heuristic by +0.045-0.060
+  (§2, P2). This one raises it by +0.037.
+- **A warning for r27's prediction 9** (191 §4: v0 against the new heuristic, 500 deals, greedy,
+  0.80-0.90).
+  - v0 is this network (u1000), and the code is the same: e462628 and r27's d6dcdff differ only
+    in the training-game log and PPO's minibatch order.
+  - Here it scores 0.692 ± 0.017 over 600 games, on M21 coherent decks.
+  - The 0.80-0.90 rested on 35 of 40 games, by r26 at update ~830, on the CPU in fp32. This run
+    used u1000 on the GPU in bf16.
+  - The start ladder will likely falsify prediction 9.
+  - Whether the precision explains the gap is checked next: the same 300 deals on the CPU in fp32
+    (§7.6).
