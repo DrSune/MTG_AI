@@ -1,0 +1,10 @@
+{"set":"M21","world":{"life":20,"seed":7,"library_top":true},
+ "cards":[{"key":"hb","real":"Garruk's Harbinger","zone":"battlefield","controller":0},
+  {"key":"pick","name":"Pick","power":1,"toughness":1,"type":"Creature","zone":"library","controller":0},
+  {"key":"r1","name":"Rest","type":"Land","zone":"library","controller":0},
+  {"key":"r2","name":"Rest","type":"Land","zone":"library","controller":0},
+  {"key":"r3","name":"Rest","type":"Land","zone":"library","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"hb":true},"decisions":["fire","pick"]}],
+ "expect":{"life":{"1":16},"zone":{"pick":"hand"},"hand":{"0":1},
+  "library":{"0":["Library 5","Library 4","Library 3","Library 2","Library 1","Library 0","Rest","Rest","Rest"]}},
+ "notes":"Combat damage 4 to a player: look at 4 cards from the top; may reveal a creature or Garruk planeswalker among them into hand; the rest go to the bottom of the library (here three identical Rest cards so their random order is not pinned)."}

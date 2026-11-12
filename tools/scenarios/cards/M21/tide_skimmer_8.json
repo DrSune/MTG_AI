@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"ts","real":"Tide Skimmer","zone":"battlefield","controller":0},
+  {"key":"f1","name":"Flyer","power":1,"toughness":1,"type":"Creature","keywords":["FLYING"],"zone":"battlefield","controller":0},
+  {"key":"f2","name":"Flyer","power":1,"toughness":1,"type":"Creature","keywords":["FLYING"],"zone":"battlefield","controller":0},
+  {"key":"g1","name":"Ground","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"ts":true,"f1":true,"f2":false,"g1":false}}],
+ "expect":{"hand":{"0":1}},
+ "notes":"Attack with two creatures with flying (Skimmer + Flyer): draw one card."}

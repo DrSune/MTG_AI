@@ -1,0 +1,10 @@
+{"set":"M21","world":{"life":20,"seed":7,"library_top":true},
+ "cards":[{"key":"hb","real":"Garruk's Harbinger","zone":"battlefield","controller":0},
+  {"key":"c1","name":"Rest","power":1,"toughness":1,"type":"Creature","zone":"library","controller":0},
+  {"key":"c2","name":"Rest","power":1,"toughness":1,"type":"Creature","zone":"library","controller":0},
+  {"key":"c3","name":"Rest","power":1,"toughness":1,"type":"Creature","zone":"library","controller":0},
+  {"key":"c4","name":"Rest","power":1,"toughness":1,"type":"Creature","zone":"library","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"hb":true},"decisions":["skip"]}],
+ "expect":{"life":{"1":16},"hand":{"0":0},
+  "library":{"0":["Library 5","Library 4","Library 3","Library 2","Library 1","Library 0","Rest","Rest","Rest","Rest"]}},
+ "notes":"Declining the may: nothing goes to hand, all four looked-at cards are put on the bottom of the library."}

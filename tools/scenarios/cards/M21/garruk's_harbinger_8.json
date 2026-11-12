@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"hb","real":"Garruk's Harbinger","zone":"battlefield","controller":0},
+  {"key":"kill","real":"Eliminate","zone":"hand","controller":1}],
+ "mana":{"1":{"B":2}},
+ "steps":[{"op":"cast","key":"kill","real":"Eliminate","controller":1,"targets":["hb"],"expect_raise":"illegal target"}],
+ "expect":{"zone":{"hb":"battlefield"}},
+ "notes":"Hexproof from black: a black spell controlled by the opponent cannot target the Harbinger."}

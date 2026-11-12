@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"hb","real":"Garruk's Harbinger","zone":"battlefield","controller":0},
+  {"key":"zap","real":"Shock","zone":"hand","controller":1}],
+ "steps":[{"op":"mana","seat":1,"add":{"R":1}},{"op":"cast","key":"zap","real":"Shock","controller":1,"targets":["hb"]}],
+ "expect":{"damage":{"hb":2},"zone":{"zap":"graveyard"}},
+ "notes":"Hexproof from black only: a red spell controlled by the opponent can target the Harbinger and deals 2 damage."}

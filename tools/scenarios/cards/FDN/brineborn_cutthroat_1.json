@@ -1,0 +1,8 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"bc","real":"Brineborn Cutthroat","zone":"battlefield","controller":0},
+  {"key":"opt","real":"Opt","zone":"hand","controller":1},
+  {"key":"opt0","real":"Opt","zone":"hand","controller":0}],
+ "mana":{"1":{"U":1},"0":{"U":1}},
+ "steps":[{"op":"advance_turn"},{"op":"mana","seat":1,"add":{"U":1}},{"op":"cast","key":"opt","real":"Opt","controller":1,"decisions":["first-legal","first-legal"]}],
+ "expect":{"zone":{"opt":"graveyard"},"counters":{"bc":{}},"power":{"bc":2}},
+ "notes":"Whenever YOU cast a spell during an opponent's turn: the opponent casting a spell on their own turn does not put a counter on the Cutthroat."}

@@ -1,0 +1,10 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"fs","real":"Feline Sovereign","zone":"battlefield","controller":0},
+  {"key":"cat","name":"Kitty","power":2,"toughness":2,"type":"Creature — Cat","zone":"battlefield","controller":0},
+  {"key":"dog","name":"Pup","power":2,"toughness":2,"type":"Creature — Dog","zone":"battlefield","controller":0},
+  {"key":"relic","name":"Opp Relic","type":"Artifact","zone":"battlefield","controller":1},
+  {"key":"charm","name":"Opp Charm","type":"Enchantment","zone":"battlefield","controller":1},
+  {"key":"myrelic","name":"My Relic","type":"Artifact","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"cat":true,"fs":false,"dog":false},"decisions":["relic"]}],
+ "expect":{"life":{"1":17},"zone":{"relic":"graveyard","charm":"battlefield","myrelic":"battlefield"},"power":{"cat":3,"dog":2,"fs":2},"toughness":{"cat":3,"dog":2}},
+ "notes":"Other Cats you control get +1/+1 (Kitty 3/3, the Dog and the Sovereign itself unchanged). A Cat other than the Sovereign deals combat damage (3) to a player: destroy up to one target artifact or enchantment THAT player controls (my own relic is not a legal target)."}

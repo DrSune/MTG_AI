@@ -5,44 +5,48 @@
  "name": "Tide Skimmer",
  "text_sha": "2fa91618235db280ef07b01abba9732a48275a88d5cfd125350ecec4e8a680c3",
  "verified": {
-  "tree_sha": "9f7169fc16e4c2b04f38591f011a1f12ddaa57d6646b054bb683ea04f6d9d1fc",
+  "tree_sha": "329f8e7500555d6ec014df3a4b19cc36373ad99286774cc483c1ce747762ca80",
   "probe_sha": "3e2da39b44f50c61834d6d9d03e06967505e48d4dc269abb3aaa8a41fce100c2",
   "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "keyword",
+    "evidence": "keywords +FLYING",
     "issue": ""
    },
    {
-    "clause": "attack with two or more fliers: draw",
+    "clause": "Whenever you attack with two or more creatures with flying, draw a card",
     "status": "NOT_EXERCISED",
-    "evidence": "single attacker only (no draw); packs A19_1, A19_2",
+    "evidence": "trace has only one flier attacking: no draw (correct). Packs A11_1 (two fliers: draw), A11_2 (three: one draw), A11_3 (one flier: none), A11_4",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M21/tide_skimmer_8.json",
+   "tools/scenarios/cards/M21/tide_skimmer_9.json",
+   "tools/scenarios/cards/M21/tide_skimmer_10.json",
+   "tools/scenarios/cards/M21/tide_skimmer_11.json",
    "tools/scenarios/cards/M21/tide_skimmer_6.json",
    "tools/scenarios/cards/M21/tide_skimmer_7.json"
   ],
   "mutation": {
-   "mutants": 15,
-   "killed": 2,
-   "score": 0.13333333333333333,
+   "mutants": 16,
+   "killed": 3,
+   "score": 0.1875,
    "survived": [
     "trigger count: once per event -> each occurrence at 1/0",
     "widen filter (drop part 0) at 1/0/event/filter",
     "widen filter (drop part 1) at 1/0/event/filter",
     "widen filter (drop part 2) at 1/0/event/filter",
     "controller YOU->OPPONENT at 1/0/event/filter/children/0/who",
-    "amount+1 at 1/0/condition/count",
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "widen filter (drop part 2) at 1/0/condition/inner_filter",
-    "widen filter (drop part 3) at 1/0/condition/inner_filter",
-    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
+    "amount+1 at 1/0/event/filter/children/3/count",
+    "widen filter (drop part 0) at 1/0/event/filter/children/3/inner_filter",
+    "widen filter (drop part 1) at 1/0/event/filter/children/3/inner_filter",
+    "widen filter (drop part 2) at 1/0/event/filter/children/3/inner_filter",
+    "widen filter (drop part 3) at 1/0/event/filter/children/3/inner_filter",
+    "controller YOU->OPPONENT at 1/0/event/filter/children/3/inner_filter/children/0/who",
     "amount+1 at 1/0/effect/args/amount",
     "controller YOU->OPPONENT at 1/0/effect/args/controller"
    ]

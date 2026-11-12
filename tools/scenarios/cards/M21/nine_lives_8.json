@@ -1,0 +1,5 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"nl","real":"Nine Lives","zone":"battlefield","controller":0}],
+ "steps":[{"op":"move","key":"nl","to":"graveyard"}],
+ "expect":{"zone":{"nl":"graveyard"},"lost":{"0":true}},
+ "notes":"When this enchantment leaves the battlefield, you lose the game."}

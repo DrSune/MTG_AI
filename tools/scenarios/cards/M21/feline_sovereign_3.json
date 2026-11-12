@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"fs","real":"Feline Sovereign","zone":"battlefield","controller":0},
+  {"key":"cat","name":"Kitty","power":2,"toughness":2,"type":"Creature — Cat","zone":"battlefield","controller":0},
+  {"key":"c1","name":"Rel","type":"Artifact","zone":"battlefield","controller":1},
+  {"key":"cat2","name":"Kitty Two","power":2,"toughness":2,"type":"Creature — Cat","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"cat":true,"cat2":true,"fs":true},"decisions":["c1"]}],
+ "expect":{"life":{"1":12},"zone":{"c1":"graveyard"}},
+ "notes":"One or more Cats deal combat damage to a player: ONE trigger per damage event (the ask is answered once). Three Cats attack: 3+3+2 = 8 damage; the single trigger destroys the one chosen artifact."}

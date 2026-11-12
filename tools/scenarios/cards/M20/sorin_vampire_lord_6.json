@@ -1,0 +1,103 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "svl",
+   "real": "Sorin, Vampire Lord",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 8
+   }
+  },
+  {
+   "key": "v1",
+   "name": "V1",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "v2",
+   "name": "V2",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b0",
+   "name": "Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ob",
+   "name": "OppBear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ob2",
+   "name": "OppBear2",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:svl:2"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:v1:-1",
+    "ob"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:v2:-1",
+    "ob2"
+   ]
+  }
+ ],
+ "expect": {
+  "controller": {
+   "ob": 0,
+   "ob2": 0
+  },
+  "tapped": {
+   "v1": true,
+   "v2": true,
+   "b0": false
+  },
+  "zone": {
+   "svl": "graveyard"
+  }
+ },
+ "notes": "Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' Each of two Vampires you control taps to take a different opposing creature; the non-Vampire Bear gained nothing (it is not tapped). Sorin spends all 8 loyalty and is put into the graveyard."
+}

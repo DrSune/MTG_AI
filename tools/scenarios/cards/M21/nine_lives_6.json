@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"nl","real":"Nine Lives","zone":"battlefield","controller":0,"counters":{"INCARNATION":7}},
+  {"key":"atk","name":"Attacker","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[{"op":"advance_turn"},{"op":"combat","seat":1,"attack":{"atk":true}}],
+ "expect":{"life":{"0":20},"zone":{"nl":"battlefield"},"counters":{"nl":{"INCARNATION":8}},"lost":{"0":false}},
+ "notes":"Combat damage to you is prevented and an incarnation counter is added: 7 counters become 8, still below nine, so Nine Lives stays and you do not lose."}

@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"nl","real":"Nine Lives","zone":"battlefield","controller":0,"counters":{"INCARNATION":8}},
+  {"key":"atk","name":"Attacker","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[{"op":"advance_turn"},{"op":"combat","seat":1,"attack":{"atk":true}}],
+ "expect":{"life":{"0":20},"zone":{"nl":"exile"},"lost":{"0":true}},
+ "notes":"The ninth incarnation counter exiles Nine Lives; it leaving the battlefield makes you lose the game. The damage was still prevented."}
