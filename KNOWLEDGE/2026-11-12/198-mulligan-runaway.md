@@ -18,7 +18,8 @@ mulligan; means per block of updates, the last row per update):
 - Its training win rates fell from 0.734 against the heuristic and 0.515 against v1 (means over
   151-165) to 0.652 and 0.472 at 169.
 - The mulligan's KL per update was the largest of any kind from update 3 (0.089), and reached
-  0.153 at 168. Every other kind stayed below 0.02.
+  0.153 at 168. No other kind with more than 100 decisions an update went above 0.048 (target, at
+  update 19); the median update's mulligan KL was 6.8 times act's.
 - **The pause.** I stopped r27 at 15:24 and gave the reason in the log: the runaway was
   accelerating, and every further save would overwrite update 165's weights with worse ones.
   The registered reads go by update count, so a pause changes nothing in them. Updates 166-169
