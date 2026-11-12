@@ -2142,9 +2142,12 @@ class TriggerBinder:
         triggers on done earlier in that resolution. Like any triggered ability it then waits,
         and goes on the stack the next time a player would receive priority (CR 603.3), its
         targets chosen then (603.3d: with no legal one it is removed). Its source and controller
-        are the resolving spell's or ability's (CR 603.7d-e). It reads that resolution's bindings
-        and X ("the sacrificed creature's power"), but not its designation: it chooses its own
-        targets. Its event names no object (``REFLEXIVE``); the journal never holds one."""
+        are the resolving spell's or ability's (CR 603.7d-e). It reads that resolution's bindings,
+        X and event register, but not its designation: it chooses its own targets, and cannot
+        read the creating ability's (IKO Back for More, BACKLOG). A bound object that has left is
+        read where it is now: "the sacrificed creature's power" would read the card in the
+        graveyard, not its last known information (CR 608.2h; BACKLOG, no such card compiles).
+        Its event names no object (``REFLEXIVE``); the journal never holds one."""
         carried = _Carried(
             {k: list(v) if isinstance(v, list) else v for k, v in ctx.bindings.items() if k != "target"},
             ctx.x_value,

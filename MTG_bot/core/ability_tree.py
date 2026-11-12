@@ -2998,10 +2998,15 @@ class DelayedTrigger:
     Reflexive (`duration` and `event` both absent, CR 603.12): "You may sacrifice a Vampire. When
     you do, Sorin deals 3 damage to any target and you gain 3 life." It has no lifetime and no
     event of its own: it is checked once, as the resolution reaches it, and triggers on an action
-    that resolution performed. That action is named by the Conditional it is the ``then_effect``
-    of (MAY_DONE for "when you do", as for "if you do", CR 118.12), the only place it may stand
+    that resolution performed. That action is the step before the Conditional(MAY_DONE) it is the
+    ``then_effect`` of ("when you do", gated as "if you do" is, CR 118.12), in the effect of a
+    spell, activated, triggered or delayed ability, the only place it may stand
     (:func:`_reflexive_misplaced`). Its `condition` and `once_per_event` are absent: nothing is
-    re-checked and nothing gathered."""
+    re-checked and nothing gathered.
+
+    ``duration=None`` means only this: no event either. A one-shot delayed trigger ("the next
+    time ...", CR 603.7b; none is built) needs a Duration value of its own, never
+    ``duration=None`` beside an event, which is refused."""
 
     duration: Duration | None
     event: EventSpec | None
@@ -3510,21 +3515,51 @@ def _is_result_misplaced(node: Any, allowed: bool) -> bool:
     )
 
 
-def _reflexive_misplaced(node: Any, gated: bool = False) -> bool:
-    """Is a reflexive DelayedTrigger (CR 603.12) reachable from ``node`` anywhere but as the
-    ``then_effect`` of a Conditional (``gated``)? The Conditional names the action it triggers
-    on ("when you do": MAY_DONE); a bare one would be a second encoding of a reflexive trigger
-    whose action always happens."""
+def _reflexive_misplaced(
+    node: Any, host: Any = None, gate: bool = False, rotated: bool = False, barred: bool = False
+) -> bool:
+    """Is a reflexive DelayedTrigger (CR 603.12) reachable from ``node`` anywhere but where it
+    means one thing: "<step>. When you do, Y"?
+
+    - ``gate``: it is the ``then_effect`` of ``Conditional(MAY_DONE)`` (exactly that predicate:
+      "when you don't" waits for a card) standing after the step it is about in a Seq. A gate
+      with no step before it would read an older may-offer, and any other predicate is not
+      "when you do".
+    - ``host``: the nearest ability around it resolves (a spell, an activated, triggered,
+      delayed or reflexive ability; granted and token ones included). A static, replacement,
+      "as ~ enters" or keyword ability never resolves, and neither does an effect an atom holds
+      as a value (REPLACE's ``instead``).
+    - ``rotated``: no EachPlayer or Repeat between the host and it. EachPlayer runs its effect
+      under each player as controller, but the reflexive trigger's controller is the resolving
+      ability's (CR 603.7e); the engine runs no Repeat.
+    - ``barred``: not in an emblem, until an emblem with a reflexive trigger brings its tests
+      (none in the 19 sets)."""
     if isinstance(node, tuple):
-        return any(_reflexive_misplaced(item) for item in node)
+        return any(_reflexive_misplaced(item, host, False, rotated, barred) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
         return False
-    if isinstance(node, DelayedTrigger) and node.reflexive and not gated:
+    if isinstance(node, DelayedTrigger) and node.reflexive and not (
+        gate and not rotated and not barred and isinstance(host, _REFLEXIVE_HOSTS)
+    ):
         return True
+    if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+        host, rotated = node, False
+        barred = barred or isinstance(node, EmblemAbility)
+    elif isinstance(node, Atom):
+        host = node  # a value of a role is no ability's effect (an ability in it resets this)
+    elif isinstance(node, (EachPlayer, Repeat)):
+        rotated = True
+    if isinstance(node, Seq):
+        for i, step in enumerate(node.steps):
+            if i and isinstance(step, Conditional) and step.pred == FAtom(pred=FAtomPred.MAY_DONE):
+                parts = ((step.then_effect, True), (step.else_effect, False))
+            else:
+                parts = ((step, False),)
+            if any(_reflexive_misplaced(part, host, g, rotated, barred) for part, g in parts):
+                return True
+        return False
     return any(
-        _reflexive_misplaced(
-            getattr(node, f.name), isinstance(node, Conditional) and f.name == "then_effect"
-        )
+        _reflexive_misplaced(getattr(node, f.name), host, False, rotated, barred)
         for f in dataclasses.fields(node)
     )
 
@@ -3628,10 +3663,12 @@ class CardRecord:
                 "take a referent Selector (elsewhere it is Selector(referent='result'), or "
                 "there is no result register to read)"
             )
-        if _reflexive_misplaced(self.abilities):
+        if _reflexive_misplaced(self.abilities, barred="Emblem" in self.types):
             raise ValueError(
                 "CardRecord: a reflexive DelayedTrigger (CR 603.12) stands only as the "
-                "then_effect of the Conditional that names the action it triggers on"
+                "then_effect of Conditional(MAY_DONE) after the step it is about, in the effect "
+                "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
+                "Repeat between"
             )
         if not isinstance(self.is_token, bool):
             raise ValueError(
@@ -3690,6 +3727,8 @@ _E_CLASSES = (
     Atom,
     DelayedTrigger,
 )
+#: The abilities that resolve, so may create a reflexive trigger (CR 603.12).
+_REFLEXIVE_HOSTS: tuple[type, ...] = (SpellAbility, ActivatedAbility, TriggeredAbility, DelayedTrigger)
 _A_CLASSES = (
     StaticAbility,
     TriggeredAbility,

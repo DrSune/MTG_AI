@@ -9,8 +9,10 @@
   it is in the event's filter. Only an intervening "if" is the trigger's condition, read again
   as it resolves (CR 603.4); Mangara's is, and reads a departed attacker's last attack.
 
-Every case below fails on the engine before the fix (the reflexive target was chosen with the
-ability's own, and the qualifiers were re-checked as conditions).
+Every case below fails on the engine before the fix it tests, but one: the Mangara test of an
+attacked planeswalker that changed control pins what the base already did right (its S5). The
+base runs are in ``reports/trigger_timing_2026-11-12/base_runs.txt``: b776cf74 for the first fix,
+989707d7 for gate round 6's (the placement refusals, the emblem record and the extra copy).
 """
 
 from __future__ import annotations
@@ -20,19 +22,34 @@ from functools import cache
 import pytest
 
 from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
     Atom,
     AtomArgs,
     CardDrawnEvent,
+    CardRecord,
     Conditional,
     ControllerRef,
+    Cost,
+    CostTap,
     DelayedTrigger,
     DurationEot,
+    EachPlayer,
+    EmblemAbility,
+    EtBState,
     FAtom,
     FAtomPred,
+    FNot,
+    OptionalEffect,
     QConst,
+    Repeat,
+    ReplacementAbility,
     Selector,
     SelectorMode,
     Seq,
+    SpellAbility,
+    SpellKind,
+    StaticAbility,
+    TokenSpec,
     TriggeredAbility,
     Verb,
     Zone,
@@ -40,7 +57,13 @@ from MTG_bot.core.ability_tree import (
     from_dict,
     to_dict,
 )
-from MTG_bot.core.executor.events import KIND_TARGETING
+from MTG_bot.core.executor import binding, verbs
+from MTG_bot.core.executor.events import (
+    KIND_ABILITY_TRIGGERED,
+    KIND_REFLEXIVE,
+    KIND_TARGETING,
+    GameEvent,
+)
 from MTG_bot.core.executor.games import compile_supply, get_supply
 from MTG_bot.core.test_executor_binding import record_of
 from tools.run_scenarios import ScenarioRunner
@@ -114,17 +137,86 @@ def test_a_reflexive_trigger_is_a_delayed_trigger_with_no_duration_and_no_event(
         DelayedTrigger(duration=None, event=None, condition=None, effect=TAP, once_per_event=True)
 
 
-def test_a_reflexive_trigger_stands_only_as_the_then_effect_of_its_gate() -> None:
-    """One encoding: the Conditional names the action it triggers on; a bare reflexive trigger
-    would be a second encoding of one whose action always happens."""
-    def card(effect):
-        return record_of((TriggeredAbility(event=YOU_DRAW, condition=None, effect=effect),))
+MAY_PAY = OptionalEffect(inner=DRAW)  # the step a "when you do" is about
+GATED = Seq(steps=(MAY_PAY, when_you_do(TAP)))  # "You may X. When you do, Y."
 
-    card(Seq(steps=(DRAW, when_you_do(TAP))))
-    for bare in (Seq(steps=(DRAW, reflexive(TAP))), reflexive(TAP),
-                 Conditional(pred=FAtom(FAtomPred.MAY_DONE), then_effect=DRAW, else_effect=reflexive(TAP))):
-        with pytest.raises(ValueError, match="reflexive DelayedTrigger"):
-            card(bare)
+
+def _trigger(effect) -> TriggeredAbility:
+    return TriggeredAbility(event=YOU_DRAW, condition=None, effect=effect)
+
+
+def _gate(pred, effect=TAP) -> Seq:
+    return Seq(steps=(MAY_PAY, Conditional(pred=pred, then_effect=reflexive(effect))))
+
+
+def _emblem(*abilities) -> CardRecord:
+    return CardRecord(oracle_id="0e0e0e0e-1111-2222-3333-444444444444", name="Test Emblem",
+                      type_line="Emblem", types=("Emblem",), subtypes=(), supertypes=(), colors=(),
+                      color_identity=frozenset(), mana_cost=None, mana_value=0, power=None,
+                      toughness=None, loyalty=None, keywords=(), abilities=abilities, is_token=True)
+
+
+def test_a_reflexive_trigger_stands_where_it_means_one_thing() -> None:
+    """CR 603.12: "<step>. When you do, Y" in a resolving ability's effect. Accepted: a spell's,
+    an activated, triggered, delayed or reflexive ability's (the delayed or reflexive one's
+    resolution creates it), a granted ability's and a token's, and under Choose, OptionalEffect
+    or another Conditional around the Seq."""
+    record_of((_trigger(GATED),))
+    record_of((SpellAbility(kind=SpellKind.SORCERY, effect=GATED),))
+    record_of((ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=GATED),))
+    record_of((_trigger(Seq(steps=(DRAW, DelayedTrigger(DurationEot(), YOU_DRAW, None, GATED)))),))
+    record_of((_trigger(Seq(steps=(MAY_PAY, when_you_do(GATED)))),))  # nested, each after its step
+    grant = Atom(Verb.GRANT_ABILITY, AtomArgs(pairs=(
+        ("ability", _trigger(GATED)),
+        ("target", Selector(QConst(1), SelectorMode.TARGET, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))))))
+    record_of((SpellAbility(kind=SpellKind.SORCERY, effect=grant),))
+    token = TokenSpec(name="Thopter", type_line="Artifact Creature — Thopter", types=("Artifact", "Creature"),
+                      subtypes=("Thopter",), power=QConst(1), toughness=QConst(1), keywords=(),
+                      abilities=(_trigger(GATED),))
+    record_of((SpellAbility(kind=SpellKind.SORCERY, effect=Atom(Verb.CREATE_TOKEN, AtomArgs(pairs=(
+        ("tokens", token),)))),))
+    record_of((_trigger(OptionalEffect(inner=GATED)),))
+    record_of((_trigger(Conditional(pred=FAtom(FAtomPred.DIED_THIS_TURN), then_effect=GATED)),))
+
+
+REFUSED = {
+    # the gate is not "when you do"
+    "gate on TYPE_EQ": lambda: _trigger(_gate(FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+    "gate on CONTROLLER_COUNT_GE": lambda: _trigger(_gate(FAtom(
+        FAtomPred.CONTROLLER_COUNT_GE, count=QConst(1), inner_filter=FAtom(FAtomPred.IS_SOURCE)))),
+    "gate on FNot(MAY_DONE)": lambda: _trigger(_gate(FNot(FAtom(FAtomPred.MAY_DONE)))),
+    # no step before the gate: MAY_DONE would read an older may-offer
+    "gate as the whole effect": lambda: _trigger(when_you_do(TAP)),
+    "gate as the first step": lambda: _trigger(Seq(steps=(when_you_do(TAP), DRAW))),
+    "gate as a normal delayed trigger's whole effect":
+        lambda: _trigger(Seq(steps=(DRAW, DelayedTrigger(DurationEot(), YOU_DRAW, None, when_you_do(TAP))))),
+    "gate as a reflexive trigger's whole effect": lambda: _trigger(Seq(steps=(MAY_PAY, when_you_do(when_you_do(TAP))))),
+    # bare: the gate's else, a Seq step, the whole effect
+    "in the else": lambda: _trigger(Seq(steps=(MAY_PAY, Conditional(
+        pred=FAtom(FAtomPred.MAY_DONE), then_effect=DRAW, else_effect=reflexive(TAP))))),
+    "a bare step": lambda: _trigger(Seq(steps=(DRAW, reflexive(TAP)))),
+    # EachPlayer runs it under another controller (CR 603.7e: the resolving ability's); no Repeat
+    "under EachPlayer": lambda: _trigger(EachPlayer(ref=ControllerRef.ALL_OPPONENTS, effect=GATED)),
+    "under Repeat": lambda: _trigger(Repeat(count=QConst(2), inner=GATED)),
+    # abilities that never resolve
+    "in a static ability": lambda: StaticAbility(effect=GATED),
+    "in a replacement": lambda: ReplacementAbility(event=YOU_DRAW, condition=None, action=GATED),
+    "in an enters-with state": lambda: EtBState(effect=GATED),
+    "in an emblem's ability": lambda: EmblemAbility(embedded=_trigger(GATED)),
+}
+
+
+@pytest.mark.parametrize("case", sorted(REFUSED))
+def test_a_reflexive_trigger_anywhere_else_is_refused(case: str) -> None:
+    with pytest.raises(ValueError, match="reflexive DelayedTrigger"):
+        record_of((REFUSED[case](),))
+
+
+def test_an_emblem_record_holds_no_reflexive_trigger() -> None:
+    _emblem(_trigger(DRAW))
+    with pytest.raises(ValueError, match="reflexive DelayedTrigger"):
+        _emblem(_trigger(GATED))
 
 
 # ------------------------------------------------------- reflexive triggers (CR 603.12)
@@ -165,6 +257,26 @@ def test_kraken_pays_with_no_legal_target_and_its_reflexive_trigger_is_removed()
     assert not r.unoffered and not r.ex.stack.frames  # the reflexive trigger was removed
     assert not any(r.world.players[r.p0].mana_pool.values())  # the {1} was paid
     assert not [e for e in _targeting_rows(r) if e.data[0] == r.handles["k"]]
+
+
+def test_an_extra_copy_of_a_reflexive_trigger_reads_the_same_resolution() -> None:
+    """Sanctum of All's "that ability triggers an additional time" (TRIGGER_ADDITIONAL) on a
+    reflexive trigger: the extra copy carries the bindings, X and event register of the
+    resolution that created it, as the original does (CR 603.12). Before, the copy was queued
+    without them, so "X" and "the sacrificed creature" read nothing."""
+    r = _runner([_creature("bear", 0)])
+    bear = r.handles["bear"]
+    carried = binding._Carried({"result": bear}, 3, None, None)
+    original = binding._Firing(source=bear, controller=r.p0, node=reflexive(TAP), seq=0, carried=carried,
+                               event=GameEvent(clock=0, kind=KIND_REFLEXIVE, subject=None, cause=bear,
+                                               cause_verb="REFLEXIVE"))
+    ctx = r.ex._ctx(source=bear, controller=r.p0, bindings=None, decisions=())
+    ctx.event = GameEvent(clock=-1, kind=KIND_ABILITY_TRIGGERED, subject=bear, cause=bear,
+                          cause_verb="TRIGGER", data=(original,))
+    before = set(r.ex.binder.firings)
+    verbs._v_trigger_additional(ctx, Atom(Verb.TRIGGER_ADDITIONAL, AtomArgs(pairs=(("count", QConst(1)),))))
+    (copy,) = [p for k, p in r.ex.binder.firings.items() if k not in before]
+    assert copy.node is original.node and copy.carried == carried
 
 
 SORIN = {"key": "sorin", "real": "Sorin, Imperious Bloodlord", "zone": "battlefield", "controller": 0,

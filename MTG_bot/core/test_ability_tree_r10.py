@@ -584,8 +584,12 @@ def _when_you_do(effect: at.Effect) -> at.Conditional:
 
 
 def test_do_prefix_registered() -> None:
-    assert "When you do" in _CONTINUATION_PREFIXES
+    assert "When you do," in _CONTINUATION_PREFIXES and "When you do so," in _CONTINUATION_PREFIXES
     assert _is_continuation("When you do, you may tap target creature.")
+    assert _is_continuation("When you do so, you may tap target creature.")
+    # Any other "When you do" sentence is no continuation: it is never merged as an
+    # unconditional sibling of the step before (it stays a sentence of its own).
+    assert not _is_continuation("When you do this, you may tap target creature.")
 
 
 def test_merge_when_you_do_is_the_if_you_do_gate_around_a_reflexive_trigger() -> None:
@@ -638,6 +642,25 @@ def test_compile_do_continuation_end_to_end() -> None:
         ("r10-may-pay", r"^You may pay \{1\}\.$",
          lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_pay_atom())))
     )
+    res = compile_card(raw, reg)
+    assert res.unparsed == ()
+    spell = res.card.abilities[0]
+    assert isinstance(spell, at.SpellAbility)
+    assert spell.effect == at.Seq(
+        steps=(at.OptionalEffect(inner=_pay_atom()), _when_you_do(at.OptionalEffect(inner=_tap_target())))
+    )
+
+
+def test_compile_when_you_do_so_is_the_same_reflexive_trigger() -> None:
+    """"When you do so, Y" reads as "When you do, Y" (one gate); before, the merge dispatch knew
+    only "When you do," and appended Y as an unconditional sibling of the payment."""
+    sent = "When you do so, you may tap target creature."
+    raw = _raw_card("Do So Testcard", 5, sentences=(_PAY_SENT, sent))
+    reg = TemplateRegistry()
+    reg.register(_template("r10-may-pay", r"^You may pay \{1\}\.$",
+                           lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_pay_atom()))))
+    reg.register(_template("r10-do-so-tap", r"^When you do so, you may tap target creature\.$",
+                           lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target()))))
     res = compile_card(raw, reg)
     assert res.unparsed == ()
     spell = res.card.abilities[0]

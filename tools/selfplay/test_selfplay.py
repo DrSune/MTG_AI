@@ -1708,19 +1708,16 @@ def test_the_search_answers_instant_speed_decisions(table) -> None:
 
     torch.manual_seed(0)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
-    # Seed 41, or the next seed when a change of the verified pool deals seed 41 a game with
-    # fewer than two instant-speed decisions for the searcher.
-    for seed in range(41, 51):
-        searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
-                            set_code="M21", root="gumbel", n=2, m=2, skip_p=1.01,
-                            kinds=("priority",), seed=41, record=True)
-        res = play_game(seed, [_PrioritySearcher(searcher, table, limit=2), HeuristicAgent()],
-                        deck_mode="coherent")
-        assert res["crash"] is None and searcher.stats["sim_errors"] == 0
-        if searcher.stats["searched:priority"] == 2:
-            break
-    else:
-        raise AssertionError("no seed in 41-50 gives the searcher two instant-speed decisions")
+    # Game seed 42: the verified M21 pool of 2026-11-12 (nine cards out after the trigger-timing
+    # fixes) deals seed 41 a game with no instant-speed decision for the searcher. When the pool
+    # changes again, pick the next seed that gives it two.
+    searcher = Searcher(M.LocalSlot({"learner": net}), 0, "learner", table, pool_mode="castable",
+                        set_code="M21", root="gumbel", n=2, m=2, skip_p=1.01,
+                        kinds=("priority",), seed=41, record=True)
+    res = play_game(42, [_PrioritySearcher(searcher, table, limit=2), HeuristicAgent()],
+                    deck_mode="coherent")
+    assert res["crash"] is None and searcher.stats["sim_errors"] == 0
+    assert searcher.stats["searched:priority"] == 2
     assert ms_percentiles(searcher.stats)["n"] == 2
     # record=True keeps each searched decision as a training target: its encoding, the
     # network's probabilities, and per compared option its mean, worlds and variance

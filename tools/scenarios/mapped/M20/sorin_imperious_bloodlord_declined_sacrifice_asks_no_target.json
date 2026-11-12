@@ -14,5 +14,5 @@
   "life": {"0": 20, "1": 20},
   "counters": {"sorin": {"LOYALTY": 5}}
  },
- "notes": "Waits for the card's verification (a mapped record: `cardtool runpack M20 <pack>`). Sorin, Imperious Bloodlord's '[+1]: You may sacrifice a Vampire. When you do, ...' with the sacrifice declined: nothing triggers, so no target is asked and nothing is targeted (CR 603.12). Before 2026-11-12 the +1 asked a target as it was activated, so a 'targeted' event fired although the sacrifice was then declined ('skip' found the target ask)."
+ "notes": "Waits for the card's verification: played on its mapped record, as `cardtool runpack M20 <pack>` plays it. Sorin, Imperious Bloodlord's '[+1]: You may sacrifice a Vampire. When you do, ...' with the sacrifice declined: nothing triggers, so no target is asked and nothing is targeted (CR 603.12). Before 2026-11-12 the +1 asked a target as it was activated, so a 'targeted' event fired although the sacrifice was then declined ('skip' found the target ask)."
 }

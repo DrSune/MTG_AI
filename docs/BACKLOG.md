@@ -173,6 +173,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Triggers, events and the journal
 
+- **An event-filter qualifier is read without the layers brought up to date** (2026-11-12, gate
+  round 6 m4). `TriggerBinder._queue` runs `layers.recompute()` before it reads an intervening
+  "if" (CR 603.10: the effects that exist right after the event), but `_match_node` reads the
+  event's filters as they stand. Since R6-2 the event qualifiers are in those filters (Tide
+  Skimmer's "two or more creatures with flying", Makeshift Battalion's "at least two other
+  creatures attack"), so a continuous effect that changed with the event (a flyer granted or lost
+  in the same op) can be misread. Recompute before matching an event whose node holds a qualifier
+  that reads characteristics, or once per drained batch.
+- **A reflexive trigger cannot read the target of the ability that created it** (2026-11-12, gate
+  round 6 m1). `fire_reflexive` carries its resolution's bindings without `target`, so the
+  reflexive trigger's own targets are its own (CR 603.12); IKO Back for More's "Return target
+  creature card ... When you do, it fights up to one target creature you don't control" needs
+  "it", the creator's target, in a register of its own (a distinct binding name), not in
+  `target`. Unparsed; build it with the card.
 - **A state trigger triggers again while it waits** (2026-11-12, found reading Nine Lives'
   rulings). CR 603.8: "When there are four or more page counters on this artifact" (Mazemind
   Tome), "nine or more incarnation counters" (Nine Lives) trigger once and not again until the
@@ -710,6 +724,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   reflexive sentences in the 19 sets are unparsed (census in the 2026-11-12 trigger-lane report:
   Faebloom Trick's clause parses on its own, so a "When you do, <clause>" frame would compile
   it; the rest need their antecedent, a pronoun reading or "this way").
+- **"If you don't, Y" would merge as an unconditional sibling** (2026-11-12, found fixing gate
+  round 6 m3). `compiler._CONTINUATION_PREFIXES` holds "If you do", so "If you don't, ..." and
+  "If you don't control/put ..." are continuations, but the merge dispatch gates only
+  `_DO_GATES` ("If you do,", "If you do so,", "When you do,", "When you do so,"); any other
+  continuation is appended as a step of its own, Y done whether or not X was. 15 sentences of
+  the 19 sets start so, all unparsed but M20 Risen Reef's, which its record maps. With the first
+  template, gate "If you don't," as `Conditional(FNot(MAY_DONE), Y)` and drop "If you do" from
+  the prefixes for `_DO_GATES`, as "When you do" was.
+- **The trigger-timing check counts; it cannot see a qualifier joined into an intervening "if"**
+  (2026-11-12, gate round 6 M2). `ontology_conformance.check_trigger_timing` compares trigger
+  conditions with intervening "if"s and reflexive triggers with reflexive sentences, both ways.
+  A card printing both an event qualifier and an intervening "if" could put the qualifier into
+  the "if"'s condition and keep the counts equal; no sentence of the 19 sets has both
+  (`reports/trigger_timing_2026-11-12/census.txt`, third section: 0). With the first such card,
+  read the condition's conjuncts against the "if" clause.
 - **A reflexive trigger reads a departed object's last known information only within the op it
   left in** (2026-11-12): `fire_reflexive` carries its resolution's bindings, but
   `quantity.last_known` answers for an object that left the battlefield only in that op or for
@@ -777,8 +806,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/sanitarium_skeleton_*`): the record, unchanged, goes back to
     blind G2 (its G1 trace changed; its mapping notes still describe the old engine).
   - **Sorin, Imperious Bloodlord's +1.** Re-mapped 2026-11-12 as a reflexive trigger (CR 603.12),
-    its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs wait
-    in `tools/scenarios/known_bugs/sorin_imperious_bloodlord_*` (`cardtool runpack M20 <pack>`).
+    its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs,
+    `tools/scenarios/mapped/M20/sorin_imperious_bloodlord_*`, run in the suite on the record.
   - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
     one-of choice.
   - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
@@ -787,16 +816,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     with no ask.
 - **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
   changed, verified stamps left untouched, so each left the verified pool, the pool training runs
-  deal, once a run pins this code: M21 270 -> 265, M20 257 -> 255, FDN 175 -> 173 stamps):
+  deal, once a run pins this code. Verified deckable pools measured on the tree merged with main
+  bc0d4606, `get_supply("verified", <set>)`: M21 269 -> 264, M20 255 -> 253, FDN 175 -> 173):
   - reflexive triggers (CR 603.12): M20 Cavalier of Night (record re-mapped). Its pack
-    `cavalier_of_night_2` needs the record and waits in `known_bugs/` with the new
-    `cavalier_of_night_sacrifices_with_no_opposing_creature`;
+    `cavalier_of_night_2` needs the record and runs on it from `tools/scenarios/mapped/M20/`,
+    with the new `cavalier_of_night_sacrifices_with_no_opposing_creature`;
   - event qualifiers out of the condition (CR 603.4): M21 Tide Skimmer, Makeshift Battalion,
     Mazemind Tome, Nine Lives, Sanctum of All (compiler trees, their spec packs still pass in the
     suite), FDN Mazemind Tome, and M20 and FDN Brineborn Cutthroat (records re-mapped; they play
     as before, the turn cannot change while the trigger waits). Brineborn's `brineborn_cutthroat_1`
-    packs need the record and wait in `known_bugs/` (`_M20`, `_FDN`);
-  - after re-verification the `known_bugs/` packs above go back to `cards/<SET>/`.
+    packs need the record and run on it from `tools/scenarios/mapped/M20/` and `mapped/FDN/`;
+  - after re-verification the `mapped/<SET>/` packs above go to `cards/<SET>/`.
 - **Verification wave 1's eight G3-blocked cards** (2026-11-12, after the G3 equivalence rules;
   `reports/g3_equivalence_2026-11-12/`). Verdicts in `runs/verify_wave1/verdicts/`.
   - M20 Gods Willing: G3 clear; `cardtool verify` passes with its verdict as it stands.
@@ -914,6 +944,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     mutant is equivalent (`proof_mangara.py`) but its shape is that one card's, so no rule.
   - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
+- **G3 has no operator for a qualifier re-read on resolution** (2026-11-12, gate round 6 m8). R6-2
+  moved event qualifiers out of the condition; a mutant moving one back (Tide Skimmer's "two or
+  more creatures with flying" re-read as the trigger resolves) differs only when the qualifier
+  stops holding while the trigger waits, which no pack can stage ("A pack cannot respond to a
+  combat trigger", Combat). Add the operator as non-critical, or add the combat op's response
+  window first and make it critical.
 - **Probe (G1) blind spots** (verifiers: M20 2026-11-05, FDN round 1 and round 3 2026-11-06).
   - Clauses left NOT_EXERCISED: granted abilities are never activated, loyalty never reaches an
     ultimate, the land drop is always a Plains, the library holds 6 cards, no planeswalker is on
@@ -1096,6 +1132,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
   columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
   columns with zeros since 2026-11-06).
+- **A delayed or reflexive trigger on the stack encodes as ability index -1** (2026-11-12, gate
+  round 6 m7; `tools/selfplay/features.py` `_ability_index`): its node is no printed ability of
+  its source, so Tolarian Kraken's reflexive tap-or-untap looks like any other trigger of the
+  Kraken that its record does not hold. Encode the printed ability whose effect holds the node
+  at the next observation-schema change.
 - **A target ask does not show the X its row announced** (2026-11-06): X comes first, in the act
   row (`cast:<card>:x<N>`, CR 601.2b), but the target asks that follow show the spell only as the
   ask's source card, so Volcanic Geyser's and Primal Might's targets are chosen blind to X. Add the

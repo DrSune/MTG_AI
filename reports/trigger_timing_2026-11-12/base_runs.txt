@@ -48,3 +48,43 @@ WAR:Makeshift Battalion: 1 trigger condition(s), 0 intervening "if"
 ## reports/g3_equivalence_2026-11-12/proof_mangara.py: S6 (an attacker gone while the trigger
 ## waits) draws nothing on b776cf74 and one card here (its ruling: the attacker's last known
 ## attack). S5 draws nothing on both.
+
+# Gate round 6 (2026-11-12): the new tests on 989707d7, the branch with main merged and before
+# the round's fixes (a git-archive copy importing its own code, the test files copied in).
+
+## MTG_bot/core/test_executor_trigger_timing.py on 989707d7: 15 fail, the first fix's 15 pass.
+## Two placement cases (a bare step, the else) were refused before and pass there too.
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate as a normal delayed trigger's whole effect]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate as a reflexive trigger's whole effect]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate as the first step]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate as the whole effect]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate on CONTROLLER_COUNT_GE]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate on FNot(MAY_DONE)]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[gate on TYPE_EQ]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[in a replacement]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[in a static ability]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[in an emblem's ability]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[in an enters-with state]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[under EachPlayer]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_anywhere_else_is_refused[under Repeat]
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_an_emblem_record_holds_no_reflexive_trigger
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_an_extra_copy_of_a_reflexive_trigger_reads_the_same_resolution
+
+## MTG_bot/core/test_ability_tree_r10.py on 989707d7 (m3: "When you do so, you may tap ..."
+## compiled as an ungated sibling of the payment, Seq(OptionalEffect(PAY),
+## OptionalEffect(OptionalEffect(TAP))): offered whether or not {1} was paid)
+FAILED MTG_bot/core/test_ability_tree_r10.py::test_do_prefix_registered
+FAILED MTG_bot/core/test_ability_tree_r10.py::test_compile_when_you_do_so_is_the_same_reflexive_trigger
+
+## tools/audit/test_ontology_conformance.py on 989707d7: test_trigger_timing_scan_has_teeth and
+## test_a_subject_free_qualifier_has_one_slot fail (the new signature, no qualifier-slot check).
+## What 989707d7's check says of the reverse fixtures (round6_old_check.py, from that copy):
+reflexive node, no reflexive wording: []
+'Each opponent may discard a card. When t' with no reflexive node: []
+'When a creature is put onto the battlefi' with no reflexive node: []
+an intervening if in the event filter: []
+has a qualifier-slot check: False
+
+## The six record packs moved from known_bugs/ to tools/scenarios/mapped/<SET>/ (the suite plays
+## them on the records): brineborn_cutthroat_1 (M20, FDN; were _M20, _FDN), cavalier_of_night_2,
+## cavalier_of_night_sacrifices_with_no_opposing_creature, sorin_imperious_bloodlord_* (2).

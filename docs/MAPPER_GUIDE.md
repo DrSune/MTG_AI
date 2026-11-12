@@ -170,19 +170,28 @@ $PY tools/cards/cardtool.py --help
   creature and at least two other creatures attack" (Makeshift Battalion), "during an
   opponent's turn" (Brineborn Cutthroat), "while you control six or more Shrines" (Sanctum of
   All), and a state trigger's threshold, "When there are four or more page counters on this
-  artifact" (Mazemind Tome, CR 603.8). A count or turn test that does not read the subject is
-  still a conjunct of the subject filter (`filter`; `subject` on a ZoneChangeEvent).
-  `tools/audit/test_ontology_conformance.py` flags a card with more trigger conditions than
-  intervening "if"s.
+  artifact" (Mazemind Tome, CR 603.8). A count or turn test that does not read the subject
+  (TURN_OF, CONTROLLER_COUNT_GE, ...: `ontology_conformance.SUBJECT_FREE`) has one slot per event:
+  `subject` on a ZoneChangeEvent, `filter` on an event that has one, `source` on an
+  AbilityActivatedEvent, else `actor` (TurnPhase, CardDrawn, LifeGained, LifeLost and Sacrifice
+  events). Not `actor` beside a `filter`: `CastSpellEvent(filter=FAtom(TURN_OF, who=OPPONENT),
+  actor=<you>)` for Brineborn Cutthroat. `tools/audit/test_ontology_conformance.py` flags one in
+  another slot, and a card whose trigger conditions and intervening "if"s differ in number
+  (either way).
 - **"You may X. When you do, Y"** (a reflexive trigger, CR 603.12) is
   `Seq(OptionalEffect(X), Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None,
   condition=None, effect=Y)))`: the "If you do" gate around a DelayedTrigger with no duration
   and no event. Y triggers as the resolution reaches the gate and goes on the stack afterwards,
   choosing its targets then: never write it as "If you do" (Y inline), which chooses Y's targets
   with the ability's own (Sorin, Imperious Bloodlord's sacrificed Vampire was offered as its
-  target). A mandatory "X. When you do, Y" is gated the same way. The reflexive trigger stands
-  only as the gate's `then_effect` (the IR refuses it anywhere else), and an ability designates
-  only its own targets: a delayed, reflexive or granted ability chooses its own.
+  target). A mandatory "X. When you do, Y" is gated the same way, and "When you do so, Y" is the
+  same trigger. The reflexive trigger stands only as the `then_effect` of exactly
+  `Conditional(MAY_DONE)` (not its FNot), after X in the Seq, in the effect of a spell, activated,
+  triggered or delayed ability (a granted or token one too), with no EachPlayer or Repeat between,
+  and never in a static, replacement, "as ~ enters" or emblem ability: the IR refuses it anywhere
+  else. An ability designates only its own targets: a delayed, reflexive or granted ability
+  chooses its own. The checker counts reflexive triggers against reflexive sentences ("when you
+  do", "when they do", "when ... this way") both ways.
 - **Ability words** (Threshold, Raid, Morbid, Landfall, Battalion) are not keywords and have no
   rules meaning (CR 207.2c). Write the trigger: its intervening "if" (Raid, Threshold, Morbid)
   is the condition, its event qualifier (Battalion's "and at least two other creatures attack")

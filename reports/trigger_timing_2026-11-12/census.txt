@@ -1,4 +1,4 @@
-## Reflexive sentences: 23 in 22 cards
+## Reflexive sentences: 22 in 21 cards
 M21 | Tolarian Kraken | compiled | B2b-do-tap-or-untap | When you do, you may tap or untap target creature.
 ZNR | Leyline Tyrant | partly-compiled | UNPARSED (triggered) | When you do, it deals that much damage to any target.
 ZNR | Pyroclastic Hellion | partly-compiled | UNPARSED (triggered) | When you do, this creature deals 2 damage to each opponent.
@@ -17,7 +17,6 @@ FDN | Wildborn Preserver | partly-compiled | UNPARSED (triggered) | When you do,
 ELD | Flaxen Intruder // Welcome Home | partly-compiled | UNPARSED (triggered) | When you do, destroy target artifact or enchantment.
 ELD | The Royal Scions | partly-compiled | UNPARSED (triggered) | When you do, The Royal Scions deals damage to any target equal to the number of cards in your hand.
 ELD | Wildborn Preserver | partly-compiled | UNPARSED (triggered) | When you do, put X +1/+1 counters on this creature.
-THB | Pharika's Spawn | partly-compiled | UNPARSED (triggered) | When it enters this way, each opponent sacrifices a non-Gorgon creature of their choice.
 IKO | Back for More | partly-compiled | UNPARSED (triggered) | When you do, it fights up to one target creature you don't control.
 IKO | Escape Protocol | partly-compiled | UNPARSED (triggered) | When you do, exile target artifact or creature you control, then return it to the battlefield under its owner's control.
 IKO | Narset of the Ancient Way | partly-compiled | UNPARSED (triggered) | When you discard a nonland card this way, Narset deals damage equal to that card's mana value to target creature or planeswalker.
@@ -78,3 +77,6 @@ ZNR | Attended Healer | partly-compiled | UNPARSED (triggered) | Whenever you ga
 ZNR | Cleric of Life's Bond | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, put a +1/+1 counter on this creature.
 FDN | Vanguard Seraph | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, surveil 1.
 M20 | Vengeful Warchief | needs-atom | UNPARSED (triggered) | Whenever you lose life for the first time each turn, put a +1/+1 counter on this creature.
+
+## Trigger-event qualifiers beside an intervening 'if': 0 sentences
+

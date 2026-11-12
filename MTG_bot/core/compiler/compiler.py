@@ -133,6 +133,12 @@ _KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset(
 # sentence's effect.
 # ---------------------------------------------------------------------------
 
+#: "[X]. If you do, Y" (CR 118.12) and "[X]. When you do, Y" (CR 603.12): Y gated on the step
+#: before (_merge_if_do_continuation), as a reflexive trigger for "When you do". The merge
+#: dispatch reads these wordings exactly; "When you do" in any other sentence ("When you do
+#: this, ...") is no continuation, so it is never merged as an unconditional sibling.
+_DO_GATES: tuple[str, ...] = ("If you do,", "If you do so,", "When you do,", "When you do so,")
+
 _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If you do",
     "If you do so",
@@ -142,10 +148,10 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If you search your library this way",
     "Then ",
     # "Otherwise" attaches as the else_effect of the previous Conditional
-    # (_merge_otherwise); "When you do" is a reflexive trigger gated like
-    # "If you do" (_merge_if_do_continuation).
+    # (_merge_otherwise).
     "Otherwise",
-    "When you do",
+    "When you do,",
+    "When you do so,",
 )
 
 # ---------------------------------------------------------------------------
@@ -1912,7 +1918,7 @@ def compile_card(
             merge = _append_mandatory_to_seq
         elif sentence.strip().startswith("Otherwise"):
             merge = _merge_otherwise
-        elif sentence.strip().startswith(("If you do,", "If you do so,", "When you do,")):
+        elif sentence.strip().startswith(_DO_GATES):
 
             def _if_do_merge(
                 prev_effect: Effect, continuation: Effect, _s: str = sentence

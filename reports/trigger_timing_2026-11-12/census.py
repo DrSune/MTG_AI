@@ -3,9 +3,10 @@ its sentence compiled (records applied, verified or not). Run from the repo root
 
     .venv/bin/python reports/trigger_timing_2026-11-12/census.py
 
-1. Reflexive triggers (CR 603.12): "When you do", "when ... this way" and kin. THB Pharika's
-   Spawn's "When it enters this way" matches the wording but is not one: it is the card's own
-   enters trigger, linked to its escape, not created by a resolving spell or ability.
+1. Reflexive triggers (CR 603.12): "When you do", "when ... this way" and kin
+   (``ontology_conformance.REFLEXIVE_WORDING``, the checker's own definition). It leaves out THB
+   Pharika's Spawn's "When it enters this way": the card's own enters trigger, linked to its
+   escape, created by no resolving spell or ability.
 2. Trigger-event qualifiers (CR 603.4 reads only an intervening "if" again): a trigger whose
    event clause, before its first comma, carries a count, a turn, "while", "alone", an ordinal
    or "there are", with no intervening "if" after it.
@@ -30,16 +31,15 @@ import corpus
 from cardtool import _state
 
 from MTG_bot.core.compiler.coverage import build_full_registry
+from tools.audit.ontology_conformance import REFLEXIVE_WORDING as REFLEXIVE
 
-REFLEXIVE = re.compile(r"\bwhen (?:you do|you don't|they do|they don't|that player does|that player "
-                       r"doesn't|he or she does)\b|\bwhen [^.]*\bthis way\b", re.IGNORECASE)
 TRIGGER = re.compile(r"^(?:[A-Z][a-z]+(?: [a-z]+)? — )?(When|Whenever|At)\b(?P<event>[^,]*),(?P<rest>.*)$")
 QUALIFIER = re.compile(r"\b(?:two|three|four|five|six|seven|eight|nine|ten|\d+) or more\b|\bat least\b|"
                        r"\bduring (?:an opponent's|your|each) turn\b|\bthere are\b|\bwhile\b|"
                        r"\bfor the first time\b|\bsecond\b|\bthird\b|\balone\b", re.IGNORECASE)
 
 registry = build_full_registry()
-reflexive, qualified = [], []
+reflexive, qualified, beside_if = [], [], []
 for code in corpus.SETS:
     sc = corpus.compile_set(code)
     for oid, raw in sc.raw.items():
@@ -50,9 +50,14 @@ for code in corpus.SETS:
             if REFLEXIVE.search(s):
                 reflexive.append(f"{code} | {raw.identity.name} | {state} | {status} | {s}")
             m = TRIGGER.match(s)
-            if m and QUALIFIER.search(m.group("event")) and not m.group("rest").lstrip().startswith("if "):
-                qualified.append(f"{code} | {raw.identity.name} | {state} | {status} | {s}")
+            if m and QUALIFIER.search(m.group("event")):
+                row = f"{code} | {raw.identity.name} | {state} | {status} | {s}"
+                (beside_if if m.group("rest").lstrip().startswith("if ") else qualified).append(row)
 print(f"## Reflexive sentences: {len(reflexive)} in {len({r.split(' | ')[1] for r in reflexive})} cards")
 print("\n".join(reflexive))
 print(f"\n## Trigger-event qualifiers (no intervening 'if'): {len(qualified)} sentences")
 print("\n".join(sorted(qualified, key=lambda r: r.split(" | ")[4])))
+# The class check_trigger_timing's counts cannot see: a qualifier joined into the intervening
+# "if"'s condition leaves one condition for one "if" (gate round 6, MAJOR-2; BACKLOG).
+print(f"\n## Trigger-event qualifiers beside an intervening 'if': {len(beside_if)} sentences")
+print("\n".join(sorted(beside_if, key=lambda r: r.split(" | ")[4])))

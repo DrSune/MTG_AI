@@ -139,6 +139,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | registered | branching | cards | volume |
 |---|---|---|---|
 | 2026-11-12, gate round 5 | MOVE_ZONE x `arrange` ("RANDOM": "put the rest on the bottom of your library in a random order"; absent = the owner arranges, CR 401.4), accepted only where `ability_tree.orders_a_library` holds | M21 Garruk's Harbinger (compiler, B5b-rest-bottom-random); M20 Drawn from Dreams and Brightwood Tracker (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12); 54 cards of the 19 sets print "in a random order", most still unparsed |
+| 2026-11-12, gate round 6 | Conditional `then:DelayedTrigger` ("<step>. When you do, Y": the "if you do" gate, CR 118.12, around a reflexive trigger, CR 603.12), accepted only where `ability_tree._reflexive_misplaced` holds (§11 R6-1) | M21 Tolarian Kraken (compiler, B2b-do-tap-or-untap); M20 Cavalier of Night and Sorin, Imperious Bloodlord (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12, trigger timing); 22 reflexive sentences on 21 cards of the 19 sets, 19 unparsed |
+| 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
 
 ## 6. Identity + conformance
 
@@ -399,7 +401,62 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     re-verification. Behaviour: an `arrange` ask on See the Truth, Anticipate, Cavalier of Gales and
     Goblin Ringleader ("in any order"), and on a scry of two or more that keeps two in one group
     (verified: Stormwing Entity, Track Down).
-- BINDING STATE: rounds 1–5 complete; further ontology changes require a NEW gated
+- R6 round 6 (adversarial, 2026-11-12; one reviewer on f0e40d80 and c4139ff8, trigger timing,
+  §11): **FIX-THEN-GO**, nothing FATAL: R6-1's shape and R6-2's rule stand, with these fixes
+  (branch `worktree-agent-aa162b11b742a5790`, main bc0d4606 merged first, 989707d7).
+  - **MAJOR, fixed:**
+    - M1. `_reflexive_misplaced` checked only "the then_effect of some Conditional". It accepted a
+      gate on TYPE_EQ, CONTROLLER_COUNT_GE or FNot(MAY_DONE); a MAY_DONE gate with no step before
+      it; the gate under EachPlayer (run by the reviewer: the reflexive trigger was queued under
+      player:1 and "you gain 3 life" went to the opponent, as the executor rotates ctx.controller
+      under EachPlayer while CR 603.7e gives it the resolving ability's controller); under Repeat;
+      in a static ability's effect, which never resolves. Now a reflexive trigger stands only as
+      the then_effect of exactly Conditional(FAtom(MAY_DONE)) after a step of a Seq, in the
+      effect of a spell, activated, triggered or delayed ability (granted, token and reflexive
+      ones too), with no EachPlayer or Repeat between, and never in a static, replacement,
+      enters-with or emblem ability (`ability_tree._reflexive_misplaced`; "when you don't" waits
+      for a card). Tests in `MTG_bot/core/test_executor_trigger_timing.py`:
+      `test_a_reflexive_trigger_anywhere_else_is_refused` (15 cases; 989707d7 accepts 13 of
+      them), `test_an_emblem_record_holds_no_reflexive_trigger`, and
+      `test_a_reflexive_trigger_stands_where_it_means_one_thing` for the accepted shapes.
+    - M2. `check_trigger_timing` was one-sided: more conditions than intervening "if"s, and a
+      compiled sentence starting "When you do" with no reflexive node. It missed an intervening
+      "if" written into the event filter, a reflexive node on a card that prints none, and "when
+      they do" or "when ... this way". `trigger_timing_faults` now compares, over the compiled
+      sentences and both ways, reflexive triggers with reflexive sentences
+      (`ontology_conformance.REFLEXIVE_WORDING`, which census.py imports) and trigger conditions
+      with intervening "if"s. The reverse fixtures are in `test_trigger_timing_scan_has_teeth`;
+      989707d7's check returns nothing for each (`reports/trigger_timing_2026-11-12/base_runs.txt`).
+      A qualifier joined into an intervening "if"'s condition keeps the counts equal: the census
+      finds no such sentence in the 19 sets (BACKLOG).
+    - M3. No canonical slot for a qualifier that reads no subject: TURN_OF and
+      CONTROLLER_COUNT_GE ignore the handle (`quantity.py`) and `_match_cast` reads `actor` and
+      `filter` alike, so `CastSpellEvent(actor=FAnd(YOU, TURN_OF OPPONENT))` played as
+      `filter=TURN_OF OPPONENT`; six event classes have two or more filter slots. The slot is now
+      named per event class (§11 R6-2), `ontology_conformance.check_qualifier_slots` refuses a
+      subject-free predicate in any other slot (`test_a_subject_free_qualifier_has_one_slot`),
+      and ATOM_DIVERGENCES D20 registers the class. The 6 uses in the 19 sets are all in `filter`.
+  - **MINOR, fixed:** m2, `verbs._v_trigger_additional` re-queues a trigger with the original's
+    carried state (`test_an_extra_copy_of_a_reflexive_trigger_reads_the_same_resolution`). m3,
+    one list of gate wordings, `compiler._DO_GATES` ("If you do,", "If you do so,", "When you do,",
+    "When you do so,"), the continuation prefixes carrying the last two with their commas, so
+    "When you do so," is a reflexive trigger and "When you do this, ..." no continuation
+    (`test_compile_when_you_do_so_is_the_same_reflexive_trigger`, `test_do_prefix_registered`;
+    the 19 sets print only "When you do,"). m5, the counts (21 cards, 22 sentences), the §5 rows,
+    the `fire_reflexive` docstring (it carries the binding, not the sacrificed creature's last
+    known power) and the test module's docstring (one Mangara test passes on the base). m6, the
+    two selfplay tests' seeds pinned (simulator 22, search 42). m9, the one-shot note in §11.
+  - **MINOR, in the BACKLOG:** m1, a reflexive trigger cannot read its creator's target (IKO Back
+    for More); m4, the matcher reads event-filter qualifiers without the `layers.recompute()`
+    that `_queue` runs before a condition (CR 603.10); m7, a reflexive trigger on the stack
+    encodes as ability index -1 (`features._ability_index`); m8, no G3 operator moves a
+    qualifier into the condition.
+  - **Blast radius of these fixes** (989707d7 -> the branch, `tree_dump.py` and `tree_diff.py`):
+    0 trees changed, compiler or record; 0 verified cards leaving or joining; the six record packs
+    moved from `known_bugs/` to `tools/scenarios/mapped/<SET>/`, where the suite plays them on the
+    records. Verified pools on the merged tree (deckable, `get_supply("verified", <set>)`): M21
+    264, M20 253, FDN 173 (main bc0d4606: 269, 255, 175).
+- BINDING STATE: rounds 1–6 complete; further ontology changes require a NEW gated
   round (any R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
@@ -585,7 +642,7 @@ TokenSpecs re-bake.
   - D16: Teferi, Timeless Voyager;
   - D17: Liliana, Waker of the Dead's check order (lane vfix2).
 
-## 11. Round R6 — when a trigger's parts are read (proposed 2026-11-12; gate round 6 pending)
+## 11. Round R6 — when a trigger's parts are read (2026-11-12; gate round 6 FIX-THEN-GO, fixed: §9)
 
 Two faults found by verification wave 1 (KNOWLEDGE/2026-11-12/201 §6), one cause each; the
 evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-11-12/`.
@@ -597,10 +654,23 @@ evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-
   the whole effect, so Y's target was chosen with the ability's own, before X.
 - **Shape.** `DelayedTrigger` with `duration` and `event` both absent is the reflexive trigger
   (both present: a delayed trigger, unchanged bytes). Its `condition` and `once_per_event` are
-  absent. It stands only as the `then_effect` of the Conditional that names its action
-  (`CardRecord` refuses it elsewhere): "When you do, Y" =
-  `Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None, condition=None, effect=Y))`,
-  the "If you do" gate (CR 118.12) around a reflexive trigger. Serialization omits both keys.
+  absent. "<step>. When you do, Y" (or "When you do so, Y") =
+  `Seq(<step>, Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None, condition=None,
+  effect=Y)))`, the "If you do" gate (CR 118.12) around a reflexive trigger. Serialization omits
+  both keys.
+- **Where it stands** (`ability_tree._reflexive_misplaced`; `CardRecord` refuses it anywhere
+  else, gate round 6 M1): the `then_effect` of exactly `Conditional(pred=FAtom(MAY_DONE))` (not
+  FNot(MAY_DONE): "when you don't" waits for a card), standing after the step it is about in a
+  Seq (with no step before it, MAY_DONE would read an older offer); in the effect of an ability
+  that resolves: a spell, an activated, triggered or delayed ability, a granted or token one, or
+  a reflexive one after a step of its own; with no EachPlayer between (the executor runs
+  EachPlayer's effect under each player as controller, while the reflexive trigger's is the
+  resolving ability's, CR 603.7e; refused until the executor passes it) and no Repeat. Never in a
+  static, replacement or "as ~ enters" ability, which never resolves, nor in an emblem's (its
+  triggered ability resolves, but no emblem of the 19 sets has a reflexive trigger to test it).
+- **A one-shot delayed trigger** ("the next time ...", CR 603.7b; none is built, BACKLOG) takes
+  a Duration value of its own when it comes, never `duration=None` beside an event: that shape is
+  refused, `duration=None` meaning only the reflexive trigger, which has no event either.
 - **Engine.** At the gate it triggers (`TriggerBinder.fire_reflexive`): queued like any trigger,
   put on the stack at the next priority point in APNAP order, its targets chosen then (603.3d:
   none legal, removed); its source and controller are the resolving ability's (603.7d-e); it
@@ -610,9 +680,11 @@ evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-
   (`ability_tree.own_nodes`: a delayed, reflexive or granted ability, or a token's, designates
   for itself). That also fixes M20 Sorin, Vampire Lord's -8, whose activation asked the target
   of the ability it grants.
-- **Census.** 22 cards in the 19 sets print a reflexive trigger; 3 trees hold one (Tolarian
-  Kraken by the compiler, Cavalier of Night and Sorin, Imperious Bloodlord by record); the other
-  19 sentences are unparsed. Two new branchings (M21), registered by
+- **Census.** 22 reflexive sentences on 21 cards in the 19 sets (Wildborn Preserver is in FDN
+  and ELD; THB Pharika's Spawn's "When it enters this way" is its own enters trigger, not one);
+  3 trees hold one (Tolarian Kraken by the compiler, Cavalier of Night and Sorin, Imperious
+  Bloodlord by record); the other 19 sentences are unparsed. Two new branchings (M21, §5),
+  registered by
   `reports/ontology_census_2026-11-12_triggertiming_post_full.json`: Conditional `then:
   DelayedTrigger`, DelayedTrigger `reflexive`.
 - **Rejected.** (a) A new node `ReflexiveTrigger(effect)`: CR 603.12 makes reflexive triggers
@@ -633,10 +705,25 @@ evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-
   Cutthroat's "during an opponent's turn". Each one's ruling (where it has one) says it is not
   re-read.
 - **Rule.** A qualifier that is part of the trigger event is a conjunct of the event's subject
-  filter (`filter`; `subject` on ZoneChangeEvent), read once as the event is matched; subject-free
-  predicates already stand in filters (`CONTROLLER_COUNT_GE` is handle-free). The checker
-  `ontology_conformance.check_trigger_timing` flags a card with more trigger conditions than
-  intervening "if"s, and a compiled "When you do" that is not a reflexive trigger.
+  filter, read once as the event is matched. A qualifier that reads no subject (TURN_OF,
+  CONTROLLER_COUNT_GE/GT, ZONE_COUNT_GE, NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE,
+  DIED_THIS_TURN, EVENT_THIS_TURN, CARDS_DRAWN_THIS_TURN_GE, LIFE_GAINED_THIS_TURN_GE,
+  LIFE_LEAD_OVER_START_GE, INSTANT_OR_SORCERY_CAST_THIS_TURN, FLIP_WON, MAY_DONE:
+  `ontology_conformance.SUBJECT_FREE`) reads the same in any slot, so it has one slot per event
+  class (`ontology_conformance.qualifier_slot`, gate round 6 M3):
+
+  | event | the slot |
+  |---|---|
+  | ZoneChangeEvent | `subject` |
+  | an event with a `filter` (CastSpell, DeclareAttackers, DeclareBlockers, CounterPlaced, CreatureDies, BecomesBlocked, TapState, Phasing, AbilityTrigger, DamageDealt, Targeting, Countered) | `filter` |
+  | AbilityActivatedEvent | `source` |
+  | TurnPhase, CardDrawn, LifeGained, LifeLost and Sacrifice events | `actor` |
+  | StepEvent | none (no qualifier) |
+
+  `ontology_conformance.check_qualifier_slots` refuses one in any other slot (ATOM_DIVERGENCES
+  D20); the 6 in the 19 sets are all in `filter`. `ontology_conformance.check_trigger_timing`
+  compares, over the sentences that compiled and both ways, trigger conditions with intervening
+  "if"s, and reflexive triggers with reflexive sentences (`REFLEXIVE_WORDING`).
 - **Mangara, the Diplomat is not in this class.** Its Oracle text, "Whenever an opponent attacks
   with creatures, if two or more of those creatures are attacking you and/or planeswalkers you
   control", prints an intervening "if": the re-read is right. Its ruling counts an attacker that
@@ -656,7 +743,8 @@ evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-
 - verified cards out of the verified pool until re-verified (9): M21 Tide Skimmer, Makeshift
   Battalion, Mazemind Tome, Nine Lives, Sanctum of All; M20 Cavalier of Night, Brineborn
   Cutthroat; FDN Mazemind Tome, Brineborn Cutthroat. Stamps M21 270 -> 265, M20 257 -> 255, FDN
-  175 -> 173;
+  175 -> 173 against b776cf74; verified deckable pools on the tree merged with main bc0d4606
+  (`get_supply("verified", <set>)`): M21 269 -> 264, M20 255 -> 253, FDN 175 -> 173;
 - verified cards that play differently with unchanged bytes: M20 Sorin, Vampire Lord (its -8 asks
   no target and grants to each Vampire you control); unverified, M21 Mangara (an attacker that
   left still counts);

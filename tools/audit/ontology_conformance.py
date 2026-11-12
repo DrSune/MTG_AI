@@ -738,45 +738,117 @@ def check_designated_players(sets) -> list[str]:
 #: An intervening "if" (CR 603.4): a trigger's event clause, then ", if". An ability word
 #: ("Raid — ") or a quote (a granted ability) may come first.
 _INTERVENING_IF = re.compile(r'(?:^|")(?:[A-Z][a-z]+(?: [a-z]+)? — )?(?:When|Whenever|At)\b[^.,"]*, if\b')
+#: A reflexive trigger's wording (CR 603.12): "when you do", "when they don't", ..., or "when
+#: <something> <happens> this way". Not "when it enters this way" (THB Pharika's Spawn): that is
+#: the card's own enters trigger linked to its escape, created by no resolving ability.
+REFLEXIVE_WORDING = re.compile(
+    r"\bwhen (?:you do|you don't|they do|they don't|that player does|that player doesn't|"
+    r"he or she does)\b|\bwhen (?![^.]*\benters this way\b)[^.]*\bthis way\b",
+    re.IGNORECASE,
+)
 
 
-def trigger_timing_faults(sentences, compiled_sentences, abilities) -> list[str]:
-    """What one card's tree reads of its triggers at the wrong time (``check_trigger_timing``):
-    ``sentences`` its text, ``compiled_sentences`` those that compiled, ``abilities`` its tree."""
+def trigger_timing_faults(compiled_sentences, abilities) -> list[str]:
+    """What one card's tree reads of its triggers at the wrong time (``check_trigger_timing``),
+    judged on the sentences that compiled and the tree:
+    - as many reflexive triggers (DelayedTrigger with no duration and no event, CR 603.12) as
+      reflexive sentences, both ways: one written as "if you do" chooses its targets with the
+      ability that creates it, and one on a card that prints none is no reflexive trigger;
+    - as many trigger conditions as intervening "if"s (CR 603.4), both ways: a qualifier that is
+      part of the trigger event ("with two or more", "during an opponent's turn") as a condition
+      is read again on resolution, and an intervening "if" in the event's filter is read once.
+    A qualifier joined into an intervening "if"'s condition keeps the counts equal: the counts
+    cannot see it (BACKLOG)."""
     nodes = list(iter_nodes(abilities))
     faults = []
-    if any(x.startswith("When you do") for x in compiled_sentences) and not any(
-        isinstance(n, at.DelayedTrigger) and n.reflexive for n in nodes
-    ):
-        faults.append('a compiled "When you do" is not a reflexive trigger')
+    reflexive = sum(1 for n in nodes if isinstance(n, at.DelayedTrigger) and n.reflexive)
+    worded = sum(len(REFLEXIVE_WORDING.findall(x)) for x in compiled_sentences)
+    if reflexive != worded:
+        faults.append(f"{reflexive} reflexive trigger(s), {worded} reflexive sentence(s)")
     conditions = sum(
         1 for n in nodes
         if isinstance(n, (at.TriggeredAbility, at.DelayedTrigger)) and n.condition is not None
     )
-    ifs = sum(len(_INTERVENING_IF.findall(x)) for x in sentences)
-    if conditions > ifs:
+    ifs = sum(len(_INTERVENING_IF.findall(x)) for x in compiled_sentences)
+    if conditions != ifs:
         faults.append(f'{conditions} trigger condition(s), {ifs} intervening "if"')
     return faults
 
 
 def check_trigger_timing(sets) -> list[str]:
-    """``SET:name: why`` of every card whose tree reads a part of a trigger at the wrong time:
-
-    - a "When you do" sentence that compiled, while the tree holds no reflexive trigger
-      (DelayedTrigger with no duration and no event, CR 603.12): its effect, targets
-      included, would be chosen with the ability that creates it;
-    - more trigger conditions than intervening "if"s in its text: the condition is read again
-      as the trigger resolves (CR 603.4), so a qualifier that is part of the trigger event
-      ("with two or more", "during an opponent's turn", "when there are four or more
-      counters") belongs in the event's filter, read once."""
+    """``SET:name: why`` of every card whose tree reads a part of a trigger at the wrong time
+    (``trigger_timing_faults``), card records applied."""
     flagged = []
     for s, raw, result in records_corpus(tuple(sets)):
         unparsed = {u for u, _hint in (*result.unparsed, *result.back_face_unparsed)}
-        text = _sentences(raw)
-        compiled = [x for x in text if x not in unparsed]
+        compiled = [x for x in _sentences(raw) if x not in unparsed]
         flagged += [f"{s}:{raw.identity.name}: {why}"
-                    for why in trigger_timing_faults(text, compiled, result.card.abilities)]
+                    for why in trigger_timing_faults(compiled, result.card.abilities)]
     return flagged
+
+
+# ---------------------------------------------------------------------------
+# One slot for a qualifier that reads no subject (DESIGN_ATOM_ONTOLOGY §11 R6-2)
+# ---------------------------------------------------------------------------
+#: Filter predicates that read the game, not the object they are asked about (quantity.py
+#: answers them the same for every handle). In an EventSpec they qualify the event itself
+#: ("during an opponent's turn", "while you control six or more Shrines").
+SUBJECT_FREE = frozenset({
+    at.FAtomPred.TURN_OF, at.FAtomPred.CONTROLLER_COUNT_GE, at.FAtomPred.CONTROLLER_COUNT_GT,
+    at.FAtomPred.ZONE_COUNT_GE, at.FAtomPred.NAME_PARTITION_COUNT_GE,
+    at.FAtomPred.ATTACK_AGAINST_COUNT_GE, at.FAtomPred.DIED_THIS_TURN, at.FAtomPred.EVENT_THIS_TURN,
+    at.FAtomPred.CARDS_DRAWN_THIS_TURN_GE, at.FAtomPred.LIFE_GAINED_THIS_TURN_GE,
+    at.FAtomPred.LIFE_LEAD_OVER_START_GE, at.FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN,
+    at.FAtomPred.FLIP_WON, at.FAtomPred.MAY_DONE,
+})
+
+
+def qualifier_slot(event) -> str | None:
+    """The one slot of an EventSpec where a subject-free qualifier goes: its subject filter
+    (``subject`` on a ZoneChangeEvent, ``filter`` where the event has one, ``source`` on an
+    AbilityActivatedEvent), else its ``actor`` (TurnPhase, CardDrawn, LifeGained, LifeLost and
+    Sacrifice events); None for an event with no filter slot (StepEvent)."""
+    names = {f.name for f in dataclasses.fields(event)}
+    for name in ("subject", "filter", "source", "actor"):
+        if name in names and not (name == "subject" and "filter" in names):
+            return name
+    return None
+
+
+def _top_atoms(filter_):
+    """The FAtoms of a filter's boolean structure (not the filters nested in an atom)."""
+    if isinstance(filter_, (at.FAnd, at.FOr)):
+        for child in filter_.children:
+            yield from _top_atoms(child)
+    elif isinstance(filter_, at.FNot):
+        yield from _top_atoms(filter_.inner)
+    elif isinstance(filter_, at.FAtom):
+        yield filter_
+
+
+def misplaced_qualifiers(abilities) -> list[str]:
+    """``Event.slot: PRED`` for every subject-free predicate in an EventSpec slot other than
+    ``qualifier_slot``'s: ``CastSpellEvent(actor=FAnd(YOU, TURN_OF OPPONENT))`` plays as
+    ``filter=TURN_OF OPPONENT`` does, a second byte form of one wording."""
+    out = []
+    for node in iter_nodes(abilities):
+        if not isinstance(node, at._EV_CLASSES):
+            continue
+        slot = qualifier_slot(node)
+        for f in dataclasses.fields(node):
+            if f.name == slot:
+                continue
+            for atom in _top_atoms(getattr(node, f.name)):
+                if atom.pred in SUBJECT_FREE:
+                    out.append(f"{type(node).__name__}.{f.name}: {atom.pred.name}")
+    return out
+
+
+def check_qualifier_slots(sets) -> list[str]:
+    """``SET:name: Event.slot: PRED`` for every misplaced subject-free qualifier, records applied."""
+    return [f"{s}:{raw.identity.name}: {why}"
+            for s, raw, result in records_corpus(tuple(sets))
+            for why in misplaced_qualifiers(result.card.abilities)]
 
 
 # ---------------------------------------------------------------------------
