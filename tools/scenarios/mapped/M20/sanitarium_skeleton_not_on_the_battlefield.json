@@ -1,0 +1,9 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 2},
+ "cards": [{"key": "skel", "real": "Sanitarium Skeleton", "zone": "battlefield", "controller": 0}],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [{"op": "activate", "key": "skel", "idx": 0, "seat": 0, "expect_raise": "window:not_in_graveyard"}],
+ "expect": {"zone": {"skel": "battlefield"}, "mana_pool": {"0": {"B": 1, "C": 2}}},
+ "name": "sanitarium_skeleton_not_on_the_battlefield",
+ "notes": "{2}{B}: return this card from your graveyard to your hand. The ability works only in the graveyard (CR 113.6m): on the battlefield it does not exist to be activated, and nothing is paid. Before the fix it was offered there and paid {2}{B} for nothing."
+}

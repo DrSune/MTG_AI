@@ -112,6 +112,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    _own_nodes,
     is_loyalty_ability,
     is_mana_ability,
 )
@@ -121,7 +122,7 @@ from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     PLAYER_ZONES,
     ZONE_BATTLEFIELD,
-    ZONE_HAND,
+    ZONE_LIBRARY,
     GameWorld,
 )
 
@@ -1076,29 +1077,69 @@ def build_payment_plan(
 # ------------------------------------------------------------- legality
 
 
-def _ability_discards_its_source(ability: ActivatedAbility) -> bool:
-    """True when an activation cost contains ``CostDiscard`` over a
-    HAND-zone selector whose filter demands ``IS_SOURCE`` — the printed
-    "Discard this card:" activation (Waker of Waves). Such an
-    ability is LEGAL from the hand (the card is the ability's object while
-    it sits there, cf. cycling CR 702.29a); the battlefield window gate in
-    :func:`ability_playable` opens exactly for this cost shape and nothing
-    else. Detection is IR-driven (self-referential filter + HAND zone),
-    never card-name driven."""
-    from MTG_bot.core.executor.selectors import _filter_is_self_referential
-
-    return any(
-        isinstance(part, CostDiscard)
-        # SINGLETON-HAND predicate on the zone set: the printed "Discard
-        # this card:" window opens for a cost that discards from the hand
-        # ALONE, never for a widened hand-or-graveyard cost shape (testing
-        # only that HAND is among the zones would widen the activation
-        # window silently).
-        and len(part.target.zones) == 1
-        and part.target.zones[0].kind is ZoneKind.HAND
-        and _filter_is_self_referential(part.target.filter)
-        for part in ability.cost.parts
+def activation_zone(ability: ActivatedAbility) -> str:
+    """The zone an activated ability works in (CR 113.6), as a world zone kind: the
+    battlefield, like every ability of a permanent, unless its cost or effect moves the object
+    it's on out of a particular zone; then it works only in that zone (113.6m), the first such
+    part deciding (the cost is paid first). Sanitarium Skeleton's "{2}{B}: Return this card from
+    your graveyard to your hand" works from the graveyard and does nothing on the battlefield;
+    Waker of Waves' "Discard this card:" works from the hand, a cost that can't be paid on the
+    battlefield (113.6j). The tree says it: a discard or sacrifice cost, or a MOVE_ZONE, of the
+    source itself (a selector naming IS_SOURCE, not "another"), out of zones of one kind (a
+    discard from "hand or graveyard" names no zone, so it leaves the default)."""
+    from MTG_bot.core.executor.selectors import (
+        ZONE_KIND_TO_STATE,
+        _filter_names_the_source,
     )
+
+    def departure(sel: object) -> str | None:
+        if not isinstance(sel, Selector) or sel.referent is not None:
+            return None
+        kinds = {zone.kind for zone in sel.zones}
+        if len(kinds) != 1 or not _filter_names_the_source(sel.filter):
+            return None
+        return ZONE_KIND_TO_STATE.get(kinds.pop())
+
+    for part in ability.cost.parts:
+        if isinstance(part, (CostDiscard, CostSacrifice)):
+            zone = departure(part.target)
+            if zone is not None:
+                return zone
+    for node in _own_nodes(ability.effect):  # a granted or delayed ability is another's
+        if not (isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE):
+            continue
+        dest = node.args.get("destination")
+        for role in ("cards", "target"):
+            zone = departure(node.args.get(role))
+            if zone is not None and not (
+                isinstance(dest, Zone) and ZONE_KIND_TO_STATE.get(dest.kind) == zone
+            ):
+                return zone
+    return ZONE_BATTLEFIELD
+
+
+def off_battlefield_activations(
+    executor: Executor, seat: Handle
+) -> list[tuple[Handle, int, ActivatedAbility]]:
+    """The printed activated abilities of ``seat``'s cards off the battlefield that work where
+    the card is (:func:`activation_zone`): "Discard this card:" in the hand, Sanitarium
+    Skeleton's return in the graveyard. Such a card has no controller, so its owner activates
+    it (CR 602.2). Nothing in a library, a hidden zone, is activated."""
+    world = executor.world
+    rows: list[tuple[Handle, int, ActivatedAbility]] = []
+    for kind in PLAYER_ZONES:
+        if kind in (ZONE_BATTLEFIELD, ZONE_LIBRARY):
+            continue
+        for handle in world.players[seat].zone(kind).entries:
+            record = spell_record(executor, handle)
+            if record is None:
+                continue
+            rows += [
+                (handle, idx, ability)
+                for idx, ability in enumerate(record.abilities)
+                if isinstance(ability, ActivatedAbility) and activation_zone(ability) == kind
+            ]
+    return rows
 
 
 def ability_playable(
@@ -1117,9 +1158,9 @@ def ability_playable(
 
     1. **window** — a printed ability's record must exist
        (:func:`spell_record`) and the node must be an
-       :class:`ActivatedAbility`; the source must be on the battlefield (or
-       in hand for a "Discard this card:" cost), not phased out, and
-       controlled by ``seat``; the activation lock (CR 602.5: a live
+       :class:`ActivatedAbility`; the source must be in the zone the ability
+       works in (:func:`activation_zone`), not phased out, and controlled by
+       ``seat`` (its owner, off the battlefield: CR 602.2); the activation lock (CR 602.5: a live
        PREVENT_EFFECT over an AbilityActivatedEvent that covers this
        ability's kind and object) answers ``prohibited:activation_lock``. A
        loyalty ability and a ``timing=SORCERY`` one need the seat's own
@@ -1167,21 +1208,12 @@ def ability_playable(
         ability = record.abilities[ability_idx]
     if not isinstance(ability, ActivatedAbility):
         return f"ability:not_activated:{type(ability).__name__}"
-    # The one printed hand-activation shape (Waker of Waves): an ability
-    # whose own cost is "Discard this card" (cycling CR 702.29a family).
-    # The card is the ability's object while in hand, so the window opens;
-    # every other activation from anywhere but the battlefield stays the
-    # loud reason (CR 602.3 a player can activate only abilities of
-    # permanents they control, plus the printed hand exceptions).
-    if (
-        handle in world.cards
-        and world.zone_of(handle).kind != ZONE_BATTLEFIELD
-        and (
-            world.zone_of(handle).kind != ZONE_HAND
-            or not _ability_discards_its_source(ability)
-        )
-    ):
-        return f"window:not_on_battlefield:{handle}"
+    # CR 113.6: an ability works in one zone (activation_zone), the battlefield unless its
+    # cost or effect moves its object out of another; anywhere else it does not exist to be
+    # activated (Sanitarium Skeleton's return on the battlefield, a {T} ability in the hand).
+    zone = activation_zone(ability)
+    if handle in world.cards and world.zone_of(handle).kind != zone:
+        return f"window:not_in_{zone}:{handle}"
     if handle in executor.phased_out:
         # CR 702.26b: treated as though it does not exist (mana abilities too).
         return f"window:phased_out:{handle}"

@@ -101,6 +101,7 @@ from MTG_bot.core.executor.legality import (
     activation_x_max,
     build_payment_plan,
     ctx_for,
+    off_battlefield_activations,
     protected_from,
     spell_castable,
 )
@@ -277,7 +278,9 @@ def legal_activations(
     """Every activation available to ``seat`` right now, Handle-sorted by
     (source, ability_idx) — the ``ACTIVATE`` field's candidate rows. Scans
     ``seat``'s battlefield permanents that carry an attached compiled record
-    (the oracle-id bridge) and keeps the :class:`ActivatedAbility` nodes whose
+    (the oracle-id bridge), and its cards elsewhere whose abilities work there
+    (legality.off_battlefield_activations, CR 113.6), and keeps the
+    :class:`ActivatedAbility` nodes whose
     gate triple (window/condition/cost — legality.ability_playable) is green.
 
     GRANTED activated abilities (GRANT_ABILITY layers) are rows too —
@@ -293,41 +296,41 @@ def legal_activations(
     oracle must crash the query, never silently shrink the option set
     (the mask oracle's bugs are silent; this is the loud half)."""
     options: list[ActivationOption] = []
-    for handle in sorted(executor.binder.handle_record):
-        if handle not in world.cards:
+    printed = [
+        (handle, idx, ability)
+        for handle in sorted(executor.binder.handle_record)
+        if handle in world.cards
+        and executor.controller_of(handle) == seat  # the effective controller
+        and world.zone_of(handle).kind == "battlefield"
+        for idx, ability in enumerate(executor.binder.handle_record[handle].abilities)
+    ]
+    for handle, idx, ability in printed + off_battlefield_activations(executor, seat):
+        if not isinstance(ability, ActivatedAbility):
             continue
-        if executor.controller_of(handle) != seat:  # the effective controller
+        if ability_playable(world, executor, handle, idx, seat=seat) is not None:
             continue
-        if world.zone_of(handle).kind != "battlefield":
-            continue
-        record = executor.binder.handle_record[handle]
-        for idx, ability in enumerate(record.abilities):
-            if not isinstance(ability, ActivatedAbility):
-                continue
-            if ability_playable(world, executor, handle, idx, seat=seat) is not None:
-                continue
-            if inert_row(executor, ability, handle, seat):
-                continue  # a phantom option: it could do nothing (Radha's land row)
-            # The X lane: the row carries the live X bound, its payment the
-            # X = 0 witness (ability_playable's legality fold).
-            x_max = activation_x_max(world, handle, ability.cost)
-            ctx = ctx_for(
-                executor,
+        if inert_row(executor, ability, handle, seat):
+            continue  # a phantom option: it could do nothing (Radha's land row)
+        # The X lane: the row carries the live X bound, its payment the
+        # X = 0 witness (ability_playable's legality fold).
+        x_max = activation_x_max(world, handle, ability.cost)
+        ctx = ctx_for(
+            executor,
+            source=handle,
+            controller=seat,
+            x_value=0 if x_max is not None else None,
+        )
+        plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
+        assert plan is not None  # ability_playable just greenlit
+        options.append(
+            ActivationOption(
                 source=handle,
-                controller=seat,
-                x_value=0 if x_max is not None else None,
+                ability_idx=idx,
+                ability=ability,
+                payment=plan,
+                x_max=x_max,
             )
-            plan, _ = build_payment_plan(world, ctx, ability.cost, activation=handle)
-            assert plan is not None  # ability_playable just greenlit
-            options.append(
-                ActivationOption(
-                    source=handle,
-                    ability_idx=idx,
-                    ability=ability,
-                    payment=plan,
-                    x_max=x_max,
-                )
-            )
+        )
     # Granted rows (see docstring): every battlefield permanent of the
     # seat — compiled record or not (tokens activate what they're granted).
     for handle in sorted(world.cards):
