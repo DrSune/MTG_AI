@@ -3,10 +3,13 @@
 The heuristic against itself on package decks, and on coherent decks from the same seeds. Per
 deck and game it counts what each family's consumers did, a family being kept by a package:
 - a trigger: a resolution (TriggerBinder.resolve returned "resolved") of a triggered ability
-  whose shapes (packages.shapes) include a kept one, prowess's synthesized trigger included;
+  whose shapes (packages.shapes) include a kept one, prowess's synthesized trigger included; a
+  shape read by a count in its effect only when the count holds an object besides the source;
 - a static: at each of its controller's combats (the pre-attacks boundary, rig.before_attacks),
   a live static layer whose consumer part acted: its selector picked a permanent besides its
   source, a count in it counted one, or a condition (or a while-duration) of it held.
+A spell, an activated ability (a planeswalker's included) or a cost that reads a package is not
+counted: each package line says how many of its consumers are measured.
 A package deck is read for the families of the package it was built around; a coherent deck for
 every family (and apart, for those whose consumer it was dealt).
 
@@ -27,7 +30,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from MTG_bot.core.ability_tree import FAtom, FNot, QCount, Selector, walk
+from MTG_bot.core.ability_tree import (
+    BackFace,
+    FAtom,
+    FNot,
+    KeywordAbility,
+    QCount,
+    Selector,
+    StaticAbility,
+    TriggeredAbility,
+    walk,
+)
 from MTG_bot.core.executor import binding
 from MTG_bot.core.executor.games import deal_decks, get_supply
 from MTG_bot.core.executor.legality import enumerate_candidates
@@ -47,10 +60,16 @@ _resolve = binding.TriggerBinder.resolve
 
 
 def _counting_resolve(self, obj):
+    """A count in the effect acts only when it counts an object besides the source, read before
+    the effect runs; the trigger's event and condition act whenever it resolves."""
+    counts = [n for n in PK._own(obj.node) if isinstance(n, QCount)]
+    counted = {KEPT.get(PK._count_shape(q)) for q in counts if any(
+        h != obj.source for h in enumerate_candidates(q.selector, obj.ctx))}
     out = _resolve(self, obj)
     if out == "resolved":
         seat = self.world.player_order.index(obj.controller)
-        for fam in _families(PK.shapes(obj.node)):
+        rest = PK.shapes(obj.node) - {PK._count_shape(q) for q in counts}
+        for fam in (_families(rest) | counted) - {None}:
             FIRED[(seat, fam)] += 1
     return out
 
@@ -100,12 +119,21 @@ class Watch(HeuristicAgent):
                     FIRED[(seat, fam)] += 1
 
 
+def measured(rec, pkg) -> bool:
+    """Does a consumer read the package in a trigger, a static or prowess (what is counted)?
+    A spell's, an activated ability's or a cost's reading is not."""
+    return any(isinstance(n, (TriggeredAbility, StaticAbility, KeywordAbility))
+               and PK.shapes(n) & set(pkg.shapes) for n in walk(rec, skip=BackFace))
+
+
 def run(set_code: str, deals: int, seed0: int) -> dict:
     sup = get_supply("verified", set_code)
     kept = PK.packages(sup)
     KEPT.clear()
     KEPT.update({s: s[0] for p in kept for s in p.shapes})
     cons_fams = {c: _families(PK.consumer_shapes(sup.pool.results[c].card)) for c in sup.deckable}
+    coverage = {PK.label(p): f"{sum(measured(sup.pool.results[c].card, p) for c in p.consumers)}"
+                             f"/{len(p.consumers)}" for p in kept}
     rows = []
     for i in range(deals):
         seed = seed0 + i
@@ -121,12 +149,12 @@ def run(set_code: str, deals: int, seed0: int) -> dict:
             for seat in (0, 1):
                 rows.append({
                     "set": set_code, "seed": seed, "mode": mode, "seat": seat,
-                    "outcome": res["outcome"], "turns": res["turns"],
+                    "outcome": res["outcome"], "crash": res["crash"], "turns": res["turns"],
                     "package": PK.label(pkgs[seat]) if pkgs[seat] else None,
                     "families": sorted({s[0] for s in pkgs[seat].shapes}) if pkgs[seat] else [],
                     "dealt": sorted(set().union(*(cons_fams[c] for c in set(decks[seat])))),
                     "fired": {f: n for (s, f), n in FIRED.items() if s == seat}})
-    return {"set": set_code, "packages": [PK.label(p) for p in kept], "rows": rows}
+    return {"set": set_code, "measured": coverage, "rows": rows}
 
 
 def summary(rows: list[dict]) -> dict:
@@ -161,7 +189,7 @@ def summary(rows: list[dict]) -> dict:
     return out
 
 
-def table(s: dict) -> str:
+def table(s: dict, coverage: dict) -> str:
     out = [f"games: package {s['package']}, coherent {s['coherent']}",
            (f"{'family':10s} {'package decks':>22s} {'coherent decks':>22s} "
             f"{'coherent, consumer dealt':>26s}   (decks, firings per game, share firing)")]
@@ -169,7 +197,9 @@ def table(s: dict) -> str:
         out.append(f"{f:10s} " + " ".join(
             f"{g[k]['decks']:>8d} {g[k]['mean']:>6.2f} {g[k]['any']:>6.2f}" + " " * (w - 22)
             for k, w in (("package", 22), ("coherent", 22), ("coherent_dealt", 26))))
-    out += [f"  {k:52s} {v['decks']:>4d} {v['mean']:>6.2f} {v['any']:>6.2f}"
+    out.append("package decks by package (decks, firings per game, share firing, consumers "
+               "measured):")
+    out += [f"  {k:52s} {v['decks']:>4d} {v['mean']:>6.2f} {v['any']:>6.2f}   {coverage[k]}"
             for k, v in s["packages"].items()]
     return "\n".join(out)
 
@@ -184,11 +214,12 @@ def main() -> int:
     t0 = time.time()
     runs = [run(s, a.deals, a.seed0) for s in a.sets]
     rows = [r for x in runs for r in x["rows"]]
+    coverage = {f"{x['set']} {k}": v for x in runs for k, v in x["measured"].items()}
     res = {"argv": sys.argv[1:], "secs": round(time.time() - t0, 1), "summary": summary(rows),
-           "by_set": {x["set"]: summary(x["rows"]) for x in runs}}
+           "by_set": {x["set"]: summary(x["rows"]) for x in runs}, "measured": coverage}
     if a.out:
         Path(a.out).write_text(json.dumps({**res, "rows": rows}, indent=1) + "\n")
-    print(f"{res['secs']} s\n" + table(res["summary"]))
+    print(f"{res['secs']} s\n" + table(res["summary"], coverage))
     return 0
 
 

@@ -293,9 +293,12 @@ class Learner:
             self.log({"event": "mix", "sets": args.mix_sets, "share": args.mix_share,
                       "pool": args.pool})
         # Every game deals from --pool. A set with no deckable card in it (e.g. 'verified' for a
-        # set whose cards nobody verified yet) fails here, not in every worker game it voids.
+        # set whose cards nobody verified yet), or no package to deal, fails here, not in every
+        # worker game it voids.
         for code in sorted({TRAIN_SET, args.eval_set, *filter(None, args.mix_sets.split(","))}):
-            get_supply(args.pool, code)
+            supply = get_supply(args.pool, code)
+            if args.package_share and not PK.packages(supply):
+                raise ValueError(f"--package-share: the {args.pool} pool of {code} has no package")
         self.model.eval()
         self.models: dict[str, torch.nn.Module] = {"learner": self.model}
         self.infer_models: dict[str, tuple] = {}

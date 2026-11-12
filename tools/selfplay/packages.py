@@ -289,8 +289,8 @@ def _static_shapes(atom: Atom) -> Shape | None:
     return None
 
 
-def _own(node: Any) -> Iterator[Any]:
-    """The nodes below an ability that are its own: not those of an ability or token in it."""
+def _children(node: Any) -> Iterator[Any]:
+    """The tree nodes directly below ``node`` (its fields, tuples and sets opened)."""
     stack = [getattr(node, f.name) for f in dataclasses.fields(node)]
     while stack:
         v = stack.pop()
@@ -298,8 +298,14 @@ def _own(node: Any) -> Iterator[Any]:
             stack.extend(v)
         elif dataclasses.is_dataclass(v) and not isinstance(v, type):
             yield v
-            if not isinstance(v, _NESTED):
-                stack.extend(getattr(v, f.name) for f in dataclasses.fields(v))
+
+
+def _own(node: Any) -> Iterator[Any]:
+    """The nodes below an ability that are its own: not those of an ability or token in it."""
+    for c in _children(node):
+        yield c
+        if not isinstance(c, _NESTED):
+            yield from _own(c)
 
 
 def shapes(ability: Any) -> set[Shape]:
@@ -346,15 +352,9 @@ def _framed(node: Any, opp: bool, src: Obj | None) -> Iterator[tuple[Any, bool, 
     elif isinstance(node, Atom) and node.verb is Verb.GRANT_ABILITY:
         src = None
     yield node, opp, src
-    if isinstance(node, (BackFace, ReplacementAbility)):
-        return
-    stack = [getattr(node, f.name) for f in dataclasses.fields(node)]
-    while stack:
-        v = stack.pop()
-        if isinstance(v, (tuple, frozenset)):
-            stack.extend(v)
-        elif dataclasses.is_dataclass(v) and not isinstance(v, type):
-            yield from _framed(v, opp, src)
+    if not isinstance(node, (BackFace, ReplacementAbility)):
+        for c in _children(node):
+            yield from _framed(c, opp, src)
 
 
 def _for(ref: Any, opp: bool, mine: bool) -> bool:
@@ -482,11 +482,10 @@ def derive(supply: Any) -> tuple[list[Package], list[tuple[Package, str]]]:
     for fed, (shapes_, cons) in groups.items():
         score = {}
         for pair in PAIRS:
-            def inside(c: str, pair: str = pair) -> bool:
-                return rec[c].color_identity <= set(pair)
-            held = sum(inside(c) for c in cons)
+            inside = {c for c in cons | fed if rec[c].color_identity <= set(pair)}
+            held = len(cons & inside)
             copies = sum(COHERENT_LANDS // 2 if metas[c].is_basic else MAX_COPIES
-                         for c in fed if inside(c))
+                         for c in fed & inside)
             if held and copies >= PRODUCER_COPIES:
                 score[pair] = (held, copies)
         best = max(score.values(), default=None)
@@ -504,9 +503,13 @@ _DERIVED: dict[int, tuple[Any, list[Package]]] = {}
 
 
 def packages(supply: Any) -> list[Package]:
-    """The kept packages of a supply, derived once per process."""
+    """The kept packages of a supply, derived once per process (the drops logged to stderr)."""
     if id(supply) not in _DERIVED:
-        _DERIVED[id(supply)] = (supply, derive(supply)[0])  # the supply pins the id
+        kept, dropped = derive(supply)
+        print(f"packages[{supply.mode}, {len(supply.deckable)} cards]: {len(kept)} kept, "
+              f"{len(dropped)} dropped: {', '.join(label(p) for p, _ in dropped)}",
+              file=sys.stderr)
+        _DERIVED[id(supply)] = (supply, kept)  # the supply pins the id
     return _DERIVED[id(supply)][1]
 
 
