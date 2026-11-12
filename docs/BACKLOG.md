@@ -822,6 +822,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **Sorin, Imperious Bloodlord's +1.** Re-mapped 2026-11-12 as a reflexive trigger (CR 603.12),
     its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs,
     `tools/scenarios/mapped/M20/sorin_imperious_bloodlord_*`, run in the suite on the record.
+    G3 (2026-11-13): its first +1's two "target->all" survivors are dead (the activation twin
+    rule); `cardtool verify` passes with the wave-1b verdict `runs/verify_wave1b/verdicts/B/B01.json`.
   - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
     one-of choice.
   - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
@@ -855,7 +857,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/blightbeetle_stolen_reads_its_new_controller.json`.
   - Both trees are unchanged and go back to verification with their packs.
   - M21 Tolarian Kraken: the reflexive trigger landed (2026-11-12, trigger lane); its two
-    "target->all" survivors now differ from the card where a pack can show it (Gates, below).
+    "target->all" survivors now differ from the card where a pack can show it, and
+    `reports/g3_equivalence_2026-11-13/packs/A05_*.json` does (Gates, below).
     M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
     re-read now counts a departed attacker by its last attack (its ruling). One survivor is live
     only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no
@@ -933,12 +936,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **G3 survivors no 2-seat same-set pack can kill** (2026-11-12, verification wave 1's G3 pass;
   evidence in `reports/g3_equivalence_2026-11-12/`). The equivalent classes are now dead-role
   rules in `gates.mutants`, each proven in `tools/cards/test_gates.py`: twin TARGET selectors in a
-  resolution-time Choose of a spell (Gods Willing) and in a trigger outside any Choose
-  (Battlesong Berserker); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
+  resolution-time Choose of a spell (Gods Willing), in a trigger outside any Choose
+  (Battlesong Berserker) and in an activated ability outside any Choose (Sorin, Imperious
+  Bloodlord's first +1, 2026-11-13: `activate()` now refuses an empty designation for a slot that
+  needs a target before any cost is paid, CR 602.2b, 601.2c, as the cast lane does; it used to
+  pay and then raise "TARGET selector has no designation" at resolution, after an ALL twin had
+  already acted); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
   Goblin); a printed static PREVENT_EFFECT's atom `condition` (Blightbeetle); a granted
   damage-policy static's "you may" (Garruk, Savage Herald's -7). Over the 701 verified cards
   only M20 Maniacal Rage and Wolfrider's Saddle lose mutants (two non-critical "widen filter"
-  each, survivors in their records). What stays:
+  each, survivors in their records); the activation rule changes none of the 709 verified on
+  2026-11-13. What stays:
   - **Live only where no pack reaches.** M21 Archfiend's Vessel ("or you cast it from your
     graveyard": the effect-cast lane can, `stack.cast_card`, but no card in the 19 sets casts a
     creature card from a graveyard and the runner casts from hand only) and M21 Teferi's Ageless
@@ -949,9 +957,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     decision to accept the survivor.
   - **Live, and now the card is right.** M21 Tolarian Kraken's twins sit in its reflexive
     trigger's Choose: with no legal target the {1} is paid, then the card's reflexive trigger is
-    removed as it goes on the stack and the mutant's resolves (test_gates
-    `..._reflexive_trigger_choice_stays_live`). A spec pack of that game, choosing the tap option,
-    kills them (`tolarian_kraken_pays_with_no_legal_target` stops at the payment ask). M21
+    removed as it goes on the stack (CR 603.3d) and the mutant's waits there (test_gates
+    `..._reflexive_trigger_choice_stays_live`). It resolves asking nothing: its "you may" narrows
+    to skip, since the option left with a TARGET has no legal one (`query.optional_offer`), so no
+    pack can choose the tap option. What a pack sees is the trigger itself:
+    `reports/g3_equivalence_2026-11-13/packs/A05_kraken_reflexive_no_target_leaves_nothing_to_counter.json`
+    (the opponent's Sublime Epiphany finds no ability of the Kraken to counter) kills both, for
+    a verifier; or one more pass of priority resolves it instead of ending the main phase. M21
     Mangara's inner-filter mutant differs only when an attacked planeswalker changes control while
     the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws),
     which no pack can stage (Combat, "A pack cannot respond to a combat trigger"); its event-filter

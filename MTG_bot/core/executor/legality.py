@@ -1825,19 +1825,22 @@ def activation_target_reason(
     (stack.designate_slots: one tuple per slot or one handle per slot, an "up
     to" slot possibly empty, an "another target" slot sharing no target). On
     the synthesized player slot ("target opponent") a card stands for its
-    controller, the runtime's own re-point rule. No targets, or no slot the
-    walker can see: None (nothing to check)."""
+    controller, the runtime's own re-point rule. No slot the walker can see:
+    None (nothing to check). No targets: the first slot that needs one says
+    why (CR 602.2b, 601.2c: an ability that says "target" is not activated
+    without its targets, as stack.cast refuses a spell's empty designation);
+    an "up to" slot may stay empty."""
     from MTG_bot.core.executor.query import (
         activation_target_slots,
         validate_target_selection,
     )
     from MTG_bot.core.executor.stack import designate_slots
 
-    if not targets:
-        return None
     slots = activation_target_slots(executor, ability.effect, source=source, seat=seat)
     if not slots:
         return None
+    if not targets:
+        return next((why for slot in slots if (why := validate_target_selection(slot, ())) is not None), None)
 
     def designated(slot, handle: Handle) -> Handle:
         if slot.synthetic and handle.namespace == "card":

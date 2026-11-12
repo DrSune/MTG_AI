@@ -1,6 +1,6 @@
 {"set": "M21",
  "world": {"life": 20, "seed": 7},
- "notes": "G3 spec (target->all on the tap). Printed: '{1}{W}, {T}: Tap TARGET creature. Activate only if you control a creature with flying.' You control a flier, so the ability can be activated, but it taps one targeted creature only: activated without designating a target it cannot resolve (CR 601.2c, 602.2b), and the engine refuses it at resolution ('TARGET selector has no designation'). No creature gets tapped: neither the opponent's two creatures nor your flier. (activate() validates passed targets, V8; with none passed it leaves the check to resolution.)",
+ "notes": "G3 spec (target->all on the tap). Printed: '{1}{W}, {T}: Tap TARGET creature. Activate only if you control a creature with flying.' You control a flier, so the ability can be activated, but only with its target: activated without designating one it is refused before its cost is paid (CR 601.2c, 602.2b; activate() refuses an empty designation for a slot that needs a target, as stack.cast refuses a spell's). No creature gets tapped: neither the opponent's two creatures nor your flier, and the {1}{W} stays in the pool. (Until 2026-11-13 activate() validated passed targets only and the engine refused this at resolution, 'TARGET selector has no designation', after the cost was paid.)",
  "cards": [
   {"key": "ce", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
   {"key": "bird", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
@@ -9,6 +9,6 @@
  ],
  "mana": {"0": {"W": 1, "C": 1}},
  "steps": [
-  {"op": "activate", "key": "ce", "idx": 0, "seat": 0, "expect_raise": "TARGET selector has no designation"}
+  {"op": "activate", "key": "ce", "idx": 0, "seat": 0, "expect_raise": "illegal activation: target:selection:count_below_min"}
  ],
- "expect": {"tapped": {"ox": false, "elk": false, "bird": false}}}
+ "expect": {"tapped": {"ce": false, "ox": false, "elk": false, "bird": false}, "mana_pool": {"0": {"W": 1, "C": 1}}}}

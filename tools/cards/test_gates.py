@@ -369,13 +369,11 @@ def test_target_to_all_on_a_twin_designation_is_dead() -> None:
         assert _game(alone, mutant) == _game(alone), step
     # no twin, no rule: a lone TARGET selector still gets the mutant
     assert ("target->all", "1/1/effect/args/target") in _where(_card("Shacklegeist"))
-    # spells only: the same twin designation on an activated ability is left to the probe and the
-    # packs, because activate() validates no targets and an ALL selector without a binding
-    # acts on its whole population
+    # the same twin designation on an activated ability is dead too, now that activate() refuses
+    # an empty designation (test_target_to_all_on_twins_in_an_activation_is_dead)
+    twins = {(1, 0, "effect", "steps", i, "args", "target") for i in (0, 1)}
     ability = ActivatedAbility(cost=Cost(parts=()), effect=strike.abilities[0].effect)
-    assert gates._twin_targets(ability, (1, 0)) == set()
-    assert gates._twin_targets(strike.abilities[0], (1, 0)) == {(1, 0, "effect", "steps", i, "args", "target")
-                                                                for i in (0, 1)}
+    assert gates._twin_targets(ability, (1, 0)) == twins == gates._twin_targets(strike.abilities[0], (1, 0))
 
 
 # ------------------------------------------- owner zones, discards, statics, replacements
@@ -776,6 +774,75 @@ def test_target_to_all_on_twins_in_a_trigger_is_dead() -> None:
         assert {o[0] for o in real[0].values() if o[6] and "MENACE" in o[6]} == {pumped}
         for mutant in mutants:
             assert _game(pack, mutant) == real, target
+
+
+SORIN = "1/0/effect/steps/{}/args/target"
+
+
+def test_target_to_all_on_twins_in_an_activation_is_dead() -> None:
+    """Sorin, Imperious Bloodlord's first +1 (M20): "Target creature you control gains deathtouch
+    and lifelink until end of turn. If it's a Vampire, put a +1/+1 counter on it." Both grants
+    carry the same TARGET selector: activate() designates the one slot of
+    query.activation_target_slots, refuses an empty designation before paying
+    (legality.activation_target_reason, CR 602.2b, 601.2c), and resolve_activated re-checks the
+    slot and binds it, so the ALL grant acts on the designation (role_handles). Two creatures of
+    the same kind you control, one targeted; the target gone in response; the act menu; no
+    designation; no creature you control. The near shape, Celestial Enforcer's lone TARGET
+    (M21), loses its slot in the mutant, which is activated with no target and taps every
+    creature."""
+    sorin = _card("Sorin, Imperious Bloodlord", "M20")
+    offered = _where(sorin)
+    assert not {w for op, w in offered if op == "target->all" and w.startswith("1/0/")}
+    assert ("amount+1", SORIN.format(0) + "/count") in offered  # the designation's count stays live
+    assert ("target->all", "1/1/effect/steps/1/then_effect/effect/steps/0/args/target") in offered  # the reflexive's
+    mutants = [_everyone(sorin, SORIN.format(step)) for step in (0, 1)]
+    bear = {"type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield"}
+    vampire = {"type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield"}
+    base = [{"key": "s", "real": "Sorin, Imperious Bloodlord", "zone": "battlefield", "controller": 0}]
+    bears = [*base, {**bear, "key": "ba", "name": "BA", "controller": 0}, {**bear, "key": "bb", "name": "BB", "controller": 0}]
+    activate = {"op": "activate", "key": "s", "idx": 0, "seat": 0}
+    packs = {
+        "a bear": _pack([*bears, {**vampire, "key": "ov", "name": "Opp Vamp", "controller": 1}],
+                        [{**activate, "targets": ["ba"]}], code="M20"),
+        "a vampire": _pack([*base, {**vampire, "key": "va", "name": "VA", "controller": 0},
+                            {**vampire, "key": "vb", "name": "VB", "controller": 0}],
+                           [{**activate, "targets": ["va"]}], code="M20"),
+        "the target gone in response": _pack(bears, [{**activate, "targets": ["ba"], "hold": True},
+                                                     {"op": "move", "key": "ba", "to": "hand"}], code="M20"),
+        "the act menu": _pack(bears, [{"op": "act", "seat": 0, "words": ["act:s:0", "ba"]}], code="M20"),
+        "no designation": _pack(bears, [activate], code="M20"),
+        "no creature you control": _pack([*base, {**bear, "key": "ob", "name": "Opp Bear", "controller": 1}],
+                                         [activate], code="M20"),
+    }
+
+    def layers(r: ScenarioRunner) -> tuple:  # what a refusal mid-resolution would leave behind
+        return tuple(r.ex.events), tuple((rec.kind, rec.targets) for rec in r.ex.layers.records)
+
+    for label, pack in packs.items():
+        real = _game(pack, inspect=layers)
+        for step, mutant in enumerate(mutants):
+            assert _game(pack, mutant, inspect=layers) == real, (label, step)
+    keywords = {o[0]: o[6] for o in _game(packs["a bear"])[0].values() if o[0] in ("BA", "BB")}
+    assert keywords == {"BA": ("DEATHTOUCH", "LIFELINK"), "BB": ()} or keywords == {"BA": ("LIFELINK", "DEATHTOUCH"), "BB": ()}
+    for label in ("no designation", "no creature you control"):
+        refused = _game(packs[label])[3]
+        assert refused is not None and "count_below_min" in refused, label  # before the +1 is paid
+    enforcer = _card("Celestial Enforcer")
+    assert gates._twin_targets(enforcer.abilities[0], (1, 0)) == set()
+    assert ("target->all", "1/0/effect/args/target") in _where(enforcer)
+    creature = {"type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield"}
+    pack = _pack([{"key": "ce", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+                  {**creature, "key": "bird", "name": "My Bird", "keywords": ["FLYING"], "controller": 0},
+                  {**creature, "key": "ox", "name": "Opp Ox", "controller": 1}],
+                 [{"op": "activate", "key": "ce", "idx": 0, "seat": 0}], {"0": {"W": 1, "C": 1}})
+
+    def tapped(game: tuple) -> dict:
+        return {o[0]: o[3] for o in game[0].values() if o[0] in ("My Bird", "Opp Ox")}
+
+    real = _game(pack)
+    assert real[3] is not None and tapped(real) == {"My Bird": False, "Opp Ox": False}
+    got = _game(pack, _everyone(enforcer, "1/0/effect/args/target"))
+    assert got[3] is None and tapped(got) == {"My Bird": True, "Opp Ox": True}
 
 
 KRAKEN = "1/0/effect/steps/1/then_effect/effect/inner/options/{}/args/target"
