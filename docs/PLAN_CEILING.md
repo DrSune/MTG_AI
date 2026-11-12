@@ -106,6 +106,10 @@ owner's rulings:
 | "Making the drafter, and training that for maximizing learning, would also be really great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based on ELO)." | §7.2, §9 |
 | "You get the main point, go ahead" | status; DECISIONS D22 |
 | "Only challenge is whether enemy deck is coherent, or completely random" | §5.5 |
+| 2026-11-12, on N5 (simulator worlds no better than uniform at n = 16): "Uniform is just better? Not sure if I trust that" | KNOWLEDGE 192 §7; §5 |
+| 2026-11-12: "checking in on the initial run of r27 to see how fast it improves, test network sizes for it, and assume something is going to break or not work, though your plan sounds nice on paper" | §4 |
+| 2026-11-12: "Also consider getting started on the drafter based on value function and opponent simulator, getting that working and up to speed would be a nice tool to have or knob to turn on when things get hard or we get stuck" | §9.2, §10 |
+| 2026-11-12: "otherwise just continue executing, no need for me in the loop tbh" | §10: the choices this plan left to the owner are made by the agent, with the reasons written down |
 
 ## 1. Where we are (measured)
 
@@ -266,6 +270,45 @@ the searcher's later moves knows that world's cards: strategy fusion (OWNER_VISI
 - r27 is the learner of this plan, and its frozen versions are the networks the search amplifies.
 - **Launch**: after r26's registered read at update 1,000 (about 18:00 on 2026-11-11), r26 stops
   and r27 starts.
+
+### 4.1 Does another network size improve faster? (owner, 2026-11-12)
+
+The owner asked to watch how fast r27 improves at first, and to test network sizes for it.
+
+- **The arm.**
+  - r27's network is 8 layers, d 512, 27.8M parameters.
+  - The arm is the same network grown to 16 layers. The new layers are inserted one after each old
+    layer, with their attention and feed-forward output projections zeroed.
+  - The encoder's layers are pre-norm (`model.py:63-65`), so each new layer is exactly the
+    identity at the start, and the grown network plays exactly as u1000 does. A test checks that
+    its outputs equal u1000's.
+  - It then trains with r27's command unchanged, in its own run directory.
+- **Why depth, and why not smaller.**
+  - Depth can be grown without changing what the network computes, so both arms start at the
+    same strength and only the size differs.
+  - A smaller network cannot start at u1000's strength without copying its policy, which D8 warns
+    against. It is left for later, if the bigger arm learns faster.
+- **When.**
+  - r27 runs its first 8 hours, then pauses (its log records the pause).
+  - The arm runs 8 hours.
+  - Then both 8-hour networks play u1000 on the same 1,000 fresh deals, seats swapped, paired by
+    deal.
+  - Then r27 resumes. The pause costs r27 about 8.5 hours.
+- **Read:**
+  - each arm's paired score against u1000 at 8 hours, and the difference between the arms, paired
+    by deal;
+  - updates per hour;
+  - the gates' scores against hours;
+  - `win.heuristic` against hours.
+- **Pre-registered** in a KNOWLEDGE note before the arm starts. My expectation is no difference
+  detectable at 8 hours (within ±0.02). In PPO's audit the gradient's noise, not the network's
+  size, limited each update: about 2.2M decisions to half signal, against 139k per update. The
+  grown arm also makes fewer updates per hour.
+- **What it means:**
+  - If the grown arm is ahead by 0.02 or more with its lower bound above 0, a run from the grown
+    network is pre-registered as r28.
+  - If r27 is ahead by as much, a smaller network gets its own test.
+  - If neither, size is not the lever at this stage, and r27 goes on.
 
 ## 5. The simulator, trained at every level of the search (owner §5, §10, 2026-11-11)
 
@@ -656,6 +699,10 @@ per machine-hour.
 
 ### 9.2 The drafter (NORTH_STAR §4a)
 
+**Started 2026-11-12, at the owner's request:** `docs/PLAN_DRAFTER.md`, a v0 on today's 60-card
+format (a deck critic fitted on the games already played, then construction on it). The rest of
+this section is the long-term shape it grows into.
+
 **What it is.** A generative policy that builds a deck pick by pick, with D16's two knobs
 (nicheness, randomness). It is trained against the critic it shares with the Teacher (D15).
 
@@ -680,7 +727,9 @@ scores highest, and its fine-tuning reward is the rise of L its decks bring.
 | 2026-11-11 | r26 | built and tested the same day: the search family (§3.2: root, n, m, continuation, horizon, priority asks, simulator worlds, timing, target recording), `ncurve.py`, `distill.py`, `rate.py`; r27's pre-registration (note 191) |
 | 2026-11-11 ~18:00 | r26's read at 1,000; r26 stops | — |
 | window 1, the night of 2026-11-11 (before r27; KNOWLEDGE 192) | the n-curve pilot and points, gate A's confirmation, the simulator recaptured and trained, the n = 16 variants | — |
-| then | r27, uninterrupted | report: the n-curve and the simulator; **the owner chooses the three n** |
+| then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")** |
+| 2026-11-12, after r27's first 8 hours | §4.1's size arm, 8 hours; then both arms' paired evaluation; then r27 resumes | the drafter v0 (`PLAN_DRAFTER.md`), on CPU beside the runs |
+| a window of about 1 hour | drafted-deck games (PLAN_DRAFTER G2-G4) | — |
 | days 4-6 | r27; then, if gate A passed, gate B's generation and probe (~15 h, with the tools already built) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
 | days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (review at 14 machine-days) | the exploiter; the held-out pool's ratings |
 | then ~2 weeks | H1 and its control, about a week each, from when F1 is at least +200 Elo above r27 | — |
