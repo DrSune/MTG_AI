@@ -1330,7 +1330,7 @@ def test_gumbel_halving_spends_its_budget_on_shared_worlds(table) -> None:
     """root="gumbel" (PLAN_CEILING §3.2): at most n simulations; every candidate of a round is
     played in the same worlds; the better half survives each round; and a clearly better mean
     beats a prior that prefers another candidate."""
-    from tools.selfplay.search import Searcher
+    from tools.selfplay.search import Searcher, target_record
 
     s = Searcher(None, 0, "learner", table, pool_mode="castable", set_code="M21",
                  root="gumbel", n=32, m=8, seed=0)
@@ -1346,6 +1346,11 @@ def test_gumbel_halving_spends_its_budget_on_shared_worlds(table) -> None:
     assert sum(len(w) for w in seen.values()) <= 32
     assert seen[6] == seen[7]  # the last two met every world together
     assert set(seen[0]) < set(seen[7])  # an early loser met only the first round's worlds
+    # the first round alone, the worlds every candidate met, is kept apart for the targets' q1
+    assert len({len(v) for v in s.first.values()}) == 1 and s.first[0] == s.last[0]
+    rec = target_record({}, [0.125] * 8, 0.0, list(range(8)), s.last, pick, "act", 0, s.first)
+    assert rec["n1"] == [len(s.first[0])] * 8 and rec["n1"][7] < rec["n"][7]
+    assert rec["q1"][7] == pytest.approx(0.7) and rec["n1"][0] == rec["n"][0]
 
 
 def test_a_world_where_one_candidate_crashed_counts_for_none(table) -> None:
@@ -1426,6 +1431,7 @@ def test_the_search_answers_instant_speed_decisions(table) -> None:
         assert t["kind"] == "priority" and set(t["feats"]) >= {"cards_i", "cards_f"}
         assert sum(t["n"]) <= 2 and all(-1.0 <= q <= 1.0 for q in t["q"])
         assert len(t["probs"]) > max(t["alts"]) and t["pick"] in range(len(t["probs"]))
+        assert t["q1"] == t["q"] and t["n1"] == t["n"]  # two candidates: one round
 
 
 def test_a_sampled_continuation_shares_its_draws_within_a_world(table) -> None:
@@ -1582,6 +1588,19 @@ def test_distilling_search_targets_moves_the_network_toward_the_better_move(tabl
     assert se[1] > pi[1] and se[0] < pi[0] and se[2] == pytest.approx(pi[2])
     sg = D.improved(clear, pi, "sigma")
     assert sg.sum() == pytest.approx(1.0) and sg.argmax() == 1
+    # se1 reads only the first round, which every option played: a difference that only the
+    # halving's later rounds show (selection, not evidence) leaves it unmoved
+    halved = {**clear, "q1": [0.2, 0.2], "n1": [2, 2]}
+    assert np.allclose(D.improved(halved, pi, "se1"), pi)
+    assert not np.allclose(D.improved(halved, pi, "se"), pi)
+    # the placebo keeps each record's results and gives them to its options in a random order
+    stats = {"alts": [0, 1, 2], "q": [0.1, 0.2, 0.3], "n": [1, 2, 3], "var": [0.0, 0.1, 0.2],
+             "q1": [0.1, 0.2, 0.3], "n1": [1, 1, 1]}
+    shuffled = [dict(stats) for _ in range(20)]
+    D.placebo(shuffled, np.random.default_rng(0))
+    assert all(sorted(zip(r["q"], r["n"], r["var"], strict=True))
+               == [(0.1, 1, 0.0), (0.2, 2, 0.1), (0.3, 3, 0.2)] for r in shuffled)
+    assert all(r["q"] == r["q1"] for r in shuffled) and len({tuple(r["q"]) for r in shuffled}) > 1
 
     supply = get_supply("castable")
     game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))

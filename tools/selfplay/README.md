@@ -35,7 +35,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `decks.py` | The drafter v0 (docs/PLAN_DRAFTER.md): a recorded game's decks rebuilt with the code of the run's commit (`rebuild`, under `runs/code/<sha>`), the card-value critic fitted on games' results against a baseline of deck summaries (`fit`, gate G1), and construction by k swaps on a fresh deal inside the coherent decks' band (`swap`), which the learner's drafted deck modes use. |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run (with the per-kind rows: pass share, advantage, entropy, KL); paired comparison of two evaluations on the same deals. |
 | `preflight.py`, `launch.sh` | A run's pre-flight checks (docs/TRAINING_REVIEW_PROTOCOL.md §1: clean tree, a smoke slate, games ending by a loss, seeded replay); the launcher a systemd unit runs, which resumes from the last save. |
-| `ncurve.py`, `distill.py`, `rate.py` | docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
+| `ncurve.py`, `distill.py`, `rate.py` | docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2; rules `se`, `se1` on the first halving round's shared worlds, and `sigma`; `--placebo`, `--save-epochs`; KNOWLEDGE/2026-11-12/196); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
 

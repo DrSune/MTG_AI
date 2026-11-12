@@ -263,6 +263,9 @@ class Searcher:
         self.record = record
         self.targets: list[dict] = []
         self.last: dict[int, list[tuple[float, float]]] = {}  # the last comparison's results
+        # ... and its first round's alone: under sequential halving the only worlds every
+        # compared candidate played (target_record's q1)
+        self.first: dict[int, list[tuple[float, float]]] = {}
         self.rng = random.Random(seed)
         # the supply the searched game was dealt from: forks share its compiled cards (fork.py)
         # and the opponent's hidden cards are re-drawn from its deckable pool (determinize)
@@ -307,6 +310,7 @@ class Searcher:
             raw = {i: [run(c, w) for w, _ in worlds] for i, c in enumerate(cands)}
             keep = [j for j in range(len(worlds)) if all(v[j] is not None for v in raw.values())]
             self.last = {i: [(v[j], worlds[j][1]) for j in keep] for i, v in raw.items()}
+            self.first = self.last
             q = mean_scores(raw, [x for _, x in worlds])
             if q is None:
                 return max(range(len(cands)), key=lambda i: logits[i]), {}
@@ -330,12 +334,14 @@ class Searcher:
             most = max(len(v) for v in res.values())
             return g[i] + logits[i] + (C_VISIT + most) * C_SCALE * (q + 1) / 2
 
-        for _ in range(rounds):
+        for r in range(rounds):
             worlds = self.draw_worlds(max(1, self.n // (rounds * len(alive))))
             raw = {i: [run(cands[i], w) for w, _ in worlds] for i in alive}
             keep = [j for j in range(len(worlds)) if all(raw[i][j] is not None for i in alive)]
             for i in alive:
                 res[i].extend((raw[i][j], worlds[j][1]) for j in keep)
+            if r == 0:
+                self.first = {i: list(res[i]) for i in alive}
             if len(alive) > 1:
                 alive = sorted(alive, key=key, reverse=True)[: math.ceil(len(alive) / 2)]
         self.last = res
@@ -382,7 +388,7 @@ class Searcher:
         self._record(ask.kind, pick, cands.index(int(a0)) if int(a0) in cands else -1, q, t0)
         if self.record:
             self.targets.append(target_record(feats, probs, v0, cands, self.last,
-                                              int(cands[pick]), ask.kind, ask.seat))
+                                              int(cands[pick]), ask.kind, ask.seat, self.first))
         if self.audit and ask.kind == "act":
             self._audit(obs.game, ask, ranked[:AUDIT_M], probs, int(a0), int(cands[pick]))
         return int(cands[pick])
@@ -575,22 +581,33 @@ class Searcher:
 
 def target_record(feats: dict, probs: list[float], value: float, cands: list[int],
                   results: dict[int, list[tuple[float, float]]], pick: int, kind: str,
-                  seat: int) -> dict:
+                  seat: int, first: dict[int, list[tuple[float, float]]] | None = None) -> dict:
     """One searched decision as a training target (PLAN_CEILING §6.2): its encoding, the
     network's probabilities and value, and per compared option (an index of the ask's options)
     the weighted mean result, the number of worlds and their variance, so the target's rule (the
-    paper's sigma, a step scaled by the standard error; distill.py) is chosen when training."""
+    paper's sigma, a step scaled by the standard error; distill.py) is chosen when training.
+
+    ``q1``/``n1`` are the same mean and count over the first round's worlds alone (``first``).
+    Under sequential halving only those are shared by every compared option. An option that
+    lost the first round has nothing else, and that round was selected low; a survivor adds
+    fresh worlds. So ``q`` sets a loser's selected-low mean against a survivor's partly fresh
+    one, and ``q1`` is the comparison free of that selection (KNOWLEDGE/2026-11-12/196). The
+    search's own choice uses every world."""
+    def mean(v: list[tuple[float, float]]) -> float:
+        return sum(z * w for z, w in v) / sum(w for _, w in v)
+
     rows = []
     for i, c in enumerate(cands):
         v = results.get(i) or []
         if not v:
             continue
-        total = sum(w for _, w in v)
-        mean = sum(z * w for z, w in v) / total
-        var = sum(w * (z - mean) ** 2 for z, w in v) / total
-        rows.append((c, mean, len(v), var))
+        m = mean(v)
+        var = sum(w * (z - m) ** 2 for z, w in v) / sum(w for _, w in v)
+        v1 = (first or {}).get(i) or v
+        rows.append((c, m, len(v), var, mean(v1), len(v1)))
     return {"feats": feats, "probs": list(probs), "v": float(value), "alts": [r[0] for r in rows],
             "q": [r[1] for r in rows], "n": [r[2] for r in rows], "var": [r[3] for r in rows],
+            "q1": [r[4] for r in rows], "n1": [r[5] for r in rows],
             "pick": pick, "kind": kind, "seat": seat}
 
 

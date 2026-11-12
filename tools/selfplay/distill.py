@@ -9,6 +9,9 @@ policy pi' by cross-entropy over all options. The rule that turns a record into 
   one standard error of their means moves the log-odds by at most search.LOGODDS_PER_SE. A
   comparison in which every option had the same result leaves the policy as it was: in 92% of
   E3's comparisons both moves had the same result, and a fixed step made those noise.
+- ``se1``: the same step on the first round's means (``q1``, ``n1``; search.target_record). Under
+  sequential halving those are the only worlds every option shares, so they are free of the
+  halving's selection, at the cost of the survivors' later worlds.
 - ``sigma``: Gumbel MuZero's pi' = softmax(log pi + sigma(completed q)) with the paper's
   constants (search.C_VISIT, C_SCALE); options not compared take v_mix (its eq. 33).
 
@@ -38,7 +41,7 @@ from tools.selfplay import model as M
 from tools.selfplay.ppo import chunks
 from tools.selfplay.search import C_SCALE, C_VISIT, mmd_target
 
-RULES = ("se", "sigma")
+RULES = ("se", "se1", "sigma")
 #: A floor under a record's pooled variance (on the +-1 scale): with every world agreeing the
 #: variance is 0 and the step would be unbounded. A rail, not a tuning knob.
 VAR_FLOOR = 0.01
@@ -58,8 +61,10 @@ def improved(rec: dict, pi: np.ndarray, rule: str) -> np.ndarray:
     alts, q, n = rec["alts"], np.asarray(rec["q"]), np.asarray(rec["n"], float)
     if not alts:
         return pi
-    if rule == "se":
-        pooled = float(np.dot(n, rec["var"]) / n.sum())
+    if rule in ("se", "se1"):
+        pooled = float(np.dot(n, rec["var"]) / n.sum())  # within an option, over all its worlds
+        if rule == "se1":
+            q, n = np.asarray(rec["q1"]), np.asarray(rec["n1"], float)
         se = math.sqrt(max(pooled, VAR_FLOOR) / n.mean())
         t = np.asarray(mmd_target(list(pi), alts, list(q), se))
         return t / t.sum()
@@ -114,6 +119,19 @@ def ce_epoch(net, feats, targets, idx, dev, opt=None, mb: int = 512) -> float:
     return total / max(count, 1)
 
 
+def split(games: list, n: int) -> tuple[np.ndarray, np.ndarray, int]:
+    """The first ``n`` records extended to whole games, as training and held-out indices, and
+    the number of deals they hold. ``games`` is each record's deal seed (both seat-swapped games
+    of a deal share it). Every 20th deal, counted in the order deals first appear, is held out."""
+    sel = list(range(min(n, len(games))))
+    while sel and len(sel) < len(games) and games[len(sel)] == games[sel[-1]]:
+        sel.append(len(sel))  # whole games only
+    order = {g: k for k, g in enumerate(dict.fromkeys(games[i] for i in sel))}
+    val = np.array([i for i in sel if order[games[i]] % 20 == 0], np.int64)
+    tr = np.array([i for i in sel if order[games[i]] % 20 != 0], np.int64)
+    return tr, val, len(order)
+
+
 def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int], dev,
            lr: float = 3e-5, epochs: int = 4, mb: int = 512, on_epoch=None) -> dict:
     """For each size n: a copy of ``base`` trained on the first n records (whole games), the
@@ -126,12 +144,7 @@ def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int],
     games = [r.get("seed") for r in recs]
     out = {}
     for n in sizes:
-        sel = list(range(min(n, len(recs))))
-        while sel and len(sel) < len(recs) and games[len(sel)] == games[sel[-1]]:
-            sel.append(len(sel))  # whole games only
-        order = {g: k for k, g in enumerate(dict.fromkeys(games[i] for i in sel))}
-        val = np.array([i for i in sel if order[games[i]] % 20 == 0], np.int64)
-        tr = np.array([i for i in sel if order[games[i]] % 20 != 0], np.int64)
+        tr, val, deals = split(games, n)
         net = copy.deepcopy(base)
         opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=0.01)
         ent = float(np.mean([-(targets[i] * np.log(np.clip(targets[i], 1e-12, 1))).sum()
@@ -158,22 +171,36 @@ def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int],
             if len(val) else None
         before = float(np.mean([int(np.argmax(pis[i]) == recs[i]["pick"]) for i in val])) \
             if len(val) else None
-        out[n] = (net, {"records": len(sel), "train": len(tr), "val": len(val),
-                        "games": len(order), "history": hist, "best_val_kl": best[0],
+        out[n] = (net, {"records": len(tr) + len(val), "train": len(tr), "val": len(val),
+                        "games": deals, "history": hist, "best_val_kl": best[0],
                         "held_out_agreement": agree, "agreement_before": before})
     return out
 
 
+def placebo(recs: list[dict], rng: np.random.Generator) -> None:
+    """The placebo arm (search.placebo's rule): each record's per-option results (mean, worlds,
+    variance, and the first round's) go to its compared options in a random order, one
+    permutation per record. The targets keep their structure and lose their signal."""
+    for r in recs:
+        perm = rng.permutation(len(r["alts"]))
+        for key in ("q", "n", "var", "q1", "n1"):
+            if key in r:
+                r[key] = [r[key][j] for j in perm]
+
+
 def describe(recs: list[dict], rule: str, base, dev) -> dict:
-    """The records' share with no difference in result (every compared option's mean equal)
-    and the share whose target moves the policy at all."""
+    """The records' share with no difference in result (every compared option's mean equal),
+    the share whose target moves the policy at all, and the share played in one round (every
+    option over the same worlds, so ``q1`` equals ``q``)."""
     pis = policy(base, [r["feats"] for r in recs], dev)
-    ties = moved = 0
+    ties = moved = single = 0
     for r, pi in zip(recs, pis, strict=True):
         ties += len(r["q"]) < 2 or max(r["q"]) - min(r["q"]) < 1e-9
         moved += bool(np.abs(improved(r, pi, rule) - pi).max() > 1e-6)
-    return {"records": len(recs), "no_difference": round(ties / max(len(recs), 1), 4),
-            "moved": round(moved / max(len(recs), 1), 4)}
+        single += r.get("n1", r["n"]) == r["n"]
+    k = max(len(recs), 1)
+    return {"records": len(recs), "no_difference": round(ties / k, 4),
+            "moved": round(moved / k, 4), "one_round": round(single / k, 4)}
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -188,14 +215,20 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--mb", type=int, default=512)
     ap.add_argument("--save-epochs", action="store_true",
                     help="also save each trained epoch's network as distilled_N_eE.pt")
+    ap.add_argument("--placebo", action="store_true",
+                    help="the control arm: each record's results permuted among its options")
+    ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args(argv)
+    torch.manual_seed(a.seed)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     base, table, _ = M.load(a.init, dev)
     recs = load_targets(a.runs)
-    report = {"init": a.init, "rule": a.rule, "runs": a.runs, **describe(recs, a.rule, base, dev),
-              "sizes": {}}
+    if a.placebo:
+        placebo(recs, np.random.default_rng([a.seed, 196]))  # its own stream (note 196)
+    report = {"init": a.init, "rule": a.rule, "runs": a.runs, "seed": a.seed,
+              "placebo": a.placebo, **describe(recs, a.rule, base, dev), "sizes": {}}
     def save_epoch(n: int, epoch: int, net: torch.nn.Module) -> None:
         M.save(str(out / f"distilled_{n}_e{epoch}.pt"), net, table,
                {"distilled_from": a.init, "epoch": epoch})
