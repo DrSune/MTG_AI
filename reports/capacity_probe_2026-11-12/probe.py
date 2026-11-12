@@ -6,15 +6,16 @@ held out (``--holdout``). Arms, all from one checkpoint (``model.grow`` keeps it
 - ``base``: the network as it is;
 - ``deep``: twice the layers (identity layers inserted);
 - ``wide``: twice the feed-forward width (new units with zero outgoing weights).
-Each arm is fine-tuned on the same training rows, in the same minibatches (``ppo.chunks``, PPO's
-token budget), for the same optimizer steps: cross-entropy on the action taken plus ``vcoef`` x the
-squared error of the value against the return, AdamW, bf16 autocast, the network in eval mode as
-PPO runs it. Every ``--eval-every`` steps the held-out rows give the value's explained variance by
-game phase (the step's third of its game) and the policy's NLL; the step time and the peak memory
-are logged.
+Each arm is fine-tuned on the same training rows, in the same minibatches in the same order
+(``ppo.chunks``, PPO's token budget, seeded), for ``--epochs`` passes: cross-entropy on the
+action taken plus ``vcoef`` x the squared error of the value against the return, AdamW, bf16
+autocast, the network in eval mode as PPO runs it. Every ``--eval-every`` steps the held-out
+rows give the value's explained variance by game phase (the step's third of its game) and the
+policy's NLL; the step time and the peak memory are logged, and the held-out rows' values and
+NLLs are saved beside OUT (``OUT.ARM.lrLR.sSTEP.npz``) for a bootstrap over held-out games.
 
     PYTHONPATH=. .venv/bin/python reports/capacity_probe_2026-11-12/probe.py COLLECT.pkl CKPT \\
-        OUT.jsonl [--steps 450] [--lr 1e-4] [--arms base,deep,wide]
+        OUT.jsonl [--epochs 1] [--lr 1e-4] [--arms base,deep,wide]
 """
 
 from __future__ import annotations
@@ -30,6 +31,7 @@ import torch
 from tools.selfplay import model as M
 from tools.selfplay.ppo import chunks
 
+
 def load(path: str, holdout: int) -> tuple:
     with open(path, "rb") as fh:
         rows = pickle.load(fh)
@@ -38,12 +40,13 @@ def load(path: str, holdout: int) -> tuple:
     ret = np.array([r[5] for r in rows], np.float32)
     held = np.array([r[6] % holdout == 0 for r in rows])
     phase = np.minimum((3 * np.array([r[7] for r in rows]) // np.array([r[8] for r in rows])), 2)
-    return packed, act, ret, held, phase
+    gid = np.array([r[6] for r in rows], np.int64)
+    return packed, act, ret, held, phase, gid
 
 
 def evaluate(net: torch.nn.Module, packed: M.Packed, act: np.ndarray, ret: np.ndarray,
              idx: np.ndarray, phase: np.ndarray, device: torch.device, a: argparse.Namespace
-             ) -> dict:
+             ) -> tuple[dict, np.ndarray, np.ndarray]:
     v_all, nll = np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32)
     with torch.no_grad():
         for ch in chunks(packed.lengths()[idx], a.mb, a.tok_budget):  # positions in idx
@@ -62,11 +65,11 @@ def evaluate(net: torch.nn.Module, packed: M.Packed, act: np.ndarray, ret: np.nd
                                   5)
     r = ret[idx]
     out["ev_all"] = round(1 - float(np.var(r - v_all)) / max(float(np.var(r)), 1e-8), 5)
-    return out
+    return out, v_all, nll
 
 
 def run_arm(name: str, a: argparse.Namespace, data: tuple, out) -> None:
-    packed, act, ret, held, phase = data
+    packed, act, ret, held, phase, gid = data
     device = torch.device("cuda" if torch.cuda.is_available() and a.device != "cpu" else "cpu")
     net, table, _ = M.load(a.ckpt)
     cfg = net.config
@@ -78,13 +81,19 @@ def run_arm(name: str, a: argparse.Namespace, data: tuple, out) -> None:
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr, betas=(0.9, 0.99), eps=1e-6,
                             weight_decay=a.wd)
     train, test = np.flatnonzero(~held), np.flatnonzero(held)
+    np.random.seed(a.seed)  # ppo.chunks: every arm gets the same minibatches in the same order
     rng = np.random.default_rng(a.seed)
+    mbs = chunks(packed.lengths()[train], a.mb, a.tok_budget)
+    steps = a.epochs * len(mbs)
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats()
 
     def log(step: int, extra: dict) -> None:
-        row = {"arm": name, "step": step, "params": sum(p.numel() for p in net.parameters()),
-               **evaluate(net, packed, act, ret, test, phase, device, a), **extra}
+        ev, v, nll = evaluate(net, packed, act, ret, test, phase, device, a)
+        np.savez(f"{a.out}.{name}.lr{a.lr:g}.s{step}.npz", v=v, nll=nll, ret=ret[test],
+                 phase=phase[test], gid=gid[test])
+        row = {"arm": name, "lr": a.lr, "step": step, "steps": steps,
+               "params": sum(p.numel() for p in net.parameters()), **ev, **extra}
         if device.type == "cuda":
             row["peak_gib"] = round(torch.cuda.max_memory_allocated() / 2**30, 2)
         out.write(json.dumps(row) + "\n")
@@ -93,8 +102,7 @@ def run_arm(name: str, a: argparse.Namespace, data: tuple, out) -> None:
 
     log(0, {"train_rows": len(train), "test_rows": len(test)})
     step, t_train = 0, 0.0
-    while step < a.steps:
-        mbs = chunks(packed.lengths()[train], a.mb, a.tok_budget)
+    for _ in range(a.epochs):
         for k in rng.permutation(len(mbs)):
             rows = train[mbs[k]]
             t0 = time.perf_counter()
@@ -114,10 +122,8 @@ def run_arm(name: str, a: argparse.Namespace, data: tuple, out) -> None:
                 torch.cuda.synchronize()
             t_train += time.perf_counter() - t0
             step += 1
-            if step % a.eval_every == 0 or step == a.steps:
+            if step % a.eval_every == 0 or step == steps:
                 log(step, {"s_per_step": round(t_train / step, 3)})
-            if step == a.steps:
-                break
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -126,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("ckpt")
     ap.add_argument("out")
     ap.add_argument("--arms", default="base,deep,wide")
-    ap.add_argument("--steps", type=int, default=450)
+    ap.add_argument("--epochs", type=int, default=1)
     ap.add_argument("--eval-every", type=int, default=50)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--wd", type=float, default=0.01)
