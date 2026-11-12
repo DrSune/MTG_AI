@@ -221,6 +221,52 @@ class TestStolenStatics(ControlCase):
         self.assertEqual(self.pt(self.banner), (4, 4))
 
 
+class TestAuraControl(ControlCase):
+    """M21 Enthralling Hold's "You control enchanted creature." is the Aura's own static ability,
+    compiled onto its spell as a control entry anchored to the Aura: its "you" is the Aura's
+    controller now (found by the fresh-eyes review of this fix)."""
+
+    def hold_on_beta(self):
+        hold = self.world.add_card(
+            card_id("Hold", type_line="Enchantment — Aura"), self.p0, ZONE_BATTLEFIELD
+        )
+        self.ex.attach_aura(hold, self.beta)
+        enchanted = Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd((FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), CREATURE)),
+            zones=(BF_ANY,),
+        )
+        self.ex.execute(
+            atom(Verb.GAIN_CONTROL, controller=ControllerRef.YOU, target=enchanted),
+            source=hold,
+            controller=self.p0,
+        )
+        self.assertEqual(self.ex.controller_of(self.beta), self.p0)
+        return hold
+
+    def test_stealing_the_aura_takes_the_creature_with_it(self):
+        hold = self.hold_on_beta()
+        self.steal(hold)
+        self.assertEqual(self.ex.controller_of(self.beta), self.p1)
+        self.ex.end_turn()  # the Aura returns to P0, and the creature with it
+        self.assertEqual(self.ex.controller_of(hold), self.p0)
+        self.assertEqual(self.ex.controller_of(self.beta), self.p0)
+
+    def test_a_resolved_steal_stays_with_its_controller(self):
+        # CR 611.2c: control a resolved ability gave (Sorin, Vampire Lord's granted "{T}: Gain
+        # control of target creature") is not the source's ability: it stays when the source is
+        # stolen.
+        self.ex.execute(
+            atom(Verb.GAIN_CONTROL, target=target_sel(), controller=ControllerRef.YOU),
+            source=self.banner,
+            controller=self.p0,
+            bindings={"target": self.beta},
+        )
+        self.steal(self.banner)
+        self.assertEqual(self.ex.controller_of(self.beta), self.p0)
+
+
 class TestResolvedEffectsKeepTheirController(ControlCase):
     def test_a_resolved_prevention_keeps_the_controller_it_resolved_under(self):
         # CR 611.2c: "Creatures your opponents control can't block this turn", made by an
