@@ -455,3 +455,32 @@ deal correlation 0.74, or **+31 Elo** [+11, +51].
   - The start ladder will likely falsify prediction 9.
   - Whether the precision explains the gap is checked next: the same 300 deals on the CPU in fp32
     (§7.6).
+
+### 7.6 Why does u1000 score 0.69 against the heuristic, not 0.875? (pre-registered 2026-11-12 04:00, before either check runs)
+
+**The two numbers.**
+- Window 1's `heur_raw`: u1000, GPU, bf16 inference, the verified pool, deals 900,000-900,299
+  with both seats each: 0.692 ± 0.017.
+- The 35/40 behind r27's prediction 9 (scratch `grown_row.py`, 2026-11-11 11:50) differs in:
+  - the network: r26 at update ~830;
+  - the device and precision: CPU, fp32;
+  - the cards: the **castable** pool (`get_supply("castable")`);
+  - the deals: seeds 0-39, one seat each.
+- 35/40 is 0.875 ± 0.052. If the two measured the same thing, a gap this size would come up
+  less than 1% of the time.
+
+**Two checks, in window 2 on the GPU** (`reports/window2_2026-11-12/queue.sh`). The CPU is r27's
+until then, so they do not run there.
+
+| # | Check | Prediction | Falsifier |
+|---|---|---|---|
+| H1 | `heur_raw_fp32`: as `heur_raw` with fp32 inference, the same 300 deals; fp32 minus bf16, paired by deal | within ±0.03 (183 measured bf16 copies against fp32 autocast on the old game: the same argmax, values within 8.8e-4) | +0.04 or more with the lower bound above 0: bf16 inference costs strength, a fault to fix before any further evaluation |
+| H2 | `heur_raw_castable`: as `heur_raw` on the castable pool (other decks, so not paired) | 0.74-0.88: the castable pool's extra cards favour the network, or play badly for the heuristic | at or below 0.72: the pool does not explain the gap, which then lies with the update (~830 against 1,000) or the 40 games' noise |
+
+**What each outcome means.**
+- **H1 met, H2 met:** nothing is broken. Prediction 9 was set on another pool's number.
+- **H1 met, H2 falsified:** nothing is broken in precision. The remaining causes are harmless (the
+  update, or noise).
+- **H1 falsified:** every bf16 evaluation since 183 understates the network against outside
+  opponents. Self-play pairs are unaffected, because both seats are bf16. The fix and a re-check
+  come before window 2's other numbers are read.
