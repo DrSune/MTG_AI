@@ -1,9 +1,9 @@
 #!/bin/bash
-# Gate B (KNOWLEDGE/2026-11-12/196): r27 pauses right after a save, away from its gates; its
-# last.pt is the generator G. Chunks of searched games record targets until 300k exist; chunk 0
+# Gate B (KNOWLEDGE/2026-11-12/196; §8: the training run is r28): the run pauses right after a
+# save, away from its gates; its last.pt is the generator G. Chunks of searched games record targets until 300k exist; chunk 0
 # is gate A on G. Then four distillation arms; each arm's epoch is chosen by play on deals
 # 970,000+; the tests run on deals 980,000+; GB2's agreement; 192 §7.6's H1' (fp32 and bf16 on
-# window 1's heur_raw deals); 195 §5's confirming audit (deals 965,000+); then r27 resumes.
+# window 1's heur_raw deals); 195 §5's confirming audit (deals 965,000+); then the run resumes.
 # Runs from a worktree pinned at the commit that holds this file; one GPU job at a time; every
 # step has a time cap.
 #   systemd-run --user --unit mtg-gateb /bin/bash \
@@ -11,22 +11,24 @@
 #
 # Restarts (KNOWLEDGE/2026-11-12/197's fixes):
 # - $O/identity holds the commit that began the run; a queue from another commit refuses it.
-# - r27 is paused whenever it is running when the queue (re)starts; G is copied once.
+# - The run is paused whenever it is running when the queue (re)starts; G is copied once.
 # - A_G is its own saved verdict ($O/A_G). An interrupted chunk 0 is set aside unread and played
 #   again; no other chunk runs before A_G is read and passes; below AG_MIN the gate stops for good
 #   ($O/stopped).
 # - A finished step (its .done file) is skipped; a generation chunk once started is never
-#   replayed (its .tried file); a required step that fails stops the queue ($O/failed, r27
+#   replayed (its .tried file); a required step that fails stops the queue ($O/failed, the run
 #   resumed), and a restart tries it again.
-# A CPU smoke overrides the sizes and sets PAUSE=0, which neither stops nor starts r27 and takes
-# G from GEN_FROM.
+# A CPU smoke overrides the sizes and sets PAUSE=0, which neither stops nor starts the run and
+# takes G from GEN_FROM.
 set -u
 W=${W:-/home/sune/Desktop/MTG_AI-gateb}
 R=/home/sune/Desktop/MTG_AI/runs
 O=${O:-$R/gateb}
-R27=$R/selfplay/r27_priority_ppo
+RUN=$R/selfplay/r28_stratified_ppo  # the training run G comes from (196 §8)
+UNIT=mtg-r28                         # its transient unit; a stop removes it, START brings it back
+START=$W/reports/r28_2026-11-12/start.sh
 G=$O/gen.pt
-V0=$R27/v0.pt
+V0=$R/selfplay/r27_priority_ppo/v0.pt  # GB5's fixed reference, as registered (196 §1)
 U1000=$R/selfplay/r26_outcome_ppo/u1000.pt
 PAUSE=${PAUSE:-1}
 TARGETS=${TARGETS:-300000}
@@ -58,8 +60,8 @@ step() {  # step NAME CAP COMMAND... ; returns the command's exit code
   log "$name" "exit $rc"
   return $rc
 }
-resume() { [ "$PAUSE" = 1 ] && systemctl --user start mtg-r27 && log r27 resumed; return 0; }
-fail() {  # a required step failed: stop here, give the GPU back to r27, say so
+resume() { [ "$PAUSE" = 1 ] && "$START" && log run resumed; return 0; }
+fail() {  # a required step failed: stop here, give the GPU back to the run, say so
   echo "$1" > "$O/failed"
   log gateb "failed: $1"
   resume
@@ -90,13 +92,13 @@ if [ -f "$O/stopped" ]; then  # gate A on G failed before: a restart must not ge
   exit 0
 fi
 
-# r27 pauses at its first save whose update is 10, 15 or 20 past a gate (as window 2's queue),
-# at every (re)start that finds it running: nothing else shares the GPU with a step
-if [ "$PAUSE" = 1 ] && systemctl --user is-active -q mtg-r27; then
-  it() { .venv/bin/python -c "import pickle; print(pickle.load(open('$R27/state.pkl', 'rb'))['it'])"; }
-  last=$(stat -c %Y "$R27/state.pkl")
-  while systemctl --user is-active -q mtg-r27; do
-    now=$(stat -c %Y "$R27/state.pkl")
+# The run pauses at its first save whose update is 10, 15 or 20 past a gate (as window 2's
+# queue), at every (re)start that finds it running: nothing else shares the GPU with a step
+if [ "$PAUSE" = 1 ] && systemctl --user is-active -q "$UNIT"; then
+  it() { .venv/bin/python -c "import pickle; print(pickle.load(open('$RUN/state.pkl', 'rb'))['it'])"; }
+  last=$(stat -c %Y "$RUN/state.pkl")
+  while systemctl --user is-active -q "$UNIT"; do
+    now=$(stat -c %Y "$RUN/state.pkl")
     if [ "$now" != "$last" ]; then
       last=$now
       case $(( $(it) % 25 )) in 10|15|20) break ;; esac
@@ -104,11 +106,11 @@ if [ "$PAUSE" = 1 ] && systemctl --user is-active -q mtg-r27; then
     sleep 15
   done
   sleep 10
-  systemctl --user stop mtg-r27
-  log r27 "paused after update $(it)"
+  systemctl --user stop "$UNIT"
+  log run "paused after update $(it)"
 fi
 if [ ! -f "$G" ]; then  # G is fixed once, at the first pause
-  if [ "$PAUSE" = 1 ]; then cp "$R27/last.pt" "$G"; else cp "$GEN_FROM" "$G"; fi
+  if [ "$PAUSE" = 1 ]; then cp "$RUN/last.pt" "$G"; else cp "$GEN_FROM" "$G"; fi
   log G "$(sha256sum "$G" | cut -c1-16)"
 fi
 

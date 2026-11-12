@@ -327,3 +327,25 @@ at n = 2, sizes 30 and 60, `AG_MIN=0`, and one deal each for selection, the test
   - a capped distillation;
   - a short generation;
   - a second queue on the same directory.
+
+## 8. The training run is r28, on the fixed trainer (2026-11-12 ~16:45, before any data)
+
+r27 ended at update 165: its mulligan ran away because every optimizer step was one stratum of
+decision length (KNOWLEDGE/2026-11-12/198). Its successor r28 (199) runs from r27's v1 on the
+fixed trainer. Gate B had not started, and nothing of its protocol, gates or predictions changes.
+What changes:
+- **The training run.** The queue pauses r28 and takes G from r28's `last.pt` at the pause.
+  - r28 runs as a transient unit, so a stop removes it. The queue resumes it with
+    `reports/r28_2026-11-12/start.sh`.
+  - v0, GB5's fixed reference, stays r27's `v0.pt`, as §1 registered. It is not G and not in
+    r28's opponents.
+- **The pin moves** from b73d562 to the commit that holds this section. Distillation
+  (`distill.ce_epoch`) then takes stratified steps (198 §4), as every training loop does. At
+  b73d562 each optimizer step would have been one length stratum, the defect behind r27's
+  runaway.
+- **When.** After r28's read at update 400. `reports/gate_b_2026-11-12/starter.sh`, as the
+  transient unit `mtg-gateb-starter`, starts the queue once r28 passes update 405. That is about
+  20 hours after r28's launch (2026-11-12 16:32), so about 2026-11-13 13:00. r28's reads go by
+  update count, so the pause changes nothing in them.
+- H1′ (u1000 against the heuristic) and 195's confirming audit (u1000) do not involve the
+  training run and are unchanged.
