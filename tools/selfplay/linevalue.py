@@ -479,8 +479,9 @@ def main(argv: list[str] | None = None) -> dict:
     p.add_argument("--device", default="cpu", help="where the network runs (LocalSlot)")
     p.add_argument("--out", default="")
     a = p.parse_args(argv)
-    if bool(a.cast) == bool(a.consumer or a.producer) or bool(a.consumer) != bool(a.producer):
-        p.error("give --cast, or --consumer and --producer")
+    families = bool(a.cast) + bool(a.consumer or a.producer)
+    if families > 1 or bool(a.consumer) != bool(a.producer) or not (families or a.package):
+        p.error("give --cast, or --consumer and --producer, or --package alone (its own order line)")
     seed_all(a.seed)
     supply = get_supply(a.pool, a.set)
     pkg = None

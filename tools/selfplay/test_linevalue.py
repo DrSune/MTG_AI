@@ -166,3 +166,15 @@ def test_a_package_deals_both_decks_around_it(slot, table) -> None:
     assert decks == probe._decks(950_000) and decks != probe._decks(950_001)
     assert all(set(d) & set(pkg.consumers) for d in decks)
     assert LV.Probe(slot, table, line, pool_mode="castable")._decks(950_000) is None
+
+
+@pytest.mark.parametrize("argv, ok", [(["--package", "life"], True), (["--cast", "X"], True),
+                                      (["--consumer", "A", "--producer", "B"], True), ([], False),
+                                      (["--cast", "X", "--consumer", "A", "--producer", "B"], False),
+                                      (["--consumer", "A"], False)])
+def test_the_cli_takes_one_line_family_or_a_package(argv, ok, monkeypatch) -> None:
+    """The CLI's line arguments: one family, or --package alone (its own order line)."""
+    monkeypatch.setattr(LV, "seed_all", lambda seed: (_ for _ in ()).throw(SystemExit("parsed")))
+    with pytest.raises(SystemExit) as exc:
+        LV.main(["ckpt", *argv])
+    assert (str(exc.value) == "parsed") is ok
