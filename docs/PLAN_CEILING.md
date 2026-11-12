@@ -898,6 +898,20 @@ Two instruments instead:
    the drift from the rest of the update, as 198's `ablate.py` does. The mulligan's own term was
    −0.54 while the rest moved it +0.19 to +0.41.
 
+Instrument 1 built 2026-11-12: `tools/selfplay/linevalue.py`.
+- **Lines it can force:** "cast C when castable", and "cast a consumer before its producers",
+  into which the package mode's packages plug.
+- **Readouts:** the forced first step's value (A1 − B), every step forced (A* − B), the policy's
+  unforced use, follow-through, and the critic's reading at the next turn tops.
+- **Validity:** the null line reads exactly 0 on shared futures.
+- **Smoke:** forcing Chrome Replicator's cast reads −0.028 ± 0.028 (r28 at 75, 24 states × 3
+  futures), so there is no barrier for that card.
+- **Cost:** 11 s per state × future on two CPU threads. A line at SE 0.01 takes about 3 hours on
+  one CPU process beside training, so it needs no GPU window.
+- **What it cannot force:** targets, modes, attacks, blocks or activations, and it cannot forbid
+  an option. So the sacrifice-outlet barrier the package mode found is out of its reach for now
+  (NUMBERS 2026-11-12).
+
 Horizon 2 is re-measured, with simulator worlds, only after instrument 1 shows value beyond one
 turn. At horizon 1 the search scores a setup move by the policy's own follow-up, so it cannot
 supply multi-turn signal by itself.
