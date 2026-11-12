@@ -161,9 +161,10 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B7** (2026-11-12, after the card backlog's wave 1, KNOWLEDGE/2026-11-12/201;
-  `tools/check.sh` green at 0a26977): **5176 passed / 39 deselected / 71 subtests passed, nothing
-  failed or xfailed**, about 65 s beside a training run. B6 (after the bug hunt, 197) was 5116. B5 (2026-11-12, the cleanup pass
+  **Baseline B8** (2026-11-13, after the card backlog's wave 2 and verification wave 1b,
+  KNOWLEDGE/2026-11-12/203; `tools/check.sh` green at 06a09a82): **5345 passed / 39 deselected /
+  71 subtests passed, nothing failed or xfailed**, about 80 s beside a training run. B7 (after
+  wave 1, 201) was 5176. B6 (after the bug hunt, 197) was 5116. B5 (2026-11-12, the cleanup pass
   after the priority engine) was 5113. B4 (2026-11-06, 6003dd4) was 5091, before the priority
   engine's tests.
   B3 (2026-11-06, f332d17) was 5297: the lean passes removed 231 duplicate, can't-fail or dead-code
@@ -178,12 +179,13 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 192 passed (2026-11-12, after wave 1: + the gate,
-    probe and conformance tests; 187 after 198's fix: + the stratified-step, step-accumulation and
+  - Companion numbers: `pytest tools -q` = 227 passed (2026-11-13, after wave 2: + the
+    dead-role rules, package mode, the line-value instrument, the trigger-timing and qualifier
+    checks; 192 after wave 1: + the gate, probe and conformance tests; 187 after 198's fix: + the stratified-step, step-accumulation and
     guard tests; 184 after the bug hunt: + the
     commit, evalrows, plan-turn, option-class and generator tests; 176 before it: + the
     training-game log, `--collect`, `model.grow`, the search audit and the drafter's
     `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's are), 37-40 s
     beside a training run (the ontology baselines were re-recorded after the reviewed M21
-    campaign; NUMBERS.md). `tools/run_scenarios.py` = 756/756.
+    campaign; NUMBERS.md). `tools/run_scenarios.py` = 760/760.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
