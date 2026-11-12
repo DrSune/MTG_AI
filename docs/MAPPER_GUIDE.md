@@ -120,6 +120,10 @@ $PY tools/cards/cardtool.py --help
 - **Numbers.** `QConst(value=N)`. X is `QX()`. "up to N" is `QAtMost`. Use the IR's own quantity
   nodes, never a Python number in place of a quantity.
   - "N for each X" is `QBin(MUL, QConst(N), QCount(...))`.
+  - "Any number of" is a CHOOSE `Selector` with `count=QUnbounded()` (Necromentia, Siege Striker,
+    Battalion Foot Soldier, Cavalier of Flame's "discard any number of cards"). The engine asks it
+    pick by pick, each ask with a NONE stop, as it asks "up to N": every number from zero to all
+    of them (CR 107.1c). "That many" after it counts the cards actually moved.
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
@@ -146,6 +150,12 @@ $PY tools/cards/cardtool.py --help
   your library in a random order."`. The IR takes the role only where the move can put several
   cards into a library's TOP or BOTTOM through `cards` (`ability_tree.orders_a_library`): never on
   a one-card move, a `target` move, a mill, or a library with no position.
+- **All of the revealed cards.** "Put all Goblin cards revealed this way into your hand and the rest
+  on the bottom of your library in any order" (Goblin Ringleader) is no choice: a `MOVE_ZONE` whose
+  `cards` is an `ALL` Selector (count `QUnbounded()`) over `Zone(LIBRARY, YOU, position=TOP)`
+  filtered to the kind, then See the Truth's `REST` over the same zone for "the rest". While the
+  REVEAL's (or LOOK_AT's) window is open, the top of the library is the revealed cards, for ALL as
+  for ONE_OF and REST. "Put one of them" is the `ONE_OF` choice; never write "all" as a ONE_OF.
 - **SEARCH.** Leave out the `controller` role. The executor never reads it (the searched zone comes from
   the `cards` selector), and the compiler is split 14/15 on writing it (divergence D12).
 - **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a
@@ -153,7 +163,16 @@ $PY tools/cards/cardtool.py --help
 - **Carriers.**
   - An Aura's carrier is `SpellAbility(kind=SpellKind.ENCHANTMENT)`.
   - An Equipment's carrier is `SpellAbility(kind=SpellKind.ARTIFACT)`.
-  - An emblem record takes bare abilities: no carrier and no `EmblemAbility` wrapper.
+- **Emblems.** "[−8]: You get an emblem with "<text>"" is the loyalty ability's
+  `A(Verb.GET_EMBLEM, {'controller': ControllerRef.YOU, 'emblem': EmblemSpec(abilities=(...,))})`.
+  - `abilities` are the emblem's own, written as any card's text would be (Mu Yanling, Sky
+    Dancer's "Islands you control have '{T}: Draw a card.'" is a `StaticAbility` granting the
+    activated ability); their "you" is the emblem's owner (CR 114.2). Triggered, static and
+    replacement abilities only: the engine runs nothing else from the command zone.
+  - `controller` is who gets it: `YOU`, `ALL_OPPONENTS` for "each opponent gets", `TARGET_OPPONENT`
+    for "target opponent gets" (a target of the loyalty ability). Each one is a new emblem.
+  - The quote's text compiles by itself when its sentences parse (`parse` the quoted text alone).
+    An emblem's own MTGJSON entry is not used: never write a record for it.
 - **Enchant.** The Enchant restriction rides on the keyword:
   `KeywordAbility(keyword=Keyword.ENCHANT, params=(<filter>,))`, for example the filter
   `FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')`. The engine reads it to decide what the
@@ -221,10 +240,10 @@ $PY tools/cards/cardtool.py --help
     - A card with an upkeep trigger placed on the battlefield fires during the opening turn: start
       it in hand and `enter` it. A synthetic `"type": "Planeswalker"` card takes damage marks
       instead of losing loyalty: use a real planeswalker from the pool.
-  - Emblems and token records can be probed and written (since 2026-11-06: G0 asks a token for no
-    cast carrier, e17ae22, and the probe skips the from-hand stimulus for tokens, 79c5c84). Games
-    build a token from the creating card's TokenSpec, so a token record serves only the scenario
-    runner's by-name lane (KNOWLEDGE/2026-11-05/184 §14).
+  - Token records can be probed and written (since 2026-11-06: G0 asks a token for no cast
+    carrier, e17ae22, and the probe skips the from-hand stimulus for tokens, 79c5c84). Games build
+    a token from the creating card's TokenSpec, so a token record serves only the scenario runner's
+    by-name lane (KNOWLEDGE/2026-11-05/184 §14). An emblem lives in its maker's GET_EMBLEM.
   - During a calibration round, `parse` hides a few exact wordings (digits are normalised, so
     every numeric sibling is hidden too). Try a different wording, or `similar`. The same sentence
     on another card or set may still show; if you see a hidden wording's tree, say so.

@@ -5,6 +5,19 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-12 (the five M20 faults of verification wave 1; ontology round 6 proposed; branch `worktree-agent-a68bbb5431c425326`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| effect-role CHOOSE over `QUnbounded` ("any number of"), 19 sets, every record applied | **6 trees / 5 cards**: M21 Chandra, Heart of Fire (2), Necromentia, Siege Striker (verified); M20 Battalion Foot Soldier, Cavalier of Flame (records). Plus M21 Conspicuous Snoop's CAST `source`, a population read (unchanged) | `.venv/bin/python reports/m20_faults_2026-11-12/census.py . OUT.json` (`any_number`) | asked pick by pick with a NONE stop since this branch; 64 sentences print "any number of" (reminder text left out), most unparsed |
+| MOVE_ZONE `from` HAND to anywhere but a graveyard | **2 trees**: M20 Cavalier of Gales (record, CHOOSE: asked `choose:` now), Yarok's Fenlurker (verified, ONE_OF lane, unchanged) | same (`hand_moves`) | 28 sentences put cards from a hand somewhere, most unparsed |
+| MOVE_ZONE x ALL over the top of a library (DESIGN_ATOM_ONTOLOGY §5 row, low volume) | **1 tree**: M20 Goblin Ringleader (record) | same (`all_revealed`) | 10 sentences print "all ... revealed this way"; ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund have Ringleader's shape, unparsed |
+| GET_EMBLEM x EmblemSpec x `controller` (§5 row) | **5 trees**, all `controller` YOU: M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler), M20 Mu Yanling, Sky Dancer (record); 22 role-less markers before | same (`emblems`) | 26 emblem entries (24 texts), 26 sentences make one: YOU 23 (21 names), each opponent 1, target opponent 1, "each player dealt damage this way" 1; 19 makers' texts unparsed |
+| abilities whose effect carries a designating ability | **3**: M20 Sorin, Vampire Lord's -8 (verified, a granted "target creature"), Mask of Immolation's static (verified, never slot-walked), M21 Liliana, Waker of the Dead's -7 (its emblem's target) | same (`nested_designations`) | the spell and activation slot walkers skip them since this branch; no triggered ability of the 19 sets has one |
+| trees changed, 19 sets (keywords, abilities, P/T: `card_records.tree_sha`) | **22 of 5,678** as games deal them, 23 with every record applied (+ Goblin Ringleader); all are emblem makers but Ringleader | `.venv/bin/python reports/m20_faults_2026-11-12/blast_radius.py dump ROOT OUT.json` on the base export (b5611855) and on this branch, then `... compare BASE.json HEAD.json` | the whole-record fingerprint moved on every card (CardRecord lost its `emblem` key), so trees are compared by content |
+| verified pools (`get_supply("verified", s)`) | M21 269 -> **266** (Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead left), M20 **255**, FDN **175** | same | none joined; "compiled" pools unchanged in all 19 sets |
+| heuristic replays on the cards verified before and after (M21 266, M20 255, FDN 175), seeds 0-299 per set, base b5611855 vs this branch | **900 / 900 identical** in play (world, events, journal) and in replay fingerprint; **0 crashes** either side. M21: 21 games ask more (+29 asks: Necromentia's and Siege Striker's "any number" picks, which the heuristic answers with every candidate, the old outcome); M20, FDN: same asks | `.venv/bin/python reports/m20_faults_2026-11-12/replay.py ROOT SET 0 300 ONLY OUT.jsonl` per side, then `reports/engine_faults_2026-11-12/replay_compare.py` (summary: reports/m20_faults_2026-11-12/replay_summary.json) | the heuristic plays a planeswalker's first ability row only, so Sorin, Vampire Lord's -8 is never used here; wall time +4-10% (sides run at different times on a loaded box) |
+
 ## 2026-11-12 (MOVE_ZONE `arrange`, ontology gate round 5; branch `worktree-agent-a7952b97ba6b37208`)
 
 | Number | Value | Command | Notes |

@@ -1,0 +1,67 @@
+{
+ "base": "b5611855 (export)",
+ "head": "this branch (09f6078e, 720c13a6, d2943026)",
+ "decks": "the cards verified both before and after (M21 266, M20 255, FDN 175; the dealt pools' hashes match on both sides), even seeds stress, odd coherent; deck_pairs_seed 1409",
+ "agents": "HeuristicAgent vs HeuristicAgent",
+ "seeds": "0-299 per set",
+ "command": "reports/m20_faults_2026-11-12/replay.py ROOT SET 0 300 ONLY OUT.jsonl, then reports/engine_faults_2026-11-12/replay_compare.py BASE.jsonl HEAD.jsonl",
+ "sets": {
+  "M21": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 300,
+   "play_differs": [],
+   "fingerprint_only_differs": [],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    111.3,
+    115.9
+   ],
+   "asks_differ": 21,
+   "asks_total": [
+    56264,
+    56293
+   ]
+  },
+  "M20": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 300,
+   "play_differs": [],
+   "fingerprint_only_differs": [],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    107.4,
+    112.6
+   ],
+   "asks_differ": 0,
+   "asks_total": [
+    46831,
+    46831
+   ]
+  },
+  "FDN": {
+   "games": 300,
+   "identical_play": 300,
+   "identical_fingerprint": 300,
+   "play_differs": [],
+   "fingerprint_only_differs": [],
+   "outcome_differs": [],
+   "crashes_base": [],
+   "crashes_head": [],
+   "wall_s": [
+    109.3,
+    120.6
+   ],
+   "asks_differ": 0,
+   "asks_total": [
+    49892,
+    49892
+   ]
+  }
+ }
+}

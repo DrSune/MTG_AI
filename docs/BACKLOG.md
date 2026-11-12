@@ -235,7 +235,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first
   one's triggered/static abilities. Not live: in the M21 and M20 verified pools only Pirate, Treasure
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
-  hash the spec's abilities into the id.
+  hash the spec's abilities into the id (an emblem's record is keyed by a hash of its EmblemSpec
+  since 2026-11-12, `verbs.emblem_record`).
+- **A trigger's designation walks into the abilities it carries** (2026-11-12, found with the
+  emblem encoding): `TriggerBinder._designated_player_refs`, `_designation_slots`,
+  `_modes_need_targets` and `_declare_mode`'s `fillable` walk the whole effect, so a TARGET or
+  "target opponent" inside a granted ability, a token's, an emblem's or a delayed trigger would be
+  designated as the trigger goes on the stack. The spell and activation lanes skip them
+  (`query.spell_target_slots`, `activation_target_slots`, `ability_tree._FOREIGN_ABILITY_NODES`:
+  Sorin, Vampire Lord's -8 had given its granted ability's target to itself). Not live: no
+  triggered ability of the 19 sets carries a designating ability (a census in
+  reports/m20_faults_2026-11-12/). Skip the same nodes when the trigger lane is free.
 
 ### Effects, zones and replacements
 
@@ -243,11 +253,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
-- **A move from a hand asks its cards as a discard** (2026-11-12): MOVE_ZONE `from` HAND takes the
-  discard lane (`verbs._v_move_zone`, `_discard_picks`), whose ask is `discard:<seat>:...`, so
-  Cavalier of Gales's "put two cards from your hand on top of your library" reaches a bench seat
-  as "choose what to discard" (protocol.py's prompt for the kind). The cards and their order are
-  right; the label is not. Name the ask by its destination, or give the move its own kind.
 - **Cards a controller picks from a look at another player's library or hand raise as they go
   into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
   `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
@@ -736,8 +741,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   2026-11-06): Sorin, Imperious Bloodlord was
   mapped as "if you do" with the target chosen on activation; the review refused it (the target
   exists even when nothing is sacrificed, and the Vampire about to be sacrificed is offered).
-- **A planeswalker whose emblem record is empty should not reach a supply** (M20 verification
-  round, 2026-11-05): Mu Yanling, Sky Dancer's -8 emblem is unmapped, so the -8 does nothing.
 - **B-46 [/166; first touch done + round S-3a, /167] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
   10E, M10–M13, M15, ORI, DOM, WAR, FDN, ELD, THB and IKO deal 2,482 cards. Only 683 of them
   (27.5%) are fully compiled; the engine plays the rest with their unparsed sentences blank.
@@ -760,8 +763,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
-  - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
-    Soldier": the engine takes every copy and never asks how many.
+  - **Battalion Foot Soldier** and **Cavalier of Flame**: "any number of" took every candidate with no
+    ask. Engine fixed 2026-11-12 (`selectors.resolve_selector`, `verbs._hand_picks`: asked pick by
+    pick with a NONE stop, CR 107.1c; packs
+    `tools/scenarios/mapped/M20/{battalion_foot_soldier_finds_any_number,cavalier_of_flame_discards_any_number_draws_that_many}.json`).
+    Both records, unchanged, go back to blind G2; Cavalier of Flame's mapping notes still describe
+    the old engine.
   - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
     the ability was offered on the battlefield, where it does nothing, and refused from the
     graveyard. Engine fixed 2026-11-12 (`legality.activation_zone`, CR 113.6m; packs
@@ -771,12 +778,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     a "targeted" event fires when the sacrifice is declined, and the Vampire being sacrificed is
     offered as a target. CR 603.12 chooses the target when the reflexive trigger goes on the stack,
     after the sacrifice. This is an engine idiom (below).
-  - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
-    one-of choice.
-  - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
-    you control have '{T}: Draw a card.'"
-  - **Cavalier of Flame.** "Discard any number of cards, then draw that many" discards the whole hand
-    with no ask.
+  - **Goblin Ringleader** and **Mu Yanling, Sky Dancer** were re-mapped 2026-11-12 (`cardtool
+    write`) and go back to blind G2. Ringleader's "all Goblin cards revealed this way" is an ALL over
+    the revealed window, not a one-of choice (pack
+    `tools/scenarios/mapped/M20/goblin_ringleader_all_goblins_no_choice.json`); Mu Yanling's -8
+    carries its emblem in the GET_EMBLEM (EmblemSpec, ontology round 6, pending its gate; pack
+    `tools/scenarios/mapped/M20/mu_yanling_sky_dancer_emblem_islands_draw.json`).
 - **Reflexive triggers choose their targets too early** (2026-11-12, the same wave).
   - "You may <act>. When you do, <effect with a target>" asks the target before the action.
   - Where the action cannot change the legal targets this is benign; the batch A verifier judged
@@ -858,6 +865,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   card's "zone LIBRARY->GRAVEYARD"; all three G1 traces kill the first. Re-probe Anticipate,
   Stormwing Entity and Track Down too (their traces show `arrange` asks, now asked top first),
   and write the two M20 records through `cardtool try --write`.
+- **Re-verify M21 Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead** (2026-11-12, the
+  emblem encoding, ontology round 6 pending its gate). Their ultimate's GET_EMBLEM now carries the
+  emblem (EmblemSpec, the same abilities their emblem entries compiled to before, checked by
+  `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
+  their tree shas changed and they left the verified pool (M21 269 -> 266). Two plays change: each
+  ultimate makes a new emblem (CR 114.2; a second one used to do nothing), and the card encoder
+  sees what the emblem does. The G1 probe starts at printed loyalty, so it never reaches these
+  ultimates; their packs do (`basri_ket_emblem`, `garruk_unleashed_emblem`, `liliana_emblem_*`).
+  Three verified cards play differently with unchanged bytes and may want a look: M21 Necromentia
+  and Siege Striker ("any number" is asked), M20 Sorin, Vampire Lord (its -8 asks no target and
+  grants each Vampire you control, pack `sorin_vampire_lord_minus_eight_grants_each_vampire`).
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
@@ -1081,7 +1099,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ### What the network sees
 
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
-  targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
+  targets, emblems, or live (not printed) types and colours** (interface audit, /184; since
+  2026-11-12 a card's tree shows what its emblem does, but not which emblems a player has). Needs input
   columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
   columns with zeros since 2026-11-06).
 - **A target ask does not show the X its row announced** (2026-11-06): X comes first, in the act

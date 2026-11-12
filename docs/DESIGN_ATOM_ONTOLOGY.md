@@ -36,13 +36,13 @@ ability   := Triggered(event, condition?, effect, once_per_event?)  # absent: on
            | Static(effect, condition?) | Spell(kind, effect, additional_costs*)
            | Replacement(event, condition?, action) | Keyword
            | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only, until tested
-           | CostModifier | Emblem | Kicker | BackFace
+           | CostModifier | Kicker | BackFace
 effect    := Atom(verb, role→value pairs)                 # ONE operation = ONE Atom (T1)
            | Seq(steps 2+)                               # TIME: printed order (O2)
            | Choose(count, options 2+)                   # MENU: printed order
            | OptionalEffect(inner) | Conditional(pred, then, else?)
            | Repeat(count, inner) | EachPlayer(ref, effect) | DelayedTrigger(...)
-value     := Quantity | Selector | Filter | Zone | Duration | PtDelta | TokenSpec | LiteralName
+value     := Quantity | Selector | Filter | Zone | Duration | PtDelta | TokenSpec | EmblemSpec | LiteralName
 selector  := {mode, count, filter, zone∪zones → ONE set (R0), referent}
 filter    := FAnd(children) | FOr(children) | FNot(inner) | FAtom(pred, slots)
 event     := ZoneChange | CastSpell | … (18 classes, census §5)
@@ -71,14 +71,15 @@ Detection rule (binding, single source `tools/audit/atom_field_table.py` — it
 regenerates this table AND the checker's CLASSIFY dict, exiting nonzero on any
 UNCLASSIFIED runtime field or STALE dict entry; `/126` carries the table rows):
 a CONTAINER field = annotation contains `tuple[` | `frozenset[` | `list[`.
-Runtime scan: **26 container fields** = 25 `tuple[` + 1 `frozenset[`
-(`CardRecord.color_identity`), 80 classes, zero unclassified (R5-11 added `TokenSpec.colors`).
+Runtime scan: **27 container fields** = 26 `tuple[` + 1 `frozenset[`
+(`CardRecord.color_identity`), 80 classes, zero unclassified (R5-11 added `TokenSpec.colors`;
+round 6, pending, `EmblemSpec.abilities`).
 
 | class.field | annotation | CLASSIFY | canonical form |
 |---|---|---|---|
 | Seq.steps | tuple[Effect,…] | **TIME** | printed order preserved, never tool-sorted; Seq[1] forbidden (corpus 0) |
 | Choose.options | tuple[Effect,…] | **MENU** | printed order (identity); same-menu/diff-order cross-card pairs ⇒ WARN + MANUAL review (ledger D7: census §B detects flat/nesting only, no menu-order matcher — none observed in 546 cards; build the matcher when a pair actually occurs) |
-| CardRecord.abilities / BackFace.abilities / TokenSpec.abilities | tuple[Ability,…] | **IDENTITY** | printed order |
+| CardRecord.abilities / BackFace.abilities / TokenSpec.abilities / EmblemSpec.abilities | tuple[Ability,…] | **IDENTITY** | printed order |
 | CardRecord.types/subtypes/supertypes/colors, color_identity(frozenset) | tuple/frozenset | **IDENTITY** | oracle-printed data, membership tests; no sort (fidelity; to_dict sorts color_identity) |
 | AtomArgs.pairs | tuple[(role,value),…] | **SET-ENFORCED** | role-sorted at construction — ALREADY ENFORCED :2541 (measured: sorted on every card) |
 | FAnd.children / FOr.children | tuple[Filter,…] | **SET-R1a** | construction sort by canonical_json(child) + same-class flatten + single-child unwrap (eval purity gate-verified binding.py:219–236) |
@@ -139,6 +140,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | registered | branching | cards | volume |
 |---|---|---|---|
 | 2026-11-12, gate round 5 | MOVE_ZONE x `arrange` ("RANDOM": "put the rest on the bottom of your library in a random order"; absent = the owner arranges, CR 401.4), accepted only where `ability_tree.orders_a_library` holds | M21 Garruk's Harbinger (compiler, B5b-rest-bottom-random); M20 Drawn from Dreams and Brightwood Tracker (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12); 54 cards of the 19 sets print "in a random order", most still unparsed |
+| 2026-11-12, gate round 6 (pending) | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it: YOU, ALL_OPPONENTS, TARGET_OPPONENT; CR 114.2) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer (record) | 5 trees; 24 emblem texts in the 19 sets (26 entries), the other 19 makers' texts unparsed (NUMBERS.md 2026-11-12) |
+| 2026-11-12, gate round 6 (pending) | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
 
 ## 6. Identity + conformance
 
@@ -399,8 +402,25 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     re-verification. Behaviour: an `arrange` ask on See the Truth, Anticipate, Cavalier of Gales and
     Goblin Ringleader ("in any order"), and on a scry of two or more that keeps two in one group
     (verified: Stormwing Entity, Track Down).
-- BINDING STATE: rounds 1–5 complete; further ontology changes require a NEW gated
-  round (any R-item that reclassifies a field or opens a normalization is Type-1).
+- R5 round 6 (proposed 2026-11-12, branch `worktree-agent-a68bbb5431c425326`; awaiting the
+  adversarial gate):
+  - **The emblem rides its maker.** `GET_EMBLEM(emblem=EmblemSpec(abilities), controller=who)`
+    replaces C19's role-less marker and `CardRecord.emblem` (an emblem's MTGJSON entry attached by
+    name at pool compile). The compiler compiles the quote as the emblem's own text; a quote that
+    does not compile leaves its sentence unparsed. `EmblemAbility` (unused) and `CardRecord.emblem`
+    are deleted: one encoding. Each GET_EMBLEM makes a new emblem (CR 114.2; the executor's
+    one-per-(owner, emblem) table did nothing on a second).
+  - **Another ability's targets are its own.** The spell and activation slot walkers skip
+    `ability_tree._FOREIGN_ABILITY_NODES` (granted abilities, tokens' and emblems' abilities,
+    delayed triggers): an emblem's or a granted ability's TARGET is chosen when that ability
+    triggers or is activated (CR 602.2b, 603.3d). Sorin, Vampire Lord's -8 had taken its granted
+    ability's target as its own.
+  - **ALL over the top of a library reads the open look window**, as ONE_OF and REST do, and
+    leaves the window to the REST after it (Goblin Ringleader).
+  - No new verb, role value class beyond EmblemSpec, or field classification beyond
+    `EmblemSpec.abilities` (IDENTITY).
+- BINDING STATE: rounds 1–5 complete; round 6 proposed; further ontology changes require a NEW
+  gated round (any R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
 

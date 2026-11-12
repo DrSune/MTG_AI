@@ -1,0 +1,1615 @@
+{
+ "any_number": {
+  "trees": [
+   [
+    "M21",
+    "Chandra, Heart of Fire",
+    "compiled",
+    "SEARCH",
+    "cards"
+   ],
+   [
+    "M21",
+    "Chandra, Heart of Fire",
+    "compiled",
+    "SEARCH",
+    "cards"
+   ],
+   [
+    "M21",
+    "Conspicuous Snoop",
+    "compiled",
+    "CAST",
+    "source"
+   ],
+   [
+    "M21",
+    "Necromentia",
+    "verified",
+    "SEARCH",
+    "cards"
+   ],
+   [
+    "M21",
+    "Siege Striker",
+    "verified",
+    "TAP",
+    "target"
+   ],
+   [
+    "M20",
+    "Battalion Foot Soldier",
+    "mapped",
+    "SEARCH",
+    "cards"
+   ],
+   [
+    "M20",
+    "Cavalier of Flame",
+    "mapped",
+    "MOVE_ZONE",
+    "cards"
+   ]
+  ],
+  "text": [
+   [
+    "M21",
+    "Chandra, Heart of Fire",
+    "compiled",
+    "[−9]: Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle.",
+    "parsed"
+   ],
+   [
+    "M21",
+    "Necromentia",
+    "verified",
+    "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
+    "parsed"
+   ],
+   [
+    "M21",
+    "Siege Striker",
+    "verified",
+    "Whenever this creature attacks, you may tap any number of untapped creatures you control.",
+    "parsed"
+   ],
+   [
+    "ZNR",
+    "Agadeem's Awakening // Agadeem, the Undercrypt",
+    "compiled",
+    "Return from your graveyard to the battlefield any number of target creature cards that each have a different mana value X or less.",
+    "unparsed"
+   ],
+   [
+    "ZNR",
+    "Valakut Awakening // Valakut Stoneforge",
+    "compiled",
+    "Put any number of cards from your hand on the bottom of your library, then draw that many cards plus one.",
+    "unparsed"
+   ],
+   [
+    "M20",
+    "Battalion Foot Soldier",
+    "mapped",
+    "When this creature enters, you may search your library for any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.",
+    "parsed"
+   ],
+   [
+    "M20",
+    "Cavalier of Flame",
+    "mapped",
+    "When this creature enters, discard any number of cards, then draw that many cards.",
+    "parsed"
+   ],
+   [
+    "M20",
+    "Loaming Shaman",
+    "compiled",
+    "When this creature enters, target player shuffles any number of target cards from their graveyard into their library.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Armed and Armored",
+    "compiled",
+    "Attach any number of Equipment you control to it.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Battle for Bretagard",
+    "compiled",
+    "III — Choose any number of artifact tokens and/or creature tokens you control with different names.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Blessing of Frost",
+    "compiled",
+    "Distribute X +1/+1 counters among any number of creatures you control, where X is the amount of {S} spent to cast this spell.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Glorious Protector",
+    "compiled",
+    "When this creature enters, you may exile any number of non-Angel creatures you control until this creature leaves the battlefield.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "The Bears of Littjara",
+    "compiled",
+    "II — Any number of target Shapeshifter creatures you control have base power and toughness 4/4.",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "The World Tree",
+    "compiled",
+    "{W}{W}{U}{U}{B}{B}{R}{R}{G}{G}, {T}, Sacrifice this land: Search your library for any number of God cards, put them onto the battlefield, then shuffle.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Hail of Arrows",
+    "compiled",
+    "Hail of Arrows deals X damage divided as you choose among any number of target attacking creatures.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Relentless Rats",
+    "compiled",
+    "A deck can have any number of cards named Relentless Rats.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Bogardan Hellkite",
+    "compiled",
+    "When this creature enters, it deals 5 damage divided as you choose among any number of targets.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Fireball",
+    "compiled",
+    "Fireball deals X damage divided evenly, rounded down, among any number of targets.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Master of the Wild Hunt",
+    "compiled",
+    "That creature deals damage equal to its power divided as its controller chooses among any number of those Wolves.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Palace Guard",
+    "compiled",
+    "This creature can block any number of creatures.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Relentless Rats",
+    "compiled",
+    "A deck can have any number of cards named Relentless Rats.",
+    "unparsed"
+   ],
+   [
+    "M11",
+    "Fireball",
+    "compiled",
+    "Fireball deals X damage divided evenly, rounded down, among any number of targets.",
+    "unparsed"
+   ],
+   [
+    "M11",
+    "Hunters' Feast",
+    "compiled",
+    "Any number of target players each gain 6 life.",
+    "unparsed"
+   ],
+   [
+    "M11",
+    "Palace Guard",
+    "compiled",
+    "This creature can block any number of creatures.",
+    "unparsed"
+   ],
+   [
+    "M11",
+    "Relentless Rats",
+    "compiled",
+    "A deck can have any number of cards named Relentless Rats.",
+    "unparsed"
+   ],
+   [
+    "M12",
+    "Fireball",
+    "compiled",
+    "Fireball deals X damage divided evenly, rounded down, among any number of targets.",
+    "unparsed"
+   ],
+   [
+    "M12",
+    "Jace, Memory Adept",
+    "compiled",
+    "[−7]: Any number of target players each draw twenty cards.",
+    "unparsed"
+   ],
+   [
+    "M12",
+    "Sutured Ghoul",
+    "compiled",
+    "As this creature enters, exile any number of creature cards from your graveyard.",
+    "unparsed"
+   ],
+   [
+    "M13",
+    "Jace, Memory Adept",
+    "compiled",
+    "[−7]: Any number of target players each draw twenty cards.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Devout Invocation",
+    "compiled",
+    "Tap any number of untapped creatures you control.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Jace, Memory Adept",
+    "compiled",
+    "[−7]: Any number of target players each draw twenty cards.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Shadowborn Apostle",
+    "compiled",
+    "A deck can have any number of cards named Shadowborn Apostle.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Vastwood Hydra",
+    "compiled",
+    "When this creature dies, you may distribute a number of +1/+1 counters equal to the number of +1/+1 counters on this creature among any number of creatures you control.",
+    "unparsed"
+   ],
+   [
+    "M15",
+    "Nissa, Worldwaker",
+    "compiled",
+    "[−7]: Search your library for any number of basic land cards, put them onto the battlefield, then shuffle.",
+    "unparsed"
+   ],
+   [
+    "M15",
+    "Stain the Mind",
+    "compiled",
+    "Search target player's graveyard, hand, and library for any number of cards with that name and exile them.",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Infinite Obliteration",
+    "compiled",
+    "Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them.",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Mage-Ring Network",
+    "compiled",
+    "{T}, Remove any number of storage counters from this land: Add {C} for each storage counter removed this way.",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "The Great Aurora",
+    "compiled",
+    "Each player may put any number of land cards from their hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Sarkhan, Dragonsoul",
+    "compiled",
+    "[−9]: Search your library for any number of Dragon creature cards, put them onto the battlefield, then shuffle.",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Scapeshift",
+    "compiled",
+    "Sacrifice any number of lands.",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Tezzeret, Cruel Machinist",
+    "compiled",
+    "[−7]: Put any number of cards from your hand onto the battlefield face down.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Fight with Fire",
+    "compiled",
+    "If this spell was kicked, it deals 10 damage divided as you choose among any number of targets instead.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Kamahl's Druidic Vow",
+    "compiled",
+    "You may put any number of land and/or legendary permanent cards with mana value X or less from among them onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Rat Colony",
+    "compiled",
+    "A deck can have any number of cards named Rat Colony.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Torgaar, Famine Incarnate",
+    "compiled",
+    "As an additional cost to cast this spell, you may sacrifice any number of creatures.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Command the Dreadhorde",
+    "compiled",
+    "Choose any number of target creature and/or planeswalker cards in graveyards.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Devouring Hellion",
+    "compiled",
+    "As this creature enters, you may sacrifice any number of creatures and/or planeswalkers.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "God-Eternal Bontu",
+    "compiled",
+    "When God-Eternal Bontu enters, sacrifice any number of other permanents, then draw that many cards.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Neheb, Dreadhorde Champion",
+    "compiled",
+    "Whenever Neheb deals combat damage to a player or planeswalker, you may discard any number of cards.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Nissa, Who Shakes the World",
+    "compiled",
+    "[−8]: You get an emblem with \"Lands you control have indestructible.\" Search your library for any number of Forest cards, put them onto the battlefield tapped, then shuffle.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "The Elderspell",
+    "compiled",
+    "Destroy any number of target planeswalkers.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Chandra, Flameshaper",
+    "compiled",
+    "[−4]: Chandra deals 8 damage divided as you choose among any number of target creatures and/or planeswalkers.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Divine Resilience",
+    "compiled",
+    "If this spell was kicked, instead any number of target creatures you control gain indestructible until end of turn.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Etali, Primal Storm",
+    "compiled",
+    "Whenever Etali attacks, exile the top card of each player's library, then you may cast any number of spells from among those cards without paying their mana costs.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Genesis Wave",
+    "compiled",
+    "You may put any number of permanent cards with mana value X or less from among them onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Hare Apparent",
+    "compiled",
+    "A deck can have any number of cards named Hare Apparent.",
+    "unparsed"
+   ],
+   [
+    "ELD",
+    "Forever Young",
+    "compiled",
+    "Put any number of target creature cards from your graveyard on top of your library.",
+    "unparsed"
+   ],
+   [
+    "THB",
+    "Storm Herald",
+    "compiled",
+    "When this creature enters, return any number of Aura cards from your graveyard to the battlefield attached to creatures you control.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Eerie Ultimatum",
+    "compiled",
+    "Return any number of permanent cards with different names from your graveyard to the battlefield.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Genesis Ultimatum",
+    "compiled",
+    "Put any number of permanent cards from among them onto the battlefield and the rest into your hand.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Lead the Stampede",
+    "compiled",
+    "You may reveal any number of creature cards from among them and put the revealed cards into your hand.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Mythos of Vadrok",
+    "compiled",
+    "Mythos of Vadrok deals 5 damage divided as you choose among any number of target creatures and/or planeswalkers.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Nethroi, Apex of Death",
+    "compiled",
+    "Whenever this creature mutates, return any number of target creature cards with total power 10 or less from your graveyard to the battlefield.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Yorion, Sky Nomad",
+    "compiled",
+    "When Yorion enters, exile any number of other nonland permanents you own and control.",
+    "unparsed"
+   ]
+  ]
+ },
+ "all_revealed": {
+  "trees": [
+   [
+    "M20",
+    "Drawn from Dreams",
+    "mapped",
+    "MOVE_ZONE",
+    "ONE_OF",
+    "QConst(value=2)"
+   ],
+   [
+    "M20",
+    "Goblin Ringleader",
+    "mapped",
+    "MOVE_ZONE",
+    "ALL",
+    "QUnbounded()"
+   ]
+  ],
+  "text": [
+   [
+    "M20",
+    "Goblin Ringleader",
+    "mapped",
+    "Put all Goblin cards revealed this way into your hand and the rest on the bottom of your library in any order.",
+    "parsed"
+   ],
+   [
+    "KHM",
+    "Alrund, God of the Cosmos // Hakka, Whispering Raven",
+    "compiled",
+    "Put all cards of the chosen type revealed this way into your hand and the rest on the bottom of your library in any order.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Abundance",
+    "compiled",
+    "Put that card into your hand and put all other cards revealed this way on the bottom of your library in any order.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Warp World",
+    "compiled",
+    "Each player puts all artifact, creature, and land cards revealed this way onto the battlefield, then does the same for enchantment cards, then puts all cards revealed this way that weren't put onto the battlefield on the bottom of their library.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Polymorph",
+    "compiled",
+    "The player puts that card onto the battlefield, then shuffles all other cards revealed this way into their library.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Warp World",
+    "compiled",
+    "Each player puts all artifact, creature, and land cards revealed this way onto the battlefield, then does the same for enchantment cards, then puts all cards revealed this way that weren't put onto the battlefield on the bottom of their library.",
+    "unparsed"
+   ],
+   [
+    "M11",
+    "Mass Polymorph",
+    "compiled",
+    "Put all creature cards revealed this way onto the battlefield, then shuffle the rest of the revealed cards into your library.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Garruk, Caller of Beasts",
+    "compiled",
+    "Put all creature cards revealed this way into your hand and the rest on the bottom of your library in any order.",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Sylvan Messenger",
+    "compiled",
+    "Put all Elf cards revealed this way into your hand and the rest on the bottom of your library in any order.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Genesis Wave",
+    "compiled",
+    "Then put all cards revealed this way that weren't put onto the battlefield into your graveyard.",
+    "unparsed"
+   ]
+  ]
+ },
+ "hand_moves": {
+  "trees": [
+   [
+    "M21",
+    "Bad Deal",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Chandra, Flame's Catalyst",
+    "compiled",
+    "GRAVEYARD",
+    "ALL"
+   ],
+   [
+    "M21",
+    "Chandra, Heart of Fire",
+    "compiled",
+    "GRAVEYARD",
+    "ALL"
+   ],
+   [
+    "M21",
+    "Crypt Lurker",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Duress",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Jeskai Elder",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Kinetic Augur",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Liliana's Steward",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Liliana, Waker of the Dead",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Mind Rot",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M21",
+    "Obsessive Stitcher",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Rain of Revelation",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Rousing Read",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Sanctum of Calm Waters",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Teferi's Protege",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Teferi's Tutelage",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M21",
+    "Teferi, Master of Time",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ZNR",
+    "Windrider Wizard",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Bag of Holding",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Cavalier of Flame",
+    "mapped",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M20",
+    "Cavalier of Gales",
+    "mapped",
+    "LIBRARY",
+    "CHOOSE"
+   ],
+   [
+    "M20",
+    "Dragon Mage",
+    "verified",
+    "GRAVEYARD",
+    "ALL"
+   ],
+   [
+    "M20",
+    "Duress",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M20",
+    "Hard Cover",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Keldon Raider",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Mind Rot",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M20",
+    "Rotting Regisaur",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Tomebound Lich",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Tomebound Lich",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M20",
+    "Yarok's Fenlurker",
+    "verified",
+    "EXILE",
+    "ONE_OF"
+   ],
+   [
+    "10E",
+    "Merfolk Looter",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "10E",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "10E",
+    "Sift",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M10",
+    "Duress",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M10",
+    "Merfolk Looter",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M10",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M11",
+    "Duress",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M11",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M12",
+    "Merfolk Looter",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M12",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M13",
+    "Duress",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M13",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M14",
+    "Duress",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M14",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M15",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M15",
+    "Research Assistant",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ORI",
+    "Jace, Vryn's Prodigy // Jace, Telepath Unbound",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ORI",
+    "Liliana, Heretical Healer // Liliana, Defiant Necromancer",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ORI",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "ORI",
+    "Sphinx's Tutelage",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "M19",
+    "Duress",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M19",
+    "Mind Rot",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "M19",
+    "Sift",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "WAR",
+    "Erratic Visionary",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "FDN",
+    "Chart a Course",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "FDN",
+    "Duress",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "FDN",
+    "Incinerating Blast",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "FDN",
+    "Pilfer",
+    "verified",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "FDN",
+    "Strix Lookout",
+    "verified",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ELD",
+    "Improbable Alliance",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "ELD",
+    "The Royal Scions",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ],
+   [
+    "THB",
+    "Elspeth's Nightmare",
+    "compiled",
+    "GRAVEYARD",
+    "CHOOSE"
+   ],
+   [
+    "IKO",
+    "Facet Reader",
+    "compiled",
+    "GRAVEYARD",
+    "ONE_OF"
+   ]
+  ],
+  "text": [
+   [
+    "M21",
+    "Ugin, the Spirit Dragon",
+    "verified",
+    "[−10]: You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.",
+    "parsed"
+   ],
+   [
+    "ZNR",
+    "Murasa Rootgrazer",
+    "compiled",
+    "{T}: You may put a basic land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "ZNR",
+    "Valakut Awakening // Valakut Stoneforge",
+    "compiled",
+    "Put any number of cards from your hand on the bottom of your library, then draw that many cards plus one.",
+    "unparsed"
+   ],
+   [
+    "ZNR",
+    "Zareth San, the Trickster",
+    "compiled",
+    "{2}{U}{B}, Return an unblocked attacking Rogue you control to its owner's hand: Put this card from your hand onto the battlefield tapped and attacking.",
+    "unparsed"
+   ],
+   [
+    "M20",
+    "Cavalier of Gales",
+    "mapped",
+    "When this creature enters, draw three cards, then put two cards from your hand on top of your library in any order.",
+    "parsed"
+   ],
+   [
+    "M20",
+    "Flood of Tears",
+    "compiled",
+    "If you return four or more nontoken permanents you control this way, you may put a permanent card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M20",
+    "Sorin, Imperious Bloodlord",
+    "mapped",
+    "[−3]: You may put a Vampire creature card from your hand onto the battlefield.",
+    "parsed"
+   ],
+   [
+    "KHM",
+    "Divine Gambit",
+    "compiled",
+    "That player may put a permanent card from their hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Academy Researchers",
+    "compiled",
+    "When this creature enters, you may put an Aura card from your hand onto the battlefield attached to this creature.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Elvish Piper",
+    "compiled",
+    "{G}, {T}: You may put a creature card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Head Games",
+    "compiled",
+    "Target opponent puts the cards from their hand on top of their library.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Hunted Wumpus",
+    "compiled",
+    "When this creature enters, each other player may put a creature card from their hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "10E",
+    "Skyshroud Ranger",
+    "refused",
+    "{T}: You may put a land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M10",
+    "Elvish Piper",
+    "compiled",
+    "{G}, {T}: You may put a creature card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M12",
+    "Quicksilver Amulet",
+    "compiled",
+    "{4}, {T}: You may put a creature card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Garruk, Caller of Beasts",
+    "compiled",
+    "[−3]: You may put a green creature card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M15",
+    "Preeminent Captain",
+    "compiled",
+    "Whenever this creature attacks, you may put a Soldier creature card from your hand onto the battlefield tapped and attacking.",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "The Great Aurora",
+    "compiled",
+    "Each player may put any number of land cards from their hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Tezzeret, Cruel Machinist",
+    "compiled",
+    "[−7]: Put any number of cards from your hand onto the battlefield face down.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Broken Bond",
+    "compiled",
+    "You may put a land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Llanowar Scout",
+    "compiled",
+    "{T}: You may put a land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Thran Temporal Gateway",
+    "compiled",
+    "{4}, {T}: You may put a historic permanent card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Arboreal Grazer",
+    "compiled",
+    "When this creature enters, you may put a land card from your hand onto the battlefield tapped.",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Ilharg, the Raze-Boar",
+    "compiled",
+    "Whenever Ilharg attacks, you may put a creature card from your hand onto the battlefield tapped and attacking.",
+    "unparsed"
+   ],
+   [
+    "ELD",
+    "Chulane, Teller of Tales",
+    "compiled",
+    "Whenever you cast a creature spell, draw a card, then you may put a land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "THB",
+    "Purphoros, Bronze-Blooded",
+    "compiled",
+    "{2}{R}: You may put a red creature card or an artifact creature card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "THB",
+    "Uro, Titan of Nature's Wrath",
+    "compiled",
+    "Whenever Uro enters or attacks, you gain 3 life and draw a card, then you may put a land card from your hand onto the battlefield.",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Fire Prophecy",
+    "compiled",
+    "You may put a card from your hand on the bottom of your library.",
+    "unparsed"
+   ]
+  ]
+ },
+ "emblems": {
+  "entries": [
+   [
+    "M21",
+    "Basri Ket Emblem",
+    "At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control."
+   ],
+   [
+    "M21",
+    "Garruk, Unleashed Emblem",
+    "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle your library."
+   ],
+   [
+    "M21",
+    "Liliana, Waker of the Dead Emblem",
+    "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste."
+   ],
+   [
+    "M20",
+    "Chandra, Awakened Inferno Emblem",
+    "At the beginning of your upkeep, this emblem deals 1 damage to you."
+   ],
+   [
+    "M20",
+    "Mu Yanling, Sky Dancer Emblem",
+    "Islands you control have \"{T}: Draw a card.\""
+   ],
+   [
+    "KHM",
+    "Kaya the Inexorable Emblem",
+    "At the beginning of your upkeep, you may cast a legendary spell from your hand, from your graveyard, or from among cards you own in exile without paying its mana cost."
+   ],
+   [
+    "KHM",
+    "Tibalt, Cosmic Impostor Emblem",
+    "You may play cards exiled with Tibalt, Cosmic Impostor, and you may spend mana as though it were mana of any color to cast those spells."
+   ],
+   [
+    "KHM",
+    "Tyvar Kell Emblem",
+    "Whenever you cast an Elf spell, it gains haste until end of turn and you draw two cards."
+   ],
+   [
+    "M13",
+    "Liliana of the Dark Realms Emblem",
+    "Swamps you control have '{T}: Add {B}{B}{B}{B}.'"
+   ],
+   [
+    "M14",
+    "Garruk, Caller of Beasts Emblem",
+    "Whenever you cast a creature spell, you may search your library for a creature card, put it onto the battlefield, then shuffle your library."
+   ],
+   [
+    "M14",
+    "Liliana of the Dark Realms Emblem",
+    "Swamps you control have '{T}: Add {B}{B}{B}{B}.'"
+   ],
+   [
+    "M15",
+    "Ajani Steadfast Emblem",
+    "If a source would deal damage to you or a planeswalker you control, prevent all but 1 of that damage."
+   ],
+   [
+    "M15",
+    "Garruk, Apex Predator Emblem",
+    "Whenever a creature attacks you, it gets +5/+5 and gains trample until end of turn."
+   ],
+   [
+    "ORI",
+    "Chandra, Roaring Flame Emblem",
+    "At the beginning of your upkeep, this emblem deals 3 damage to you."
+   ],
+   [
+    "ORI",
+    "Jace, Telepath Unbound Emblem",
+    "Whenever you cast a spell, target opponent puts the top five cards of their library into their graveyard."
+   ],
+   [
+    "ORI",
+    "Liliana, Defiant Necromancer Emblem",
+    "Whenever a creature dies, return it to the battlefield under your control at the beginning of the next end step."
+   ],
+   [
+    "M19",
+    "Ajani, Adversary of Tyrants Emblem",
+    "At the beginning of your end step, create three 1/1 white Cat creature tokens with lifelink."
+   ],
+   [
+    "M19",
+    "Tezzeret, Artifice Master Emblem",
+    "At the beginning of your end step, search your library for a permanent card, put it onto the battlefield, then shuffle your library."
+   ],
+   [
+    "M19",
+    "Vivien Reid Emblem",
+    "Creatures you control get +2/+2 and have vigilance, trample, and indestructible."
+   ],
+   [
+    "DOM",
+    "Jaya Ballard Emblem",
+    "You may cast instant and sorcery spells from your graveyard. If a spell cast this way would be put into your graveyard, exile it instead."
+   ],
+   [
+    "DOM",
+    "Teferi, Hero of Dominaria Emblem",
+    "Whenever you draw a card, exile target permanent an opponent controls."
+   ],
+   [
+    "WAR",
+    "Nissa, Who Shakes the World Emblem",
+    "Lands you control have indestructible."
+   ],
+   [
+    "FDN",
+    "Kaito, Cunning Infiltrator Emblem",
+    "Whenever a player casts a spell, you create a 2/1 blue Ninja creature token."
+   ],
+   [
+    "FDN",
+    "Vivien Reid Emblem",
+    "Creatures you control get +2/+2 and have vigilance, trample, and indestructible."
+   ],
+   [
+    "ELD",
+    "Garruk, Cursed Huntsman Emblem",
+    "Creatures you control get +3/+3 and have trample."
+   ],
+   [
+    "IKO",
+    "Narset of the Ancient Way Emblem",
+    "Whenever you cast a noncreature spell, this emblem deals 2 damage to any target."
+   ]
+  ],
+  "text": [
+   [
+    "M21",
+    "Basri Ket",
+    "compiled",
+    "[−6]: You get an emblem with \"At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.\"",
+    "parsed"
+   ],
+   [
+    "M21",
+    "Garruk, Unleashed",
+    "compiled",
+    "[−7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
+    "parsed"
+   ],
+   [
+    "M21",
+    "Liliana, Waker of the Dead",
+    "compiled",
+    "[−7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.",
+    "parsed"
+   ],
+   [
+    "M20",
+    "Chandra, Awakened Inferno",
+    "compiled",
+    "[+2]: Each opponent gets an emblem with \"At the beginning of your upkeep, this emblem deals 1 damage to you.\"",
+    "unparsed"
+   ],
+   [
+    "M20",
+    "Mu Yanling, Sky Dancer",
+    "mapped",
+    "[−8]: You get an emblem with \"Islands you control have '{T}: Draw a card.'\"",
+    "parsed"
+   ],
+   [
+    "KHM",
+    "Kaya the Inexorable",
+    "compiled",
+    "[−7]: You get an emblem with \"At the beginning of your upkeep, you may cast a legendary spell from your hand, from your graveyard, or from among cards you own in exile without paying its mana cost.\"",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Tyvar Kell",
+    "compiled",
+    "[−6]: You get an emblem with \"Whenever you cast an Elf spell, it gains haste until end of turn and you draw two cards.\"",
+    "unparsed"
+   ],
+   [
+    "KHM",
+    "Valki, God of Lies // Tibalt, Cosmic Impostor",
+    "compiled",
+    "As Tibalt enters, you get an emblem with \"You may play cards exiled with Tibalt, Cosmic Impostor, and you may spend mana as though it were mana of any color to cast those spells.\"",
+    "unparsed"
+   ],
+   [
+    "M13",
+    "Liliana of the Dark Realms",
+    "compiled",
+    "[−6]: You get an emblem with \"Swamps you control have '{T}: Add {B}{B}{B}{B}.'\"",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Garruk, Caller of Beasts",
+    "compiled",
+    "[−7]: You get an emblem with \"Whenever you cast a creature spell, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
+    "unparsed"
+   ],
+   [
+    "M14",
+    "Liliana of the Dark Realms",
+    "compiled",
+    "[−6]: You get an emblem with \"Swamps you control have '{T}: Add {B}{B}{B}{B}.'\"",
+    "unparsed"
+   ],
+   [
+    "M15",
+    "Ajani Steadfast",
+    "compiled",
+    "[−7]: You get an emblem with \"If a source would deal damage to you or a planeswalker you control, prevent all but 1 of that damage.\"",
+    "unparsed"
+   ],
+   [
+    "M15",
+    "Garruk, Apex Predator",
+    "compiled",
+    "[−8]: Target opponent gets an emblem with \"Whenever a creature attacks you, it gets +5/+5 and gains trample until end of turn.\"",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Chandra, Fire of Kaladesh // Chandra, Roaring Flame",
+    "compiled",
+    "Each player dealt damage this way gets an emblem with \"At the beginning of your upkeep, this emblem deals 3 damage to you.\"",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Jace, Vryn's Prodigy // Jace, Telepath Unbound",
+    "compiled",
+    "[−9]: You get an emblem with \"Whenever you cast a spell, target opponent mills five cards.\"",
+    "unparsed"
+   ],
+   [
+    "ORI",
+    "Liliana, Heretical Healer // Liliana, Defiant Necromancer",
+    "compiled",
+    "[−8]: You get an emblem with \"Whenever a creature dies, return it to the battlefield under your control at the beginning of the next end step.\"",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Ajani, Adversary of Tyrants",
+    "compiled",
+    "[−7]: You get an emblem with \"At the beginning of your end step, create three 1/1 white Cat creature tokens with lifelink.\"",
+    "parsed"
+   ],
+   [
+    "M19",
+    "Tezzeret, Artifice Master",
+    "compiled",
+    "[−9]: You get an emblem with \"At the beginning of your end step, search your library for a permanent card, put it onto the battlefield, then shuffle.\"",
+    "unparsed"
+   ],
+   [
+    "M19",
+    "Vivien Reid",
+    "compiled",
+    "[−8]: You get an emblem with \"Creatures you control get +2/+2 and have vigilance, trample, and indestructible.\"",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Jaya Ballard",
+    "compiled",
+    "[−8]: You get an emblem with \"You may cast instant and sorcery spells from your graveyard.",
+    "unparsed"
+   ],
+   [
+    "DOM",
+    "Teferi, Hero of Dominaria",
+    "compiled",
+    "[−8]: You get an emblem with \"Whenever you draw a card, exile target permanent an opponent controls.\"",
+    "unparsed"
+   ],
+   [
+    "WAR",
+    "Nissa, Who Shakes the World",
+    "compiled",
+    "[−8]: You get an emblem with \"Lands you control have indestructible.\" Search your library for any number of Forest cards, put them onto the battlefield tapped, then shuffle.",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Kaito, Cunning Infiltrator",
+    "compiled",
+    "[−9]: You get an emblem with \"Whenever a player casts a spell, you create a 2/1 blue Ninja creature token.\"",
+    "unparsed"
+   ],
+   [
+    "FDN",
+    "Vivien Reid",
+    "compiled",
+    "[−8]: You get an emblem with \"Creatures you control get +2/+2 and have vigilance, trample, and indestructible.\"",
+    "unparsed"
+   ],
+   [
+    "ELD",
+    "Garruk, Cursed Huntsman",
+    "compiled",
+    "[−6]: You get an emblem with \"Creatures you control get +3/+3 and have trample.\"",
+    "unparsed"
+   ],
+   [
+    "IKO",
+    "Narset of the Ancient Way",
+    "compiled",
+    "[−6]: You get an emblem with \"Whenever you cast a noncreature spell, this emblem deals 2 damage to any target.\"",
+    "unparsed"
+   ]
+  ],
+  "trees": [
+   [
+    "M21",
+    "Basri Ket",
+    "compiled",
+    "YOU",
+    1
+   ],
+   [
+    "M21",
+    "Garruk, Unleashed",
+    "compiled",
+    "YOU",
+    1
+   ],
+   [
+    "M21",
+    "Liliana, Waker of the Dead",
+    "compiled",
+    "YOU",
+    1
+   ],
+   [
+    "M20",
+    "Mu Yanling, Sky Dancer",
+    "mapped",
+    "YOU",
+    1
+   ],
+   [
+    "M19",
+    "Ajani, Adversary of Tyrants",
+    "compiled",
+    "YOU",
+    1
+   ]
+  ]
+ },
+ "nested_designations": [
+  [
+   "M21",
+   "Liliana, Waker of the Dead",
+   "compiled",
+   "ActivatedAbility"
+  ],
+  [
+   "M20",
+   "Mask of Immolation",
+   "verified",
+   "StaticAbility"
+  ],
+  [
+   "M20",
+   "Sorin, Vampire Lord",
+   "verified",
+   "ActivatedAbility"
+  ]
+ ]
+}

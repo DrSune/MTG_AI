@@ -1,0 +1,418 @@
+{
+ "10E": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   109,
+   109
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "DOM": {
+  "trees_changed": [
+   "Jaya Ballard",
+   "Teferi, Hero of Dominaria"
+  ],
+  "trees_changed_with_every_record": [
+   "Jaya Ballard",
+   "Teferi, Hero of Dominaria"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   57,
+   57
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "ELD": {
+  "trees_changed": [
+   "Garruk, Cursed Huntsman"
+  ],
+  "trees_changed_with_every_record": [
+   "Garruk, Cursed Huntsman"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   42,
+   42
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "FDN": {
+  "trees_changed": [
+   "Kaito, Cunning Infiltrator",
+   "Vivien Reid"
+  ],
+  "trees_changed_with_every_record": [
+   "Kaito, Cunning Infiltrator",
+   "Vivien Reid"
+  ],
+  "verified": [
+   175,
+   175
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   177,
+   177
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "IKO": {
+  "trees_changed": [
+   "Narset of the Ancient Way"
+  ],
+  "trees_changed_with_every_record": [
+   "Narset of the Ancient Way"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   40,
+   40
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "KHM": {
+  "trees_changed": [
+   "Kaya the Inexorable",
+   "Tyvar Kell"
+  ],
+  "trees_changed_with_every_record": [
+   "Kaya the Inexorable",
+   "Tyvar Kell"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   32,
+   32
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M10": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   80,
+   80
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M11": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   84,
+   84
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M12": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   83,
+   83
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M13": {
+  "trees_changed": [
+   "Liliana of the Dark Realms"
+  ],
+  "trees_changed_with_every_record": [
+   "Liliana of the Dark Realms"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   75,
+   75
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M14": {
+  "trees_changed": [
+   "Garruk, Caller of Beasts",
+   "Liliana of the Dark Realms"
+  ],
+  "trees_changed_with_every_record": [
+   "Garruk, Caller of Beasts",
+   "Liliana of the Dark Realms"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   79,
+   79
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M15": {
+  "trees_changed": [
+   "Ajani Steadfast"
+  ],
+  "trees_changed_with_every_record": [
+   "Ajani Steadfast"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   71,
+   71
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M19": {
+  "trees_changed": [
+   "Ajani, Adversary of Tyrants",
+   "Tezzeret, Artifice Master",
+   "Vivien Reid"
+  ],
+  "trees_changed_with_every_record": [
+   "Ajani, Adversary of Tyrants",
+   "Tezzeret, Artifice Master",
+   "Vivien Reid"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   115,
+   115
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "M20": {
+  "trees_changed": [
+   "Mu Yanling, Sky Dancer"
+  ],
+  "trees_changed_with_every_record": [
+   "Goblin Ringleader",
+   "Mu Yanling, Sky Dancer"
+  ],
+  "verified": [
+   255,
+   255
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   256,
+   256
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {
+   "Sorin, Vampire Lord": [
+    "nested_target"
+   ],
+   "Yarok's Fenlurker": [
+    "hand_put"
+   ]
+  }
+ },
+ "M21": {
+  "trees_changed": [
+   "Basri Ket",
+   "Garruk, Unleashed",
+   "Liliana, Waker of the Dead"
+  ],
+  "trees_changed_with_every_record": [
+   "Basri Ket",
+   "Garruk, Unleashed",
+   "Liliana, Waker of the Dead"
+  ],
+  "verified": [
+   269,
+   266
+  ],
+  "verified_left": [
+   "Basri Ket",
+   "Garruk, Unleashed",
+   "Liliana, Waker of the Dead"
+  ],
+  "verified_joined": [],
+  "compiled": [
+   280,
+   280
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {
+   "Necromentia": [
+    "any_number"
+   ],
+   "Siege Striker": [
+    "any_number"
+   ]
+  }
+ },
+ "ORI": {
+  "trees_changed": [
+   "Jace, Vryn's Prodigy // Jace, Telepath Unbound",
+   "Liliana, Heretical Healer // Liliana, Defiant Necromancer"
+  ],
+  "trees_changed_with_every_record": [
+   "Jace, Vryn's Prodigy // Jace, Telepath Unbound",
+   "Liliana, Heretical Healer // Liliana, Defiant Necromancer"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   68,
+   68
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "THB": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   43,
+   43
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "WAR": {
+  "trees_changed": [
+   "Nissa, Who Shakes the World"
+  ],
+  "trees_changed_with_every_record": [
+   "Nissa, Who Shakes the World"
+  ],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   45,
+   45
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "ZNR": {
+  "trees_changed": [],
+  "trees_changed_with_every_record": [],
+  "verified": [
+   0,
+   0
+  ],
+  "verified_left": [],
+  "verified_joined": [],
+  "compiled": [
+   110,
+   110
+  ],
+  "compiled_left": [],
+  "compiled_joined": [],
+  "verified_flagged_unchanged_bytes": {}
+ },
+ "_totals": {
+  "cards": 5678,
+  "trees_changed": 22
+ }
+}
