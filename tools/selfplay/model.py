@@ -12,10 +12,17 @@ global token, the expected outcome for the deciding seat.
 Name dropout (training only) swaps a card's name embedding for the unknown-card row, so the
 network must also read the components; at play time an unseen card uses the unknown row and
 its components.
+
+Everything that decides what a network computes lives in its ``config`` and its state (weights
+and buffers), so a copy, a checkpoint and the trainer's rebuild all compute the same function:
+``mask_names`` too. A checkpoint is written whole or not at all (``save``), and ``load`` returns
+the network in eval mode (training code switches to train mode itself).
 """
 
 from __future__ import annotations
 
+import os
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -30,13 +37,13 @@ class PolicyValueNet(nn.Module):
                  layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1,
                  mask_names: bool = False):
         super().__init__()
+        # mask_names: every card name read as the unknown card (a generalisation probe: the
+        # network must play from components and live state alone)
         self.config = {"n_cards": n_cards, "n_ir": n_ir, "d": d, "layers": layers,
-                       "heads": heads, "ff": ff, "name_dropout": name_dropout}
+                       "heads": heads, "ff": ff, "name_dropout": name_dropout,
+                       "mask_names": bool(mask_names)}
         self.d = d
         self.name_dropout = name_dropout
-        # every card name read as the unknown card (a generalisation probe: the network must
-        # play from components and live state alone); not saved in the config
-        self.mask_names = mask_names
         self.name_emb = nn.Embedding(n_cards, d)
         self.ir_emb = nn.Embedding(n_ir, d, padding_idx=0)
         self.register_buffer("ir_table", torch.as_tensor(ir_table, dtype=torch.long),
@@ -78,6 +85,14 @@ class PolicyValueNet(nn.Module):
                 nn.init.normal_(m.weight, std=0.02)
         nn.init.zeros_(self.policy_head[-1].weight)
         nn.init.zeros_(self.value_head[-1].weight)
+
+    @property
+    def mask_names(self) -> bool:
+        return self.config["mask_names"]
+
+    @mask_names.setter
+    def mask_names(self, on: bool) -> None:
+        self.config["mask_names"] = bool(on)
 
     def card_table_emb(self) -> torch.Tensor:
         ids = self.ir_table
@@ -353,9 +368,19 @@ def grow(model: PolicyValueNet, table: FT.CardTable, layers: int | None = None,
     return big
 
 
+def atomic_write(path: str | os.PathLike, write: Callable[[str], None]) -> None:
+    """``write(tmp)`` then rename over ``path``: a reader (a resume, a queue, distill) sees the
+    old file or the whole new one, never a file cut short by a stop mid-write (SIGTERM, the
+    memory floor's exit)."""
+    tmp = f"{os.fspath(path)}.tmp"
+    write(tmp)
+    os.replace(tmp, path)
+
+
 def save(path: str, model: PolicyValueNet, table: FT.CardTable, extra: dict | None = None) -> None:
-    torch.save({"config": model.config, "state": model.state_dict(), "table": table.to_json(),
-                "extra": extra or {}}, path)
+    ck = {"config": model.config, "state": model.state_dict(), "table": table.to_json(),
+          "extra": extra or {}}
+    atomic_write(path, lambda tmp: torch.save(ck, tmp))
 
 
 def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet, FT.CardTable, dict]:
@@ -386,4 +411,4 @@ def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet,
         if key not in state and key.endswith("_ptr.weight"):
             state[key] = torch.zeros_like(w)
     model.load_state_dict(state)
-    return model.to(device), table, ck.get("extra", {})
+    return model.to(device).eval(), table, ck.get("extra", {})

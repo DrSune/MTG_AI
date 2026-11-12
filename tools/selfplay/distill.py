@@ -56,15 +56,27 @@ def load_targets(runs: list[str]) -> list[dict]:
     return out
 
 
+def pooled_variance(n: np.ndarray, var: np.ndarray) -> float:
+    """The within-option variance of a record's results, pooled over its options: the sum of
+    n * var (search.target_record's var is each option's population variance) over the degrees
+    of freedom, sum(n - 1). An option played in one world adds nothing to either. With no
+    degree of freedom at all there is no estimate, and the largest variance a +-1 result can
+    have (1) stands in: the most cautious step."""
+    dof = float(np.clip(n - 1, 0, None).sum())
+    return float(np.dot(n, var)) / dof if dof > 0 else 1.0
+
+
 def improved(rec: dict, pi: np.ndarray, rule: str) -> np.ndarray:
     """pi' for one record, from the policy ``pi`` being improved."""
     alts, q, n = rec["alts"], np.asarray(rec["q"]), np.asarray(rec["n"], float)
     if not alts:
         return pi
     if rule in ("se", "se1"):
-        pooled = float(np.dot(n, rec["var"]) / n.sum())  # within an option, over all its worlds
+        pooled = pooled_variance(n, np.asarray(rec["var"]))  # over all of each option's worlds
         if rule == "se1":
             q, n = np.asarray(rec["q1"]), np.asarray(rec["n1"], float)
+            if n.min() == 0:  # an option without a first-round world: nothing to compare
+                return pi
         se = math.sqrt(max(pooled, VAR_FLOOR) / n.mean())
         t = np.asarray(mmd_target(list(pi), alts, list(q), se))
         return t / t.sum()
@@ -83,7 +95,7 @@ def improved(rec: dict, pi: np.ndarray, rule: str) -> np.ndarray:
 def policy(net: torch.nn.Module, feats: list[dict], dev: torch.device) -> list[np.ndarray]:
     lengths = np.array([f["cards_i"].shape[0] + f["opts_i"].shape[0] for f in feats])
     out: list = [None] * len(feats)
-    for ch in chunks(lengths, 2048, 32768):
+    for ch in chunks(lengths, 2048, 32768, np.random.default_rng(0)):  # order is immaterial
         b = M.collate([feats[i] for i in ch], dev)
         with torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
             logits, _ = net(b)
@@ -93,12 +105,18 @@ def policy(net: torch.nn.Module, feats: list[dict], dev: torch.device) -> list[n
     return out
 
 
-def ce_epoch(net, feats, targets, idx, dev, opt=None, mb: int = 512) -> float:
-    """Mean cross-entropy -sum pi' log pi_theta over records ``idx`` (training when ``opt``)."""
+def ce_epoch(net, feats, targets, idx, dev, opt=None, mb: int = 512,
+             rng: np.random.Generator | None = None) -> float:
+    """Mean cross-entropy -sum pi' log pi_theta over records ``idx``. Training (``opt``) draws
+    its order and minibatches from ``rng``, so the run's --seed fixes them; scoring uses a fixed
+    order, so it never moves the training's draws."""
     lengths = np.array([feats[i]["cards_i"].shape[0] + feats[i]["opts_i"].shape[0] for i in idx])
-    order = np.random.default_rng(len(idx)).permutation(len(idx)) if opt else np.arange(len(idx))
+    if opt is not None and rng is None:
+        raise ValueError("ce_epoch: training needs its rng")
+    draw = rng if opt is not None else np.random.default_rng(0)
+    order = draw.permutation(len(idx)) if opt is not None else np.arange(len(idx))
     total, count = 0.0, 0
-    for ch in chunks(lengths[order], mb, 65536):
+    for ch in chunks(lengths[order], mb, 65536, draw):
         rows = idx[order[ch]]
         b = M.collate([feats[i] for i in rows], dev)
         with torch.set_grad_enabled(opt is not None), \
@@ -133,10 +151,15 @@ def split(games: list, n: int) -> tuple[np.ndarray, np.ndarray, int]:
 
 
 def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int], dev,
-           lr: float = 3e-5, epochs: int = 4, mb: int = 512, on_epoch=None) -> dict:
+           rng: np.random.Generator, lr: float = 3e-5, epochs: int = 4, mb: int = 512,
+           on_epoch=None) -> dict:
     """For each size n: a copy of ``base`` trained on the first n records (whole games), the
     epoch with the lowest held-out KL kept; ``on_epoch(n, epoch, net)`` sees every trained epoch.
+    A size beyond the records raises: a network named for n records must have had them.
     Returns {n: (network, report)}."""
+    short = [n for n in sizes if n > len(recs)]
+    if short:
+        raise ValueError(f"sizes {short} exceed the {len(recs)} records")
     feats = [r["feats"] for r in recs]
     base.eval()
     pis = policy(base, feats, dev)
@@ -155,7 +178,7 @@ def distil(base: torch.nn.Module, recs: list[dict], rule: str, sizes: list[int],
         for epoch in range(1, epochs + 1):
             t0 = time.time()
             net.train()
-            tr_ce = ce_epoch(net, feats, targets, tr, dev, opt, mb)
+            tr_ce = ce_epoch(net, feats, targets, tr, dev, opt, mb, rng)
             net.eval()
             vkl = ce_epoch(net, feats, targets, val, dev) - ent
             hist.append({"epoch": epoch, "train_ce": tr_ce, "val_kl": vkl,
@@ -190,17 +213,27 @@ def placebo(recs: list[dict], rng: np.random.Generator) -> None:
 
 def describe(recs: list[dict], rule: str, base, dev) -> dict:
     """The records' share with no difference in result (every compared option's mean equal),
-    the share whose target moves the policy at all, and the share played in one round (every
-    option over the same worlds, so ``q1`` equals ``q``)."""
-    pis = policy(base, [r["feats"] for r in recs], dev)
+    the share whose target moves the policy at all, the share played in one round (every
+    option over the same worlds, so ``q1`` equals ``q``), and in the records of several rounds
+    the mean of q - q1 for first-round losers (0: they played nothing else) and for survivors
+    (196 §1.1: how far the first round's selection lifted their first-round means)."""
+    pis = policy(base.eval(), [r["feats"] for r in recs], dev)
     ties = moved = single = 0
+    gap: dict[str, list] = {"first_round_losers": [], "survivors": []}
     for r, pi in zip(recs, pis, strict=True):
         ties += len(r["q"]) < 2 or max(r["q"]) - min(r["q"]) < 1e-9
         moved += bool(np.abs(improved(r, pi, rule) - pi).max() > 1e-6)
-        single += r.get("n1", r["n"]) == r["n"]
+        one = r.get("n1", r["n"]) == r["n"]
+        single += one
+        if not one:
+            for q, n, q1, n1 in zip(r["q"], r["n"], r["q1"], r["n1"], strict=True):
+                if n1:
+                    gap["survivors" if n > n1 else "first_round_losers"].append(q - q1)
     k = max(len(recs), 1)
     return {"records": len(recs), "no_difference": round(ties / k, 4),
-            "moved": round(moved / k, 4), "one_round": round(single / k, 4)}
+            "moved": round(moved / k, 4), "one_round": round(single / k, 4),
+            "q_minus_q1": {g: {"options": len(v), "mean": round(float(np.mean(v)), 4) if v
+                               else None} for g, v in gap.items()}}
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -220,6 +253,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--seed", type=int, default=0)
     a = ap.parse_args(argv)
     torch.manual_seed(a.seed)
+    rng = np.random.default_rng(a.seed)  # the minibatches and their order
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -234,7 +268,7 @@ def main(argv: list[str] | None = None) -> None:
                {"distilled_from": a.init, "epoch": epoch})
 
     for n, (net, rep) in distil(base, recs, a.rule, [int(x) for x in a.sizes.split(",")], dev,
-                                a.lr, a.epochs, a.mb,
+                                rng, a.lr, a.epochs, a.mb,
                                 save_epoch if a.save_epochs else None).items():
         M.save(str(out / f"distilled_{n}.pt"), net, table, {"distilled_from": a.init, **rep})
         report["sizes"][n] = rep

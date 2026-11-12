@@ -1,5 +1,5 @@
 """True-future labels (docs/PLAN_LEARNING.md §1.1-1.4, §3): the policy cannot read what it must not,
-labelling leaves the real game alone, the second future reshuffles only what nobody knows, a
+labelling leaves the real game alone, the second future reshuffles both libraries whole, a
 crashed future leaves the comparison paired, and the owner's 45/30/25 example in search and in
 distillation."""
 
@@ -173,35 +173,36 @@ def test_labelling_leaves_the_real_game_and_its_decisions_alone(table, net, monk
         assert all(z in (-1.0, 0.0, 1.0, None) for zf in lab["z"] for z in zf)
 
 
-def test_the_second_future_reshuffles_only_what_nobody_knows() -> None:
-    """PLAN §1.2: future 2 keeps the true cards and every known position (the London mulligan's
-    bottoms, CR 103.5; a card put into the library; both ends of a scried window) and reshuffles
-    the rest of both libraries, the same way for every alternative (one seed per future)."""
+def test_a_true_world_reshuffles_both_libraries_whole() -> None:
+    """A true world (the audit's) and the labeller's second future keep the deal's cards and
+    shuffle both libraries whole, the same way for one seed. The journal pins nothing: it does
+    not say which cards a scry kept or which zone a reveal showed, and reading it as if it did
+    kept unseen cards in place, often the next draw (KNOWLEDGE/2026-11-12/197)."""
     supply = get_supply("castable")
-    corpse = next(o for o, m in supply.metas.items() if m.name == "Walking Corpse")
-    game = _setup_game(9, supply, (deal_decks(9, 1409, supply)[0], (corpse,) * 60))
+    game = _setup_game(9, supply, deal_decks(9, 1409, supply))
     router = _router(game, [HeuristicAgent(), HeuristicAgent()], supply)
     _play(game, router, game.world.player_order, 1, stop_after=lambda g, b: b == "turn_top")
-    p0, p1 = game.world.player_order
+    players = game.world.player_order
     ex = game.executor
-    lib0 = ex.world.players[p0].zone(ZONE_LIBRARY).entries
-    # the heuristic mulligans its land-less seven and six and keeps five: two cards on the bottom
-    bottoms = [a for w, a in ex.decisions.ask_log if w.startswith(f"mulligan_bottom:{p1}:")][-2:]
-    ex.events.append((len(ex.events), "MOVE", str(lib0[20]), "graveyard->library"))
-    ex.events.append((len(ex.events), "SCRY", str(p0), 2))
-    before = {p: list(game.world.players[p].zone(ZONE_LIBRARY).entries) for p in (p0, p1)}
+    # the journal rows that pinned cards: a scry's size, and Duress's hand reveal journalled as
+    # the target's whole library
+    ex.events.append((len(ex.events), "SCRY", str(players[0]), 2))
+    lib1 = game.world.players[players[1]].zone(ZONE_LIBRARY).entries
+    ex.events.append((len(ex.events), "REVEAL", str(players[1]),
+                      tuple(str(h) for h in reversed(lib1))))
+    zones = (ZONE_LIBRARY, ZONE_HAND)
+    before = {(p, z): list(game.world.players[p].zone(z).entries) for p in players for z in zones}
     futures = []
     for _ in range(2):
         copy = fork(game, supply)
-        S.reshuffle_unknown(copy, random.Random(7))
-        futures.append({p: list(copy.world.players[p].zone(ZONE_LIBRARY).entries) for p in (p0, p1)})
+        S.reshuffle_libraries(copy, random.Random(7))
+        futures.append({(p, z): list(copy.world.players[p].zone(z).entries)
+                        for p in players for z in zones})
     assert futures[0] == futures[1]
-    a0, b0 = futures[0][p0], before[p0]
-    assert a0[:2] == b0[:2] and a0[-2:] == b0[-2:] and a0[20] == b0[20]
-    assert a0 != b0 and sorted(a0) == sorted(b0)
-    a1, b1 = futures[0][p1], before[p1]
-    assert [str(h) for h in b1[:2]] == bottoms[::-1] and a1[:2] == b1[:2]
-    assert a1 != b1 and sorted(a1) == sorted(b1)
+    for p in players:
+        assert futures[0][(p, ZONE_HAND)] == before[(p, ZONE_HAND)]
+        a, b = futures[0][(p, ZONE_LIBRARY)], before[(p, ZONE_LIBRARY)]
+        assert sorted(a) == sorted(b) and a[-2:] != b[-2:]  # the top moves like any card
 
 
 def test_a_crashed_future_is_dropped_for_every_alternative() -> None:

@@ -49,7 +49,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pool", default="verified")
     a = ap.parse_args(argv)
     checks: dict[str, dict] = {}
-    dirty = _git("status", "--porcelain")
+    # no optional locks: a status that refreshes the index would hold index.lock against
+    # commits made in the same checkout meanwhile (as learner.write_manifest)
+    dirty = _git("--no-optional-locks", "status", "--porcelain")
     checks["P1_clean_tree"] = {"pass": not dirty, "commit": _git("rev-parse", "HEAD"),
                                "dirty_paths": dirty.splitlines()[:20]}
     results = [_game(SMOKE_SEED0 + i, a.pool) for i in range(a.games)]

@@ -49,7 +49,8 @@ def evaluate(net: torch.nn.Module, packed: M.Packed, act: np.ndarray, ret: np.nd
              ) -> tuple[dict, np.ndarray, np.ndarray]:
     v_all, nll = np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32)
     with torch.no_grad():
-        for ch in chunks(packed.lengths()[idx], a.mb, a.tok_budget):  # positions in idx
+        for ch in chunks(packed.lengths()[idx], a.mb, a.tok_budget,  # positions in idx
+                         np.random.default_rng(0)):  # the order of scoring is immaterial
             b = M.collate_packed(packed, idx[ch], device)
             with torch.autocast(device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"):
                 logits, v = net(b)
@@ -81,9 +82,9 @@ def run_arm(name: str, a: argparse.Namespace, data: tuple, out) -> None:
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr, betas=(0.9, 0.99), eps=1e-6,
                             weight_decay=a.wd)
     train, test = np.flatnonzero(~held), np.flatnonzero(held)
-    np.random.seed(a.seed)  # ppo.chunks: every arm gets the same minibatches in the same order
     rng = np.random.default_rng(a.seed)
-    mbs = chunks(packed.lengths()[train], a.mb, a.tok_budget)
+    # every arm gets the same minibatches (one generator per arm, the same seed), in the same order
+    mbs = chunks(packed.lengths()[train], a.mb, a.tok_budget, np.random.default_rng(a.seed))
     steps = a.epochs * len(mbs)
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats()

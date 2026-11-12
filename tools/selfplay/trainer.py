@@ -30,7 +30,7 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
     from tools.selfplay.ppo import ppo_train
 
     a = SimpleNamespace(**args)
-    np.random.seed(a.seed)  # the minibatches' order (ppo.chunks); a spawned process starts unseeded
+    rng = np.random.default_rng(a.seed)  # the minibatches and their order (ppo.chunks)
     device = torch.device("cuda" if torch.cuda.is_available() and a.device != "cpu" else "cpu")
     table = FT.CardTable.from_json(ckpt["table"])
     cfg = {k: v for k, v in ckpt["config"].items() if k not in ("n_cards", "n_ir")}
@@ -59,8 +59,8 @@ def trainer_main(conn: Any, ckpt: dict, args: dict) -> None:
             if msg[0] == "stop":
                 return
             _, payload = msg
-            stats = ppo_train(model, opt, a=a, device=device, check=check, release=release,
-                              **payload)
+            stats = ppo_train(model, opt, a=a, device=device, rng=rng, check=check,
+                              release=release, **payload)
             del payload
             release()
             state = {k: v.detach().to("cpu") for k, v in model.state_dict().items()}

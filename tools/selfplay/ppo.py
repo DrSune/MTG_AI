@@ -38,8 +38,12 @@ from tools.selfplay import model as M
 _DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip")]
 
 
-def chunks(lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
-    order = np.argsort(lengths + np.random.rand(len(lengths)) * 4.0)
+def chunks(lengths: np.ndarray, mb: int, tok_budget: int,
+           rng: np.random.Generator) -> list[np.ndarray]:
+    """Minibatches of row indices: length-sorted (with jitter from ``rng``), each capped by ``mb``
+    rows and ``tok_budget`` padded tokens, in an order drawn from ``rng``. The generator is the
+    caller's, so its seed fixes the minibatches (no global random state)."""
+    order = np.argsort(lengths + rng.random(len(lengths)) * 4.0)
     out, cur, cur_max = [], [], 0.0
     for i in order:
         length = float(lengths[i]) + 3.0
@@ -50,13 +54,13 @@ def chunks(lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
         cur_max = max(cur_max, length)
     if cur:
         out.append(np.array(cur))
-    return [out[i] for i in np.random.permutation(len(out))]
+    return [out[i] for i in rng.permutation(len(out))]
 
 
 def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
               packed: M.Packed, act: np.ndarray, logp: np.ndarray, v_old: np.ndarray,
               adv: np.ndarray, ret: np.ndarray, a: Any, device: torch.device,
-              check: Callable[[], None] | None = None,
+              rng: np.random.Generator, check: Callable[[], None] | None = None,
               release: Callable[[], None] | None = None) -> dict:
     cuda = device.type == "cuda"
     n = len(packed)
@@ -68,7 +72,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     kl_last = np.full(n, np.nan, dtype=np.float32)
     stop = False
     t_col = time.perf_counter()
-    chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget)
+    chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget, rng)
     n_batches = len(chunk_list)
     kl_stop = a.target_kl > 0
     lp0_arr = np.empty(n if kl_stop else 0, dtype=np.float32)
@@ -89,7 +93,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     t_train = time.perf_counter()
     for epoch in range(a.epochs):
         kls = []
-        epoch_chunks = [chunk_list[i] for i in np.random.permutation(n_batches)]
+        epoch_chunks = [chunk_list[i] for i in rng.permutation(n_batches)]
         for step, ch in enumerate(epoch_chunks):
             if check:
                 check()

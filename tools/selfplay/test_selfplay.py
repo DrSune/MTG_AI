@@ -554,6 +554,136 @@ def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
     assert learner("castable").load_state(str(src))["it"] == 3
 
 
+def _small_learner(monkeypatch, run, *extra: str):
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    return L.Learner(L.parse(["--run", str(run), "--device", "cpu", "--d", "32", "--layers", "1",
+                              "--heads", "4", "--ff", "64", "--gate-deals", "30", *extra]))
+
+
+def test_a_freeze_is_committed_at_once_and_best_is_the_gated_snapshot(tmp_path,
+                                                                      monkeypatch) -> None:
+    """KNOWLEDGE/2026-11-12/197: a passed gate freezes the snapshot it scored, stamped with the
+    snapshot's update, and commits at once with the new version's ladder queued, so a crash
+    before the next periodic save cannot orphan the version or lose its ladder; best.pt is that
+    snapshot, not the learner two updates later."""
+    import json
+    import time
+
+    from tools.selfplay import learner as L
+
+    lr = _small_learner(monkeypatch, tmp_path)
+    lr.stage = "selfplay"
+    lr._log_freeze(lr.freeze(lr.model, 0), 0, "")
+    lr.it = 75
+    lr.queue_eval("gate", "gate:it75", "eval", ["v0"], 30)
+    lr._eval_tick()  # starts the gate: the snapshot of update 75
+    snap = {k: v.clone() for k, v in lr.models["eval"].state_dict().items()}
+    with torch.no_grad():  # the learner moves on while the gate plays
+        for prm in lr.model.parameters():
+            prm.add_(1.0)
+    lr.eval_jobs.clear()
+    lr.eval_pending.clear()
+    lr.eval_rows = [{"seed": s, "deck_mode": "coherent", "outcome": "win", "winner": a, "a_seat": a,
+                     "opp": "v0", "turns": 10} for s in range(30) for a in (0, 1)]
+    lr.it = 77
+    lr._eval_tick()  # the gate passes: freeze, commit, then the ladder starts
+    best, _, extra = M.load(str(tmp_path / "best.pt"))
+    assert all(torch.equal(best.state_dict()[k], v) for k, v in snap.items())
+    assert extra["it"] == 75 and extra["version"] == "v1"
+    _, _, v1 = M.load(str(tmp_path / "v1.pt"))
+    assert v1["it"] == 75 and v1["frozen_at"] == 77
+    state = pickle.loads((tmp_path / "state.pkl").read_bytes())
+    assert state["versions"] == ["v0", "v1"] and state["it"] == 77
+    assert [q[1] for q in state["eval_queue"]] == ["ladder:v1"]  # committed before it started
+    _, _, last = M.load(str(tmp_path / "last.pt"))
+    assert last["state"] == state  # the weights and the state are one commit
+    events = [json.loads(x)["event"] for x in (tmp_path / "metrics.jsonl").read_text().splitlines()]
+    assert events[-3:] == ["eval", "gate", "freeze"]  # logged after the commit
+    assert lr.eval_spec[1] == "ladder:v1" and lr.eval_meta["tag"] == "ladder:v1"
+    # the running ladder is part of the next commit, so a resume runs it again
+    lr.checkpoint()
+    (tmp_path / "train_rows.jsonl").write_text(json.dumps({"gid": lr.gid + 40}) + "\n")
+    time.sleep(0.01)
+    back = _small_learner(monkeypatch, tmp_path / "back", "--resume", str(tmp_path))
+    back.load_state(str(tmp_path))
+    assert [q[1] for q in back.eval_queue] == ["ladder:v1"] and back.versions == ["v0", "v1"]
+    assert back.gid == lr.gid + 40  # no logged game's id, and so no deal, is issued again
+    assert L.max_logged_gid(tmp_path) == lr.gid + 40
+
+
+def test_a_checkpoint_is_whole_or_absent_and_carries_what_defines_the_network(table,
+                                                                              tmp_path) -> None:
+    """A stop mid-write never leaves a cut file (M.atomic_write), and everything that decides
+    what a network computes travels with it: mask_names through a save, a load, a copy and the
+    trainer's rebuild from the config (197: the flag was dropped by all but two paths)."""
+    import copy
+
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    M.save(str(tmp_path / "a.pt"), net, table)
+    before = (tmp_path / "a.pt").read_bytes()
+
+    def broken(tmp: str) -> None:
+        with open(tmp, "wb") as fh:
+            fh.write(b"half")
+        raise KeyboardInterrupt  # the stop arrives mid-write
+
+    with pytest.raises(KeyboardInterrupt):
+        M.atomic_write(tmp_path / "a.pt", broken)
+    assert (tmp_path / "a.pt").read_bytes() == before
+    net.mask_names = True
+    M.save(str(tmp_path / "m.pt"), net, table)
+    back, _, _ = M.load(str(tmp_path / "m.pt"))
+    assert back.mask_names and not back.training  # loaded in eval mode
+    cfg = {k: v for k, v in net.config.items() if k not in ("n_cards", "n_ir")}
+    assert M.build(table, **cfg).mask_names and copy.deepcopy(net).mask_names
+
+
+def test_an_opponent_checkpoint_must_share_the_learners_card_rows(table, tmp_path,
+                                                                 monkeypatch) -> None:
+    """Every seat's features are encoded with the learner's card table, so another network is
+    played only when its table is a prefix of the learner's (the same card at the same row);
+    its component rows are then the learner's, whatever the inference precision."""
+    lr = _small_learner(monkeypatch, tmp_path / "run")
+    M.save(str(tmp_path / "same.pt"), M.build(lr.table, d=32, layers=1, heads=4, ff=64), lr.table)
+    net = lr._load_net(tmp_path / "same.pt")
+    assert torch.equal(net.ir_table, lr.model.ir_table)
+    shuffled = FT.CardTable(lr.table.oracle_ids[:2] + lr.table.oracle_ids[2:][::-1],
+                            lr.table.names[:2] + lr.table.names[2:][::-1], lr.table.ir_vocab,
+                            lr.table.ir[:2] + lr.table.ir[2:][::-1], lr.table.max_ir)
+    M.save(str(tmp_path / "other.pt"), M.build(shuffled, d=32, layers=1, heads=4, ff=64),
+           shuffled)
+    with pytest.raises(ValueError, match="not a prefix"):
+        lr._load_net(tmp_path / "other.pt")
+
+
+def test_the_learner_refuses_evaluations_it_could_not_run() -> None:
+    """An evaluation with no deals would never finish (no gate after it), and a gate of more
+    deals than its block of fresh seeds would replay the next gate's deals."""
+    from tools.selfplay import learner as L
+
+    for argv in (["--ladder-deals", "0"], ["--gate-deals", "1001"],
+                 ["--teacher-iters", "5", "--eval-deals", "2000"]):
+        with pytest.raises(SystemExit):
+            L.parse(["--run", "x", *argv])
+    assert L.parse(["--run", "x", "--eval-only", "--teacher-iters", "5",
+                    "--eval-deals", "2000"]).eval_deals == 2000
+
+
+def test_minibatches_are_fixed_by_the_callers_generator() -> None:
+    """ppo.chunks draws from the generator it is given, never from numpy's global state: a
+    seed fixes the minibatches in every process (197: distill's --seed did not)."""
+    from tools.selfplay.ppo import chunks
+
+    lengths = np.arange(200) % 37
+    state = np.random.get_state()[1].copy()
+    a = chunks(lengths, 16, 10**6, np.random.default_rng(3))
+    b = chunks(lengths, 16, 10**6, np.random.default_rng(3))
+    assert [x.tolist() for x in a] == [x.tolist() for x in b]
+    assert np.array_equal(np.random.get_state()[1], state)
+
+
 def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> None:
     """Runs of one lineage (each --init from the last) must not train again on the decks and
     shuffles an ancestor trained on: --seed moves the block of deals a run trains on."""
@@ -958,7 +1088,8 @@ def test_ppo_stops_inside_the_epoch_once_the_update_has_moved(table) -> None:
                         ent=0.0, max_grad=1.0, target_kl=0.03)
     adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
     zeros = np.zeros(n, dtype=np.float32)
-    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"))
+    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"),
+                    np.random.default_rng(0))
     assert out["kl_stop"] and 1 <= len(steps) < out["minibatches"]
 
 
@@ -979,7 +1110,8 @@ def test_rows_from_the_previous_weights_do_not_stop_an_update_that_has_not_moved
                         ent=0.002, max_grad=1.0, target_kl=0.03)
     adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
     zeros = np.zeros(n, dtype=np.float32)
-    out = ppo_train(net, opt, packed, acts, lp - shift, zeros, adv, adv, a, torch.device("cpu"))
+    out = ppo_train(net, opt, packed, acts, lp - shift, zeros, adv, adv, a, torch.device("cpu"),
+                    np.random.default_rng(0))
     assert not out["kl_stop"]
     assert any(not torch.equal(b, p) for b, p in zip(before, net.parameters(), strict=True))
 
@@ -998,7 +1130,8 @@ def test_ppo_without_a_kl_stop_reads_each_minibatch_once(table) -> None:
                         ent=0.0, max_grad=1.0, target_kl=0.0)
     adv = np.random.default_rng(0).standard_normal(n).astype(np.float32)
     zeros = np.zeros(n, dtype=np.float32)
-    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"))
+    out = ppo_train(net, opt, packed, acts, lp, zeros, adv, adv, a, torch.device("cpu"),
+                    np.random.default_rng(0))
     assert not out["kl_stop"] and "kl_update" not in out
     assert len(passes) == out["minibatches"] > 1
     # DESIGN_PRIORITY §3.5: every ask kind of the batch reported on its own
@@ -1035,6 +1168,22 @@ class _CombatPlanLog(HeuristicAgent):
 
     def plan_combat(self, game, seat: int) -> None:
         self.plans.append((game.world.turn, game.executor.phase))
+
+
+def test_a_combat_plan_answers_only_the_turn_it_was_made_in() -> None:
+    """search.planned, the one rule of the real seat and the simulated one: a plan answers its
+    own turn's attack asks; a later combat (a horizon-2 simulation's second) is the network's
+    decision again (197: SimAgent replayed the root's plan in every later combat)."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from tools.selfplay.features import _handle
+    from tools.selfplay.search import planned
+
+    ask = Ask(seat=0, kind="attack", site="attack:card:5:7", prompt="",
+              options=(Option("ATTACK", "ATTACK"), Option("DECLINE", "DECLINE")), refuse=1)
+    plan = (7, frozenset({_handle("card:5")}))
+    assert planned(ask, 7, plan, None) == 0
+    assert planned(ask, 9, plan, None) is None
+    assert planned(ask, 7, (7, frozenset()), None) == 1  # not in the plan: declines, that turn
 
 
 def test_combat_is_planned_once_per_turn_before_combat() -> None:
@@ -1593,6 +1742,12 @@ def test_distilling_search_targets_moves_the_network_toward_the_better_move(tabl
     halved = {**clear, "q1": [0.2, 0.2], "n1": [2, 2]}
     assert np.allclose(D.improved(halved, pi, "se1"), pi)
     assert not np.allclose(D.improved(halved, pi, "se"), pi)
+    # an option with no first-round world (every one failed): no first-round comparison exists
+    assert np.allclose(D.improved({**clear, "q1": [0.0, 1.0], "n1": [0, 2]}, pi, "se1"), pi)
+    # the pooled variance is an estimate: sum(n var) over sum(n - 1). A first-round loser's one
+    # world (var 0) adds nothing to either; over n it would shrink the step's standard error.
+    assert D.pooled_variance(np.array([1.0, 4.0]), np.array([0.0, 0.75])) == pytest.approx(1.0)
+    assert D.pooled_variance(np.array([1.0, 1.0]), np.array([0.0, 0.0])) == 1.0  # no estimate
     # the placebo keeps each record's results and gives them to its options in a random order
     stats = {"alts": [0, 1, 2], "q": [0.1, 0.2, 0.3], "n": [1, 2, 3], "var": [0.0, 0.1, 0.2],
              "q1": [0.1, 0.2, 0.3], "n1": [1, 1, 1]}
@@ -1615,7 +1770,10 @@ def test_distilling_search_targets_moves_the_network_toward_the_better_move(tabl
     net = M.build(table, d=32, layers=1, heads=4, ff=64)
     before = D.policy(net.eval(), [feats], torch.device("cpu"))[0][1]
     seen: list[tuple[int, int, float]] = []
-    (trained, rep), = D.distil(net, recs, "se", [40], torch.device("cpu"), lr=1e-3, epochs=3,
+    with pytest.raises(ValueError, match="exceed"):  # a network named for n records had them
+        D.distil(net, recs, "se", [41], torch.device("cpu"), np.random.default_rng(0))
+    (trained, rep), = D.distil(net, recs, "se", [40], torch.device("cpu"),
+                               np.random.default_rng(0), lr=1e-3, epochs=3,
                                on_epoch=lambda n, e, m: seen.append(
                                    (n, e, D.policy(m, [feats], torch.device("cpu"))[0][1]))
                                ).values()

@@ -78,10 +78,8 @@ class NetAgent:
         self.name = spec
         self.overflow = 0
         self.searcher = None
-        self.attack_plan = None
-        self.plan_turn = -1
+        self.attack_plan = None  # (the turn it was made in, the plan): search.planned
         self.block_plan = None
-        self.block_turn = -1
         self.labeller = labeller
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
@@ -99,18 +97,10 @@ class NetAgent:
         if n > FT.MAX_OPTIONS or ask.kind == "name":
             self.overflow += 1
             return self.fallback.decide(ask, obs)
-        if (ask.kind == "attack" and self.attack_plan is not None
-                and self.plan_turn == obs.executor.world.turn):
-            from tools.selfplay.search import plan_answer
+        if self.attack_plan is not None or self.block_plan is not None:
+            from tools.selfplay.search import planned
 
-            idx = plan_answer(ask, self.attack_plan)
-            if idx is not None:
-                return idx
-        if (ask.kind == "block" and self.block_plan is not None
-                and self.block_turn == obs.executor.world.turn):
-            from tools.selfplay.search import block_answer
-
-            idx = block_answer(ask, self.block_plan)
+            idx = planned(ask, obs.executor.world.turn, self.attack_plan, self.block_plan)
             if idx is not None:
                 return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
@@ -128,15 +118,15 @@ class NetAgent:
         """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.before_attacks)."""
         if self.searcher is None:
             return
-        self.attack_plan = self.searcher.plan_attacks(game, seat)
-        self.plan_turn = game.world.turn
+        plan = self.searcher.plan_attacks(game, seat)
+        self.attack_plan = None if plan is None else (game.world.turn, plan)
 
     def plan_blocks(self, game: Any, seat: int, declared_attackers: frozenset = frozenset()) -> None:
         """Called by the rig at the pre-blocks boundary (rig.SelfplayRouter.before_blocks)."""
         if self.searcher is None or not self.job["search"]["blocks"]:
             return
-        self.block_plan = self.searcher.plan_blocks(game, seat, declared_attackers)
-        self.block_turn = game.world.turn
+        plan = self.searcher.plan_blocks(game, seat, declared_attackers)
+        self.block_plan = None if plan is None else (game.world.turn, plan)
 
 
 class RecordingHeuristic:
@@ -298,6 +288,7 @@ class Worker:
         res["seats"] = job["seats"]
         res["a_seat"] = job.get("a_seat")
         res["opp"] = job.get("opp")
+        res["group"] = job.get("group")  # a training game's opponent group (learner)
         res["set_code"] = job["set_code"]
         res["search"] = [dict(a.searcher.stats) if getattr(a, "searcher", None) else None
                          for a in agents]

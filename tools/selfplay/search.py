@@ -46,7 +46,7 @@ today, belief futures later (docs/PLAN_LEARNING.md §1.3).
 
 The true-future labeller (``Labeller``, PLAN_LEARNING §1.1-1.2) reuses the same playouts for
 training labels: alternatives at a real decision, each played to the end of the game on the
-game's true future (no re-sampling; ``reshuffle_unknown`` for the second future), and the
+game's true future (no re-sampling; ``reshuffle_libraries`` for the second future), and the
 mirror-descent target they define (``mmd_target``).
 """
 
@@ -161,8 +161,8 @@ class SimAgent:
         self.decisions = 0
 
     forced: str | None = None
-    attack_plan: frozenset | None = None
-    block_plan: frozenset | None = None
+    attack_plan: tuple[int, frozenset] | None = None  # (the turn it was made in, the plan)
+    block_plan: tuple[int, frozenset] | None = None
 
     def decide(self, ask: Any, obs: Any) -> int:
         if self.forced is not None and ask.kind in SEARCH_KINDS:
@@ -170,14 +170,9 @@ class SimAgent:
             for i, o in enumerate(ask.options):
                 if o.token == tok:
                     return i
-        if self.attack_plan is not None and ask.kind == "attack":
-            idx = plan_answer(ask, self.attack_plan)
-            if idx is not None:
-                return idx
-        if self.block_plan is not None and ask.kind == "block":
-            idx = block_answer(ask, self.block_plan)
-            if idx is not None:
-                return idx
+        idx = planned(ask, obs.executor.world.turn, self.attack_plan, self.block_plan)
+        if idx is not None:
+            return idx
         n = len(ask.options)
         if n == 1:
             return 0
@@ -189,6 +184,19 @@ class SimAgent:
             return int(self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats)))
         _, _, probs = self.slot.infer((self.gid, ask.seat, self.spec, True, False, feats, 2))
         return self.rng.choices(range(len(probs)), probs)[0]
+
+
+def planned(ask: Any, turn: int, attack: tuple[int, frozenset] | None,
+            block: tuple[int, frozenset] | None) -> int | None:
+    """The answer a searched combat plan gives ``ask``, or None. A plan is (the turn it was made
+    in, the plan) and answers only that turn's attack (or block) asks: a later combat, in a
+    simulation or in the real game, is the network's own decision again. One rule for the real
+    seat (actor.NetAgent) and the simulated one (SimAgent)."""
+    if ask.kind == "attack" and attack is not None and attack[0] == turn:
+        return plan_answer(ask, attack[1])
+    if ask.kind == "block" and block is not None and block[0] == turn:
+        return block_answer(ask, block[1])
+    return None
 
 
 def plan_answer(ask: Any, plan: frozenset) -> int | None:
@@ -275,8 +283,11 @@ class Searcher:
                                        "sim_errors": 0})
         # audit: each searched act decision's top AUDIT_M candidates are also scored in ``audit``
         # worlds of each kind: uniform, the simulator's, and the true hidden cards (192 §7.1's
-        # deciding test). The true worlds measure; they never choose a move. Their own random
-        # stream leaves the search's worlds as they would be without the audit.
+        # deciding test). The true worlds measure; they never choose a move. The audit's seeds
+        # come from its own stream, so its uniform and true worlds leave the search's worlds as
+        # they would be without it. Its simulator worlds do not: the learner draws every "sim"
+        # request from one torch generator, so with --search-worlds sim an audit changes which
+        # worlds the search draws (not how they are distributed).
         self.audit = audit
         self.audits: list[dict] = []
         self.audit_rng = random.Random(f"audit:{seed}")
@@ -287,8 +298,8 @@ class Searcher:
         each: an engine seed for a uniform re-sample (``determinize``), or with ``worlds="sim"``
         the seed and the opponent's hidden cards drawn by the simulator from the searching
         seat's own view of the decision (``features.sim_view``; the learner's ``sim``
-        requests). The audit alone asks for ``"true"``: the real hidden cards, only what no
-        player knows reshuffled (``simulate``)."""
+        requests). The audit alone asks for ``"true"``: the real hidden cards, both libraries
+        reshuffled (``simulate``, ``reshuffle_libraries``)."""
         kind, rng = kind or self.worlds, rng or self.rng
         if kind == "uniform":
             return [(rng.randrange(1 << 31), 1.0) for _ in range(count)]
@@ -547,7 +558,7 @@ class Searcher:
             seed = world[1]
             rng = random.Random(seed)
             clone.world.master_seed = rng.randrange(1 << 62)
-            reshuffle_unknown(clone, rng)
+            reshuffle_libraries(clone, rng)
         else:
             seed, assigned = (world[0], world[1:]) if isinstance(world, tuple) else (world, None)
             determinize(clone, seat, self.supply, random.Random(seed), assigned)
@@ -555,8 +566,9 @@ class Searcher:
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
                            random.Random(f"{seed}:{s}") if sampled else None) for s in (0, 1)]
         agents[seat].forced = token
-        agents[seat].attack_plan = attack_plan
-        agents[seat].block_plan = block_plan
+        turn = clone.world.turn  # the root's combat: the plans answer this turn's asks only
+        agents[seat].attack_plan = None if attack_plan is None else (turn, attack_plan)
+        agents[seat].block_plan = None if block_plan is None else (turn, block_plan)
         stop = horizon_stop(clone.world.player_order[seat], clone.world.turn, self.horizon)
         router = play_out(clone, agents, self.supply, self.set_code, stop)
         if isinstance(router, Exception):
@@ -587,11 +599,17 @@ def target_record(feats: dict, probs: list[float], value: float, cands: list[int
     the weighted mean result, the number of worlds and their variance, so the target's rule (the
     paper's sigma, a step scaled by the standard error; distill.py) is chosen when training.
 
+    ``var`` is the worlds' population variance (divided by their total weight, n with weights
+    1): a description of the results, not an estimate. A reader pooling it as an estimate
+    divides the sum of n * var by the degrees of freedom, sum(n - 1) (distill.improved).
+
     ``q1``/``n1`` are the same mean and count over the first round's worlds alone (``first``).
     Under sequential halving only those are shared by every compared option. An option that
     lost the first round has nothing else, and that round was selected low; a survivor adds
     fresh worlds. So ``q`` sets a loser's selected-low mean against a survivor's partly fresh
-    one, and ``q1`` is the comparison free of that selection (KNOWLEDGE/2026-11-12/196). The
+    one, and ``q1`` is the comparison free of that selection (KNOWLEDGE/2026-11-12/196). With
+    no ``first`` (topk: one round) they equal ``q``/``n``. An option with no first-round world
+    (every one failed) has ``n1`` 0 and ``q1`` 0: no first-round comparison exists. The
     search's own choice uses every world."""
     def mean(v: list[tuple[float, float]]) -> float:
         return sum(z * w for z, w in v) / sum(w for _, w in v)
@@ -603,8 +621,8 @@ def target_record(feats: dict, probs: list[float], value: float, cands: list[int
             continue
         m = mean(v)
         var = sum(w * (z - m) ** 2 for z, w in v) / sum(w for _, w in v)
-        v1 = (first or {}).get(i) or v
-        rows.append((c, m, len(v), var, mean(v1), len(v1)))
+        v1 = v if first is None else first.get(i, [])
+        rows.append((c, m, len(v), var, mean(v1) if v1 else 0.0, len(v1)))
     return {"feats": feats, "probs": list(probs), "v": float(value), "alts": [r[0] for r in rows],
             "q": [r[1] for r in rows], "n": [r[2] for r in rows], "var": [r[3] for r in rows],
             "q1": [r[4] for r in rows], "n1": [r[5] for r in rows],
@@ -689,39 +707,15 @@ def outcome(clone: Any, seat: int) -> float | None:
     return None
 
 
-def reshuffle_unknown(game: Any, rng: random.Random) -> None:
-    """Shuffle, in each library, the cards whose position no player knows: the second true future
-    (PLAN_LEARNING §1.2). Known since the library was last shuffled (CR 701.24a erases what was
-    known): a card put into it, a card looked at or revealed, the bottoms of the player's last
-    London mulligan (CR 103.5) when nothing has shuffled it since, and both ends of a scried window
-    (the engine journals a scry's size, not its split). Every other card has sat there unseen since
-    the shuffle, so its order is uniform given all anyone knows: shuffling those cards draws
-    another future of the same deal."""
-    ex = game.executor
-    asks = ex.decisions.ask_log
+def reshuffle_libraries(game: Any, rng: random.Random) -> None:
+    """Shuffle every library in a copy of a game: the same deal's cards in an order nobody
+    knows, a "true" world (the audit's) or the labeller's second future. Positions some player
+    knows (a scry's top, a London mulligan's bottoms) are shuffled too, as a uniform world does
+    with the searcher's own library (``determinize``): the engine's journal does not record
+    which cards a scry kept or which zone a REVEAL showed (KNOWLEDGE/2026-11-12/197), so
+    knowledge rebuilt from it pinned unseen cards, often the next draw."""
     for player in game.world.player_order:
-        name = str(player)
-        shuffles = [i for i, e in enumerate(ex.events)
-                    if e[1] == "SHUFFLE" and e[2] == name and e[3] == ZONE_LIBRARY]
-        known: set = set()
-        ends = 0
-        for e in ex.events[shuffles[-1] + 1:]:
-            data = e[3] if len(e) > 3 else None
-            if e[1] in ("LOOK_AT", "REVEAL") and e[2] == name:
-                known.update(data)
-            elif e[1] == "SCRY" and e[2] == name:
-                ends += data
-            elif isinstance(data, str) and data.endswith("->" + ZONE_LIBRARY):
-                known.add(e[2])
-        taken = sum(1 for w, a in asks if w.startswith(f"mulligan:{name}:") and a == "mulligan")
-        if taken and len(shuffles) == 1 + taken:
-            known.update([a for w, a in asks if w.startswith(f"mulligan_bottom:{name}:")][-taken:])
-        lib = game.world.players[player].zone(ZONE_LIBRARY).entries
-        free = [i for i in range(ends, len(lib) - ends) if str(lib[i]) not in known]
-        cards = [lib[i] for i in free]
-        rng.shuffle(cards)
-        for i, h in zip(free, cards, strict=True):
-            lib[i] = h
+        rng.shuffle(game.world.players[player].zone(ZONE_LIBRARY).entries)
 
 
 def gumbel_top_k(probs: list[float], k: int, rng: random.Random) -> list[int]:
@@ -770,8 +764,8 @@ class Labeller:
 
     After the game, ``labels`` compares k alternatives at each kept position, drawn by
     Gumbel-top-k from the network's probabilities, on d futures: the first is the real one (the
-    true hidden cards and library orders), each later one keeps the true cards and every known
-    position and reshuffles the rest of both libraries (``reshuffle_unknown``). Each future has
+    true hidden cards and library orders), each later one keeps the true cards and reshuffles
+    both libraries whole (``reshuffle_libraries``). Each future has
     its own engine seed and, in sampled playouts, its own move draws per seat, shared by every
     alternative. Every alternative is played to the end of the game by the network on both seats,
     each seat encoding only its own view (features.encode), and only its result comes back."""
@@ -820,7 +814,7 @@ class Labeller:
         clone = fork(game, self.supply)
         clone.world.master_seed = seed
         if reshuffle:
-            reshuffle_unknown(clone, random.Random(f"{seed}:library"))
+            reshuffle_libraries(clone, random.Random(f"{seed}:library"))
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
                            None if self.greedy else random.Random(f"{seed}:{s}")) for s in (0, 1)]
         agents[seat].forced = token

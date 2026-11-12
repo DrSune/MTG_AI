@@ -31,7 +31,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import random
 import sys
 import time
 from pathlib import Path
@@ -112,8 +111,16 @@ class Data:
         return cls({**a, **meta}, table)
 
     def save(self, out: Path, k: int) -> None:
-        np.savez(out / f"views_{k}.npz", **{n: v for n, v in self.a.items() if n not in self.TRUTH})
-        np.savez(out / f"truth_{k}.npz", seed=self.a["seed"], **{n: self.a[n] for n in self.TRUTH})
+        """Shard ``k``: truth first, then views, each written whole (M.atomic_write); ``load``
+        finds a shard by its views file, so a stop mid-save leaves no half shard."""
+        def npz(path: Path, **arrays: np.ndarray) -> None:
+            def write(tmp: str) -> None:
+                with open(tmp, "wb") as fh:  # a file object: np.savez would add ".npz" to tmp
+                    np.savez(fh, **arrays)
+            M.atomic_write(path, write)
+
+        npz(out / f"truth_{k}.npz", seed=self.a["seed"], **{n: self.a[n] for n in self.TRUTH})
+        npz(out / f"views_{k}.npz", **{n: v for n, v in self.a.items() if n not in self.TRUTH})
 
     @classmethod
     def load(cls, dirs: list[str], table: FT.CardTable) -> Data:
@@ -327,12 +334,11 @@ def train(a: argparse.Namespace) -> None:
         idx = np.random.default_rng(a.seed).permutation(idx)[: a.positions]
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(a.seed)
-    np.random.seed(a.seed)
-    random.seed(a.seed)
+    rng = np.random.default_rng([a.seed, 1])  # the minibatches (ppo.chunks)
     net = Simulator(table, d=a.d, layers=a.layers, heads=a.heads, ff=a.ff).to(dev)
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr, weight_decay=a.wd)
     lengths = data.lengths()[idx]
-    total = a.epochs * len(chunks(lengths, a.mb, a.tok_budget))
+    total = a.epochs * len(chunks(lengths, a.mb, a.tok_budget, rng))
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 200) * (
         0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / total)))))
     print(json.dumps({**vars(a), "positions": len(idx), "steps": total, "params": sum(
@@ -340,7 +346,7 @@ def train(a: argparse.Namespace) -> None:
     for epoch in range(a.epochs):
         net.train()
         t0, ls = time.time(), []
-        for ch in chunks(lengths, a.mb, a.tok_budget):
+        for ch in chunks(lengths, a.mb, a.tok_budget, rng):
             b = data.batch(idx[ch], dev)
             with torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
                 lo = loss(net, b)
