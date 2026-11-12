@@ -65,6 +65,7 @@ from MTG_bot.utils.rng import seed_all, substream
 from tools.search.fork import fork
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
+from tools.selfplay import packages as PK
 from tools.selfplay import search as S
 from tools.selfplay.rig import play_game
 
@@ -235,15 +236,26 @@ class Probe:
     the deal, the state and the future, so the same master seed gives the same numbers."""
 
     def __init__(self, slot: Any, table: FT.CardTable, line: Line, *, pool_mode: str = "verified",
-                 set_code: str = "M21", greedy: bool = False, tops: int = 3) -> None:
+                 set_code: str = "M21", greedy: bool = False, tops: int = 3,
+                 package: Any = None) -> None:
         self.slot, self.table, self.line = _Timed(slot), table, line
         self.pool_mode, self.set_code, self.greedy, self.tops = pool_mode, set_code, greedy, tops
         self.supply = get_supply(pool_mode, set_code)
+        self.package = package  # packages.Package: both decks of every deal built around it
         # its leaf_value is the value a horizon-h search reads at a turn top
         self.leaf = S.Searcher(self.slot, 0, SPEC, table, pool_mode=pool_mode, set_code=set_code)
 
     def _draws(self, *key: Any) -> Any:
         return None if self.greedy else substream("policy", "linevalue", *key)
+
+    def _decks(self, deal: int) -> tuple[tuple[str, ...], tuple[str, ...]] | None:
+        """Both decks built around ``self.package`` from the deal's seed alone (as
+        packages.package_decks deals a random package's), or None: coherent decks."""
+        if self.package is None:
+            return None
+        rng = substream("deckbuild", "linevalue", deal)
+        first, second = (PK.build(rng.randrange(1 << 40), self.supply, [self.package])[1] for _ in range(2))
+        return first, second
 
     def collect(self, states: int, per_game: int, games: int, deal0: int) -> tuple[list[State], Counter]:
         """Play the network against itself, deal by deal from ``deal0``, until ``states``
@@ -258,8 +270,8 @@ class Probe:
             res = _Reservoir(deal, per_game, self.supply)
             agents = [LineAgent(self.slot, 0, SPEC, self.table, self._draws("collect", deal, s),
                                 self.line, watch=res) for s in (0, 1)]
-            out = play_game(deal, agents, deck_mode="coherent", pool_mode=self.pool_mode,
-                            set_code=self.set_code)
+            out = play_game(deal, agents, deck_mode="package" if self.package else "coherent",
+                            pool_mode=self.pool_mode, set_code=self.set_code, decks=self._decks(deal))
             use["games"] += 1
             use["decisions"] += sum(a.decisions for a in agents)
             use["rails"] += sum(a.decisions >= S.MAX_SIM_DECISIONS for a in agents)
@@ -452,6 +464,8 @@ def main(argv: list[str] | None = None) -> dict:
     p.add_argument("--cast", action="append", default=[], help="family (a): a card name or oracle id")
     p.add_argument("--consumer", action="append", default=[], help="family (b): a consumer")
     p.add_argument("--producer", action="append", default=[], help="family (b): a producer")
+    p.add_argument("--package", default="", help="deal both decks around the package with this label "
+                   "(packages.label, e.g. 'life'); with no --cast/--consumer, its consumers before its producers")
     p.add_argument("--states", type=int, default=30)
     p.add_argument("--per-game", type=int, default=2)
     p.add_argument("--games", type=int, default=1000, help="at most this many collection games")
@@ -469,8 +483,18 @@ def main(argv: list[str] | None = None) -> dict:
         p.error("give --cast, or --consumer and --producer")
     seed_all(a.seed)
     supply = get_supply(a.pool, a.set)
+    pkg = None
+    if a.package:
+        found = [k for k in PK.packages(supply) if PK.label(k) == a.package]
+        if len(found) != 1:
+            raise SystemExit(f"--package {a.package!r}: {len(found)} packages carry that label in "
+                             f"{a.pool} {a.set}: {sorted(PK.label(k) for k in PK.packages(supply))}")
+        pkg = found[0]
     if a.cast:
         line = cast_line(_ids(a.cast, supply), " | ".join(a.cast))
+    elif pkg is not None and not a.consumer:
+        line = order_line(frozenset(pkg.consumers), frozenset(pkg.producers),
+                          f"{a.package}: a consumer before its producers")
     else:
         line = order_line(_ids(a.consumer, supply), _ids(a.producer, supply),
                           f"{' | '.join(a.consumer)} before {' | '.join(a.producer)}")
@@ -479,7 +503,7 @@ def main(argv: list[str] | None = None) -> dict:
         emb = net.card_table_emb()
     net.card_table_emb = lambda: emb
     probe = Probe(M.LocalSlot({SPEC: net}), table_, line, pool_mode=a.pool, set_code=a.set,
-                  greedy=a.greedy, tops=a.tops)
+                  greedy=a.greedy, tops=a.tops, package=pkg)
     rep = {"ckpt": a.ckpt, "ckpt_it": extra.get("it"), "args": vars(a),
            **run(probe, states=a.states, per_game=a.per_game, games=a.games, deal0=a.deal0,
                  futures=a.futures)}

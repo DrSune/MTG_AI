@@ -152,3 +152,17 @@ def test_the_two_families_pick_their_steps() -> None:
     assert steps(cast, (vito, revitalize), lands) == ([revitalize], True)
     assert steps(order, (revitalize,), lands + (vito,)) == ([revitalize], False)
     assert steps(order, (vito,), lands) == ([], True)
+
+
+def test_a_package_deals_both_decks_around_it(slot, table) -> None:
+    """--package: each collection deal's two decks are built around the named package (each holds
+    one of its consumers), from the deal's seed alone; without it the decks are coherent."""
+    from tools.selfplay import packages as PK
+
+    pkg = next(k for k in PK.packages(get_supply("castable")) if PK.label(k) == "life")
+    line = LV.Line("never legal", lambda ask, obs: [])
+    probe = LV.Probe(slot, table, line, pool_mode="castable", package=pkg)
+    decks = probe._decks(950_000)
+    assert decks == probe._decks(950_000) and decks != probe._decks(950_001)
+    assert all(set(d) & set(pkg.consumers) for d in decks)
+    assert LV.Probe(slot, table, line, pool_mode="castable")._decks(950_000) is None
