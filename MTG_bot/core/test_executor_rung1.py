@@ -274,7 +274,7 @@ class TestKickback(Rung1Case):
         unless its controller pays {3}"."""
         miscast = self.counterspell("Miscast", self.p1, colored=("U", 1), unless=3)
         self.mana(self.p1, U=2)
-        shock, frame = self.hold_shock(r)
+        shock, _frame = self.hold_shock(r)
         if payer_mana:
             self.mana(self.p0, **payer_mana)  # the kickback comes from the payer's pool
         self.script(*answers)
@@ -379,7 +379,7 @@ class TestPriorityRules(Rung1Case):
         for seat in (self.p0, self.p1):
             self.give(f"Watcher {seat}", SpellKind.ENCHANTMENT, seat=seat, zone=ZONE_BATTLEFIELD,
                       type_line="Enchantment", types=("Enchantment",), extra_abilities=(watch,))
-        shock, frame = self.hold_shock()
+        _shock, frame = self.hold_shock()
         with self.ex.holding_priority():
             self.ex._priority_check()
             frames = self.ex.stack.frames

@@ -2470,7 +2470,7 @@ class ForkResumeTest(unittest.TestCase):
 
         supply = get_supply("verified")
         for seed, stop_at in ((3, 57), (4, 211), (5, 150)):
-            def deal() -> Game:
+            def deal(seed: int = seed) -> Game:
                 return _setup_game(seed, supply, deal_decks(seed, SMOKE_DECK_PAIRS, supply, "coherent"))
 
             whole = deal()

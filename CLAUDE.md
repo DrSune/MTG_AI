@@ -157,8 +157,10 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B4** (2026-11-06, after the two lean passes, main 6003dd4; KNOWLEDGE/NUMBERS.md):
-  **5091 passed / 39 deselected / 71 subtests passed, nothing failed or xfailed**, about 45 s.
+  **Baseline B5** (2026-11-12, the cleanup pass after the priority engine, the search family and
+  the drafter v0; `tools/check.sh` green):
+  **5113 passed / 39 deselected / 71 subtests passed, nothing failed or xfailed**, 66 s beside a
+  training run. B4 (2026-11-06, 6003dd4) was 5091, before the priority engine's tests.
   B3 (2026-11-06, f332d17) was 5297: the lean passes removed 231 duplicate, can't-fail or dead-code
   tests and added mulligan and multi-slot tests. B2 (2026-11-05) was 4686. Other docs point here. It is
   reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
@@ -173,7 +175,7 @@ Two rules that catch most of the damage:
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
   - Companion numbers: `pytest tools -q` = 176 passed (2026-11-12: + the training-game log, `--collect`, `model.grow`,
     the search audit and the drafter's `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's
-    are), 37 s beside a training run (the ontology
+    are), 37-40 s beside a training run (the ontology
     baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
     `tools/run_scenarios.py` = 743/743.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.

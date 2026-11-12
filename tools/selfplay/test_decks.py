@@ -68,7 +68,7 @@ def test_the_critic_recovers_card_values_and_beats_a_blind_baseline() -> None:
     rng = np.random.default_rng(0)
     true = np.array([0.0, 0.1, 0.2, -0.2, 0.4, -0.3])
     decks, games = _toy(4000, true, rng)
-    x, y, seeds, vocab, feat, n_pil = D.design([(decks, games)], cards=True)
+    x, y, seeds, vocab, _feat, n_pil = D.design([(decks, games)], cards=True)
     assert x.shape == (4000, 6 + 2) and n_pil == 2 and vocab == [f"c{i}" for i in range(6)]
     w, _ = D.fit(x, y, 1e-4)
     assert np.corrcoef(w[:6], true)[0, 1] > 0.9  # the values, up to a constant per deck size

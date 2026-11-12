@@ -396,7 +396,7 @@ def fit_critic(out: str, sources: list[list[str]], lams: tuple[float, ...]) -> d
     report: dict = {"games": sum(len(g) for _, g in loaded)}
     res = {}
     for name, cards in (("baseline", False), ("cards", True)):
-        x, y, seeds, vocab, feat, n_pil = design(loaded, cards)
+        x, y, seeds, vocab, _feat, _n_pil = design(loaded, cards)
         res[name] = cross_validate(x, y, seeds, lams)
         report[name] = {"lam": res[name]["lam"],
                         "logloss": round(float(res[name]["loss"].mean()), 5)}

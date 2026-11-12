@@ -27,12 +27,14 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
 | `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. The true-future labeller (`Labeller`, docs/PLAN_LEARNING.md §1.1-1.2): at a reservoir of unsure act decisions it compares k alternatives played to the game's end on d true futures (the second reshuffles only what nobody knows), and `mmd_target` turns the results into the mirror-descent target; a job with `label` options runs it (`actor.py`). |
-| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. |
+| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. `grow` makes the same function in a deeper or wider network (zero-output layers, zero-weight new units; PLAN_CEILING §4.1's capacity probe). |
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
 | `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
-| `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run; paired comparison of two evaluations on the same deals. |
+| `decks.py` | The drafter v0 (docs/PLAN_DRAFTER.md): a recorded game's decks rebuilt with the code of the run's commit (`rebuild`, under `runs/code/<sha>`), the card-value critic fitted on games' results against a baseline of deck summaries (`fit`, gate G1), and construction by k swaps on a fresh deal inside the coherent decks' band (`swap`), which the learner's drafted deck modes use. |
+| `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run (with the per-kind rows: pass share, advantage, entropy, KL); paired comparison of two evaluations on the same deals. |
+| `preflight.py`, `launch.sh` | A run's pre-flight checks (docs/TRAINING_REVIEW_PROTOCOL.md §1: clean tree, a smoke slate, games ending by a loss, seeded replay); the launcher a systemd unit runs, which resumes from the last save. |
 | `ncurve.py`, `distill.py`, `rate.py` | docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
@@ -84,7 +86,9 @@ greedy|sampled`, `--search-horizon N` (0: to the game's end), `--search-kinds ac
 (instant-speed decisions), `--search-worlds uniform|sim` with `--search-sim CKPT` (the opponent's
 hidden cards drawn by the simulator from the searching seat's view: whole hands from its hand
 decoder, library contents from its expected counts), `--search-record` (each searched decision kept
-as a training target in `<run>/targets`), with `--search-k/-d/-skip-p/-blocks` as before. An evaluation row's
+as a training target in `<run>/targets`), `--search-audit W` (at each searched act decision, a few
+candidates also scored in W uniform, simulator and true worlds side by side, for the belief audit,
+KNOWLEDGE/2026-11-12/195), with `--search-k/-d/-skip-p/-blocks` as before. An evaluation row's
 `search_ms` holds a searched decision's p50/p90/p99 milliseconds.
 
 **Resuming (`--resume DIR`).** `state.pkl` (iteration, stage, versions, rating games, job ids,
@@ -111,9 +115,10 @@ host, Python and torch versions, start time.
 ## Run
 
 ```
-# the current run (r26) is started by launch.sh under a systemd user unit: its text, with the
-# full command, is in KNOWLEDGE/2026-11-10/189 §9 (gates: --gate-every 25 --gate-deals 1000
-# --gate-score 0.55; a gate at 0.5 checked every few updates passes on luck, 190 §1.4)
+# the current run (r27) is started by launch.sh under a systemd user unit: r26's unit text
+# (KNOWLEDGE/2026-11-10/189 §9) with r27's worktree, directory, command and log
+# (KNOWLEDGE/2026-11-11/191 §2, §6; gates: --gate-every 25 --gate-deals 1000 --gate-score 0.55;
+# a gate at 0.5 checked every few updates passes on luck, 190 §1.4)
 # from scratch: teacher inter-play first
 .venv/bin/python -m tools.selfplay.learner --run runs/selfplay/NAME --workers 18 --slots 16 \
     --groups 4 --d 512 --layers 8 --heads 8 --ff 2048 --bc-games 16000 --teacher-iters 40 \
@@ -129,6 +134,9 @@ host, Python and torch versions, start time.
 .venv/bin/python -m tools.selfplay.simulator train --data runs/simulator/NAME/capture --out SIM.pt
 .venv/bin/python -m tools.selfplay.simulator eval --data runs/simulator/NAME/capture --ckpt SIM.pt \
     --out EVAL.npz
+# drafted decks (PLAN_DRAFTER): --eval-decks versus:K (one seat's dealt deck drafted with K swaps,
+# the two games of a deal swap decks) or drafted:K (both drafted), with --draft-critic CRITIC.json
+# a training batch written to disk instead of an update (PLAN_CEILING §4.1): --collect OUT.pkl
 .venv/bin/python -m tools.selfplay.paired A/eval_rows.jsonl B/eval_rows.jsonl
 .venv/bin/python -m tools.selfplay.report runs/selfplay/NAME
 .venv/bin/python -m tools.selfplay.trace --net CKPT --opp heuristic --seed 900007 --out /tmp/t.txt
@@ -162,7 +170,7 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (49 tests in two files, about 50 s on 2026-11-06): hidden-information
+`.venv/bin/python -m pytest tools/selfplay -q` (80 tests in four files on 2026-11-12; `test_selfplay.py` holds 63): hidden-information
 metamorphic test (rewriting the opponent's hand and both libraries leaves the encoding
 byte-identical), encoding consistency over whole games, heuristic vs uniform random,
 option-permutation equivariance, batch-padding invariance and save/load round-trip, packed
@@ -180,6 +188,12 @@ features loads and plays them, and the search plays a two-target cast in a fork.
 rewriting every hidden card and both libraries' order leaves the simulator's input and output
 byte-identical; both decoders are distributions over multisets; a training step reaches every
 parameter it trains.
+
+`test_decks.py` (7 tests): a rebuild gives the decks the seed dealt; the critic recovers known
+card values and beats a blind baseline; only decided games between networks are kept, and an
+unknown deal is refused; k swaps go to the best gains inside the band; drafted decks go to the
+right seats and stay legal; a game deals the decks it is given; a drafted deck mode needs a
+critic.
 
 `test_labels.py` (6 tests) holds the true-future labels' guards (PLAN_LEARNING §1.2, §3): the
 policy's outputs are byte-identical when the opponent's hidden cards, hand ages or private
