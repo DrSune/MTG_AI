@@ -708,6 +708,22 @@ The reasons are in `KNOWLEDGE/2026-11-11/192` §9.
   - The clock's margin goes to searching more kinds of decisions, and to beliefs once the belief
     audit (195) shows they pay.
 
+## D24 — r27 ends at update 165; r28 trains on stratified steps from r27's v1
+**2026-11-12. Chosen by the agent when r27's mulligan ran away. The owner: "no need for me in the
+loop".** The reasons are in `KNOWLEDGE/2026-11-12/198` §6, the registration in 199.
+- **r27 ends.** Every optimizer step had been one stratum of decision length, so the mulligan
+  learned in one impulse per update while the rest of the update dragged it upward. Resuming r27
+  on its own trainer would train on that defect, and on the fixed one it would be another run.
+- **r28 starts from r27's v1, not from u1000 or from update 165.**
+  - v1 is gate-checked and mulligans as v0 does.
+  - Update 165 was no stronger by the gates (0.506 against v1) and carried the drifted mulligan.
+  - From v1, r28's first 75 updates compare directly with r27's stalled updates 76-150: the same
+    reference network and the same update count, with the defect fixed.
+- **Every training loop takes stratified steps** (`ppo.steps`): PPO, BC, the simulator and
+  distillation. Gate B is re-pinned to that code before any data (196 §8).
+- **Not done yet:** a remedy aimed at the mulligan's forgetting (198 §4). It is registered only
+  if r28's R1 is falsified: one change at a time.
+
 ## Deferred pending information
 
 **The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in
