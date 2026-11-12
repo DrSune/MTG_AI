@@ -12,20 +12,20 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Running since 2026-11-12 03:56:** r27 (`KNOWLEDGE/2026-11-11/191`): outcome PPO on the game
-with priority, from r26's `u1000.pt`. It runs as the user unit `mtg-r27`
-(`systemctl --user is-active mtg-r27`) from the worktree `/home/sune/Desktop/MTG_AI-r27` at d6dcdff,
-into `runs/selfplay/r27_priority_ppo/`; `stop` pauses it and `start` resumes it from the last save.
-Window 1 (the n-curve, gate A, the simulator, the variants and the clock's latency) ran
-2026-11-11 18:03 to 2026-11-12 03:57 and is scored in `KNOWLEDGE/2026-11-11/192`. Window 2
-(`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6, and 191 §7's mulligan
-read) runs from the worktree `/home/sune/Desktop/MTG_AI-w2` pinned at 98a48e9 (do not edit it): the
-transient timer `mtg-window2.timer` starts it at 2026-11-12 12:00, and it pauses r27 for about
-4 hours. Gate B (`KNOWLEDGE/2026-11-12/196`, its §7 the bug hunt's changes) starts by itself once
-r27 passes update 505: the transient unit `mtg-gateb-starter` waits, then starts `mtg-gateb` from
-the worktree `/home/sune/Desktop/MTG_AI-gateb` pinned at b73d562 (do not edit it), which pauses
-r27 for about 34 hours. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
-at a time, and nothing else on the GPU beside it.
+**Running since 2026-11-12 16:32:** r28 (`KNOWLEDGE/2026-11-12/199`): r27's configuration on the
+fixed trainer, every optimizer step a stratified sample of the batch (`KNOWLEDGE/2026-11-12/198`),
+from r27's v1. It runs as the transient user unit `mtg-r28` from the worktree
+`/home/sune/Desktop/MTG_AI-r28` pinned at 44a62d9 (do not edit it), into
+`runs/selfplay/r28_stratified_ppo/`. `systemctl --user stop mtg-r28` pauses it (the unit then goes
+away); `reports/r28_2026-11-12/start.sh` resumes it from its last save, also after a reboot. The
+guard `mtg-r28-guard` (`tools/selfplay/guard.py`) stops it on a mulligan runaway or a falling win
+rate against the heuristic (199 §3). r27 ended at update 165: its mulligan ran away (191 §8, 198).
+Window 1 is scored in `KNOWLEDGE/2026-11-11/192`, window 2 in notes 193-195, 192 §7.6 and 191 §8.
+Gate B (`KNOWLEDGE/2026-11-12/196`, §8: on r28) starts by itself once r28 passes update 405, about
+2026-11-13 13:00: the transient unit `mtg-gateb-starter` waits, then starts `mtg-gateb` from the
+worktree `/home/sune/Desktop/MTG_AI-gateb` pinned at 8aabbc8 (do not edit it), which pauses r28 for
+about 34 hours. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
+and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
 
@@ -178,7 +178,8 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 184 passed (2026-11-12, after the bug hunt: + the
+  - Companion numbers: `pytest tools -q` = 187 passed (2026-11-12, after 198's fix: + the
+    stratified-step, step-accumulation and guard tests; 184 after the bug hunt: + the
     commit, evalrows, plan-turn, option-class and generator tests; 176 before it: + the
     training-game log, `--collect`, `model.grow`, the search audit and the drafter's
     `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's are), 37-40 s
