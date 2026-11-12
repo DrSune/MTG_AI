@@ -103,3 +103,21 @@ of the real future:
   library whole. So every kind is then compared without it.
 - B1-B3 keep their predictions and falsifiers, and §4's readings apply to the confirming run.
 - It runs at r27's next pause.
+
+**The confirming run, fixed before its data (2026-11-12 ~14:10).**
+- **When:** the last step of gate B's queue, `audit195`, at r27's next pause (196 §7).
+- **The command:** §1's command on the fixed code, with `--eval-seed0 965000`. These are fresh
+  deals, 965,000-965,099, not this run's.
+- **Its true worlds** keep the real hidden cards and reshuffle both libraries whole.
+- **It compares distinct moves.** The bug hunt also found that copies of one card are separate
+  candidates: two Forests in hand are two options. Their means differ only by noise, so "the
+  kind's best is true's best" was a coin flip between copies. In this run, 32% of decisions had
+  equal top-two priors, and 65% of the search's changed moves were swaps to a copy.
+  - The confirming audit's candidates are the network's top four distinct moves
+    (`search.option_classes`): one per class of options that the encoding cannot tell apart.
+  - The rule is chosen on principle: two copies are one move, to the network and to the rules.
+- **Disclosed:** the hunt's report included this run's A values under three tie rules (copies
+  counted as ties moved B2 toward the predicted range). That is why this run decides nothing and
+  the confirming run uses fresh deals.
+- B1-B3 keep their predictions, falsifiers and §2's other rules, the first maximum among
+  distinct moves included.

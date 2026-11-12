@@ -186,6 +186,33 @@ class SimAgent:
         return self.rng.choices(range(len(probs)), probs)[0]
 
 
+def option_classes(feats: dict) -> list[tuple]:
+    """Per option of an encoded ask, a key equal for the options the encoding cannot tell apart:
+    the same option type, ability and numbers, pointing at entities whose encoded rows are equal
+    (two copies of a card in one zone and one state). To the network they are one move (equal
+    tokens give equal logits), and to the rules the same move made with another card object; the
+    search's results for them differ only by noise (KNOWLEDGE/2026-11-12/197). Entity refs index
+    [me, opponent, cards...] plus one, 0 for none (features.encode)."""
+    ci, cf, oi, of = feats["cards_i"], feats["cards_f"], feats["opts_i"], feats["opts_f"]
+
+    def entity(e: int) -> Any:
+        return (ci[e - 3].tobytes(), cf[e - 3].tobytes()) if e >= 3 else e
+
+    return [(int(oi[k, 0]), int(oi[k, 3]), of[k].tobytes(), entity(int(oi[k, 1])),
+             entity(int(oi[k, 2]))) for k in range(len(oi))]
+
+
+def distinct(ranked: list[int], feats: dict) -> list[int]:
+    """``ranked`` (option indices) with every option after the first of its class
+    (``option_classes``) left out."""
+    keys, seen, out = option_classes(feats), set(), []
+    for i in ranked:
+        if keys[i] not in seen:
+            seen.add(keys[i])
+            out.append(i)
+    return out
+
+
 def planned(ask: Any, turn: int, attack: tuple[int, frozenset] | None,
             block: tuple[int, frozenset] | None) -> int | None:
     """The answer a searched combat plan gives ``ask``, or None. A plan is (the turn it was made
@@ -400,8 +427,9 @@ class Searcher:
         if self.record:
             self.targets.append(target_record(feats, probs, v0, cands, self.last,
                                               int(cands[pick]), ask.kind, ask.seat, self.first))
-        if self.audit and ask.kind == "act":
-            self._audit(obs.game, ask, ranked[:AUDIT_M], probs, int(a0), int(cands[pick]))
+        if self.audit and ask.kind == "act":  # distinct moves: two copies are one candidate
+            self._audit(obs.game, ask, distinct(ranked, feats)[:AUDIT_M], probs, int(a0),
+                        int(cands[pick]))
         return int(cands[pick])
 
     def _audit(self, game: Any, ask: Any, top: list[int], probs: list[float], net: int,

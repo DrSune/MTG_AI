@@ -3,8 +3,9 @@
 # last.pt is the generator G. Chunks of searched games record targets until 300k exist; chunk 0
 # is gate A on G. Then four distillation arms; each arm's epoch is chosen by play on deals
 # 970,000+; the tests run on deals 980,000+; GB2's agreement; 192 §7.6's H1' (fp32 and bf16 on
-# window 1's heur_raw deals); then r27 resumes. Runs from a worktree pinned at the commit that
-# holds this file; one GPU job at a time; every step has a time cap.
+# window 1's heur_raw deals); 195 §5's confirming audit (deals 965,000+); then r27 resumes.
+# Runs from a worktree pinned at the commit that holds this file; one GPU job at a time; every
+# step has a time cap.
 #   systemd-run --user --unit mtg-gateb /bin/bash \
 #     /home/sune/Desktop/MTG_AI-gateb/reports/gate_b_2026-11-12/queue.sh
 #
@@ -218,6 +219,15 @@ H1="--init $U1000 --refresh-table --extend-sets M20 --pool verified --coherent-s
   --eval-opponents heuristic --eval-set M21 --eval-deals $H1_DEALS --eval-seed0 900000"
 step h1_bf16 20m $L --run "$O/h1_bf16" $H1 --infer-bf16
 step h1_fp32 40m $L --run "$O/h1_fp32" $H1
+
+# 195 §5's confirming run: window 2's belief audit on the fixed code (true worlds with both
+# libraries reshuffled, distinct moves compared), on fresh deals. Not gate B: logged only.
+step audit195 180m $L --run "$O/audit195" --init "$U1000" --refresh-table --extend-sets M20 \
+  --pool verified --coherent-share 1.0 --infer-bf16 --workers ${WORKERS:-18} \
+  --slots ${SLOTS:-16} --groups 4 --eval-only --eval-seat eval+search \
+  --eval-opponents snap:opp --opp-ckpt "$U1000" --eval-set M21 --search-root gumbel \
+  --search-m 16 --search-n 16 --search-audit 8 --search-sim "$R/window1/sim.pt" \
+  --eval-deals "${AUDIT_DEALS:-100}" --eval-seed0 965000
 
 resume
 log gateb done

@@ -1186,6 +1186,38 @@ def test_a_combat_plan_answers_only_the_turn_it_was_made_in() -> None:
     assert planned(ask, 7, (7, frozenset()), None) == 1  # not in the plan: declines, that turn
 
 
+def test_copies_of_a_card_are_one_move_to_the_audit(table) -> None:
+    """search.option_classes: options the encoding cannot tell apart (the same play with two
+    copies of a card in hand) share a key, so the audit compares distinct moves; their results
+    differed only by noise and decided 195's "best candidate" (KNOWLEDGE/2026-11-12/197)."""
+    from collections import defaultdict
+
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.games import get_supply
+    from MTG_bot.core.state import ZONE_HAND
+    from tools.selfplay import rig
+    from tools.selfplay.search import distinct, option_classes
+
+    supply = get_supply("castable")
+    for seed in range(1, 60):
+        game = rig._setup_game(seed, supply, rig.deal_decks(seed, 1409, supply, "coherent"))
+        me = game.world.player_order[0]
+        by_card = defaultdict(list)
+        for h in game.world.players[me].zone(ZONE_HAND).entries:
+            by_card[game.world.cards[h].identity.oracle_id].append(h)
+        twins = next((v for v in by_card.values() if len(v) >= 2), None)
+        other = next((v[0] for v in by_card.values() if twins and v[0] not in twins), None)
+        if twins and other:
+            break
+    tokens = ["PASS", f"cast:{twins[0]}", f"cast:{other}", f"cast:{twins[1]}"]
+    ask = Ask(seat=0, kind="act", site=f"act:{me}:1", prompt="",
+              options=tuple(Option(t, t) for t in tokens), refuse=0)
+    feats = FT.encode(game.executor, 0, ask, table, FT.AskContext())
+    keys = option_classes(feats)
+    assert keys[1] == keys[3] and len({keys[0], keys[1], keys[2]}) == 3
+    assert distinct([3, 1, 2, 0], feats) == [3, 2, 0]
+
+
 def test_combat_is_planned_once_per_turn_before_combat() -> None:
     """The search plans its attack at the pre-attacks boundary, before the declare-attackers
     step's declaration, once per turn."""
