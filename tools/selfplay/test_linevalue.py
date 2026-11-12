@@ -118,8 +118,11 @@ def test_forcing_plays_the_step_where_the_policy_would_not(slot, table) -> None:
     assert fo["first"]["forced"] == fo["policy"]["forced"] == 0
 
 
-def test_a_line_never_legal_yields_no_states(slot, table) -> None:
-    rep = _run(slot, table, LV.Line("never", lambda ask, obs: []), False, states=3)
+@pytest.mark.parametrize("line", [LV.Line("never legal", lambda ask, obs: []),
+                                  LV.Line("never begun", lambda ask, obs: [0], lambda ask, obs: False)])
+def test_a_line_never_legal_yields_no_states(slot, table, line) -> None:
+    """No step, or steps that never begin the line (only follow-through): no state, no crash."""
+    rep = _run(slot, table, line, False, states=3)
     assert rep["states"] == 0 and rep["unforced"]["games"] == 4 and rep["unforced"]["eligible"] == 0
     assert rep["value"]["first"] == {"mean": None, "se": None, "n": 0} and rep["critic"] == []
     assert LV.table(rep)
@@ -127,8 +130,8 @@ def test_a_line_never_legal_yields_no_states(slot, table) -> None:
 
 def test_the_two_families_pick_their_steps() -> None:
     """cast_line takes the card's cast rows. order_line casts a consumer while a producer could be
-    cast instead, the producers once a consumer is out, and nothing while the order is not at
-    stake."""
+    cast instead (the line begins there), the producers once a consumer is out (its
+    follow-through), and nothing while the order is not at stake."""
     from MTG_bot.bench.test_router import _arranged
 
     vito, revitalize, lands = "Vito, Thorn of the Dusk Rose", "Revitalize", ("Swamp",) * 3 + ("Plains",) * 2
@@ -141,10 +144,11 @@ def test_the_two_families_pick_their_steps() -> None:
         ex = game.executor
         options = (Option("PASS", "PASS"),) + tuple(
             Option(r.token, r.token) for r in menu(ex, game.world.player_order[0]))
-        ask = Ask(seat=0, kind="act", site="act", prompt="", options=options)
-        return [game.name_of(FT._handle(options[i].token[5:])) for i in line.step(ask, SimpleNamespace(executor=ex))]
+        ask, obs = Ask(seat=0, kind="act", site="act", prompt="", options=options), SimpleNamespace(executor=ex)
+        names = [game.name_of(FT._handle(options[i].token[5:])) for i in line.step(ask, obs)]
+        return names, line.begins is None or line.begins(ask, obs)
 
-    assert steps(order, (vito, revitalize), lands) == [vito]
-    assert steps(cast, (vito, revitalize), lands) == [revitalize]
-    assert steps(order, (revitalize,), lands + (vito,)) == [revitalize]
-    assert steps(order, (vito,), lands) == []
+    assert steps(order, (vito, revitalize), lands) == ([vito], True)
+    assert steps(cast, (vito, revitalize), lands) == ([revitalize], True)
+    assert steps(order, (revitalize,), lands + (vito,)) == ([revitalize], False)
+    assert steps(order, (vito,), lands) == ([], True)

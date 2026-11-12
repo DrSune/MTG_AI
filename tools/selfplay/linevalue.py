@@ -10,14 +10,14 @@ Two families, with no card names in code:
 - ``cast_line(ids)``: cast a card (or play a land) whose oracle id is in ``ids``, whenever it can;
 - ``order_line(consumers, producers)``: a consumer before its producers (two sets of oracle ids,
   e.g. a package's payoffs and enablers). While no consumer is on the player's battlefield, cast
-  one where a producer could be cast instead (then the order is the decision); once one is
-  there, cast the producers.
+  one where a producer could be cast instead: the order is the decision, and the line begins
+  there. Once one is there, cast the producers: the line's follow-through.
 
 The procedure (``run``: ``Probe.collect``, then ``Probe.measure``):
 1. Games of one checkpoint against itself on coherent decks. At every act or priority decision
-   the network makes where the line has a step, the policy's probability of the step is counted,
-   and a copy of the position is kept: at most ``per_game`` per game, drawn uniformly (a
-   reservoir, as the labeller's).
+   the network makes where a step would begin the line, the policy's probability of the step is
+   counted, and a copy of the position is kept: at most ``per_game`` per game, drawn uniformly
+   (a reservoir, as the labeller's).
 2. At each kept state, ``futures`` futures. In each, three branches from the same copy: B
    ("policy"), the policy chooses; A1 ("first"), the step forced, the policy plays on; A*
    ("through"), the step and every later step of the line forced when legal. The policy plays
@@ -76,10 +76,13 @@ SPEC = "net"
 @dataclass(frozen=True)
 class Line:
     """A line of play: ``step(ask, obs)`` gives the indices of ``ask``'s options that are the
-    line's next step at that decision ([]: none here)."""
+    line's next step at that decision ([]: none here). ``begins(ask, obs)``: whether a step there
+    begins the line (None: every step does); only those decisions are measured, the later steps
+    being its follow-through."""
 
     name: str
     step: Callable[[Any, Any], list[int]]
+    begins: Callable[[Any, Any], bool] | None = None
 
 
 def plays(ex: Any, options: tuple, ids: frozenset) -> list[int]:
@@ -106,21 +109,24 @@ def cast_line(ids: frozenset, name: str) -> Line:
 
 
 def order_line(consumers: frozenset, producers: frozenset, name: str) -> Line:
+    def begins(ask: Any, obs: Any) -> bool:
+        return not controls(obs.executor, obs.executor.world.player_order[ask.seat], consumers)
+
     def step(ask: Any, obs: Any) -> list[int]:
+        if not begins(ask, obs):
+            return plays(obs.executor, ask.options, producers)
         ex = obs.executor
-        if controls(ex, ex.world.player_order[ask.seat], consumers):
-            return plays(ex, ask.options, producers)
         return plays(ex, ask.options, consumers) if plays(ex, ask.options, producers) else []
 
-    return Line(name, step)
+    return Line(name, step, begins)
 
 
 class LineAgent(S.SimAgent):
     """A network seat that plays as ``SimAgent`` and meets the line at its act and priority
     decisions. ``force``: "policy" (the policy chooses), "first" (the root's step forced) or
     "through" (every step forced). ``root``: the kept decision's option tokens, which a copy asks
-    first. ``watch(ask, obs, step, top, value, probs, pick)`` sees every decision where the line
-    has a step."""
+    first. ``watch(ask, obs, step, top, value, probs, pick)`` sees every decision where a step
+    would begin the line."""
 
     def __init__(self, slot: Any, gid: int, spec: str, table: FT.CardTable, rng: Any,
                  line: Line, force: str = "policy", root: tuple | None = None,
@@ -150,7 +156,7 @@ class LineAgent(S.SimAgent):
             self.played = ask.options[pick].token
         else:
             self.later.append((forced, pick in step, sum(probs[i] for i in step)))
-        if self.watch is not None:
+        if self.watch is not None and (self.line.begins is None or self.line.begins(ask, obs)):
             self.watch(ask, obs, step, int(top), float(value), probs, pick)
         return pick
 
@@ -169,7 +175,7 @@ class LineAgent(S.SimAgent):
 @dataclass
 class State:
     """A kept decision: a copy of the game there (no decision provider), its deal, its rank ``n``
-    among the game's decisions where the line had a step, and the policy's reading of it."""
+    among the game's decisions where a step would begin the line, and the policy's reading of it."""
 
     game: Any
     deal: int
@@ -183,8 +189,9 @@ class State:
 
 
 class _Reservoir:
-    """The watch of a collection game: the policy's use of the step at every decision where the
-    line has one, and copies of at most ``size`` of those, drawn uniformly (Algorithm R)."""
+    """The watch of a collection game: the policy's use of the step at every decision where a
+    step would begin the line, and copies of at most ``size`` of those, drawn uniformly
+    (Algorithm R)."""
 
     def __init__(self, deal: int, size: int, supply: Any) -> None:
         self.deal, self.size, self.supply = deal, size, supply
@@ -455,6 +462,7 @@ def main(argv: list[str] | None = None) -> dict:
     p.add_argument("--set", default="M21")
     p.add_argument("--deal0", type=int, default=950_000)
     p.add_argument("--seed", type=int, default=0, help="the master seed (rng.seed_all)")
+    p.add_argument("--device", default="cpu", help="where the network runs (LocalSlot)")
     p.add_argument("--out", default="")
     a = p.parse_args(argv)
     if bool(a.cast) == bool(a.consumer or a.producer) or bool(a.consumer) != bool(a.producer):
@@ -466,7 +474,7 @@ def main(argv: list[str] | None = None) -> dict:
     else:
         line = order_line(_ids(a.consumer, supply), _ids(a.producer, supply),
                           f"{' | '.join(a.consumer)} before {' | '.join(a.producer)}")
-    net, table_, extra = M.load(a.ckpt, "cpu")
+    net, table_, extra = M.load(a.ckpt, a.device)
     with torch.no_grad():  # a constant at play time: once, not per decision (half a CPU forward)
         emb = net.card_table_emb()
     net.card_table_emb = lambda: emb
