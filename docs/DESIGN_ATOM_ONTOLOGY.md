@@ -321,7 +321,7 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 | `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
 | R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
 | R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` goes to round 4 |
-| R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | **implemented** 2026-11-12: `once_per_event` (True or absent) on TriggeredAbility and DelayedTrigger. Absent: once per occurrence, the CR 603.2c default for every event kind; True: once per event, grouped for a declaration (CR 508.3d) and a combat damage step (CR 510.2), refused at bind elsewhere. A creature put onto the battlefield attacking has no declare row (CR 508.4). Six trees carry it (BACKLOG, "Records to map or re-verify"). Adversarial review (a fresh-eyes agent on the diff, 2026-11-12): a rebuild that dropped the field, an untested dealer filter, no G3 mutant for the field, a redundant flag on "is dealt damage"; all fixed before the commit. Per attacked object and gathered recipients have no encoding yet (BACKLOG, Combat) |
+| R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | for round 4 |
 | R5-15 `ControllerRef.TARGET_OPPONENT` (lane vfix2, an identity fix) | implemented; post-hoc check in round 4 |
 | v2's `DurationUntil(event)`, `EXILED_BY_SOURCE`, PHASE_OUT `duration`, `GRANT_ABILITY(ReplacementAbility)` route | withdrawn (round 2) |
 

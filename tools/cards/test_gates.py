@@ -11,6 +11,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 HERE = Path(__file__).resolve().parent
 for _p in (HERE.parents[1], HERE, HERE.parent):
     if str(_p) not in sys.path:
@@ -608,20 +610,19 @@ def test_partitioned_search_destination_is_a_placeholder() -> None:
 
 
 def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() -> None:
-    """once_per_event (CR 603.2c): dropping it is a critical mutant (Tide Skimmer would draw for
-    each flyer). Adding it is offered where one declaration or combat damage step can hold several
-    occurrences the trigger matches (Hooded Blightfang's attackers), never where the subject is the
-    source itself: Falconer Adept attacking beside another creature plays the same game."""
+    """once_per_event (CR 603.2c), both directions critical: dropping it (Tide Skimmer would draw
+    for each flyer) and forgetting it (Hooded Blightfang's drain fires per deathtouch attacker, so
+    the flagged mutant drains once). Adding it is offered only where one declaration or combat
+    damage step can hold several occurrences the trigger matches (ability_tree.gathers_occurrences):
+    never on "this creature" (Falconer Adept, Garruk's Harbinger) or noncombat damage (Chandra's
+    Incinerator), where the IR refuses the flag as a second encoding of the same trigger."""
     assert ("trigger count: once per event -> each occurrence", "1/0") in _where(_card("Tide Skimmer"))
-    assert gates.is_critical("trigger count: once per event -> each occurrence")
     assert ("each occurrence -> once per event", "1/0") in _where(_card("Hooded Blightfang"))
+    assert gates.is_critical("trigger count: once per event -> each occurrence")
+    assert gates.is_critical("each occurrence -> once per event")
     for name in ("Falconer Adept", "Garruk's Harbinger", "Chandra's Incinerator"):
         assert not {op for op, _w in _where(_card(name)) if "occurrence" in op}, name
     adept = _card("Falconer Adept")
-    i = next(i for i, ab in enumerate(adept.abilities) if hasattr(ab, "once_per_event"))
-    pack = _pack([{"key": "adept", "real": "Falconer Adept", "zone": "battlefield", "controller": 0},
-                  {"key": "ox", "name": "Ox", "type": "Creature — Ox", "power": 2, "toughness": 2,
-                   "zone": "battlefield", "controller": 0}],
-                 [{"op": "combat", "seat": 0, "attack": {"adept": True, "ox": True}}])
-    flagged = dataclasses.replace(adept.abilities[i], once_per_event=True)
-    assert _game(pack, _mutant(adept, f"1/{i}", flagged)) == _game(pack)
+    trigger = next(ab for ab in adept.abilities if hasattr(ab, "once_per_event"))
+    with pytest.raises(ValueError, match="gathers occurrences"):
+        dataclasses.replace(trigger, once_per_event=True)

@@ -38,7 +38,6 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     DamageDealtEvent,
-    DeclareAttackersEvent,
     DelayedTrigger,
     DurationEot,
     DurationPermanent,
@@ -66,6 +65,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     ZonePosition,
     from_dict,
+    gathers_occurrences,
     to_dict,
     walk,
 )
@@ -248,22 +248,6 @@ def _is_self(filter_: Any) -> bool:
     if isinstance(filter_, FAnd):
         return any(_is_self(c) for c in filter_.children)
     return False
-
-
-def _gathers_occurrences(event: Any) -> bool:
-    """Can one event hold several occurrences this trigger matches, so that once per event and
-    once per occurrence play differently (binding._queue gathers a declaration's attackers and a
-    combat damage step's dealers)? Not when the subject is the source or what it is attached to:
-    a mutant there is equivalent."""
-    if isinstance(event, DeclareAttackersEvent):
-        subject = event.filter
-    elif isinstance(event, DamageDealtEvent) and event.combat is not False and event.source is not None:
-        subject = event.source
-    else:
-        return False
-    parts = subject.children if isinstance(subject, FAnd) else (subject,)
-    return not any(isinstance(p, FAtom) and p.pred in (FAtomPred.IS_SOURCE, FAtomPred.IS_ATTACHED_TO_SOURCE)
-                   for p in parts)
 
 
 def _reveal_dead_roles(ability: Any) -> set[str]:
@@ -534,7 +518,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and node.once_per_event:
             cands.append(("trigger count: once per event -> each occurrence",
                           dataclasses.replace(node, once_per_event=None)))
-        elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and _gathers_occurrences(node.event):
+        elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and gathers_occurrences(node.event):
             cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
         elif isinstance(node, QConst):
             cands.append(("amount+1", QConst(node.value + 1)))
@@ -618,5 +602,5 @@ def g3(supply: Any, set_code: str, oid: str, limit: int = 80) -> dict[str, Any]:
 def is_critical(op: str) -> bool:
     """Survivors of these operators block verification (gate G3): they are the abusable faults."""
     return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
-                          "target->all", "optional", "trigger scope", "trigger count"))
+                          "target->all", "optional", "trigger scope", "trigger count", "each occurrence"))
 

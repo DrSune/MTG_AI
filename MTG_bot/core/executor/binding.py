@@ -34,8 +34,9 @@ Contracts honoured:
   * **flag, don't degrade** — an event node no journal feed serves
     (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent), or a
     once-per-event trigger on an event kind the binder does not group, RAISES
-    ``NotImplementedError`` at *bind* time, instead of silently arming a
-    trigger that could never fire or would fire too often.
+    ``NotImplementedError`` at *bind* time (a granted once-per-event trigger,
+    never bound, when it triggers), instead of silently arming a trigger that
+    could never fire or would fire too often.
 
 May-offers: an ``OptionalEffect`` in a trigger effect answers through the
 executor's vocabulary-addressed decision stream: the ask carries its own
@@ -801,6 +802,11 @@ class TriggerBinder:
             # subscribers) do not trigger. A delayed trigger is not an
             # ability of its source (CR 603.7) and still triggers.
             return
+        if node.once_per_event:
+            # The bind-time refusal for every flagged node that triggers: a granted
+            # trigger (GRANT_ABILITY) is never bound, so it is checked here.
+            record = self.handle_record.get(source)
+            self._check_trigger(node, record.name if record is not None else str(source))
         if not additional and node.once_per_event and event.kind == KIND_DECLARE_ATTACKERS:
             # CR 603.2c, 508.3d: "whenever you attack" and "whenever one or more
             # creatures you control attack" trigger once on the declaration, so

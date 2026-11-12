@@ -84,15 +84,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - The binder groups an event's occurrences only for a declaration (its DECLARE_ATTACKERS rows
     share a group) and a combat damage step (its DAMAGE rows to one recipient, gathering the
     dealers `source` names). A once-per-event trigger on any other event kind refuses to bind
-    (`binding._check_trigger`; granted triggers skip that check, as they skip the other event
-    checks). None compiles today; the first would be M20 Woodland Champion ("one or more tokens
-    you control enter"), KHM Elvish Warmaster and M19 Desecrated Tomb.
+    (`binding._check_trigger`; a granted one, never bound, is refused when it triggers). None
+    compiles today; the first would be M20 Woodland Champion ("one or more tokens you control
+    enter"), KHM Elvish Warmaster and M19 Desecrated Tomb.
   - Within those two kinds the grouping is fixed, and the IR cannot yet say otherwise: "attacks a
     planeswalker you control with one or more creatures" (WAR Oath of Kaya) and "you attack a
     player with one or more" (ZNR Akiri) need one trigger per attacked object, and "one or more
     creatures you control are dealt damage" needs the recipients gathered. A flagged trigger of
     that shape would bind and fire per declaration or per recipient, so a mapper must not flag it
     (MAPPER_GUIDE: needs-atom). None compiles.
+  - The IR refuses the flag where it changes nothing (`ability_tree.gathers_occurrences`, gate
+    round 4): a self or attached subject, damage that is not only combat damage, no dealer named.
+    For `combat=None` ("one or more ... deal damage", combat or not) that is a scope limit, not a
+    no-op: the flag would gather the combat rows. Such a card is needs-atom (none compiles).
   - A dealer trigger with no recipient ("whenever this creature deals damage") split by trample
     or several blockers still fires per DAMAGE row, not once per step (none compiled).
   - Tide Skimmer's "attack with two or more creatures with flying" is part of its trigger event,
@@ -677,9 +681,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Ancestor Dragon does not: its record is not applied while unverified, so in the other pools it
   plays the compiler's tree, which has no attack trigger (weaker than printed), and its spec
   pack waits in `tools/scenarios/known_bugs/ancestor_dragon_gains_once_per_declaration.json`
-  (it passes with `cardtool runpack FDN <pack>`). G3 now mutates the flag ("trigger count",
-  critical when it is dropped); each card's existing spec pack kills that mutant (checked). FDN
-  Battlesong Berserker's record (not verified) got the same flag.
+  (it passes with `cardtool runpack FDN <pack>`). G3 now mutates the flag, critical both ways
+  (dropped: "trigger count: once per event -> each occurrence"; added where it gathers: "each
+  occurrence -> once per event"); each card's existing spec pack kills its mutant (checked). M21
+  Subira (verified, unchanged) gets the second mutant on its delayed trigger, which none of its
+  six verified packs kills; `cards/M21/subira_draws_for_each_small_creature_that_connects.json`
+  kills it, for its next verification. FDN Battlesong Berserker's record (not verified) got the
+  same flag.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole

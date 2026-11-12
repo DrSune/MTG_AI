@@ -67,6 +67,7 @@ from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
 from MTG_bot.core.executor.decisions import in_trigger_order, site_digest
+from MTG_bot.core.executor.events import KIND_CREATURE_DIES, GameEvent
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -902,6 +903,27 @@ class TestRaises(BindingCase):
         )
         with self.assertRaises(NotImplementedError):
             once(CreatureDiesEvent(filter=UNIV))
+        # "Whenever this creature attacks" holds one attacker per declaration: the
+        # flag would be a second encoding, so the IR refuses it before any bind.
+        with self.assertRaises(ValueError):
+            once(DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)))
+
+    def test_once_per_event_refused_when_scheduled_and_when_a_never_bound_one_triggers(self):
+        # A flagged delayed trigger on an event the binder does not group is
+        # refused as it is scheduled; one never bound (a GRANT_ABILITY grant)
+        # is refused as it triggers, before it can fire per occurrence.
+        dies = CreatureDiesEvent(filter=UNIV)
+        with self.assertRaises(NotImplementedError):
+            self.ex.binder.schedule_delayed(
+                DelayedTrigger(DurationEot(), dies, None, gain(1), True), self.watch, self.p0
+            )
+        self.assertEqual(self.ex.binder.delayed, [])
+        granted = TriggeredAbility(dies, None, gain(1), once_per_event=True)
+        row = GameEvent(clock=1, kind=KIND_CREATURE_DIES, subject=self.watch, cause=None,
+                        cause_verb="DESTROY")
+        with self.assertRaises(NotImplementedError):
+            self.ex.binder._queue(self.watch, self.p0, granted, row)
+        self.assertEqual(self.world.triggers, [])
 
     def test_trigger_loop_tripwire_quarantines_the_loop_source(self):
         # The tripwire GUARDS instead of raising: "flag it, never run it"

@@ -183,14 +183,48 @@ def test_once_per_event_has_one_encoding(value: object) -> None:
         _attack_trigger(once_per_event=value)
 
 
-def test_once_per_event_damage_needs_the_dealers_it_gathers() -> None:
-    # "Is dealt damage" names no dealer and is already one event per recipient (CR 510.2):
-    # the flag there would be a second encoding of the same trigger.
-    plain = _attack_trigger()
-    dealt = at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), combat=True)
-    with pytest.raises(ValueError, match="needs a source"):
-        at.TriggeredAbility(dealt, None, plain.effect, once_per_event=True)
-    with pytest.raises(ValueError, match="needs a source"):
-        at.DelayedTrigger(at.DurationEot(), dealt, None, plain.effect, True)
-    cats = at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), source=at.FAnd(()), combat=True)
-    assert at.TriggeredAbility(cats, None, plain.effect, once_per_event=True).once_per_event
+_SELF = at.FAtom(at.FAtomPred.IS_SOURCE)
+_EQUIPPED = at.FAtom(at.FAtomPred.IS_ATTACHED_TO_SOURCE)
+_CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
+
+
+def _dealt(source: at.Filter | None, combat: bool | None) -> at.DamageDealtEvent:
+    return at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), source=source, combat=combat)
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        # "whenever this creature attacks" / "equipped creature attacks": one attacker per
+        # declaration, so the flag would be a second encoding of the unflagged trigger
+        at.DeclareAttackersEvent(filter=_SELF),
+        at.DeclareAttackersEvent(filter=_EQUIPPED),
+        at.DeclareAttackersEvent(filter=at.FAnd((_CREATURE, _SELF))),
+        # "this creature deals combat damage": one dealer per step
+        _dealt(_SELF, True),
+        # damage that is not only combat damage: the engine groups a combat damage step only
+        _dealt(_CREATURE, False),
+        _dealt(_CREATURE, None),
+        # "is dealt damage": no dealer named, already one event per recipient (CR 510.2)
+        _dealt(None, True),
+    ],
+)
+def test_once_per_event_refused_where_it_changes_nothing(event: object) -> None:
+    effect = _attack_trigger().effect
+    with pytest.raises(ValueError, match="gathers occurrences"):
+        at.TriggeredAbility(event, None, effect, once_per_event=True)
+    with pytest.raises(ValueError, match="gathers occurrences"):
+        at.DelayedTrigger(at.DurationEot(), event, None, effect, True)
+    assert at.TriggeredAbility(event, None, effect).once_per_event is None  # unflagged: fine
+
+
+def test_once_per_event_kept_where_one_event_gathers_occurrences() -> None:
+    effect = _attack_trigger().effect
+    for event in (
+        at.DeclareAttackersEvent(filter=at.FNot(_SELF)),  # "another creature attacks"
+        at.DeclareAttackersEvent(filter=_CREATURE),
+        _dealt(_CREATURE, True),  # "one or more creatures deal combat damage"
+        at.CreatureDiesEvent(filter=_CREATURE),  # the binder, not the IR, refuses this kind
+    ):
+        assert at.TriggeredAbility(event, None, effect, once_per_event=True).once_per_event
+    assert not at.gathers_occurrences(at.CreatureDiesEvent(filter=_CREATURE))

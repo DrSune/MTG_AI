@@ -2796,17 +2796,45 @@ class EachPlayer:
             )
 
 
+def gathers_occurrences(event: object) -> bool:
+    """Can one event hold several occurrences a trigger on ``event`` matches, so that once per
+    event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can,
+    and so can the dealers of one combat damage step (CR 510.2), the dealers being the
+    DamageDealtEvent's ``source``. Not when the subject is the trigger's source or what it is
+    attached to ("whenever this creature attacks": one occurrence per event), not for damage that
+    is not only combat damage (``combat`` not True: the engine groups a combat damage step, and a
+    noncombat event has one dealer), and not with no dealer named ("is dealt damage" is already
+    one event per recipient). Other event kinds answer False: the engine does not group them."""
+    if isinstance(event, DeclareAttackersEvent):
+        subject = event.filter
+    elif isinstance(event, DamageDealtEvent) and event.combat is True and event.source is not None:
+        subject = event.source
+    else:
+        return False
+    parts = subject.children if isinstance(subject, FAnd) else (subject,)
+    return not any(
+        isinstance(p, FAtom)
+        and p.pred in (FAtomPred.IS_SOURCE, FAtomPred.IS_ATTACHED_TO_SOURCE)
+        for p in parts
+    )
+
+
 def _check_once_per_event(owner: str, event: object, value: object) -> None:
-    """TriggeredAbility.once_per_event's one encoding: True or absent (never False), and only
-    where it means something. "Is dealt damage" with no dealer named is already one event per
-    recipient (CR 510.2), so the flag needs the `source` it gathers ("one or more Cats deal")."""
+    """TriggeredAbility.once_per_event's one encoding: True or absent (never False), and on an
+    attack or damage event only where it changes the play (:func:`gathers_occurrences`): flagged
+    "whenever this creature attacks" would be a second encoding of the unflagged trigger. Other
+    event kinds keep the flag, which the binder refuses until it groups them."""
     if value is None:
         return
     if value is not True:
         raise ValueError(f"{owner}: once_per_event is True or absent, got {value!r}")
-    if isinstance(event, DamageDealtEvent) and event.source is None:
+    if isinstance(event, (DeclareAttackersEvent, DamageDealtEvent)) and not gathers_occurrences(
+        event
+    ):
         raise ValueError(
-            f"{owner}: once_per_event on a DamageDealtEvent needs a source (the dealers it gathers)"
+            f"{owner}: once_per_event needs an event that gathers occurrences; this "
+            f"{type(event).__name__} has a self or attached subject, damage that is not only "
+            "combat damage, or no dealer named"
         )
 
 
@@ -2903,8 +2931,10 @@ class TriggeredAbility:
     once per declaration (CR 508.3d); "whenever one or more Cats you control
     deal combat damage to a player" once per combat damage step and player
     (CR 510.2), gathering the dealers its `source` names. Never False, and
-    never on a DamageDealtEvent without a `source` ("is dealt damage" is
-    already one event per recipient): one encoding for each meaning."""
+    on an attack or damage event never where it changes nothing
+    (:func:`gathers_occurrences`: "whenever this creature attacks", damage
+    that is not only combat damage, "is dealt damage"): one encoding for
+    each meaning."""
 
     event: EventSpec
     condition: Filter | None
