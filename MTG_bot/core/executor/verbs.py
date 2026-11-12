@@ -33,6 +33,7 @@ from MTG_bot.core.ability_tree import (
     Cost,
     CounterKind,
     Duration,
+    DurationEot,
     DurationPermanent,
     DurationUntilLeaves,
     EventSpec,
@@ -1223,7 +1224,13 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     from MTG_bot.core.executor.query import combat_target_filters, names_pred
 
     register = "result" if names_pred(condition, FAtomPred.IS_RESULT) else "target"
-    designated = ctx.binding_handles(register) or []
+    designated = ctx.binding_handles(register)
+    if designated is None and register == "result":
+        raise NotImplementedError(
+            "executor: PREVENT_EFFECT's IS_RESULT names the result register, and no "
+            "instruction before it wrote one"
+        )
+    designated = designated or []
     bound = combat_target_filters(event)
     targets = tuple(
         h
@@ -2273,6 +2280,16 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
         )
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
+    if duration is not None and not isinstance(
+        duration, (DurationEot, DurationPermanent, DurationUntilLeaves)
+    ):
+        # The control registry ends an entry at the end-of-turn sweep, when its anchor or
+        # the creature leaves the battlefield, or never; any other duration would leave the
+        # control permanent (flag, don't degrade).
+        raise NotImplementedError(
+            f"executor: GAIN_CONTROL duration {type(duration).__name__} has no expiry in the "
+            "control registry (Executor._expire_control)"
+        )
     tag = duration_tag(duration)
     # CR 611.2a: control a resolved spell or ability gives lasts as long as its duration says
     # (with none stated, the game), whatever happens to its source: Sorin, Vampire Lord's

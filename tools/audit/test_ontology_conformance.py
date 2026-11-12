@@ -575,3 +575,42 @@ def test_corpus_filters_are_construction_sorted(compiled):
                     checked += 1
     # The corpus must really exercise the law hundreds of times.
     assert checked >= 300, f"expected hundreds of filters, got {checked}"
+
+
+# --------------------------------------------------------------------------
+# Designated players: "its controller" is a referent Selector (D18, MAPPER_GUIDE)
+# --------------------------------------------------------------------------
+def test_a_designated_player_is_a_printed_target():
+    """TARGET_PLAYER and TARGET_OPPONENT are targets (CR 115.1): in a spell or an
+    activation they open a player target slot. A card names one only if its text says
+    "target player" or "target opponent"; "its controller" and "that player" are a
+    referent Selector. Every set file is scanned with its card records; the exceptions
+    are scheduled folds (BACKLOG), and the scan must still find them."""
+    sets = sorted(p.stem for p in (oc.REPO / "MTG_bot" / "data").glob("*.json"))
+    flagged = oc.check_designated_players(sets)
+    names = {f.split(":", 1)[1] for f in flagged}
+    assert names <= set(oc.DESIGNATED_PLAYER_EXCEPTIONS), flagged
+    assert names == set(oc.DESIGNATED_PLAYER_EXCEPTIONS), "a fold landed: drop its exception"
+
+
+def test_designated_player_scan_has_teeth():
+    """Transmogrify's tree before 2026-11-12: "That creature's controller reveals ..."
+    read as TARGET_PLAYER in REVEAL's controller role."""
+    old = at.Atom(
+        verb=at.Verb.REVEAL,
+        args=at.AtomArgs(
+            pairs=(("controller", at.ControllerRef.TARGET_PLAYER), ("count", at.QUnbounded()))
+        ),
+    )
+    spell = at.SpellAbility(kind=at.SpellKind.SORCERY, effect=old)
+    assert oc.names_designated_player(_card("Old Transmogrify", abilities=(spell,)))
+    its_controller = at.Selector(
+        at.QConst(1), at.SelectorMode.CHOOSE, at.FAnd(()),
+        zones=(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),), referent="target",
+    )
+    new = at.Atom(
+        verb=at.Verb.REVEAL,
+        args=at.AtomArgs(pairs=(("controller", its_controller), ("count", at.QConst(1)))),
+    )
+    spell = at.SpellAbility(kind=at.SpellKind.SORCERY, effect=new)
+    assert not oc.names_designated_player(_card("Transmogrify", abilities=(spell,)))

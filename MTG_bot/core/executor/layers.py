@@ -370,7 +370,7 @@ class LayerRegistry:
         defender"). The creatures were designated at resolution (fixed
         ``targets``), and the record rides the registry's duration expiry:
         Eot at cleanup (CR 514.2), UntilNextTurn when the controller's next
-        turn begins (CR 611.2b), UntilNextStep at its step, While while its
+        turn begins (CR 611.2a), UntilNextStep at its step, While while its
         condition holds, UntilLeaves when the source leaves. ``kind`` is
         ``"mandate"``, ``"mandate_block"`` or ``"attack_policy"``, so legality
         reads it beside the static ones."""
@@ -1003,7 +1003,7 @@ class LayerRegistry:
         return expired
 
     def expire_until_next_turn(self, player: Handle) -> int:
-        """``player``'s turn begins: "until your next turn" records end (CR 611.2b),
+        """``player``'s turn begins: "until your next turn" records end (CR 611.2a),
         and "until the end of your next turn" ones become "until end of turn", so this
         turn's cleanup sweep ends them (CR 514.2)."""
         expired = 0

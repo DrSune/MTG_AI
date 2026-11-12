@@ -952,11 +952,17 @@ class ReplacementRegistry:
         the preventing permanent, controller = its controller, and the
         materialized designated set bound as ``target`` so an IS_ANY_TAR-
         GET slot reads the cast that opened the window (Subira) instead of
-        a long-gone resolution."""
+        a long-gone resolution. A resolved record's set is also its
+        ``result``: the objects an IS_RESULT condition named as it resolved
+        (``verbs._v_prevent``). A static carrier never resolved, so it has
+        no result, and an IS_RESULT read there raises."""
+        bindings: dict = {"target": list(rec.targets)}
+        if rec.resolved:
+            bindings["result"] = list(rec.targets)
         return self.executor._ctx(
             source=rec.source,
             controller=rec.controller,
-            bindings={"target": list(rec.targets)},
+            bindings=bindings,
             decisions=(),
         )
 
@@ -1303,7 +1309,7 @@ class ReplacementRegistry:
         return expired
 
     def expire_until_next_turn(self, player: Handle) -> int:
-        """``player``'s turn begins: "until your next turn" preventions end (CR 611.2b),
+        """``player``'s turn begins: "until your next turn" preventions end (CR 611.2a),
         and "until the end of your next turn" ones become "until end of turn", so this
         turn's cleanup sweep ends them (CR 514.2)."""
         expired = 0

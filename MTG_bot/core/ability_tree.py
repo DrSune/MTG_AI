@@ -1144,6 +1144,29 @@ class Selector:
                     "Selector: referent convention C2 requires the neutral "
                     f"zone set (Zone(ANY, ANY),), got {self.zones!r}"
                 )
+        if _filter_names(self.filter, FAtomPred.IS_RESULT):
+            # one meaning, one encoding: "the objects the previous instruction acted
+            # on" as a selection is Selector(referent="result")
+            raise ValueError(
+                "Selector: IS_RESULT in a selector's filter is a second form of "
+                "Selector(referent='result')"
+            )
+
+
+def _filter_names(filter_: object, pred: FAtomPred) -> bool:
+    """Does ``pred`` occur anywhere in the Filter tree ``filter_`` (children, negations
+    and the inner filters of counting atoms)?"""
+    if isinstance(filter_, FAtom):
+        return filter_.pred is pred or any(
+            _filter_names(inner, pred)
+            for inner in (filter_.inner_filter, filter_.right_inner_filter)
+            if inner is not None
+        )
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_names(child, pred) for child in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_names(filter_.inner, pred)
+    return False
 
 
 # ---- Filters ----
@@ -2721,6 +2744,21 @@ class Atom:
                     "leaving the role out, and DurationWhileCondition could start "
                     "again and move the object a second time"
                 )
+        # REVEAL's `until`: `count` is the number of revealed cards that pass
+        # it. The universal filter passes every card, so it would be a second
+        # form of the plain top-`count` REVEAL; QUnbounded is no number to stop at.
+        if self.verb is Verb.REVEAL and "until" in roles:
+            until = roles["until"]
+            if isinstance(until, FAnd) and not until.children:
+                raise ValueError(
+                    "Atom: REVEAL until=FAnd(()) passes every card: that is a plain "
+                    "REVEAL of `count` cards"
+                )
+            if isinstance(roles.get("count"), QUnbounded):
+                raise ValueError(
+                    "Atom: REVEAL with `until` counts the revealed cards that pass it; "
+                    "QUnbounded is no count to stop at"
+                )
         # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3297,6 +3335,36 @@ Ability = (
 # ---- CardRecord — the root node ----
 
 
+def _is_result_role(role: str) -> bool:
+    """May ``role``'s value hold FAtomPred.IS_RESULT? Only a Filter-typed role (or an
+    event role, whose events carry filters) that cannot take a referent Selector:
+    where a Selector may stand, ``Selector(referent="result")`` is the one encoding."""
+    allowed = _ROLE_TYPES[role]
+    return Selector not in allowed and all(t in (*_F_CLASSES, *_EV_CLASSES) for t in allowed)
+
+
+def _is_result_misplaced(node: Any, allowed: bool) -> bool:
+    """Is an IS_RESULT atom reachable from ``node`` outside the Atom roles
+    :func:`_is_result_role` admits? ``allowed`` is whether ``node`` sits in one.
+    Everywhere else (a selector, an ability's or a Conditional's condition, a
+    trigger's event, a duration) no resolution has a ``result`` register to read."""
+    if isinstance(node, tuple):
+        return any(_is_result_misplaced(item, allowed) for item in node)
+    if not dataclasses.is_dataclass(node) or isinstance(node, type):
+        return False
+    if isinstance(node, Atom):
+        return any(
+            _is_result_misplaced(value, _is_result_role(role)) for role, value in node.args.pairs
+        )
+    if isinstance(node, FAtom) and node.pred is FAtomPred.IS_RESULT and not allowed:
+        return True
+    if isinstance(node, Selector):
+        allowed = False
+    return any(
+        _is_result_misplaced(getattr(node, f.name), allowed) for f in dataclasses.fields(node)
+    )
+
+
 @dataclass(frozen=True)
 class CardRecord:
     """The root node: one card (or token) as a typed ability tree.
@@ -3390,6 +3458,12 @@ class CardRecord:
                 raise ValueError(
                     f"CardRecord: abilities must be Ability, got {type(ability).__name__}"
                 )
+        if _is_result_misplaced((self.keywords, self.abilities), False):
+            raise ValueError(
+                "CardRecord: IS_RESULT outside an Atom role that takes a Filter and cannot "
+                "take a referent Selector (elsewhere it is Selector(referent='result'), or "
+                "there is no result register to read)"
+            )
         if not isinstance(self.is_token, bool):
             raise ValueError(
                 f"CardRecord: is_token must be a bool, got {self.is_token!r}"
@@ -3859,9 +3933,12 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.SCRY: {"controller": True, "count": True},
     # REVEAL's duration: "Play with the top card of your library revealed"
     # is a continuous revealed state — DurationPermanent, top of library
-    # implicit as for LOOK_AT. `until`: the reveal goes on card by card until
-    # `count` revealed cards match it ("until they reveal a creature card",
-    # Transmogrify); the matching cards are the ``result`` ("that card").
+    # implicit as for LOOK_AT. `count` = the revealed cards that pass `until`;
+    # every card when `until` is absent. So with `until` the cards are revealed
+    # one at a time from the top until `count` of them pass it ("until they
+    # reveal a creature card", Transmogrify: count 1), and those are the
+    # ``result`` ("that card"). Atom refuses `until` = the universal FAnd (a
+    # plain REVEAL of `count` cards) and a QUnbounded `count` with `until`.
     Verb.REVEAL: {"controller": True, "count": True, "duration": False, "until": False},
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},

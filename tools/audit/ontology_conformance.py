@@ -61,6 +61,7 @@ import argparse
 import dataclasses
 import hashlib
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -661,6 +662,59 @@ def check_v5(cards_by_set):
         "gone_branching_count": sum(len(v) for v in gone_branch.values()),
         "r1a_content_delta": _r1a_map_delta(),
     }
+
+
+# ---------------------------------------------------------------------------
+# Designated players (docs/ATOM_DIVERGENCES.md D18, docs/MAPPER_GUIDE.md)
+# ---------------------------------------------------------------------------
+#: The only printed wordings a designated player (TARGET_PLAYER, TARGET_OPPONENT)
+#: stands for: it is a target (CR 115.1). "Its controller" and "that player" are a
+#: referent Selector.
+_DESIGNATED_PLAYER_TEXT = re.compile(r"\btarget (?:player|opponent)", re.IGNORECASE)
+#: Cards still reading "that player" as TARGET_PLAYER, each with the entry that folds it.
+DESIGNATED_PLAYER_EXCEPTIONS = {
+    "Massacre Wurm": "BACKLOG B-114: fold to Selector(referent='event'), as Gloom Sower",
+}
+
+
+def names_designated_player(card) -> bool:
+    """Does the tree name TARGET_PLAYER or TARGET_OPPONENT anywhere (a role, a zone's
+    controller, a filter's ``who``, an EachPlayer ref)?"""
+    for node in iter_nodes(card):
+        if isinstance(node, at.AtomArgs):
+            values = [value for _role, value in node.pairs]
+        else:
+            values = [getattr(node, f.name) for f in dataclasses.fields(node)]
+        if any(isinstance(v, at.ControllerRef) and v in at.DESIGNATED_PLAYER_REFS for v in values):
+            return True
+    return False
+
+
+def check_designated_players(sets) -> list[str]:
+    """``SET:name`` of every card whose tree (card records applied, as the card tools
+    compile them) names a designated player while its text says neither "target player"
+    nor "target opponent"."""
+    from MTG_bot.core.compiler import card_records
+    from MTG_bot.core.compiler.compiler import compile_pool
+    from MTG_bot.core.errors import StateCorruptionError
+
+    registry = build_full_registry()
+    flagged = []
+    for s in sets:
+        pool = ingest_pool(REPO / "MTG_bot" / "data" / f"{s}.json")
+        records = card_records.load_records(s)
+        for oid, raw in sorted(pool.items()):
+            try:
+                card = compile_pool(
+                    {oid: raw}, registry, records=records, require_verified=False
+                ).results[oid].card
+            except (StateCorruptionError, ValueError):
+                continue  # a refused shape compiles to nothing
+            face = raw.back_face.sentences if raw.back_face is not None else ()
+            text = " ".join((*raw.sentences, *face))
+            if not _DESIGNATED_PLAYER_TEXT.search(text) and names_designated_player(card):
+                flagged.append(f"{s}:{card.name}")
+    return flagged
 
 
 # ---------------------------------------------------------------------------

@@ -509,7 +509,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `_phase_in_prevention_effect` emits `PREVENT_EFFECT(condition=IS_RESULT,
     event=PhasingEvent(phased_in=True, filter=IS_RESULT), duration=DurationUntilEndOfNextTurn)`:
     - "they" are the creatures the [−8]'s PHASE_OUT phased out: `FAtomPred.IS_RESULT` reads the
-      `result` register, and `verbs._v_prevent` locks that set into the record as it resolves;
+      `result` register, and `verbs._v_prevent` locks that set into the record as it resolves.
+      Gate round 4 fixes: IS_RESULT stands only in an Atom role that takes a Filter and cannot
+      take a referent Selector (`ability_tree._is_result_role`; anywhere else, such as a
+      selector's filter, `Selector(referent="result")` is the one encoding), and a read with no
+      register raises;
     - `Executor._phasing_step` asks `ReplacementRegistry.prevents_phase_in` (CR 702.26a) before
       each phase-in, and an Aura attached to a creature that stays out stays out with it (702.26g);
     - the record re-tags to `Eot` as its controller's next turn begins, so that turn's cleanup ends
@@ -620,9 +624,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Transmogrify (1cac720); the rest of the family does not compile.**
   - Transmogrify: `REVEAL(controller=<that creature's controller>, count=1, until=TYPE_EQ
     Creature)` reveals cards one at a time from the top until the first creature card (the
-    `result`; every revealed card is the look window), then `EachPlayer(ref=<that creature's
-    controller>, Seq(MOVE_ZONE result -> battlefield YOU, SHUFFLE library YOU))`. "That creature's
-    controller" is a referent-"target" Selector, read by last known information (CR 608.2h).
+    `result`; every revealed card is the look window; `count` is the number of revealed cards
+    that pass `until`, so `until=FAnd(())` and a QUnbounded `count` are refused), then
+    `EachPlayer(ref=<that creature's controller>, Seq(MOVE_ZONE result -> battlefield YOU,
+    SHUFFLE library YOU))`. "That creature's controller" is a referent-"target" Selector, read by
+    last known information (CR 608.2h).
     Before, the tree read TARGET_PLAYER, so the menu asked a second, player target the card does
     not print (KNOWLEDGE/2026-11-05/184 "two-target spells"), and it searched only the library's
     top card: a noncreature on top put nothing onto the battlefield. Packs
@@ -635,6 +641,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
     selector reads it yet, and "in a random order" has no IR (known_bugs/2026-11-05
     random_order_is_fixed).
+- **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
+  D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
+  controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
+  to `LOSE_LIFE(controller=TARGET_PLAYER)`; it plays right only because the trigger lane binds the
+  dying creature and `selectors.players_for_ref` reads its last known controller. The rule (
+  `docs/MAPPER_GUIDE.md`): "its controller" and "that player" are a referent Selector, never
+  TARGET_PLAYER, which is a target (CR 115.1). Scheduled, not done: one compiler template
+  (`B2b-massacre-wurm`), one golden (M21; the FDN printing compiles from the same template), then
+  re-verify both cards (their verified trees change, so both leave the verified pool until then).
+  The conformance test `tools/audit/test_ontology_conformance.py::
+  test_a_designated_player_is_a_printed_target` lists Massacre Wurm as its one exception
+  (`ontology_conformance.DESIGNATED_PLAYER_EXCEPTIONS`); the fold removes it there.
 - **B-101 [fixer A, 2026-10-30] Protection residues after V44** (one oracle,
   `legality.protected_from`):
   - 702.16n/p ("this effect doesn't remove Auras") has no IR; no compiled card needs it (M15

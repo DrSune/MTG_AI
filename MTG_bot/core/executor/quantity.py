@@ -738,9 +738,16 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     if pred is FAtomPred.IS_RESULT:
         # The object is one the previous instruction acted on, the ``result``
         # register ("they" after "each creature target opponent controls phases
-        # out", Teferi, Timeless Voyager's [-8]).
+        # out", Teferi, Timeless Voyager's [-8]). A read with nothing written is
+        # a missing antecedent: flagged, never an empty set (selectors' referent
+        # lane raises the same way).
         bound = ctx.binding_handles("result")
-        return bound is not None and handle in bound
+        if bound is None:
+            raise NotImplementedError(
+                "executor: filter pred IS_RESULT reads the result register, and no "
+                "instruction before it wrote one"
+            )
+        return handle in bound
     if pred is FAtomPred.TARGETS_SOURCE:
         # Pursued Whale (CR 601.2f cost fold): "Spells your opponents cast
         # that target this creature cost {3} more to cast." The filter asks

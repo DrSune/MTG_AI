@@ -2085,7 +2085,7 @@ class Executor:
         if step == UNTAP:
             assert active is not None
             self._untap_step(active)
-            # "Until your next turn" ends as the turn begins (CR 611.2b); zone
+            # "Until your next turn" ends as the turn begins (CR 611.2a); zone
             # moves "until your next turn" return now (CR 610.3). What they
             # trigger waits for the upkeep (CR 503.1a).
             self.ledger.expire_until_next_turn(active)
