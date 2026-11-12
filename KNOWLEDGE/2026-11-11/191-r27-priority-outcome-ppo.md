@@ -170,3 +170,60 @@ update: a resume replays up to 4 updates.
 
 PLAN_CEILING's measurement windows pause the run with `systemctl --user stop mtg-r27`, which loses
 at most 4 updates. The reads go by update count, so a pause changes nothing in them.
+
+## 7. Launch and the first look (2026-11-12)
+
+**Launch.**
+- `mtg-clock1` started r27 at 03:56:38, after window 1 and the clock's latency
+  (KNOWLEDGE/2026-11-11/192 §8).
+- The launch commit is d6dcdff. It moved twice before launch, and both moves are in
+  `preregistration.json`; neither changes training:
+  - a85403f to f473c44: a flaky PPO test (unseeded minibatch order) was fixed;
+  - f473c44 to d6dcdff: every training game's deal and result goes to `train_rows.jsonl`, the
+    deck critic's data (`docs/PLAN_DRAFTER.md`).
+- The init is u1000.pt, sha256 d71e2b25… The table refresh changed 1 row, M20 added none, and
+  v0 was frozen at 03:56:52.
+
+**The start ladder** (500 deals, both seats, greedy, coherent decks from the verified pool):
+
+| Match | Score | 95% |
+|---|---|---|
+| heuristic against random | 0.916 | [0.900, 0.932] |
+| v0 against random | 0.9695 | [0.959, 0.980] |
+| v0 against the heuristic | **0.6995** | [0.674, 0.725] |
+
+- Elo: random 0, heuristic 424, v0 574.
+- **Prediction 9 is falsified** (0.80-0.90). 192 §7.5 had warned of this before the ladder ran:
+  window 1 measured 0.692 for the same network and code.
+- 192 §7.6 checks the cause in window 2: fp32 against bf16, and the castable pool behind the
+  35/40.
+- No other number in §4 rests on it.
+
+**The look at update 3** (the last row per update):
+
+| Update | 1 | 2 | 3 | Prediction |
+|---|---|---|---|---|
+| `kl` | 0.0048 | 0.0075 | 0.0087 | 3: 0.004-0.009, falsified above 0.02 |
+| `ev` | 0.355 | 0.343 | 0.332 | 6: 401-500 in 0.35-0.50 |
+| `ent` | 0.344 | 0.324 | 0.358 | 4: slope over 2-50, read at 50 |
+| `priority` pass share (PH-9) | 0.779 | 0.792 | 0.782 | 5: 0.70-0.96 |
+| Lowest MemAvailable | 51.0 GiB | 53.2 | 53.9 | 7: above 35 |
+| Update's own time | 113 s | 114 s | 115 s | — |
+| Games | 3,234 | 2,152 | 2,187 | — |
+| Training win rate against the heuristic / frozen v0 | 0.608 / 0.508 | 0.640 / 0.504 | 0.658 / 0.498 | 2: read at 500 |
+
+- The interval between updates was 192 s and 240 s while the start ladders also ran.
+  Prediction 8 (a median of 175-230 s, gate intervals left out) is read once the ladders are out
+  of the window.
+- No non-finite steps and no void games. PH-9 rows are present for every kind of decision.
+- The census's ~0.27 entropy at the start was measured differently: the run's own `ent` starts at
+  0.32-0.36. Prediction 4's slope and level are read against the run's start.
+- **One to watch: the mulligan.**
+  - Its KL from the behaviour policy was 0.006, 0.022 and 0.089 over the first three updates, on
+    about 3,000 decisions per update. That is the largest of any kind.
+  - A mulligan's advantage is the whole game's result less a value that knows little at the
+    start, so its gradient is the noisiest.
+  - r26 logged no rows per kind to compare against.
+- **The critic's data are logging.** `train_rows.jsonl` held 8,567 games by update 3, 84% of them
+  between networks. The decks rebuilt at d6dcdff equal a direct deal (30 of 30 deals checked).
+  The critic's 50,000 games (KNOWLEDGE/2026-11-12/193 G1) arrive at about update 27.
