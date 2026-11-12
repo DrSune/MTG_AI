@@ -304,6 +304,9 @@ class Worker:
         targets = [t for a in agents if getattr(a, "searcher", None) for t in a.searcher.targets]
         if targets:
             res["targets"] = targets
+        audits = [x for a in agents if getattr(a, "searcher", None) for x in a.searcher.audits]
+        if audits:
+            res["audits"] = audits
         res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
         bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
         if any(s is not None for s in bc):

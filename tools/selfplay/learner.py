@@ -472,7 +472,7 @@ class Learner:
                 "blocks": a.search_blocks, "root": a.search_root, "n": a.search_n,
                 "m": a.search_m, "continuation": a.search_continuation,
                 "horizon": a.search_horizon, "kinds": tuple(a.search_kinds.split(",")),
-                "record": a.search_record, "worlds": a.search_worlds}
+                "record": a.search_record, "worlds": a.search_worlds, "audit": a.search_audit}
 
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
@@ -673,6 +673,10 @@ class Learner:
                 row["tag"] = self.eval_meta.get("tag")
                 with (self.run / "eval_rows.jsonl").open("a") as fh:
                     fh.write(json.dumps(row) + "\n")
+                if r.get("audits"):  # --search-audit: world kinds against the true cards
+                    with (self.run / "audits.jsonl").open("a") as fh:
+                        fh.write("".join(json.dumps({"seed": r.get("seed"), **x}) + "\n"
+                                         for x in r["audits"]))
                 if not void and r.get("targets"):
                     for t in r["targets"]:  # the searcher's own result is its value target
                         t["z"] = self.reward(r["outcome"], r["winner"], t["seat"])
@@ -1334,6 +1338,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--search-record", action="store_true",
                    help="keep each searched act or priority decision as a training target, in "
                         "shards of <run>/targets (search.target_record)")
+    p.add_argument("--search-audit", type=int, default=0,
+                   help="also score each searched act decision's top candidates in this many "
+                        "worlds of each kind, uniform, simulator (--search-sim) and the true "
+                        "hidden cards, to <run>/audits.jsonl; never used to choose (192 §7.1)")
     p.add_argument("--search-kinds", default="act",
                    help="ask kinds searched at their own decision, comma-separated: act, priority")
     p.add_argument("--search-k", type=int, default=4, help="options simulated per searched ask (topk)")

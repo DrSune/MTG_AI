@@ -1521,6 +1521,49 @@ def test_simulator_worlds_keep_the_rules_and_the_sizes(table) -> None:
     assert searcher.stats["sim_errors"] == 0
 
 
+def test_the_audit_measures_true_worlds_beside_the_search(table, monkeypatch) -> None:
+    """--search-audit (192 §7.1): a true world plays the opponent's real hidden cards (a uniform
+    one re-draws them); the audit records each kind's means, counts its simulations apart, and
+    leaves the search's own random stream untouched."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.games import TURN_CAP, RandomPolicy, _play, get_supply
+    from MTG_bot.core.state import ZONE_HAND
+    from tools.selfplay import rig, search
+    from tools.selfplay import simulator as S
+
+    supply = get_supply("castable")
+    game = rig._setup_game(7, supply, rig.deal_decks(7, 1409, supply, "coherent"))
+    _play(game, RandomPolicy(0), game.world.player_order, TURN_CAP,
+          stop_after=lambda g, boundary: boundary == "turn_top" and g.world.turn >= 5)
+    opp = game.world.player_order[1]
+
+    def hand(g):
+        return sorted(g.world.cards[h].identity.oracle_id
+                      for h in g.world.players[opp].zone(ZONE_HAND).entries)
+
+    real, seen = hand(game), []
+    play_out = search.play_out
+    monkeypatch.setattr(search, "play_out", lambda clone, *a: seen.append(hand(clone))
+                        or play_out(clone, *a))
+    torch.manual_seed(0)
+    sim = S.Simulator(table, d=32, layers=1, heads=4, ff=64).eval()
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    s = search.Searcher(M.LocalSlot({"learner": net}, sim=(sim, table)), 0, "learner", table,
+                        pool_mode="castable", set_code="M21", seed=0, audit=2)
+    me = game.world.player_order[0]
+    ask = Ask(seat=0, kind="act", site=f"act:{me}:{game.world.turn}", prompt="",
+              options=(Option("PASS", "PASS"),), refuse=0)
+    s.root_pos = (game, 0, ask, FT.AskContext())
+    state = s.rng.getstate()
+    s._audit(game, ask, [0], [1.0], 0, 0)
+    assert s.rng.getstate() == state and s.stats["sims"] == 0 and s.stats["audit_sims"] == 6
+    (rec,) = s.audits
+    assert set(rec["q"]) == {"uniform", "sim", "true"}
+    assert all(len(v) == 1 for v in rec["q"].values())
+    assert len(real) > 0 and seen[4:] == [real, real]  # the two true worlds, played last
+    assert seen[0] != real and s.stats["sim_errors"] == 0
+
+
 def test_distilling_search_targets_moves_the_network_toward_the_better_move(table) -> None:
     """tools/selfplay/distill.py (PLAN_CEILING §6.2): the "se" rule leaves the policy unchanged
     when every compared option had the same result and moves it toward the better one otherwise;

@@ -171,8 +171,8 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 175 passed (2026-11-12: + the training-game log, `--collect`, `model.grow`
-    and the drafter's `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's
+  - Companion numbers: `pytest tools -q` = 176 passed (2026-11-12: + the training-game log, `--collect`, `model.grow`,
+    the search audit and the drafter's `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's
     are), 37 s beside a training run (the ontology
     baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
     `tools/run_scenarios.py` = 743/743.

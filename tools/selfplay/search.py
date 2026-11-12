@@ -94,6 +94,8 @@ CONTINUATIONS = ("greedy", "sampled")
 #: Where a simulation's hidden cards come from: drawn uniformly from the pool, or from the
 #: opponent simulator's beliefs (the learner's --search-sim network).
 WORLDS = ("uniform", "sim")
+#: The candidates an audit scores: the network's top few (``Searcher.audit``).
+AUDIT_M = 4
 #: The ask kinds a searcher can search at their own decision (combat plans are separate).
 SEARCH_KINDS = ("act", "priority")
 #: Gumbel MuZero's sigma: a candidate's mean result q in [-1, 1] enters the logits as
@@ -233,7 +235,7 @@ class Searcher:
                  seed: int = 0, root: str = "topk", n: int = 16, m: int = 16,
                  continuation: str = "greedy", horizon: int = 1,
                  kinds: tuple[str, ...] = ("act",), noise: bool = False,
-                 record: bool = False, worlds: str = "uniform") -> None:
+                 record: bool = False, worlds: str = "uniform", audit: int = 0) -> None:
         if root not in ROOTS or continuation not in CONTINUATIONS or worlds not in WORLDS:
             raise ValueError(f"search root {root!r}, continuation {continuation!r} or worlds "
                              f"{worlds!r} unknown")
@@ -268,19 +270,31 @@ class Searcher:
         self.set_code = set_code
         self.stats: Counter = Counter({"searched": 0, "skipped": 0, "sims": 0, "changed": 0,
                                        "sim_errors": 0})
+        # audit: each searched act decision's top AUDIT_M candidates are also scored in ``audit``
+        # worlds of each kind: uniform, the simulator's, and the true hidden cards (192 §7.1's
+        # deciding test). The true worlds measure; they never choose a move. Their own random
+        # stream leaves the search's worlds as they would be without the audit.
+        self.audit = audit
+        self.audits: list[dict] = []
+        self.audit_rng = random.Random(f"audit:{seed}")
 
-    def draw_worlds(self, count: int) -> list[tuple[Any, float]]:
+    def draw_worlds(self, count: int, kind: str | None = None,
+                    rng: random.Random | None = None) -> list[tuple[Any, float]]:
         """The worlds the candidates of one comparison are played in, with their weights, 1
         each: an engine seed for a uniform re-sample (``determinize``), or with ``worlds="sim"``
         the seed and the opponent's hidden cards drawn by the simulator from the searching
         seat's own view of the decision (``features.sim_view``; the learner's ``sim``
-        requests)."""
-        if self.worlds == "uniform":
-            return [(self.rng.randrange(1 << 31), 1.0) for _ in range(count)]
+        requests). The audit alone asks for ``"true"``: the real hidden cards, only what no
+        player knows reshuffled (``simulate``)."""
+        kind, rng = kind or self.worlds, rng or self.rng
+        if kind == "uniform":
+            return [(rng.randrange(1 << 31), 1.0) for _ in range(count)]
+        if kind == "true":
+            return [(("true", rng.randrange(1 << 31)), 1.0) for _ in range(count)]
         game, seat, ask, ctx = self.root_pos
         view = FT.sim_view(game.executor, seat, ask, self.table, ctx)
         drawn = self.slot.infer((self.gid, seat, "sim", True, False, view, 3, count, self.set_code))
-        return [((self.rng.randrange(1 << 31), hand, lib), 1.0) for hand, lib in drawn]
+        return [((rng.randrange(1 << 31), hand, lib), 1.0) for hand, lib in drawn]
 
     def compare(self, cands: list, logits: list[float], run: Any) -> tuple[int, dict[int, float]]:
         """Choose among ``cands``, whose network log-probabilities are ``logits``: the index of
@@ -369,7 +383,29 @@ class Searcher:
         if self.record:
             self.targets.append(target_record(feats, probs, v0, cands, self.last,
                                               int(cands[pick]), ask.kind, ask.seat))
+        if self.audit and ask.kind == "act":
+            self._audit(obs.game, ask, ranked[:AUDIT_M], probs, int(a0), int(cands[pick]))
         return int(cands[pick])
+
+    def _audit(self, game: Any, ask: Any, top: list[int], probs: list[float], net: int,
+               pick: int) -> None:
+        """The ``audit`` record of one searched act decision: the network's top candidates'
+        mean results in each kind of world, each kind's worlds shared by every candidate (a world
+        where any candidate crashed is dropped for all). Its simulations are counted apart, so
+        the search's own statistics stay comparable."""
+        sims = self.stats["sims"]
+        q = {}
+        for kind in ("uniform", "sim", "true"):
+            worlds = self.draw_worlds(self.audit, kind, self.audit_rng)
+            raw = {i: [self.simulate(game, ask.seat, ask.options[c].token, world=w)
+                       for w, _ in worlds] for i, c in enumerate(top)}
+            means = mean_scores(raw)
+            q[kind] = [means[i] for i in range(len(top))] if means else None
+        self.stats["audit_sims"] += self.stats["sims"] - sims
+        self.stats["sims"] = sims
+        self.audits.append({"seat": ask.seat, "turn": game.world.turn, "cands": top,
+                            "prior": [probs[c] for c in top], "q": q, "net": net, "pick": pick,
+                            "worlds": self.audit})
 
     def plan_attacks(self, game: Any, seat: int, max_plans: int = 6) -> frozenset | None:
         """At the pre-combat boundary: the attack set to declare this combat, or None to let the
@@ -499,8 +535,14 @@ class Searcher:
         every candidate played in one world meets the same hands and the same draws."""
         self.stats["sims"] += 1
         clone = fork_live(game, self.supply)
-        seed, assigned = (world[0], world[1:]) if isinstance(world, tuple) else (world, None)
-        determinize(clone, seat, self.supply, random.Random(seed), assigned)
+        if isinstance(world, tuple) and world[0] == "true":  # the audit's measure, never a choice
+            seed = world[1]
+            rng = random.Random(seed)
+            clone.world.master_seed = rng.randrange(1 << 62)
+            reshuffle_unknown(clone, rng)
+        else:
+            seed, assigned = (world[0], world[1:]) if isinstance(world, tuple) else (world, None)
+            determinize(clone, seat, self.supply, random.Random(seed), assigned)
         sampled = self.continuation == "sampled"
         agents = [SimAgent(self.slot, self.gid, self.spec, self.table,
                            random.Random(f"{seed}:{s}") if sampled else None) for s in (0, 1)]
