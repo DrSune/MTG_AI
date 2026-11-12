@@ -65,3 +65,41 @@ Over audited decisions with at least two candidates and all four kinds scored:
     change which candidate wins;
   - beliefs can then pay only at a longer horizon or with a leaf that reads beliefs. That is a
     design question for the search, not a fault of the simulator.
+
+## 5. Amendment, 2026-11-12 ~13:15: the true worlds keep some unseen cards in place (before any audit number was read)
+
+The bug hunt (KNOWLEDGE/2026-11-12/197) found the following while the audit was running. No
+audit number had been read yet.
+
+**The defect.** `reshuffle_unknown` (search.py at 98a48e9, the code this run uses) is meant to
+reshuffle only what no player knows. It works out what is known from the engine's journal, which
+was never built to record that. It wrongly keeps three kinds of unseen card at their real
+library positions:
+- **After a scry:** the journal records only how many cards were scried, so that many positions
+  stay fixed at both ends of the library until the next shuffle.
+- **After "target opponent reveals their hand"** (Duress, Kitesail Freebooter): the REVEAL atom
+  has no zone role, and its unbounded count is the library idiom. So the journal records the
+  target's whole library as revealed.
+- **After a graveyard-only search's reveal:** the reveal records the library's top card.
+
+**How often.** With heuristic play on this run's own deals (960,000-960,099), 620 of 3,564 act
+decisions (17%) keep an unseen card in place:
+- in 516 of them the pinned card is the top one, i.e. the next draw;
+- in 120 a whole library is pinned.
+
+**What it does to the measures.** In those decisions, the `true` and `true2` worlds share part
+of the real future:
+- A(`true2`) (B1, the ceiling) overstates how far two samples of the truth agree;
+- `true` is partly the realized future, not the real cards in an unknown order;
+- B2 compares `sim` and `uniform` against the same reference, so it is hit less directly, but
+  its reference no longer means what §2 says.
+
+**How it is read.**
+- This run's B1-B3 are scored as registered and reported, marked confounded.
+- They decide nothing.
+- The confirming run decides: the §1 command on fixed code, where the true worlds keep the real
+  hidden cards (the opponent's hand exactly) and reshuffle both libraries completely. The
+  search's uniform worlds already ignore position knowledge: they reshuffle the searcher's own
+  library whole. So every kind is then compared without it.
+- B1-B3 keep their predictions and falsifiers, and §4's readings apply to the confirming run.
+- It runs at r27's next pause.
