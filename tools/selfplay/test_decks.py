@@ -1,6 +1,7 @@
 """The drafter v0's pieces (tools/selfplay/decks.py, docs/PLAN_DRAFTER.md)."""
 
 import json
+import os
 from collections import Counter
 
 import numpy as np
@@ -163,3 +164,140 @@ def test_the_learner_wants_a_critic_for_a_drafted_deck_mode() -> None:
     for bad in (["--eval-decks", "versus:8"], ["--eval-decks", "best", "--draft-critic", "c"]):
         with pytest.raises(SystemExit):
             L.parse(["--run", "x", *bad])
+
+
+# ------------------------------------------------- package mode (tools/selfplay/packages.py)
+
+def _m21():
+    from MTG_bot.core.executor.games import get_supply
+
+    sup = get_supply("verified", "M21")
+    return sup, {sup.metas[c].name: c for c in sup.deckable}
+
+
+def test_package_decks_depend_on_the_deal_seed_alone() -> None:
+    """The same deal gives the same decks whatever the global RNG and the process's string hash
+    seed (each learner worker derives the packages itself); other deals give other decks."""
+    import random
+    import subprocess
+    import sys
+
+    from tools.selfplay import packages as PK
+
+    sup, _ = _m21()
+    random.seed(1)
+    here = [PK.package_decks(s, sup) for s in range(1, 9)]
+    random.seed(2)
+    assert [PK.package_decks(s, sup) for s in range(1, 9)] == here
+    assert len(set(here)) == 8
+    code = ("from MTG_bot.core.executor.games import get_supply\n"
+            "from tools.selfplay import packages as PK\n"
+            "sup = get_supply('verified', 'M21')\n"
+            "print(repr([PK.package_decks(s, sup) for s in range(1, 9)]))")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True,
+                         cwd=D.REPO, env={**os.environ, "PYTHONHASHSEED": "7"}).stdout
+    assert out.strip() == repr(here)
+
+
+def test_package_decks_are_legal_and_carry_their_package() -> None:
+    from MTG_bot.core.executor.games import COHERENT_LANDS, DECK_SIZE, MAX_COPIES
+    from tools.selfplay import packages as PK
+
+    sup, _ = _m21()
+    kept = PK.packages(sup)
+    seen = set()
+    for seed in range(60):
+        pkg, deck = PK.build(seed, sup, kept)
+        seen.add(pkg)
+        n = Counter(deck)
+        basics = [c for c in n if sup.metas[c].is_basic]
+        pair = set().union(*(sup.pool.results[c].card.color_identity for c in basics))
+        assert len(deck) == DECK_SIZE and len(pair) == 2
+        assert sorted(n[c] for c in basics) == [COHERENT_LANDS // 2] * 2
+        for c, k in n.items():
+            if not sup.metas[c].is_basic:
+                assert k <= MAX_COPIES and not sup.metas[c].is_land
+                assert sup.pool.results[c].card.color_identity <= pair
+        held = [c for c in pkg.consumers if sup.pool.results[c].card.color_identity <= pair]
+        assert sum(n[c] for c in pkg.consumers) >= min(PK.CONSUMER_COPIES, MAX_COPIES * len(held))
+        assert sum(n[c] for c in pkg.producers) >= PK.PRODUCER_COPIES  # basics included
+    assert len(seen) > len(kept) // 2  # the deal draws packages, not always the same one
+
+
+def test_a_derived_package_holds_its_consumers_and_producers() -> None:
+    """M21's lifegain package, read off the trees: "whenever you gain life" (Vito) and a granted
+    one (Light of Promise) are consumers; GAIN_LIFE (Revitalize) and lifelink (Baneslayer Angel)
+    produce, a burn spell does not. The flyers package takes a token maker (Falconer Adept's
+    Birds) but not a flyer made for the opponent (Angelic Ascension's Angel)."""
+    from tools.selfplay import packages as PK
+
+    sup, oid = _m21()
+    kept = PK.packages(sup)
+    life = next(p for p in kept if oid["Vito, Thorn of the Dusk Rose"] in p.consumers)
+    assert PK.label(life) == "life" and life.pairs == ("BW",)
+    assert oid["Light of Promise"] in life.consumers
+    assert {oid["Revitalize"], oid["Baneslayer Angel"]} <= set(life.producers)
+    assert oid["Shock"] not in life.producers
+    fly = next(p for p in kept if oid["Watcher of the Spheres"] in p.consumers)
+    assert oid["Falconer Adept"] in fly.producers
+    assert oid["Angelic Ascension"] not in fly.producers
+
+
+def test_an_event_or_predicate_the_table_does_not_read_is_skipped() -> None:
+    from MTG_bot.core.ability_tree import (
+        Atom,
+        AtomArgs,
+        ControllerRef,
+        FAtom,
+        FAtomPred,
+        FNot,
+        LifeGainedEvent,
+        PhasingEvent,
+        QConst,
+        StaticAbility,
+        TriggeredAbility,
+        Verb,
+    )
+    from tools.selfplay import packages as PK
+
+    draw = Atom(Verb.DRAW, AtomArgs((("amount", QConst(1)), ("controller", ControllerRef.YOU))))
+    creature = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+    you = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+    assert PK.shapes(TriggeredAbility(PhasingEvent(True, creature), None, draw)) == set()
+    assert PK.shapes(TriggeredAbility(LifeGainedEvent(you), None, draw)) == {("life", None)}
+    gained = FAtom(FAtomPred.LIFE_GAINED_THIS_TURN_GE, count=QConst(3), who=ControllerRef.YOU)
+    assert PK.shapes(StaticAbility(draw, gained)) == {("life", None)}
+    assert PK.shapes(StaticAbility(draw, FNot(gained))) == set()  # wants no life gained
+
+
+def test_the_learner_deals_a_share_of_coherent_deals_as_package_decks(monkeypatch) -> None:
+    """--package-share: chosen from the deal's seed, so a training deal and an evaluation deal
+    of one seed agree; only coherent training and evaluation deals; and the worker deals them."""
+    from types import SimpleNamespace
+
+    from MTG_bot.core.executor.games import get_supply
+    from tools.selfplay import actor as A
+    from tools.selfplay import features as FT
+    from tools.selfplay import learner as L
+    from tools.selfplay import packages as PK
+
+    me = SimpleNamespace(gid=0, args=SimpleNamespace(package_share=0.5, pool="verified"))
+
+    def mode(kind: str, seed: int, deck_mode: str = "coherent") -> str:
+        return L.Learner._job(me, kind, seed, ["heuristic"] * 2, [True] * 2, [False] * 2,
+                              deck_mode)["deck_mode"]
+
+    train = [mode("train", s) for s in range(400)]
+    assert 150 < train.count("package") < 250
+    assert [mode("eval", s) for s in range(400)] == train
+    assert {mode(k, s) for k in ("bc", "capture") for s in range(50)} == {"coherent"}
+    assert {mode("train", s, "stress") for s in range(50)} == {"stress"}
+    with pytest.raises(SystemExit):
+        L.parse(["--run", "x", "--package-share", "1.5"])
+    seen = []
+    monkeypatch.setattr(A, "play_game", lambda seed, agents, **kw: seen.append(kw["decks"]) or {})
+    job = {"gid": 1, "kind": "eval", "seed": 5, "deck_mode": "package", "set_code": "M21",
+           "pool_mode": "verified", "seats": ["heuristic"] * 2, "greedy": [True] * 2,
+           "record": [False] * 2}
+    A.Worker(0, None, 1, FT.CardTable.from_records({}).to_json()).play(job, None)
+    assert seen == [PK.package_decks(5, get_supply("verified", "M21"))]

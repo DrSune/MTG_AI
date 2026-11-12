@@ -66,6 +66,7 @@ from MTG_bot.core.executor.games import get_supply
 from tools.selfplay import evalrows as ER
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
+from tools.selfplay import packages as PK
 from tools.selfplay import simulator as S
 from tools.selfplay.actor import is_net, worker_main
 from tools.selfplay.ppo import backward_step, pack_buffer, steps
@@ -486,6 +487,9 @@ class Learner:
     def _job(self, kind: str, seed: int, seats: list[str], greedy: list[bool],
              record: list[bool], deck_mode: str) -> dict:
         self.gid += 1
+        if kind in ("train", "eval") and deck_mode == "coherent" and PK.package_deal(
+                seed, self.args.package_share):
+            deck_mode = "package"
         return {"gid": self.gid, "kind": kind, "seed": seed, "seats": seats, "greedy": greedy,
                 "record": record, "deck_mode": deck_mode, "set_code": TRAIN_SET,
                 "pool_mode": self.args.pool}
@@ -1316,6 +1320,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     # opponents
     p.add_argument("--p-heuristic", type=float, default=0.25)
     p.add_argument("--coherent-share", type=float, default=0.5)
+    p.add_argument("--package-share", type=float, default=0.0,
+                   help="the share of coherent training and evaluation deals dealt as synergy-"
+                        "package decks instead (packages.py), chosen from the deal's seed")
     # eval
     p.add_argument("--eval-every", type=int, default=10)
     p.add_argument("--eval-deals", type=int, default=200)
@@ -1433,6 +1440,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
             re.fullmatch(r"(drafted|versus):\d+", args.eval_decks) and args.draft_critic):
         p.error(f"--eval-decks {args.eval_decks!r}: 'coherent', or drafted:K / versus:K with "
                 "--draft-critic")
+    if not 0 <= args.package_share <= 1:
+        p.error(f"--package-share {args.package_share} is not a share")
     return args
 
 
