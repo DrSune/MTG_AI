@@ -20,24 +20,25 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-#: The settings that make two points comparable apart from n (the learner's flags).
-SAME = ("search_root", "search_m", "search_continuation", "search_horizon", "search_kinds",
-        "search_skip_p", "search_blocks", "search_k", "search_d", "init", "opp_ckpt", "pool",
-        "eval_set", "eval_opponents", "eval_seed0")
+from tools.selfplay import evalrows as ER
+
+
+def comparable(args: dict) -> str:
+    """What two points must share to lie on one curve: the evaluated player in everything but
+    n (evalrows.settings: its network, search, precision), its opponent, and the deals."""
+    me = {k: v for k, v in ER.settings(args, args.get("eval_seat", "eval")).items()
+          if k != "search_n"}
+    opp = ER.settings(args, args.get("eval_opponents", "snap:opp"))
+    deals = {k: args.get(k) for k in ("pool", "eval_set", "eval_seed0", "eval_deals",
+                                      "eval_decks")}
+    return json.dumps([me, opp, deals], sort_keys=True, default=str)
 
 
 def point(run: Path) -> dict:
     args = json.loads((run / "manifest.json").read_text())[-1]["args"]
-    summary = [json.loads(line) for line in (run / "metrics.jsonl").read_text().splitlines()
-               if '"event": "eval"' in line][-1]
-    deals: dict = defaultdict(list)
-    for line in (run / "eval_rows.jsonl").read_text().splitlines():
-        r = json.loads(line)
-        if r["outcome"].startswith("void") or r.get("leaky"):
-            continue
-        s = 0.5 if r["outcome"] != "win" else float(r["winner"] == r["a_seat"])
-        deals[(r["seed"], r["deck_mode"])].append(s)
-    scores = [sum(v) / len(v) for v in deals.values()]
+    events = [json.loads(line) for line in (run / "metrics.jsonl").read_text().splitlines()]
+    summary = [e for e in events if e.get("event") == "eval"][-1]
+    scores = list(ER.deal_scores(ER.read(run / "eval_rows.jsonl")).values())
     mean = sum(scores) / len(scores)
     se = math.sqrt(sum((x - mean) ** 2 for x in scores) / (len(scores) - 1) / len(scores))
     st = summary.get("search", {})
@@ -67,7 +68,7 @@ def main(argv: list[str]) -> None:
     pts = [point(Path(r)) for r in argv]
     groups: dict = defaultdict(list)
     for p in pts:
-        groups[tuple(str(p["args"].get(k)) for k in SAME)].append(p)
+        groups[comparable(p["args"])].append(p)
         ms = p["ms"]
         print(f"{p['run']:<28} n {p['n']:>4}  score {p['score']:.4f} +- {p['se']:.4f} "
               f"({p['deals']} deals)  searched/game {p['searched_per_game']}  changed "
@@ -77,7 +78,7 @@ def main(argv: list[str]) -> None:
         if len({p["n"] for p in group}) < 2:
             continue
         slope, se, icpt = fit(group)
-        print(f"fit over {len(group)} points ({dict(zip(SAME[:5], key[:5]))}): "
+        print(f"fit over {len(group)} points ({json.loads(key)[0]}): "
               f"{slope:+.4f} per doubling of n, 95% [{slope - 1.96 * se:+.4f}, "
               f"{slope + 1.96 * se:+.4f}], score {icpt:.4f} at n = 1")
 

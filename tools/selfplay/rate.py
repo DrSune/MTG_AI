@@ -2,15 +2,15 @@
 opponents that never appear in a training league, rated once and then held fixed.
 
 Every input is an evaluation run (``learner.py --eval-only``): its "eval" seat is the network
-``--init``, its opponent ``--opp-ckpt`` (as ``snap:opp``) or a scripted player (``heuristic``,
-``random``), and each deal is played twice with the seats swapped. A seat that searches
-(``eval+search``, ``snap:opp+search``) is its own member, named with its search: the same
-network raw and searched are two players (the pool holds r27's v0 plus search, §7.2).
+``--init``, its opponents ``--opp-ckpt`` (as ``snap:opp``) or scripted players (``heuristic``,
+``random``), and each deal is played twice with the seats swapped. Rows and players are read by
+evalrows: a member is everything that decides how a seat plays (the network, its search when it
+searches, the precision), so the same network raw and searched are two players (the pool holds
+r27's v0 plus search, §7.2), and each game's opponent is its own row's.
 
 - ``fit POOL.json RUN...``: Bradley-Terry ratings of the pool's members from games among them
   (``learner.fit_elo``, uniform random play = 0 when it is a member, else the first by name),
   once.
-  A member is a checkpoint path or a scripted player's name.
 - ``rate POOL.json RUN...``: one player's Elo against the frozen ratings, by maximum likelihood,
   with a 95% interval from a bootstrap over deals (the deal is the independent unit). A joint
   refit would move every rating whenever the pool grows; held fixed, two players rated a week
@@ -30,41 +30,22 @@ from pathlib import Path
 
 import numpy as np
 
-from tools.selfplay.actor import SEARCH_SUFFIX
+from tools.selfplay import evalrows as ER
 from tools.selfplay.learner import fit_elo
 
-SCRIPTED = ("heuristic", "random")
 
-
-def member(name: str, seat: str, args: dict) -> str:
-    """A pool member's name: a checkpoint's path or a scripted player's name, with the search it
-    plays with when ``seat`` searches."""
-    if seat.endswith(SEARCH_SUFFIX):
-        return f"{name}{SEARCH_SUFFIX}:{args['search_root']}:n{args['search_n']}"
-    return name
-
-
-def games(run: Path) -> tuple[str, str, list[tuple[int, float]]]:
-    """(player, opponent, [(deal seed, the player's score)]) of one evaluation run."""
+def games(run: Path) -> list[tuple[str, str, tuple, float]]:
+    """One evaluation run's games, as (player, opponent, deal, the player's score): both games of
+    each valid deal (evalrows: a void game drops its deal, a re-written row replaces the old),
+    each player named by evalrows.member and each opponent from its own row."""
     args = json.loads((run / "manifest.json").read_text())[-1]["args"]
-    opp = args["eval_opponents"]
-    base = opp.removesuffix(SEARCH_SUFFIX)
-    base = args["opp_ckpt"] if base == "snap:opp" else base
-    out = []
-    for line in (run / "eval_rows.jsonl").read_text().splitlines():
-        r = json.loads(line)
-        if r["outcome"].startswith("void") or r.get("leaky"):
-            continue
-        s = 0.5 if r["outcome"] != "win" else float(r["winner"] == r["a_seat"])
-        out.append((r["seed"], s))
-    return member(args["init"], args.get("eval_seat", "eval"), args), member(base, opp, args), out
+    me = ER.member(args, args.get("eval_seat", "eval"))
+    return [(me, ER.member(args, r.get("opp") or args["eval_opponents"]), deal, ER.score(r))
+            for deal, g in ER.valid(ER.read(run / "eval_rows.jsonl")).items() for r in g.values()]
 
 
 def fit(runs: list[Path]) -> dict[str, float]:
-    rows = []
-    for run in runs:
-        a, b, gs = games(run)
-        rows += [(a, b, s) for _, s in gs]
+    rows = [(a, b, s) for run in runs for a, b, _, s in games(run)]
     members = {x for a, b, _ in rows for x in (a, b)}
     anchor = "random" if "random" in members else min(members)
     return fit_elo(rows, anchor=anchor)
@@ -92,12 +73,11 @@ def rate(pool: dict[str, float], runs: list[Path], reps: int = 200) -> dict:
     by_deal: dict = defaultdict(list)  # (opponent, deal) -> the player's scores
     players = set()
     for run in runs:
-        a, b, gs = games(run)
-        if b not in pool:
-            raise ValueError(f"{run}: opponent {b!r} is not in the pool")
-        players.add(a)
-        for seed, s in gs:
-            by_deal[(b, seed)].append(s)
+        for a, b, deal, s in games(run):
+            if b not in pool:
+                raise ValueError(f"{run}: opponent {b!r} is not in the pool")
+            players.add(a)
+            by_deal[(b, deal)].append(s)
     if len(players) != 1:
         raise ValueError(f"the runs rate {len(players)} players, not one")
     deals = list(by_deal)

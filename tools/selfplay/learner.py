@@ -63,6 +63,7 @@ import torch
 import torch.nn.functional as F
 
 from MTG_bot.core.executor.games import get_supply
+from tools.selfplay import evalrows as ER
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay import simulator as S
@@ -887,34 +888,19 @@ class Learner:
                     search_stats.update(st)
         out = {"event": "eval", **self.eval_meta, "secs": round(time.time() - self.eval_meta["t0"], 1)}
         for opp, rows in by_opp.items():
-            pairs: dict[tuple, list] = defaultdict(list)
-            for r in rows:
-                pairs[(r["seed"], r["deck_mode"])].append(r)
-            score = n = 0.0
-            voids = 0
+            games = ER.by_deal(rows)  # evalrows' rules: a void or leaky game voids its deal
+            ok = ER.valid(games)
+            voids = sum(len(g) for k, g in games.items() if k not in ok)
+            played = [r for g in ok.values() for r in g.values()]
             by_mode: dict[str, list] = defaultdict(lambda: [0.0, 0])
-            turns = []
-            deal_scores = []
-            for prs in pairs.values():
-                if any(p["outcome"].startswith("void") or p.get("leaky", 0) for p in prs):
-                    voids += len(prs)
-                    continue
-                deal = 0.0
-                for p in prs:
-                    a_seat = p["a_seat"]
-                    if p["outcome"] == "win":
-                        s = 1.0 if p["winner"] == a_seat else 0.0
-                    else:
-                        s = 0.5
-                    score += s
-                    deal += s
-                    n += 1
-                    by_mode[p["deck_mode"]][0] += s
-                    by_mode[p["deck_mode"]][1] += 1
-                    turns.append(p["turns"])
-                deal_scores.append(deal / len(prs))
-            out[opp] = {"score": round(score / max(n, 1), 4), "n": int(n),
-                        "ci95": deal_interval(deal_scores), "voids": voids,
+            for r in played:
+                by_mode[r["deck_mode"]][0] += ER.score(r)
+                by_mode[r["deck_mode"]][1] += 1
+            n = len(played)
+            turns = [r["turns"] for r in played]
+            out[opp] = {"score": round(sum(ER.score(r) for r in played) / max(n, 1), 4), "n": n,
+                        "ci95": deal_interval(list(ER.deal_scores(games).values())),
+                        "voids": voids,
                         "by_mode": {m: round(v[0] / max(v[1], 1), 4) for m, v in by_mode.items()},
                         "turns": round(float(np.mean(turns)) if turns else 0.0, 1)}
         if search_stats:
@@ -1047,18 +1033,9 @@ class Learner:
         self.eval_queue.append((kind, tag, seat, opponents, deals, seed0))
 
     def _eval_rows_as_games(self, player: str) -> list[tuple[str, str, float]]:
-        """The finished evaluation's games as (player, opponent, score), voided pairs dropped."""
-        pairs: dict[tuple, list] = defaultdict(list)
-        for r in self.eval_rows:
-            pairs[(r.get("opp"), r["seed"], r["deck_mode"])].append(r)
-        out = []
-        for prs in pairs.values():
-            if any(p["outcome"].startswith("void") or p.get("leaky", 0) for p in prs):
-                continue
-            for p in prs:
-                sc = 0.5 if p["outcome"] != "win" else (1.0 if p["winner"] == p["a_seat"] else 0.0)
-                out.append((player, p["opp"], sc))
-        return out
+        """The finished evaluation's games of valid deals as (player, opponent, score)."""
+        return [(player, r["opp"], ER.score(r))
+                for g in ER.valid(ER.by_deal(self.eval_rows)).values() for r in g.values()]
 
     def _log_elo(self) -> None:
         elo = fit_elo(self.elo_games, anchor="random")

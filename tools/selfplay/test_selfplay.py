@@ -1798,22 +1798,59 @@ def test_a_player_is_rated_against_frozen_pool_ratings(tmp_path) -> None:
         d = tmp_path / name
         d.mkdir()
         args = {"init": init, "eval_opponents": opps, "opp_ckpt": opp, "eval_seat": seat,
-                "search_root": "gumbel", "search_n": 4}
+                "search_root": "gumbel", "search_n": 4, "infer_bf16": True}
         (d / "manifest.json").write_text(json.dumps([{"args": args}]))
         rows = [{"seed": i // 2, "a_seat": i % 2, "outcome": "win",
                  "winner": i % 2 if w else 1 - i % 2} for i, w in enumerate(wins)]
         (d / "eval_rows.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
         return d
 
+    a, b = "a.pt+precision=bf16", "b.pt+precision=bf16"  # evalrows.member
     ratings = R.fit([run("ab", "a.pt", "b.pt", [1, 1, 1, 0] * 25)])  # a scores 0.75 against b
-    assert ratings["a.pt"] == 0.0 and -200 < ratings["b.pt"] < -180
-    pool = {"a.pt": 0.0, "b.pt": 400.0}
+    assert ratings[a] == 0.0 and -200 < ratings[b] < -180
+    pool = {a: 0.0, b: 400.0}
     out = R.rate(pool, [run("pa", "p.pt", "a.pt", [1, 0] * 50),
                         run("pb", "p.pt", "b.pt", [1, 0] * 50)])
-    assert out["player"] == "p.pt" and out["elo"] == pytest.approx(200, abs=0.5)
+    assert out["player"] == "p.pt+precision=bf16" and out["elo"] == pytest.approx(200, abs=0.5)
     assert out["ci95"][0] <= 200 <= out["ci95"][1] and out["deals"] == 100
     # a searching seat is its own member: the same network searched is another player
-    me, opp, _ = R.games(run("sa", "a.pt", "b.pt", [1, 0], seat="eval+search",
-                             opps="snap:opp+search"))
-    assert me == "a.pt+search:gumbel:n4" and opp == "b.pt+search:gumbel:n4"
-    assert R.games(run("ha", "a.pt", "", [1, 0], opps="heuristic"))[1] == "heuristic"
+    ((me, opp, _, _), _), = [R.games(run("sa", "a.pt", "b.pt", [1, 0], seat="eval+search",
+                                         opps="snap:opp+search"))]
+    assert me.startswith("a.pt+root=gumbel") and opp.startswith("b.pt+root=gumbel")
+    assert "+n=4+" in me and "+n=4+" in opp
+    assert R.games(run("ha", "a.pt", "", [1, 0], opps="heuristic"))[0][1] == "heuristic"
+
+
+def test_one_reading_of_evaluation_rows_and_one_name_per_player(tmp_path) -> None:
+    """evalrows, the rules every scorer shares (197: five copies had drifted): a void game drops
+    its whole deal, a re-written row replaces the old one, each game's opponent is its own row's,
+    and two seats differing in anything that changes play are different players."""
+    import json
+
+    from tools.selfplay import evalrows as ER
+    from tools.selfplay import ncurve
+
+    def row(seed, a_seat, won, opp="heuristic", outcome="win"):
+        return {"seed": seed, "deck_mode": "coherent", "a_seat": a_seat, "opp": opp,
+                "outcome": outcome, "winner": a_seat if won else 1 - a_seat, "tag": "t"}
+
+    rows = [row(1, 0, True), row(1, 1, False), row(2, 0, True), row(2, 1, True, outcome="void-crash"),
+            row(3, 0, False), row(3, 1, False), row(3, 1, True),  # deal 3's seat 1, re-written
+            row(4, 0, True, opp="random")]  # one game of a deal: not a deal yet
+    path = tmp_path / "eval_rows.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    scores = ER.deal_scores(ER.read(path))
+    assert {k[3]: v for k, v in scores.items()} == {1: 0.5, 3: 0.5}
+    args = {"init": "a.pt", "opp_ckpt": "b.pt", "search_root": "gumbel", "search_n": 16,
+            "search_m": 16, "search_worlds": "uniform", "search_horizon": 1, "infer_bf16": True}
+    base = ER.member(args, "eval+search")
+    assert base != ER.member({**args, "search_horizon": 2}, "eval+search")
+    assert base != ER.member({**args, "search_worlds": "sim", "search_sim": "s.pt"}, "eval+search")
+    assert base != ER.member({**args, "infer_bf16": False}, "eval+search")
+    assert ER.member(args, "eval") == "a.pt+precision=bf16"
+    assert ER.member(args, "snap:opp+search").startswith("b.pt+")
+    # the n-curve fits only points that differ in n alone
+    assert ncurve.comparable({**args, "eval_seat": "eval+search"}) == ncurve.comparable(
+        {**args, "eval_seat": "eval+search", "search_n": 64})
+    assert ncurve.comparable({**args, "eval_seat": "eval+search"}) != ncurve.comparable(
+        {**args, "eval_seat": "eval+search", "search_worlds": "sim"})
