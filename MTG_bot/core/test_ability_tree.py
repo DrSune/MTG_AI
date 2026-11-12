@@ -31,7 +31,6 @@ import MTG_bot.core.ability_tree as at
 # Valid oracle ids (36-char UUID shape — see core/identity.py).
 _OID1 = "01020304-0506-4708-890a-0b0c0d0e0f10"
 _OID2 = "11111111-2222-4333-8444-555555555555"
-_OID2B = "21212121-3232-4444-8555-666666666666"
 _OID3 = "31313131-4242-4555-8666-777777777777"
 
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
@@ -117,7 +116,8 @@ def _tarmogoyf_like(subtype: str = "Bird") -> at.CardRecord:
     )
 
 
-def _emblem_record() -> at.CardRecord:
+def _emblem() -> at.EmblemSpec:
+    """Garruk, Unleashed's emblem: its one triggered ability."""
     search = at.Atom(
         at.Verb.SEARCH,
         at.AtomArgs(
@@ -141,21 +141,7 @@ def _emblem_record() -> at.CardRecord:
             pairs=(("zone", at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)),)
         ),
     )
-    return at.CardRecord(
-        oracle_id=_OID2B,
-        name="Garruk, Unleashed Emblem",
-        type_line="Emblem",
-        types=("Emblem",),
-        subtypes=(),
-        supertypes=(),
-        colors=(),
-        color_identity=frozenset(),
-        mana_cost=None,
-        mana_value=0,
-        power=None,
-        toughness=None,
-        loyalty=None,
-        keywords=(),
+    return at.EmblemSpec(
         abilities=(
             at.TriggeredAbility(
                 at.TurnPhaseEvent(
@@ -166,13 +152,19 @@ def _emblem_record() -> at.CardRecord:
                 at.OptionalEffect(at.Seq((search, shuffle))),
             ),
         ),
-        is_token=True,
+    )
+
+
+def _get_emblem() -> at.Atom:
+    return at.Atom(
+        at.Verb.GET_EMBLEM,
+        at.AtomArgs(pairs=(("emblem", _emblem()), ("controller", at.ControllerRef.YOU))),
     )
 
 
 def _pw_with_emblem() -> at.CardRecord:
-    """A planeswalker: loyalty, two loyalty-cost activated abilities, and
-    the emblem embedded as a nested CardRecord."""
+    """A planeswalker: loyalty, three loyalty-cost activated abilities, the
+    last making an emblem (its abilities ride the GET_EMBLEM)."""
     beast = at.TokenSpec(
         name="Beast",
         type_line="Token Creature — Beast",
@@ -223,9 +215,9 @@ def _pw_with_emblem() -> at.CardRecord:
         abilities=(
             at.ActivatedAbility(at.Cost(parts=(at.CostLoyalty(1),)), create),
             at.ActivatedAbility(at.Cost(parts=(at.CostLoyalty(-2),)), put),
+            at.ActivatedAbility(at.Cost(parts=(at.CostLoyalty(-7),)), _get_emblem()),
         ),
         is_token=False,
-        emblem=_emblem_record(),
     )
 
 
@@ -1050,7 +1042,7 @@ def test_immutability() -> None:
     with pytest.raises(FrozenInstanceError):
         _simple_card().name = "other"  # type: ignore[misc]
     with pytest.raises(FrozenInstanceError):
-        _tarmogoyf_like().emblem = _simple_card()  # type: ignore[misc]
+        _emblem().abilities = ()  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------------------
@@ -1400,27 +1392,14 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
                 is_token=False,
             ),
         ),
+        ("EmblemSpec with no ability", lambda: at.EmblemSpec(abilities=())),
         (
-            "CardRecord emblem on non-PW",
-            lambda: at.CardRecord(
-                oracle_id=_OID1,
-                name="X",
-                type_line="Creature — Cat",
-                types=("Creature",),
-                subtypes=("Cat",),
-                supertypes=(),
-                colors=(),
-                color_identity=frozenset(),
-                mana_cost=None,
-                mana_value=0,
-                power=q,
-                toughness=q,
-                loyalty=None,
-                keywords=(),
-                abilities=(),
-                is_token=False,
-                emblem=_emblem_record(),
-            ),
+            "EmblemSpec with an activated ability",
+            lambda: at.EmblemSpec(abilities=(at.ActivatedAbility(at.Cost(), _get_emblem()),)),
+        ),
+        (
+            "GET_EMBLEM without who gets it",
+            lambda: at.Atom(at.Verb.GET_EMBLEM, at.AtomArgs(pairs=(("emblem", _emblem()),))),
         ),
         (
             "CardRecord bad colour",
@@ -1656,24 +1635,22 @@ def test_synthetic_tarmogoyf_like() -> None:
 def test_synthetic_planeswalker_with_emblem() -> None:
     card = _pw_with_emblem()
     assert card.loyalty == 4
-    assert card.emblem is not None
-    assert card.emblem.is_token is True
-    assert card.emblem.types == ("Emblem",)
-    assert card.emblem.oracle_id == _OID2B
+    emblem = card.abilities[2].effect.args.get("emblem")  # type: ignore[union-attr]
+    assert emblem == _emblem()
+    assert isinstance(emblem.abilities[0], at.TriggeredAbility)
     # loyalty costs in both directions
     costs = [a.cost for a in card.abilities if isinstance(a, at.ActivatedAbility)]
-    assert len(costs) == 2
+    assert len(costs) == 3
     assert any(
         isinstance(p, at.CostLoyalty) and p.delta == 1 for c in costs for p in c.parts
     )
     assert any(
         isinstance(p, at.CostLoyalty) and p.delta == -2 for c in costs for p in c.parts
     )
-    # round-trip (including the nested emblem) + stable fingerprint
+    # round-trip (including the emblem's abilities) + stable fingerprint
     d = at.to_dict(card)
     back = at.from_dict("CardRecord", d)
     assert back == card
-    assert back.emblem == card.emblem
     assert at.fingerprint(card) == at.fingerprint(back)
     assert at.canonical_json(card) == at.canonical_json(_pw_with_emblem())
 

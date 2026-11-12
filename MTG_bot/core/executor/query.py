@@ -66,6 +66,7 @@ from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
+    _FOREIGN_ABILITY_NODES,
     ActivatedAbility,
     Atom,
     Choose,
@@ -1409,7 +1410,10 @@ def spell_target_slots(
             return slots
         return _affordable_target_slots(executor, [aura], spell_handle, seat, pay)
     player_refs: set[ControllerRef] = set()
-    for inner in walk(node.effect):
+    # Another ability's targets are its own (a granted ability's, a token's or an emblem's
+    # abilities', a delayed trigger's): chosen as that ability is activated or put on the stack
+    # (CR 602.2b, 603.3d), never as this one is.
+    for inner in walk(node.effect, skip=_FOREIGN_ABILITY_NODES):
         player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue
@@ -1541,7 +1545,7 @@ def _designation_only_slot(
     Without it the ability would be activated with no designation and do
     nothing. Single-target by construction: every such encoding in M21/ZNR/FDN
     prints one target."""
-    for inner in walk(effect):
+    for inner in walk(effect, skip=_FOREIGN_ABILITY_NODES):
         if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
             continue
         found = combat_target_filters(inner.args.get("event"))
@@ -1586,7 +1590,9 @@ def activation_target_slots(
     if effect is None:
         return slots
     player_refs: set[ControllerRef] = set()
-    for inner in walk(effect):
+    # Another ability's targets are its own (Sorin, Vampire Lord's -8 grants "{T}: Gain control
+    # of target creature"; an emblem's abilities): spell_target_slots' rule.
+    for inner in walk(effect, skip=_FOREIGN_ABILITY_NODES):
         player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue

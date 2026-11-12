@@ -827,7 +827,7 @@ class LayerRegistry:
         # CR 704.5d), unless its duration is a condition read off the source.
         if (
             layer.source not in world.cards
-            and layer.source not in self.executor.emblems.values()
+            and layer.source not in self.executor.emblems
             and (not layer.resolved or isinstance(layer.duration, DurationWhileCondition))
         ):
             return False

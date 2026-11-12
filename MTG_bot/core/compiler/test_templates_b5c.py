@@ -3,10 +3,11 @@
 Covers all 91 distinct concrete sentences in
 ``/tmp/opencode/phase1_buckets/B5c.json``:
 
-- 90 sentences template-covered by 87 templates
+- 87 sentences template-covered by 86 templates
   (``B5c-bullet-gain-life`` matches both "You gain 3 life." and
-  "You gain 4 life."; ``B5c-get-emblem`` matches three emblem rows)
-- 1 sentence UNCOVERED (recorded in UNCOVERED)
+  "You gain 4 life.")
+- 4 sentences UNCOVERED (recorded in UNCOVERED): the phase-in prevention and the three emblem
+  rows are compiler built-ins (``compiler._emblem_sentences`` compiles an emblem's quote)
 - 0 rule-reminder shapes (B5c has no RR category)
 
 Every concrete sentence fullmatches at most one template.
@@ -267,8 +268,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         '[−6]: You get an emblem with "At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control."',
-        "COVERED",
-        "B5c-get-emblem",
+        "UNCOV",
+        "",
     ),
     (
         "[−7]: Target opponent loses 2 life for each creature card in their graveyard.",
@@ -282,13 +283,13 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     (
         '[−7]: You get an emblem with "At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control.',
-        "COVERED",
-        "B5c-get-emblem",
+        "UNCOV",
+        "",
     ),
     (
         '[−7]: You get an emblem with "At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle."',
-        "COVERED",
-        "B5c-get-emblem",
+        "UNCOV",
+        "",
     ),
     (
         "[−8]: Discard your hand, then draw seven cards.",
@@ -563,7 +564,6 @@ for _t in _EXPECTED_ACTIVATED:
     EXPECTED_KIND_BY_TID[_t] = "activated"
 # Four more ActivatedAbility rows + the Sanctum CostModifier sibling.
 for _t in (
-    "B5c-get-emblem",
     "B5c-loyalty-soldier-attack-tokens",
     "B5c-waive-cast-from-hand",
     "B5c-play-cards-exiled-this-way",
@@ -847,7 +847,7 @@ class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
     def test_87_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 87)
+        self.assertEqual(len(TEMPLATES), 86)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -862,10 +862,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 87)
+        self.assertEqual(len(_REG), 86)
 
-    def test_uncovered_has_1_row(self) -> None:
-        self.assertEqual(len(UNCOVERED), 1)
+    def test_uncovered_has_4_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 4)
 
 
 # ---------------------------------------------------------------------------
@@ -887,17 +887,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 90, f"COVERED count {covered} != 90")
-        self.assertEqual(uncov, 1, f"UNCOV count {uncov} != 1")
+        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
+        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_87(self) -> None:
+    def test_covered_tids_valid_and_unique_86(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            87,
-            f"expected 87 unique tids, got {len(unique_tids)}",
+            86,
+            f"expected 86 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -981,7 +981,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 87)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 86)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -997,7 +997,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
         self.assertEqual(kinds.count("effect"), 28)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 51)
+        self.assertEqual(kinds.count("activated"), 50)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
         self.assertEqual(kinds.count("ability:CostModifier"), 1)
 
@@ -1585,8 +1585,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            87,
-            f"only {len(seen)} unique tids tested, expected 87",
+            86,
+            f"only {len(seen)} unique tids tested, expected 86",
         )
 
 
@@ -1642,7 +1642,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 89)
+        self.assertEqual(len(covered), 86)
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):

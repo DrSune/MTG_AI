@@ -1,9 +1,11 @@
 """Tests for the B5b bucket templates (templates_b5b.py).
 
 Every concrete sentence of ``/tmp/opencode/phase1_buckets/B5b.json`` is either
-template-covered or uncovered, and fullmatches at most one template. The one
-uncovered row, "If you search your library this way, shuffle.", is built into
-the compiler (test_compiler.py::TestContinuation::test_search_shuffle_*).
+template-covered or uncovered, and fullmatches at most one template. The two
+uncovered rows are built into the compiler: "If you search your library this way,
+shuffle." (test_compiler.py::TestContinuation::test_search_shuffle_*) and 'It gains
+haste."', the rest of Liliana, Waker of the Dead's emblem quote
+(compiler._emblem_sentences compiles the whole quote).
 """
 
 from __future__ import annotations
@@ -218,7 +220,7 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
     ),
     ("It gains haste until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     ("It gains haste.", "COVERED", "B5b-it-gains-haste"),
-    ('It gains haste."', "COVERED", "B5b-gains-haste-emblem-residue"),
+    ('It gains haste."', "UNCOV", ""),
     ("It gains indestructible until end of turn.", "COVERED", "B5b-it-gains-kw-eot"),
     (
         "It gains protection from the color of your choice until end of turn.",
@@ -511,8 +513,7 @@ def _inner_node(outcome: SentenceOutcome) -> Any:
     if isinstance(outcome, KeywordOutcome):
         return KeywordAbility(keyword=outcome.keyword, params=outcome.params)
     if isinstance(outcome, RuleReminderOutcome):
-        # directive and marker rows (Round up, emblem-quote residue) carry
-        # only their reason string.
+        # directive rows (Round up) carry only their reason string.
         return outcome.reason
     if isinstance(outcome, KickerEffectOutcome):
         # a conditional "instead" arm (Life Goes On) is serialised as the
@@ -597,7 +598,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
     def test_80_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 80)
+        self.assertEqual(len(TEMPLATES), 79)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -613,7 +614,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 80)
+        self.assertEqual(len(reg), 79)
 
 
 # ---------------------------------------------------------------------------
@@ -634,14 +635,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 90, f"COVERED count {covered} != 90")
-        self.assertEqual(uncov, 1, f"UNCOV count {uncov} != 1")
+        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
+        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
 
-    def test_covered_tids_valid_and_unique_80(self) -> None:
+    def test_covered_tids_valid_and_unique_79(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 80, f"expected 80 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 79, f"expected 79 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1564,7 +1565,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 80, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 79, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------

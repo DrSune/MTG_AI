@@ -39,10 +39,10 @@ Design decisions (each pinned by tests in test_ability_tree*.py):
   ``{T}:`` in the pool), generic/coloured/hybrid mana, life, sacrifice,
   discard, put-counter (Mazemind Tome's page-counter cost), loyalty (the
   only signed cost). Empty ``Cost()`` is a free activation.
-- **Emblem**: ``CardRecord.emblem: Optional[CardRecord]`` — embedded in its
-  planeswalker's record (Basri Ket's emblem). One-directional and
-  validated: only a Planeswalker may carry an emblem; the emblem is an
-  Emblem-typed token record that itself carries no emblem.
+- **Emblem**: ``GET_EMBLEM(emblem=EmblemSpec(abilities), controller=<who
+  gets it>)`` — the emblem's abilities ride the atom that creates it (CR
+  114.1-114.3: an emblem has no characteristics but its abilities), so the
+  card that makes an emblem shows what the emblem does.
 - **Selector.count by mode**: TARGET exact, CHOOSE up-to (``QUnbounded`` =
   any number), ALL ignores count (the compiler writes ``QConst(1)``),
   RANDOM exact; TARGET/RANDOM with ``QUnbounded`` are rejected.
@@ -193,10 +193,12 @@ class Verb(Enum):
         "LOSE_ABILITY"  # "that permanent loses indestructible" (Soul
         # Sear) — mirrors GRANT_ABILITY's roles.
     )
-    # GET_EMBLEM: "you get an emblem with '…'" (Teferi, Master of Time
-    # [-X]). A MARKER verb with NO roles: the emblem payload is the
-    # card-level emblem record that ``compile_pool`` attaches to its
-    # planeswalker, so the quoted emblem text NEVER enters the ability IR.
+    # GET_EMBLEM: "[player] gets an emblem with '…'" (CR 114.2; Basri Ket's
+    # [−6], Mu Yanling, Sky Dancer's [−8]). `emblem` = the EmblemSpec, its
+    # abilities; `controller` = who gets it, as for LOSE_LIFE ("you" YOU, "each
+    # opponent" ALL_OPPONENTS, "target opponent" TARGET_OPPONENT). Each one
+    # puts a new emblem into the command zone, owned and controlled by that
+    # player.
     GET_EMBLEM = "GET_EMBLEM"
     # ADD_LAND_PLAY: "You may play two additional lands on each of your
     # turns" (Azusa, Lost but Seeking). `count` = the additional plays,
@@ -2284,6 +2286,33 @@ class TokenSpec:
             object.__setattr__(self, "colors", colors)
 
 
+@dataclass(frozen=True)
+class EmblemSpec:
+    """The emblem a GET_EMBLEM creates (CR 114.1-114.3): a marker with no characteristics other
+    than its abilities, so its abilities are all it holds. They are the emblem's own, compiled
+    from the quoted text like any card's (``abilities`` keeps printed order); their "you" is the
+    emblem's owner (CR 114.2), and they function in the command zone (CR 114.4). Each GET_EMBLEM
+    puts a new emblem with them into the command zone.
+
+    The abilities are those the engine runs from the command zone
+    (``binding.TriggerBinder.bind_emblem``): triggered, static and replacement abilities. An
+    activated ability (no emblem of the 19 sets has one) would never be offered, so it is
+    refused."""
+
+    abilities: tuple[Ability, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.abilities, tuple) or not self.abilities:
+            raise ValueError("EmblemSpec: an emblem has at least one ability (CR 114.1)")
+        for ability in self.abilities:
+            if not isinstance(ability, _EMBLEM_ABILITY_TYPES):
+                raise ValueError(
+                    "EmblemSpec: an emblem's abilities are triggered, static or replacement "
+                    "abilities (the ones the engine runs from the command zone), got "
+                    f"{type(ability).__name__}"
+                )
+
+
 # ---- Costs ----
 
 
@@ -3372,20 +3401,6 @@ class EtBState:
 
 
 @dataclass(frozen=True)
-class EmblemAbility:
-    """An emblem's embedded ability — emblems carry triggered/static
-    abilities of their own (the Basri Ket / Garruk / Liliana emblems)."""
-
-    embedded: Ability
-
-    def __post_init__(self) -> None:
-        if not _is_ability(self.embedded):
-            raise ValueError(
-                f"EmblemAbility: embedded must be an Ability, got {type(self.embedded).__name__}"
-            )
-
-
-@dataclass(frozen=True)
 class KickerAbility:
     """A kicker head sentence (ZNR): the optional extra cost a
     spell may be cast for. NOT a CostModifier — the printed cost is never
@@ -3446,7 +3461,6 @@ Ability = (
     | ReplacementAbility
     | CostModifier
     | EtBState
-    | EmblemAbility
     | KickerAbility
     | BackFace
 )
@@ -3493,9 +3507,8 @@ class CardRecord:
     compiled abilities. P/T are Optional[Quantity]: a creature with
     dynamic P/T (Tarmogoyf-class, the Weird token) carries None plus a
     SET_PT ability; a non-creature can never carry P/T. `loyalty` is the
-    starting loyalty (an ability, not P/T). `emblem` embeds
-    the card's emblem as a nested CardRecord; the link is one-directional
-    (the emblem does not point back) and validated in __post_init__.
+    starting loyalty (an ability, not P/T). An emblem the card makes rides
+    its GET_EMBLEM atom (EmblemSpec).
     """
 
     oracle_id: str
@@ -3514,7 +3527,6 @@ class CardRecord:
     keywords: tuple[KeywordAbility, ...]
     abilities: tuple[Ability, ...]
     is_token: bool
-    emblem: CardRecord | None = None
 
     def __post_init__(self) -> None:
         validate_oracle_id(self.oracle_id)
@@ -3588,19 +3600,6 @@ class CardRecord:
             raise ValueError(
                 f"CardRecord: is_token must be a bool, got {self.is_token!r}"
             )
-        if self.emblem is not None:
-            if not isinstance(self.emblem, CardRecord):
-                raise ValueError(
-                    f"CardRecord: emblem must be a CardRecord, got {type(self.emblem).__name__}"
-                )
-            if "Planeswalker" not in self.types:
-                raise ValueError("CardRecord: only a Planeswalker may carry an emblem")
-            if "Emblem" not in self.emblem.types or not self.emblem.is_token:
-                raise ValueError(
-                    "CardRecord: emblem must be an Emblem-typed token record"
-                )
-            if self.emblem.emblem is not None:
-                raise ValueError("CardRecord: an emblem cannot carry an emblem")
         # Granted keywords are a membership SET — ``keyword_of`` scans and
         # same-timestamp layers re-order by layer rules (layers'
         # ``_rebuild_maps`` sorts them), so the wording order of "vigilance,
@@ -3650,10 +3649,10 @@ _A_CLASSES = (
     ReplacementAbility,
     CostModifier,
     EtBState,
-    EmblemAbility,
     KickerAbility,
     BackFace,
 )
+_EMBLEM_ABILITY_TYPES = (TriggeredAbility, StaticAbility, ReplacementAbility)
 _EV_CLASSES = (
     ZoneChangeEvent,
     CastSpellEvent,
@@ -3904,6 +3903,8 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "destination": (Zone,),
     "zone": (Zone,),
     "tokens": (TokenSpec,),
+    # emblem: GET_EMBLEM's emblem, its abilities (EmblemSpec).
+    "emblem": (EmblemSpec,),
     "card_spec": (LiteralName,),
     "duration": _D_CLASSES,
     "ability": _A_CLASSES,
@@ -4117,8 +4118,8 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.FIGHT: {"target": True},
     # LOSE_ABILITY mirrors GRANT_ABILITY's roles exactly.
     Verb.LOSE_ABILITY: {"target": True, "ability": True, "duration": False},
-    # GET_EMBLEM: NO roles (see the Verb member).
-    Verb.GET_EMBLEM: {},
+    # GET_EMBLEM: the emblem and the player(s) who get one each (see the Verb member).
+    Verb.GET_EMBLEM: {"emblem": True, "controller": True},
     # ADD_LAND_PLAY: `count` = the number of additional plays, `duration`
     # scopes the grant (DurationPermanent for "on each of your turns").
     Verb.ADD_LAND_PLAY: {"count": False, "duration": False},
@@ -4241,6 +4242,7 @@ _DATACLASSES: tuple[type, ...] = (
     LiteralName,
     PtDelta,
     TokenSpec,
+    EmblemSpec,
     CostTap,
     CostManaColor,
     CostManaGeneric,
@@ -4273,7 +4275,6 @@ _DATACLASSES: tuple[type, ...] = (
     ReplacementAbility,
     CostModifier,
     EtBState,
-    EmblemAbility,
     KickerAbility,
     BackFace,
     CardRecord,
@@ -4422,6 +4423,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("enters_tapped", "opt:bool"),
         ("enters_attacking", "opt:bool"),
     ),
+    "EmblemSpec": (("abilities", "tup:ability"),),
     "CostTap": (("target", "opt:selector"),),
     "CostManaColor": (("color", "str"), ("amount", "quantity")),
     "CostManaGeneric": (("amount", "quantity"),),
@@ -4500,7 +4502,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("effect", "opt:effect"),
     ),
     "KickerAbility": (("cost", "cost"),),
-    "EmblemAbility": (("embedded", "ability"),),
     # A face with no abilities serializes as {face_name} only (its text
     # lives in the unparsed register, never in a fake tree).
     "BackFace": (("face_name", "str"), ("abilities", "tup:ability")),
@@ -4521,7 +4522,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("keywords", "tup:keyword_ability"),
         ("abilities", "tup:ability"),
         ("is_token", "bool"),
-        ("emblem", "opt:card"),
     ),
 }
 
@@ -4563,7 +4563,6 @@ _ABILITY_TAGS = frozenset(
         "ReplacementAbility",
         "CostModifier",
         "EtBState",
-        "EmblemAbility",
         "KickerAbility",
         "BackFace",
     }
@@ -4637,6 +4636,7 @@ _ATOM_VALUE_TAGS = (
             "Selector",
             "Zone",
             "TokenSpec",
+            "EmblemSpec",
             "LiteralName",
             "PtDelta",
             "ControllerRef",
@@ -4663,7 +4663,6 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
     "cost_part": _COST_PART_TAGS,
     "cost_delta": _COST_DELTA_TAGS,
     "token": frozenset({"TokenSpec"}),
-    "card": frozenset({"CardRecord"}),
     "keyword_ability": frozenset({"KeywordAbility"}),
     "keyword_param": _KEYWORD_PARAM_TAGS,
     "atom_args": frozenset({"AtomArgs"}),
@@ -4972,7 +4971,7 @@ def fingerprint(node: Any) -> str:
 def walk(node: Any, *, skip: type | tuple[type, ...] = ()) -> Iterator[Any]:
     """Yield every dataclass grammar node in `node`'s tree, pre-order —
     the card record first, then every child node (effects, selectors,
-    zones, quantities, filters, events, costs, tokens, the emblem). Enum
+    zones, quantities, filters, events, costs, tokens, emblems). Enum
     and scalar leaves are not yielded (their parent handles them). This is
     the instrument both the executor and the EC-2 unhandled-node-rate
     measurement (docs/METRICS.md §3) walk the tree with.

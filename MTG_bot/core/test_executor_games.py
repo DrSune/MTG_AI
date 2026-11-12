@@ -2028,7 +2028,6 @@ class AuraEffectlessLegalityTest(unittest.TestCase):
         return PoolCompile(
             cards={_SNARE_OID: record},
             emblems={},
-            orphan_emblems=(),
             results={
                 _SNARE_OID: CompileResult(
                     card=record,
@@ -2265,7 +2264,6 @@ class StallRuleTest(unittest.TestCase):
         pool = PoolCompile(
             cards={_STALL_OID: record},
             emblems={},
-            orphan_emblems=(),
             results={
                 _STALL_OID: CompileResult(
                     card=record,

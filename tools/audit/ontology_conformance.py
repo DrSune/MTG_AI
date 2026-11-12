@@ -503,8 +503,6 @@ def _live_shapes(cards_by_set):
             if oid in skip:
                 continue
             abilities = list(card.abilities) + list(card.keywords)
-            if card.emblem is not None:
-                abilities += list(card.emblem.abilities) + list(card.emblem.keywords)
             for ab in abilities:
                 sig = sig_struct(ab)
                 sigs.add(sig)

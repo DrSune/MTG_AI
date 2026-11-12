@@ -4,10 +4,9 @@ Bucket input: ``/tmp/opencode/phase1_buckets/B5c.json`` (normalized shape
 keys → ``[card, sentence]`` pairs; sentences carry *concrete* numbers, keys
 carry ``N`` placeholders).  Templates fullmatch the **concrete** oracle
 sentence, never the normalized key. One template may cover several
-concrete variants: ``• You gain N life.``, and the emblem marker covers
-every ``[−N]: You get an emblem with "…"`` shape (the quoted text stays out
-of the IR; the card-level emblem attach is the payload). The shapes no
-template covers are in ``UNCOVERED``.
+concrete variants: ``• You gain N life.`` (``[−N]: You get an emblem with "…"`` is the
+compiler's own step, ``compiler._emblem_sentences``: the quote compiles as the emblem's text).
+The shapes no template covers are in ``UNCOVERED``.
 
 Conventions:
 
@@ -2285,16 +2284,6 @@ def _build_then_it_fights_up_to_one(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=atom)
 
 
-def _build_get_emblem(m: re.Match[str]) -> SentenceOutcome:
-    """``[−N]: You get an emblem with "…".`` (Basri Ket / Liliana, Waker of
-    the Dead / Garruk, Unleashed — one template for all three).
-
-    Verb.GET_EMBLEM is a role-less marker: the quoted inner text never
-    enters the ability IR. The emblem's own abilities are the payload, the
-    emblem record compile_pool links to the card."""
-    return _loyalty_wrapper(Atom(verb=Verb.GET_EMBLEM, args=AtomArgs(pairs=())), m)
-
-
 def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     """``[−2]: Whenever one or more nontoken creatures attack this turn,
     create that many 1/1 white Soldier creature tokens that are tapped and
@@ -3364,16 +3353,6 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_then_that_creature_damage_power,
     ),
     Template(
-        tid="B5c-get-emblem",
-        name="loyalty: you get an emblem with (marker, C19)",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r'^\[(?P<loy>\+\d+|\u2212\d+)\]: You get an emblem with ".+$'
-        ),
-        priority=_PRIORITY,
-        build=_build_get_emblem,
-    ),
-    Template(
         tid="B5c-loyalty-soldier-attack-tokens",
         name="loyalty: nontoken attackers this turn make that many tapped/attacking Soldier tokens (Basri Ket)",
         bucket=_BUCKET,
@@ -3460,9 +3439,28 @@ TEMPLATES: tuple[Template, ...] = (
 # UNCOVERED: the shapes no template covers, as (shape_key, reason) rows
 # ---------------------------------------------------------------------------
 
+_EMBLEM_BUILT_IN = (
+    "Emblem (compiler built-in, compiler._emblem_sentences: the quote compiles as the emblem's own "
+    "text into GET_EMBLEM's EmblemSpec)"
+)
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "Until the end of your next turn, they can't phase in.",
         "Phase-in prevention (compiler built-in; merged into preceding loyalty activation)",
+    ),
+    (
+        '[−N]: You get an emblem with "At the beginning of combat on your turn, create a N/N white '
+        'Soldier creature token, then put a +N/+N counter on each creature you control."',
+        _EMBLEM_BUILT_IN,
+    ),
+    (
+        '[−N]: You get an emblem with "At the beginning of combat on your turn, put target creature '
+        "card from a graveyard onto the battlefield under your control.",
+        _EMBLEM_BUILT_IN,
+    ),
+    (
+        '[−N]: You get an emblem with "At the beginning of your end step, you may search your '
+        'library for a creature card, put it onto the battlefield, then shuffle."',
+        _EMBLEM_BUILT_IN,
     ),
 )

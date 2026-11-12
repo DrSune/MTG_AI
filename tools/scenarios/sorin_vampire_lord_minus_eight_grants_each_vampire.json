@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "sorin_vampire_lord_minus_eight_grants_each_vampire",
+ "notes": "Printed: '[-8]: Until end of turn, each Vampire you control gains \"{T}: Gain control of target creature.\"' The -8 itself targets nothing: the target belongs to the granted ability, chosen when a Vampire activates it (CR 602.2b). Sorin at 8 loyalty uses the -8 from his controller's menu, which asks no target; his controller's Vampire then taps to gain control of the opponent's Bear; the opponent's Vampire gets nothing. Before 2026-11-12 the -8's activation opened the granted ability's 'target creature' slot as its own and granted the ability to the creature designated there instead of to each Vampire (query.activation_target_slots walked into the granted ability): the menu's -8 asks a target there, and the pack has no word for it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sorin", "real": "Sorin, Vampire Lord", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Night Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "their_vamp", "name": "Day Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "sorin", "set": 8, "seat": 0},
+  {"op": "act", "seat": 0, "words": ["act:sorin:2"]},
+  {"op": "activate", "key": "their_vamp", "idx": -1, "seat": 1, "targets": ["vamp"], "expect_raise": "has no granted ability"},
+  {"op": "activate", "key": "vamp", "idx": -1, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"sorin": "graveyard", "vamp": "battlefield", "bear": "battlefield"},
+  "controller": {"bear": 0, "their_vamp": 1, "vamp": 0},
+  "tapped": {"vamp": true, "their_vamp": false}
+ }
+}

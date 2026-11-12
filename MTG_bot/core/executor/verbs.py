@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationPermanent,
     DurationUntilLeaves,
+    EmblemSpec,
     EventSpec,
     FAnd,
     FAtom,
@@ -59,6 +60,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    canonical_json,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.offers import offer_or_autopick
@@ -2116,43 +2118,48 @@ def _v_mana_policy(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), "MANA_POLICY", str(ctx.source), scope))
 
 
-def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
-    """GET_EMBLEM: the emblem is a nested
-    ``CardRecord`` on the SOURCE's compiled record (the compiler links
-    owner -> emblem one-directionally), so the handler resolves the record
-    through the binder bridge and hands the emblem record to the binder's
-    emblem path (:meth:`binding.TriggerBinder.bind_emblem`) under a
-    synthetic executor-owned handle. The emblem is NOT a world card — it
-    never enters a zone; its triggers bind to the OWNER and its statics
-    anchor to the OWNER (the emblem's "you"). CR 113.7: getting a second
-    copy of the same emblem does nothing — the (owner, emblem oid) table is
-    the idempotence gate, recorded as a duplicate event, never a rebind."""
-    executor = _executor_or_raise(ctx, atom.verb.name)
-    record = executor.binder.handle_record.get(ctx.source)
-    if record is None:
-        state = ctx.world.cards.get(ctx.source)
-        if state is not None:
-            record = executor.binder.records.get(state.identity.oracle_id)
-    if record is None:
-        raise ValueError(
-            f"executor: GET_EMBLEM source {ctx.source} has no compiled record "
-            "to carry an emblem (attach the permanent or register its oracle)"
-        )
-    if record.emblem is None:
-        raise ValueError(
-            f"executor: {record.name} carries no emblem record — the compiler "
-            "found no paired emblem card (orphan flag, not a guess)"
-        )
-    granted = executor.get_emblem(ctx.controller, record.emblem)
-    ctx.events.append(
-        (
-            len(ctx.events),
-            "GET_EMBLEM",
-            str(ctx.source),
-            record.emblem.oracle_id,
-            str(granted) if granted is not None else "duplicate",
-        )
+def emblem_record(spec: EmblemSpec, source_name: str) -> CardRecord:
+    """The record an emblem binds under (``binding.TriggerBinder.bind_emblem``): the spec's
+    abilities and nothing else (CR 114.3), under a deterministic uuid-shaped hash of the spec, so
+    one emblem text is one record whichever card makes it. The name is a label for traces only
+    (an emblem has no name, CR 114.3)."""
+    digest = hashlib.sha256(("mtg-emblem:" + canonical_json(spec)).encode()).hexdigest()
+    return CardRecord(
+        oracle_id=f"{digest[:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}",
+        name=f"{source_name} Emblem",
+        type_line="Emblem",
+        types=("Emblem",),
+        subtypes=(),
+        supertypes=(),
+        colors=(),
+        color_identity=frozenset(),
+        mana_cost=None,
+        mana_value=0,
+        power=None,
+        toughness=None,
+        loyalty=None,
+        keywords=(),
+        abilities=spec.abilities,
+        is_token=True,
     )
+
+
+def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
+    """GET_EMBLEM (CR 114.2): each player the ``controller`` role names gets an emblem with the
+    EmblemSpec's abilities, which that player owns and controls: "you" (YOU), "each opponent"
+    (ALL_OPPONENTS), "target opponent" (the designation). Every GET_EMBLEM puts a NEW emblem into
+    the command zone, so a second one works beside the first (Chandra, Awakened Inferno's +2,
+    used again, makes another). The emblem is not a world card: it is executor state under a
+    synthetic handle, and its owner is its "you" (:meth:`binding.TriggerBinder.bind_emblem`: its
+    triggers bind to the owner, its statics anchor to the owner, its replacements register)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    spec = atom.args.get("emblem")
+    assert isinstance(spec, EmblemSpec)  # Atom validation guarantees it
+    source = ctx.world.cards.get(ctx.source)
+    record = emblem_record(spec, source.identity.name if source is not None else "Card")
+    for player in sorted(role_players(ctx, atom)):
+        handle = executor.get_emblem(player, record)
+        ctx.events.append((len(ctx.events), "GET_EMBLEM", str(ctx.source), str(player), str(handle)))
 
 
 def _v_grant_type(ctx: ExecCtx, atom: Atom) -> None:

@@ -2408,16 +2408,6 @@ def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=gated)
 
 
-def _build_it_gains_haste_emblem_residue(m: re.Match[str]) -> SentenceOutcome:
-    """``It gains haste."`` (Liliana, Waker of the Dead): sentence-splitter
-    residue, the second sentence of the [−7]'s quoted emblem text.
-
-    Consumed as a RuleReminderOutcome: the haste grant is already compiled
-    inside the attached emblem by ``B5b-it-gains-haste``, so granting it at
-    the planeswalker's card level would duplicate it outside the emblem."""
-    return RuleReminderOutcome(reason="emblem_text_payload_attached")
-
-
 def _build_spend_this_mana_is_or_sorcery(m: re.Match[str]) -> SentenceOutcome:
     """``Spend this mana only to cast an instant or sorcery spell.``
     (Vodalian Arcanist) — Verb.MANA_POLICY with scope "THIS_MANA" (the
@@ -3249,14 +3239,6 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_then_if_opponent_more_creatures,
-    ),
-    Template(
-        tid="B5b-gains-haste-emblem-residue",
-        name='it gains haste." (emblem-quote residue marker, C19)',
-        bucket=_BUCKET,
-        pattern=re.compile(r'^It gains haste\."$'),
-        priority=_PRIORITY,
-        build=_build_it_gains_haste_emblem_residue,
     ),
     Template(
         tid="B5b-spend-this-mana-is-or-sorcery",
