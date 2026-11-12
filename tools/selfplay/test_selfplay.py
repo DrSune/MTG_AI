@@ -1635,10 +1635,12 @@ def test_a_player_is_rated_against_frozen_pool_ratings(tmp_path) -> None:
 
     from tools.selfplay import rate as R
 
-    def run(name: str, init: str, opp: str, wins: list[float]) -> Path:
+    def run(name: str, init: str, opp: str, wins: list[float], seat: str = "eval",
+            opps: str = "snap:opp") -> Path:
         d = tmp_path / name
         d.mkdir()
-        args = {"init": init, "eval_opponents": "snap:opp", "opp_ckpt": opp}
+        args = {"init": init, "eval_opponents": opps, "opp_ckpt": opp, "eval_seat": seat,
+                "search_root": "gumbel", "search_n": 4}
         (d / "manifest.json").write_text(json.dumps([{"args": args}]))
         rows = [{"seed": i // 2, "a_seat": i % 2, "outcome": "win",
                  "winner": i % 2 if w else 1 - i % 2} for i, w in enumerate(wins)]
@@ -1652,3 +1654,8 @@ def test_a_player_is_rated_against_frozen_pool_ratings(tmp_path) -> None:
                         run("pb", "p.pt", "b.pt", [1, 0] * 50)])
     assert out["player"] == "p.pt" and out["elo"] == pytest.approx(200, abs=0.5)
     assert out["ci95"][0] <= 200 <= out["ci95"][1] and out["deals"] == 100
+    # a searching seat is its own member: the same network searched is another player
+    me, opp, _ = R.games(run("sa", "a.pt", "b.pt", [1, 0], seat="eval+search",
+                             opps="snap:opp+search"))
+    assert me == "a.pt+search:gumbel:n4" and opp == "b.pt+search:gumbel:n4"
+    assert R.games(run("ha", "a.pt", "", [1, 0], opps="heuristic"))[1] == "heuristic"

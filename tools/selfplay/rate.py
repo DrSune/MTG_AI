@@ -3,7 +3,9 @@ opponents that never appear in a training league, rated once and then held fixed
 
 Every input is an evaluation run (``learner.py --eval-only``): its "eval" seat is the network
 ``--init``, its opponent ``--opp-ckpt`` (as ``snap:opp``) or a scripted player (``heuristic``,
-``random``), and each deal is played twice with the seats swapped.
+``random``), and each deal is played twice with the seats swapped. A seat that searches
+(``eval+search``, ``snap:opp+search``) is its own member, named with its search: the same
+network raw and searched are two players (the pool holds r27's v0 plus search, §7.2).
 
 - ``fit POOL.json RUN...``: Bradley-Terry ratings of the pool's members from games among them
   (``learner.fit_elo``, uniform random play = 0 when it is a member, else the first by name),
@@ -28,16 +30,26 @@ from pathlib import Path
 
 import numpy as np
 
+from tools.selfplay.actor import SEARCH_SUFFIX
 from tools.selfplay.learner import fit_elo
 
 SCRIPTED = ("heuristic", "random")
+
+
+def member(name: str, seat: str, args: dict) -> str:
+    """A pool member's name: a checkpoint's path or a scripted player's name, with the search it
+    plays with when ``seat`` searches."""
+    if seat.endswith(SEARCH_SUFFIX):
+        return f"{name}{SEARCH_SUFFIX}:{args['search_root']}:n{args['search_n']}"
+    return name
 
 
 def games(run: Path) -> tuple[str, str, list[tuple[int, float]]]:
     """(player, opponent, [(deal seed, the player's score)]) of one evaluation run."""
     args = json.loads((run / "manifest.json").read_text())[-1]["args"]
     opp = args["eval_opponents"]
-    opp = args["opp_ckpt"] if opp == "snap:opp" else opp
+    base = opp.removesuffix(SEARCH_SUFFIX)
+    base = args["opp_ckpt"] if base == "snap:opp" else base
     out = []
     for line in (run / "eval_rows.jsonl").read_text().splitlines():
         r = json.loads(line)
@@ -45,7 +57,7 @@ def games(run: Path) -> tuple[str, str, list[tuple[int, float]]]:
             continue
         s = 0.5 if r["outcome"] != "win" else float(r["winner"] == r["a_seat"])
         out.append((r["seed"], s))
-    return args["init"], opp, out
+    return member(args["init"], args.get("eval_seat", "eval"), args), member(base, opp, args), out
 
 
 def fit(runs: list[Path]) -> dict[str, float]:
