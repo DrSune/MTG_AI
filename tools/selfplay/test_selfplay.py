@@ -539,6 +539,29 @@ def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> 
     assert not deals(1) & deals(2)
 
 
+def test_every_training_game_is_logged_with_its_deal(table, tmp_path, monkeypatch) -> None:
+    """train_rows.jsonl gets one row per finished training game, a void one included: the deal
+    (seed, deck mode, set), who played and the result, from which the deck critic rebuilds both
+    decks (docs/PLAN_DRAFTER.md §3)."""
+    import json
+
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    lr = L.Learner(L.parse(["--run", str(tmp_path / "run"), "--device", "cpu", "--d", "32",
+                            "--layers", "1", "--heads", "4", "--ff", "64"]))
+    lr.it = 7
+    deal = {"kind": "train", "seed": 11, "deck_mode": "coherent", "set_code": "M20",
+            "seats": ["learner", "v1"], "turns": 9}
+    lr.on_done([{**deal, "gid": 1, "outcome": "win", "winner": 0},
+                {**deal, "gid": 2, "outcome": "void-crash", "winner": None}])
+    rows = [json.loads(x) for x in (tmp_path / "run" / "train_rows.jsonl").read_text().splitlines()]
+    assert [(r["gid"], r["it"], r["seed"], r["deck_mode"], r["set_code"], r["seats"],
+             r["outcome"], r["winner"]) for r in rows] == [
+        (1, 7, 11, "coherent", "M20", ["learner", "v1"], "win", 0),
+        (2, 7, 11, "coherent", "M20", ["learner", "v1"], "void-crash", None)]
+
+
 def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
     """One file can hold rows without set and pool beside rows with them."""
     import json

@@ -642,6 +642,7 @@ class Learner:
         return 0.0  # draw-mutual
 
     def on_done(self, results: list) -> None:
+        train_rows = []
         for r in results:
             kind = r["kind"]
             # A leaky ask (CHOOSE_NAME lists hidden cards) voids an EVALUATION pair (bench rule,
@@ -657,6 +658,9 @@ class Learner:
                     self.counts[f"crash:{str(r['crash'])[:60]}"] += 1
             if kind == "train":
                 self._finish_train(r, void)
+                train_rows.append({"it": self.it, **{k: r.get(k) for k in (
+                    "gid", "seed", "deck_mode", "set_code", "seats", "outcome", "winner",
+                    "turns")}})
             elif kind == "eval":
                 self.eval_rows.append(r)
                 self.eval_pending.discard(r["gid"])
@@ -688,6 +692,9 @@ class Learner:
                         z = self.reward(r["outcome"], r["winner"], seat)
                         for feats, act in r["bc"][seat] or []:
                             self.bc.append((feats, act, z, r["gid"]))
+        if train_rows:  # every training game's deal and result: the deck critic's data
+            with (self.run / "train_rows.jsonl").open("a") as fh:  # (docs/PLAN_DRAFTER.md §3)
+                fh.write("".join(json.dumps(x) + "\n" for x in train_rows))
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args

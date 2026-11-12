@@ -271,44 +271,56 @@ the searcher's later moves knows that world's cards: strategy fusion (OWNER_VISI
 - **Launch**: after r26's registered read at update 1,000 (about 18:00 on 2026-11-11), r26 stops
   and r27 starts.
 
-### 4.1 Does another network size improve faster? (owner, 2026-11-12)
+### 4.1 Does another network size help? (owner, 2026-11-12)
 
 The owner asked to watch how fast r27 improves at first, and to test network sizes for it.
 
-- **The arm.**
-  - r27's network is 8 layers, d 512, 27.8M parameters.
-  - The arm is the same network grown to 16 layers. The new layers are inserted one after each old
-    layer, with their attention and feed-forward output projections zeroed.
-  - The encoder's layers are pre-norm (`model.py:63-65`), so each new layer is exactly the
-    identity at the start, and the grown network plays exactly as u1000 does. A test checks that
-    its outputs equal u1000's.
-  - It then trains with r27's command unchanged, in its own run directory.
-- **Why depth, and why not smaller.**
-  - Depth can be grown without changing what the network computes, so both arms start at the
-    same strength and only the size differs.
-  - A smaller network cannot start at u1000's strength without copying its policy, which D8 warns
-    against. It is left for later, if the bigger arm learns faster.
-- **When.**
-  - r27 runs its first 8 hours, then pauses (its log records the pause).
-  - The arm runs 8 hours.
-  - Then both 8-hour networks play u1000 on the same 1,000 fresh deals, seats swapped, paired by
-    deal.
-  - Then r27 resumes. The pause costs r27 about 8.5 hours.
+**The first design, and why it was dropped (red team, 2026-11-12).**
+- It grew u1000 to 16 layers and ran r27's command from it for 8 hours, against r27's first 8.
+- The growth itself is sound. The new layers, with every output weight and bias zeroed, leave the
+  network's outputs bitwise equal on 96 real decisions, in fp32, in the bf16 inference copy and
+  under PPO's autocast.
+- But the arm measures update count, not size:
+  - PPO at r27's learning rate moves weights slowly. r26's attention and feed-forward output
+    weights moved 1.2e-3 RMS by update 202 and 2.5e-3 by update 1,000, against trained weights of
+    about 0.02.
+  - New layers start at zero and would reach about 4% of a trained layer in 8 hours. Their inner
+    weights see gradients near AdamW's eps.
+  - The grown arm makes about half the updates per hour, which alone puts it 0.01-0.02 behind.
+- Any outcome would have said nothing about size.
+
+**The test instead: does a bigger network fit what r27 has to learn?** It takes one GPU window of
+about 1.5 hours, pre-registered in a KNOWLEDGE note first.
+- **Data:** about 1M decisions of r27's v0 playing itself on the new game, with each game's result
+  and the behaviour probabilities. Every 25th game is held out.
+- **Three networks from u1000.** Each is fine-tuned on the same data for the same steps with a
+  supervised loss: the value to the result, the policy to the behaviour probabilities.
+  - u1000 as it is: 8 layers.
+  - u1000 grown to 16 layers. The new layers start as the identity; distinct random inner weights
+    and zeroed outputs and biases.
+  - u1000 with the feed-forward width doubled. The new units start as the identity (zeroed
+    outgoing weights), and it adds no sequential depth.
 - **Read:**
-  - each arm's paired score against u1000 at 8 hours, and the difference between the arms, paired
-    by deal;
-  - updates per hour;
-  - the gates' scores against hours;
-  - `win.heuristic` against hours.
-- **Pre-registered** in a KNOWLEDGE note before the arm starts. My expectation is no difference
-  detectable at 8 hours (within ±0.02). In PPO's audit the gradient's noise, not the network's
-  size, limited each update: about 2.2M decisions to half signal, against 139k per update. The
-  grown arm also makes fewer updates per hour.
+  - held-out value explained variance, by game phase. The value's accuracy limits the search: in
+    PPO's audit it explained 5% of the outcome's variance early in a game, 28% mid-game and 88%
+    late;
+  - held-out policy NLL, against steps;
+  - the peak memory of one training step at each size. 16 layers add about 16 GiB at r27's token
+    budget;
+  - the inference cost per decision.
 - **What it means:**
-  - If the grown arm is ahead by 0.02 or more with its lower bound above 0, a run from the grown
-    network is pre-registered as r28.
-  - If r27 is ahead by as much, a smaller network gets its own test.
-  - If neither, size is not the lever at this stage, and r27 goes on.
+  - If a bigger network fits the held-out value clearly better (the bar is set in the
+    pre-registration, about +0.02 explained variance mid-game), capacity limits the value
+    function. A run from that network is then pre-registered as r28. It is compared with r27 at
+    matched update counts, and its gain is priced against the search's latency: twice the depth
+    halves the n that fits a clock (search.py:321), and doubles F0/F1's costs.
+  - If not, size is not the lever at this stage.
+
+**r27's early speed** is read from its own logs and saved networks, without pausing it:
+- its gates against v0 at updates 25, 50, 75 and 100 (paired over 1,000 deals, a standard error of
+  about 0.006);
+- `win.heuristic` per 10 updates;
+- how far its weights move per update.
 
 ## 5. The simulator, trained at every level of the search (owner §5, §10, 2026-11-11)
 
@@ -728,8 +740,8 @@ scores highest, and its fine-tuning reward is the rise of L its decks bring.
 | 2026-11-11 ~18:00 | r26's read at 1,000; r26 stops | — |
 | window 1, the night of 2026-11-11 (before r27; KNOWLEDGE 192) | the n-curve pilot and points, gate A's confirmation, the simulator recaptured and trained, the n = 16 variants | — |
 | then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")** |
-| 2026-11-12, after r27's first 8 hours | §4.1's size arm, 8 hours; then both arms' paired evaluation; then r27 resumes | the drafter v0 (`PLAN_DRAFTER.md`), on CPU beside the runs |
-| a window of about 1 hour | drafted-deck games (PLAN_DRAFTER G2-G4) | — |
+| 2026-11-12 | r27 | its early speed (§4.1); the capacity probe and the drafter v0 (`PLAN_DRAFTER.md`) built and tested on CPU, beside r27 |
+| a window of about 2.5 hours, r27 paused (the pause logged) | §4.1's capacity probe; drafted-deck games (PLAN_DRAFTER G2-G4) | — |
 | days 4-6 | r27; then, if gate A passed, gate B's generation and probe (~15 h, with the tools already built) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
 | days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (review at 14 machine-days) | the exploiter; the held-out pool's ratings |
 | then ~2 weeks | H1 and its control, about a week each, from when F1 is at least +200 Elo above r27 | — |
