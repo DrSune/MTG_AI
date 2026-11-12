@@ -2305,10 +2305,12 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     and still works after Basri Ket is gone (a -2 at 2 loyalty kills him,
     CR 704.5i).
 
-    "Nontoken" is FNot(IS_TOKEN), which also keeps the created tokens from
-    feeding the trigger. "One or more" is intrinsic to a filtered event
-    firing; the token count is QProp(event, THAT_MANY_COUNT). The TokenSpec
-    is white and enters tapped and attacking."""
+    "Nontoken" is FNot(IS_TOKEN). "One or more" is once_per_event: one
+    trigger per declaration (CR 603.2c), and the token count is
+    QProp(event, THAT_MANY_COUNT), the declared attackers the event names.
+    The TokenSpec is white and enters tapped and attacking; a creature put
+    onto the battlefield attacking never attacked (CR 508.4), so the
+    Soldiers cannot feed the trigger."""
     p = int(m.group("p"))
     t = int(m.group("t"))
     delayed = DelayedTrigger(
@@ -2349,6 +2351,7 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
+        once_per_event=True,
     )
     return _loyalty_wrapper(delayed, m)
 

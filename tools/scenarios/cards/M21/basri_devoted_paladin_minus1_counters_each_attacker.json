@@ -1,0 +1,16 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-103. Printed: '[-1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.' A creature attacking is one occurrence per attacker (CR 508.3a, 603.2c), so the delayed trigger triggers once for each declared attacker, 'it' being that attacker. The Wolf and the Bear attack, the Ox stays home: one counter each on the Wolf and the Bear, none on the Ox, and seat 1 takes 3 + 3 = 6 (20 -> 14). Before the fix the binder queued one instance per declaration, so only the first attacker got a counter and seat 1 ended at 15.",
+ "cards": [
+  {"key": "basri", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature — Ox", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"wolf": true, "bear": true, "ox": false}}
+ ],
+ "expect": {
+  "counters": {"wolf": {"PLUS_1_PLUS_1": 1}, "bear": {"PLUS_1_PLUS_1": 1}, "ox": {}, "basri": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 14}
+ }}

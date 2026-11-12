@@ -1,0 +1,19 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sub", "real": "Subira, Tulzidi Caravanner", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "My Cub", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ox", "name": "My Ox", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "h1", "name": "Hand Card A", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "lib1", "name": "Library Card A", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "lib2", "name": "Library Card B", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "lib3", "name": "Library Card C", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "cub": true, "ox": true}}
+ ],
+ "expect": {"zone": {"h1": "graveyard"}, "tapped": {"sub": true}, "hand": {"0": 2}, "life": {"1": 14}},
+ "notes": "B-103's damage side (per dealer stays per dealer). Printed: '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.' 'A creature ... deals combat damage' is one occurrence per creature (CR 603.2c, no once_per_event), so the Bear and the Cub, connecting in the same combat damage step, draw a card each; the Ox (power 3) draws none. The hand goes 0 -> 2 and seat 1 takes 2 + 1 + 3 (20 -> 14). Read once per step, the trigger would draw one card: this pack kills G3's 'each occurrence -> once per event' mutant."}

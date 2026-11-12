@@ -67,6 +67,7 @@ from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
 from MTG_bot.core.executor.decisions import in_trigger_order, site_digest
+from MTG_bot.core.executor.events import KIND_CREATURE_DIES, GameEvent
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -885,6 +886,44 @@ class TestRaises(BindingCase):
             self.attach_trigger(self.watch, DamageDealtEvent(QConst(1), UNIV), gain(1)),
             1,
         )
+
+    def test_once_per_event_binds_only_where_the_binder_groups_an_event(self):
+        # CR 603.2c: the binder gathers one event's occurrences for a
+        # declaration and a combat damage step. A once-per-event trigger on
+        # any other event would trigger per occurrence, so it raises on bind.
+        def once(event):
+            rec = self.record_for(
+                self.watch, [TriggeredAbility(event, None, gain(1), once_per_event=True)]
+            )
+            return self.ex.attach_card(self.watch, rec)
+
+        self.assertEqual(once(DeclareAttackersEvent(filter=UNIV)), 1)
+        self.assertEqual(
+            once(DamageDealtEvent(QUnbounded(), UNIV, source=UNIV, combat=True)), 1
+        )
+        with self.assertRaises(NotImplementedError):
+            once(CreatureDiesEvent(filter=UNIV))
+        # "Whenever this creature attacks" holds one attacker per declaration: the
+        # flag would be a second encoding, so the IR refuses it before any bind.
+        with self.assertRaises(ValueError):
+            once(DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)))
+
+    def test_once_per_event_refused_when_scheduled_and_when_a_never_bound_one_triggers(self):
+        # A flagged delayed trigger on an event the binder does not group is
+        # refused as it is scheduled; one never bound (a GRANT_ABILITY grant)
+        # is refused as it triggers, before it can fire per occurrence.
+        dies = CreatureDiesEvent(filter=UNIV)
+        with self.assertRaises(NotImplementedError):
+            self.ex.binder.schedule_delayed(
+                DelayedTrigger(DurationEot(), dies, None, gain(1), True), self.watch, self.p0
+            )
+        self.assertEqual(self.ex.binder.delayed, [])
+        granted = TriggeredAbility(dies, None, gain(1), once_per_event=True)
+        row = GameEvent(clock=1, kind=KIND_CREATURE_DIES, subject=self.watch, cause=None,
+                        cause_verb="DESTROY")
+        with self.assertRaises(NotImplementedError):
+            self.ex.binder._queue(self.watch, self.p0, granted, row)
+        self.assertEqual(self.world.triggers, [])
 
     def test_trigger_loop_tripwire_quarantines_the_loop_source(self):
         # The tripwire GUARDS instead of raising: "flag it, never run it"

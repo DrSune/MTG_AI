@@ -153,7 +153,8 @@
        ]
       ]
      }
-    }
+    },
+    "once_per_event": true
    },
    {
     "tag": "SpellAbility",
@@ -167,7 +168,7 @@
  "mapping": {
   "author": "claude-mapper-A",
   "date": "2026-10-29",
-  "draft_py": "attack = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ))),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=1),\n            right=QCount(selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.IS_ATTACKING),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            )),\n        ),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [attack, *compiled]\n",
+  "draft_py": "attack = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ))),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=1),\n            right=QCount(selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.IS_ATTACKING),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            )),\n        ),\n        'controller': ControllerRef.YOU,\n    }),\n    once_per_event=True,\n)\nabilities = [attack, *compiled]\n",
   "clauses": [
    {
     "clause": "Flying",

@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     DamageDealtEvent,
+    DelayedTrigger,
     DurationEot,
     DurationPermanent,
     FAnd,
@@ -64,6 +65,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     ZonePosition,
     from_dict,
+    gathers_occurrences,
     to_dict,
     walk,
 )
@@ -513,6 +515,11 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                               dataclasses.replace(node, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))))
             else:
                 cands.append(("trigger scope: your turn -> each turn", dataclasses.replace(node, actor=None)))
+        elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and node.once_per_event:
+            cands.append(("trigger count: once per event -> each occurrence",
+                          dataclasses.replace(node, once_per_event=None)))
+        elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and gathers_occurrences(node.event):
+            cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
         elif isinstance(node, QConst):
             cands.append(("amount+1", QConst(node.value + 1)))
             if node.value > 1:
@@ -595,5 +602,5 @@ def g3(supply: Any, set_code: str, oid: str, limit: int = 80) -> dict[str, Any]:
 def is_critical(op: str) -> bool:
     """Survivors of these operators block verification (gate G3): they are the abusable faults."""
     return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
-                          "target->all", "optional", "trigger scope"))
+                          "target->all", "optional", "trigger scope", "trigger count", "each occurrence"))
 

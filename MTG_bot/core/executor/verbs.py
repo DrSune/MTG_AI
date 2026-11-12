@@ -1336,13 +1336,13 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         if spec.enters_tapped:
             ctx.world.cards[handle].tapped = True
         if spec.enters_attacking:
-            # CR 508.1i ("put those creatures onto the battlefield
+            # CR 508.4 ("put those creatures onto the battlefield
             # attacking", Falconer Adept's Bird, Basri Ket's [-2] Soldier):
             # a token created DURING the declare-attackers window joins the
-            # attack record (and its DeclareAttackers journal row) without
-            # any legality pass — it was never declared, it ENTERS
-            # attacking. Created outside the window (an ETB in a main
-            # phase) the flag is inert: there is no attack to join.
+            # attack record without any legality pass. It was never
+            # declared, it ENTERS attacking, so it has no declare row
+            # (Executor.join_attack). Created outside the window (an ETB in
+            # a main phase) the flag is inert: there is no attack to join.
             ex = ctx.executor
             if ex is not None and ex.declaring:
                 ex.join_attack(handle)

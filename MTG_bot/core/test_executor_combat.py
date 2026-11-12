@@ -405,9 +405,11 @@ class TestTriggerFeeds(CombatCase):
         # (enters_tapped/enters_attacking, CR 508.4), so each Bird joins the
         # attack record and deals its 1 combat damage: 20 - (2 + 2 + 1 + 1).
         self.assertEqual(self.world.players[self.p1].life, 20 - (2 + 2 + 1 + 1))
+        # B-102: a Bird is attacking but was never declared, so it never
+        # "attacked" (CR 508.4): no declare row for any attack trigger to see.
         self.assertEqual(
             sum(1 for e in self.rows("DECLARE_ATTACKERS") if e.subject in birds),
-            2,
+            0,
         )
         self.assertTrue(all(self.world.cards[b].tapped for b in birds))
         del f1, f2
@@ -691,8 +693,10 @@ class TestEndOfCombat(CombatCase):
         self.ex.begin_turn(self.p0)
         self.ex.combat_attacks(self.p0)
         declared = [e.subject for e in self.rows("DECLARE_ATTACKERS")]
-        self.assertEqual(len(declared), 2)  # Falconer and its Bird (CR 508.1i)
-        bird = declared[1]
+        # Only the Falconer was declared; its Bird is put onto the battlefield
+        # attacking (CR 508.4), created from nowhere (a ZONE_CHANGE from None).
+        self.assertEqual(declared, [falconer])
+        bird = next(e.subject for e in self.rows("ZONE_CHANGE") if e.zone_move[0] is None)
         self.assertNotIn(bird, self.world.cards)  # died at 0/0, ceased (704.5d)
         self.assertEqual(self.ex.attackers, [falconer])
         self.assertEqual(set(self.ex.attacked), {falconer})

@@ -465,10 +465,13 @@ class _CounterProbe:
 def test_counters_reach_the_encoding(table) -> None:
     """The engine keys counters by CounterKind value (PLUS_1_PLUS_1), and the encoder's counter
     features read them by that key."""
-    probe = _CounterProbe(table)
-    play_game(7, [probe, HeuristicAgent()], deck_mode="coherent")
-    assert probe.cards_f is not None
-    f = probe.cards_f.astype(np.float32)
+    # A probe in each seat: whichever first has a creature at an act ask records (the seed's
+    # decks move with the verified pool).
+    probes = [_CounterProbe(table), _CounterProbe(table)]
+    play_game(7, probes, deck_mode="coherent")
+    cards_f = next((p.cards_f for p in probes if p.cards_f is not None), None)
+    assert cards_f is not None
+    f = cards_f.astype(np.float32)
     assert np.isclose(f[:, FT.F_P1].max(), 2 / 3, atol=1e-3)
     assert np.isclose(f[:, FT.F_M1].max(), 1 / 3, atol=1e-3)
 
@@ -1123,9 +1126,17 @@ def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
 
 
 def _ppo_case(table):
-    recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
-    play_game(7, recs, deck_mode="coherent")
-    samples = recs[0].samples + recs[1].samples
+    # A game whose decisions hold both kinds the tests read: seed 7, or the next seed when a
+    # change of the verified pool deals seed 7 a game without a priority or an act decision.
+    wanted = {FT.ASK_INDEX["act"], FT.ASK_INDEX["priority"]}
+    for seed in range(7, 17):
+        recs = [RecordingHeuristic(0, table), RecordingHeuristic(1, table)]
+        play_game(seed, recs, deck_mode="coherent")
+        samples = recs[0].samples + recs[1].samples
+        if wanted <= {int(s[0]["ask_i"][0]) for s in samples}:
+            break
+    else:
+        raise AssertionError("no seed in 7-16 gives a game with act and priority decisions")
     n = len(samples)
     packed = M.pack([s[0] for s in samples])
     acts = np.array([s[1] for s in samples])

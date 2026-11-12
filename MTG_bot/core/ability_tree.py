@@ -2897,6 +2897,48 @@ class EachPlayer:
             )
 
 
+def gathers_occurrences(event: object) -> bool:
+    """Can one event hold several occurrences a trigger on ``event`` matches, so that once per
+    event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can,
+    and so can the dealers of one combat damage step (CR 510.2), the dealers being the
+    DamageDealtEvent's ``source``. Not when the subject is the trigger's source or what it is
+    attached to ("whenever this creature attacks": one occurrence per event), not for damage that
+    is not only combat damage (``combat`` not True: the engine groups a combat damage step, and a
+    noncombat event has one dealer), and not with no dealer named ("is dealt damage" is already
+    one event per recipient). Other event kinds answer False: the engine does not group them."""
+    if isinstance(event, DeclareAttackersEvent):
+        subject = event.filter
+    elif isinstance(event, DamageDealtEvent) and event.combat is True and event.source is not None:
+        subject = event.source
+    else:
+        return False
+    parts = subject.children if isinstance(subject, FAnd) else (subject,)
+    return not any(
+        isinstance(p, FAtom)
+        and p.pred in (FAtomPred.IS_SOURCE, FAtomPred.IS_ATTACHED_TO_SOURCE)
+        for p in parts
+    )
+
+
+def _check_once_per_event(owner: str, event: object, value: object) -> None:
+    """TriggeredAbility.once_per_event's one encoding: True or absent (never False), and on an
+    attack or damage event only where it changes the play (:func:`gathers_occurrences`): flagged
+    "whenever this creature attacks" would be a second encoding of the unflagged trigger. Other
+    event kinds keep the flag, which the binder refuses until it groups them."""
+    if value is None:
+        return
+    if value is not True:
+        raise ValueError(f"{owner}: once_per_event is True or absent, got {value!r}")
+    if isinstance(event, (DeclareAttackersEvent, DamageDealtEvent)) and not gathers_occurrences(
+        event
+    ):
+        raise ValueError(
+            f"{owner}: once_per_event needs an event that gathers occurrences; this "
+            f"{type(event).__name__} has a self or attached subject, damage that is not only "
+            "combat damage, or no dealer named"
+        )
+
+
 @dataclass(frozen=True)
 class DelayedTrigger:
     """A trigger created *inside* another effect, live only for `duration`.
@@ -2905,12 +2947,15 @@ class DelayedTrigger:
     node; the node itself is never a standalone Ability — the duration is
     REQUIRED because a delayed trigger without a lifetime window is just a
     TriggeredAbility. `condition` optionally gates the fired event, same
-    convention as TriggeredAbility.condition."""
+    convention as TriggeredAbility.condition, and `once_per_event` is
+    TriggeredAbility.once_per_event (Basri Ket's "whenever one or more
+    nontoken creatures attack this turn")."""
 
     duration: Duration
     event: EventSpec
     condition: Filter | None
     effect: Effect
+    once_per_event: bool | None = None
 
     def __post_init__(self) -> None:
         if not _is_duration(self.duration):
@@ -2925,6 +2970,7 @@ class DelayedTrigger:
             raise ValueError(
                 f"DelayedTrigger: condition must be a Filter, got {type(self.condition).__name__}"
             )
+        _check_once_per_event("DelayedTrigger", self.event, self.once_per_event)
         if not _is_effect(self.effect):
             raise ValueError(
                 f"DelayedTrigger: effect must be an Effect, got {type(self.effect).__name__}"
@@ -2973,11 +3019,28 @@ class StaticAbility:
 @dataclass(frozen=True)
 class TriggeredAbility:
     """When/whenever `event` fires (and `condition` holds, if present),
-    `effect` happens. `condition` is a Filter over the event's subject."""
+    `effect` happens. `condition` is a Filter over the event's subject.
+
+    ``once_per_event``: how often one event triggers the ability (CR 603.2c:
+    once each time the event occurs, but repeatedly when one event holds
+    several occurrences). Absent (None, omitted from the bytes): once for each
+    occurrence `event` matches, its subject bound as the event: "whenever a
+    creature you control attacks" triggers for each such attacker (CR 508.3a),
+    "whenever another creature dies" for each one that died. True: once for
+    the whole event, however many of its occurrences match: "whenever you
+    attack" and "whenever one or more creatures you control attack" trigger
+    once per declaration (CR 508.3d); "whenever one or more Cats you control
+    deal combat damage to a player" once per combat damage step and player
+    (CR 510.2), gathering the dealers its `source` names. Never False, and
+    on an attack or damage event never where it changes nothing
+    (:func:`gathers_occurrences`: "whenever this creature attacks", damage
+    that is not only combat damage, "is dealt damage"): one encoding for
+    each meaning."""
 
     event: EventSpec
     condition: Filter | None
     effect: Effect
+    once_per_event: bool | None = None
 
     def __post_init__(self) -> None:
         if not _is_event(self.event):
@@ -2988,6 +3051,7 @@ class TriggeredAbility:
             raise ValueError(
                 f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}"
             )
+        _check_once_per_event("TriggeredAbility", self.event, self.once_per_event)
         if not _is_effect(self.effect):
             raise ValueError(
                 f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}"
@@ -4344,12 +4408,14 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("event", "event"),
         ("condition", "opt:filter"),
         ("effect", "effect"),
+        ("once_per_event", "opt:bool"),
     ),
     "StaticAbility": (("effect", "effect"), ("condition", "opt:filter")),
     "TriggeredAbility": (
         ("event", "event"),
         ("condition", "opt:filter"),
         ("effect", "effect"),
+        ("once_per_event", "opt:bool"),
     ),
     "ActivatedAbility": (
         ("cost", "cost"),
@@ -4592,6 +4658,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "SpellAbility": frozenset({"effect", "additional_costs"}),
     "StaticAbility": frozenset({"condition"}),
     "ActivatedAbility": frozenset({"condition", "timing"}),
+    "TriggeredAbility": frozenset({"once_per_event"}),
+    "DelayedTrigger": frozenset({"once_per_event"}),
 }
 
 

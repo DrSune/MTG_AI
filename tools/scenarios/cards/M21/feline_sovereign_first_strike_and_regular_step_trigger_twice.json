@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-106 (gate R5-14), the step boundary. Printed: 'Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.' The Kitty has first strike, so it deals its damage in the first-strike combat damage step and the Sovereign in the regular one (CR 510.4): two combat damage events, one trigger each (once per combat damage step, not once per combat). The first destroys the Relic, the second the Charm. Seat 1 takes 2 + 2 (20 -> 16).",
+ "cards": [
+  {"key": "feline", "real": "Feline Sovereign", "zone": "battlefield", "controller": 0},
+  {"key": "kitty", "name": "Hunting Kitty", "type": "Creature — Cat", "power": 1, "toughness": 1, "keywords": ["FIRST_STRIKE"], "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Bronze Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "charm", "name": "Silver Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"feline": true, "kitty": true}, "decisions": ["relic", "charm"]}
+ ],
+ "expect": {
+  "zone": {"relic": "graveyard", "charm": "graveyard"},
+  "life": {"0": 20, "1": 16}
+ }}

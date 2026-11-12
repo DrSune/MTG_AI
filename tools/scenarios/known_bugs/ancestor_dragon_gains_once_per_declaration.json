@@ -14,5 +14,5 @@
     "attackers": {"dragon": true, "bear": true, "elf": false},
     "life": {"0": 22, "1": 13}
   },
-  "notes": "Ancestor Dragon: 'Whenever one or more creatures you control attack, you gain 1 life for each attacking creature.' Two creatures attack (the Elf stays home): the trigger fires once and gains 2 life (20 -> 22), not 1 and not 4. The opponent takes 5 + 2 = 7."
+  "notes": "Ancestor Dragon: 'Whenever one or more creatures you control attack, you gain 1 life for each attacking creature.' Two creatures attack (the Elf stays home): the trigger fires once and gains 2 life (20 -> 22), not 1 and not 4. The opponent takes 5 + 2 = 7. This was its G4 spec pack tools/scenarios/cards/FDN/ancestor_dragon_1.json (verified 2026-10-29). Parked here when B-103 gave the record's trigger once_per_event (CR 603.2c, 508.3d): the tree changed, so the record is not applied until a verifier re-verifies it, and games play the compiler's tree, which has no attack trigger (seat 0 stays at 20). It passes against the record's tree (cardtool runpack); re-verifying the card brings it back to cards/FDN/."
 }

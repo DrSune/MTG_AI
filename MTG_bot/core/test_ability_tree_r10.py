@@ -494,8 +494,9 @@ def test_life_lead_bare_count_builds_and_roundtrips() -> None:
 
 
 def test_delayed_trigger_null_condition_roundtrip() -> None:
-    """DelayedTrigger has no _OMIT_IF_EMPTY row: condition=None serializes
-    the explicit null key and opt:filter decodes it back."""
+    """DelayedTrigger's condition is not in its _OMIT_IF_EMPTY row:
+    condition=None serializes the explicit null key and opt:filter decodes it
+    back."""
     dt = _subira_delay()
     d = at.to_dict(dt)
     assert isinstance(d, dict)

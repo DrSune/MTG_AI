@@ -9,6 +9,8 @@
   damage to an opponent's CREATURE.
 - ``Verb.CREATE_TOKEN`` takes an optional ``controller`` (ControllerRef or
   Selector); no role means the ability's controller.
+- ``TriggeredAbility.once_per_event`` / ``DelayedTrigger.once_per_event``
+  (CR 603.2c): True or absent, omitted from the bytes when absent.
 
 Pinned: the closed tables, legality at both accepted carrier types, and a
 rejection at every validation point.
@@ -137,3 +139,92 @@ def test_create_token_tokens_still_required() -> None:
             verb=at.Verb.CREATE_TOKEN,
             args=at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU),)),
         )
+
+
+# ---- once_per_event: the trigger's once-per-event axis (CR 603.2c) ----------
+
+
+def _attack_trigger(**extra: object) -> at.TriggeredAbility:
+    return at.TriggeredAbility(
+        at.DeclareAttackersEvent(filter=at.FAnd(())),
+        None,
+        at.Atom(
+            at.Verb.DRAW,
+            at.AtomArgs(
+                pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(1)))
+            ),
+        ),
+        **extra,
+    )
+
+
+def test_once_per_event_tables() -> None:
+    for tag in ("TriggeredAbility", "DelayedTrigger"):
+        assert ("once_per_event", "opt:bool") in at._SPECS[tag]
+        assert at._OMIT_IF_EMPTY[tag] == frozenset({"once_per_event"})
+
+
+def test_once_per_event_absent_keeps_the_bytes_and_true_round_trips() -> None:
+    # Absent (once per occurrence) serializes without the key, so a trigger
+    # that does not use it keeps its exact bytes.
+    assert "once_per_event" not in at.to_dict(_attack_trigger())
+    batch = at.to_dict(_attack_trigger(once_per_event=True))
+    assert batch["once_per_event"] is True
+    assert at.from_dict("TriggeredAbility", batch) == _attack_trigger(once_per_event=True)
+    plain = _attack_trigger()
+    delayed = at.DelayedTrigger(at.DurationEot(), plain.event, None, plain.effect, True)
+    assert at.from_dict("DelayedTrigger", at.to_dict(delayed)) == delayed
+
+
+@pytest.mark.parametrize("value", [False, 1])
+def test_once_per_event_has_one_encoding(value: object) -> None:
+    # The default has one encoding: absent. False (or a truthy int) is refused.
+    with pytest.raises(ValueError, match="once_per_event"):
+        _attack_trigger(once_per_event=value)
+
+
+_SELF = at.FAtom(at.FAtomPred.IS_SOURCE)
+_EQUIPPED = at.FAtom(at.FAtomPred.IS_ATTACHED_TO_SOURCE)
+_CREATURE = at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature")
+
+
+def _dealt(source: at.Filter | None, combat: bool | None) -> at.DamageDealtEvent:
+    return at.DamageDealtEvent(at.QUnbounded(), at.FAnd(()), source=source, combat=combat)
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        # "whenever this creature attacks" / "equipped creature attacks": one attacker per
+        # declaration, so the flag would be a second encoding of the unflagged trigger
+        at.DeclareAttackersEvent(filter=_SELF),
+        at.DeclareAttackersEvent(filter=_EQUIPPED),
+        at.DeclareAttackersEvent(filter=at.FAnd((_CREATURE, _SELF))),
+        # "this creature deals combat damage": one dealer per step
+        _dealt(_SELF, True),
+        # damage that is not only combat damage: the engine groups a combat damage step only
+        _dealt(_CREATURE, False),
+        _dealt(_CREATURE, None),
+        # "is dealt damage": no dealer named, already one event per recipient (CR 510.2)
+        _dealt(None, True),
+    ],
+)
+def test_once_per_event_refused_where_it_changes_nothing(event: object) -> None:
+    effect = _attack_trigger().effect
+    with pytest.raises(ValueError, match="gathers occurrences"):
+        at.TriggeredAbility(event, None, effect, once_per_event=True)
+    with pytest.raises(ValueError, match="gathers occurrences"):
+        at.DelayedTrigger(at.DurationEot(), event, None, effect, True)
+    assert at.TriggeredAbility(event, None, effect).once_per_event is None  # unflagged: fine
+
+
+def test_once_per_event_kept_where_one_event_gathers_occurrences() -> None:
+    effect = _attack_trigger().effect
+    for event in (
+        at.DeclareAttackersEvent(filter=at.FNot(_SELF)),  # "another creature attacks"
+        at.DeclareAttackersEvent(filter=_CREATURE),
+        _dealt(_CREATURE, True),  # "one or more creatures deal combat damage"
+        at.CreatureDiesEvent(filter=_CREATURE),  # the binder, not the IR, refuses this kind
+    ):
+        assert at.TriggeredAbility(event, None, effect, once_per_event=True).once_per_event
+    assert not at.gathers_occurrences(at.CreatureDiesEvent(filter=_CREATURE))

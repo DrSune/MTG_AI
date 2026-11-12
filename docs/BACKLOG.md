@@ -77,79 +77,37 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Combat
 
-- **B-102 [fixer A, found 2026-10-30; B-84 until the integration merge] Attack triggers can see a creature put onto the battlefield
-  attacking** (latent: no M21 card misfires today).
-  - `Executor.join_attack` (`executor/__init__.py` ~1915) journals the same DECLARE_ATTACKERS
-    row, in the same declare group, as a declared attacker, and `binding._match_node` (~919)
-    matches every such row. CR 508.3a and 508.4: a creature put onto the battlefield attacking
-    never "attacked", so no "whenever ... attacks" trigger may see it. Falconer Adept's Bird
-    (80a895f) and Basri Ket's -2 Soldiers take this path.
-  - Hidden today by two accidents. The joined row is journalled before the token's own
-    ZONE_CHANGE row, so at match time the token's keywords are not yet in the layer map (a
-    flying filter misses the Bird). And the per-declaration dedup (`binding._queue` ~728, one
-    instance per ability per declare group) has already queued any trigger the declared
-    creature matched. Probes 2026-10-30 (Tide Skimmer + Falconer Adept, and a per-creature
-    flying filter with only the Adept declared): no extra trigger. A filter on type, subtype,
-    token-ness or controller that the token matches and no declared creature does would fire.
-  - Coupling: that dedup is itself wrong for per-creature triggers (B-103). Whoever fixes B-103
-    must exclude joined rows in the same change, or the Bird and the Soldiers start
-    triggering. `_group_size` (battalion) and the `declare_attackers` register
-    (THAT_MANY_COUNT) count joined rows as well.
-  - Fix: mark the joined row (its own payload, or an `entered_attacking` set folded into the
-    replay hash) and skip it in the DeclareAttackersEvent match, the group size and the
-    register. Engine lane.
-  - **History inherits B-102**: `EVENT_THIS_TURN` over `DeclareAttackersEvent` reads the journal
-    through `binding._match_node`, so a creature put onto the battlefield attacking (joined row,
-    CR 508.4) counts as an attack. "You attacked this turn" is unaffected (such a creature only
-    enters during a declared attack); "attacked with N or more creatures" would be. The B-102 fix in
-    `_match_node` fixes both lanes.
-- **B-103 [fixer A, found 2026-10-30; B-85 until the integration merge] "Whenever a creature ... attacks" fires once per
-  declaration, not once per attacker** (live in M21, weaker than printed).
-  - `binding._queue` (~728) queues one instance per ability per declare group for every
-    DeclareAttackersEvent. That is right for "one or more" and "attack with two or more"
-    (Basri Ket's -2, Tide Skimmer, Mangara) and wrong for a per-creature trigger, which
-    CR 603.2c fires once per matching attacker. Repro, failing today:
-    `tools/scenarios/known_bugs/hooded_blightfang_each_deathtouch_attacker.json` (two
-    Blightfangs attack: four triggers are due, two fire, so the life totals end 22/16, not
-    24/14).
-  - Live in M21: Basri, Devoted Paladin's -1 puts its counter on one attacker per declaration,
-    and Hooded Blightfang drains once however many deathtouch creatures attack. Across the 19
-    sets these two, Basri Ket, Tide Skimmer and Mangara are the only compiled attack triggers
-    not keyed on IS_SOURCE (snapshot 2026-10-30).
-  - Design decision, an IR change: `DeclareAttackersEvent` cannot tell "a creature attacks"
-    from "one or more creatures attack" (Basri Ket's -2 and the Paladin's -1 differ only in
-    their filters). (a) A `batch: bool = False` field, omitted when False so per-creature trees
-    stay byte-identical, set by the compiler on "one or more", "attack with N or more" and
-    "you attack"; the dedup then applies to batch triggers only. Three goldens re-bake (Basri
-    Ket, Tide Skimmer, Mangara). Recommended. (b) Infer batching in the engine from a
-    CONTROLLER_COUNT_GE condition: no schema change, but it cannot separate Basri Ket's -2
-    from the Paladin's -1, so it is not enough. Either way it lands with B-102's exclusion.
-  - **Also filed as B-106** (vfix2, V14, 2026-10-29; numbered B-81 in a6c7740; gated as R5-14),
-    which records the rule and the gate's options:
-    - `DeclareAttackersEvent` is (filter, attacked). The same bytes carry "Whenever you attack" / "one
-      or more creatures you control attack" (CR 508.3d: once per declaration; MAPPER_GUIDE prescribes
-      it, `binding._queue` dedups by (source, node, declare_group)) and "Whenever a creature you control
-      [with deathtouch] attacks" (CR 508.3a with 603.2c: once for EACH such attacker, the event subject
-      being that attacker). M21 Hooded Blightfang drains once; Basri, Devoted Paladin's −1 grant
-      ("Whenever a creature attacks this turn, put a +1/+1 counter on it") counters only the first
-      attacker.
-    - Options sent to the gate: (1) an optional field (absent = once per event, so existing trees stay
-      byte-identical) that the per-object templates set, the binder skipping the dedup for it and
-      binding the subject per row; (2) flip the default to per object and mark "one or more"; (3)
-      encode "one or more" as a QAtLeast condition. The coordinator recommends a GENERAL form of (1):
-      once-per-event vs once-per-object is one trigger axis (dies, enters, damage too), so an
-      attack-only field would become a second encoding of it (AGENTS §9).
-    - Damage today (2026-11-06, `binding._queue`): a `DamageDealtEvent` with no `source` filter ("is
-      dealt damage") fires once per recipient per combat damage step (CR 510.2); one with a `source`
-      filter fires per DAMAGE row (per dealer and recipient). That is right for "a source you control
-      deals ... to an opponent" and "deals combat damage to a player", wrong for "one or more ...
-      deal" (Feline Sovereign, not verified) and for a dealer trigger with no recipient ("whenever
-      this creature deals damage") split by trample or several blockers (none compiled). The general
-      field would replace that reading.
-  - **Leeching Sliver plays weaker than printed until B-103** ("whenever a Sliver you control attacks"
-    fires once per declaration, not once per attacking Sliver, CR 603.2c). Its tree is right; repro
-    `tools/scenarios/known_bugs/leeching_sliver_each_attacking_sliver.json` (fails today, as Hooded
-    Blightfang's does). B-102 applies too: a Sliver put onto the battlefield attacking would trigger it.
+- **What closing B-102 and B-103 (B-106, gate R5-14) left open** (2026-11-12, closed in 6f020b8).
+  The trigger axis `TriggeredAbility.once_per_event` (and `DelayedTrigger`'s; CR 603.2c) closed
+  them: absent, a trigger fires once per occurrence its event matches; True, once per event. A
+  creature put onto the battlefield attacking gets no DECLARE_ATTACKERS row (CR 508.4).
+  - The binder groups an event's occurrences only for a declaration (its DECLARE_ATTACKERS rows
+    share a group) and a combat damage step (its DAMAGE rows to one recipient, gathering the
+    dealers `source` names). A once-per-event trigger on any other event kind refuses to bind
+    (`binding._check_trigger`; a granted one, never bound, is refused when it triggers). None
+    compiles today; the first would be M20 Woodland Champion ("one or more tokens you control
+    enter"), KHM Elvish Warmaster and M19 Desecrated Tomb.
+  - Within those two kinds the grouping is fixed, and the IR cannot yet say otherwise: "attacks a
+    planeswalker you control with one or more creatures" (WAR Oath of Kaya) and "you attack a
+    player with one or more" (ZNR Akiri) need one trigger per attacked object, and "one or more
+    creatures you control are dealt damage" needs the recipients gathered. A flagged trigger of
+    that shape would bind and fire per declaration or per recipient, so a mapper must not flag it
+    (MAPPER_GUIDE: needs-atom). None compiles.
+  - The IR refuses the flag where it changes nothing (`ability_tree.gathers_occurrences`, gate
+    round 4): a self or attached subject, damage that is not only combat damage, no dealer named.
+    For `combat=None` ("one or more ... deal damage", combat or not) that is a scope limit, not a
+    no-op: the flag would gather the combat rows. Such a card is needs-atom (none compiles).
+  - A dealer trigger with no recipient ("whenever this creature deals damage") split by trample
+    or several blockers still fires per DAMAGE row, not once per step (none compiled).
+  - Tide Skimmer's "attack with two or more creatures with flying" is part of its trigger event,
+    but it compiles as the trigger's condition, and `binding.resolve` checks every condition
+    again on resolution (`binding.py` ~1659), which CR 603.4 does only for an intervening "if".
+    Two flyers attack and one leaves before the trigger resolves: no card is drawn (printed: one
+    is). Found by reading, no pack yet. M21 Tide Skimmer is out of the verified pool until it is
+    re-verified (below).
+    The count reads the live attack record, as Mangara's `ATTACK_AGAINST_COUNT_GE` does, and
+    that record holds creatures put onto the battlefield attacking (CR 508.4: not among "those
+    creatures"); between the trigger and its resolution only an instant can add one.
 
 ### Casting, the stack and targets
 
@@ -773,6 +731,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - What remains: a second person's G2 review and `cardtool verify`. Spec packs: `runed_halo_*`,
     `vito_target_opponent_*`, `garruk_savage_herald_minus_two_*`, `rookie_mistake_act_window`,
     `rookie_mistake_one_target_gone`.
+- **Re-verify M21 Basri Ket, M21 Tide Skimmer and FDN Ancestor Dragon** (2026-11-12, B-103's
+  fix). Their once-per-declaration triggers gained `once_per_event` (Basri Ket's -2 and Tide
+  Skimmer from the compiler, Ancestor Dragon in its record's `ir`), so their tree shas changed
+  and all three left the verified pool (M21 262 -> 260, FDN 175 -> 174), the pool training
+  runs deal, once a run pins this code. Basri Ket and Tide Skimmer play as before in the other
+  pools (the compiler's tree, once per declaration), and their spec packs pass in the suite.
+  Ancestor Dragon does not: its record is not applied while unverified, so in the other pools it
+  plays the compiler's tree, which has no attack trigger (weaker than printed), and its spec
+  pack waits in `tools/scenarios/known_bugs/ancestor_dragon_gains_once_per_declaration.json`
+  (it passes with `cardtool runpack FDN <pack>`). G3 now mutates the flag, critical both ways
+  (dropped: "trigger count: once per event -> each occurrence"; added where it gathers: "each
+  occurrence -> once per event"); each card's existing spec pack kills its mutant (checked). M21
+  Subira (verified, unchanged) gets the second mutant on its delayed trigger, which none of its
+  six verified packs kills; `cards/M21/subira_draws_for_each_small_creature_that_connects.json`
+  kills it, for its next verification. FDN Battlesong Berserker's record (not verified) got the
+  same flag.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
