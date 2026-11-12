@@ -227,3 +227,84 @@ at most 4 updates. The reads go by update count, so a pause changes nothing in t
 - **The critic's data are logging.** `train_rows.jsonl` held 8,567 games by update 3, 84% of them
   between networks. The decks rebuilt at d6dcdff equal a direct deal (30 of 30 deals checked).
   The critic's 50,000 games (KNOWLEDGE/2026-11-12/193 G1) arrive at about update 27.
+
+**The look at update 50** (2026-11-12 06:30; the last row per update, means over blocks of
+updates; 109,559 training games):
+
+| | 1-10 | 21-30 | 41-52 | Prediction |
+|---|---|---|---|---|
+| Gate against v0 (1,000 deals, both seats, greedy) | — | 0.517 [0.503, 0.531] at 25 | 0.536 [0.522, 0.550] at 50 | 1: a freeze at 0.55. r26 scored 0.522 and 0.531 at the same updates |
+| `kl` | 0.0066 | 0.0063 | 0.0055 | 3: 0.004-0.009 |
+| `ent` | 0.336 | 0.311 | 0.306 | 4: slope over 2-50 in -0.002 to -0.0003 |
+| `ev` | 0.372 | 0.373 | 0.371 | 6: 401-500 in 0.35-0.50 |
+| `priority` pass share | 0.794 | 0.833 | 0.852 | 5: 0.70-0.96 |
+| `act_second_main` pass share | 0.813 | 0.851 | 0.860 | — |
+| Training win rate against the heuristic / frozen v0 | 0.655 / 0.507 | 0.681 / 0.522 | 0.699 / 0.544 | 2: read at 500 |
+| Lowest MemAvailable (GiB) | 52.1 | 53.1 | 52.8 | 7: above 35 |
+
+- **Prediction 4 is met**:
+  - the slope over updates 2-50 is -0.00056 per update (SE 0.00016);
+  - `ent` went from 0.324 at update 2 to 0.301 at 50.
+- **Prediction 8 is outside its range, on the fast side.**
+  - The median interval is 169.8 s over 45 intervals, against 175-230. Left out are the
+    intervals that held the start ladders (updates 2-3) or a gate (26-27, 51-52).
+  - The falsifier is above 250.
+- **No kill criterion is near:**
+  - no crash, no non-finite step, no void game;
+  - `ev` never below 0.33;
+  - the lowest MemAvailable of any update was 48.4 GiB.
+- **Two counters climb, and both are harmless:**
+  - `overflow` counts decisions with more than 64 options, which the heuristic answers and
+    which are never trained on: 1,680 in 109,559 games, 0.015 a game, flat;
+  - `throttled` counts training games refused because a full batch was waiting: 7 times.
+- **The pass shares are still rising, but more slowly.**
+  - `priority` went 0.794, 0.824, 0.833, 0.836, 0.852 over blocks of 10 updates, and its
+    entropy from 0.225 to 0.197. `act_second_main` moved the same way.
+  - Both training win rates rose meanwhile. That reads as learning to hold instant-speed play
+    rather than learning to do nothing, but the rise has not stopped: +0.0013 per update since
+    update 25.
+  - At that pace the share reaches 0.96 near update 130. Window 2's pause, at about update 165,
+    reads it again.
+- **The mulligan.**
+  - Its KL is still the largest of any kind: 0.060, 0.024, 0.035, 0.050 and 0.022 per block of
+    10 updates, where every other kind with more than 100 decisions an update stays at or below
+    0.013.
+  - Its entropy went 0.218, 0.143, 0.126, 0.136, 0.170.
+  - The learner's asks per game went 1.33, 1.28, 1.25, 1.32, 1.31: no trend. The engine takes
+    CR 103.5 literally: a mulligan's cards go to the bottom before the next declaration, so the
+    k-th ask shows 7 - k cards and the network sees how many it has taken. Every ask after a
+    game's first is a mulligan.
+  - So the learner mulligans about 0.31 times a game, 24% of its declarations. That inherits
+    r26's rate:
+    - r25's and r26's v0 (gen.pt) mulliganed 16 of 1,516 hands, 1.1% (190 §10.4);
+    - the heuristic's rule mulligans about 12% of 7-card hands from a 40-card deck with 17
+      lands.
+  - r26's bonus raised the overall entropy from 0.24 (updates 1-25) to 0.45 (901-1000; 189 §11).
+    r26 logged no rows per kind, so its 1,000 updates may have pushed the mulligan up the same
+    way, or taught it which hands to throw back. The read below, registered before its data,
+    tells which.
+
+**The mulligan read** (registered 2026-11-12 06:50, before its data).
+
+- **Data.** Window 2's collect (194 §1) writes about 23,000 of v0's mulligan declarations under
+  r27's flags. Each comes with its features, the action, the action's log-probability and the
+  game's result.
+- **What is read.**
+  - The hand at each declaration: the own-hand entities in `cards_i`, and their Land flag in
+    `cards_f`.
+  - v0's p(mulligan) for each hand.
+  - The same declarations scored by r27's network at the pause (`runs/window2/r27_latest.pt`).
+- **Cells.** Hand size 7, by land count, plus hand sizes 6 and 5. Intervals come from a
+  bootstrap over games.
+
+| # | Measure | Prediction | Falsifier |
+|---|---|---|---|
+| M1 | v0's mean p(mulligan) at 7-card declarations holding 3 or 4 lands | below 0.10 | 0.20 or more: the mulligan is not read from the hand |
+| M2 | the same, holding 0 or 1 land | above 0.60 | below 0.40 |
+| M3 | ROC-AUC of v0's p(keep) against the game's result, 7-card declarations (METRICS MUL-2) | 0.52-0.58 | below 0.51: the keep decision carries no information about the game |
+
+- **M1 falsified:** the mulligan rate is noise that r26's bonus put there, not a policy.
+  - r27 runs on unchanged.
+  - The fix belongs to the next run: a smaller bonus for the mulligan, or the search deciding it.
+- **M1 and M2 met:** the mulligan reads the hand. Whether 24% is too cautious is MUL-3's
+  question, which needs per-game mulligan records that no run writes yet.
