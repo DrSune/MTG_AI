@@ -283,8 +283,8 @@ def _emblem_sentences(
             emblem = EmblemSpec(abilities=result.card.abilities)
         except (ValueError, StateCorruptionError):
             continue
-        if result.unparsed or result.ambiguities:
-            continue
+        if result.unparsed or result.ambiguities or result.card.keywords:
+            continue  # an emblem has abilities only (CR 114.3)
         who = _EMBLEM_RECIPIENT[m.group("who")]
         effect: Effect = Atom(
             verb=Verb.GET_EMBLEM, args=AtomArgs(pairs=(("emblem", emblem), ("controller", who)))
