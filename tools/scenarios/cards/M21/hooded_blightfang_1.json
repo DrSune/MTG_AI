@@ -1,0 +1,36 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: creature you control with deathtouch deals damage to a planeswalker -> destroy it. Blightfang (deathtouch) attacks opp Basri Ket (loyalty 3): 1 deathtouch damage, Basri destroyed.",
+ "cards": [
+  {
+   "key": "bf",
+   "real": "Hooded Blightfang",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bf": "pw"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "pw": "graveyard"
+  }
+ }
+}

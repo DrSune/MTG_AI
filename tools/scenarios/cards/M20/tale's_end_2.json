@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "tales_end_cannot_target_nonlegendary_spell",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Counter target activated ability, triggered ability, or legendary spell.' A plain non-legendary instant (Disfigure) on the stack is not a legal target: casting Tale's End at it is refused, and Disfigure resolves (the Bear dies).",
+ "cards": [
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0},
+  {"key": "te", "real": "Tale's End", "zone": "hand", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "te", "controller": 1, "targets": ["disfigure"], "tap": true, "real": "Tale's End", "expect_raise": "target"}
+ ],
+ "expect": {"zone": {"te": "hand"}}
+}

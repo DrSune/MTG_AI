@@ -140,5 +140,46 @@
  },
  "probe": {
   "sha": "1a7c137b9986fdc98287f3abd2733b44950d4b5d22ee537a8e7b93c32c675733"
+ },
+ "verified": {
+  "tree_sha": "7ced464526ea27c444468c26201c976d2ae8c04b25df10ea444b9ee1fbed8dfe",
+  "probe_sha": "1a7c137b9986fdc98287f3abd2733b44950d4b5d22ee537a8e7b93c32c675733",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-B",
+  "clauses": [
+   {
+    "clause": "Counter target legendary spell",
+    "status": "NOT_EXERCISED",
+    "evidence": "'cast skipped: a target slot needs 1, the board offers 0'; pack B09_1 (counters Sorin) and B09_2 (non-legendary refused) pass",
+    "issue": ""
+   },
+   {
+    "clause": "Counter target activated ability",
+    "status": "NOT_EXERCISED",
+    "evidence": "no target on the standard board; pack B09_3 passes",
+    "issue": ""
+   },
+   {
+    "clause": "Counter target triggered ability",
+    "status": "NOT_EXERCISED",
+    "evidence": "no target on the standard board; pack B09_4 passes",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/tale's_end_1.json",
+   "tools/scenarios/cards/M20/tale's_end_2.json",
+   "tools/scenarios/cards/M20/tale's_end_3.json",
+   "tools/scenarios/cards/M20/tale's_end_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter/children/0",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter/children/0"
+   ]
+  }
  }
 }

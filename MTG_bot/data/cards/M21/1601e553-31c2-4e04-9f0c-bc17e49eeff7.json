@@ -1,0 +1,61 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "1601e553-31c2-4e04-9f0c-bc17e49eeff7",
+ "name": "Basri, Devoted Paladin",
+ "text_sha": "e97602cf487344192e085231e88b9c8c5b998630569b915836dfdb1484b60ad6",
+ "verified": {
+  "tree_sha": "9f0a8858e61ff2f0881e842345564f5075906aefc27df134599cebcd4af33e05",
+  "probe_sha": "81d9fe4a1cc75121671001ef2f90b4c32a500179d3daa86329d87fbdf68de77b",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "+1 up to one target creature: counter, vigilance EOT",
+    "status": "OK",
+    "evidence": "six targets + none; counter and VIGILANCE; loyalty 4->5",
+    "issue": ""
+   },
+   {
+    "clause": "-1 whenever a creature attacks this turn, +1/+1 counter on it",
+    "status": "NOT_EXERCISED",
+    "evidence": "activation only; pack A12_1",
+    "issue": ""
+   },
+   {
+    "clause": "-6 creatures you control +2/+2 and flying EOT",
+    "status": "NOT_EXERCISED",
+    "evidence": "not activatable at loyalty 4; pack A12_2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/basri_devoted_paladin_1.json",
+   "tools/scenarios/cards/M21/basri_devoted_paladin_2.json",
+   "tools/scenarios/cards/M21/basri_devoted_paladin_3.json"
+  ],
+  "mutation": {
+   "mutants": 25,
+   "killed": 9,
+   "score": 0.36,
+   "survived": [
+    "each occurrence -> once per event at 1/1/effect",
+    "amount+1 at 1/1/effect/effect/args/count",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "until-end-of-turn->permanent at 1/2/effect/steps/0/args/duration",
+    "amount+1 at 1/2/effect/steps/0/args/power/magnitude",
+    "amount-1 at 1/2/effect/steps/0/args/power/magnitude",
+    "widen filter (drop part 0) at 1/2/effect/steps/0/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/0/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/target/filter/children/0/who",
+    "amount+1 at 1/2/effect/steps/0/args/toughness/magnitude",
+    "amount-1 at 1/2/effect/steps/0/args/toughness/magnitude",
+    "until-end-of-turn->permanent at 1/2/effect/steps/1/args/duration",
+    "widen filter (drop part 0) at 1/2/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/1/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/target/filter/children/0/who"
+   ]
+  }
+ }
+}
