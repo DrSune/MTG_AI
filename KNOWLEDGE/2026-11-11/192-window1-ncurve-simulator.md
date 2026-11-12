@@ -337,3 +337,27 @@ simulator worlds do not become the default, for the search or for gate B's gener
 - Count how often each world type picks the move the true cards pick.
 - Pairing by position removes the deal noise that a 300-deal match cannot get past. Horizon 2,
   where the opponent's replies weigh more, is the second test.
+
+### 7.2 N3: priority asks searched as well (2026-11-12 00:26-01:57)
+
+| | act only, n = 16 | act and priority, n = 16 |
+|---|---|---|
+| Score, 300 deals | 0.5825 ± 0.012 | 0.5908 ± 0.0123 |
+| Searched decisions per game | 12.59 | 22.32 (act 9.94, priority 9.97, attack 2.41) |
+| Moves changed | 15.4% | 10.6% (act 15.3%, priority 4.8%, attack 15.3%) |
+| Clear corrections per game | 0.64 | 0.89 |
+| No difference in result | 16% | 18% |
+| Seconds per simulation | 1.30 | 1.24 |
+| Wall time | 27 min | 91 min |
+
+**P5** (act and priority minus act only, predicted 0.00 to +0.02 at about twice the searched
+decisions, falsified below -0.01): +0.0083 ± 0.0079, 95% [-0.0072, +0.0238], at 1.8 times the
+searched decisions. **Met.**
+
+**Exploratory.**
+- Against the uniform points around n = 16, act only: +0.023 ± 0.011 (n = 8), +0.023 ± 0.011
+  (n = 32), +0.013 ± 0.011 (n = 64), and +0.020 ± 0.009 against the mean of the three, 95%
+  [+0.002, +0.038].
+- So searching the priority stops adds about +0.01 to +0.02 at n = 16.
+- The wall time is 3.3 times the act-only point's for 1.8 times the searched decisions: one
+  searched game with many priority stops ran long at the end.
