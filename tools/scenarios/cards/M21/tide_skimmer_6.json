@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: whenever you attack with two or more creatures with flying, draw a card. Skimmer + Bird attack: draw 1.",
+ "cards": [
+  {
+   "key": "s",
+   "real": "Tide Skimmer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Bird",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "FLYING"
+   ]
+  },
+  {
+   "key": "l",
+   "name": "L",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "s": true,
+    "b": true
+   }
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  }
+ }
+}

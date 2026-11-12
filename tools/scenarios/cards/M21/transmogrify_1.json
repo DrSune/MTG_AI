@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Printed: exile target creature; its controller reveals until a creature card and puts it onto the battlefield, shuffles the rest. Opp library top is a Sorcery, then a creature: creature enters under opp, Sorcery stays in library.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Transmogrify",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "v",
+   "name": "Victim",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "s",
+   "name": "Junk",
+   "power": 0,
+   "toughness": 0,
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "n",
+   "name": "Newcomer",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "t",
+   "real": "Transmogrify",
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "v": "exile",
+   "n": "battlefield",
+   "s": "library"
+  },
+  "controller": {
+   "n": 1
+  }
+ }
+}

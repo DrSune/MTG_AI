@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -8: creatures target opponent controls phase out; until end of your next turn they can't phase in.",
+ "cards": [
+  {
+   "key": "v",
+   "real": "Teferi, Timeless Voyager",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o",
+   "name": "Ogre",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "v",
+   "set": 8
+  },
+  {
+   "op": "activate",
+   "key": "v",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "phased_out": {
+   "o": true
+  }
+ }
+}

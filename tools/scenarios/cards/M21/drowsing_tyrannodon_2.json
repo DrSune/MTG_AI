@@ -1,0 +1,39 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "No creature with power 4+: it keeps defender and is never offered an attack.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Drowsing Tyrannodon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Small",
+   "power": 3,
+   "toughness": 3,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "not_asked": [
+   "t"
+  ],
+  "life": {
+   "1": 20
+  }
+ }
+}

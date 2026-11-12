@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: return target spell or creature to its owner's hand. Seat 0 casts Valorous Steed; seat 1 returns the spell to hand.",
+ "cards": [
+  {
+   "key": "steed",
+   "real": "Valorous Steed",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "un",
+   "real": "Unsubstantiate",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "C": 4
+  },
+  "1": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Valorous Steed",
+   "key": "steed",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "un",
+   "controller": 1,
+   "targets": [
+    "steed"
+   ],
+   "real": "Unsubstantiate"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "steed": "hand",
+   "un": "graveyard"
+  },
+  "tokens": {
+   "Knight": 0
+  }
+ }
+}

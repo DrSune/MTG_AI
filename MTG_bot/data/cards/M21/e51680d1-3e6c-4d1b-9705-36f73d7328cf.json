@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "e51680d1-3e6c-4d1b-9705-36f73d7328cf",
+ "name": "Rookie Mistake",
+ "text_sha": "b2a4050a97050864617e04b64f85182063ab770c85e12c1baab44dcf231b107b",
+ "verified": {
+  "tree_sha": "7edf57cb24f5662900ae21099d582472bdc60ee347f4f7b7962d9f0704805670",
+  "probe_sha": "2c5feb697378c92640825e1edf73d7b38ef0e3d190c74e1108e5a8d25254ce8a",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "target creature gets +0/+2 and another target creature gets -2/-0 until EOT",
+    "status": "OK",
+    "evidence": "e.g. [you_bear,you_giant]: bear 2/4, giant 2/4; [opp_flier,you_bear]: flier 1/3, bear 0/2; second slot never offers the first target; reverts at end of turn",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 16,
+   "killed": 16,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

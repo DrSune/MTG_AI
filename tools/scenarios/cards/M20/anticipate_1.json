@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "anticipate_one_to_hand_other_two_to_bottom",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'Look at the top three cards of your library. Put one of them into your hand and the rest on the bottom of your library in any order.' Top three (top first): Card A, Card B, Card C; the fourth card (Card D) is not looked at. Choose Card B: it goes to hand; A and C go to the bottom; Card D is now the top card. Hand = 1 (Anticipate is on the stack/graveyard).",
+ "cards": [
+  {"key": "ant", "real": "Anticipate", "zone": "hand", "controller": 0},
+  {"key": "d", "name": "Card D", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "c", "name": "Card C", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 1}},
+ "steps": [{"op": "cast", "key": "ant", "controller": 0, "decisions": ["b"]}],
+ "expect": {
+  "zone": {"ant": "graveyard", "b": "hand", "a": "library", "c": "library", "d": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["Card D", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "*", "*"]}
+ }
+}

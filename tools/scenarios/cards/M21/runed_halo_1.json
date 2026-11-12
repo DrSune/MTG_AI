@@ -1,0 +1,65 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: you have protection from the chosen card name (damage from a source with that name is prevented, CR 702.16e). Choose 'Opp Bear'; Opp Bear (2) and Other (2) attack you: only Other's damage lands, 20 -> 18.",
+ "cards": [
+  {
+   "key": "h",
+   "real": "Runed Halo",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ob",
+   "name": "Opp Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ot",
+   "name": "Other",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "h",
+   "real": "Runed Halo",
+   "decisions": [
+    "Opp Bear"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "ob": true,
+    "ot": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18
+  }
+ }
+}

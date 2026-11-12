@@ -1,0 +1,42 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: with a creature of power 4+ you control, can attack as though no defender. With Giant it is asked to attack.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Drowsing Tyrannodon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g",
+   "name": "Giant",
+   "power": 4,
+   "toughness": 4,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "t": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "t": true
+  },
+  "life": {
+   "1": 17
+  }
+ }
+}
