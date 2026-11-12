@@ -121,3 +121,20 @@ of the real future:
   the confirming run uses fresh deals.
 - B1-B3 keep their predictions, falsifiers and §2's other rules, the first maximum among
   distinct moves included.
+
+## 6. This run's scores (2026-11-12, audit step 12:03-13:42; confounded, decides nothing: §5)
+
+- **The run:** 1,894 audited act decisions over 100 deals (200 games), with no game logged twice.
+  The searching seat scored 0.550 [0.5145, 0.5855] against u1000 raw, as window 1's n = 16 did on
+  fresh deals (0.555).
+- **A:** uniform 0.597, sim 0.600, true2 0.667. The network's own top candidate was true's best in
+  0.457.
+- **B1** = 0.667: inside the predicted 0.55-0.80.
+- **B2** = +0.0026, 95% [−0.0213, +0.0251]: inconclusive. It is not in the predicted +0.02 to
+  +0.08, and its upper bound is not under +0.02.
+- **B3** = 0.597: inside 0.40-0.70 and below the ceiling.
+- **Rank correlations** (average ranks; fully tied lists left out, 1,586 of 1,894 defined): uniform
+  0.447, sim 0.452, true2 0.556. The scorer's first version used ordinal ranks. A fully tied pair
+  then scored +1, and its guard against undefined cases could never fire (KNOWLEDGE 197).
+- **Read:** nothing. The true worlds pinned unseen cards, and copies of a card decided "best" by
+  noise (§5). The confirming run, the last step of gate B's queue on fresh deals, decides.
