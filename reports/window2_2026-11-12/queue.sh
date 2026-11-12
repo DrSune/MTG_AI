@@ -53,7 +53,7 @@ if [ ! -f "$O/pause.done" ]; then
 fi
 
 # 195: the belief audit, as window 1's n = 16 point on fresh deals
-step audit 60m $L --run "$O/audit" --init "$U1000" --refresh-table --extend-sets M20 $GAME \
+step audit 150m $L --run "$O/audit" --init "$U1000" --refresh-table --extend-sets M20 $GAME \
   --eval-only --eval-seat eval+search --eval-opponents snap:opp --opp-ckpt "$U1000" \
   --eval-set M21 --search-root gumbel --search-m 16 --search-n 16 --search-audit 8 \
   --search-sim "$R/window1/sim.pt" --eval-deals 100 --eval-seed0 960000
@@ -67,10 +67,27 @@ step collect 40m $L --run "$O/collect" --init "$U1000" --seed 2712 --workers 18 
   --mix-sets M20 --mix-share 0.25 --extend-sets M20 --refresh-table --pool verified \
   --save-every 5 --progress-every 300 --mem-floor-gib 15.0 --iters 6000 \
   --collect "$O/collect.pkl"
+# base at both learning rates; deep and wide only at the one the read uses (194 §4)
+P="env PYTHONPATH=. .venv/bin/python reports/capacity_probe_2026-11-12/probe.py $O/collect.pkl $V0"
 for lr in 3e-5 1e-4; do
-  step "probe_lr$lr" 60m env PYTHONPATH=. .venv/bin/python \
-    reports/capacity_probe_2026-11-12/probe.py "$O/collect.pkl" "$V0" "$O/probe.jsonl" --lr "$lr"
+  step "probe_base_lr$lr" 60m $P "$O/probe.jsonl" --lr "$lr" --arms base
 done
+LR=$(.venv/bin/python - "$O/probe.jsonl" <<'PY'
+import json, sys
+end = {}
+for line in open(sys.argv[1]):
+    r = json.loads(line)
+    if r["arm"] == "base" and r["step"] == r["steps"]:
+        end[r["lr"]] = r["ev_mid"]
+print(f"{max(end, key=end.get):g}" if end else "")
+PY
+)
+if [ -n "$LR" ]; then
+  log probe "base reads best at lr $LR"
+  step "probe_deepwide_lr$LR" 120m $P "$O/probe.jsonl" --lr "$LR" --arms deep,wide
+else
+  log probe "no base fit finished: deep and wide skipped"
+fi
 
 # 193: G2, the drafted deck against the plain one, r27's latest network on both seats
 for k in 0 4 8 16; do

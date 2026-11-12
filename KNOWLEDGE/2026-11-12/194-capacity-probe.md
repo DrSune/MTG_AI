@@ -67,3 +67,15 @@ The window is about 2 hours. r27 is paused and the pause is logged; nothing else
   limits are the hidden information and the noise, which are the simulator's and the search's
   work.
 - **K3 falsified:** the probe is broken. Nothing is read from it until it is fixed.
+
+## 4. Before the window: two fits dropped, no read changed (2026-11-12 04:30, before any data)
+
+- §3's read uses one learning rate: the one where `base` has the higher held-out mid-game
+  explained variance. So `deep` and `wide` at the other rate would never be read.
+- Each costs about 30 and 21 minutes. Estimate: r27's update runs 2.2 s per minibatch of the same
+  size, and one epoch is about 410 minibatches.
+- So the window runs `base` at both rates first, then `deep` and `wide` only at the rate the read
+  uses (`reports/window2_2026-11-12/queue.sh`).
+- K1-K4 and §3 are unchanged. K3 still reads `base` at both rates.
+- The checkpoint is r27's `v0.pt`: u1000 with the table refreshed at r27's start (one row), which
+  is the network that plays the collected games.

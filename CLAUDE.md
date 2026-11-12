@@ -19,7 +19,7 @@ into `runs/selfplay/r27_priority_ppo/`; `stop` pauses it and `start` resumes it 
 Window 1 (the n-curve, gate A, the simulator, the variants and the clock's latency) ran
 2026-11-11 18:03 to 2026-11-12 03:57 and is scored in `KNOWLEDGE/2026-11-11/192`. Window 2
 (`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6) pauses r27 for about
-2.5 hours after its first 8. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
+4 hours after its first 8. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
 at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
