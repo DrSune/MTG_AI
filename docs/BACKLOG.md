@@ -398,20 +398,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### To triage
 
-- **Runed Halo's NAME_CHOSEN without a CHOOSE_NAME record** (2026-11-12, window 2's H2, 192 §7.6).
-  3 of 300 castable-pool deals (900,114, 900,195, 900,283; u1000 against the heuristic, M21)
-  crashed with `NotImplementedError: executor: NAME_CHOSEN needs a CHOOSE_NAME record for the
-  source` (`core/executor/quantity.py:908`); a deck of each holds Runed Halo (castable, not
-  verified). Find when the protection check runs with no name recorded (before the "as enters"
-  choice, after a zone change, or a fork) before Runed Halo is verified. Repro:
-  `learner --eval-only --init u1000.pt --eval-opponents heuristic --pool castable --eval-set M21
-  --eval-deals 300 --eval-seed0 900000` (window 2's `heur_raw_castable`).
-- **TARGET_PLAYER resolved without a bound target** (2026-11-12, the same run). Deal 900,085
-  crashed with `ValueError: executor: TARGET_PLAYER needs a bound target (12c target prompt)`
-  (`core/executor/selectors.py:150`). Its decks' unverified spells: Garruk, Savage Herald;
-  Hooded Blightfang; Feline Sovereign; Mangara, the Diplomat; Runed Halo
-  (`reports/window2_2026-11-12/score/castable_crash_decks.py`). The verified pool had no void
-  game in r27's 328,142 training games.
 - **The journal is not a record of what players know** (2026-11-12, KNOWLEDGE/2026-11-12/197).
   SCRY journals how many cards were scried, not which went where (`verbs.py` `_v_scry`); REVEAL
   has no zone role and `_look` reads only the library, so "target opponent reveals their hand"
@@ -714,6 +700,25 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **M21 Runed Halo, Garruk, Savage Herald and Rookie Mistake can go to G1 and G2** (2026-11-12,
+  deaba91). They were the "probe limits" cards of KNOWLEDGE/2026-10-30/177, and Runed Halo caused
+  window 2's four castable-pool crashes (192 §7.6); both crashes are fixed in deaba91:
+  - NAME_CHOSEN (deals 900,114, 900,195, 900,283): "As this enchantment enters, choose a card
+    name" compiled as an enters trigger, so the Halo's protection was live with no name while the
+    trigger waited on the stack, and pricing a player target in an act menu raised. It is now the
+    entering state (`EtBState.effect`, CR 614.1c, 614.12a), and the name leaves with the object
+    (CR 400.7). Only Runed Halo's tree bytes changed.
+  - TARGET_PLAYER (deal 900,085): the Halo named Vito, Thorn of the Dusk Rose, whose "target
+    opponent" then had no legal choice; the trigger went on the stack with an empty designation.
+    CR 603.3d now removes it (`binding._designate`), and a trigger's designated player is checked
+    again as it resolves (CR 608.2b, `TriggerBinder.resolve`).
+  - The G1 probe tried "another target" pairs the engine refuses and probed the Halo on the
+    battlefield without its choice (`tools/cards/probe.py`, fixed): all three now probe with no
+    engine error. In the act window Garruk's -2 is offered with its two targets asked slot by
+    slot, and it and Rookie Mistake resolve right, also with a target gone.
+  - What remains: a second person's G2 review and `cardtool verify`. Spec packs: `runed_halo_*`,
+    `vito_target_opponent_*`, `garruk_savage_herald_minus_two_*`, `rookie_mistake_act_window`,
+    `rookie_mistake_one_target_gone`.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
