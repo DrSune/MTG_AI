@@ -523,6 +523,34 @@ no fp32 path, and 183's check compared the same two bf16 paths.
   opponents. Self-play pairs are unaffected, because both seats are bf16. The fix and a re-check
   come before window 2's other numbers are read.
 
+**Scored (window 2, 2026-11-12 15:09-15:10).**
+- **H1 as run: met.** It compares a bf16 copy with bf16 autocast over fp32 weights, not
+  precision (the amendment above).
+  - `heur_raw_fp32` scored 0.6883 against window 1's `heur_raw` 0.6917 on the same 300 deals.
+  - The difference is −0.0033, 95% [−0.0100, +0.0033] (`tools.selfplay.paired`).
+  - 296 deals scored the same; of the 4 that differ, 3 favour window 1's run.
+  - The two bf16 paths agree.
+- **H2: falsified.** `heur_raw_castable` scored 0.6943 [0.661, 0.728] over 296 deals, at or below
+  0.72.
+  - 4 deals were voided by engine crashes, below.
+  - Even if all 8 voided games had been wins, the score would be 0.698.
+  - So the castable pool does not explain the gap.
+- **Reading** (H1 met in its narrowed sense, H2 falsified): neither check finds anything broken,
+  and the gap does not lie with the pool. What is left:
+  - the update (~830 against 1,000);
+  - the 40 games' noise and their one seat per deal;
+  - precision, which only H1′ can test (gate B's queue).
+- **The castable pool's crashes** (4 of 300 deals; the castable pool is compiled but not verified):
+  - 3 were `NotImplementedError: executor: NAME_CHOSEN needs a CHOOSE_NAME record for the
+    source` (`MTG_bot/core/executor/quantity.py:906`), in deals 900,114, 900,195 and 900,283. A
+    deck of each holds Runed Halo.
+  - 1 was `ValueError: executor: TARGET_PLAYER needs a bound target (12c target prompt)`
+    (`MTG_bot/core/executor/selectors.py:150`), in deal 900,085. Its unverified spells are Garruk,
+    Savage Herald; Hooded Blightfang; Feline Sovereign; Mangara, the Diplomat; and Runed Halo.
+  - The verified pool, which r27 and every gate play, had 0 void games in r27's 328,142 training
+    games to update 165.
+  - Both are in BACKLOG under engine faults.
+
 ## 8. The clock's latency: C1-C4 scored (2026-11-12 03:37-03:57)
 
 One game at a time on the idle machine, from the window's worktree (§6), with nothing else

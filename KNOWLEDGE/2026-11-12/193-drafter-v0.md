@@ -131,3 +131,53 @@ deals 900,000-900,999 (G2's), after K swaps (`decks.drafted_decks`, scratch `dra
 - The new critic predicts gains about 20% larger than r26's did (+0.82 / +1.38 / +2.09, §1).
 - G2 tests whether they are real: its predictions (K = 8: 0.58-0.70) expect the critic to
   overstate them.
+
+**G2 (window 2, 2026-11-12 14:57-15:05): passed.**
+- r27's network at update 165 (`runs/window2/r27_latest.pt`, copied at the pause) played both
+  seats, greedy, on the M21 deals 900,000-900,999 with the critic 6b8014ae. The table gives the
+  drafted deck's score per deal (both games) and the critic's prediction for it (the seat edge
+  included, the pilots cancelling):
+
+| K | Score | 95% | Predicted | Prediction |
+|---|---|---|---|---|
+| 0 | 0.480 | [0.457, 0.502] | 0.498 | 0.47-0.53: met |
+| 4 | 0.690 | [0.669, 0.712] | 0.719 | 0.55-0.65: above |
+| 8 | 0.747 | [0.727, 0.766] | 0.824 | 0.58-0.70: above |
+| 16 | 0.803 | [0.785, 0.820] | 0.909 | 0.60-0.75: above |
+
+- The slope of observed on predicted score, per deal over the four arms, is **0.833, 95%
+  [0.776, 0.891]** (bootstrap over the 1,000 deals). Its lower bound is above 0 and K = 8's lower
+  bound is above 0.5, so G2 passes. The slope's prediction (0.3-1.0) is met.
+- The per-K predictions are falsified upward at K = 4, 8 and 16. 83% of a predicted gain shows up
+  in play: the swaps select the critic's noise less than I assumed.
+- 0 engine errors in 8,000 games.
+
+**G4 (window 2, 2026-11-12 15:05-15:09): the pass condition is met, and drafted decks give fewer
+deals that the pilots decide, not more.**
+- r27's network at update 165 played its v0 on the deals 900,000-900,999 (M21, greedy), with the
+  pilots swapping seats within a deal.
+
+| Decks | Decided deals | Same pilot won both games (the winning seat changed) | Update 165's score against v0 |
+|---|---|---|---|
+| `drafted:8` | 998 | 0.294 ± 0.014 | 0.525 [0.508, 0.542] |
+| coherent | 999 | 0.338 ± 0.015 | 0.535 [0.517, 0.553] |
+
+- Drafted minus coherent is **−0.045 ± 0.021, 95% [−0.086, −0.004]**, the runs taken as
+  independent, as registered. Paired by deal (exploratory) it is −0.046 ± 0.021 over 997 deals.
+- The prediction (within ±5 points) is met, at its edge. The share fell: with drafted decks a
+  deal is more the decks' and less the pilots'.
+- By §2's reading the share is not 3 points above coherent with its lower bound above 0, so the
+  knob's value is realism (the simulator, the held-out pool), not learning signal.
+- **Engine errors: 0 in the 10,000 drafted-deck games over G2 and G4**, as registered. That count
+  includes K = 0's 2,000 games, which deal through the drafted path; the 8,000 games with at
+  least 4 swaps alone also had none.
+- Not done: the simulator's NLL on drafted-deck positions (deferred in §2).
+
+**What 193 says.**
+- The critic's values are real. A deck it rates higher wins more, at 83% of the predicted size,
+  so PLAN_DRAFTER §6's loop can start on them.
+- At K = 8 the drafted decks make games less skill-decided, not more. So this read does not
+  support using the drafter as a knob for a stalled run. It stays a tool for realistic decks,
+  for the simulator and the held-out pool, and for deck strength as a variable.
+- The gap in the coherent share (0.338 here, 23% on r26's gates, PLAN_DRAFTER §7) is a different
+  pilot pair: update 165 against v0.
