@@ -78,3 +78,10 @@ fails while R1 and R2 hold.
     ending there).
 - **Gate B** starts after the read at 400 (196 §8). Reads go by update count, so its pause
   changes nothing in them.
+
+## 5. Results
+
+**A correction to §2, made before any r28 update (2026-11-12 16:55).** R2's reference was
+"one update from r27's 165 on stratified steps: 2.0-2.6". The three orders actually gave the
+mulligan's KL over act's as 2.05, 1.53 and 2.60, so the range is 1.5-2.6 (198 §3's ablation).
+R2's prediction (1.5-3.5) and falsifier (5 or more) are unchanged.
