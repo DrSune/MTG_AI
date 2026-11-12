@@ -911,6 +911,13 @@ supply multi-turn signal by itself.
     Glade;
   - the Shrines: the Sanctums;
   - mill: Thieves' Guild Enforcer.
+
+  Built 2026-11-12: `tools/selfplay/packages.py` and the learner's `--package-share`. 18, 14 and
+  15 packages are kept in M21, M20 and FDN, the three above among them. With the heuristic on
+  both seats, a family's consumers fire in 33-72% of the decks built around it, against 0-25% of
+  coherent decks. Two families barely fire: sacrifice (6%: the heuristic never activates a
+  sacrifice outlet) and burn (17%: it aims damage at creatures first). Those are exploration
+  barriers for §14.2 (NUMBERS 2026-11-12, `reports/package_mode_2026-11-12/`).
 - **Seeded opening hands**, and a reverse curriculum annealed back to natural deals.
 - **Forced-line steps at rate ε** are moves of the environment, not trained actions.
 

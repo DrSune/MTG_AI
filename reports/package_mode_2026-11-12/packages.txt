@@ -1,0 +1,157 @@
+== M21 (verified): 18 packages kept, 3 dropped
+- burn in BR/GR: 2 of 2 consumers (0 of them producers), 14 other producer spells; 16 producers in every colour
+    consumers: Chandra's Incinerator, Chandra's Pyreling
+    producers: Brash Taunter, Chandra's Magmutt, Goblin Arsonist, Havoc Jester, Keral Keep Disciples, Meteorite, Pitchburn Devils, Shock, Skeleton Archer, Storm Caller, Terror of the Peaks, Turret Ogre ...
+- counter in GW: 5 of 5 consumers (4 of them producers), 15 other producer spells; 22 producers in every colour
+    consumers: Basri's Lieutenant, Pridemalkin, Sigiled Contender, Tempered Veteran, Wildwood Scourge
+    producers: Adherent of Hope, Basri Ket, Basri's Acolyte, Basri's Aegis, Basri's Solidarity, Basri, Devoted Paladin, Feat of Resistance, Hunter's Edge, Invigorating Surge, Light of Promise, Makeshift Battalion, Quirion Dryad ...
+- dies in BW: 1 of 1 consumers (0 of them producers), 7 other producer spells; 12 producers in every colour
+    consumers: Basri's Lieutenant
+    producers: Crypt Lurker, Goremand, Liliana's Steward, Selfless Savior, Silversmote Ghoul, Village Rites, Witch's Cauldron
+- draw in GU: 7 of 7 consumers (1 of them producers), 27 other producer spells; 45 producers in every colour
+    consumers: Burlfist Oak, Gnarled Sage, Jolrael, Mwonvuli Recluse, Lorescale Coatl, Mystic Skyfish, Teferi's Tutelage, Tome Anima
+    producers: Barrin, Tolarian Archmage, Chromatic Orrery, Elder Gargaroth, Frantic Inventory, Garruk's Uprising, Ghostly Pilferer, Historian of Zhalfir, Jeskai Elder, Library Larcenist, Llanowar Visionary, Mazemind Tome, Opt ...
+- life in BW: 6 of 6 consumers (2 of them producers), 18 other producer spells; 29 producers in every colour
+    consumers: Griffin Aerie, Indulging Patrician, Light of Promise, Sanguine Indulgence, Silversmote Ghoul, Vito, Thorn of the Dusk Rose
+    producers: Alchemist's Gift, Anointed Chorister, Aven Gagglemaster, Baneslayer Angel, Basri's Acolyte, Blood Glutton, Faith's Fetters, Gloom Sower, Hooded Blightfang, Mazemind Tome, Revitalize, Sanctum of Stone Fangs ...
+- mill in BU: 1 of 1 consumers (1 of them producers), 1 other producer spells; 2 producers in every colour
+    consumers: Thieves' Guild Enforcer
+    producers: Teferi's Tutelage
+- permanent[Rogue&Creature|IS_SOURCE] in BU: 1 of 1 consumers (1 of them producers), 4 other producer spells; 5 producers in every colour
+    consumers: Thieves' Guild Enforcer
+    producers: Ghostly Pilferer, Library Larcenist, Masked Blackguard, Tavern Swindler
+- permanent[Dog&Creature]+spell[Dog&Creature] in RW: 1 of 2 consumers (1 of them producers), 6 other producer spells; 8 producers in every colour
+    consumers: Pack Leader
+    producers: Alpine Watchdog, Bolt Hound, Chandra's Magmutt, Igneous Cur, Rambunctious Mutt, Selfless Savior
+- permanent[Shrine] in BG/BR/BU/BW/GR/GU/GW/RU/RW/UW: 2 of 6 consumers (2 of them producers), 0 other producer spells; 6 producers in every colour
+    consumers: Sanctum of Fruitful Harvest, Sanctum of Stone Fangs
+    producers: 
+- permanent[Zombie&Creature] in BG/BR/BU/BW: 1 of 1 consumers (1 of them producers), 5 other producer spells; 6 producers in every colour
+    consumers: Liliana's Devotee
+    producers: Caged Zombie, Liliana's Standard Bearer, Liliana's Steward, Silversmote Ghoul, Walking Corpse
+- permanent[Creature&DEATHTOUCH] in BG: 1 of 1 consumers (1 of them producers), 1 other producer spells; 2 producers in every colour
+    consumers: Hooded Blightfang
+    producers: Ornery Dilophosaur
+- permanent[Creature&FLYING] in UW: 5 of 5 consumers (3 of them producers), 12 other producer spells; 22 producers in every colour
+    consumers: Aven Gagglemaster, Celestial Enforcer, Lofty Denial, Tide Skimmer, Watcher of the Spheres
+    producers: Baneslayer Angel, Concordia Pegasus, Falconer Adept, Gale Swooper, Griffin Aerie, Mistral Singer, Roaming Ghostlight, Shacklegeist, Skyscanner, Speaker of the Heavens, Stormwing Entity, Vryn Wingmare
+- permanent[Creature&POWER_GE4] in GR: 5 of 5 consumers (2 of them producers), 20 other producer spells; 34 producers in every colour
+    consumers: Drowsing Tyrannodon, Garruk's Uprising, Leafkin Avenger, Ornery Dilophosaur, Turret Ogre
+    producers: Bone Pit Brute, Canopy Stalker, Chandra's Firemaw, Chandra's Incinerator, Chrome Replicator, Colossal Dreadmaw, Elder Gargaroth, Forgotten Sentinel, Gadrak, the Crown-Scourge, Garruk's Gorehorn, Garruk's Harbinger, Gnarled Sage ...
+- permanent[Creature] in GW: 2 of 3 consumers (0 of them producers), 67 other producer spells; 149 producers in every colour
+    consumers: Garruk's Uprising, Glorious Anthem
+    producers: Adherent of Hope, Alpine Watchdog, Anointed Chorister, Aven Gagglemaster, Azusa, Lost but Seeking, Baneslayer Angel, Basri Ket, Basri's Acolyte, Basri's Lieutenant, Burlfist Oak, Canopy Stalker, Celestial Enforcer ...
+- sacrifice in BR: 1 of 1 consumers (0 of them producers), 12 other producer spells; 16 producers in every colour
+    consumers: Havoc Jester
+    producers: Crypt Lurker, Dire Fleet Warmonger, Gadrak, the Crown-Scourge, Goremand, Heartfire Immolator, Hobblefiend, Liliana's Steward, Silent Dart, Silversmote Ghoul, Tormod's Crypt, Village Rites, Witch's Cauldron
+- spell[B|R|U|W] in GW: 1 of 1 consumers (0 of them producers), 47 other producer spells; 188 producers in every colour
+    consumers: Quirion Dryad
+    producers: Adherent of Hope, Alpine Watchdog, Angelic Ascension, Anointed Chorister, Aven Gagglemaster, Baneslayer Angel, Basri Ket, Basri's Acolyte, Basri's Aegis, Basri's Lieutenant, Basri's Solidarity, Basri, Devoted Paladin ...
+- spell[Instant|Sorcery] in RU: 2 of 2 consumers (0 of them producers), 28 other producer spells; 64 producers in every colour
+    consumers: Kinetic Augur, Stormwing Entity
+    producers: Burn Bright, Cancel, Crash Through, Destructive Tampering, Discontinuity, Experimental Overload, Frantic Inventory, Frost Breath, Goblin Wizardry, Lofty Denial, Miscast, Opt ...
+- spell[!Creature] in RU: 7 of 7 consumers (1 of them producers), 45 other producer spells; 104 producers in every colour
+    consumers: Heartfire Immolator, Jeskai Elder, Mistral Singer, Riddleform, Shipwreck Dowser, Spellgorger Weird, Stormwing Entity
+    producers: Burn Bright, Cancel, Capture Sphere, Chromatic Orrery, Crash Through, Destructive Tampering, Discontinuity, Enthralling Hold, Experimental Overload, Fiery Emancipation, Frantic Inventory, Frost Breath ...
+- dropped permanent[Basri&Planeswalker]+permanent[Creature&HAS_COUNTER1]+permanent[IS_ATTACKING&Creature&FLYING]+permanent[IS_ATTACKING&Creature]+permanent[Teferi&Planeswalker]+spell[Frantic Inventory] (no colour pair holds a consumer and 8 producer copies): Adherent of Hope, Frantic Inventory, Historian of Zhalfir, Makeshift Battalion, Pridemalkin, Tide Skimmer, Warded Battlements
+- dropped permanent[Cat&Creature] (no colour pair holds a consumer and 8 producer copies): Rin and Seri, Inseparable
+- dropped spell[Cat&Creature] (no colour pair holds a consumer and 8 producer copies): Rin and Seri, Inseparable
+  triggers read: AbilityTriggerEvent 1, CardDrawnEvent 5, CastSpellEvent 5, CounterPlacedEvent 1, CreatureDiesEvent 1, DamageDealtEvent 2, DeclareAttackersEvent 2, LifeGainedEvent 2, SacrificeEvent 1, ZoneChangeEvent 4
+  triggers skipped (the source's own, an opponent's, or a class not in the table): AbilityActivatedEvent 1, BecomesBlockedEvent 1, CastSpellEvent 1, CounterPlacedEvent 2, CreatureDiesEvent 10, DamageDealtEvent 5, DeclareAttackersEvent 11, DeclareBlockersEvent 2, TapStateEvent 1, TargetingEvent 1, TurnPhaseEvent 19, ZoneChangeEvent 61
+== M20 (verified): 14 packages kept, 3 dropped
+- burn in BR: 2 of 2 consumers (0 of them producers), 14 other producer spells; 15 producers in every colour
+    consumers: Chandra's Spitfire, Wildfire Elemental
+    producers: Agonizing Syphon, Chandra's Flame Wave, Chandra, Flame's Fury, Chandra, Novice Pyromancer, Dread Presence, Ember Hauler, Gruesome Scourger, Mask of Immolation, Pyroclastic Elemental, Retributive Wand, Shock, Skeleton Archer ...
+- dies in BG: 2 of 3 consumers (0 of them producers), 5 other producer spells; 6 producers in every colour
+    consumers: Moldervine Reclamation, Overgrowth Elemental
+    producers: Blood for Bones, Bone Splinters, Cavalier of Night, Salvager of Ruin, Thrashing Brontodon
+- life in BW: 3 of 3 consumers (1 of them producers), 18 other producer spells; 26 producers in every colour
+    consumers: Ajani, Strength of the Pride, Bloodthirsty Aerialist, Epicure of Blood
+    producers: Aerial Assault, Agonizing Syphon, Ajani, Inspiring Leader, Bishop of Wings, Blood Burglar, Cavalier of Night, Dawning Angel, Daybreak Chaplain, Dread Presence, Impassioned Orator, Moment of Heroism, Noxious Grasp ...
+- permanent[Elemental&Creature]+permanent[Elemental&Creature|IS_SOURCE] in GR: 3 of 5 consumers (3 of them producers), 13 other producer spells; 26 producers in every colour
+    consumers: Creeping Trailblazer, Lavakin Brawler, Thicket Crasher
+    producers: Cavalier of Thorns, Chandra's Embercat, Chandra's Spitfire, Fire Elemental, Healer of the Glade, Leafkin Druid, Mask of Immolation, Overgrowth Elemental, Pyroclastic Elemental, Scampering Scorcher, Vorstclaw, Wakeroot Elemental ...
+- permanent[Werewolf|Wolf&Creature] in BG/GR/GU/GW: 1 of 1 consumers (1 of them producers), 4 other producer spells; 5 producers in every colour
+    consumers: Nightpack Ambusher
+    producers: Ferocious Pup, Howling Giant, Wolfkin Bond, Wolfrider's Saddle
+- permanent[U&Creature] in BU/GU/RU/UW: 1 of 1 consumers (1 of them producers), 22 other producer spells; 28 producers in every colour
+    consumers: Sage's Row Denizen
+    producers: Air Elemental, Boreal Elemental, Brineborn Cutthroat, Celestial Messenger, Cloudkin Seer, Coral Merfolk, Faerie Miscreant, Fortress Crab, Frilled Sea Serpent, Frost Lynx, Metropolis Sprite, Moat Piranhas ...
+- permanent[Angel&Creature] in BW/GW/RW/UW: 1 of 1 consumers (0 of them producers), 3 other producer spells; 3 producers in every colour
+    consumers: Bishop of Wings
+    producers: Dawning Angel, Herald of the Sun, Serra's Guardian
+- permanent[Golem&Creature] in BW/GW/RW/UW: 1 of 1 consumers (1 of them producers), 3 other producer spells; 4 producers in every colour
+    consumers: Master Splicer
+    producers: Meteor Golem, Prismite, Stone Golem
+- permanent[Swamp&Land] in BG/BR/BU/BW: 1 of 1 consumers (0 of them producers), 0 other producer spells, 1 basics; 1 producers in every colour
+    consumers: Dread Presence
+    producers: 
+- permanent[Vampire&Creature] in BG/BR/BU/BW: 1 of 1 consumers (1 of them producers), 9 other producer spells; 10 producers in every colour
+    consumers: Thirsting Bloodlord
+    producers: Barony Vampire, Blood Burglar, Bloodthirsty Aerialist, Epicure of Blood, Knight of the Ebon Legion, Savage Gorger, Sorin's Guide, Vampire Opportunist, Vampire of the Dire Moon
+- permanent[Creature&FLYING] in UW: 4 of 5 consumers (1 of them producers), 21 other producer spells; 36 producers in every colour
+    consumers: Aerial Assault, Empyrean Eagle, Waterkin Shaman, Winged Words
+    producers: Air Elemental, Anvilwrought Raptor, Bishop of Wings, Boreal Elemental, Celestial Messenger, Cloudkin Seer, Concordia Pegasus, Dawning Angel, Faerie Miscreant, Goldmane Griffin, Griffin Protector, Griffin Sentinel ...
+- permanent[Creature] in GW: 9 of 12 consumers (8 of them producers), 60 other producer spells; 156 producers in every colour
+    consumers: Aggressive Mammoth, Ajani, Strength of the Pride, Griffin Protector, Impassioned Orator, Ironroot Warlord, Leafkin Druid, Might of the Masses, Serra's Guardian, Squad Captain
+    producers: Ancestral Blade, Anvilwrought Raptor, Apostle of Purifying Light, Bastion Enforcer, Bishop of Wings, Brightwood Tracker, Bristling Boar, Canopy Spider, Cavalier of Thorns, Centaur Courser, Concordia Pegasus, Dawning Angel ...
+- permanent[Planeswalker] in RW: 1 of 1 consumers (1 of them producers), 3 other producer spells; 6 producers in every colour
+    consumers: Ajani, Strength of the Pride
+    producers: Ajani, Inspiring Leader, Chandra, Flame's Fury, Chandra, Novice Pyromancer
+- spell[Instant|FLASH] in GU: 1 of 1 consumers (1 of them producers), 17 other producer spells; 36 producers in every colour
+    consumers: Brineborn Cutthroat
+    producers: Anticipate, Befuddle, Bone to Ash, Celestial Messenger, Convolute, Feral Invocation, Growth Cycle, Might of the Masses, Natural End, Negate, Nightpack Ambusher, Plummet ...
+- dropped permanent[Faerie Miscreant&Creature]+spell[Growth Cycle]+spell[TARGETS_SOURCE]+spell[Undead Servant] (no colour pair holds a consumer and 8 producer copies): Faerie Miscreant, Gnarlback Rhino, Growth Cycle, Undead Servant
+- dropped permanent[Land] (no colour pair holds a consumer and 8 producer copies): Omnath, Locus of the Roil
+- dropped spell[!Creature] (no colour pair holds a consumer and 8 producer copies): Kykar, Wind's Fury
+  triggers read: CastSpellEvent 3, CreatureDiesEvent 3, DamageDealtEvent 2, LifeGainedEvent 3, ZoneChangeEvent 10
+  triggers skipped (the source's own, an opponent's, or a class not in the table): CreatureDiesEvent 5, DamageDealtEvent 2, DeclareAttackersEvent 5, DeclareBlockersEvent 1, LifeLostEvent 1, TurnPhaseEvent 4, ZoneChangeEvent 62
+== FDN (verified): 15 packages kept, 1 dropped
+- counter in GU: 2 of 2 consumers (1 of them producers), 5 other producer spells; 9 producers in every colour
+    consumers: Gnarlid Colony, Wildwood Scourge
+    producers: Brineborn Cutthroat, Clinquant Skymage, Erudite Wizard, Scavenging Ooze, Treetop Snarespinner
+- draw in GU: 2 of 2 consumers (0 of them producers), 16 other producer spells; 20 producers in every colour
+    consumers: Clinquant Skymage, Erudite Wizard
+    producers: Chart a Course, Fleeting Distraction, Garruk's Uprising, Gnarlback Rhino, Into the Roil, Mazemind Tome, Mystic Archaeologist, Opt, Pelakka Wurm, Quick Study, Skyship Buccaneer, Solemn Simulacrum ...
+- life in BW: 3 of 3 consumers (0 of them producers), 13 other producer spells; 17 producers in every colour
+    consumers: Ajani's Pridemate, Marauding Blight-Priest, Sanguine Indulgence
+    producers: Ancestor Dragon, Bishop's Soldier, Felidar Savior, Guarded Heir, Healer's Hawk, Herald of Faith, Mazemind Tome, Moment of Craving, Moment of Triumph, Nullpriest of Oblivion, Regal Caracal, Vampire Nighthawk ...
+- permanent[Zombie|Skeleton&Creature] in BG/BR/BU/BW: 1 of 1 consumers (1 of them producers), 5 other producer spells; 6 producers in every colour
+    consumers: Death Baron
+    producers: Crypt Feaster, Diregraf Ghoul, Hungry Ghoul, Maalfeld Twins, Skeleton Archer
+- permanent[Cat&Creature] in BW/GW/RW/UW: 1 of 1 consumers (1 of them producers), 7 other producer spells; 8 producers in every colour
+    consumers: Regal Caracal
+    producers: Ajani's Pridemate, Dawnwing Marshal, Felidar Savior, Helpful Hunter, Leonin Skyhunter, Prideful Parent, Savannah Lions
+- permanent[Elf&Creature] in BG/GR/GU/GW: 1 of 1 consumers (1 of them producers), 6 other producer spells; 7 producers in every colour
+    consumers: Imperious Perfect
+    producers: Druid of the Cowl, Elvish Regrower, Fierce Empath, Llanowar Elves, Tajuru Pathwarden, Thornweald Archer
+- permanent[Forest&Land] in BG/GR/GU/GW: 1 of 1 consumers (0 of them producers), 0 other producer spells, 1 basics; 1 producers in every colour
+    consumers: Blanchwood Armor
+    producers: 
+- permanent[Goblin&Creature] in BR/GR/RU/RW: 1 of 1 consumers (1 of them producers), 7 other producer spells; 8 producers in every colour
+    consumers: Volley Veteran
+    producers: Battle-Rattle Shaman, Dragon Fodder, Dragonlord's Servant, Goblin Boarders, Goblin Smuggler, Raging Redcap, Swab Goblin
+- permanent[Creature&FLYING] in UW: 1 of 1 consumers (1 of them producers), 11 other producer spells; 17 producers in every colour
+    consumers: Empyrean Eagle
+    producers: Ancestor Dragon, Clinquant Skymage, Dawnwing Marshal, Healer's Hawk, Herald of Faith, Leonin Skyhunter, Serra Angel, Skyship Buccaneer, Spectral Sailor, Strix Lookout, Zetalpa, Primal Dawn
+- permanent[Creature&POWER_GE4] in GR: 1 of 1 consumers (0 of them producers), 15 other producer spells; 24 producers in every colour
+    consumers: Garruk's Uprising
+    producers: Affectionate Indrik, Ball Lightning, Dragon Trainer, Elvish Regrower, Fire Elemental, Ghalta, Primal Hunger, Gigantosaurus, Gnarlback Rhino, Magnigoth Sentry, Pelakka Wurm, Quakestrider Ceratops, Shivan Dragon ...
+- permanent[Creature] in GW: 3 of 4 consumers (1 of them producers), 42 other producer spells; 90 producers in every colour
+    consumers: Ancestor Dragon, Anthem of Champions, Garruk's Uprising
+    producers: Affectionate Indrik, Ajani's Pridemate, Bear Cub, Bishop's Soldier, Cathar Commando, Dauntless Veteran, Dawnwing Marshal, Druid of the Cowl, Elvish Regrower, Felidar Savior, Fierce Empath, Ghalta, Primal Hunger ...
+- permanent[Land] in BR/GR/GU/RU/RW: 2 of 3 consumers (0 of them producers), 0 other producer spells, 2 basics; 5 producers in every colour
+    consumers: Adventuring Gear, Spitfire Lagac
+    producers: 
+- spell[Instant|FLASH] in UW: 1 of 1 consumers (1 of them producers), 18 other producer spells; 29 producers in every colour
+    consumers: Brineborn Cutthroat
+    producers: Cancel, Cathar Commando, Disenchant, Dive Down, Elementalist Adept, Fleeting Distraction, Goblin Firebomb, Into the Roil, Moment of Triumph, Negate, Opt, Quick Study ...
+- spell[Instant|Sorcery] in RU: 1 of 1 consumers (0 of them producers), 18 other producer spells; 35 producers in every colour
+    consumers: Enigma Drake
+    producers: Cancel, Chart a Course, Crash Through, Dive Down, Dragon Fodder, Fleeting Distraction, Incinerating Blast, Into the Roil, Kindled Fury, Negate, Obliterating Bolt, Opt ...
+- spell[!Creature] in RU: 4 of 4 consumers (0 of them producers), 27 other producer spells; 51 producers in every colour
+    consumers: Elementalist Adept, Firebrand Archer, Heartfire Immolator, Shipwreck Dowser
+    producers: Adventuring Gear, Cancel, Chart a Course, Crash Through, Dive Down, Dragon Fodder, Fireshrieker, Fleeting Distraction, Goblin Firebomb, Goblin Oriflamme, Goldvein Pick, Impact Tremors ...
+- dropped permanent[Creature&HAS_COUNTER1]+permanent[IS_ATTACKING&Creature]+spell[TARGETS_SOURCE] (no colour pair holds a consumer and 8 producer copies): Gnarlback Rhino, Gnarlid Colony, Goblin Oriflamme
+  triggers read: CardDrawnEvent 2, CastSpellEvent 3, CounterPlacedEvent 1, DeclareAttackersEvent 1, LifeGainedEvent 2, ZoneChangeEvent 5
+  triggers skipped (the source's own, an opponent's, or a class not in the table): CounterPlacedEvent 1, CreatureDiesEvent 5, DamageDealtEvent 1, DeclareAttackersEvent 4, TurnPhaseEvent 2, ZoneChangeEvent 48
