@@ -739,7 +739,7 @@ scores highest, and its fine-tuning reward is the rise of L its decks bring.
 | 2026-11-11 | r26 | built and tested the same day: the search family (§3.2: root, n, m, continuation, horizon, priority asks, simulator worlds, timing, target recording), `ncurve.py`, `distill.py`, `rate.py`; r27's pre-registration (note 191) |
 | 2026-11-11 ~18:00 | r26's read at 1,000; r26 stops | — |
 | window 1, the night of 2026-11-11 (before r27; KNOWLEDGE 192) | the n-curve pilot and points, gate A's confirmation, the simulator recaptured and trained, the n = 16 variants | — |
-| then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")** |
+| then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")**: 16 for F1's targets, 4 for the searched anchor, 16 for play (KNOWLEDGE 192 §9, D23) |
 | 2026-11-12 | r27 | its early speed (§4.1); the capacity probe and the drafter v0 (`PLAN_DRAFTER.md`) built and tested on CPU, beside r27 |
 | a window of about 2.5 hours, r27 paused (the pause logged) | §4.1's capacity probe; drafted-deck games (PLAN_DRAFTER G2-G4) | — |
 | days 4-6 | r27; then, if gate A passed, gate B's generation and probe (~15 h, with the tools already built) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |

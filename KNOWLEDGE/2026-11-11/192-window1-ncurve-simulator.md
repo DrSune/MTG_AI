@@ -484,3 +484,57 @@ until then, so they do not run there.
 - **H1 falsified:** every bf16 evaluation since 183 understates the network against outside
   opponents. Self-play pairs are unaffected, because both seats are bf16. The fix and a re-check
   come before window 2's other numbers are read.
+
+## 8. The clock's latency: C1-C4 scored (2026-11-12 03:37-03:57)
+
+One game at a time on the idle machine, from the window's worktree (§6), with nothing else
+running. Source: the last evaluation row of `runs/window1/clock_{n4,n16,n64}/metrics.jsonl`.
+- Seconds per simulation are exact: total search time over simulations.
+- Times per decision are bucket edges a tenth of a decade wide.
+
+| | n = 4 | n = 16 | n = 64 |
+|---|---|---|---|
+| Games | 10 | 20 | 10 |
+| Searched decisions (skipped at 0.97) | 99 (106) | 189 (220) | 99 (106) |
+| Simulations per searched decision | 5.15 | 14.61 | 62.70 |
+| Seconds per simulation | 0.120 | 0.110 | 0.117 |
+| Seconds per searched decision, mean / p50 / p90 / p99 | 0.62 / 0.63 / 1.26 / 2.0 | 1.60 / 1.58 / 3.16 / 3.98 | 7.32 / 7.94 / 12.6 / 20.0 |
+| The searching seat's search time per game | 6.1 s | 15.1 s | 72.4 s |
+| Wall time per game, both seats | 7.4 s | 16.2 s | 73.6 s |
+
+| # | Result | Verdict |
+|---|---|---|
+| C1 | 0.110 s per simulation at n = 16 (under the window's load: 1.303) | met (0.05-0.30) |
+| C2 | p99 3.98 s | met (2-15 s) |
+| C3 | 15.1 s per game | met (10-90 s) |
+| C4 | per simulation, n = 4 +10% and n = 64 +6% against n = 16 | met (within 30%). A decision's time grows in proportion to n |
+
+**What it means.**
+- The window's load made each simulation 12 times slower: every simulation waited in the
+  inference queue of 288 games.
+- On Magic Online's clock (25 minutes per player per match, about 500 s per game over three
+  games):
+  - n = 16 spends 15-20 s per game searching, 3-4% of the budget;
+  - n = 64 spends about 15%, and its p99 decision takes 20 s.
+- Only one game at a time was measured. Several games on this machine at once share the GPU and
+  the cores; the window's 1.3 s per simulation is the extreme case.
+
+## 9. The three n (chosen 2026-11-12 by the agent; the owner: "no need for me in the loop")
+
+PLAN_CEILING §3.3 leaves three choices. They rest on:
+- §4's curve: most of the gain arrives by n = 8-16, and a doubling above that adds +0.003 ± 0.004;
+- gate A at n = 16 on fresh deals: +0.055, 38 Elo;
+- §7's variants and §8's clock.
+
+| Use | n | Why |
+|---|---|---|
+| F1's training targets, gate B's generation first | **16** | Gate A was confirmed at 16 and only there. n = 8 halves the cost, but its targets are worse by about one doubling's gain (P1's slope, +0.008). Gate B was sized at 16: 300k targets in 12-15 machine-hours. Above 16, each doubling doubles the cost for at most +0.01 |
+| The searched anchor: r27's v0 plus search in the held-out pool, and the at most 3% of training games against searched opponents | **4** | 0.556 ± 0.012 on window 1's deals (+39 Elo), three quarters of the plateau's gain. By P1's slope, n = 16 is about +0.016 above it, about 11 Elo. Under batched load, 600 games took 9 min at n = 4 and 27 min at n = 16, against 34 s raw. An anchor needs many games more than it needs those 11 Elo |
+| Play under a clock | **16** | 15-20 s of search per game on the idle machine; p99 decision 4 s. n = 64 fits the clock too, at 72 s per game, but buys nothing measurable: +0.006 ± 0.008 over n = 16 by P1's slope above 8. The clock's margin goes to breadth instead: priority asks (N3: +0.008 ± 0.008 at 1.8 times the decisions, to confirm on fresh deals before play uses it), and simulator worlds or a longer horizon if the belief audit (195) shows they pay. Horizon 2 at uniform worlds does not (N4) |
+
+**What would reopen each:**
+- **F1:** gate B failing at 16 for want of corrections. Then try 32, if clear corrections rise with
+  n. Or a later network's curve sloping up past 16.
+- **The anchor:** if it is too weak to separate the pool's strongest players, raise it to 16.
+- **Play:** a later curve with a slope above +0.01 per doubling past 16, or simulator worlds
+  paying at a longer horizon.

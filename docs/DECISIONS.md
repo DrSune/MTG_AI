@@ -695,6 +695,19 @@ lambda 1 (D20).
 **Unchanged:** D15 (the Teacher is a curator plus a critic, the drafter a generative policy, and
 they share the critic); OWNER_PREFERENCES #1 and #6; no privileged critic.
 
+## D23 — The three n: 16 for F1's targets, 4 for the searched anchor, 16 for play
+**2026-11-12. Chosen by the agent on window 1's numbers. The owner: "no need for me in the loop".**
+The reasons are in `KNOWLEDGE/2026-11-11/192` §9.
+- **F1's targets: n = 16.** Gate A was confirmed there (+0.055 on fresh deals). Each doubling
+  above 16 doubles the cost for at most +0.01.
+- **The searched anchor: n = 4.** It keeps three quarters of the plateau's gain (+39 Elo) at a
+  third of n = 16's batched cost.
+- **Play: n = 16.** It searches for 15-20 s per game on an idle machine, 3-4% of Magic Online's
+  budget, with a p99 decision of 4 s.
+  - n = 64 fits the clock but measured nothing more.
+  - The clock's margin goes to searching more kinds of decisions, and to beliefs once the belief
+    audit (195) shows they pay.
+
 ## Deferred pending information
 
 **The deployment target's clock is unknown**, and it changes the arithmetic. **Superseded in
