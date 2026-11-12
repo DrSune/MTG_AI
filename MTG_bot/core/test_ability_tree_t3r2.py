@@ -559,26 +559,61 @@ def test_verb_role_table_pins() -> None:
     assert at._ROLE_TYPES["tapped_on_enter"] == (bool,)
 
 
-def test_arrange_is_random_only_and_only_into_a_library() -> None:
-    # CR 401.4: the owner arranges cards put into one position of a library together, so "in any
+def _move(**roles: object) -> at.Atom:
+    return at.Atom(at.Verb.MOVE_ZONE, at.AtomArgs(tuple(roles.items())))
+
+
+_LOOKED = (at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.TOP),)
+_HAND = at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)
+_BOTTOM = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.BOTTOM)
+_TOP = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.TOP)
+
+
+def _sel(mode: at.SelectorMode, count: object = at.QConst(1), zones=_LOOKED) -> at.Selector:
+    return at.Selector(count, mode, at.FAnd(children=()), zones=zones)
+
+
+def test_arrange_is_random_only_and_only_where_several_cards_go_into_a_library() -> None:
+    # CR 401.4: the owner arranges cards put into one end of a library together, so "in any
     # order" has no encoding (the role is absent); "in a random order" is arrange RANDOM, and only
-    # a library destination orders anything.
-    looked = (at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.TOP),)
-    rest = at.Selector(at.QConst(1), at.SelectorMode.REST, at.FAnd(children=()), zones=looked)
-    bottom = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.BOTTOM)
-    random = at.Atom(
-        at.Verb.MOVE_ZONE,
-        at.AtomArgs((("cards", rest), ("destination", bottom), ("arrange", "RANDOM"))),
-    )
+    # a move that can put several cards into a library's TOP or BOTTOM through `cards` takes it
+    # (ability_tree.orders_a_library): anywhere else it orders nothing, a second encoding.
+    rest = _sel(at.SelectorMode.REST)
+    random = _move(cards=rest, destination=_BOTTOM, arrange="RANDOM")
     assert at.from_dict("Atom", at.to_dict(random)) == random
     with pytest.raises(ValueError, match="'arrange' must be one of"):
         at.AtomArgs((("arrange", "ANY"),))
-    graveyard = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
-    with pytest.raises(ValueError, match="CR 401.4"):
-        at.Atom(
-            at.Verb.MOVE_ZONE,
-            at.AtomArgs((("cards", rest), ("destination", graveyard), ("arrange", "RANDOM"))),
-        )
+    taken = [
+        # See the Truth's "the rest", every card of a zone, a count of two from the hand (Cavalier
+        # of Gales), and an anaphor, which can bind several objects
+        dict(cards=rest, destination=_BOTTOM),
+        dict(cards=_sel(at.SelectorMode.ALL, at.QUnbounded(), (_HAND,)), destination=_TOP),
+        dict(cards=_sel(at.SelectorMode.CHOOSE, at.QConst(2), (_HAND,)), destination=_TOP,
+             **{"from": _HAND}),
+        dict(cards=at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, at.FAnd(children=()),
+                               zones=(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),),
+                               referent="result"), destination=_BOTTOM),
+    ]
+    refused = {
+        "one card": dict(cards=_sel(at.SelectorMode.TARGET, zones=(at.Zone(
+            at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),)), destination=_TOP),
+        "up to one card": dict(cards=_sel(at.SelectorMode.CHOOSE, at.QAtMost(1), (_HAND,)),
+                               destination=_TOP),
+        "the designation lane": dict(target=_sel(at.SelectorMode.TARGET, at.QConst(2), (at.Zone(
+            at.ZoneKind.GRAVEYARD, at.ControllerRef.ANY),)), destination=_BOTTOM),
+        "the mill lane": dict(controller=at.ControllerRef.YOU, amount=at.QConst(2),
+                              pop_order="TOP", destination=_BOTTOM,
+                              **{"from": at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)}),
+        "no position": dict(cards=rest, destination=at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU)),
+        "not a library": dict(cards=rest, destination=at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)),
+    }
+    for case, roles in refused.items():
+        with pytest.raises(ValueError, match="cannot hold an order"):
+            _move(**roles, arrange="RANDOM")
+        assert not at.orders_a_library(_move(**roles)), case
+    for roles in taken:
+        _move(**roles, arrange="RANDOM")
+        assert at.orders_a_library(_move(**roles)), roles
 
 
 def test_new_fatom_rule_rows() -> None:

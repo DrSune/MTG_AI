@@ -1397,20 +1397,27 @@ def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _arrange(ctx: ExecCtx, owner: Handle, cards: list[Handle], end: str) -> list[Handle]:
-    """CR 401.4: two or more cards put into one position of a library at the same time are
-    arranged by their owner (a scry's two groups too, CR 701.22a). The owner picks the card that
-    goes lowest of those still to place, then the next, until one is left, which goes highest:
-    ``arrange:<owner>:<TOP|BOTTOM>:<cards left>`` over those cards, Handle-sorted, so the first word
-    every time keeps them in handle order. Returns the cards bottom to top."""
+    """CR 401.4: two or more cards put into one end of a library at the same time are arranged by
+    their owner (a scry's two groups too, CR 701.22a). Asked top first at either end, as the
+    trigger ask asks first what resolves next: the owner picks the card that goes highest of those
+    still to place, then the next, ``arrange:<owner>:<TOP|BOTTOM>:<cards left>`` over them,
+    Handle-sorted. Identical cards (one oracle id) are one option, as the trigger ask's copies
+    are: the lowest handle stands for them, and once every card left is identical nothing is
+    asked. Returns the cards bottom to top."""
     left = sorted(cards)
-    order: list[Handle] = []
-    while len(left) > 1:
-        vocab = tuple(str(card) for card in left)
+    top_down: list[Handle] = []
+    while True:
+        options: dict[str, Handle] = {}
+        for card in left:
+            options.setdefault(ctx.world.cards[card].identity.oracle_id, card)
+        if len(options) < 2:
+            break
+        vocab = tuple(str(card) for card in options.values())
         answer = ctx.take_decision_of(owner, vocab, f"arrange:{owner}:{end}:{len(left)}")
         pick = next(card for card in left if str(card) == answer)
-        order.append(pick)
+        top_down.append(pick)
         left.remove(pick)
-    return order + left
+    return list(reversed(top_down + left))
 
 
 def _bottom_put(dest_ir: Zone, dest_kind: str) -> bool:
@@ -1424,22 +1431,48 @@ def _bottom_put(dest_ir: Zone, dest_kind: str) -> bool:
 
 
 def _library_order(ctx: ExecCtx, atom: Atom, cards: list[Handle], end: str) -> list[Handle]:
-    """The order a move puts cards into one position of their owners' libraries, bottom to top:
-    each library's cards as its owner arranges them (:func:`_arrange`, CR 401.4), or shuffled for
-    "in a random order" (``arrange`` RANDOM)."""
+    """The order a move puts cards into one end of their owners' libraries, bottom to top: each
+    library's cards as its owner arranges them (:func:`_arrange`, CR 401.4), the owners asked in
+    APNAP order (CR 101.4), or shuffled for "in a random order" (``arrange`` RANDOM)."""
     groups: dict[Handle, list[Handle]] = {}
     for card in sorted(cards):
         # CR 400.3: a card goes to its owner's library; the zone holding it names that owner.
         groups.setdefault(ctx.world.controller_of(card), []).append(card)
-    rng = ctx.rng("ARRANGE") if atom.args.get("arrange") == "RANDOM" else None
+    rng = None
+    if atom.args.get("arrange") == "RANDOM":
+        # Seeded by (seed, op, tag): the event count makes each move of one operation its own
+        # stream, or two random moves would shuffle alike.
+        rng = ctx.rng(f"ARRANGE:{len(ctx.events)}")
     order: list[Handle] = []
-    for owner, group in groups.items():
+    for owner in apnap_order(ctx.world, list(groups)):
+        group = groups[owner]
         if rng is not None:
             rng.shuffle(group)
-            order += group
+        elif owner != ctx.controller and len(group) > 1 and _looked_at(ctx, atom, group):
+            raise NotImplementedError(
+                f"executor: {ctx.controller} chose {owner}'s cards from a look, so the card's "
+                "'in any order' tells its controller to order them (Agonizing Memories), not "
+                "their owner (CR 401.4). No card in the 19 sets does this: it raises until one "
+                "brings tests (BACKLOG)."
+            )
         else:
-            order += _arrange(ctx, owner, group, end)
+            group = _arrange(ctx, owner, group, end)
+        order += group
     return order
+
+
+def _looked_at(ctx: ExecCtx, atom: Atom, cards: list[Handle]) -> bool:
+    """Did the move's controller pick ``cards`` out of a look: the looked-at window of this
+    resolution, or another player's library or hand (``cards`` over an opponent's or a target
+    player's zone; every player's own, ANY or OWNER, is each owner's)?"""
+    if any(card in ctx.look_window or card in ctx.one_of_window for card in cards):
+        return True
+    sel = atom.args.get("cards")
+    return isinstance(sel, Selector) and any(
+        z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND)
+        and z.controller not in (ControllerRef.YOU, ControllerRef.ANY, ControllerRef.OWNER)
+        for z in sel.zones
+    )
 
 
 def _v_scry(ctx: ExecCtx, atom: Atom) -> None:

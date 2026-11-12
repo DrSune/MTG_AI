@@ -72,7 +72,7 @@ class AskRoutingError(RuntimeError):
 #: ``mulligan_bottom:<seat>:<cards still to put on the bottom>`` (a card of the hand).
 #: ``arrange``: the owner orders cards put into one end of their library at once (CR 401.4, a
 #: scry's groups too), ``arrange:<owner>:<TOP|BOTTOM>:<cards still to place>``: the card that
-#: goes lowest of those left.
+#: goes highest of those left.
 SEAT_IN_TAG = frozenset(
     {"target", "tap", "sacrifice", "discard", "scry", "pay", "legend", "x", "trigger",
      "replace", "mulligan", "mulligan_bottom", "arrange"}
@@ -240,7 +240,7 @@ def engine_ask(
         "mulligan_bottom": "Mulligan: choose a card from your hand to put on the bottom of your library.",
         "arrange": (
             "Several cards go to the same end of your library at once, in the order you choose: "
-            "pick the one that goes lowest; each card picked after it goes above it."
+            "pick the one that goes highest; each card picked after it goes below it."
         ),
     }
     prompt = prompts.get(kind, f"The engine asks ({kind}): choose one.")

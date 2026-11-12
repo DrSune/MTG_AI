@@ -5,6 +5,14 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-12 (MOVE_ZONE `arrange`, ontology gate round 5; branch `worktree-agent-a7952b97ba6b37208`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| MOVE_ZONE x `arrange` (DESIGN_ATOM_ONTOLOGY §5 row, low volume) | **3 trees** in the 19 sets: M21 Garruk's Harbinger (compiler), M20 Drawn from Dreams and Brightwood Tracker (records) | `.venv/bin/python -c "from pathlib import Path; from MTG_bot.core.ability_tree import Atom, walk; from MTG_bot.core.executor.games import compile_supply; print(sorted((s, r.card.name, 'record' if r.record else 'compiler') for s in sorted(p.stem for p in Path('MTG_bot/data').glob('*.json')) for r in compile_supply('all', s, require_verified=False).pool.results.values() for n in walk(r.card) if isinstance(n, Atom) and n.args.get('arrange')))"` | all RANDOM; "in any order" has no encoding (CR 401.4: absent, the owner arranges) |
+| cards printing "in a random order" / "in any order", 19 sets, reminder text left out | **54 / 22** | `.venv/bin/python -c "import re; from pathlib import Path; from MTG_bot.core.compiler.ingest import ingest_pool; c=[(rc.identity.name, re.sub(r'\([^)]*\)', '', rc.identity.oracle_text or '')) for p in Path('MTG_bot/data').glob('*.json') for rc in ingest_pool(p).values()]; print([len({n for n, t in c if w in t}) for w in ('in a random order', 'in any order')])"` | distinct names; most "random" sentences are still unparsed |
+| verified pools (`get_supply("verified", s).deckable`) | M21 270 -> **269**, M20 257 -> **255**, FDN 175 -> **175** | `.venv/bin/python -c "from MTG_bot.core.executor.games import get_supply; print({s: len(get_supply('verified', s).deckable) for s in ('M21', 'M20', 'FDN')})"` | main acfb1926 -> this branch: the three trees above changed bytes and wait for re-verification |
+
 ## 2026-11-06 (several target slots, CR 601.2c, branch `engine/multi-slot-targets`)
 
 | Number | Value | Command | Notes |

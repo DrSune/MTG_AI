@@ -70,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
     from_dict,
     gathers_occurrences,
+    orders_a_library,
     to_dict,
     walk,
 )
@@ -325,6 +326,34 @@ def _window_reveal(ability: Any) -> Atom | None:
                 for z in n.zones):
             return None
     return reveal
+
+
+def _one_card_result_moves(ability: Any, base: tuple) -> set[tuple]:
+    """Paths of the MOVE_ZONE atoms of ``ability`` that move the ``result`` of a one-card look, so
+    that their library-order mutant is dead (see ``mutants``): Garruk, Savage Herald's +1, "Reveal
+    the top card of your library. If it's a creature card, put it into your hand. Otherwise, put
+    it on the bottom of your library." The ability's one REVEAL or LOOK_AT takes QConst(1) cards
+    and no ``until``, and the step right after it in a Seq is the move, or a Conditional or
+    OptionalEffect around it, reading ``referent="result"``. That look is a fresh top-of-library
+    look (the ability has no other, so ``_look`` has no prior window), which writes the top card
+    alone to ``result`` (none from an empty library), and nothing runs in between, so the move
+    holds at most one card and has no order to choose (``verbs._arrange`` asks nothing)."""
+    looks = [n for n in walk(ability) if isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
+    if len(looks) != 1 or looks[0].args.get("count") != QConst(1) or looks[0].args.get("until") is not None:
+        return set()
+    out: set[tuple] = set()
+    for path, node in _paths(ability, base):
+        if not isinstance(node, Seq) or node.steps[0] is not looks[0] or len(node.steps) < 2:
+            continue
+        step, at = node.steps[1], (*path, "steps", 1)
+        branches = [(step, at)]
+        if isinstance(step, Conditional):
+            branches = [(step.then_effect, (*at, "then_effect")), (step.else_effect, (*at, "else_effect"))]
+        elif isinstance(step, OptionalEffect):
+            branches = [(step.inner, (*at, "inner"))]
+        out |= {p for move, p in branches if isinstance(move, Atom) and move.verb is Verb.MOVE_ZONE
+                and getattr(move.args.get("cards"), "referent", None) == "result"}
+    return out
 
 
 def _one_per_option(ability: Any, atoms: list[Atom]) -> bool:
@@ -602,8 +631,10 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                    if isinstance(ability, StaticAbility) and isinstance(ability.effect, OptionalEffect)
                    and isinstance(ability.effect.inner, Atom) and ability.effect.inner.verb in _PERMISSION_VERBS}
     permissions |= {(*path, "args", "ability", "effect") for path, node in _paths(root) if _granted_policy_may(node)}
+    one_card: set[tuple] = set()  # moves of a one-card look's result: no library order (_one_card_result_moves)
     for i, ability in enumerate(card.abilities):
         twins |= _twin_targets(ability, (1, i))
+        one_card |= _one_card_result_moves(ability, (1, i))
         dead |= _static_prevention_conditions(ability, (1, i))
         roles = _reveal_dead_roles(ability)
         for path, node in _paths(ability, (1, i)) if roles else ():
@@ -615,6 +646,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 dead |= {(*path, "args", "controller"), (*path, "args", "count")}
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
+        at = path  # where the candidates are rebuilt; the zone swap of an arranged move rebuilds the move
         if isinstance(node, QConst) and path in self_counts:
             continue
         if path in dead or any(path[: len(d)] == d for d in dead):
@@ -631,7 +663,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                           dataclasses.replace(node, once_per_event=None)))
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and gathers_occurrences(node.event):
             cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
-        elif isinstance(node, Atom) and _orders_a_library(node):
+        elif isinstance(node, Atom) and orders_a_library(node) and path not in one_card:
             # CR 401.4: the owner arranges the cards, unless "in a random order" (arrange RANDOM)
             pairs = tuple(p for p in node.args.pairs if p[0] != "arrange")
             if len(pairs) < len(node.args.pairs):
@@ -650,8 +682,15 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         elif isinstance(node, ControllerRef) and node in _FLIP:
             cands.append((f"controller {node.name}->{_FLIP[node].name}", _FLIP[node]))
         elif isinstance(node, Zone) and node.kind in _ZONE_SWAP and path and path[-1] == "destination":
-            cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}",
-                          dataclasses.replace(node, kind=_ZONE_SWAP[node.kind])))
+            other = dataclasses.replace(node, kind=_ZONE_SWAP[node.kind])
+            move = nodes.get(path[:-2])
+            if isinstance(move, Atom) and move.args.get("arrange") is not None:
+                # "in a random order" orders only cards that go into a library (orders_a_library):
+                # moving them elsewhere drops the order with it, or the mutant would be stillborn
+                at = path[:-2]
+                other = Atom(move.verb, AtomArgs(tuple(
+                    (r, other if r == "destination" else v) for r, v in move.args.pairs if r != "arrange")))
+            cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}", other))
         elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET and path not in twins:
             cands.append(("target->all", dataclasses.replace(node, mode=SelectorMode.ALL, count=QUnbounded())))
         elif isinstance(node, Seq) and len(node.steps) >= 2:
@@ -672,7 +711,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 cands.append((f"drop keyword {node[i].keyword.name}", node[:i] + node[i + 1:]))
         for op, new in cands:
             try:
-                kws, abilities = _rebuild(root, path, new)
+                kws, abilities = _rebuild(root, at, new)
                 mutant = dataclasses.replace(card, keywords=kws, abilities=abilities)
             except (ValueError, TypeError, AttributeError):
                 continue  # stillborn: the IR's own validation refuses it
@@ -723,15 +762,3 @@ def is_critical(op: str) -> bool:
     return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
                           "target->all", "optional", "trigger scope", "trigger count", "each occurrence",
                           "library order"))
-
-
-def _orders_a_library(atom: Atom) -> bool:
-    """A MOVE_ZONE that can put several cards into one library at once, whose order its
-    ``arrange`` role decides (CR 401.4). A move of one card has no order: no mutant there."""
-    dest = atom.args.get("destination")
-    if atom.verb is not Verb.MOVE_ZONE or not (isinstance(dest, Zone) and dest.kind is ZoneKind.LIBRARY):
-        return False
-    sel = atom.args.get("cards") or atom.args.get("target")
-    return isinstance(sel, Selector) and sel.referent is None and (
-        sel.mode in (SelectorMode.REST, SelectorMode.ALL) or sel.count != QConst(1))
-

@@ -164,8 +164,8 @@ class LookWindowTest(BindingCase):
     def test_see_the_truth_partition_and_bottom_order(self):
         # Seq[LOOK_AT 3, Seq[MOVE ONE_OF top->hand, MOVE REST top->bottom]]
         # window (top-first): L4, L3, L2. The decision picks L2; the rest
-        # (L4, L3) land bottom in the order the controller arranges (CR 401.4):
-        # L3 lowest.
+        # (L4, L3) land bottom in the order the controller arranges (CR 401.4),
+        # asked highest first: L4, so L3 lowest.
         pick = str(self.libs[1])  # L2 — in-window, neither first nor last
         self.ex.apply_effect(
             Seq(
@@ -193,7 +193,7 @@ class LookWindowTest(BindingCase):
             ),
             source=self.watch,
             controller=self.p0,
-            decisions=(pick, str(self.libs[2])),
+            decisions=(pick, str(self.libs[3])),
         )
         self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.libs[1]])
         # entries bottom->top: [L3, L4 (the arranged bottom run), L1 (untouched)]
@@ -256,7 +256,7 @@ class LookWindowTest(BindingCase):
             ),
             source=self.watch,
             controller=self.p0,
-            decisions=(str(self.libs[1]), str(self.libs[2])),  # pick L2; L3 lowest of the rest
+            decisions=(str(self.libs[1]), str(self.libs[3])),  # pick L2; L4 highest of the rest
         )
         # REST = stash {L4, L3, L2} minus the pick = {L4, L3} → bottom run
         # L3 then L4; entries bottom->top: [L3, L4, L1, L2 (the top pick)]

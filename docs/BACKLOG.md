@@ -238,6 +238,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Cavalier of Gales's "put two cards from your hand on top of your library" reaches a bench seat
   as "choose what to discard" (protocol.py's prompt for the kind). The cards and their order are
   right; the label is not. Name the ask by its destination, or give the move its own kind.
+- **Cards a controller picks from a look at another player's library or hand raise as they go
+  into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
+  `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
+  but a card's own "in any order" can tell its controller to: 10E Agonizing Memories (unparsed),
+  "Look at target player's hand and choose two cards from it. Put them on top of that player's
+  library in any order." No compiled card in the 19 sets does it, so the engine raises rather
+  than guess who orders. When one compiles: ask its controller, with its tests.
 - **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
   (`core/executor/games.py:402` `identity_of`).
 - **B-64 [verifier, FDN round 2] A may-offer, and a Choose inside it, still offer an action that
@@ -432,21 +439,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
-- **MOVE_ZONE `arrange` waits for its gate round** (2026-11-12; DESIGN_ATOM_ONTOLOGY binds an IR
-  change). "In any order" and "in a random order" compiled alike, so neither was honoured (B-81's
-  ruling kept the fixed order for "random"; verification wave 1 judged See the Truth WRONG). The
-  change: an optional MOVE_ZONE role `arrange`, a closed string vocabulary {"RANDOM"} like
-  `pop_order`, accepted only with a LIBRARY destination. Absent, the owner arranges the cards
-  (CR 401.4; "in any order" restates it, so it gets no encoding of its own, as `once_per_event`
-  absent is CR 603.2c's default). B5b-rest-bottom-random and two M20 records emit it. The
-  executor asks one `arrange:<owner>:<TOP|BOTTOM>:<cards left>` per card but the last, the lowest
-  first, for every move into a library position and for both of a scry's groups (CR 701.22a), and
-  shuffles a RANDOM group with its own seeded stream. A several-card move into a library that a
-  SHUFFLE follows ("shuffle them into your library") would ask an order the shuffle discards, and
-  its G3 "random" mutant would be equivalent; no compiled tree has one. To rule: the role's name
-  and home (a Zone field was the alternative), and whether "random" or "any" should be the absent
-  value ("in a random order" is the commoner wording: 54 distinct cards of the 19 sets to 22,
-  reminder text left out).
+- **D19: a MOVE_ZONE into a library with no position means two things** (2026-11-12, ontology
+  gate round 5, m5; ATOM_DIVERGENCES D19): "put it on the bottom of your library" (M21 Epitaph
+  Golem) and "shuffle it into its owner's library" (M20 Cavalier of Gales: the move, then a
+  SHUFFLE) both write `Zone(LIBRARY, ...)` with no `position`, and `verbs._bottom_put` takes it as
+  the bottom. Both play right today (one card each). A several-card shuffle-into move would ask
+  its owner an order (`verbs._arrange`) the shuffle then discards; `orders_a_library` refuses
+  `arrange` with no position. None exists in the 19 sets. Fold: "on the bottom" writes BOTTOM,
+  and the executor arranges only an explicit end.
 - **B-41 The grammar does not generalize to unseen text**: at first touch PC-2 on sentence shapes
   absent from M21/ZNR is 0.080 (M20) and 0.111 (KHM), against 0.89 on seen shapes. On cards with
   new text, PC-1 is 0.11 (M20) and 0.03 (KHM) (KNOWLEDGE /159). Tied rank 1 needs compositional
@@ -637,7 +637,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
     replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
     selector reads it yet. "In a random order" is MOVE_ZONE's `arrange` RANDOM (2026-11-12,
-    pending its gate round).
+    ontology gate round 5).
 - **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
   D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
   controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
@@ -841,18 +841,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   kills it, for its next verification. FDN Battlesong Berserker's record (not verified) got the
   same flag.
 - **Re-verify M21 Garruk's Harbinger, M20 Drawn from Dreams and M20 Brightwood Tracker**
-  (2026-11-12, after the gate round for MOVE_ZONE `arrange`). Their "in a random order" move
+  (2026-11-12, MOVE_ZONE `arrange`, ontology gate round 5). Their "in a random order" move
   gained `arrange` RANDOM (Garruk's Harbinger from the compiler's B5b-rest-bottom-random, the two
   M20 cards in their records' `ir`), so their tree shas changed and they left the verified pool
-  (M21 260 -> 259, M20 254 -> 252). Without the role the engine now asks the owner the order
-  (CR 401.4). Garruk's Harbinger plays as before in the other pools (its packs pass; its bottom
-  order is random now, which none of them pins). The M20 records are not applied while
-  unverified, so in the other pools Brightwood Tracker plays the compiler's tree (a vanilla
-  creature) and Drawn from Dreams none (no spell); their spec packs wait in
+  (measured against main acfb1926: M21 270 -> 269, M20 257 -> 255, FDN 175). Without the role
+  the engine asks the owner the order (CR 401.4). Garruk's Harbinger plays as before in the other
+  pools (its packs pass; its bottom order is random now, which none of them pins). The M20
+  records are not applied while unverified, so in the other pools Brightwood Tracker plays the
+  compiler's tree (a vanilla creature) and Drawn from Dreams none (no spell); their spec packs
+  wait in
   `tools/scenarios/known_bugs/{brightwood_tracker,drawn_from_dreams}_rest_to_bottom_in_a_random_order.json`
   (both pass against the records' trees, asking no order). G3 mutates the role both ways,
-  critical ("library order: random -> the owner's" / "the owner's -> random"); all three cards'
-  G1 traces kill the first.
+  critical ("library order: random -> the owner's" / "the owner's -> random"), and keeps each
+  card's "zone LIBRARY->GRAVEYARD"; all three G1 traces kill the first. Re-probe Anticipate,
+  Stormwing Entity and Track Down too (their traces show `arrange` asks, now asked top first),
+  and write the two M20 records through `cardtool try --write`.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole

@@ -35,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     QProp,
     QPropField,
+    QUnbounded,
     Repeat,
     Selector,
     SelectorMode,
@@ -652,8 +653,8 @@ class TestManaScryShuffleLook(ExecutorCase):
             atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(9)),
             source=self.alpha,
             controller=self.p0,
-            # all four on top, then their order (CR 701.22a), lowest first: as they were
-            decisions=("top", "top", "top", "top", *(str(h) for h in self.libs[:3])),
+            # all four on top, then their order (CR 701.22a), highest first: as they were
+            decisions=("top", "top", "top", "top", *(str(h) for h in reversed(self.libs[1:]))),
         )
         self.assertEqual(
             self.world.players[self.p0].zone(ZONE_LIBRARY).entries, self.libs
@@ -662,23 +663,24 @@ class TestManaScryShuffleLook(ExecutorCase):
     def test_scry_asks_the_order_of_each_group(self):
         # CR 701.22a: "put any number of them on the bottom of your library in any order and the
         # rest on top of your library in any order". L4 and L2 stay on top, L3 and L1 go to the
-        # bottom; each group's order is the scryer's, asked lowest card first (verbs._arrange).
+        # bottom; each group's order is the scryer's, asked highest card first (verbs._arrange).
         l1, l2, l3, l4 = self.libs
         self.ex.execute(
             atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(4)),
             source=self.alpha,
             controller=self.p0,
-            decisions=("top", "bottom", "top", "bottom", str(l3), str(l4)),
+            decisions=("top", "bottom", "top", "bottom", str(l1), str(l2)),
         )
         self.assertEqual(self.world.players[self.p0].zone(ZONE_LIBRARY).entries, [l3, l1, l4, l2])
         asked = [what for what, _ in self.ex.decisions.ask_log if what.startswith("arrange:")]
         self.assertEqual(asked, [f"arrange:{self.p0}:BOTTOM:2", f"arrange:{self.p0}:TOP:2"])
 
     def _to_library(self, end, cards, *, decisions=(), **roles):
+        # the bound cards ride a selector that can hold several (orders_a_library)
         self.ex.execute(
             atom(
                 Verb.MOVE_ZONE,
-                cards=target_sel(UNIV, LIB_YOU),
+                cards=Selector(QConst(len(cards)), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
                 destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=end),
                 **roles,
             ),
@@ -690,17 +692,17 @@ class TestManaScryShuffleLook(ExecutorCase):
         return self.world.players[self.p0].zone(ZONE_LIBRARY).entries
 
     def test_cards_put_on_the_bottom_together_are_ordered_by_their_owner(self):
-        # CR 401.4 (See the Truth: "the rest on the bottom of your library in any order"): L3 goes
-        # lowest, then L1, then L2; L4 stays on top.
+        # CR 401.4 (See the Truth: "the rest on the bottom of your library in any order"), asked
+        # highest first: L2, then L1, then L3 lowest; L4 stays on top.
         l1, l2, l3, l4 = self.libs
-        lib = self._to_library(ZonePosition.BOTTOM, (l1, l2, l3), decisions=(str(l3), str(l1)))
+        lib = self._to_library(ZonePosition.BOTTOM, (l1, l2, l3), decisions=(str(l2), str(l1)))
         self.assertEqual(lib, [l3, l1, l2, l4])
 
     def test_cards_put_on_top_together_are_ordered_too(self):
         # The same rule on top. L1 and L2 move within their library, which leaves a card where it
-        # was unless the move re-places it: L2 goes lower, L1 on top.
+        # was unless the move re-places it: L1 on top, L2 under it.
         l1, l2, l3, l4 = self.libs
-        lib = self._to_library(ZonePosition.TOP, (l1, l2), decisions=(str(l2),))
+        lib = self._to_library(ZonePosition.TOP, (l1, l2), decisions=(str(l1),))
         self.assertEqual(lib, [l3, l4, l2, l1])
 
     def test_a_random_order_asks_nobody(self):
@@ -712,6 +714,109 @@ class TestManaScryShuffleLook(ExecutorCase):
         self.assertEqual(sorted(lib[:3]), [l1, l2, l3])
         self.assertEqual(lib[3], l4)
         self.assertFalse([w for w, _ in self.ex.decisions.ask_log if w.startswith("arrange:")])
+
+    def _asks(self):
+        """Answer every ask with its first word; record (site, words, deciding seat)."""
+        asks = []
+
+        def first(vocab, what):
+            asks.append((what, vocab, self.ex.decisions.asking_seat))
+            return vocab[0]
+
+        self.ex.decisions.provider = first
+        return asks
+
+    def test_the_order_is_asked_top_first(self):
+        # At either end the first card picked goes highest, as the trigger ask's first pick
+        # resolves first: answering the first word each time puts L1 over L2 over L3.
+        l1, l2, l3, l4 = self.libs
+        asks = self._asks()
+        lib = self._to_library(ZonePosition.BOTTOM, (l1, l2, l3))
+        self.assertEqual(lib, [l3, l2, l1, l4])
+        p0 = self.p0
+        self.assertEqual([w for w, _, _ in asks], [f"arrange:{p0}:BOTTOM:3", f"arrange:{p0}:BOTTOM:2"])
+
+    def test_identical_cards_are_one_option(self):
+        # Two copies of one card are one option, as the trigger ask's copies are: the order of
+        # identical cards is no choice. Once the other card is placed only copies are left: no ask.
+        twin = card_id("Twin")
+        a = self.world.add_card(twin, self.p0, ZONE_HAND)
+        b = self.world.add_card(twin, self.p0, ZONE_HAND)
+        asks = []
+
+        def other_first(vocab, what):
+            asks.append(vocab)
+            return str(self.h1)
+
+        self.ex.decisions.provider = other_first
+        lib = self._to_library(ZonePosition.TOP, (a, b, self.h1))
+        self.assertEqual(asks, [(str(self.h1), str(a))])  # the copies' lowest handle stands for them
+        self.assertEqual(lib[-1], self.h1)  # picked first: on top
+        self.assertEqual(sorted(lib[-3:-1]), [a, b])
+
+    def test_each_owner_arranges_its_own_cards_active_player_first(self):
+        # CR 401.4: each card goes to its owner's library and its owner orders it; CR 101.4:
+        # the owners are asked in APNAP order, so seat 1, the active player, first.
+        extra = self.world.add_card(card_id("L10"), self.p1)
+        self.world.active_player = self.p1
+        asks = self._asks()
+        self._to_library(ZonePosition.BOTTOM, (self.libs[0], self.libs[1], self.p1_lib, extra))
+        self.assertEqual([(w, seat) for w, _, seat in asks],
+                         [(f"arrange:{self.p1}:BOTTOM:2", self.p1), (f"arrange:{self.p0}:BOTTOM:2", self.p0)])
+        # first word, so the lower handle goes highest in each run
+        self.assertEqual(self.world.players[self.p1].zone(ZONE_LIBRARY).entries, [extra, self.p1_lib])
+        self.assertEqual(self.world.players[self.p0].zone(ZONE_LIBRARY).entries[:2], [self.libs[1], self.libs[0]])
+
+    def test_another_players_looked_at_cards_raise_until_a_card_brings_tests(self):
+        # "Look at target player's hand and choose two cards from it. Put them on top of that
+        # player's library in any order" (Agonizing Memories): the text tells the controller to
+        # order them, not their owner. No card in the 19 sets does this: the engine refuses it.
+        extra = self.world.add_card(card_id("L10"), self.p1)
+        theirs = Selector(QConst(2), SelectorMode.CHOOSE, UNIV,
+                          zones=(Zone(ZoneKind.LIBRARY, ControllerRef.OPPONENT, position=ZonePosition.TOP),))
+        move = atom(Verb.MOVE_ZONE, cards=theirs,
+                    destination=Zone(ZoneKind.LIBRARY, ControllerRef.OPPONENT, position=ZonePosition.TOP))
+        self._asks()
+        with self.assertRaises(NotImplementedError):
+            self.ex.execute(move, source=self.alpha, controller=self.p0,
+                            bindings={"cards": [self.p1_lib, extra]})
+
+    def test_cards_put_from_a_hand_on_top_are_ordered(self):
+        # Cavalier of Gales: "draw three cards, then put two cards from your hand on top of your
+        # library in any order" takes the hand lane (`from` HAND): H2 picked first, so on top.
+        h2 = self.world.add_card(card_id("H2"), self.p0, ZONE_HAND)
+        two = Selector(QConst(2), SelectorMode.CHOOSE, UNIV, zones=(HAND_YOU,))
+        move = atom(Verb.MOVE_ZONE, cards=two, controller=ControllerRef.YOU,
+                    destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.TOP),
+                    **{"from": HAND_YOU})
+        self.ex.execute(move, source=self.alpha, controller=self.p0, decisions=(str(h2),))
+        self.assertEqual(self.world.players[self.p0].zone(ZONE_LIBRARY).entries[-2:], [self.h1, h2])
+        asked = [w for w, _ in self.ex.decisions.ask_log if w.startswith("arrange:")]
+        self.assertEqual(asked, [f"arrange:{self.p0}:TOP:2"])
+
+    def test_a_random_order_permutes_and_each_move_draws_its_own(self):
+        # A shuffle that does nothing must fail this: six random bottom-puts of the same four
+        # cards (one operation each, so six streams) give more than one order.
+        orders = {tuple(self._to_library(ZonePosition.BOTTOM, self.libs, arrange="RANDOM")) for _ in range(6)}
+        self.assertGreater(len(orders), 1)
+        # Two random moves in ONE operation draw from two streams: the executor seeds by
+        # (seed, operation, tag), so one tag would shuffle five hand cards and five graveyard
+        # cards the same way.
+        hand = [self.h1] + [self.world.add_card(card_id(f"H{i}"), self.p0, ZONE_HAND) for i in range(2, 6)]
+        grave = [self.world.add_card(card_id(f"G{i}"), self.p0, ZONE_GRAVEYARD) for i in range(5)]
+
+        def bottom(zone):
+            return atom(Verb.MOVE_ZONE, cards=Selector(QUnbounded(), SelectorMode.ALL, UNIV, zones=(zone,)),
+                        destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=ZonePosition.BOTTOM),
+                        arrange="RANDOM")
+
+        self.ex.apply_effect(Seq((bottom(HAND_YOU), bottom(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)))),
+                             source=self.alpha, controller=self.p0)
+        lib = self.world.players[self.p0].zone(ZONE_LIBRARY).entries
+        # the graveyard's five went under the hand's five
+        pattern = [tuple(sorted(run).index(c) for c in run) for run in (lib[5:10], lib[:5])]
+        self.assertEqual((sorted(lib[5:10]), sorted(lib[:5])), (sorted(hand), sorted(grave)))
+        self.assertNotEqual(pattern[0], pattern[1])
 
     def test_shuffle_replay_identical_same_seed(self):
         def run(seed):
