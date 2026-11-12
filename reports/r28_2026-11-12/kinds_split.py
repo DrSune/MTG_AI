@@ -28,7 +28,7 @@ ap.add_argument("ckpt")
 ap.add_argument("batch")
 ap.add_argument("--kinds", default="mulligan,mulligan_bottom,priority,act,attack,block,target")
 a = ap.parse_args()
-dev = torch.device("cuda")
+dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # CPU: a dry run beside a training run
 with open(a.batch, "rb") as fh:
     rows = pickle.load(fh)
 n = len(rows)

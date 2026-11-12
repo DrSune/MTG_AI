@@ -211,7 +211,7 @@ last row per update; each gate 2,000 games against v0 = r27's v1 weights, both s
   rest of the batch causes on it) reads where an update's signal goes. It is PLAN_CEILING §15's
   "signal before direction" applied to the trainer itself.
 
-## 7. Registered before update 100's data (2026-11-12 21:35, r28 saved at update 80)
+## 7. Registered before update 100's data (2026-11-12 21:20, r28 resumed from its save at 75)
 
 **The per-kind split** (PLAN_CEILING §14.2, instrument 2; §14.4, retention).
 - `reports/r28_2026-11-12/kinds_split.py` runs on one on-policy batch of r28's update-100 weights
