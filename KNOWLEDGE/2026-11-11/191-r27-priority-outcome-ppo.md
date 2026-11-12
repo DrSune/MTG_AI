@@ -98,7 +98,8 @@ advantage, normalised entropy and KL.
 
 Every evaluation now deals coherent decks only (`learner.py:800`, since decad93; r26's pinned code
 dealt half stress decks). So a gate's standard error of ~0.011 is all on the distribution trained
-on. r26's read at 1,000 shows why it matters: its coherent halves rose to 0.546 against v2 while
+on. (Corrected 2026-11-12, KNOWLEDGE 197: 0.011 is the error if every game were independent; the
+gates' deal-level error, the one the code uses, is 0.0071-0.0081 on r27's gates.) r26's read at 1,000 shows why it matters: its coherent halves rose to 0.546 against v2 while
 its five-colour halves fell to 0.476, and the pooled gate froze nothing after update 378
 (189 §11).
 
@@ -311,7 +312,9 @@ updates; 109,559 training games):
 
 **The first freeze, at update 75** (2026-11-12 07:30; gate games are never rated):
 - The gate of update 75, read at 77: **0.5543 [0.5388, 0.5697]** against v0. That passes, and v1
-  was frozen at update 77.
+  was frozen at update 77. (Corrected 2026-11-12, KNOWLEDGE 197: v1's weights are the gate's
+  snapshot, update 75's; `v1.pt` was stamped 77 and `best.pt` held update 77's learner, both
+  fixed in the code since.)
 - r26's first freeze came at update 200 (189 §9's look at 320). Prediction 1 ("v1 frozen by
   update 500") is met.
 - v1's ladder (500 deals each, both seats, greedy):

@@ -26,7 +26,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind (the second main phase's act menu is its own kind, `act_second_main`; the mulligan before the first turn asks `mulligan`, keep or mulligan, and `mulligan_bottom`, a card of the hand), one row per option (type + the entities it points at). A spell or ability with several targets asks one `target` question per slot (CR 601.2c): the slot reaches the network as `glob_f[G_SLOT]` (0 = the first or only one), and the cards and players chosen so far are marked (`F_TARGETED`, `P_TARGETED`), as attacks mark the attackers declared so far. Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
-| `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. The true-future labeller (`Labeller`, docs/PLAN_LEARNING.md §1.1-1.2): at a reservoir of unsure act decisions it compares k alternatives played to the game's end on d true futures (the second reshuffles only what nobody knows), and `mmd_target` turns the results into the mirror-descent target; a job with `label` options runs it (`actor.py`). |
+| `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. The true-future labeller (`Labeller`, docs/PLAN_LEARNING.md §1.1-1.2): at a reservoir of unsure act decisions it compares k alternatives played to the game's end on d true futures (the second reshuffles both libraries whole), and `mmd_target` turns the results into the mirror-descent target; a job with `label` options runs it (`actor.py`). |
 | `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. `grow` makes the same function in a deeper or wider network (zero-output layers, zero-weight new units; PLAN_CEILING §4.1's capacity probe). |
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
@@ -35,7 +35,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `decks.py` | The drafter v0 (docs/PLAN_DRAFTER.md): a recorded game's decks rebuilt with the code of the run's commit (`rebuild`, under `runs/code/<sha>`), the card-value critic fitted on games' results against a baseline of deck summaries (`fit`, gate G1), and construction by k swaps on a fresh deal inside the coherent decks' band (`swap`), which the learner's drafted deck modes use. |
 | `trace.py`, `report.py`, `paired.py` | Read one game decision by decision; one-screen status of a run (with the per-kind rows: pass share, advantage, entropy, KL); paired comparison of two evaluations on the same deals. |
 | `preflight.py`, `launch.sh` | A run's pre-flight checks (docs/TRAINING_REVIEW_PROTOCOL.md §1: clean tree, a smoke slate, games ending by a loss, seeded replay); the launcher a systemd unit runs, which resumes from the last save. |
-| `ncurve.py`, `distill.py`, `rate.py` | docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2; rules `se`, `se1` on the first halving round's shared worlds, and `sigma`; `--placebo`, `--save-epochs`; KNOWLEDGE/2026-11-12/196); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
+| `evalrows.py`, `ncurve.py`, `distill.py`, `rate.py` | the one reading of evaluation rows and one name per player that every scorer uses; docs/PLAN_CEILING.md's measurements: the searcher's strength against log n over evaluation runs (§3.3); training a network toward recorded search targets, gate B and F1's step (§6.2; rules `se`, `se1` on the first halving round's shared worlds, and `sigma`; `--placebo`, `--save-epochs`; KNOWLEDGE/2026-11-12/196); the held-out pool's frozen ratings and a player's Elo against them, L (§7.2). |
 
 ## Training: the curriculum (the owner's plan of 2026-11-03)
 
@@ -43,7 +43,7 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
    heuristic-vs-heuristic games, behaviour cloning on both seats' moves and the outcomes
    (`--bc-*`). A run started with `--init` skips it.
 2. *Against the teacher*: PPO with the heuristic as the only opponent until a frozen copy of the
-   learner scores `--teacher-gate` against it (Wilson lower bound above 0.5) or
+   learner scores `--teacher-gate` against it (deal-level 95% lower bound above 0.5) or
    `--teacher-iters` pass. The evaluated weights become the next version.
 3. *Gated frozen self-play*: PPO against the newest frozen version, plus older versions
    (`--p-past`) and the heuristic (`--p-heuristic`) so it does not forget how to beat them.
@@ -56,7 +56,11 @@ network; expert iteration (search distillation) stalled at this data scale and w
 were the separate value network, the rollout network and the KL anchor to the frozen version
 (/183 §16-§17, §10-§13, §23). Each update runs in `trainer.py`'s process while the learner keeps
 serving the workers on the current weights; no new training game is issued while a full next
-batch waits (`throttled`). Serve with `--infer-bf16` (KL to the trainer's numerics ~1e-5, §20).
+batch waits (`throttled`). Serve with `--infer-bf16` (KL to the trainer's numerics ~1e-5, §20);
+without it inference runs in fp32 (before 2026-11-12 it ran fp32 weights under bf16 autocast on
+CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `voids`, `overflow` (the learner's asks
+answered by the fallback) and `throttled` (job requests refused while a full batch waited) are per
+update; before 2026-11-12 the last three were totals since the process started.
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
@@ -149,8 +153,12 @@ then dealt `castable` cards (`--pool castable` reproduces that).
 `runs/` is gitignored. Metrics: `runs/selfplay/NAME/metrics.jsonl` (events `iter`, `eval`,
 `teacher_gate`, `stage`, `gate`, `freeze`, `elo`, `bc_gen`, `bc_data`, `bc_epoch`, `progress`
 every `--progress-every` s, `init`, `refresh_table`, `resume`, `mem_floor`). Checkpoints:
-`bc.pt`, `last.pt`, `best.pt` (last gate passed), `v<k>.pt` (frozen versions); `state.pkl`,
-`manifest.json`, `eval_rows.jsonl` (one row per evaluation game).
+`bc.pt`, `last.pt` (the commit: the learner's weights and the run state in one atomic write),
+`best.pt` (the snapshot the last passed gate scored), `v<k>.pt` (frozen versions, stamped with
+the update their weights are from and the one they were frozen at); `state.pkl` (the scripts'
+copy of the run state), `manifest.json`, `eval_rows.jsonl` (one row per evaluation game). A
+resume continues from the last commit: the evaluation running then starts again, and job ids
+continue past every logged game, so no deal is dealt twice (KNOWLEDGE/2026-11-12/197).
 
 Training deals are seeded `--seed` x 1e9 + the game's number, so a run started from another run's
 checkpoint gets decks and shuffles its ancestors never trained on: give each run of a lineage its
@@ -159,8 +167,11 @@ own `--seed` (runs before r25 all dealt the same games whatever their seed).
 Evaluation: `--eval-deals` fixed deals (seeds 900000+), coherent decks only (random piles are not
 the game being learned; before 2026-11-10 half were stress decks, read `by_mode`), each
 played twice with seats swapped; greedy play; a crash or a leaky ask (CHOOSE_NAME lists hidden
-cards) voids the pair. Score = (wins + draws/2) / games, Wilson 95% interval. A deal is (set,
-pool, seed, deck mode): `paired.py` pairs only rows with all four equal.
+cards) voids the pair. Score = (wins + draws/2) / games, with a normal 95% interval over deals
+(the deal is the unit: its two games are anti-correlated). `evalrows.py` holds these rules for
+every scorer (the learner's summaries, `paired.py`, `rate.py`, `ncurve.py`): a deal is
+(opponent, set, pool, seed, deck mode), a void game drops its deal, a re-written row replaces the
+earlier one; and one name per player (the network, its search when it searches, the precision).
 
 An engine optimisation must leave seeded games identical (/183 §21, §24; the checkers
 `games_hash.py` and `zone_identity.py` are at commit 2dd34a3).
@@ -198,6 +209,6 @@ critic.
 `test_labels.py` (6 tests) holds the true-future labels' guards (PLAN_LEARNING §1.2, §3): the
 policy's outputs are byte-identical when the opponent's hidden cards, hand ages or private
 knowledge, or our own library order, are rewritten; a labelled game makes the same decisions and
-ends in the same state as an unlabelled one; the second future keeps every known library
-position; a crashed future is dropped for every alternative; and the owner's 45/30/25 example
+ends in the same state as an unlabelled one; the second future (and a true world) reshuffles both
+libraries whole; a crashed future is dropped for every alternative; and the owner's 45/30/25 example
 (§1.4) in search and in distillation.
