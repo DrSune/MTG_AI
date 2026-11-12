@@ -1,0 +1,53 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "so",
+   "real": "Steel Overseer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mg",
+   "name": "MG",
+   "type": "Artifact Creature \u2014 Golem",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "so",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "counters": {
+   "mg": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "so": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "mg": 3,
+   "so": 2
+  }
+ },
+ "notes": "Printed: 'Creatures your opponents control can't have +1/+1 counters put on them.' Only OPPONENTS' creatures are barred: my own Steel Overseer and Golem both get their +1/+1 counter while my Blightbeetle is in play."
+}

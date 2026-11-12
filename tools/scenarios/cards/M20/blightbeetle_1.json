@@ -1,0 +1,52 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "so",
+   "real": "Steel Overseer",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "og",
+   "name": "OG",
+   "type": "Artifact Creature \u2014 Golem",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "so",
+   "idx": 0,
+   "seat": 1
+  }
+ ],
+ "expect": {
+  "counters": {
+   "og": {},
+   "so": {}
+  },
+  "power": {
+   "og": 2,
+   "so": 1
+  },
+  "tapped": {
+   "so": true
+  }
+ },
+ "notes": "Printed: 'Creatures your opponents control can't have +1/+1 counters put on them.' The OPPONENT controls Steel Overseer ('{T}: Put a +1/+1 counter on each artifact creature you control') and a Golem artifact creature; with my Blightbeetle in play neither gets a counter (the activation still happens: Overseer is tapped)."
+}

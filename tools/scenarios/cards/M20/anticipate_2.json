@@ -1,0 +1,50 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "an",
+   "real": "Anticipate",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Anticipate",
+   "key": "an",
+   "decisions": [
+    "card:4",
+    "card:6",
+    "card:5"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "an": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Library 5",
+    "Library 4"
+   ]
+  }
+ },
+ "notes": "Printed: 'Look at the top three cards of your library. Put one of them into your hand and the rest on the bottom of your library in any order.' The library holds fillers Library 5 (top) .. Library 0; the top three are Library 5, 4, 3 (handles card:6, 5, 4). Library 3 (card:4) goes to hand; the player orders the other two (the ask arrange, first named = the upper of the pair), and they go to the bottom in that order, the last named being the bottom card (CR 401.4)."
+}

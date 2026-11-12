@@ -414,39 +414,40 @@
   "sha": "8e7696b0f79735734fa7d61d5758012646cdf5e9c2ae7fa89e2c98e7c2f5269b"
  },
  "verified": {
-  "tree_sha": "a335cc45cdcbf2f44bbc40fd4d597fdc08c1aeffe3fd9bdff1fa346097dede36",
-  "probe_sha": "92344c0eee8139e157ca9d4ef0924c5adc4d108b26bcc4fffcd011640ee3aa15",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "tree_sha": "bc5ab6c52e8e2539cdf78494af6c885f48dc1b9ceb9b9750b144ef53e7816321",
+  "probe_sha": "9d8d5734a205a638d4029f275cd52246475a554ed9ed13c884ee14868898cd81",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
   "clauses": [
    {
     "clause": "Lifelink",
     "status": "OK",
-    "evidence": "[this creature attacks alone, unblocked]: 'you gains 4 life (by card/DEAL_DAMAGE)', you 20 -> 24; also when blocked by opp_giant.",
+    "evidence": "keywords LIFELINK; attack: you gain 4 life",
     "issue": ""
    },
    {
-    "clause": "When this creature enters, you may sacrifice another creature.",
+    "clause": "When this creature enters, you may sacrifice another creature",
     "status": "OK",
-    "evidence": "[cast]: 'ask may: [fire, skip]', 'ask sacrifice: [you_bear, you_giant]' (the Cavalier itself not offered), 'you_bear moves battlefield -> graveyard (by card/SACRIFICE)'; [cast | ask 3 -> you_giant] sacrifices the giant; [cast | ask 2 -> skip]: nothing sacrificed.",
+    "evidence": "cast: may fire/skip; sacrifice ask offers only you_bear, you_giant (not itself, not noncreatures); skip does nothing",
     "issue": ""
    },
    {
-    "clause": "When you do, destroy target creature an opponent controls.",
+    "clause": "When you do, destroy target creature an opponent controls",
     "status": "OK",
-    "evidence": "'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (opponent's creatures only); with fire each chosen target 'moves battlefield -> graveyard (by card/DESTROY)'; with skip nothing is destroyed. Pack cavalier_of_night_1 (no other creature to sacrifice: the may is not offered and the opponent's creature survives) passes; twin fails.",
-    "issue": "Not blocking: the target is asked before the may and 'opp_flier is targeted' is journalled even on skip (engine-wide: triggers pick targets on resolution, BACKLOG). The tree is the documented convention OptionalEffect(Seq(X, Y)) for 'you may X. When you do, Y' (Tolarian Kraken). No outcome differs in G1 or the pack."
+    "evidence": "cast: target asked after the sacrifice, only opp creatures; destroys the pick",
+    "issue": ""
    },
    {
-    "clause": "When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.",
+    "clause": "When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield",
     "status": "OK",
-    "evidence": "[this card is dealt lethal damage]: 'card's triggered ability [1] triggers', 'you_fallen is targeted', 'you_fallen moves graveyard -> battlefield' (no ask: the only legal card; opp_fallen and the mana value 5 Cavalier not offered). Pack cavalier_of_night_2 (MV 3 returns, MV 4 and the opponent's MV 2 stay, controller seat 0) passes; twin fails.",
+    "evidence": "lethal damage: you_fallen graveyard -> battlefield. The MV<=3 bound and noncreature exclusion (never contradicted on this board) pinned by B05_1, B05_2",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/cavalier_of_night_1.json",
-   "tools/scenarios/cards/M20/cavalier_of_night_2.json"
+   "tools/scenarios/cards/M20/cavalier_of_night_2.json",
+   "tools/scenarios/cards/M20/cavalier_of_night_3.json",
+   "tools/scenarios/cards/M20/cavalier_of_night_1.json"
   ],
   "mutation": {
    "mutants": 23,
