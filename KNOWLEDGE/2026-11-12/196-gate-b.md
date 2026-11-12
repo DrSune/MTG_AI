@@ -25,7 +25,8 @@
 ## 1. The protocol
 
 **When and where.**
-- After r27's registered read at update 1,000 (191 §6), about 2026-11-14.
+- After r27's registered read at update 500 (191 §6), about 2026-11-13 (§6: moved from 1,000
+  before any data).
 - The queue, `reports/gate_b_2026-11-12/queue.sh`, runs as a systemd unit from a worktree pinned at
   this note's commit. It pauses r27 the way window 2's queue does: at the first save 10-20 updates
   past a gate. The pause is logged, nothing else runs on the GPU, and r27 resumes after the last
@@ -235,3 +236,16 @@
 | Commands lacked `--run`, carried a flag evaluations ignore, and mixed fp32 and bf16 | fixed; `--infer-bf16` throughout |
 | The standard errors were wrong (450 deals give about 0.006 for near-identical networks, not 0.01) | corrected, and the pass probabilities with them |
 | 9.4 targets per game on fresh deals, so about 9 chunks; nothing said what a capped chunk does | corrected; a capped chunk keeps its shards and is not rerun |
+
+## 6. The timing, moved before any data (2026-11-12 07:55)
+
+**Gate B starts after r27's read at update 500, about 2026-11-13 midday, not after the read at
+1,000.**
+- Gate B asks whether distilling the search makes a network stronger. That question does not need
+  r27's network at 1,000: chunk 0 checks gate A on whatever network G is.
+- The answer comes about a day sooner, and F1, the plan's critical path, starts sooner if it
+  passes.
+- r27 loses nothing it registered. Its reads go by update count (191 §6), so the pause only moves
+  the read at 1,000 later.
+- Window 2's results (194, 195, 193) are read before gate B starts. If any of them changes gate B's
+  design, the change is appended here before the run.

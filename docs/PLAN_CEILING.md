@@ -748,7 +748,7 @@ scores highest, and its fine-tuning reward is the rise of L its decks bring.
 | then | r27 | report: the n-curve and the simulator; **the three n, chosen by the agent with its reasons (the owner, 2026-11-12: "no need for me in the loop")**: 16 for F1's targets, 4 for the searched anchor, 16 for play (KNOWLEDGE 192 §9, D23) |
 | 2026-11-12 | r27 | its early speed (§4.1); the capacity probe and the drafter v0 (`PLAN_DRAFTER.md`) built and tested on CPU, beside r27 |
 | a window of about 2.5 hours, r27 paused (the pause logged) | §4.1's capacity probe; drafted-deck games (PLAN_DRAFTER G2-G4) | — |
-| days 4-6 | r27; then, if gate A passed, gate B's generation and probe (about 30 h with its controls, KNOWLEDGE 196; `reports/gate_b_2026-11-12/queue.sh`) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
+| days 3-5 | r27 to its read at update 500; then, gate A having passed, gate B's generation and probe (about 30 h with its controls, KNOWLEDGE 196, moved a day earlier in its §6; `reports/gate_b_2026-11-12/queue.sh`) | if gate B passes: the F1 loop (shared-memory buffer, replay ratio); PFSP |
 | days 6-20 | F1, if gates A and B pass: the 48-hour check, then to its plateau or target (review at 14 machine-days) | the exploiter; the held-out pool's ratings |
 | then ~2 weeks | H1 and its control, about a week each, from when F1 is at least +200 Elo above r27 | — |
 | after H1 | — | **the ceiling read**, to the owner |
