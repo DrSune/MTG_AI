@@ -44,7 +44,7 @@ from torch import nn
 from MTG_bot.core.executor.games import MAX_COPIES, get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
-from tools.selfplay.ppo import chunks
+from tools.selfplay.ppo import backward_step, steps
 
 #: The pool every capture game deals from (the learner's --pool): the format's cards.
 POOL = "verified"
@@ -334,28 +334,29 @@ def train(a: argparse.Namespace) -> None:
         idx = np.random.default_rng(a.seed).permutation(idx)[: a.positions]
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     torch.manual_seed(a.seed)
-    rng = np.random.default_rng([a.seed, 1])  # the minibatches (ppo.chunks)
+    rng = np.random.default_rng([a.seed, 1])  # the optimizer steps (ppo.steps)
     net = Simulator(table, d=a.d, layers=a.layers, heads=a.heads, ff=a.ff).to(dev)
     opt = torch.optim.AdamW(net.parameters(), lr=a.lr, weight_decay=a.wd)
     lengths = data.lengths()[idx]
-    total = a.epochs * len(chunks(lengths, a.mb, a.tok_budget, rng))
+    total = a.epochs * len(steps(lengths, a.mb, a.tok_budget, np.random.default_rng(0)))
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 200) * (
         0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / total)))))
     print(json.dumps({**vars(a), "positions": len(idx), "steps": total, "params": sum(
         p.numel() for p in net.parameters())}), flush=True)
+    def micro_loss(ch: np.ndarray) -> torch.Tensor:
+        b = data.batch(idx[ch], dev)
+        with torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
+            return loss(net, b)
+
     for epoch in range(a.epochs):
         net.train()
         t0, ls = time.time(), []
-        for ch in chunks(lengths, a.mb, a.tok_budget, rng):
-            b = data.batch(idx[ch], dev)
-            with torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
-                lo = loss(net, b)
+        for step in steps(lengths, a.mb, a.tok_budget, rng):
             opt.zero_grad(set_to_none=True)
-            lo.backward()
+            ls.append(backward_step(step, micro_loss))
             torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
             opt.step()
             sched.step()
-            ls.append(lo.item())
             if len(ls) % 500 == 0:
                 print(json.dumps({"epoch": epoch, "step": len(ls), "loss": round(float(
                     np.mean(ls[-500:])), 4), "secs": round(time.time() - t0, 1)}), flush=True)

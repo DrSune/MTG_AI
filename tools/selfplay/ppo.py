@@ -1,11 +1,20 @@
-"""The PPO update over a packed buffer (run in trainer.py's process); ``chunks`` also batches BC.
+"""The PPO update over a packed buffer (run in trainer.py's process). ``steps`` cuts every
+training loop's optimizer steps (PPO, BC, the simulator, distillation); ``chunks`` serves passes
+whose order does not matter.
 
-Loss per minibatch: clipped policy gradient on normalised advantages, clipped value loss and
-an entropy bonus, scaled by the minibatch's share of the decisions so every decision weighs the
-same. The net runs in eval() mode (no name dropout): the ratio must compare the acting policy with the same
-function. Minibatches are length-sorted, capped by ``mb`` decisions and ``tok_budget`` padded
-tokens (activation memory is system memory on the Spark), collated once and reused by every
-epoch. Non-finite steps are skipped and counted.
+Loss per step: clipped policy gradient on normalised advantages, clipped value loss and an
+entropy bonus, the mean over the step's decisions. The net runs in eval() mode (no name
+dropout): the ratio must compare the acting policy with the same function. Non-finite steps are
+skipped and counted.
+
+Every optimizer step is a sample of the whole batch (KNOWLEDGE 198). Padding is what forces
+length-sorted micro-batches (activation memory is system memory on the Spark, capped by ``mb``
+decisions and ``tok_budget`` padded tokens), but a length-sorted minibatch is also a game-phase
+and ask-kind stratum. Stepping on each one alone gave every short-only kind (the mulligan: all of
+its declarations in 2 of 48 minibatches) one impulse per update and let the other steps drag it
+between impulses: r27's mulligan ran away while its own gradient pointed back. So a step
+accumulates gradients over length-homogeneous micro-batches dealt from every length (``steps``),
+and an update takes as many steps over as many tokens as length-sorted minibatches did.
 
 The KL early stop (``target_kl`` > 0) bounds how far THIS update moves: it measures KL from the
 policy at the start of the update (one no-grad pass over the batch, a quarter of the update's
@@ -38,12 +47,9 @@ from tools.selfplay import model as M
 _DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip")]
 
 
-def chunks(lengths: np.ndarray, mb: int, tok_budget: int,
-           rng: np.random.Generator) -> list[np.ndarray]:
-    """Minibatches of row indices: length-sorted (with jitter from ``rng``), each capped by ``mb``
-    rows and ``tok_budget`` padded tokens, in an order drawn from ``rng``. The generator is the
-    caller's, so its seed fixes the minibatches (no global random state)."""
-    order = np.argsort(lengths + rng.random(len(lengths)) * 4.0)
+def _cut(order: np.ndarray, lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
+    """``order`` (ascending length) cut into micro-batches of at most ``mb`` rows and
+    ``tok_budget`` padded tokens."""
     out, cur, cur_max = [], [], 0.0
     for i in order:
         length = float(lengths[i]) + 3.0
@@ -54,7 +60,45 @@ def chunks(lengths: np.ndarray, mb: int, tok_budget: int,
         cur_max = max(cur_max, length)
     if cur:
         out.append(np.array(cur))
+    return out
+
+
+def chunks(lengths: np.ndarray, mb: int, tok_budget: int,
+           rng: np.random.Generator) -> list[np.ndarray]:
+    """Length-sorted micro-batches of row indices (jitter from ``rng``), each capped by ``mb``
+    rows and ``tok_budget`` padded tokens, in an order drawn from ``rng``. Each is one stratum of
+    length, so they serve passes whose order does not matter, never optimizer steps (``steps``).
+    The generator is the caller's, so its seed fixes them (no global random state)."""
+    out = _cut(np.argsort(lengths + rng.random(len(lengths)) * 4.0), lengths, mb, tok_budget)
     return [out[i] for i in rng.permutation(len(out))]
+
+
+def steps(lengths: np.ndarray, mb: int, tok_budget: int,
+          rng: np.random.Generator) -> list[list[np.ndarray]]:
+    """Optimizer steps, each a list of micro-batches of row indices: as many steps as ``chunks``
+    would cut, each a sample of every length (KNOWLEDGE 198). The rows in length order (jitter
+    from ``rng``) are dealt in blocks of one row per step, each block in a random order, so a
+    step holds short and long decisions, and so every ask kind, in their shares of the batch.
+    A step's rows, still in length order, are cut like ``chunks``; its micro-batches accumulate
+    one gradient (``backward_step``)."""
+    order = np.argsort(lengths + rng.random(len(lengths)) * 4.0)
+    k = len(_cut(order, lengths, mb, tok_budget))
+    deal = np.argsort(rng.random((-(-len(order) // k), k)), axis=1).reshape(-1)[: len(order)]
+    out = [_cut(order[deal == j], lengths, mb, tok_budget) for j in range(k)]
+    return [out[j] for j in rng.permutation(k)]
+
+
+def backward_step(step: list[np.ndarray], loss_of: Callable[[np.ndarray], torch.Tensor]) -> float:
+    """One optimizer step's gradient, accumulated over its micro-batches: ``loss_of(rows)`` is a
+    micro-batch's mean loss, weighted by its share of the step's rows, so the step's gradient is
+    the mean over its rows. Returns that mean loss. The caller zeroes, clips and steps."""
+    m = sum(len(ch) for ch in step)
+    total = 0.0
+    for ch in step:
+        lo = loss_of(ch)
+        (lo * (len(ch) / m)).backward()
+        total += float(lo.detach()) * len(ch)
+    return total / m
 
 
 def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
@@ -72,12 +116,13 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     kl_last = np.full(n, np.nan, dtype=np.float32)
     stop = False
     t_col = time.perf_counter()
-    chunk_list = chunks(packed.lengths(), a.mb, a.tok_budget, rng)
-    n_batches = len(chunk_list)
+    step_list = steps(packed.lengths(), a.mb, a.tok_budget, rng)
+    n_steps = len(step_list)
+    micro = [ch for step in step_list for ch in step]
     kl_stop = a.target_kl > 0
     lp0_arr = np.empty(n if kl_stop else 0, dtype=np.float32)
     with torch.no_grad():
-        for ch in chunk_list if kl_stop else ():
+        for ch in micro if kl_stop else ():
             if check:
                 check()
             b = M.collate_packed(packed, ch, device)
@@ -93,74 +138,77 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     t_train = time.perf_counter()
     for epoch in range(a.epochs):
         kls = []
-        epoch_chunks = [chunk_list[i] for i in rng.permutation(n_batches)]
-        for step, ch in enumerate(epoch_chunks):
+        for k, j in enumerate(rng.permutation(n_steps)):
             if check:
                 check()
-            if release and step and step % 16 == 0:
-                release()  # every minibatch has its own shape: bound the allocator cache
-            b = M.collate_packed(packed, ch, device)
-            act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
-            old_logp = torch.from_numpy(logp[ch].astype(np.float32)).to(device)
-            A = torch.from_numpy(adv_n[ch]).to(device)
-            R = torch.from_numpy(ret[ch].astype(np.float32)).to(device)
-            V0 = torch.from_numpy(v_old[ch].astype(np.float32)).to(device)
-
-            with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
-                logits, v = model(b)
-            logp_all = torch.log_softmax(logits, -1)
-            lp = logp_all.gather(1, act_t[:, None]).squeeze(1)
-            ent = -(logp_all.exp() * logp_all).sum(-1)
-            ratio = torch.exp((lp - old_logp).clamp(-20.0, 20.0))  # overflow rail
-            pg = -torch.min(ratio * A, ratio.clamp(1 - a.clip, 1 + a.clip) * A).mean()
-            v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
-            vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
-            loss = pg + a.vcoef * vloss - a.ent * ent.mean()
-            # Minibatches are length-sorted and token-capped, so their sizes differ a lot: a mean
-            # loss per minibatch would weigh a long decision far above a short one. Scale so
-            # every decision weighs the same.
-            loss = loss * (len(act_t) * n_batches / max(n, 1))
-            with torch.no_grad():
-                kl_each = (ratio - 1) - (lp - old_logp)
-                kl = kl_each.mean().item()
-                n_opt = b["opt_mask"].sum(-1).float()
-                ent_n = torch.where(n_opt >= 2, ent / torch.log(n_opt.clamp(min=2)),
-                                    torch.full_like(ent, float("nan")))
-                ent_last[ch] = ent_n.float().cpu().numpy()
-                kl_last[ch] = kl_each.float().cpu().numpy()
-                if kl_stop:
-                    d0 = lp - torch.from_numpy(lp0_arr[ch]).to(device)
-                    kl_upd = (torch.exp(d0) - 1 - d0).mean().item()
-            # Stop before a step on a minibatch this update has already moved by 1.5x the target
-            # (as SB3 does); a check only between epochs would never act at --epochs 1.
-            if kl_stop and kl_upd > 1.5 * a.target_kl:
-                stop = True
-                del b, act_t, old_logp, A, R, V0
-                break
+            if release and k and k % 16 == 0:
+                release()  # every micro-batch has its own shape: bound the allocator cache
+            step = step_list[j]
+            m = sum(len(ch) for ch in step)
+            acc: dict[str, float] = defaultdict(float)  # the step's sums over its decisions
+            finite = True
             opt.zero_grad(set_to_none=True)
-            if not torch.isfinite(loss):
+            for ch in step:
+                b = M.collate_packed(packed, ch, device)
+                act_t = torch.from_numpy(act[ch].astype(np.int64)).to(device)
+                old_logp = torch.from_numpy(logp[ch].astype(np.float32)).to(device)
+                A = torch.from_numpy(adv_n[ch]).to(device)
+                R = torch.from_numpy(ret[ch].astype(np.float32)).to(device)
+                V0 = torch.from_numpy(v_old[ch].astype(np.float32)).to(device)
+                with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
+                    logits, v = model(b)
+                logp_all = torch.log_softmax(logits, -1)
+                lp = logp_all.gather(1, act_t[:, None]).squeeze(1)
+                ent = -(logp_all.exp() * logp_all).sum(-1)
+                ratio = torch.exp((lp - old_logp).clamp(-20.0, 20.0))  # overflow rail
+                pg = -torch.min(ratio * A, ratio.clamp(1 - a.clip, 1 + a.clip) * A).mean()
+                v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
+                vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
+                loss = pg + a.vcoef * vloss - a.ent * ent.mean()
+                with torch.no_grad():
+                    w = len(ch)
+                    kl_each = (ratio - 1) - (lp - old_logp)
+                    n_opt = b["opt_mask"].sum(-1).float()
+                    ent_n = torch.where(n_opt >= 2, ent / torch.log(n_opt.clamp(min=2)),
+                                        torch.full_like(ent, float("nan")))
+                    ent_last[ch] = ent_n.float().cpu().numpy()
+                    kl_last[ch] = kl_each.float().cpu().numpy()
+                    acc["pg"] += pg.item() * w
+                    acc["v"] += vloss.item() * w
+                    acc["ent"] += ent.mean().item() * w
+                    acc["kl"] += kl_each.mean().item() * w
+                    acc["clip"] += ((ratio - 1).abs() > a.clip).float().mean().item() * w
+                    if kl_stop:
+                        d0 = lp - torch.from_numpy(lp0_arr[ch]).to(device)
+                        acc["kl_update"] += (torch.exp(d0) - 1 - d0).mean().item() * w
+                if torch.isfinite(loss):
+                    (loss * (w / m)).backward()  # the step's gradient: the mean over its rows
+                else:
+                    finite = False
+                del b, act_t, old_logp, A, R, V0, logits, v, loss
+            kl_upd = acc["kl_update"] / m
+            # Stop before a step on rows this update has already moved by 1.5x the target (as
+            # SB3 does); a check only between epochs would never act at --epochs 1.
+            if kl_stop and kl_upd > 1.5 * a.target_kl:
+                opt.zero_grad(set_to_none=True)
+                stop = True
+                break
+            if not finite:
+                opt.zero_grad(set_to_none=True)
                 stats["nonfinite"].append(1.0)
-                del b, act_t, old_logp, A, R, V0
                 continue
-            loss.backward()
             gn = torch.nn.utils.clip_grad_norm_(model.parameters(), a.max_grad)
             if not torch.isfinite(gn):
                 opt.zero_grad(set_to_none=True)
                 stats["nonfinite"].append(1.0)
-                del b, act_t, old_logp, A, R, V0
                 continue
             opt.step()
-            with torch.no_grad():
-                if kl_stop:
-                    kls.append(kl_upd)
-                    stats["kl_update"].append(kl_upd)
-                stats["pg"].append(pg.item())
-                stats["v"].append(vloss.item())
-                stats["ent"].append(ent.mean().item())
-                stats["kl"].append(kl)
-                stats["clip"].append(((ratio - 1).abs() > a.clip).float().mean().item())
-                stats["gn"].append(float(gn))
-            del b, act_t, old_logp, A, R, V0
+            if kl_stop:
+                kls.append(kl_upd)
+                stats["kl_update"].append(kl_upd)
+            for key in ("pg", "v", "ent", "kl", "clip"):
+                stats[key].append(acc[key] / m)
+            stats["gn"].append(float(gn))
         stats["epochs"].append(epoch + 1)
         if stop or (kls and float(np.mean(kls)) > a.target_kl):
             stop = True
@@ -170,7 +218,8 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     out = {k: round(float(np.mean(v)), 5) for k, v in stats.items()
            if k not in ("epochs", "nonfinite")}
     out.update({"nonfinite": len(stats.get("nonfinite", [])), "collate_s": round(collate_s, 1),
-                "train_s": round(time.perf_counter() - t_train, 1), "minibatches": n_batches,
+                "train_s": round(time.perf_counter() - t_train, 1), "minibatches": n_steps,
+                "micro": len(micro),
                 "steps": n, "epochs": stats["epochs"][-1] if stats["epochs"] else 0,
                 "kl_stop": stop, "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4),
                 "kinds": per_kind(packed, act, adv, ent_last, kl_last)})

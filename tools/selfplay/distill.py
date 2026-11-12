@@ -38,7 +38,7 @@ import numpy as np
 import torch
 
 from tools.selfplay import model as M
-from tools.selfplay.ppo import chunks
+from tools.selfplay.ppo import backward_step, chunks, steps
 from tools.selfplay.search import C_SCALE, C_VISIT, mmd_target
 
 RULES = ("se", "se1", "sigma")
@@ -107,34 +107,36 @@ def policy(net: torch.nn.Module, feats: list[dict], dev: torch.device) -> list[n
 
 def ce_epoch(net, feats, targets, idx, dev, opt=None, mb: int = 512,
              rng: np.random.Generator | None = None) -> float:
-    """Mean cross-entropy -sum pi' log pi_theta over records ``idx``. Training (``opt``) draws
-    its order and minibatches from ``rng``, so the run's --seed fixes them; scoring uses a fixed
-    order, so it never moves the training's draws."""
+    """Mean cross-entropy -sum pi' log pi_theta over records ``idx``. Training (``opt``) takes
+    stratified optimizer steps drawn from ``rng`` (ppo.steps), so the run's --seed fixes them;
+    scoring uses a fixed order, so it never moves the training's draws."""
     lengths = np.array([feats[i]["cards_i"].shape[0] + feats[i]["opts_i"].shape[0] for i in idx])
     if opt is not None and rng is None:
         raise ValueError("ce_epoch: training needs its rng")
-    draw = rng if opt is not None else np.random.default_rng(0)
-    order = draw.permutation(len(idx)) if opt is not None else np.arange(len(idx))
-    total, count = 0.0, 0
-    for ch in chunks(lengths[order], mb, 65536, draw):
-        rows = idx[order[ch]]
+
+    def ce(ch: np.ndarray) -> torch.Tensor:
+        rows = idx[ch]
         b = M.collate([feats[i] for i in rows], dev)
-        with torch.set_grad_enabled(opt is not None), \
-                torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
+        with torch.autocast(dev.type, dtype=torch.bfloat16, enabled=dev.type == "cuda"):
             logits, _ = net(b)
         lp = torch.log_softmax(logits.float(), -1).clamp(min=-1e4)  # padded options: -inf
         t = torch.zeros_like(lp)
         for j, i in enumerate(rows):
             t[j, : len(targets[i])] = torch.as_tensor(targets[i], dtype=torch.float32, device=dev)
-        loss = -(t * lp).sum(1).mean()
-        if opt is not None:
-            opt.zero_grad(set_to_none=True)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
-            opt.step()
-        total += float(loss.detach()) * len(rows)
-        count += len(rows)
-    return total / max(count, 1)
+        return -(t * lp).sum(1).mean()
+
+    total = 0.0
+    if opt is None:
+        with torch.no_grad():
+            for ch in chunks(lengths, mb, 65536, np.random.default_rng(0)):
+                total += float(ce(ch)) * len(ch)
+        return total / max(len(idx), 1)
+    for step in steps(lengths, mb, 65536, rng):
+        opt.zero_grad(set_to_none=True)
+        total += backward_step(step, ce) * sum(len(ch) for ch in step)
+        torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
+        opt.step()
+    return total / max(len(idx), 1)
 
 
 def split(games: list, n: int) -> tuple[np.ndarray, np.ndarray, int]:

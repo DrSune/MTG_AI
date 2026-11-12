@@ -684,6 +684,51 @@ def test_minibatches_are_fixed_by_the_callers_generator() -> None:
     assert np.array_equal(np.random.get_state()[1], state)
 
 
+def test_every_optimizer_step_samples_every_length() -> None:
+    """A kind confined to the shortest decisions (the mulligan) is in every optimizer step, in
+    its share of the batch: length-sorted chunks held all of r27's mulligans in 2 of 48, and
+    the steps between dragged it while its own gradient pointed back (KNOWLEDGE 198). Every row
+    is used once, under the same caps, in as many steps as chunks would cut."""
+    from tools.selfplay.ppo import chunks, steps
+
+    rng = np.random.default_rng(5)
+    lengths = np.concatenate([np.full(300, 2), rng.integers(10, 60, 5000)]).astype(float)
+    short = np.arange(len(lengths)) < 300
+    mb, tok = 512, 20000
+    st = steps(lengths, mb, tok, np.random.default_rng(1))
+    old = chunks(lengths, mb, tok, np.random.default_rng(1))
+    assert len(st) == len(old)
+    assert sum(short[c].any() for c in old) <= 2  # why chunks never make steps
+    rows = np.concatenate([c for s in st for c in s])
+    assert sorted(rows.tolist()) == list(range(len(lengths)))
+    for s in st:
+        assert short[np.concatenate(s)].sum() >= 300 // len(st)
+        for c in s:
+            assert len(c) <= mb and (len(c) == 1 or len(c) * (lengths[c].max() + 3) <= tok)
+
+
+def test_a_step_accumulates_the_mean_over_its_rows() -> None:
+    """backward_step weighs each micro-batch's mean loss by its share of the step's rows: the
+    gradient equals one pass over all of the step's rows."""
+    from tools.selfplay.ppo import backward_step
+
+    g = torch.Generator().manual_seed(0)
+    x, y = torch.randn(30, 4, generator=g), torch.randn(30, generator=g)
+    w = torch.zeros(4, requires_grad=True)
+
+    def loss_of(ch: np.ndarray) -> torch.Tensor:
+        ix = torch.from_numpy(ch)
+        return ((x[ix] @ w - y[ix]) ** 2).mean()
+
+    mean = backward_step([np.arange(0, 7), np.arange(7, 30)], loss_of)
+    acc = w.grad.clone()
+    w.grad = None
+    whole = loss_of(np.arange(30))
+    whole.backward()
+    assert torch.allclose(acc, w.grad, atol=1e-6)
+    assert mean == pytest.approx(whole.item(), rel=1e-6)
+
+
 def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> None:
     """Runs of one lineage (each --init from the last) must not train again on the decks and
     shuffles an ancestor trained on: --seed moves the block of deals a run trains on."""

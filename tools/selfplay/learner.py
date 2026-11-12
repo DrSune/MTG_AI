@@ -68,7 +68,7 @@ from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay import simulator as S
 from tools.selfplay.actor import is_net, worker_main
-from tools.selfplay.ppo import chunks, pack_buffer
+from tools.selfplay.ppo import backward_step, pack_buffer, steps
 from tools.selfplay.search import CONTINUATIONS, ROOTS, WORLDS, ms_percentiles
 from tools.selfplay.trainer import trainer_main
 
@@ -252,7 +252,7 @@ class Learner:
                                    else "cpu")
         self.cuda = self.device.type == "cuda"
         torch.manual_seed(args.seed)
-        self.np_rng = np.random.default_rng(args.seed)  # BC's minibatches (ppo.chunks)
+        self.np_rng = np.random.default_rng(args.seed)  # BC's steps (ppo.steps)
         self.rng = random.Random(args.seed)
         if args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
@@ -801,26 +801,25 @@ class Learner:
             0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(1.0, s / steps_total)))))
         lengths = np.array([x[0]["cards_i"].shape[0] + x[0]["opts_i"].shape[0] for x in train],
                            dtype=np.float64)
+
+        def bc_loss(ch: np.ndarray) -> torch.Tensor:
+            b = M.collate([train[i][0] for i in ch], self.device)
+            act = torch.tensor([train[i][1] for i in ch], device=self.device)
+            z = torch.tensor([train[i][2] for i in ch], device=self.device)
+            with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
+                logits, v = net(b)
+            return F.cross_entropy(logits.float(), act) + a.bc_vcoef * F.mse_loss(v, z)
+
         for epoch in range(a.bc_epochs):
             t0 = time.time()
             ls = []
-            batches = chunks(lengths, a.mb, a.tok_budget, self.np_rng)
-            for ch in batches:
+            for step in steps(lengths, a.mb, a.tok_budget, self.np_rng):
                 self.check_memory()
-                b = M.collate([train[i][0] for i in ch], self.device)
-                act = torch.tensor([train[i][1] for i in ch], device=self.device)
-                z = torch.tensor([train[i][2] for i in ch], device=self.device)
-                with torch.autocast(self.device.type, dtype=torch.bfloat16, enabled=self.cuda):
-                    logits, v = net(b)
-                loss = F.cross_entropy(logits.float(), act) + a.bc_vcoef * F.mse_loss(v, z)
-                # equal weight per decision across length-sorted, token-capped chunks
-                loss = loss * (len(ch) * len(batches) / max(len(train), 1))
                 opt.zero_grad(set_to_none=True)
-                loss.backward()
+                ls.append(backward_step(step, bc_loss))
                 torch.nn.utils.clip_grad_norm_(net.parameters(), a.max_grad)
                 opt.step()
                 sched.step()
-                ls.append(loss.item())
             acc, vl = self.bc_eval(test)
             self.log({"event": "bc_epoch", "epoch": epoch, "loss": round(float(np.mean(ls)), 5),
                       "test_acc": acc, "test_vloss": vl, "secs": round(time.time() - t0, 1)})
