@@ -127,6 +127,7 @@ its planted mutants, so both batches count. The plants were:
 - **M21 See the Truth:** "the rest on the bottom in any order" is never asked.
 - **M21 Feline Sovereign:** its trigger chooses its target without asking.
 - Both are being fixed (an engine agent).
+- **Correction (2026-11-13, 203 §1):** Feline Sovereign's engine was right. The pack runner's combat op answered the ask unseen, so the probe hid it. See the Truth's order is now asked (MOVE_ZONE `arrange`). Both are verified or blocked as 203 §2 says.
 - **Six M20 mapped records** (BACKLOG): Battalion Foot Soldier, Sanitarium Skeleton, Sorin,
   Imperious Bloodlord, Goblin Ringleader, Mu Yanling, Sky Dancer and Cavalier of Flame. Among
   them is an engine-wide issue: reflexive triggers choose their targets too early (CR 603.12).
