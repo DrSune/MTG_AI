@@ -21,7 +21,10 @@ Window 1 (the n-curve, gate A, the simulator, the variants and the clock's laten
 (`reports/window2_2026-11-12/queue.sh`: notes 193-195 and 192 §7.6, and 191 §7's mulligan
 read) runs from the worktree `/home/sune/Desktop/MTG_AI-w2` pinned at 98a48e9 (do not edit it): the
 transient timer `mtg-window2.timer` starts it at 2026-11-12 12:00, and it pauses r27 for about
-4 hours. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
+4 hours. Gate B (`KNOWLEDGE/2026-11-12/196`, its §7 the bug hunt's changes) starts by itself once
+r27 passes update 505: the transient unit `mtg-gateb-starter` waits, then starts `mtg-gateb` from
+the worktree `/home/sune/Desktop/MTG_AI-gateb` pinned at b73d562 (do not edit it), which pauses
+r27 for about 34 hours. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run
 at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
