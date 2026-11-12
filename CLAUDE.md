@@ -158,10 +158,11 @@ Two rules that catch most of the damage:
   remove", with the condition that would let it go.
 - Prefer editing an existing doc over adding a near-duplicate one.
 - Tests: `.venv/bin/python -m pytest MTG_bot -q`. Report real results, never assumed ones.
-  **Baseline B5** (2026-11-12, the cleanup pass after the priority engine, the search family and
-  the drafter v0; `tools/check.sh` green):
-  **5113 passed / 39 deselected / 71 subtests passed, nothing failed or xfailed**, 66 s beside a
-  training run. B4 (2026-11-06, 6003dd4) was 5091, before the priority engine's tests.
+  **Baseline B6** (2026-11-12, after the bug hunt, KNOWLEDGE/2026-11-12/197; `tools/check.sh`
+  green): **5116 passed / 39 deselected / 71 subtests passed, nothing failed or xfailed**, 64 s
+  beside a measurement window (+2 packs, +1 tripwire test). B5 (2026-11-12, the cleanup pass
+  after the priority engine) was 5113. B4 (2026-11-06, 6003dd4) was 5091, before the priority
+  engine's tests.
   B3 (2026-11-06, f332d17) was 5297: the lean passes removed 231 duplicate, can't-fail or dead-code
   tests and added mulligan and multi-slot tests. B2 (2026-11-05) was 4686. Other docs point here. It is
   reproducible: `MTG_bot/conftest.py` seeds every test. The parts:
@@ -174,9 +175,10 @@ Two rules that catch most of the damage:
     fails a pack whose expect lane it never reads or whose decision word its ask does not offer.
   - The core template tests read `/tmp/opencode/phase1_buckets/`, which only
     `tools/gen_buckets.py` writes. After a reboot, run it before the suite.
-  - Companion numbers: `pytest tools -q` = 176 passed (2026-11-12: + the training-game log, `--collect`, `model.grow`,
-    the search audit and the drafter's `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's
-    are), 37-40 s beside a training run (the ontology
-    baselines were re-recorded after the reviewed M21 campaign; NUMBERS.md).
-    `tools/run_scenarios.py` = 743/743.
+  - Companion numbers: `pytest tools -q` = 184 passed (2026-11-12, after the bug hunt: + the
+    commit, evalrows, plan-turn, option-class and generator tests; 176 before it: + the
+    training-game log, `--collect`, `model.grow`, the search audit and the drafter's
+    `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's are), 37-40 s
+    beside a training run (the ontology baselines were re-recorded after the reviewed M21
+    campaign; NUMBERS.md). `tools/run_scenarios.py` = 743/743.
   - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.

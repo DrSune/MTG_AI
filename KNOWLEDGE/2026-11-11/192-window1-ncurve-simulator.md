@@ -145,6 +145,14 @@ simulator, N5, N2-N4, N6. At 300 deals the pilot puts the whole window at 10-13 
 | 64 | 0.578 ± 0.012 | +55 | 19% | 0.56 | 13% | 79 / 316 s | 93 min |
 | 16, fresh deals 950,000+ | **0.555 ± 0.012** | +38 | 18% | 0.68 | 16% | 16 / 79 s | 22 min |
 
+**Correction, 2026-11-12 (the bug hunt, KNOWLEDGE/2026-11-12/197): "moves changed" counts copies.**
+- The search treats two copies of a card as two moves: two Forests in hand are two options.
+  Their results differ only by noise. In window 2's belief audit (u1000 at n = 16, 100 deals),
+  201 of 310 changed moves (65%) were swaps to an equal-prior copy.
+- So the column above overstates how often the search changes the move, likely by about that
+  share. The clear corrections (a margin of 0.1) mostly are not copies, and the scores are
+  unaffected: a copy plays the same.
+
 Every point searched 12.2-12.7 decisions per game, and 11.6 on the fresh deals. Of each point's 600
 games, 597-599 had a winner. The rest were 1-3 games at the turn cap, plus one mutual loss on the
 fresh deals.

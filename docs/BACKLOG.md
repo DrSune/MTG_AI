@@ -397,6 +397,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### To triage
 
+- **The journal is not a record of what players know** (2026-11-12, KNOWLEDGE/2026-11-12/197).
+  SCRY journals how many cards were scried, not which went where (`verbs.py` `_v_scry`); REVEAL
+  has no zone role and `_look` reads only the library, so "target opponent reveals their hand"
+  (Duress, Kitesail Freebooter, Thought Distortion) journals the target's whole LIBRARY as revealed
+  and opens a look window on it; a graveyard-only search's REVEAL(1) journals the library's top
+  card. No gameplay effect found (Duress's choice reads the hand through its own selector), and no
+  network input reads these rows (features show only offered and scried cards). Anything that
+  rebuilds knowledge from the journal is wrong: `search.reshuffle_unknown` did, and was replaced by
+  a whole-library shuffle. Fix: a zone role on REVEAL, and SCRY rows that name the cards.
+- **Teferi, Master of Time's -3 duration (suspected, check the ruling)** (2026-11-12, 197): "phases
+  out until your next turn" compiles as plain PHASE_OUT, and the pack
+  `teferi_master_of_time_phased_out_waits_for_its_controller.json` pins classic phasing (it phases
+  in at its controller's next untap step). With his loyalty abilities usable on any player's turn,
+  the two readings can differ; check the Comprehensive Rules and the card's rulings.
+
 - **B-73 [2026-10-29 soaks] The anomaly detectors flag about 2% of M21 games on `main`.**
   - Measured: 18 flags in 800 castable games (400 stress + 400 coherent), all pre-existing. On
     `cards/integration`: 10.
@@ -837,7 +852,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **Optimizer state is not saved for resume.** A resumed run restarts AdamW's moments, so its
   first updates differ from an uninterrupted run. Save the trainer's optimizer state with
   state.pkl (the trainer process owns it).
-- **An eval running at a resume is lost** (queued ones survive). Re-queue in-flight evals.
+- **The search treats copies of a card as different moves** (2026-11-12, KNOWLEDGE/2026-11-12/197).
+  The engine lists one option per card object, so two Forests in hand are two candidates whose
+  results differ only by noise. Gumbel halving spends simulations on copies, "moves changed" is
+  inflated (65% of the changed moves in window 2's audit were swaps to a copy), and a target can
+  move mass between copies (noise the network cannot fit: equal tokens give equal logits).
+  `search.option_classes` keys the options the encoding cannot tell apart; the audit already
+  compares distinct moves. Using it in the search's candidates (one per class, the class's
+  probability summed) changes the searcher, so measure it first: a paired n = 16 point with and
+  without it on the same deals, before any run's targets use it.
+- **The audit's simulator worlds share the learner's torch generator with the search's**
+  (2026-11-12, 197): with `--search-worlds sim`, turning `--search-audit` on changes which worlds
+  the search draws (not their distribution). Matters only for a sim-world audit (195 §4's
+  follow-up); then give the audit's requests a generator of their own.
 - **The value loss moves the policy through the shared trunk** (2026-11-10, `KNOWLEDGE/2026-11-10/189`
   §8). A value-only update at v0 moves the policy by KL 0.0021 and changes its top choice in 0.9% of
   decisions, as much as the full update (0.0026, 1.0%): drift with no evidence behind it. Candidates
