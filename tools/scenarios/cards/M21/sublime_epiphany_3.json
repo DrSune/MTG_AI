@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 1},
+  {"key": "cancel", "real": "Cancel", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"U": 9}},
+ "steps": [
+  {"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"], "hold": true},
+  {"op": "cast", "key": "se", "real": "Sublime Epiphany", "controller": 1, "targets": ["shock", "p1"], "decisions": ["8"], "hold": true},
+  {"op": "cast", "key": "cancel", "real": "Cancel", "controller": 1, "targets": ["shock"]}
+ ],
+ "expect": {"zone": {"shock": "graveyard", "se": "graveyard", "cancel": "graveyard"}, "life": {"1": 20}, "hand": {"1": 1}},
+ "notes": "CR 608.2b with a multi-target spell (bug hunt 2026-11-12, KNOWLEDGE 197): seat 1 answers Shock with Sublime Epiphany, modes {counter target spell -> Shock, target player draws a card -> seat 1} (the word '8'), then with Cancel on Shock. Cancel resolves first and counters Shock. Sublime Epiphany still has a legal target (seat 1), so it resolves: its counter instruction has no legal target and does nothing, and seat 1 draws. The engine raised 'COUNTER_SPELL with no designated spell' here, voiding the game."
+}

@@ -920,6 +920,56 @@ class TestRaises(BindingCase):
         self.assertFalse(self.ex.world.triggers)
         self.assertFalse(any(str(s) == str(looper) for s in self.ex.binder.firings))
 
+    def test_the_tripwire_also_guards_the_game_loop(self):
+        # Bug hunt 2026-11-12 (KNOWLEDGE 197): the game loop resolves through all_pass, which
+        # had no tripwire (only the undriven settle counted), so a self-retriggering loop with
+        # both players passing never ended. One resolution path now holds it for both.
+        from MTG_bot.core.executor import games as G
+        from MTG_bot.core.executor import stack as S
+
+        loop = Seq(
+            (
+                atom(Verb.MOVE_ZONE, cards=referent_sel("event"), destination=GY_ANY),
+                atom(Verb.MOVE_ZONE, cards=referent_sel("event"), destination=BF_ANY),
+            )
+        )
+        for seat in (self.p0, self.p1):
+            for i in range(20):
+                self.world.add_card(card_id(f"L{i}"), seat, ZONE_LIBRARY)
+        looper = self.world.add_card(card_id("Looper", "1", "1"), self.p0, ZONE_HAND)
+        self.ex.attach_card(
+            looper, self.record_for(looper, [etb_trigger(loop)], name="Looper")
+        )
+        self.ex.decisions.provider = in_trigger_order
+        self.ex.begin_turn(self.p0)
+        self.ex.driven = True
+        self.ex.execute(enter(BF_YOU), source=looper, controller=self.p0,
+                        bindings={"cards": looper})
+
+        class Passer:
+            def answer(self, vocab, what):
+                return vocab[0]
+
+            def take_priority(self, game, seat):
+                return False
+
+        resolve, count = S.resolve_top, [0]
+
+        def counted(executor):  # a regression fails here instead of hanging the suite
+            count[0] += 1
+            if count[0] > 5 * MAX_TRIGGER_FIRES:
+                raise AssertionError("the game loop resolved the trigger loop past its tripwire")
+            return resolve(executor)
+
+        S.resolve_top = counted
+        try:
+            game = G.Game(executor=self.ex, seed=11, pool_mode="test")
+            G._play(game, Passer(), self.world.player_order, 3, resumed=True)
+        finally:
+            S.resolve_top = resolve
+        self.assertIn(looper, self.ex.binder.quarantined)
+        self.assertEqual(len(self.ex.trigger_loops), 1)
+
 
 class TestMayAndDeterminism(BindingCase):
     def test_may_offer_consumes_decisions_in_fire_order(self):

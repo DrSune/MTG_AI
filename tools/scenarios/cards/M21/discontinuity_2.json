@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vis", "real": "Llanowar Visionary", "zone": "battlefield", "controller": 0},
+  {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 1},
+  {"key": "disc", "real": "Discontinuity", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE"]},
+  {"op": "mana", "seat": 0, "add": {"U": 2}},
+  {"op": "mana", "seat": 1, "add": {"B": 2}},
+  {"op": "cast", "real": "Eliminate", "key": "elim", "controller": 1, "targets": ["vis"], "hold": true},
+  {"op": "cast", "real": "Discontinuity", "key": "disc"}
+ ],
+ "expect": {"zone": {"vis": "battlefield", "elim": "exile", "disc": "exile"}},
+ "notes": "CR 724.1b in the end step (bug hunt 2026-11-12, KNOWLEDGE 197). In seat 0's end step seat 1 casts Eliminate on Llanowar Visionary; seat 0 answers with Discontinuity ({1}{U} on its own turn). Ending the turn exiles every object on the stack at once, so Eliminate never resolves: the Visionary lives and Eliminate is exiled. The engine left a turn ended during the end step to the step's own end, so Eliminate resolved first (the Visionary died) and was then put into exile, and players kept receiving priority in an ended turn. The same play in a main phase was right."
+}

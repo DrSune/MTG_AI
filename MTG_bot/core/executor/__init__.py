@@ -405,7 +405,9 @@ class Executor:
         # skeleton keeps them here; state_fingerprint folds the replayed
         # ones. ``phase`` is the last phase marker recorded (None before the
         # first begin_turn); ``turn_open`` is the "a turn is in progress"
-        # flag the legality gates read.
+        # flag (begin_turn to TURN_ENDED, its end and cleanup steps included):
+        # the legality gates read it, and the sorcery window is the phase's
+        # (MAIN_PHASES) besides.
         self.phase: str | None = None
         self.turn_open = False
         # The step machine (CR 117, 500-514; see begin_turn): whether the step's
@@ -415,6 +417,10 @@ class Executor:
         self.tba_done = False
         self.priority_holder: Handle | None = None
         self.passes = 0
+        # the trigger-loop tripwire (:meth:`_resolve_top`): triggered abilities resolved since
+        # the stack was last empty, and per source
+        self._loop_fires = 0
+        self._loop_sources: dict[Handle, int] = {}
         self.step_actions: dict[Handle, int] = {}
         self.first_strikers: frozenset[Handle] | None = None
         # Who passes priority (DESIGN_PRIORITY §11). Driven: a game loop asks the
@@ -446,12 +452,12 @@ class Executor:
         # FLIP_COIN's winner, read by the FLIP_WON conditional of a
         # separate ability row (Tavern Swindler compiles to two).
         self.last_flip_won_by: Handle | None = None
-        # END_TURN's deferred close (consumed by the op loop).
+        # END_TURN's close, made at the op boundary that follows the atom
+        # (_consume_end_turn).
         self.end_turn_requested = False
         # CR 724.1a: the journal length when the first END_TURN atom of the
         # request ran; folded into the fingerprint while a request is open.
         self.end_turn_mark = 0
-        self._closing_turn = False
         # -------------------------------------------------------- stack + mana
         # The spell stack (CR 405): LIFO StackObject frames, folded into the
         # fingerprint.
@@ -1760,8 +1766,33 @@ class Executor:
             self.binder.on_events()
             self._state_checks()
             if self.binder.hold or not self.world.triggers:
-                return
+                break
             self.binder.put_waiting()
+        if not self.stack.frames:  # the tripwire counts since the stack was last empty
+            self._loop_fires, self._loop_sources = 0, {}
+
+    def _resolve_top(self) -> int:
+        """The top object of the stack resolves (CR 608, ``stack.resolve_top``), behind the
+        trigger-loop tripwire every driver shares (the undriven :meth:`_settle` and the game
+        loop's :meth:`all_pass`): once ``MAX_TRIGGER_FIRES`` triggered abilities have resolved
+        since the stack was last empty, the source that resolved most is quarantined instead
+        (its objects leave the stack and its firings stop, ``TriggerBinder.quarantine``), and
+        play goes on. Returns 1 when a triggered ability resolved, else 0."""
+        from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
+        from MTG_bot.core.executor.stack import resolve_top
+
+        top = self.stack.frames[-1]
+        triggered = top.spell_kind == "TRIGGERED"
+        if triggered:
+            if self._loop_fires >= MAX_TRIGGER_FIRES:
+                self.binder.quarantine(self._loop_sources)
+                self._loop_fires = 0
+                return 0
+            assert top.source is not None
+            self._loop_sources[top.source] = self._loop_sources.get(top.source, 0) + 1
+            self._loop_fires += 1
+        resolve_top(self)
+        return int(triggered)
 
     def _settle(self, floor: int = 0) -> int:
         """Both players pass until the stack is down to ``floor`` objects
@@ -1773,37 +1804,20 @@ class Executor:
         depth it found (``stack.cast_card``). Returns the number of triggered
         abilities resolved.
 
-        The tripwire: after ``MAX_TRIGGER_FIRES`` triggered abilities in one
-        settle, the source that resolved most is quarantined (its objects
-        leave the stack and its firings stop, ``TriggerBinder.quarantine``)
-        and the settle goes on.
+        The trigger-loop tripwire is :meth:`_resolve_top`'s, shared with the
+        game loop's :meth:`all_pass`.
 
         The settle tail is also the recompute point: WHILE-condition truth is
         re-evaluated on the ledger, and the layer registry re-reads the set
         (new/lost members, condition toggles) and rebuilds the keyword /
         granted-ability oracles. All of it is a pure function of the
         journal's final state, so replays are byte-identical."""
-        from MTG_bot.core.executor.binding import MAX_TRIGGER_FIRES
-        from MTG_bot.core.executor.stack import resolve_top
-
         fired = 0
-        since_quarantine = 0
-        per_source: dict[Handle, int] = {}
         while True:
             self._priority_check()
             if len(self.stack.frames) <= floor:
                 break
-            top = self.stack.frames[-1]
-            if top.spell_kind == "TRIGGERED":
-                if since_quarantine >= MAX_TRIGGER_FIRES:
-                    self.binder.quarantine(per_source)
-                    since_quarantine = 0
-                    continue
-                assert top.source is not None
-                per_source[top.source] = per_source.get(top.source, 0) + 1
-                fired += 1
-                since_quarantine += 1
-            resolve_top(self)
+            fired += self._resolve_top()
             self._consume_end_turn()
         self.ledger.settle_while(self._while_eval)
         self.layers.recompute()
@@ -1841,16 +1855,16 @@ class Executor:
     def all_pass(self) -> None:
         """Every player passes in succession (CR 117.4), after the CR 117.5
         check: the top object of the stack resolves and the active player
-        receives priority (CR 117.3b); with an empty stack the step ends."""
-        from MTG_bot.core.executor.stack import resolve_top
-
+        receives priority (CR 117.3b); with an empty stack the step ends. The
+        resolution is behind the trigger-loop tripwire (:meth:`_resolve_top`)."""
         self._priority_check()
         self.passes = 0
         if not self.stack.frames:
             self._end_step()
             return
-        resolve_top(self)
-        self._consume_end_turn()
+        self._resolve_top()
+        if self._consume_end_turn():
+            return  # a fresh cleanup step, where no player has received priority yet
         if self.phase != TURN_ENDED:
             self.priority_holder = self.world.active_player
 
@@ -1858,11 +1872,13 @@ class Executor:
         """An END_TURN atom only SETS the request flag (mid-op state
         must not change under the atoms still running); the turn ends at the
         op boundary (:meth:`_finish_op`) through :meth:`_end_the_turn`.
-        Returns whether the turn ended here. While the end or cleanup step
-        runs (``_closing_turn``) the request is left to that step, which
-        ends the turn its own way (CR 724.1a-d); outside an open turn there
-        is no turn to end and the request is dropped."""
-        if not self.end_turn_requested or self._closing_turn:
+        Returns whether the turn ended here. In every step of the turn, its
+        end and cleanup steps included: the objects still on the stack are
+        exiled at once (CR 724.1b), never left to resolve while the step
+        runs on (KNOWLEDGE/2026-11-12/197: Discontinuity in the end step let
+        a removal spell below it resolve). Outside a turn there is no turn
+        to end and the request is dropped."""
+        if not self.end_turn_requested:
             return False
         self.end_turn_requested = False
         if not self.turn_open:
@@ -1877,12 +1893,10 @@ class Executor:
         marker is journalled and "at the beginning of the end step"
         abilities do not trigger (724.1e). The triggers from the process
         resolve in the cleanup step, and another cleanup step follows
-        (724.1f, CR 514.3a). Returns the firing count."""
-        self.turn_open = False
-        self._closing_turn = True
+        (724.1f, CR 514.3a). The turn is still in progress until its cleanup
+        ends. Returns the firing count."""
         self._end_the_turn_process()
         self.declaring = False
-        self.first_strikers = None
         self._begin_step(CLEANUP)
         if self.driven:
             return 0  # the game loop runs the cleanup step
@@ -1906,9 +1920,7 @@ class Executor:
         finally:
             self.binder.hold = False
         self.empty_mana_pools()  # 724.1d: the current step ends (CR 500.5)
-        self.attackers = []
-        self.attacked = {}
-        self.blocked_by = {}
+        self._leave_combat()  # 724.1d: every creature leaves combat (defending player too)
 
     def _exile_the_stack(self) -> None:
         """CR 724.1b: every object on the stack is exiled, the resolving one
@@ -1990,7 +2002,6 @@ class Executor:
         self._turn_started = True
         self.world.active_player = player
         self.turn_open = True
-        self._closing_turn = False
         self.journal.begin_turn(player)
         self._begin_step(UNTAP)
 
@@ -2093,11 +2104,6 @@ class Executor:
             self.defending_player = next(
                 (p for p in self.world.player_order if p != active), None
             )
-        if step == END_STEP:
-            # The ending phase: no sorcery window, and an effect that ends the
-            # turn here is left to the end and cleanup steps (CR 724.1).
-            self.turn_open = False
-            self._closing_turn = True
         if step in (UPKEEP, FIRST_MAIN, BEGIN_COMBAT, END_STEP):
             # The marker "at the beginning of ..." triggers read.
             self.journal.record_turn_phase(step)
@@ -2165,14 +2171,11 @@ class Executor:
     def _end_step(self) -> None:
         """The current step ends (CR 500.4: unspent mana empties; CR 511.3: the
         end of combat removes every creature from combat) and the next begins.
-        An effect that ended the turn during the end or cleanup step ends it
-        here (CR 724.1a-d, then a cleanup step)."""
+        A turn ended by an effect is ended at the op boundary after it
+        (``_consume_end_turn``); one still open here ends the same way."""
+        if self._consume_end_turn():
+            return
         step = self.phase
-        if step in (END_STEP, CLEANUP) and self.end_turn_requested:
-            self._end_the_turn_process()
-            if step == END_STEP:
-                self._begin_step(CLEANUP)
-                return
         self.empty_mana_pools()
         if step == DECLARE_ATTACKERS:
             self.declaring = False
@@ -2180,7 +2183,7 @@ class Executor:
             self._leave_combat()
         nxt = self._next_step(step)
         if nxt == TURN_ENDED:
-            self._closing_turn = False
+            self.turn_open = False
         self._begin_step(nxt)
 
     def _jump_to(self, step: str) -> None:
@@ -2339,6 +2342,8 @@ class Executor:
         world = self.world
         if not self.turn_open:
             raise ValueError(f"combat_step: no turn is open ({seat})")
+        if self.phase in (END_STEP, CLEANUP):
+            raise ValueError(f"combat_step: this turn's combat is over ({self.phase})")
         if world.active_player != seat:
             raise ValueError(f"combat_step: {seat} is not the active player")
         if not any(p != seat for p in world.player_order):

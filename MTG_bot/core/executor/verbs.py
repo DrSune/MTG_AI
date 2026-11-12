@@ -2333,7 +2333,11 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         raise ValueError("executor: COUNTER_SPELL needs an executor-bound ctx")
     targets = role_handles(ctx, atom, "target")
     if not targets:
-        raise ValueError("executor: COUNTER_SPELL with no designated spell")
+        # CR 608.2b: a spell with several targets resolves while any is legal, and an
+        # instruction whose target became illegal does nothing (stack.recheck_targets emptied
+        # this slot: Sublime Epiphany's counter mode after its target was countered). The
+        # cast already required a designation, so an empty one here is never a compile fault.
+        return
     spell = targets[0]
     frame = next((f for f in ex.stack.frames if f.handle == spell), None)
     if frame is None:

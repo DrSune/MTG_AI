@@ -273,7 +273,9 @@ class SeatRouter:
         if row.kind == "activate":
             targets = self._targets(game, row.slots, i, row.handle) if row.slots else ()
             game.attempted = f"act:{name}#{row.ability_idx}"
-            perform(executor, seat, row, targets)
+            if not perform(executor, seat, row, targets):  # as a cast below: nothing happened
+                self.stats[i]["unpayable_targets"] += 1
+                return False
             self._log(i, "act", row.handle, f"#{row.ability_idx}")
             return True
         modes: tuple[int, ...] = ()

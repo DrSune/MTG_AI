@@ -27,9 +27,10 @@ Contracts honoured:
     the same matcher with a duration tag; the end-of-turn sweep expires the
     turn-window entries;
   * **tripwire** — after ``MAX_TRIGGER_FIRES`` triggered abilities resolved
-    in one settle the guard QUARANTINES the runaway source (dropped firings
-    recorded in ``executor.trigger_loops``) and the settle continues — the
-    loop is a bug to flag, never a bug to run;
+    since the stack was last empty (``Executor._resolve_top``, shared by the
+    undriven settle and the game loop) the guard QUARANTINES the runaway
+    source (dropped firings recorded in ``executor.trigger_loops``) and play
+    continues — the loop is a bug to flag, never a bug to run;
   * **flag, don't degrade** — an event node no journal feed serves
     (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent) RAISES
     ``NotImplementedError`` at *bind* time, instead of silently arming a
@@ -1405,8 +1406,8 @@ class TriggerBinder:
         return ordered + [p for _, p in left]
 
     def quarantine(self, per_source: dict[Handle, int]) -> None:
-        """The trigger-loop tripwire (``Executor._settle``): a settle resolved
-        ``MAX_TRIGGER_FIRES`` triggered abilities and the stack still holds one.
+        """The trigger-loop tripwire (``Executor._resolve_top``): since the stack was
+        last empty ``MAX_TRIGGER_FIRES`` triggered abilities resolved and it still holds one.
         The tripwire GUARDS rather than kill the game. The culprit is the source
         whose triggers resolved MOST in it — its effect's own events re-arm it
         (Chandra's Incinerator's "whenever you deal noncombat damage" trigger
@@ -1426,9 +1427,9 @@ class TriggerBinder:
         )
         if culprit is None or len(self.quarantined) >= 8:
             raise RuntimeError(
-                "executor: trigger-loop tripwire — one settle resolved "
-                f"{MAX_TRIGGER_FIRES} triggers and the stack is still "
-                "growing (self-retriggering loop: flag it, never run it)"
+                "executor: trigger-loop tripwire — "
+                f"{MAX_TRIGGER_FIRES} triggers resolved since the stack was last empty "
+                "and it is still growing (self-retriggering loop: flag it, never run it)"
             )
         record = self.handle_record.get(culprit)
         self.quarantined.add(culprit)
