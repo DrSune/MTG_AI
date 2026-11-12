@@ -1,5 +1,3 @@
-supply[M20]: shape-gap exclusion 'Bloodsoaked Altar': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
-supply[M20]: shape-gap exclusion "Diviner's Lockbox": StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
 == M21 (verified): 18 packages kept, 3 dropped
 - burn in BR/GR: 2 of 2 consumers (0 of them producers), 14 other producer spells; 16 producers in every colour
     consumers: Chandra's Incinerator, Chandra's Pyreling
@@ -107,11 +105,7 @@ supply[M20]: shape-gap exclusion "Diviner's Lockbox": StateCorruptionError: comp
 - dropped permanent[Land] (no colour pair holds a consumer and 8 producer copies): Omnath, Locus of the Roil
 - dropped spell[!Creature] (no colour pair holds a consumer and 8 producer copies): Kykar, Wind's Fury
   triggers read: CastSpellEvent 3, CreatureDiesEvent 3, DamageDealtEvent 2, LifeGainedEvent 3, ZoneChangeEvent 10
-  triggers skipped (the source's own, an opponent's, or a class not in the table): CreatureDiesEvent 5, DamageDealtEvent 2, DeclareAttackersEvent 5, DeclareBlockersEvent 1, LifeLostEvent 1, TurnPhaseEvent 4, ZoneChangeEvent 62supply[FDN]: shape-gap exclusion "Cultivator's Caravan": StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card="Cultivator's Caravan", type_line='Artifact — Ve
-supply[FDN]: shape-gap exclusion 'Ravenous Amulet': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
-supply[FDN]: shape-gap exclusion 'Suspicious Shambler': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
-supply[FDN]: shape-gap exclusion 'Tinybones, Bauble Burglar': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
-
+  triggers skipped (the source's own, an opponent's, or a class not in the table): CreatureDiesEvent 5, DamageDealtEvent 2, DeclareAttackersEvent 5, DeclareBlockersEvent 1, LifeLostEvent 1, TurnPhaseEvent 4, ZoneChangeEvent 62
 == FDN (verified): 15 packages kept, 1 dropped
 - counter in GU: 2 of 2 consumers (1 of them producers), 5 other producer spells; 9 producers in every colour
     consumers: Gnarlid Colony, Wildwood Scourge
