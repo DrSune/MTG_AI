@@ -176,10 +176,12 @@ def _to_a_player_or_planeswalker() -> Filter:
     )
 
 
-def _ability(event, effect, condition=None) -> AbilityOutcome:
+def _ability(event, effect, condition=None, once_per_event=None) -> AbilityOutcome:
     """Wrap a triggered-ability effect as the B2b sentence outcome."""
     return AbilityOutcome(
-        ability=TriggeredAbility(event=event, condition=condition, effect=effect)
+        ability=TriggeredAbility(
+            event=event, condition=condition, effect=effect, once_per_event=once_per_event
+        )
     )
 
 
@@ -1589,8 +1591,9 @@ def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcom
 def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
     """You attack with two or more creatures with flying: draw a card.
 
-    DeclareAttackersEvent is per-creature; the set-level "two or more" is the
-    trigger condition.
+    DeclareAttackersEvent is per-creature; "you attack with" triggers once per
+    declaration (once_per_event, CR 508.3d), and the set-level "two or more" is
+    the trigger condition.
     """
     flying_attackers = FAnd(
         children=(
@@ -1621,6 +1624,7 @@ def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
             ),
             2,
         ),
+        once_per_event=True,
     )
 
 
@@ -1901,7 +1905,9 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
     DamageDealtEvent{amount: QUnbounded, source: the Cats filter, combat:
     True}, recipient :func:`_to_a_player`. The event subject is the damaged
     player, so "that player" is the event referent in the CONTROLLER_IS who
-    slot."""
+    slot. "One or more Cats" is once_per_event: one trigger per combat damage
+    step for each player the Cats damaged (CR 510.2, 603.2c), not one per
+    Cat."""
     cats = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
@@ -1938,6 +1944,7 @@ def _build_feline_sovereign(m: re.Match[str]) -> SentenceOutcome:
             verb=Verb.DESTROY,
             args=AtomArgs(pairs=(("target", target),)),
         ),
+        once_per_event=True,
     )
 
 
@@ -2189,9 +2196,11 @@ def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
 
     DeclareAttackersEvent over the opponent's creatures, with the
     ``attacked`` slot carrying :func:`_you_or_your_planeswalkers` (it narrows
-    the attacked object per attacker). The "if" is the condition
-    ``ATTACK_AGAINST_COUNT_GE`` (same filter, count=2): it counts the
-    event's declared attackers whose attacked object passes the filter."""
+    the attacked object per attacker). "An opponent attacks with creatures"
+    triggers once per declaration (once_per_event, CR 508.3d). The "if" is
+    the condition ``ATTACK_AGAINST_COUNT_GE`` (same filter, count=2): it
+    counts the event's declared attackers whose attacked object passes the
+    filter."""
     return _ability(
         DeclareAttackersEvent(
             filter=FAnd(
@@ -2216,6 +2225,7 @@ def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
             inner_filter=_you_or_your_planeswalkers(),
             count=QConst(2),
         ),
+        once_per_event=True,
     )
 
 

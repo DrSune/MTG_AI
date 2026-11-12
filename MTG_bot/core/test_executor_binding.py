@@ -886,6 +886,23 @@ class TestRaises(BindingCase):
             1,
         )
 
+    def test_once_per_event_binds_only_where_the_binder_groups_an_event(self):
+        # CR 603.2c: the binder gathers one event's occurrences for a
+        # declaration and a combat damage step. A once-per-event trigger on
+        # any other event would trigger per occurrence, so it raises on bind.
+        def once(event):
+            rec = self.record_for(
+                self.watch, [TriggeredAbility(event, None, gain(1), once_per_event=True)]
+            )
+            return self.ex.attach_card(self.watch, rec)
+
+        self.assertEqual(once(DeclareAttackersEvent(filter=UNIV)), 1)
+        self.assertEqual(
+            once(DamageDealtEvent(QUnbounded(), UNIV, source=UNIV, combat=True)), 1
+        )
+        with self.assertRaises(NotImplementedError):
+            once(CreatureDiesEvent(filter=UNIV))
+
     def test_trigger_loop_tripwire_quarantines_the_loop_source(self):
         # The tripwire GUARDS instead of raising: "flag it, never run it"
         # means flag, not kill the game (Chandra's Incinerator can

@@ -1,0 +1,17 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-102 with B-103. Printed: Basri, Devoted Paladin '[-1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.'; Falconer Adept 'Whenever this creature attacks, create a 1/1 white Bird creature token with flying that's tapped and attacking.' The Adept and the Wolf are declared as attackers: one counter each (CR 508.3a, 603.2c). The Bird is put onto the battlefield attacking, so it is attacking but never 'attacked' (CR 508.4): no counter, it stays 1/1 and deals 1. Seat 1 takes 3 + 3 + 1 = 7 (20 -> 13). Before the fix only the first attacker got a counter (14); with B-103 fixed and B-102 not, the Bird's own declare row would give it a counter as well (12).",
+ "cards": [
+  {"key": "basri", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "adept", "real": "Falconer Adept", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"adept": true, "wolf": true}}
+ ],
+ "expect": {
+  "counters": {"adept": {"PLUS_1_PLUS_1": 1}, "wolf": {"PLUS_1_PLUS_1": 1}},
+  "tokens": {"Bird": 1},
+  "battlefield_pt": {"Bird": [1, 1]},
+  "life": {"0": 20, "1": 13}
+ }}

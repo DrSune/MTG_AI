@@ -1,0 +1,15 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "fang1", "real": "Hooded Blightfang", "zone": "battlefield", "controller": 0},
+    {"key": "fang2", "real": "Hooded Blightfang", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"fang1": true, "fang2": true}}
+  ],
+  "expect": {
+    "life": {"0": 24, "1": 14}
+  },
+  "notes": "B-103 (m21-fidelity, 2026-10-30; fixed by the once_per_event axis). Printed: 'Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.' Two Blightfangs attack: each Blightfang's ability triggers once per deathtouch attacker (CR 508.3a, 603.2c), so four triggers: seat 1 loses 4 plus 2 combat damage (14), seat 0 gains 4 (24). Before the fix the binder queued one instance per ability per declaration, so seat 1 ended at 16 and seat 0 at 22."
+}

@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-106 (gate R5-14). Printed: 'Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.' The Sovereign and the Kitty (2/2 with the anthem) connect in the same combat damage step: all combat damage of a step is dealt at once (CR 510.2), and 'one or more' makes it one trigger for that player, however many Cats dealt damage (CR 603.2c). It destroys the Relic; the Charm stays. Seat 1 takes 2 + 2 (20 -> 16). Before the fix the ability triggered once per Cat, and the second trigger destroyed the Charm too.",
+ "cards": [
+  {"key": "feline", "real": "Feline Sovereign", "zone": "battlefield", "controller": 0},
+  {"key": "kitty", "name": "Hunting Kitty", "type": "Creature — Cat", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Bronze Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "charm", "name": "Silver Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"feline": true, "kitty": true}, "decisions": ["relic", "charm"]}
+ ],
+ "expect": {
+  "zone": {"relic": "graveyard", "charm": "battlefield"},
+  "life": {"0": 20, "1": 16}
+ }}

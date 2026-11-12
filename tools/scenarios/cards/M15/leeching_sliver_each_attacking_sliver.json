@@ -1,0 +1,39 @@
+{
+ "name": "leeching_sliver_each_attacking_sliver",
+ "set": "M15",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Leeching Sliver",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Leeching Sliver",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "s1": true,
+    "s2": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 14
+  }
+ },
+ "notes": "B-103 (2026-11-06, the fresh-eyes review of engine/atoms-wave2; fixed by the once_per_event axis). Printed: 'Whenever a Sliver you control attacks, defending player loses 1 life.' Two Slivers attack: each Sliver's ability triggers once per attacking Sliver (CR 508.3a, 603.2c), four triggers, so seat 1 loses 4 plus 2 combat damage (14). Before the fix the binder queued one instance per ability per declaration, so seat 1 ended at 16. The one-Sliver pack defending_player_leeching_sliver pins the defending player."
+}

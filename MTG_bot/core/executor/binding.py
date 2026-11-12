@@ -32,9 +32,10 @@ Contracts honoured:
     source (dropped firings recorded in ``executor.trigger_loops``) and play
     continues — the loop is a bug to flag, never a bug to run;
   * **flag, don't degrade** — an event node no journal feed serves
-    (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent) RAISES
+    (``_UNSUPPORTED_EVENTS``, a blocker-count DeclareBlockersEvent), or a
+    once-per-event trigger on an event kind the binder does not group, RAISES
     ``NotImplementedError`` at *bind* time, instead of silently arming a
-    trigger that could never fire.
+    trigger that could never fire or would fire too often.
 
 May-offers: an ``OptionalEffect`` in a trigger effect answers through the
 executor's vocabulary-addressed decision stream: the ask carries its own
@@ -358,16 +359,15 @@ class TriggerBinder:
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
-        # CR 603.2 dedup: (source, node-id, declare-group) for every
-        # DeclareAttackersEvent queue already made. The journal carries ONE
-        # row per declared attacker (the grammar's filter is subject-
-        # scoped), but a triggered ability triggers ONCE on the whole
-        # declare action — the shared group id collapses the row fan-out.
+        # CR 603.2c: (source, node-id, declare-group) for every queue a
+        # once-per-event DeclareAttackersEvent trigger already made. The
+        # journal carries ONE row per declared attacker; "whenever you attack"
+        # triggers once on the whole declaration, so the shared group id
+        # collapses the row fan-out (a once-per-occurrence trigger takes
+        # every row it matches).
         self._declare_queued: set[tuple[Handle, int, int]] = set()
-        # Cached synthetic keyword-trigger nodes, keyed (family, holder).
-        # ONE node object per (family, handle) keeps the CR 603.2
-        # declare-dedup (which keys on id(node)) stable across the rows of
-        # one declaration.
+        # Cached synthetic keyword-trigger nodes, keyed (family, holder):
+        # ONE node object per (family, handle).
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
         # A battlefield departure normally detaches the leaver's triggers on
         # the ZONE_CHANGE journal row — but EventJournal.record_atom journals the
@@ -423,7 +423,7 @@ class TriggerBinder:
         triggers = []
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
-                self._check_event(ability.event, record.name)
+                self._check_trigger(ability, record.name)
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
         self.records.setdefault(record.oracle_id, record)
@@ -450,7 +450,7 @@ class TriggerBinder:
             raise ValueError(f"register_token: unknown world card {handle}")
         for ability in record.abilities:
             if isinstance(ability, TriggeredAbility):
-                self._check_event(ability.event, record.name)
+                self._check_trigger(ability, record.name)
         self.records.setdefault(record.oracle_id, record)
         self.handle_record[handle] = record
 
@@ -480,7 +480,7 @@ class TriggerBinder:
         # mutates, so a raise leaves the registry untouched.
         for ability in record.abilities:
             if isinstance(ability, TriggeredAbility):
-                self._check_event(ability.event, record.name)
+                self._check_trigger(ability, record.name)
         self.records[record.oracle_id] = record
         self.handle_record[handle] = record
         return self._register(handle, record)
@@ -511,7 +511,7 @@ class TriggerBinder:
         for idx, ability in enumerate(record.abilities):
             if functions_from_graveyard(ability):
                 assert isinstance(ability, TriggeredAbility)
-                self._check_event(ability.event, record.name)
+                self._check_trigger(ability, record.name)
                 self.attached_graveyard[(handle, idx)] = ability
                 n += 1
         return n
@@ -527,7 +527,7 @@ class TriggerBinder:
         triggers = []
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
-                self._check_event(ability.event, record.name)
+                self._check_trigger(ability, record.name)
                 if functions_from_graveyard(ability):
                     continue  # CR 113.6m: it does not function here
                 triggers.append((idx, ability))
@@ -601,7 +601,8 @@ class TriggerBinder:
         self.executor.replacements.detach_source(handle)
         return len(keys)
 
-    def _check_event(self, event: EventSpec, card_name: str) -> None:
+    def _check_trigger(self, trigger: _AnyTrigger, card_name: str) -> None:
+        event = trigger.event
         kind = type(event)
         if kind in _UNSUPPORTED_EVENTS:
             raise NotImplementedError(
@@ -614,6 +615,17 @@ class TriggerBinder:
             raise NotImplementedError(
                 f"executor: {card_name} trigger event DeclareBlockersEvent with a blocker "
                 "count has no trigger reader"
+            )
+        if trigger.once_per_event and not isinstance(
+            event, (DeclareAttackersEvent, DamageDealtEvent)
+        ):
+            # CR 603.2c: _queue gathers one event's occurrences only for a
+            # declaration (its rows share a declare group) and a combat damage
+            # step (its rows share the step); elsewhere the ability would
+            # trigger once per occurrence, more often than printed.
+            raise NotImplementedError(
+                f"executor: {card_name} once-per-event trigger on {kind.__name__} has no "
+                "event grouping"
             )
 
     # ------------------------------------------------------------ matching
@@ -789,16 +801,15 @@ class TriggerBinder:
             # subscribers) do not trigger. A delayed trigger is not an
             # ability of its source (CR 603.7) and still triggers.
             return
-        if (
-            not additional
-            and event.kind == KIND_DECLARE_ATTACKERS
-            and isinstance(node.event, DeclareAttackersEvent)
-        ):
-            # CR 603.2 once-per-declaration: the per-attacker row
-            # fan-out must queue ONE instance per ability per declare
-            # group — Tide Skimmer's "attack with two or more" fires once,
-            # a per-creature IS_SOURCE filter still fires once (its own
-            # row), and two identical creatures are different sources.
+        if not additional and node.once_per_event and event.kind == KIND_DECLARE_ATTACKERS:
+            # CR 603.2c, 508.3d: "whenever you attack" and "whenever one or more
+            # creatures you control attack" trigger once on the declaration, so
+            # the per-attacker row fan-out queues ONE instance per ability per
+            # declare group (Tide Skimmer's "attack with two or more" fires
+            # once); two identical creatures are different sources. A trigger
+            # without the flag ("whenever a creature you control attacks", CR
+            # 508.3a) queues one instance per attacker it matches, that attacker
+            # its event (Hooded Blightfang, Basri, Devoted Paladin's -1).
             key = (source, id(node), event.declare_group)
             if key in self._declare_queued:
                 return
@@ -808,17 +819,19 @@ class TriggerBinder:
             and event.kind == KIND_DAMAGE
             and event.is_combat
             and isinstance(node.event, DamageDealtEvent)
-            and node.event.source is None
+            and (node.event.source is None or node.once_per_event)
         ):
             # CR 510.2, 603.2c: a combat damage step deals all its damage at once, as
             # one event, so "whenever this creature is dealt damage" triggers once
             # however many creatures dealt it damage (Sporeweb Weaver's ruling),
-            # and "that much damage" is all of it (Brash Taunter). A
-            # trigger that names the dealer ("a source you control deals", "this
-            # creature deals combat damage to a player") triggers per source, row by
-            # row. Any other DAMAGE row is a whole event already: one DEAL_DAMAGE
-            # atom, one dealer.
-            whole = self._combat_damage_event(event)
+            # and "that much damage" is all of it (Brash Taunter). A once-per-event
+            # trigger over dealers ("whenever one or more Cats you control deal
+            # combat damage to a player", Feline Sovereign) triggers once per step
+            # for each player those dealers damaged. Any other trigger that names
+            # the dealer ("a source you control deals", "this creature deals combat
+            # damage to a player") triggers per source, row by row. Any other DAMAGE
+            # row is a whole event already: one DEAL_DAMAGE atom, one dealer.
+            whole = self._combat_damage_event(event, node, source, controller)
             if whole is None:
                 return
             event = whole
@@ -858,10 +871,13 @@ class TriggerBinder:
             # chasing each other.
             self._fan_ability_triggers(payload)
 
-    def _combat_damage_event(self, event: GameEvent) -> GameEvent | None:
-        """The combat damage the step of ``event`` (a combat DAMAGE row) dealt to its
-        recipient, as the one event it is (CR 510.2): ``event`` with the step's total
-        amount when it is the step's first row to that recipient, else None (the
+    def _combat_damage_event(
+        self, event: GameEvent, node: _AnyTrigger, source: Handle, controller: Handle
+    ) -> GameEvent | None:
+        """The combat damage the step of ``event`` (a combat DAMAGE row ``node`` matched)
+        dealt to its recipient, as the one event it is (CR 510.2), counting the rows
+        ``node`` matches (its dealer filter; with none, every row to that recipient):
+        ``event`` with their total amount when it is the first of them, else None (the
         event was already matched on that row). The journal has one row per dealer;
         the whole step is journalled before any of it is matched."""
         rows = [
@@ -870,6 +886,7 @@ class TriggerBinder:
             if e.kind == KIND_DAMAGE
             and e.subject == event.subject
             and e.combat_step == event.combat_step
+            and (e.clock == event.clock or self._match_node(node.event, e, source, controller))
         ]
         if rows[0].clock != event.clock:
             return None
@@ -915,8 +932,7 @@ class TriggerBinder:
 
     def _keyword_node(self, family: str, handle: Handle) -> TriggeredAbility:
         """The canonical compiled-shape node for a printed keyword
-        trigger, built ONCE per (family, holder) and cached — the cache
-        keeps ``id(node)`` stable for the CR 603.2 declare-dedup. The
+        trigger, built ONCE per (family, holder) and cached. The
         shapes mirror the frozen-IR precedent (Quirion Dryad's compiled
         cast-trigger is exactly prowess minus the type exclusion):
         PROWESS  — "whenever you cast a noncreature spell" → +1/+1 until
@@ -1857,7 +1873,12 @@ class TriggerBinder:
         effect = next(effect for token, _idxs, effect in legal if token == pick)
         if effect is None:
             return None  # the empty set of an "up to" choice: nothing happens
-        return TriggeredAbility(event=node.event, condition=node.condition, effect=effect)
+        return TriggeredAbility(
+            event=node.event,
+            condition=node.condition,
+            effect=effect,
+            once_per_event=node.once_per_event,
+        )
 
     @staticmethod
     def _designated_player_refs(effect: object) -> set[ControllerRef]:
@@ -2190,7 +2211,7 @@ class TriggerBinder:
         a leak. The scheduled EVENT kind gets the
         same unsupported-kind flag-don't-degrade check as an attached
         trigger."""
-        self._check_event(node.event, "DelayedTrigger")
+        self._check_trigger(node, "DelayedTrigger")
         tag = duration_tag(node.duration)
         if tag not in _SWEEP_TAGS:
             raise NotImplementedError(

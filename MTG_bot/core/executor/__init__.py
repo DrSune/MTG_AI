@@ -2612,11 +2612,14 @@ class Executor:
                 )
 
     def join_attack(self, creature: Handle) -> None:
-        """CR 508.1i - a creature PUT ONTO THE BATTLEFIELD ATTACKING
+        """CR 508.4 - a creature PUT ONTO THE BATTLEFIELD ATTACKING
         (Falconer Adept's Bird, Basri Ket's [-2] Soldier) joins the open
-        attack record with its own declare row, no legality pass (it was
-        never declared). Outside the declare window the verb path never
-        calls this."""
+        attack record with no legality pass. It is attacking, but it was
+        never declared, so for trigger events and effects it never
+        "attacked" (CR 508.3a): it gets no DECLARE_ATTACKERS row, and no
+        attack trigger, battalion group, "that many" count or "attacked
+        this turn" history sees it. Outside the declare window the verb path
+        never calls this."""
         if self.defending_player is None or creature in self.attackers:
             return
         self.attackers.append(creature)
@@ -2636,13 +2639,6 @@ class Executor:
             answer = offer_or_autopick(ctx, vocab, f"attack:{creature}:{self.world.turn}")
             target = next((w for w in walkers if str(w) == answer), target)
         self.attacked[creature] = target
-        self.journal.emit(
-            KIND_DECLARE_ATTACKERS,
-            creature,
-            None,
-            "ATTACK_STEP",
-            (self._declare_group,),
-        )
 
     def _attackable_walkers(self) -> list[Handle]:
         """CR 506.2, 506.3: the planeswalkers a creature may attack this

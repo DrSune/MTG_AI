@@ -260,7 +260,8 @@
        }
       }
      ]
-    }
+    },
+    "once_per_event": true
    },
    {
     "tag": "SpellAbility",
@@ -274,7 +275,7 @@
  "mapping": {
   "author": "claude-mapper-A",
   "date": "2026-10-29",
-  "draft_py": "_tgt = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nattack_trigger = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ))),\n    condition=None,\n    effect=Seq(steps=(\n        A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            'target': _tgt,\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n        }),\n        A(Verb.GRANT_ABILITY, {\n            'ability': KeywordAbility(keyword=Keyword.MENACE),\n            'duration': DurationEot(),\n            'target': _tgt,\n        }),\n    )),\n)\nabilities = [attack_trigger, *compiled]\n",
+  "draft_py": "_tgt = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nattack_trigger = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    ))),\n    condition=None,\n    effect=Seq(steps=(\n        A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            'target': _tgt,\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n        }),\n        A(Verb.GRANT_ABILITY, {\n            'ability': KeywordAbility(keyword=Keyword.MENACE),\n            'duration': DurationEot(),\n            'target': _tgt,\n        }),\n    )),\n    once_per_event=True,\n)\nabilities = [attack_trigger, *compiled]\n",
   "clauses": [
    {
     "clause": "Whenever you attack, target creature you control gets +1/+0 and gains menace until end of turn.",

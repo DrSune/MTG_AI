@@ -1492,11 +1492,7 @@ def _kicker_slot_with_effect(slot: _OutcomeSlot, new_effect: Effect) -> _Outcome
             )
         )
     assert isinstance(ab, TriggeredAbility)
-    return AbilityOutcome(
-        ability=TriggeredAbility(
-            event=ab.event, condition=ab.condition, effect=new_effect
-        )
-    )
+    return AbilityOutcome(ability=replace(ab, effect=new_effect))
 
 
 def _cost_has_x_quantity(cost: Cost) -> bool:
@@ -1913,11 +1909,7 @@ def compile_card(
                         else _append_mandatory_to_seq
                     )
                     processed[trig_idx] = AbilityOutcome(
-                        ability=TriggeredAbility(
-                            event=tab.event,
-                            condition=tab.condition,
-                            effect=merge(tab.effect, outcome.effect),
-                        )
+                        ability=replace(tab, effect=merge(tab.effect, outcome.effect))
                     )
                     # The trailing sentence is consumed — not appended.
                     continue
@@ -2055,13 +2047,8 @@ def compile_card(
                         )
                     )
                 elif isinstance(ab, TriggeredAbility):
-                    merged_eff = merge(ab.effect, outcome.effect)
                     processed[prev_idx] = AbilityOutcome(
-                        ability=TriggeredAbility(
-                            event=ab.event,
-                            condition=ab.condition,
-                            effect=merged_eff,
-                        )
+                        ability=replace(ab, effect=merge(ab.effect, outcome.effect))
                     )
             # The continuation sentence is consumed — not appended.
             continue

@@ -121,8 +121,22 @@ $PY tools/cards/cardtool.py --help
   nodes, never a Python number in place of a quantity.
   - "N for each X" is `QBin(MUL, QConst(N), QCount(...))`.
 - **"Whenever you attack" and "one or more creatures you control attack".** A
-  `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')` and no
-  condition. The binder fires it once per declaration (CR 603.2).
+  `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
+  condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
+  triggers once per declaration (CR 508.3d, 603.2c). "Attack with two or more ..." is the same
+  plus its count as the condition (Tide Skimmer).
+  - "Whenever a creature you control [with X] attacks" has no `once_per_event`: it triggers once
+    for each such attacker, and that attacker is the event, "it" (CR 508.3a).
+  - "Whenever one or more <creatures> you control deal combat damage to a player" is a
+    `DamageDealtEvent(combat=True, source=<creatures>)` with `once_per_event=True`: once per combat
+    damage step for each player they damaged (CR 510.2; Feline Sovereign). The flag gathers the
+    dealers `source` names, so it needs one: "this creature is dealt damage" is already one event
+    per step and is never flagged.
+  - The engine groups only these two events. A `once_per_event` trigger on any other event ("one
+    or more tokens enter") refuses to bind, and two shapes have no encoding yet: one trigger per
+    attacked object ("attacks a planeswalker you control with one or more creatures") and the
+    recipients gathered ("one or more creatures you control are dealt damage"). Report them as
+    `needs-atom`.
 - **SEARCH.** Leave out the `controller` role. The executor never reads it (the searched zone comes from
   the `cards` selector), and the compiler is split 14/15 on writing it (divergence D12).
 - **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a

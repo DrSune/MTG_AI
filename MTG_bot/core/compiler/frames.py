@@ -107,8 +107,8 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
             r"Whenever this creature attacks, (?P<clause>.+)"),
      _triggered(templates_b2b._attack_event)),
     # Attack triggers whose clause names the defending player (CR 508.5): Heart-Piercer Bow's
-    # equipped creature, Leeching Sliver's "a Sliver you control" (once per attacking Sliver by
-    # CR 603.2c; the binder still fires it once per declaration, B-103).
+    # equipped creature, Leeching Sliver's "a Sliver you control" (once per attacking Sliver,
+    # CR 603.2c: a trigger without once_per_event).
     (_frame("B13-equipped-attacks", "whenever equipped creature attacks, <clause>",
             r"Whenever equipped creature attacks, (?P<clause>.+)"),
      _triggered(lambda: DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)))),

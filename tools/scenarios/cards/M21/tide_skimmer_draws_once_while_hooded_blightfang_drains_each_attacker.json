@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "B-103, both readings in one declaration. Tide Skimmer: 'Whenever you attack with two or more creatures with flying, draw a card.' is about the declaration (CR 508.3d): one trigger, one card, however many flyers attack. Hooded Blightfang (it stays home): 'Whenever a creature you control with deathtouch attacks, each opponent loses 1 life and you gain 1 life.' is about each attacker (CR 508.3a, 603.2c): one trigger per deathtouch attacker. The Skimmer and two flying deathtouch Vipers attack: one card drawn, two drains. Seat 1 loses 2 and takes 2 + 1 + 1 (20 -> 14), seat 0 gains 2 (22). Before the fix the Blightfang drained once (15 and 21).",
+ "cards": [
+  {"key": "skim", "real": "Tide Skimmer", "zone": "battlefield", "controller": 0},
+  {"key": "fang", "real": "Hooded Blightfang", "zone": "battlefield", "controller": 0},
+  {"key": "v1", "name": "Sky Viper", "type": "Creature — Snake", "power": 1, "toughness": 1, "keywords": ["FLYING", "DEATHTOUCH"], "zone": "battlefield", "controller": 0},
+  {"key": "v2", "name": "Cloud Viper", "type": "Creature — Snake", "power": 1, "toughness": 1, "keywords": ["FLYING", "DEATHTOUCH"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"skim": true, "fang": false, "v1": true, "v2": true}}
+ ],
+ "expect": {
+  "hand": {"0": 1},
+  "life": {"0": 22, "1": 14}
+ }}
