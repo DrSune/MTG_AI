@@ -1556,11 +1556,11 @@ def test_the_audit_measures_true_worlds_beside_the_search(table, monkeypatch) ->
     s.root_pos = (game, 0, ask, FT.AskContext())
     state = s.rng.getstate()
     s._audit(game, ask, [0], [1.0], 0, 0)
-    assert s.rng.getstate() == state and s.stats["sims"] == 0 and s.stats["audit_sims"] == 6
+    assert s.rng.getstate() == state and s.stats["sims"] == 0 and s.stats["audit_sims"] == 8
     (rec,) = s.audits
-    assert set(rec["q"]) == {"uniform", "sim", "true"}
+    assert set(rec["q"]) == {"uniform", "sim", "true", "true2"}
     assert all(len(v) == 1 for v in rec["q"].values())
-    assert len(real) > 0 and seen[4:] == [real, real]  # the two true worlds, played last
+    assert len(real) > 0 and seen[4:] == [real] * 4  # both sets of true worlds, played last
     assert seen[0] != real and s.stats["sim_errors"] == 0
 
 

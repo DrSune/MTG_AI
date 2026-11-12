@@ -391,16 +391,18 @@ class Searcher:
                pick: int) -> None:
         """The ``audit`` record of one searched act decision: the network's top candidates'
         mean results in each kind of world, each kind's worlds shared by every candidate (a world
-        where any candidate crashed is dropped for all). Its simulations are counted apart, so
-        the search's own statistics stay comparable."""
+        where any candidate crashed is dropped for all). A second, independent set of true
+        worlds (``true2``) measures how far two samples of the truth agree: the most any belief
+        can. Its simulations are counted apart, so the search's own statistics stay comparable."""
         sims = self.stats["sims"]
         q = {}
-        for kind in ("uniform", "sim", "true"):
+        for key, kind in (("uniform", "uniform"), ("sim", "sim"), ("true", "true"),
+                          ("true2", "true")):
             worlds = self.draw_worlds(self.audit, kind, self.audit_rng)
             raw = {i: [self.simulate(game, ask.seat, ask.options[c].token, world=w)
                        for w, _ in worlds] for i, c in enumerate(top)}
             means = mean_scores(raw)
-            q[kind] = [means[i] for i in range(len(top))] if means else None
+            q[key] = [means[i] for i in range(len(top))] if means else None
         self.stats["audit_sims"] += self.stats["sims"] - sims
         self.stats["sims"] = sims
         self.audits.append({"seat": ask.seat, "turn": game.world.turn, "cands": top,
