@@ -354,6 +354,17 @@ class LayerRegistry:
                 dropped += 1
         return dropped
 
+    def follow_controller(self, handle: Handle, controller: Handle) -> None:
+        """``handle`` changed controller on the battlefield: its own keyword and static
+        abilities' records (and the P/T entries they materialized) now read "you" as
+        ``controller`` (CR 109.5, 611.3a). Each keeps its timestamp (CR 613.7: a control
+        change gives none). A record a resolved spell or ability made keeps the controller it
+        resolved under (CR 611.2c)."""
+        for layer in self.records:
+            if layer.source == handle and layer.from_static and layer.status != "expired":
+                layer.controller = controller
+                self.executor.ledger.rebind_controller(layer.ledger_ids.values(), controller)
+
     def register_rule(
         self,
         kind: str,

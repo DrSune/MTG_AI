@@ -3316,6 +3316,18 @@ class Executor:
         # so the marker dict carries both directions).
         for creature in changed:
             self.control_gained_turn[creature] = self.world.turn
+        # CR 109.5, 611.3a: "you" in a permanent's own static, keyword and
+        # replacement abilities is its controller NOW, so the records they
+        # registered when it entered follow the change (a stolen Blightbeetle
+        # protects the thief's creatures). Nothing else changes a battlefield
+        # permanent's controller: a permanent entering registers under the
+        # controller it enters with.
+        for creature in changed:
+            if creature not in self.world.cards:
+                continue  # a token that ceased to exist (CR 704.5d) has no records left
+            controller = self.controller_of(creature)
+            self.layers.follow_controller(creature, controller)
+            self.replacements.follow_controller(creature, controller)
         for creature in changed:
             if creature in self.attackers:
                 self.attackers.remove(creature)

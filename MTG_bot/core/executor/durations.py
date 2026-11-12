@@ -439,6 +439,15 @@ class DurationLedger:
                 expired += 1
         return expired
 
+    def rebind_controller(self, record_ids, controller: Handle) -> None:
+        """A static's materialized entries: its permanent changed controller, so a WHILE
+        condition is judged in the new controller's coordinates (CR 611.3a); the entries keep
+        their timestamps (CR 613.7)."""
+        for record_id in record_ids:
+            meta = self._meta.get(record_id)
+            if meta is not None:
+                self._meta[record_id] = replace(meta, controller=controller)
+
     def forget(self, card: Handle) -> int:
         """CR 400.7: ``card`` left the battlefield; in its new zone it is a new object, so no
         entry recorded for the old one applies to it (a dead creature card has its printed P/T).

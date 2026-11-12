@@ -207,6 +207,19 @@ class ReplacementRegistry:
                 expired += 1
         return expired
 
+    def follow_controller(self, handle: Handle, controller: Handle) -> None:
+        """``handle`` changed controller on the battlefield: its own replacement and prevention
+        abilities now read "you" as ``controller`` (CR 109.5, 611.3a; a stolen Blightbeetle bars
+        counters from the creatures of its new controller's opponents). A record a resolved
+        spell or ability made keeps the controller it resolved under (CR 611.2c): the
+        ``resolved`` preventions and the spell-sourced Eot replacements."""
+        for rec in self.replacements:
+            if rec.source == handle and rec.tag == "Permanent" and rec.status != "expired":
+                rec.controller = controller
+        for rec in self.preventions:
+            if rec.source == handle and not rec.resolved and rec.status != "expired":
+                rec.controller = controller
+
     def register_ephemeral_replacements(
         self,
         source: Handle,
@@ -1204,8 +1217,7 @@ class ReplacementRegistry:
                 continue
             ctx = executor._ctx(
                 source=rec.source,
-                # a resolved effect keeps its controller (CR 611.2c); a static's is its source's
-                controller=rec.controller if rec.resolved else executor.controller_of(rec.source),
+                controller=rec.controller,  # a static's follows its source (follow_controller)
                 bindings=None,
                 decisions=(),
             )
