@@ -952,6 +952,9 @@ a GPU window once they pass, whether or not gate B or F1 run.
     alone explains of the value's residual early in a game.
   - If it is material, own-library columns (zero-initialised) come at the next run boundary.
     That cuts PPO's noise and sharpens the search's leaf.
+  - **Measured (KNOWLEDGE/2026-11-12/200 §1): not material for coherent decks.** The CV R² of the
+    value's residual is −0.001 over 19,173 games, even with both decks. Not made; asked again for
+    package decks.
 - **Retention.** Rare kinds drift when the rest of the update moves the network (198 §3). r28's
   looks at 100 and 400 split every kind's movement (§14.2, instrument 2). Before any push, a
   retention scheme (a rehearsal share, or a KL anchor on that kind) is registered.
@@ -996,7 +999,7 @@ a GPU window once they pass, whether or not gate B or F1 run.
 | Specialists had no slot before H1; concrete designs exist in the pool | MAJOR | Accepted (§14.3) |
 | No common yardstick: L scheduled for days 6-20 | MAJOR | Accepted. L now (§14.4) |
 | Rare kinds are forgotten, only the mulligan is guarded | MAJOR | Accepted. The per-kind split in r28's looks; retention before any push (§14.4) |
-| The network cannot see its own decklist | MAJOR | Accepted as a measurement first: 184's 24% includes hidden information (§14.4) |
+| The network cannot see its own decklist | MAJOR | Accepted as a measurement first: 184's 24% includes hidden information. Measured: nothing for coherent decks (200 §1) |
 | The card backlog was filed under "later" | MAJOR | Accepted; it was already running (wave 1). Order and the unseen-card test added (§14.4) |
 | R3 is biased toward r28 (the past share falls through to the newest) | MINOR | Accepted; checked (`learner.py:537-540`). R3b registered before its data (199 §6) |
 | Gate B's starter had no exit if the guard stops r28 | MINOR | Moot: the starter is removed |
