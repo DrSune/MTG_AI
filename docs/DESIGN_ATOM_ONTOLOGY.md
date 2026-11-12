@@ -34,8 +34,7 @@ card      := CardRecord(abilities+)                       # printed order kept (
 ability   := Triggered(event, condition?, effect)
            | Activated(cost, effect, condition?, timing)
            | Static(effect, condition?) | Spell(kind, effect, additional_costs*)
-           | Replacement(event, condition?, action) | Keyword
-           | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c)
+           | Replacement(event, condition?, action) | Keyword | EtBState
            | CostModifier | Emblem | Kicker | BackFace
 effect    := Atom(verb, role→value pairs)                 # ONE operation = ONE Atom (T1)
            | Seq(steps 2+)                               # TIME: printed order (O2)

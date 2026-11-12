@@ -1277,10 +1277,33 @@ class Executor:
             )
             self._run_effect(atom, ctx)
 
+    def run_as_enters(self, card: Handle, effect: Effect) -> None:
+        """Run ``card``'s "As this enters" effect (an EtBState ``effect``). CR 614.1c, 614.12a:
+        "As this enchantment enters, choose a card name" is a replacement effect, not a trigger:
+        its controller chooses as it enters, without the stack and before anyone receives
+        priority, so the permanent is never on the battlefield with the choice unmade (Runed
+        Halo's protection reads it). The entry hook (:meth:`_apply_etb_state`) runs it before the
+        entered tapped state and counters; the card probe runs it alone on its board's card,
+        which is put on the battlefield without entering.
+
+        Only the choice verb whose cards have tests (CHOOSE_NAME) runs. Any other effect would run
+        inside the zone-change bookkeeping (:meth:`_on_zone_changes`) with nothing testing it
+        there, so it raises until a card that needs it (Sutured Ghoul, Devouring Hellion, Rescuer
+        Sphinx) brings its own tests."""
+        if not (isinstance(effect, Atom) and effect.verb is Verb.CHOOSE_NAME):
+            raise NotImplementedError(
+                "executor: an \"As this enters\" effect runs only as CHOOSE_NAME; "
+                f"{effect!r:.80} would run inside the zone-change bookkeeping, untested there"
+            )
+        self._run_effect(
+            effect,
+            self._ctx(source=card, controller=self.controller_of(card), bindings=None, decisions=()),
+        )
+
     def _apply_etb_state(self, card: Handle) -> None:
         """Stamp the compiled EtBState node on a permanent the journal
         just saw ENTER the battlefield: what is done as it enters (its
-        ``effect``, Runed Halo's "choose a card name"), then the tapped flag
+        ``effect``, :meth:`run_as_enters`), then the tapped flag
         and any initial counters (CR 614.1c — part of the entering state, not
         a trigger, so no TAP event is emitted and nothing is re-journalled;
         the move's own journal row already carries the entry). A card whose
@@ -1314,16 +1337,7 @@ class Executor:
                 if not eval_filter(node.condition, card, ctx):
                     continue
             if node.effect is not None:
-                # CR 614.1c, 614.12a: "As this enchantment enters, choose a card name" is a
-                # replacement effect, not a trigger: its controller chooses as it enters, without
-                # the stack and before anyone receives priority, so the permanent is never on the
-                # battlefield with the choice unmade (Runed Halo's protection reads it).
-                self._run_effect(
-                    node.effect,
-                    self._ctx(
-                        source=card, controller=self.controller_of(card), bindings=None, decisions=()
-                    ),
-                )
+                self.run_as_enters(card, node.effect)
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:
