@@ -85,3 +85,38 @@ fails while R1 and R2 hold.
 "one update from r27's 165 on stratified steps: 2.0-2.6". The three orders actually gave the
 mulligan's KL over act's as 2.05, 1.53 and 2.60, so the range is 1.5-2.6 (198 §3's ablation).
 R2's prediction (1.5-3.5) and falsifier (5 or more) are unchanged.
+
+**Launch** (2026-11-12 16:32:16).
+- r28 started as the transient unit `mtg-r28`, because writing a persistent unit file was
+  refused here. `reports/r28_2026-11-12/start.sh` holds its command; from `--gamma` on, its flags
+  are identical to r27's unit, checked by diff.
+- Pre-flight passed at 44a62d9 (P1, P8, P9, P12), and `preregistration.json` was written before
+  the first game.
+- The init is `v1.pt`, still stamped 77 (its weights are update 75's, 197). The table refresh
+  changed 0 rows and M20 added 0 cards. v0 was frozen at 16:32:32.
+- The guard runs from main at ff18b5c (a monitor; the training code stays pinned).
+
+**The look at update 3** (16:44; the last row per update):
+
+| Update | 1 | 2 | 3 | Prediction |
+|---|---|---|---|---|
+| `kl` | 0.0043 | 0.0056 | 0.0056 | R5: 0.003-0.009 |
+| The mulligan's KL over act's | 3.22 | 2.08 | 1.80 | R2: median over 1-100 in 1.5-3.5 (r27: 6.8) |
+| `train_s` | 156 | 174 | 168 | R4: 130-175 |
+| Optimizer steps / micro-batches | 48 / 96 | 50 / 100 | 50 / 100 | — |
+| Share of the batch played by the previous weights | 0.58 | 0.64 | 0.26 | R4: 0.6-0.95, read over 2-50 |
+| `ent` / `ev` | 0.266 / 0.403 | 0.264 / 0.384 | 0.261 / 0.346 | — |
+| Training win rate against the heuristic / frozen (v0 = v1's weights) | 0.697 / 0.513 | 0.710 / 0.508 | 0.709 / 0.488 | — |
+| Lowest MemAvailable | 56.4 GiB | 53.3 | 53.0 | R6: above 35 |
+
+- No void game and no non-finite step.
+- **The heuristic's ladder** against random scored 0.916 [0.900, 0.932], r27's number on the same
+  deals. The bug hunt's engine fixes did not move it.
+- **The mulligan, pooled:** 8,472 declarations over 6,586 games in updates 1-3, 1.29 a game.
+  v1's rate was about 1.3.
+- **Per update the ratio swung** 0.90, 1.33 and 2.27, because the games an update counted swung
+  at the start (3,280, 2,114 and 1,192).
+  - So R1's block means are read pooled: declarations over games in the block.
+  - The guard pools too (ff18b5c). Its first version averaged per-update ratios, which inflate
+    exactly when games swing. Replayed over r27, the pooled guard still stops at update 169
+    (1.850).
