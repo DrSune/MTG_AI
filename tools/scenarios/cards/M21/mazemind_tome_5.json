@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"mt","real":"Mazemind Tome","zone":"battlefield","controller":0,"counters":{"PAGE":2}}],
+ "mana":{"0":{"C":0}},
+ "steps":[{"op":"activate","key":"mt","idx":0,"seat":0,"decisions":["top"]}],
+ "expect":{"zone":{"mt":"battlefield"},"counters":{"mt":{"PAGE":3}},"life":{"0":20}},
+ "notes":"Only three page counters: no exile and no life gain."}

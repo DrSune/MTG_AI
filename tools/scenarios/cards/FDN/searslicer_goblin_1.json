@@ -1,0 +1,6 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"sg","real":"Searslicer Goblin","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":true}},{"op":"to_step","step":"END_TURN"}],
+ "expect":{"tokens":{"Goblin":1},"life":{"1":18}},
+ "notes":"Raid: you attacked this turn, so at the beginning of your end step one 1/1 Goblin token is created."}

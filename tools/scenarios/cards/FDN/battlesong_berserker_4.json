@@ -1,0 +1,9 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"bb","real":"Battlesong Berserker","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"wall","name":"Wall","power":0,"toughness":9,"type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":true,"bb":false},"decisions":["bear"]},
+  {"op":"advance_turn"},{"op":"advance_turn"},
+  {"op":"combat","seat":0,"attack":{"bear":true,"bb":false},"decisions":["bb"],"block":{"wall":"bear"}}],
+ "expect":{"blocked":{"bear":["wall"]},"power":{"bear":2,"bb":4},"life":{"1":17},"damage":{"wall":2}},
+ "notes":"Until end of turn: the Bear got +1/+0 and menace on turn 1 only. On my next turn I attack with the Bear again and the new trigger targets the Berserker instead, so the Bear has neither: it is 2 power, and a lone Wall CAN block it (no menace). The Berserker is 4/4 from this turn's trigger. Turn 1 the Bear went unblocked (3 damage: 17); turn 3 the Wall takes the Bear's 2."}

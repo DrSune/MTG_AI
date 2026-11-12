@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "1",
+    "l1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l1": "battlefield",
+   "l2": "library",
+   "sa": "battlefield"
+  }
+ },
+ "notes": "At your upkeep you may search for A Shrine card (exactly one) and put it onto the battlefield. Library only, two Shrines in the library: exactly one enters."
+}

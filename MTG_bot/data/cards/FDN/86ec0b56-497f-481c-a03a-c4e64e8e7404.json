@@ -1,0 +1,40 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "86ec0b56-497f-481c-a03a-c4e64e8e7404",
+ "name": "Searslicer Goblin",
+ "text_sha": "d2e29bf5bd8293e887df1b33b5748eaba1ba884ee8f7b49a33e1db49fb6a2149",
+ "verified": {
+  "tree_sha": "6ab6e87925e85064a138ac369f1a36f910105e1122ed458603cd47199e1453fa",
+  "probe_sha": "ecfe698ab4f2470b93acf9a06e872291e97a8f2d5638c8346d07fea998228b24",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "clauses": [
+   {
+    "clause": "Raid: at the beginning of your end step, if you attacked this turn, create a 1/1 red Goblin token",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace never attacks then reaches the end step; tree: end-step trigger, TURN_OF you + attacked-this-turn count>=1, token 1/1 red Goblin. Packs A00_1 (attack: token), A00_2 (no attack: none) pass.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/searslicer_goblin_1.json",
+   "tools/scenarios/cards/FDN/searslicer_goblin_2.json",
+   "tools/scenarios/cards/FDN/searslicer_goblin_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 1,
+   "score": 0.125,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "widen filter (drop part 0) at 1/0/condition",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "amount+1 at 1/0/condition/children/1/count",
+    "amount+1 at 1/0/effect/args/count",
+    "amount+1 at 1/0/effect/args/tokens/power",
+    "amount+1 at 1/0/effect/args/tokens/toughness"
+   ]
+  }
+ }
+}

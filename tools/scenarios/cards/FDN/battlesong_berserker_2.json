@@ -1,0 +1,6 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"bb","real":"Battlesong Berserker","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":true,"bb":false},"decisions":["bear"]},{"op":"advance_turn"}],
+ "expect":{"power":{"bear":2},"toughness":{"bear":2}},
+ "notes":"The +1/+0 and menace last until end of turn: after the turn ends the Bear is 2/2 again. (Attacking with another creature while the Berserker stays home still triggers it.)"}

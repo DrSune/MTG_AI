@@ -1,0 +1,334 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s1",
+   "real": "Sanctum of Calm Waters",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Sanctum of Fruitful Harvest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s5",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "x0",
+   "name": "Deep0",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x1",
+   "name": "Deep1",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x2",
+   "name": "Deep2",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x3",
+   "name": "Deep3",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x4",
+   "name": "Deep4",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x5",
+   "name": "Deep5",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x6",
+   "name": "Deep6",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x7",
+   "name": "Deep7",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x8",
+   "name": "Deep8",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x9",
+   "name": "Deep9",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x10",
+   "name": "Deep10",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x11",
+   "name": "Deep11",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x12",
+   "name": "Deep12",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x13",
+   "name": "Deep13",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x14",
+   "name": "Deep14",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x15",
+   "name": "Deep15",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x16",
+   "name": "Deep16",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x17",
+   "name": "Deep17",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x18",
+   "name": "Deep18",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x19",
+   "name": "Deep19",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x20",
+   "name": "Deep20",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x21",
+   "name": "Deep21",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x22",
+   "name": "Deep22",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x23",
+   "name": "Deep23",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x24",
+   "name": "Deep24",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x25",
+   "name": "Deep25",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x26",
+   "name": "Deep26",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x27",
+   "name": "Deep27",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x28",
+   "name": "Deep28",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x29",
+   "name": "Deep29",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "s1"
+  },
+  {
+   "op": "enter",
+   "key": "s2"
+  },
+  {
+   "op": "enter",
+   "key": "s3"
+  },
+  {
+   "op": "enter",
+   "key": "s4"
+  },
+  {
+   "op": "enter",
+   "key": "s5"
+  },
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal",
+    "first-legal"
+   ]
+  },
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 32,
+   "1": 8
+  },
+  "hand": {
+   "0": 11
+  }
+ },
+ "notes": "Six Shrines (Sanctum of All itself counts) are under your control: an ability of ANOTHER Shrine triggers an additional time. At your first main phase Sanctum of Stone Fangs (X = 6 Shrines) triggers twice: opponent loses 12 (8), you gain 12 (32); Sanctum of Calm Waters triggers twice too: each time draw 6 then discard 1, so hand = 1 (draw step) + 5 + 5 = 11. Upkeep trigger of Sanctum of All declined."
+}

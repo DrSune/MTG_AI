@@ -1,0 +1,51 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "fc762e40-84c1-4762-82f7-a0fc4f6fd522",
+ "name": "Garruk, Savage Herald",
+ "text_sha": "6a558b652cf5fe96b8eaa64a82fb35e9549878ed6a069943dc4fb9d922eacfd4",
+ "verified": {
+  "tree_sha": "3d2c27f7eb1fae32986bc4880f89acf3fd307e344fa642bf0398a316b6cd6a75",
+  "probe_sha": "a39bef90f1e602e608b1738a5d1bae2847fa3f049c330c6fb5c714e150523ac3",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "clauses": [
+   {
+    "clause": "[+1]: reveal the top card; creature to hand, otherwise bottom",
+    "status": "OK",
+    "evidence": "[activate [0]]: loyalty 5 -> 6, card to hand. Packs A14_1 (creature), A14_2 (noncreature to bottom)",
+    "issue": ""
+   },
+   {
+    "clause": "[-2]: target creature you control deals damage equal to its power to another target creature",
+    "status": "OK",
+    "evidence": "all target combinations listed, 'another' enforced (no same-creature pair), damage from the first creature equal to its power, loyalty -2",
+    "issue": ""
+   },
+   {
+    "clause": "[-7]: until end of turn, creatures you control gain 'you may assign combat damage as though unblocked'",
+    "status": "NOT_EXERCISED",
+    "evidence": "not activatable at loyalty 5. Pack A14_3",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/garruk_savage_herald_1.json",
+   "tools/scenarios/cards/M21/garruk_savage_herald_2.json",
+   "tools/scenarios/cards/M21/garruk_savage_herald_3.json",
+   "tools/scenarios/cards/M21/garruk_savage_herald_4.json"
+  ],
+  "mutation": {
+   "mutants": 27,
+   "killed": 22,
+   "score": 0.8148148148148148,
+   "survived": [
+    "zone LIBRARY->GRAVEYARD at 1/0/effect/steps/1/else_effect/args/destination",
+    "until-end-of-turn->permanent at 1/2/effect/args/duration",
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/target/filter/children/0/who"
+   ]
+  }
+ }
+}

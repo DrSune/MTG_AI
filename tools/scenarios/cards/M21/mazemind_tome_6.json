@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"mt","real":"Mazemind Tome","zone":"battlefield","controller":0,"counters":{"PAGE":3}}],
+ "mana":{"0":{"C":2}},
+ "steps":[{"op":"activate","key":"mt","idx":1,"seat":0,"decisions":[]}],
+ "expect":{"zone":{"mt":"exile"},"life":{"0":24},"hand":{"0":1}},
+ "notes":"The draw ability's cost adds the fourth counter: exiled, gain 4 life, and the card was still drawn."}

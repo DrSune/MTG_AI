@@ -291,5 +291,42 @@
  },
  "probe": {
   "sha": "44afe4642d390425fd1f8e03c203961ea80b0082b92aa7233886bcb2a9f093d9"
+ },
+ "verified": {
+  "tree_sha": "24a89dd78811054e34ce85757648277b50cbc2d8595a8629cabf3b17491e85d5",
+  "probe_sha": "1ac49c11f4e58455df71701119d2408ecf89c7959b947305a4eafd2956429187",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "clauses": [
+   {
+    "clause": "Whenever you attack, target creature you control gets +1/+0 until end of turn",
+    "status": "OK",
+    "evidence": "[attacks alone]: ask target [you_bear, you_giant, card]; you_bear 2/2 -> 3/2; also when another creature attacks. Packs A15_1 (one trigger for three attackers), A15_2 (reverts at end of turn)",
+    "issue": ""
+   },
+   {
+    "clause": "...and gains menace until end of turn",
+    "status": "OK",
+    "evidence": "keywords +MENACE; pack A15_3 (lone blocker cannot block)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/battlesong_berserker_1.json",
+   "tools/scenarios/cards/FDN/battlesong_berserker_2.json",
+   "tools/scenarios/cards/FDN/battlesong_berserker_3.json",
+   "tools/scenarios/cards/FDN/battlesong_berserker_4.json"
+  ],
+  "mutation": {
+   "mutants": 18,
+   "killed": 14,
+   "score": 0.7777777777777778,
+   "survived": [
+    "trigger count: once per event -> each occurrence at 1/0",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "until-end-of-turn->permanent at 1/0/effect/steps/0/args/duration",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration"
+   ]
+  }
  }
 }
