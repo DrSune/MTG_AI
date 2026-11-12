@@ -113,9 +113,9 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
-    _own_nodes,
     is_loyalty_ability,
     is_mana_ability,
+    own_nodes,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.quantity import Binding, ExecCtx, eval_filter, resolve
@@ -1107,7 +1107,7 @@ def activation_zone(ability: ActivatedAbility) -> str:
             zone = departure(part.target)
             if zone is not None:
                 return zone
-    for node in _own_nodes(ability.effect):  # a granted or delayed ability is another's
+    for node in own_nodes(ability.effect):  # a granted or delayed ability is another's
         if not (isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE):
             continue
         dest = node.args.get("destination")

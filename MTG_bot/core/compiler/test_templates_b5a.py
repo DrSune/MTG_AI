@@ -1205,8 +1205,9 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(p["toughness"], PtDelta)
 
     def test_battalion(self) -> None:
-        """B5a-battalion: a TriggeredAbility — attack event, CR 508.2
-        group-of-three condition, PUT_COUNTER +1/+1 on self."""
+        """B5a-battalion: a TriggeredAbility — attack event whose filter
+        holds CR 508.2's group of three (part of the trigger event, never the
+        condition: no intervening "if", CR 603.4), PUT_COUNTER +1/+1 on self."""
         outcome = self._match_outcome("B5a-battalion")
         if not isinstance(outcome, AbilityOutcome):
             self.fail(f"expected AbilityOutcome, got {type(outcome).__name__}")
@@ -1214,12 +1215,14 @@ class TestStructuralAssertions(unittest.TestCase):
         if not isinstance(ability, TriggeredAbility):
             self.fail(f"expected TriggeredAbility, got {type(ability).__name__}")
         self.assertIsInstance(ability.event, DeclareAttackersEvent)
-        cond = ability.condition
-        if (
-            not isinstance(cond, FAtom)
-            or cond.pred is not FAtomPred.CONTROLLER_COUNT_GE
-        ):
-            self.fail(f"expected CONTROLLER_COUNT_GE condition, got {cond!r}")
+        self.assertIsNone(ability.condition)
+        parts = ability.event.filter.children if isinstance(ability.event.filter, FAnd) else ()
+        cond = next(
+            (p for p in parts if isinstance(p, FAtom) and p.pred is FAtomPred.CONTROLLER_COUNT_GE),
+            None,
+        )
+        if cond is None:
+            self.fail(f"expected a CONTROLLER_COUNT_GE in the event filter, got {ability.event!r}")
         if not isinstance(cond.count, QConst) or cond.count.value != 3:
             self.fail(f"expected group-of-three gate, got {cond.count!r}")
         atom = _as_atom(ability.effect)

@@ -5,6 +5,23 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-12 (trigger timing: reflexive triggers CR 603.12, event qualifiers CR 603.4; ontology R6, gate round 6 FIX-THEN-GO, fixed)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| reflexive-trigger sentences, 19 sets | **22 in 21 cards** (Wildborn Preserver in FDN and ELD); 3 in trees (M21 Tolarian Kraken, M20 Cavalier of Night and Sorin, Imperious Bloodlord), 19 unparsed. The wording is `ontology_conformance.REFLEXIVE_WORDING`, which leaves out THB Pharika's Spawn's "When it enters this way" (23 in 22 with it, as first recorded) | `.venv/bin/python reports/trigger_timing_2026-11-12/census.py` | output `census.txt` |
+| trigger-event qualifiers beside an intervening "if" (the class the counts cannot see) | **0 sentences**; 54 qualifiers with no intervening "if" | same | `census.txt`, third section |
+| cards whose tree reads a trigger's part at the wrong time | **12 -> 0** (set:card entries: Kraken, Cavalier, Sorin IB; Tide Skimmer, Makeshift Battalion M21+WAR, Mazemind Tome M21+FDN, Nine Lives, Sanctum of All, Brineborn Cutthroat M20+FDN) | `tools/audit/ontology_conformance.check_trigger_timing` over every set file (`pytest tools/audit/test_ontology_conformance.py -k trigger`) | on b776cf74 and on this branch |
+| trees changed, 19 sets | **8** compiler trees, **12** with card records applied; 6 M21 goldens | `reports/trigger_timing_2026-11-12/tree_dump.py <checkout> <out>` on both checkouts, then `tree_diff.py <base> <branch>` | `blast_radius.txt` |
+| verified stamps that still match | M21 **270 -> 265**, M20 **257 -> 255**, FDN **175 -> 173** (9 cards out until re-verified) | same | against b776cf74; BACKLOG "Re-verify the cards the trigger-timing fixes changed" |
+| verified pool after merging main, deckable | main bc0d4606 M21 **269**, M20 **255**, FDN **175** -> merged branch **264**, **253**, **173** (stamps holding = deckable on both) | `len(get_supply("verified", <set>).deckable)` and `.verified_ids`, from a checkout of each | the same 9 cards; main's 270/257 records hold 269/255 after gate round 5's re-mapping |
+| seeded heuristic games, decks from cards verified before and after | **300/300 identical digests**, 0 crashes either side (100 each M21, M20, FDN; 265/255/173 deckable) | `reports/trigger_timing_2026-11-12/replay.py <checkout> trees_base.json trees_branch.json 100 <out>` on both | `replay_summary.txt` |
+| gate round 6: placements a reflexive trigger is refused in | **15** cases (and an emblem record); 989707d7 accepts 13 of them and the emblem record (it refused a bare step and the else already) | `.venv/bin/python -m pytest MTG_bot/core/test_executor_trigger_timing.py` on the branch and on a copy of 989707d7 | `base_runs.txt`, gate round 6 |
+| gate round 6: subject-free event qualifiers, 19 sets | **6**, all in the slot `qualifier_slot` names (`filter`): Brineborn Cutthroat M20+FDN, Makeshift Battalion M21+WAR, Tide Skimmer, Sanctum of All | `tools/audit/ontology_conformance.check_qualifier_slots` over every set file (`pytest tools/audit/test_ontology_conformance.py -k qualifier`) | 0 flagged |
+| gate round 6: trees changed by its fixes, 19 sets | **0** compiler, **0** with records; 0 verified cards out or in | `tree_dump.py` on a copy of 989707d7 and on the branch, then `tree_diff.py` | 4 still-verified cards on a changed path are the first fix's (Sorin, Vampire Lord; Basri Ket, Basri, Devoted Paladin, Subira) |
+| gate round 6: seeded heuristic games, 989707d7 against the branch | **300/300 identical digests**, 0 crashes either side (100 each M21, M20, FDN; 264/253/173 deckable) | `replay.py <checkout> trees_989707d7.json trees_branch.json 100 <out>` on both | `replay_summary.txt` |
+| V5′ branchings the pytest view finds in no registered census (M21) | **2 -> 0** | `.venv/bin/python tools/audit/ontology_shape_census.py --out reports/ontology_census_2026-11-12_triggertiming_post_full.json --cap 0` | Conditional then:DelayedTrigger, DelayedTrigger `reflexive` (Tolarian Kraken); 553 cards, 1,238 abilities, 477 struct sigs, 118 branching rows (m21gaps: 476, 116) |
+
 ## 2026-11-12 (MOVE_ZONE `arrange`, ontology gate round 5; branch `worktree-agent-a7952b97ba6b37208`)
 
 | Number | Value | Command | Notes |

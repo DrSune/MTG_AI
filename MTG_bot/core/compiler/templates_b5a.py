@@ -469,24 +469,35 @@ def _build_keyword_reminder(
 
 def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
     # The printed trigger compiles: DeclareAttackersEvent (IS_SOURCE) ->
-    # PUT_COUNTER +1/+1 on self, with CR 508.2's group of three as the
-    # trigger condition (CONTROLLER_COUNT_GE over attacking creatures). No
-    # BATTALION keyword is emitted, so the binder's synthetic keyword
-    # trigger (binding._keyword_node) stays inert for this card and the
-    # trigger cannot fire twice.
+    # PUT_COUNTER +1/+1 on self. "and at least two other creatures attack"
+    # (CR 508.2's group of three, CONTROLLER_COUNT_GE over attacking
+    # creatures) is part of the trigger event, so it is in the event's
+    # filter, read once as the attackers are declared; the condition is only
+    # an intervening "if" (CR 603.4), read again on resolution ("it doesn't
+    # matter how many creatures are still attacking when that ability
+    # resolves", the card's ruling). No BATTALION keyword is emitted, so the
+    # binder's synthetic keyword trigger (binding._keyword_node) stays inert
+    # for this card and the trigger cannot fire twice.
     return AbilityOutcome(
         ability=TriggeredAbility(
-            event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
-            condition=FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                inner_filter=FAnd(
+            event=DeclareAttackersEvent(
+                filter=FAnd(
                     children=(
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        FAtom(pred=FAtomPred.IS_ATTACKING),
+                        FAtom(pred=FAtomPred.IS_SOURCE),
+                        FAtom(
+                            pred=FAtomPred.CONTROLLER_COUNT_GE,
+                            inner_filter=FAnd(
+                                children=(
+                                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                    FAtom(pred=FAtomPred.IS_ATTACKING),
+                                )
+                            ),
+                            count=QConst(3),
+                        ),
                     )
-                ),
-                count=QConst(3),
+                )
             ),
+            condition=None,
             effect=Atom(
                 verb=Verb.PUT_COUNTER,
                 args=AtomArgs(

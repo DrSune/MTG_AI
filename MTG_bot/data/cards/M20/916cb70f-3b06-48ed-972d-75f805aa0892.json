@@ -21,8 +21,22 @@
     "event": {
      "tag": "CastSpellEvent",
      "filter": {
-      "tag": "FAnd",
-      "children": []
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TURN_OF"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "OPPONENT"
+      },
+      "inner_filter": null
      },
      "actor": {
       "tag": "FAtom",
@@ -43,24 +57,7 @@
       "inner_filter": null
      }
     },
-    "condition": {
-     "tag": "FAtom",
-     "pred": {
-      "tag": "FAtomPred",
-      "name": "TURN_OF"
-     },
-     "string_value": null,
-     "color": null,
-     "colors": [],
-     "count": null,
-     "counter_kind": null,
-     "keyword": null,
-     "who": {
-      "tag": "ControllerRef",
-      "name": "OPPONENT"
-     },
-     "inner_filter": null
-    },
+    "condition": null,
     "effect": {
      "tag": "Atom",
      "verb": {
@@ -142,7 +139,7 @@
  "mapping": {
   "author": "claude-mapper-m20-4",
   "date": "2026-11-05",
-  "draft_py": "# Brineborn Cutthroat: \"Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.\"\ncast_trigger = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAnd(children=()),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.OPPONENT),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [cast_trigger, *compiled]\n",
+  "draft_py": "# Brineborn Cutthroat: \"Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.\"\ncast_trigger = TriggeredAbility(\n    # \"during an opponent's turn\" is part of the trigger event (no intervening \"if\", CR 603.4)\n    event=CastSpellEvent(\n        filter=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.OPPONENT),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [cast_trigger, *compiled]\n",
   "clauses": [
    {
     "clause": "Flash",
@@ -154,7 +151,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "TURN_OF OPPONENT as trigger condition (guide convention). Spec pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/brineborn_pack.json passes: no counter on own-turn cast, one on opponent-turn cast. Probe shows the trigger 'triggers' on own-turn casts but does nothing (condition checked at resolution?)."
+  "notes": "TURN_OF OPPONENT as trigger condition (guide convention). Spec pack /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/brineborn_pack.json passes: no counter on own-turn cast, one on opponent-turn cast. Probe shows the trigger 'triggers' on own-turn casts but does nothing (condition checked at resolution?). 2026-11-12 (trigger lane): 'during an opponent's turn' is part of the trigger event, so it is the CastSpellEvent's filter, not the condition: the condition is only an intervening 'if' (CR 603.4), read again as the ability resolves. Plays the same (the turn cannot change while the trigger waits). The record's ir and draft changed with it; its verified stamp (if any) no longer matches, so it is verified again before it is dealt."
  },
  "probe": {
   "sha": "d407f26e8ab9b1cb162cf8b4967524032092598f201721638c4e4a329ded167e"

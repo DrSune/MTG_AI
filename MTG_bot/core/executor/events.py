@@ -124,6 +124,10 @@ KIND_ABILITY_ACTIVATED = "ABILITY_ACTIVATED"
 # never journalled (the matcher feeds AbilityTriggerEvent nodes from
 # _queue at firing-queue time), so it never reaches the fingerprint.
 KIND_ABILITY_TRIGGERED = "ABILITY_TRIGGERED"
+# A reflexive trigger (CR 603.12) triggered on what the resolution that
+# created it did (TriggerBinder.fire_reflexive). SYNTHETIC-ONLY, like the
+# kind above: it labels the firing, the journal never holds one.
+KIND_REFLEXIVE = "REFLEXIVE"
 # COUNTER is the flag row of a countered spell (subject = the countered
 # spell, cause = the countering spell card). KICKBACK is the "unless its
 # controller pays <cost>" site of a COUNTER_SPELL resolution: one row

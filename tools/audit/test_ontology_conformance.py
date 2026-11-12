@@ -510,6 +510,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # Transmogrify's "That player puts that card onto the battlefield, then
         # shuffles the rest": EachPlayer over a referent ref (BACKLOG B-113).
         "ontology_census_2026-11-12_m21gaps_post_full.json",
+        # Tolarian Kraken's "When you do": a reflexive DelayedTrigger gated by
+        # Conditional(MAY_DONE) (CR 603.12, the trigger-timing fix).
+        "ontology_census_2026-11-12_triggertiming_post_full.json",
     ):
         full = oc.REPO / "reports" / name
         if not full.exists():
@@ -614,3 +617,76 @@ def test_designated_player_scan_has_teeth():
     )
     spell = at.SpellAbility(kind=at.SpellKind.SORCERY, effect=new)
     assert not oc.names_designated_player(_card("Transmogrify", abilities=(spell,)))
+
+
+# --------------------------------------------------------------------------
+# Trigger timing: reflexive triggers (CR 603.12), trigger conditions (CR 603.4)
+# --------------------------------------------------------------------------
+def test_triggers_read_their_parts_when_the_rules_do():
+    """Every set file, card records applied: as many reflexive triggers as reflexive sentences,
+    and as many trigger conditions as intervening "if"s, both ways. Before 2026-11-12 this
+    flagged M21 Tolarian Kraken, M20 Cavalier of Night and Sorin, Imperious Bloodlord (the
+    reflexive target chosen with the ability's own), and M21 Tide Skimmer, Makeshift Battalion
+    (M21, WAR), Mazemind Tome (M21, FDN), Nine Lives, Sanctum of All and Brineborn Cutthroat
+    (M20, FDN): event qualifiers compiled as conditions, re-checked as they resolve."""
+    sets = sorted(p.stem for p in (oc.REPO / "MTG_bot" / "data").glob("*.json"))
+    assert oc.check_trigger_timing(sets) == []
+
+
+def test_trigger_timing_scan_has_teeth():
+    draw = at.CardDrawnEvent(actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU))
+    tap = _atom(at.Verb.TAP, "Creature")
+    pay = at.OptionalEffect(inner=at.Atom(verb=at.Verb.PAY, args=at.AtomArgs(pairs=(
+        ("cost", at.Cost(parts=(at.CostManaGeneric(at.QConst(1)),))),))))
+    text = ("Whenever you draw a card, you may pay {1}.", "When you do, tap target creature.")
+    old = at.TriggeredAbility(event=draw, condition=None, effect=at.OptionalEffect(inner=at.Seq(steps=(pay.inner, tap))))
+    gate = at.Conditional(pred=at.FAtom(pred=at.FAtomPred.MAY_DONE), then_effect=at.DelayedTrigger(
+        duration=None, event=None, condition=None, effect=tap))
+    new = at.TriggeredAbility(event=draw, condition=None, effect=at.Seq(steps=(pay, gate)))
+    faults = oc.trigger_timing_faults
+    # reflexive triggers: "when you do" written inline, and a reflexive node no sentence prints
+    assert faults(text, (old,)) == ["0 reflexive trigger(s), 1 reflexive sentence(s)"]
+    assert faults(text, (new,)) == []
+    assert faults(text[:1], (old,)) == []  # the sentence did not compile
+    if_do = (text[0], "If you do, tap target creature.")
+    assert faults(if_do, (new,)) == ["1 reflexive trigger(s), 0 reflexive sentence(s)"]
+    for worded in ("Each opponent may discard a card. When they do, tap target creature.",
+                   "When a creature is put onto the battlefield this way, it deals 2 damage to any target.",
+                   "You may discard a card. When you don't, draw a card."):
+        assert faults((worded,), ()) == ["0 reflexive trigger(s), 1 reflexive sentence(s)"], worded
+    assert faults(("When it enters this way, each opponent sacrifices a creature.",), ()) == []  # escape
+    # conditions against intervening "if"s
+    two = at.FAtom(pred=at.FAtomPred.CONTROLLER_COUNT_GE, count=at.QConst(2),
+                   inner_filter=at.FAtom(pred=at.FAtomPred.IS_ATTACKING))
+    attack = at.DeclareAttackersEvent(filter=_fa("Creature"))
+    skimmer = at.TriggeredAbility(event=attack, condition=two, effect=tap, once_per_event=True)
+    said = ("Whenever you attack with two or more creatures, tap target creature.",)
+    assert faults(said, (skimmer,)) == ['1 trigger condition(s), 0 intervening "if"']
+    raid = ("Raid — Whenever you attack, if you attacked with two or more creatures, tap target creature.",)
+    assert faults(raid, (skimmer,)) == []
+    read_once = at.TriggeredAbility(event=at.DeclareAttackersEvent(filter=at.FAnd(children=(_fa("Creature"), two))),
+                                    condition=None, effect=tap, once_per_event=True)
+    assert faults(raid, (read_once,)) == ['0 trigger condition(s), 1 intervening "if"']  # the if, read once
+
+
+def test_a_subject_free_qualifier_has_one_slot():
+    """A predicate that reads no subject (TURN_OF, CONTROLLER_COUNT_GE, ...) qualifies the event
+    itself, so it has one slot per event class (``qualifier_slot``); the matcher reads every slot
+    alike, so another would be a second byte form of one wording. Every set file is clean."""
+    sets = sorted(p.stem for p in (oc.REPO / "MTG_bot" / "data").glob("*.json"))
+    assert oc.check_qualifier_slots(sets) == []
+    you = at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
+    opp_turn = at.FAtom(pred=at.FAtomPred.TURN_OF, who=at.ControllerRef.OPPONENT)
+    draw = _atom(at.Verb.TAP, "Creature")
+
+    def trig(event):
+        return (at.TriggeredAbility(event=event, condition=None, effect=draw),)
+
+    assert oc.misplaced_qualifiers(trig(at.CastSpellEvent(filter=opp_turn, actor=you))) == []
+    second = at.CastSpellEvent(filter=at.FAnd(children=()), actor=at.FAnd(children=(you, opp_turn)))
+    assert oc.misplaced_qualifiers(trig(second)) == ["CastSpellEvent.actor: TURN_OF"]
+    bf = at.Zone(kind=at.ZoneKind.BATTLEFIELD, controller=at.ControllerRef.ANY)
+    assert oc.qualifier_slot(at.ZoneChangeEvent(from_zone=bf, to_zone=bf)) == "subject"
+    assert oc.qualifier_slot(at.DeclareBlockersEvent(filter=_fa("Creature"))) == "filter"
+    assert oc.qualifier_slot(at.AbilityActivatedEvent(kind=at.AbilityKind.ANY, source=_fa("Creature"))) == "source"
+    assert oc.qualifier_slot(at.TurnPhaseEvent(phase=at.Phase.UPKEEP)) == "actor"

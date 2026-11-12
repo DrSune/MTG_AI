@@ -124,7 +124,9 @@ $PY tools/cards/cardtool.py --help
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
   triggers once per declaration (CR 508.3d, 603.2c). "Attack with two or more ..." is the same
-  plus its count as the condition (Tide Skimmer).
+  plus its count in the event's filter (Tide Skimmer: `CONTROLLER_COUNT_GE` over your attacking
+  flyers, a conjunct of `DeclareAttackersEvent.filter`). It is part of the trigger event, read
+  once as the attackers are declared, so it is never the condition (below).
   - "Whenever a creature you control [with X] attacks" has no `once_per_event`: it triggers once
     for each such attacker, and that attacker is the event, "it" (CR 508.3a).
   - "Whenever one or more <creatures> you control deal combat damage to a player" is a
@@ -161,15 +163,48 @@ $PY tools/cards/cardtool.py --help
   stronger than printed.
 - **Equip**: the compiled equip already carries
   `timing=ActivationWindow.SORCERY` (B-60). Keep it.
+- **The condition is only an intervening "if"** (CR 603.4: "When/Whenever/At <event>, if
+  <condition>, <effect>"). The engine reads it as the event occurs and again as the ability
+  resolves. Anything else that qualifies the trigger is part of its event and goes in the
+  event's filter, which is read once: "with two or more creatures" (Tide Skimmer), "this
+  creature and at least two other creatures attack" (Makeshift Battalion), "during an
+  opponent's turn" (Brineborn Cutthroat), "while you control six or more Shrines" (Sanctum of
+  All), and a state trigger's threshold, "When there are four or more page counters on this
+  artifact" (Mazemind Tome, CR 603.8). A count or turn test that does not read the subject
+  (TURN_OF, CONTROLLER_COUNT_GE, ...: `ontology_conformance.SUBJECT_FREE`) has one slot per event:
+  `subject` on a ZoneChangeEvent, `filter` on an event that has one, `source` on an
+  AbilityActivatedEvent, else `actor` (TurnPhase, CardDrawn, LifeGained, LifeLost and Sacrifice
+  events). Not `actor` beside a `filter`: `CastSpellEvent(filter=FAtom(TURN_OF, who=OPPONENT),
+  actor=<you>)` for Brineborn Cutthroat. `tools/audit/test_ontology_conformance.py` flags one in
+  another slot, and a card whose trigger conditions and intervening "if"s differ in number
+  (either way).
+- **"You may X. When you do, Y"** (a reflexive trigger, CR 603.12) is
+  `Seq(OptionalEffect(X), Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None,
+  condition=None, effect=Y)))`: the "If you do" gate around a DelayedTrigger with no duration
+  and no event. Y triggers as the resolution reaches the gate and goes on the stack afterwards,
+  choosing its targets then: never write it as "If you do" (Y inline), which chooses Y's targets
+  with the ability's own (Sorin, Imperious Bloodlord's sacrificed Vampire was offered as its
+  target). A mandatory "X. When you do, Y" is gated the same way, and "When you do so, Y" is the
+  same trigger. The reflexive trigger stands only as the `then_effect` of exactly
+  `Conditional(MAY_DONE)` (not its FNot), after X in the Seq, in the effect of a spell, activated,
+  triggered or delayed ability (a granted or token one too), with no EachPlayer or Repeat between,
+  and never in a static, replacement, "as ~ enters" or emblem ability: the IR refuses it anywhere
+  else. An ability designates only its own targets: a delayed, reflexive or granted ability
+  chooses its own. The checker counts reflexive triggers against reflexive sentences ("when you
+  do", "when they do", "when ... this way") both ways.
 - **Ability words** (Threshold, Raid, Morbid, Landfall, Battalion) are not keywords and have no
-  rules meaning (CR 207.2c). Write the trigger and its condition. G0 ignores ability words
-  (`gates.ABILITY_WORDS`), so it neither fails nor warns on them.
+  rules meaning (CR 207.2c). Write the trigger: its intervening "if" (Raid, Threshold, Morbid)
+  is the condition, its event qualifier (Battalion's "and at least two other creatures attack")
+  is in the event's filter. G0 ignores ability words (`gates.ABILITY_WORDS`), so it neither
+  fails nor warns on them.
 - **Keyword actions** written as the merged MOVE atom satisfy G0 through its `journal_kind`: a mill
   (`journal_kind='MILL'`, `pop_order='TOP'`) satisfies a printed "Mill".
 - **More shapes the compiler uses** (mapper B, FDN round 1):
   - "permanent" is `IS_PERMANENT`; "nonland permanent" is `FAnd(IS_PERMANENT, FNot(TYPE_EQ Land))`.
   - "a spell" (any) is `CastSpellEvent(filter=FAnd(()))`.
-  - "during an opponent's turn" is the condition `FAtom(TURN_OF, who=OPPONENT)`.
+  - "during an opponent's turn" is part of the trigger event: `FAtom(TURN_OF, who=OPPONENT)` in
+    the event's filter (`CastSpellEvent(filter=FAtom(TURN_OF, who=OPPONENT), actor=...)`), never
+    the condition.
   - "your second card each turn" is `CardDrawnEvent(ordinal=2)`.
   - "equipped creature" is `IS_ATTACHED_TO_SOURCE` in triggers, plus `TYPE_EQ 'Creature'` in statics.
   - Tribal nouns ("target Pirate", "Goblins you control") are `SUBTYPE_EQ` plus `TYPE_EQ 'Creature'`.

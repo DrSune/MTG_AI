@@ -604,6 +604,8 @@ def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
             original.node,
             original.event,
             additional=True,
+            # a reflexive trigger's copy reads the same resolution (CR 603.12)
+            carried=original.carried,
         )
 
 

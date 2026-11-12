@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
+  {"key": "sheep", "name": "Sheep", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "goat", "name": "Goat", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "r", "real": "Revitalize", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 3}},
+ "steps": [
+  {"op": "cast", "key": "r", "hold": true},
+  {"op": "resolve", "hold": true},
+  {"op": "move", "key": "goat", "to": "graveyard", "decisions": ["fire", "sheep", "fire", "0"]}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "sheep": "battlefield", "goat": "graveyard", "r": "graveyard"},
+  "tapped": {"k": false, "sheep": true},
+  "mana_pool": {"0": {"W": 0}},
+  "hand": {"0": 1},
+  "life": {"0": 23}
+ },
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize draws; the Kraken's trigger goes on the stack asking nothing (the 'resolve' step has no words, so any ask would raise). In response the opponent's Goat leaves. As the trigger resolves it offers the {1} ('fire'); paid, the reflexive trigger goes on the stack and its target is chosen then, among the creatures there: the Kraken or the Sheep (CR 603.12). The Sheep is tapped. Before 2026-11-12 the target was asked as the draw trigger went on the stack, before the payment and with the Goat still a choice."
+}

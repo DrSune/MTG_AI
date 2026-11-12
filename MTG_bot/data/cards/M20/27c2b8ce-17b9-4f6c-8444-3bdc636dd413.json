@@ -60,11 +60,11 @@
     },
     "condition": null,
     "effect": {
-     "tag": "OptionalEffect",
-     "inner": {
-      "tag": "Seq",
-      "steps": [
-       {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
         "tag": "Atom",
         "verb": {
          "tag": "Verb",
@@ -158,86 +158,109 @@
           ]
          ]
         }
-       },
-       {
-        "tag": "Atom",
-        "verb": {
-         "tag": "Verb",
-         "name": "DESTROY"
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
         },
-        "args": {
-         "tag": "AtomArgs",
-         "pairs": [
-          [
-           "target",
-           {
-            "tag": "Selector",
-            "count": {
-             "tag": "QConst",
-             "value": 1
-            },
-            "mode": {
-             "tag": "SelectorMode",
-             "name": "TARGET"
-            },
-            "filter": {
-             "tag": "FAnd",
-             "children": [
-              {
-               "tag": "FAtom",
-               "pred": {
-                "tag": "FAtomPred",
-                "name": "CONTROLLER_IS"
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "DelayedTrigger",
+        "condition": null,
+        "effect": {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DESTROY"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "TARGET"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "OPPONENT"
+                },
+                "inner_filter": null
                },
-               "string_value": null,
-               "color": null,
-               "colors": [],
-               "count": null,
-               "counter_kind": null,
-               "keyword": null,
-               "who": {
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
                 "tag": "ControllerRef",
-                "name": "OPPONENT"
-               },
-               "inner_filter": null
-              },
-              {
-               "tag": "FAtom",
-               "pred": {
-                "tag": "FAtomPred",
-                "name": "TYPE_EQ"
-               },
-               "string_value": "Creature",
-               "color": null,
-               "colors": [],
-               "count": null,
-               "counter_kind": null,
-               "keyword": null,
-               "who": null,
-               "inner_filter": null
+                "name": "ANY"
+               }
               }
              ]
-            },
-            "zones": [
-             {
-              "tag": "Zone",
-              "kind": {
-               "tag": "ZoneKind",
-               "name": "BATTLEFIELD"
-              },
-              "controller": {
-               "tag": "ControllerRef",
-               "name": "ANY"
-              }
-             }
-            ]
-           }
+            }
+           ]
           ]
-         ]
+         }
         }
-       }
-      ]
-     }
+       },
+       "else_effect": null
+      }
+     ]
     }
    },
    {
@@ -365,7 +388,7 @@
  "mapping": {
   "author": "claude-mapper-m20-5",
   "date": "2026-11-05",
-  "draft_py": "# Cavalier of Night\n# s2+s3: When this creature enters, you may sacrifice another creature. When you do,\n#        destroy target creature an opponent controls.   (Tolarian Kraken's \"When you do\" fold)\n# s4:    When this creature dies, return target creature card with mana value 3 or less\n#        from your graveyard to the battlefield.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(inner=Seq(steps=(\n        A(Verb.SACRIFICE, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n        A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ))),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.CMC_LE, count=QConst(value=3)),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [etb, dies, *compiled]\n",
+  "draft_py": "# Cavalier of Night\n# s2+s3: When this creature enters, you may sacrifice another creature. When you do,\n#        destroy target creature an opponent controls.   (Tolarian Kraken's \"When you do\" fold)\n# s4:    When this creature dies, return target creature card with mana value 3 or less\n#        from your graveyard to the battlefield.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(steps=(OptionalEffect(inner=\n        A(Verb.SACRIFICE, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        })),\n        # \"When you do\": a reflexive trigger (CR 603.12), its target chosen as it goes on the\n        # stack, after the sacrifice.\n        Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=DelayedTrigger(\n            duration=None, event=None, condition=None, effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }))),\n    )),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.CMC_LE, count=QConst(value=3)),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [etb, dies, *compiled]\n",
   "clauses": [
    {
     "clause": "Lifelink",
@@ -385,7 +408,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "2026-11-12 (trigger lane): 'When you do' is a reflexive trigger (CR 603.12): Seq(OptionalEffect(SACRIFICE), Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None, ...))). Its target is chosen as it goes on the stack, after the sacrifice; before, it was chosen as the enters trigger went on the stack, so with no opposing creature you could not sacrifice at all. The record's ir and draft changed with it; its verified stamp (if any) no longer matches, so it is verified again before it is dealt."
  },
  "probe": {
   "sha": "8e7696b0f79735734fa7d61d5758012646cdf5e9c2ae7fa89e2c98e7c2f5269b"

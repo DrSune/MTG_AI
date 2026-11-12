@@ -45,8 +45,8 @@
    "op": "cast",
    "key": "r",
    "decisions": [
-    "sheep",
     "fire",
+    "sheep",
     "fire",
     "0"
    ],
@@ -102,5 +102,5 @@
    "1": 20
   }
  },
- "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize's draw triggers the Kraken; the ask chain is target-designation FIRST, then the may-pay offer, then the inner may, then the tap/untap choose ('0'=tap). Revitalize's compiled grant is +3 life in this pool (same observation as the skyfish packs); the W:3 pool covers the {1}{W} cast plus the trigger's {1}. eval-granularity 2026-10-05: choose ('0','1') flipped to the UNTAP word '1' (sheep is already untapped \u2014\nlegal no-op mode): gold pins tapped=false, the null '0' answer TAPS the sheep and falsifies. eval-granularity 2026-10-05: gold restored to the tap path; tapped lane is positive evidence for target/may items; the final choose item is declared item-level reclassified (gold==vocab[0])."
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' Revitalize's draw triggers the Kraken; the ask chain is the may-pay offer FIRST, then the reflexive trigger's target as it goes on the stack after the payment (CR 603.12), then the inner may, then the tap/untap choose ('0'=tap). Until 2026-11-12 the target was asked first, before the payment. Revitalize's compiled grant is +3 life in this pool (same observation as the skyfish packs); the W:3 pool covers the {1}{W} cast plus the trigger's {1}. eval-granularity 2026-10-05: choose ('0','1') flipped to the UNTAP word '1' (sheep is already untapped \u2014\nlegal no-op mode): gold pins tapped=false, the null '0' answer TAPS the sheep and falsifies. eval-granularity 2026-10-05: gold restored to the tap path; tapped lane is positive evidence for target/may items; the final choose item is declared item-level reclassified (gold==vocab[0])."
 }

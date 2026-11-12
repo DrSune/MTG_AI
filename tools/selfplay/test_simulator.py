@@ -46,9 +46,12 @@ def _game(seed: int, agents: list, turn_cap: int = 60):
 
 
 def test_capture_changes_no_game_and_keeps_the_truth_apart(table) -> None:
-    plain = _game(21, [HeuristicAgent(), HeuristicAgent()])
-    seats = [Capture(HeuristicAgent(), s, table, 1.0, 21) for s in (0, 1)]
-    captured = _game(21, seats)
+    # Seed 22: the verified M21 pool of 2026-11-12 (nine cards out after the trigger-timing fixes,
+    # to come back when re-verified) deals seed 21 a 14-decision game. When the pool changes
+    # again, pick the next seed whose game has more than 20 decisions a seat.
+    plain = _game(22, [HeuristicAgent(), HeuristicAgent()])
+    seats = [Capture(HeuristicAgent(), s, table, 1.0, 22) for s in (0, 1)]
+    captured = _game(22, seats)
     assert captured.executor.state_fingerprint() == plain.executor.state_fingerprint()
     for seat in seats:
         assert len(seat.views) == len(seat.truth) > 20

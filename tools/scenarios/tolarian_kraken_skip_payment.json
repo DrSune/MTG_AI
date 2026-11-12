@@ -49,7 +49,6 @@
    "op": "cast",
    "key": "r",
    "decisions": [
-    "sheep",
     "skip"
    ]
   }
@@ -80,5 +79,5 @@
    ]
   }
  },
- "notes": "'You may pay {1}' must be a genuine offer: skipping it short-circuits the 'When you do' clause - only two asks fire (target, may-pay), the inner may and choose never arrive, and no creature is tapped."
+ "notes": "'You may pay {1}' must be a genuine offer: skipping it short-circuits the 'When you do' clause: the reflexive trigger never triggers (CR 603.12), so the may-pay is the only ask (no target is chosen), the inner may and choose never arrive, and no creature is tapped."
 }

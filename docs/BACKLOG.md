@@ -100,20 +100,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     no-op: the flag would gather the combat rows. Such a card is needs-atom (none compiles).
   - A dealer trigger with no recipient ("whenever this creature deals damage") split by trample
     or several blockers still fires per DAMAGE row, not once per step (none compiled).
-  - Tide Skimmer's "attack with two or more creatures with flying" is part of its trigger event,
-    but it compiles as the trigger's condition, and `binding.resolve` checks every condition
-    again on resolution (`binding.py` ~1659), which CR 603.4 does only for an intervening "if".
-    Two flyers attack and one leaves before the trigger resolves: no card is drawn (printed: one
-    is). Found by reading, no pack yet. M21 Tide Skimmer is out of the verified pool until it is
-    re-verified (below).
-    The count reads the live attack record, as Mangara's `ATTACK_AGAINST_COUNT_GE` does, and
-    that record holds creatures put onto the battlefield attacking (CR 508.4: not among "those
-    creatures"); between the trigger and its resolution only an instant can add one.
-    M21 Mangara, the Diplomat has the same fault (2026-11-12, verification wave 1's G3 pass):
-    "attacks you or a planeswalker you control with two or more creatures" is its condition, so
-    one attacker leaving, or an attacked planeswalker changing control, while the trigger waits
-    draws nothing (printed: a card). `reports/g3_equivalence_2026-11-12/proof_mangara.py` S5, S6.
-    Mangara stays out of the verified pool until the fix.
+- **A pack cannot respond to a combat trigger** (2026-11-12): the combat op's `respond` steps run
+  when the step has priority with an empty stack, after the attack triggers resolved. So "an
+  attacker leaves while Tide Skimmer's / Makeshift Battalion's / Mangara's trigger waits" is
+  pinned by `MTG_bot/core/test_executor_trigger_timing.py` (binder.hold), not by a pack, and
+  Mangara's G3 mutant that only S5 tells apart (below, Gates) has no pack to kill it. A
+  `"hold": true` on the combat op's declare step would give packs that window.
 
 ### Casting, the stack and targets
 
@@ -180,6 +172,29 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   carrier has both: Ugin's [−X] has no target.
 
 ### Triggers, events and the journal
+
+- **An event-filter qualifier is read without the layers brought up to date** (2026-11-12, gate
+  round 6 m4). `TriggerBinder._queue` runs `layers.recompute()` before it reads an intervening
+  "if" (CR 603.10: the effects that exist right after the event), but `_match_node` reads the
+  event's filters as they stand. Since R6-2 the event qualifiers are in those filters (Tide
+  Skimmer's "two or more creatures with flying", Makeshift Battalion's "at least two other
+  creatures attack"), so a continuous effect that changed with the event (a flyer granted or lost
+  in the same op) can be misread. Recompute before matching an event whose node holds a qualifier
+  that reads characteristics, or once per drained batch.
+- **A reflexive trigger cannot read the target of the ability that created it** (2026-11-12, gate
+  round 6 m1). `fire_reflexive` carries its resolution's bindings without `target`, so the
+  reflexive trigger's own targets are its own (CR 603.12); IKO Back for More's "Return target
+  creature card ... When you do, it fights up to one target creature you don't control" needs
+  "it", the creator's target, in a register of its own (a distinct binding name), not in
+  `target`. Unparsed; build it with the card.
+- **A state trigger triggers again while it waits** (2026-11-12, found reading Nine Lives'
+  rulings). CR 603.8: "When there are four or more page counters on this artifact" (Mazemind
+  Tome), "nine or more incarnation counters" (Nine Lives) trigger once and not again until the
+  ability has left the stack ("Once the first triggered ability is on the stack, it won't trigger
+  again, even if more ... counters are put onto it"). They compile as CounterPlacedEvent
+  triggers, so every further counter placed while the first waits queues another one (it does
+  nothing: the permanent is already exiled). Fix with a state-trigger encoding, or a guard keyed
+  on the waiting instance.
 
 - **Yarok, the Desecrated and Sanctum of All make their extra trigger with a trigger of their own
   (2026-11-11).** CR 603.2d: the ability triggers that many times at once, so the copies go on
@@ -313,7 +328,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   effect is in play.
 - **Damage to a permanent that left the battlefield during resolution** is still marked on the
   card (round-3 verification, 2026-11-06: Sorin, Imperious Bloodlord's sacrificed Vampire took 3
-  in the graveyard; CR 608.2b).
+  in the graveyard, CR 608.2b; that mapping is gone, the reflexive target is now chosen after the
+  sacrifice, but the marking is not fixed).
 - **The reveal record of "reveals their hand" lists the library, not the hand** (verbs.py ~1485;
   round-3 verification, 2026-11-06); nothing reads it today.
 
@@ -702,7 +718,33 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **"You may pay <mana>." composes with any trigger frame**, so the payment half of a pair whose
   second half has no template now parses on partly compiled cards (Llanowar Sentinel, Tenacious
   Dead, Frenzied Goblin in M15 and FDN, Skyrider Patrol, Sparktongue Dragon, Eternal Taskmaster,
-  Embereth Skyblazer): their "When you do" / "If you do" halves need templates.
+  Embereth Skyblazer): their "When you do" / "If you do" halves need templates. A "When you do"
+  sentence that parses becomes a reflexive trigger by the compiler's merge
+  (`_merge_if_do_continuation`, 2026-11-12); only Tolarian Kraken's has a template. 19 more
+  reflexive sentences in the 19 sets are unparsed (census in the 2026-11-12 trigger-lane report:
+  Faebloom Trick's clause parses on its own, so a "When you do, <clause>" frame would compile
+  it; the rest need their antecedent, a pronoun reading or "this way").
+- **"If you don't, Y" would merge as an unconditional sibling** (2026-11-12, found fixing gate
+  round 6 m3). `compiler._CONTINUATION_PREFIXES` holds "If you do", so "If you don't, ..." and
+  "If you don't control/put ..." are continuations, but the merge dispatch gates only
+  `_DO_GATES` ("If you do,", "If you do so,", "When you do,", "When you do so,"); any other
+  continuation is appended as a step of its own, Y done whether or not X was. 15 sentences of
+  the 19 sets start so, all unparsed but M20 Risen Reef's, which its record maps. With the first
+  template, gate "If you don't," as `Conditional(FNot(MAY_DONE), Y)` and drop "If you do" from
+  the prefixes for `_DO_GATES`, as "When you do" was.
+- **The trigger-timing check counts; it cannot see a qualifier joined into an intervening "if"**
+  (2026-11-12, gate round 6 M2). `ontology_conformance.check_trigger_timing` compares trigger
+  conditions with intervening "if"s and reflexive triggers with reflexive sentences, both ways.
+  A card printing both an event qualifier and an intervening "if" could put the qualifier into
+  the "if"'s condition and keep the counts equal; no sentence of the 19 sets has both
+  (`reports/trigger_timing_2026-11-12/census.txt`, third section: 0). With the first such card,
+  read the condition's conjuncts against the "if" clause.
+- **A reflexive trigger reads a departed object's last known information only within the op it
+  left in** (2026-11-12): `fire_reflexive` carries its resolution's bindings, but
+  `quantity.last_known` answers for an object that left the battlefield only in that op or for
+  the ability's source. Surtland Flinger's "damage equal to the sacrificed creature's power" (KHM,
+  unparsed) would read the card in the graveyard, not the creature as sacrificed (CR 608.2h).
+  None compiles; fix it with the first such card.
 - **Measured and not built in component wave 2** (cards each would fully compile; NUMBERS.md
   2026-11-06):
   a delayed trigger that remembers the objects it is about (CR 603.7b/c: one-shot, "at the
@@ -732,10 +774,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   requirements a block declaration obeys (`most_obeyed` in `_declare_blockers`) to those
   per-creature requirements; the matroid greedy over attackers no longer gives the most then (a
   maximum-weight matching does, menace aside).
-- **Reflexive triggers have no node** ("when you do", CR 603.12; round-3 verification,
-  2026-11-06): Sorin, Imperious Bloodlord was
-  mapped as "if you do" with the target chosen on activation; the review refused it (the target
-  exists even when nothing is sacrificed, and the Vampire about to be sacrificed is offered).
 - **A planeswalker whose emblem record is empty should not reach a supply** (M20 verification
   round, 2026-11-05): Mu Yanling, Sky Dancer's -8 emblem is unmapped, so the -8 does nothing.
 - **B-46 [/166; first touch done + round S-3a, /167] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
@@ -767,28 +805,28 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     graveyard. Engine fixed 2026-11-12 (`legality.activation_zone`, CR 113.6m; packs
     `tools/scenarios/mapped/M20/sanitarium_skeleton_*`): the record, unchanged, goes back to
     blind G2 (its G1 trace changed; its mapping notes still describe the old engine).
-  - **Sorin, Imperious Bloodlord's +1.** The reflexive "when you do" target is chosen at activation,
-    a "targeted" event fires when the sacrifice is declined, and the Vampire being sacrificed is
-    offered as a target. CR 603.12 chooses the target when the reflexive trigger goes on the stack,
-    after the sacrifice. This is an engine idiom (below).
+  - **Sorin, Imperious Bloodlord's +1.** Re-mapped 2026-11-12 as a reflexive trigger (CR 603.12),
+    its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs,
+    `tools/scenarios/mapped/M20/sorin_imperious_bloodlord_*`, run in the suite on the record.
   - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
     one-of choice.
   - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
     you control have '{T}: Draw a card.'"
   - **Cavalier of Flame.** "Discard any number of cards, then draw that many" discards the whole hand
     with no ask.
-- **Reflexive triggers choose their targets too early** (2026-11-12, the same wave).
-  - "You may <act>. When you do, <effect with a target>" asks the target before the action.
-  - Where the action cannot change the legal targets this is benign; the batch A verifier judged
-    Tolarian Kraken's {1} payment OK.
-  - Where it can, it offers illegal targets: Sorin's sacrificed Vampire. CR 603.12 puts the reflexive
-    trigger on the stack, with its targets, after the action.
-  - Tolarian Kraken is not quite benign either (G3 pass, 2026-11-12): with no legal target as its
-    draw trigger goes on the stack (the Kraken alone, protection from blue), the trigger is removed
-    and the {1} is never offered; and a target removed in response fizzles the whole trigger,
-    where CR 603.12 lets you pay and choose a target then. Its two G3 survivors differ from the
-    card only in that first scenario, so they wait for this fix.
-  - One engine fix for every "when you do". A card-backlog wave-2 item.
+- **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
+  changed, verified stamps left untouched, so each left the verified pool, the pool training runs
+  deal, once a run pins this code. Verified deckable pools measured on the tree merged with main
+  bc0d4606, `get_supply("verified", <set>)`: M21 269 -> 264, M20 255 -> 253, FDN 175 -> 173):
+  - reflexive triggers (CR 603.12): M20 Cavalier of Night (record re-mapped). Its pack
+    `cavalier_of_night_2` needs the record and runs on it from `tools/scenarios/mapped/M20/`,
+    with the new `cavalier_of_night_sacrifices_with_no_opposing_creature`;
+  - event qualifiers out of the condition (CR 603.4): M21 Tide Skimmer, Makeshift Battalion,
+    Mazemind Tome, Nine Lives, Sanctum of All (compiler trees, their spec packs still pass in the
+    suite), FDN Mazemind Tome, and M20 and FDN Brineborn Cutthroat (records re-mapped; they play
+    as before, the turn cannot change while the trigger waits). Brineborn's `brineborn_cutthroat_1`
+    packs need the record and run on it from `tools/scenarios/mapped/M20/` and `mapped/FDN/`;
+  - after re-verification the `mapped/<SET>/` packs above go to `cards/<SET>/`.
 - **Verification wave 1's eight G3-blocked cards** (2026-11-12, after the G3 equivalence rules;
   `reports/g3_equivalence_2026-11-12/`). Verdicts in `runs/verify_wave1/verdicts/`.
   - M20 Gods Willing: G3 clear; `cardtool verify` passes with its verdict as it stands.
@@ -802,9 +840,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     of a permanent's own abilities follow its controller, `Executor._recompute_control`), pack
     `tools/scenarios/mapped/M20/blightbeetle_stolen_reads_its_new_controller.json`.
   - Both trees are unchanged and go back to verification with their packs.
-  - M21 Tolarian Kraken: the reflexive-trigger item above. M21 Mangara: the Tide Skimmer fault
-    (Combat). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no 2-seat M21
-    pack can kill (Gates, "G3 survivors no 2-seat same-set pack can kill").
+  - M21 Tolarian Kraken: the reflexive trigger landed (2026-11-12, trigger lane); its two
+    "target->all" survivors now differ from the card where a pack can show it (Gates, below).
+    M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
+    re-read now counts a departed attacker by its last attack (its ruling). One survivor is live
+    only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no
+    2-seat M21 pack can kill (Gates, "G3 survivors no 2-seat same-set pack can kill").
   - FDN Battlesong Berserker and Searslicer Goblin lost their documented equivalent mutants;
     neither has a current verdict.
 - **M21 Runed Halo, Garruk, Savage Herald and Rookie Mistake can go to G1 and G2** (2026-11-12,
@@ -892,16 +933,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     in `proof_vessel_teferi.py`, so no rule. Options: a pack op that casts through
     `stack.cast_card` from any zone (kills the Vessel's two), a 3-seat pack world, or a recorded
     decision to accept the survivor.
-  - **Live only where the card itself is wrong.** M21 Tolarian Kraken's twins sit in a Choose:
-    with no legal target the card's trigger is removed as it goes on the stack and the mutant's
-    is not (test_gates `..._trigger_choice_stays_live`); printed, the trigger goes on the stack
-    and offers the {1} (CR 603.12, "Reflexive triggers choose their targets too early" under
-    Records). M21 Mangara's inner-filter mutant differs only when an attacked planeswalker changes
-    control while the trigger waits, where the card re-checks "two or more" (the Tide Skimmer
-    fault under Combat); its event-filter mutant is equivalent (`proof_mangara.py`) but its shape
-    is that one card's, so no rule.
+  - **Live, and now the card is right.** M21 Tolarian Kraken's twins sit in its reflexive
+    trigger's Choose: with no legal target the {1} is paid, then the card's reflexive trigger is
+    removed as it goes on the stack and the mutant's resolves (test_gates
+    `..._reflexive_trigger_choice_stays_live`). A spec pack of that game, choosing the tap option,
+    kills them (`tolarian_kraken_pays_with_no_legal_target` stops at the payment ask). M21
+    Mangara's inner-filter mutant differs only when an attacked planeswalker changes control while
+    the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws),
+    which no pack can stage (Combat, "A pack cannot respond to a combat trigger"); its event-filter
+    mutant is equivalent (`proof_mangara.py`) but its shape is that one card's, so no rule.
   - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
+- **G3 has no operator for a qualifier re-read on resolution** (2026-11-12, gate round 6 m8). R6-2
+  moved event qualifiers out of the condition; a mutant moving one back (Tide Skimmer's "two or
+  more creatures with flying" re-read as the trigger resolves) differs only when the qualifier
+  stops holding while the trigger waits, which no pack can stage ("A pack cannot respond to a
+  combat trigger", Combat). Add the operator as non-critical, or add the combat op's response
+  window first and make it critical.
 - **Probe (G1) blind spots** (verifiers: M20 2026-11-05, FDN round 1 and round 3 2026-11-06).
   - Clauses left NOT_EXERCISED: granted abilities are never activated, loyalty never reaches an
     ultimate, the land drop is always a Plains, the library holds 6 cards, no planeswalker is on
@@ -1084,6 +1132,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
   columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
   columns with zeros since 2026-11-06).
+- **A delayed or reflexive trigger on the stack encodes as ability index -1** (2026-11-12, gate
+  round 6 m7; `tools/selfplay/features.py` `_ability_index`): its node is no printed ability of
+  its source, so Tolarian Kraken's reflexive tap-or-untap looks like any other trigger of the
+  Kraken that its record does not hold. Encode the printed ability whose effect holds the node
+  at the next observation-schema change.
 - **A target ask does not show the X its row announced** (2026-11-06): X comes first, in the act
   row (`cast:<card>:x<N>`, CR 601.2b), but the target asks that follow show the spell only as the
   ask's source card, so Volcanic Geyser's and Primal Might's targets are chosen blind to X. Add the
