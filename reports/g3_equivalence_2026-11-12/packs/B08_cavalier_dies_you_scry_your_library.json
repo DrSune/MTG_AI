@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "cavalier_of_gales_dies_you_scry_your_own_library",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'When this creature dies, shuffle it into its owner's library, then scry 2.' YOU scry (CR 701.18a: look at the top two cards of YOUR library). Both scry answers are 'bottom'. The opponent's library is untouched: its two named top cards stay on top, in order, above the six fillers. Your library holds the shuffled-in Cavalier and your six fillers (seven cards; their order after the mandated shuffle is not asserted).",
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Gales", "zone": "battlefield", "controller": 0},
+  {"key": "opp", "name": "Opp Ogre", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Second", "type": "Instant", "zone": "library", "controller": 1},
+  {"key": "o1", "name": "Opp Top", "type": "Instant", "zone": "library", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "opp", "target": "cav", "amount": 5, "decisions": ["bottom", "bottom"]}
+ ],
+ "expect": {
+  "zone": {"cav": "library", "o1": "library", "o2": "library"},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Opp Top", "Opp Second", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}
