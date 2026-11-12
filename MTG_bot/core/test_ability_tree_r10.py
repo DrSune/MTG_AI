@@ -7,12 +7,14 @@ do" merge.
   sorcery") is omit-when-None, registered in both _SPECS and _OMIT_IF_EMPTY:
   a bare activation serializes WITHOUT "timing" and "condition";
 - ``DelayedTrigger`` is an Effect-union member living INSIDE its creator;
-  its duration is required (a delayed trigger with no lifetime is just a
-  TriggeredAbility), and condition=None round-trips as an explicit null;
-- the "When you do" continuation joins the INSIDE of the prior cost-paying
-  OptionalEffect (a sibling step would fabricate an independent optional);
-  any other prior falls back to the default continuation merge, and an
-  ActivatedAbility rebuild keeps its ``timing``;
+  a delayed one carries its duration and event (a delayed trigger with no
+  lifetime is just a TriggeredAbility), and condition=None round-trips as an
+  explicit null;
+- the "When you do" continuation is a reflexive trigger (CR 603.12): the
+  "If you do" gate ``Conditional(MAY_DONE, ...)`` around a DelayedTrigger
+  with no duration and no event, after whatever step it follows (its targets
+  are its own, chosen after the action); an ActivatedAbility rebuild keeps
+  its ``timing``;
 - the constructs here round-trip with pinned fingerprints, and every
   validation point rejects bad input.
 """
@@ -26,10 +28,8 @@ import pytest
 import MTG_bot.core.ability_tree as at
 from MTG_bot.core.compiler.compiler import (
     _CONTINUATION_PREFIXES,
-    _append_optional_to_seq,
-    _contains_pay_atom,
     _is_continuation,
-    _merge_do_continuation,
+    _merge_if_do_continuation,
     compile_card,
 )
 from MTG_bot.core.compiler.templates import (
@@ -75,8 +75,7 @@ def _tap_target() -> at.Atom:
 
 
 def _pay_atom() -> at.Atom:
-    """The "When you do" antecedent: "you may pay {1}", the PAY verb the
-    merge searches for."""
+    """The "When you do" antecedent of Tolarian Kraken: "you may pay {1}"."""
     return at.Atom(
         at.Verb.PAY,
         at.AtomArgs(
@@ -570,7 +569,18 @@ def test_r10_table_members() -> None:
     assert at.ActivationWindow.SORCERY in tuple(at.ActivationWindow)
 
 
-# ---- unit level: the Do-merge + the PAY search -------------------------------
+# ---- unit level: the "When you do" merge -------------------------------------
+
+_PAY_SENT = "You may pay {1}."
+_DO_TAP_SENT = "When you do, you may tap target creature."
+
+
+def _when_you_do(effect: at.Effect) -> at.Conditional:
+    """CR 603.12: the reflexive trigger, gated on the step before it (MAY_DONE)."""
+    return at.Conditional(
+        pred=at.FAtom(at.FAtomPred.MAY_DONE),
+        then_effect=at.DelayedTrigger(duration=None, event=None, condition=None, effect=effect),
+    )
 
 
 def test_do_prefix_registered() -> None:
@@ -578,145 +588,86 @@ def test_do_prefix_registered() -> None:
     assert _is_continuation("When you do, you may tap target creature.")
 
 
-def test_merge_do_continuation_injects_inside_pay_optional() -> None:
-    """Tolarian Kraken: the continuation joins the INSIDE of the prior
-    cost-paying optional, never a sibling step."""
+def test_merge_when_you_do_is_the_if_you_do_gate_around_a_reflexive_trigger() -> None:
+    """Tolarian Kraken: the continuation follows the payment as a gated reflexive trigger, never
+    inside the payment's optional, where its target would be chosen before the payment. "If you
+    do" is the same gate with the effect inline."""
     prior = at.OptionalEffect(inner=_pay_atom())
     cont = at.OptionalEffect(inner=_tap_target())
-    merged = _merge_do_continuation(prior, cont)
-    assert merged == at.OptionalEffect(
-        inner=at.Seq(steps=(_pay_atom(), at.OptionalEffect(inner=_tap_target())))
+    merged = _merge_if_do_continuation(prior, cont, _DO_TAP_SENT)
+    assert merged == at.Seq(steps=(prior, _when_you_do(cont)))
+    if_do = _merge_if_do_continuation(prior, cont, "If you do, you may tap target creature.")
+    assert if_do == at.Seq(
+        steps=(prior, at.Conditional(pred=at.FAtom(at.FAtomPred.MAY_DONE), then_effect=cont))
     )
 
 
-def test_merge_do_continuation_seq_inner_append() -> None:
-    """PAY already inside an inner Seq: the continuation appends to THAT
-    Seq, preserving the earlier steps."""
-    inner = at.Seq(steps=(_pay_atom(), _draw_atom(1)))
-    prior = at.OptionalEffect(inner=inner)
+def test_merge_when_you_do_appends_to_a_sequence_and_follows_a_mandatory_step() -> None:
+    """The gate joins a prior Seq as its last step, and a mandatory antecedent ("Create two
+    Faeries. When you do, ...", FDN Faebloom Trick) is gated the same way (CR 118.12)."""
     cont = at.OptionalEffect(inner=_tap_target())
-    merged = _merge_do_continuation(prior, cont)
-    assert merged == at.OptionalEffect(
-        inner=at.Seq(steps=(_pay_atom(), _draw_atom(1), cont))
+    seq = at.Seq(steps=(_draw_atom(1), at.OptionalEffect(inner=_pay_atom())))
+    assert _merge_if_do_continuation(seq, cont, _DO_TAP_SENT) == at.Seq(
+        steps=(*seq.steps, _when_you_do(cont))
     )
-
-
-def test_merge_do_continuation_c13_fallbacks() -> None:
-    """No cost-paying optional prior (bare draw / un-optional PAY) falls
-    back to the DEFAULT continuation merge, never a failure. (The default
-    merge wraps the continuation in its own optional layer, as pinned in
-    test_ability_tree_r8.py.)"""
-    cont = at.OptionalEffect(inner=_tap_target())
-    fallback = _merge_do_continuation(_draw_atom(1), cont)
-    assert fallback == _append_optional_to_seq(_draw_atom(1), cont)
-    assert fallback == at.Seq(steps=(_draw_atom(1), at.OptionalEffect(inner=cont)))
-    raw_pay = _merge_do_continuation(_pay_atom(), cont)
-    assert raw_pay == at.Seq(steps=(_pay_atom(), at.OptionalEffect(inner=cont)))
-
-
-def test_contains_pay_atom_nested_traversal() -> None:
-    """The antecedent test walks the whole Effect union (the
-    _fold_meta_filter traversal shape)."""
-    pay_opt = at.OptionalEffect(inner=_pay_atom())
-    assert _contains_pay_atom(pay_opt)
-    assert _contains_pay_atom(at.Seq(steps=(_draw_atom(1), pay_opt)))
-    assert _contains_pay_atom(
-        at.Choose(count=at.QConst(1), options=(_draw_atom(1), pay_opt))
+    assert _merge_if_do_continuation(_draw_atom(1), cont, _DO_TAP_SENT) == at.Seq(
+        steps=(_draw_atom(1), _when_you_do(cont))
     )
-    assert _contains_pay_atom(
-        at.Conditional(pred=_CREATURE, then_effect=_draw_atom(1), else_effect=pay_opt)
-    )
-    assert _contains_pay_atom(at.Repeat(count=at.QConst(1), inner=pay_opt))
-    assert _contains_pay_atom(at.EachPlayer(ref=at.ControllerRef.YOU, effect=pay_opt))
-    assert _contains_pay_atom(
-        at.DelayedTrigger(
-            duration=at.DurationEot(),
-            event=at.CardDrawnEvent(
-                actor=at.FAtom(
-                    pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
-                )
-            ),
-            condition=None,
-            effect=pay_opt,
-        )
-    )
-    assert not _contains_pay_atom(_draw_atom(1))
-    assert not _contains_pay_atom(at.Seq(steps=(_draw_atom(1), _tap_target())))
 
 
 # ---- end to end --------------------------------------------------------------
 
 
-_PAY_SENT = "You may pay {1}."
-_DO_TAP_SENT = "When you do, you may tap target creature."
+def _do_tap_registry(first: tuple[str, str, Callable[[object], object]]) -> TemplateRegistry:
+    reg = TemplateRegistry()
+    reg.register(_template(*first))
+    reg.register(
+        _template(
+            "r10-do-tap",
+            r"^When you do, you may tap target creature\.$",
+            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target())),
+        )
+    )
+    return reg
 
 
 def test_compile_do_continuation_end_to_end() -> None:
-    """The Tolarian Kraken shape: the Do-continuation lands INSIDE the
-    payment optional in the assembled SpellAbility."""
+    """The spell shape: the reflexive trigger follows the payment optional."""
     raw = _raw_card("Do Merge Testcard", 1, sentences=(_PAY_SENT, _DO_TAP_SENT))
-    reg = TemplateRegistry()
-    reg.register(
-        _template(
-            "r10-may-pay",
-            r"^You may pay \{1\}\.$",
-            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_pay_atom())),
-        )
-    )
-    reg.register(
-        _template(
-            "r10-do-tap",
-            r"^When you do, you may tap target creature\.$",
-            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target())),
-        )
-    )
-    res = compile_card(raw, reg)
-    assert res.unparsed == ()
-    spell = res.card.abilities[0]
-    assert isinstance(spell, at.SpellAbility)
-    assert spell.effect == at.OptionalEffect(
-        inner=at.Seq(steps=(_pay_atom(), at.OptionalEffect(inner=_tap_target())))
-    )
-
-
-def test_compile_do_continuation_without_pay_c13() -> None:
-    """End to end: a Do-continuation with no payment antecedent still
-    compiles via the default optional-step merge."""
-    raw = _raw_card("Orphan Do", 2, sentences=("Draw a card.", _DO_TAP_SENT))
-    reg = TemplateRegistry()
-    reg.register(
-        _template(
-            "r10-draw",
-            r"^Draw a card\.$",
-            lambda m: EffectOutcome(effect=_draw_atom(1)),
-        )
-    )
-    reg.register(
-        _template(
-            "r10-do-tap",
-            r"^When you do, you may tap target creature\.$",
-            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target())),
-        )
+    reg = _do_tap_registry(
+        ("r10-may-pay", r"^You may pay \{1\}\.$",
+         lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_pay_atom())))
     )
     res = compile_card(raw, reg)
     assert res.unparsed == ()
     spell = res.card.abilities[0]
     assert isinstance(spell, at.SpellAbility)
     assert spell.effect == at.Seq(
-        steps=(
-            _draw_atom(1),
-            at.OptionalEffect(inner=at.OptionalEffect(inner=_tap_target())),
-        )
+        steps=(at.OptionalEffect(inner=_pay_atom()), _when_you_do(at.OptionalEffect(inner=_tap_target())))
+    )
+
+
+def test_compile_do_continuation_after_a_mandatory_step() -> None:
+    """A "When you do" after a mandatory step ("Draw a card.") is gated on that step."""
+    raw = _raw_card("Orphan Do", 2, sentences=("Draw a card.", _DO_TAP_SENT))
+    reg = _do_tap_registry(
+        ("r10-draw", r"^Draw a card\.$", lambda m: EffectOutcome(effect=_draw_atom(1)))
+    )
+    res = compile_card(raw, reg)
+    assert res.unparsed == ()
+    spell = res.card.abilities[0]
+    assert isinstance(spell, at.SpellAbility)
+    assert spell.effect == at.Seq(
+        steps=(_draw_atom(1), _when_you_do(at.OptionalEffect(inner=_tap_target())))
     )
 
 
 def test_compile_do_continuation_preserves_timing() -> None:
-    """A Do-continuation merged into an ActivatedAbility must NOT drop the
-    timing window (the rebuild passes timing=ab.timing)."""
+    """A "When you do" merged into an ActivatedAbility must NOT drop the timing window (the
+    rebuild passes timing=ab.timing)."""
     raw = _raw_card("Steward Do", 3, sentences=("{2}: You may pay {1}.", _DO_TAP_SENT))
-    reg = TemplateRegistry()
-    reg.register(
-        _template(
+    reg = _do_tap_registry(
+        (
             "r10-steward",
             r"^\{2\}: You may pay \{1\}\.$",
             lambda m: AbilityOutcome(
@@ -728,46 +679,31 @@ def test_compile_do_continuation_preserves_timing() -> None:
             ),
         )
     )
-    reg.register(
-        _template(
-            "r10-do-tap",
-            r"^When you do, you may tap target creature\.$",
-            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target())),
-        )
-    )
     res = compile_card(raw, reg)
     assert res.unparsed == ()
     assert len(res.card.abilities) == 1, "no SpellAbility: the only effect was consumed"
     ab = res.card.abilities[0]
     assert isinstance(ab, at.ActivatedAbility)
     assert ab.timing is at.ActivationWindow.SORCERY
-    assert ab.effect == at.OptionalEffect(
-        inner=at.Seq(steps=(_pay_atom(), at.OptionalEffect(inner=_tap_target())))
+    assert ab.effect == at.Seq(
+        steps=(at.OptionalEffect(inner=_pay_atom()), _when_you_do(at.OptionalEffect(inner=_tap_target())))
     )
 
 
 def test_compile_do_continuation_into_triggered() -> None:
-    """The Kraken's real carrier shape: the cost-paying optional lives in
-    a TriggeredAbility and the Do-continuation joins its inside."""
+    """The Kraken's carrier shape: the payment optional lives in a TriggeredAbility and the
+    reflexive trigger follows it there."""
     raw = _raw_card(
-        "Kraken Do",
-        4,
-        sentences=(
-            "When you draw a card, you may pay {1}.",
-            _DO_TAP_SENT,
-        ),
+        "Kraken Do", 4, sentences=("When you draw a card, you may pay {1}.", _DO_TAP_SENT)
     )
-    reg = TemplateRegistry()
-    reg.register(
-        _template(
+    reg = _do_tap_registry(
+        (
             "r10-kraken",
             r"^When you draw a card, you may pay \{1\}\.$",
             lambda m: AbilityOutcome(
                 ability=at.TriggeredAbility(
                     event=at.CardDrawnEvent(
-                        actor=at.FAtom(
-                            pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU
-                        )
+                        actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU)
                     ),
                     condition=None,
                     effect=at.OptionalEffect(inner=_pay_atom()),
@@ -775,17 +711,10 @@ def test_compile_do_continuation_into_triggered() -> None:
             ),
         )
     )
-    reg.register(
-        _template(
-            "r10-do-tap",
-            r"^When you do, you may tap target creature\.$",
-            lambda m: EffectOutcome(effect=at.OptionalEffect(inner=_tap_target())),
-        )
-    )
     res = compile_card(raw, reg)
     assert res.unparsed == ()
     trig = res.card.abilities[0]
     assert isinstance(trig, at.TriggeredAbility)
-    assert trig.effect == at.OptionalEffect(
-        inner=at.Seq(steps=(_pay_atom(), at.OptionalEffect(inner=_tap_target())))
+    assert trig.effect == at.Seq(
+        steps=(at.OptionalEffect(inner=_pay_atom()), _when_you_do(at.OptionalEffect(inner=_tap_target())))
     )

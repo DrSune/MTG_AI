@@ -50,8 +50,8 @@
    "op": "cast",
    "key": "r",
    "decisions": [
-    "goat",
     "fire",
+    "goat",
     "fire",
     "1"
    ]

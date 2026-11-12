@@ -24,6 +24,7 @@ from MTG_bot.core.ability_tree import (
     CardDrawnEvent,
     CastSpellEvent,
     Choose,
+    Conditional,
     ControllerRef,
     Cost,
     CostManaGeneric,
@@ -33,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     DamageDealtEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
+    DelayedTrigger,
     DurationEot,
     EachPlayer,
     FAnd,
@@ -70,7 +72,7 @@ from MTG_bot.core.ability_tree import (
     fingerprint,
 )
 from MTG_bot.core.compiler import templates_b2b
-from MTG_bot.core.compiler.compiler import _merge_do_continuation
+from MTG_bot.core.compiler.compiler import _merge_if_do_continuation
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
@@ -1093,9 +1095,11 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self._assert_has_type_eq_creature(event.filter)
         self._assert_has_controller_you(event.filter)
         self._assert_has_keyword_flying(event.filter)
-        cond = ability.condition
-        assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        # "two or more" is part of the trigger event, read once as the
+        # attackers are declared: not the condition (an intervening "if",
+        # read again on resolution, CR 603.4).
+        self.assertIsNone(ability.condition)
+        cond = _find_atom(event.filter, FAtomPred.CONTROLLER_COUNT_GE)
         self.assertEqual(cond.count, QConst(2))
         assert isinstance(cond.inner_filter, FAnd)
         self._assert_has_type_eq_creature(cond.inner_filter)
@@ -2570,7 +2574,8 @@ class TestB2bRound7BTopUp(unittest.TestCase):
 
 class TestB2bRound9BDoContinuation(unittest.TestCase):
     """Tolarian Kraken: the standalone continuation outcome is exactly what
-    the compiler's do-merge puts inside the cost-paying OptionalEffect."""
+    the compiler's "When you do" merge makes a reflexive trigger of (CR
+    603.12), gated on the payment."""
 
     S1 = "Whenever you draw a card, you may pay {1}."
     S2 = "When you do, you may tap or untap target creature."
@@ -2606,19 +2611,29 @@ class TestB2bRound9BDoContinuation(unittest.TestCase):
         self.assertEqual(dict(untap.args.pairs), {"target": target})
 
     def test_pair_merge_final_tree(self) -> None:
-        """OptionalEffect(PAY) + the continuation → injected inside:
-        OptionalEffect(Seq(PAY, OptionalEffect(Choose(...)))), never a sibling
-        optional."""
+        """OptionalEffect(PAY) + the continuation: Seq(OptionalEffect(PAY),
+        Conditional(MAY_DONE, DelayedTrigger(reflexive, OptionalEffect(Choose(...))))).
+        The target is the reflexive trigger's own, chosen as it goes on the
+        stack after the payment, never the draw trigger's (CR 603.12)."""
         reg = _registry()
         s1 = _single_match(reg, self.S1)
         s2 = _single_match(reg, self.S2)
         prior = _ability(s1).effect
         assert isinstance(s2.outcome, EffectOutcome)
         cont = s2.outcome.effect  # the raw standalone EffectOutcome payload
-        merged = _merge_do_continuation(prior, cont)
+        merged = _merge_if_do_continuation(prior, cont, self.S2)
         assert isinstance(prior, OptionalEffect)
-        pay = prior.inner  # Atom(PAY, Cost({1}))
-        expected = OptionalEffect(inner=Seq(steps=(pay, cont)))
+        expected = Seq(
+            steps=(
+                prior,
+                Conditional(
+                    pred=FAtom(pred=FAtomPred.MAY_DONE),
+                    then_effect=DelayedTrigger(
+                        duration=None, event=None, condition=None, effect=cont
+                    ),
+                ),
+            )
+        )
         self.assertEqual(merged, expected)
 
 

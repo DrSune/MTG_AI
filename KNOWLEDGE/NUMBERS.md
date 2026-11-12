@@ -5,6 +5,17 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-12 (trigger timing: reflexive triggers CR 603.12, event qualifiers CR 603.4; ontology R6 proposed)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| reflexive-trigger sentences, 19 sets | **23 in 22 cards**; 3 in trees (M21 Tolarian Kraken, M20 Cavalier of Night and Sorin, Imperious Bloodlord), 19 unparsed (THB Pharika's Spawn matches the wording, is not one) | `.venv/bin/python reports/trigger_timing_2026-11-12/census.py` | output `census.txt` |
+| cards whose tree reads a trigger's part at the wrong time | **12 -> 0** (set:card entries: Kraken, Cavalier, Sorin IB; Tide Skimmer, Makeshift Battalion M21+WAR, Mazemind Tome M21+FDN, Nine Lives, Sanctum of All, Brineborn Cutthroat M20+FDN) | `tools/audit/ontology_conformance.check_trigger_timing` over every set file (`pytest tools/audit/test_ontology_conformance.py -k trigger`) | on b776cf74 and on this branch |
+| trees changed, 19 sets | **8** compiler trees, **12** with card records applied; 6 M21 goldens | `reports/trigger_timing_2026-11-12/tree_dump.py <checkout> <out>` on both checkouts, then `tree_diff.py <base> <branch>` | `blast_radius.txt` |
+| verified stamps that still match | M21 **270 -> 265**, M20 **257 -> 255**, FDN **175 -> 173** (9 cards out until re-verified) | same | BACKLOG "Re-verify the cards the trigger-timing fixes changed" |
+| seeded heuristic games, decks from cards verified before and after | **300/300 identical digests**, 0 crashes either side (100 each M21, M20, FDN; 265/255/173 deckable) | `reports/trigger_timing_2026-11-12/replay.py <checkout> trees_base.json trees_branch.json 100 <out>` on both | `replay_summary.txt` |
+| V5′ branchings the pytest view finds in no registered census (M21) | **2 -> 0** | `.venv/bin/python tools/audit/ontology_shape_census.py --out reports/ontology_census_2026-11-12_triggertiming_post_full.json --cap 0` | Conditional then:DelayedTrigger, DelayedTrigger `reflexive` (Tolarian Kraken); 553 cards, 1,238 abilities, 477 struct sigs, 118 branching rows (m21gaps: 476, 116) |
+
 ## 2026-11-06 (several target slots, CR 601.2c, branch `engine/multi-slot-targets`)
 
 | Number | Value | Command | Notes |

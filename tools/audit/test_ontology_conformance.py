@@ -510,6 +510,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # Transmogrify's "That player puts that card onto the battlefield, then
         # shuffles the rest": EachPlayer over a referent ref (BACKLOG B-113).
         "ontology_census_2026-11-12_m21gaps_post_full.json",
+        # Tolarian Kraken's "When you do": a reflexive DelayedTrigger gated by
+        # Conditional(MAY_DONE) (CR 603.12, the trigger-timing fix).
+        "ontology_census_2026-11-12_triggertiming_post_full.json",
     ):
         full = oc.REPO / "reports" / name
         if not full.exists():
@@ -614,3 +617,40 @@ def test_designated_player_scan_has_teeth():
     )
     spell = at.SpellAbility(kind=at.SpellKind.SORCERY, effect=new)
     assert not oc.names_designated_player(_card("Transmogrify", abilities=(spell,)))
+
+
+# --------------------------------------------------------------------------
+# Trigger timing: reflexive triggers (CR 603.12), trigger conditions (CR 603.4)
+# --------------------------------------------------------------------------
+def test_triggers_read_their_parts_when_the_rules_do():
+    """Every set file, card records applied: a compiled "When you do" is a reflexive trigger,
+    and no trigger has more conditions than its text has intervening "if"s. Before 2026-11-12
+    this flagged M21 Tolarian Kraken, M20 Cavalier of Night and Sorin, Imperious Bloodlord
+    (the reflexive target chosen with the ability's own), and M21 Tide Skimmer, Makeshift
+    Battalion (M21, WAR), Mazemind Tome (M21, FDN), Nine Lives, Sanctum of All and Brineborn
+    Cutthroat (M20, FDN): event qualifiers compiled as conditions, re-checked as they resolve."""
+    sets = sorted(p.stem for p in (oc.REPO / "MTG_bot" / "data").glob("*.json"))
+    assert oc.check_trigger_timing(sets) == []
+
+
+def test_trigger_timing_scan_has_teeth():
+    draw = at.CardDrawnEvent(actor=at.FAtom(pred=at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU))
+    tap = _atom(at.Verb.TAP, "Creature")
+    pay = at.OptionalEffect(inner=at.Atom(verb=at.Verb.PAY, args=at.AtomArgs(pairs=(
+        ("cost", at.Cost(parts=(at.CostManaGeneric(at.QConst(1)),))),))))
+    text = ("Whenever you draw a card, you may pay {1}.", "When you do, tap target creature.")
+    old = at.TriggeredAbility(event=draw, condition=None, effect=at.OptionalEffect(inner=at.Seq(steps=(pay.inner, tap))))
+    gate = at.Conditional(pred=at.FAtom(pred=at.FAtomPred.MAY_DONE), then_effect=at.DelayedTrigger(
+        duration=None, event=None, condition=None, effect=tap))
+    new = at.TriggeredAbility(event=draw, condition=None, effect=at.Seq(steps=(pay, gate)))
+    assert oc.trigger_timing_faults(text, text, (old,)) == ['a compiled "When you do" is not a reflexive trigger']
+    assert oc.trigger_timing_faults(text, text, (new,)) == []
+    assert oc.trigger_timing_faults(text, text[:1], (old,)) == []  # the sentence did not compile
+    two = at.FAtom(pred=at.FAtomPred.CONTROLLER_COUNT_GE, count=at.QConst(2),
+                   inner_filter=at.FAtom(pred=at.FAtomPred.IS_ATTACKING))
+    attack = at.DeclareAttackersEvent(filter=_fa("Creature"))
+    skimmer = at.TriggeredAbility(event=attack, condition=two, effect=tap, once_per_event=True)
+    said = ("Whenever you attack with two or more creatures, tap target creature.",)
+    assert oc.trigger_timing_faults(said, said, (skimmer,)) == ['1 trigger condition(s), 0 intervening "if"']
+    raid = ("Raid — Whenever you attack, if you attacked with two or more creatures, tap target creature.",)
+    assert oc.trigger_timing_faults(raid, raid, (skimmer,)) == []

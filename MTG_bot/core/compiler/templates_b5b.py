@@ -2458,9 +2458,11 @@ def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
     control six or more Shrines, that ability triggers an additional
     time.`` (Sanctum of All s2) — an AbilityTriggerEvent over the triggering
     ability's source: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)
-    for "another". "while you control six or more Shrines" is the ability's
-    condition (CONTROLLER_COUNT_GE). The effect is TRIGGER_ADDITIONAL with
-    its count axis, QConst(1) for "an additional time"."""
+    for "another". "while you control six or more Shrines" (CONTROLLER_COUNT_GE)
+    is part of that event, read as the Shrine's ability triggers: it is in the
+    event's filter, not the condition, which only an intervening "if" is (CR
+    603.4). The effect is TRIGGER_ADDITIONAL with its count axis, QConst(1) for
+    "an additional time"."""
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=AbilityTriggerEvent(
@@ -2469,14 +2471,15 @@ def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
                         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
                         FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+                        FAtom(
+                            pred=FAtomPred.CONTROLLER_COUNT_GE,
+                            count=QConst(6),
+                            inner_filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
+                        ),
                     )
                 )
             ),
-            condition=FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                count=QConst(6),
-                inner_filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
-            ),
+            condition=None,
             effect=Atom(
                 verb=Verb.TRIGGER_ADDITIONAL,
                 args=AtomArgs(pairs=(("count", QConst(1)),)),

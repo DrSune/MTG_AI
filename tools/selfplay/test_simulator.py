@@ -46,10 +46,16 @@ def _game(seed: int, agents: list, turn_cap: int = 60):
 
 
 def test_capture_changes_no_game_and_keeps_the_truth_apart(table) -> None:
-    plain = _game(21, [HeuristicAgent(), HeuristicAgent()])
-    seats = [Capture(HeuristicAgent(), s, table, 1.0, 21) for s in (0, 1)]
-    captured = _game(21, seats)
-    assert captured.executor.state_fingerprint() == plain.executor.state_fingerprint()
+    # Seed 21, or the next seed when a change of the verified pool deals seed 21 a short game.
+    for seed in range(21, 31):
+        plain = _game(seed, [HeuristicAgent(), HeuristicAgent()])
+        seats = [Capture(HeuristicAgent(), s, table, 1.0, seed) for s in (0, 1)]
+        captured = _game(seed, seats)
+        assert captured.executor.state_fingerprint() == plain.executor.state_fingerprint()
+        if all(len(seat.views) > 20 for seat in seats):
+            break
+    else:
+        raise AssertionError("no seed in 21-30 gives a game of more than 20 decisions a seat")
     for seat in seats:
         assert len(seat.views) == len(seat.truth) > 20
         for view, (hand, library) in zip(seat.views, seat.truth, strict=True):

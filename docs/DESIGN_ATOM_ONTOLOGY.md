@@ -534,3 +534,81 @@ TokenSpecs re-bake.
   - D15: Furious Rise's window;
   - D16: Teferi, Timeless Voyager;
   - D17: Liliana, Waker of the Dead's check order (lane vfix2).
+
+## 11. Round R6 — when a trigger's parts are read (proposed 2026-11-12; gate round 6 pending)
+
+Two faults found by verification wave 1 (KNOWLEDGE/2026-11-12/201 §6), one cause each; the
+evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-11-12/`.
+
+**R6-1 Reflexive triggers (CR 603.12): one IR change.**
+- **Cause.** The IR had no reflexive trigger, so "You may X. When you do, Y" compiled as X and Y in
+  one ability (Tolarian Kraken: Y inside X's OptionalEffect; Sorin, Imperious Bloodlord and
+  Cavalier of Night records: the "If you do" gate or one optional). Every designation walker reads
+  the whole effect, so Y's target was chosen with the ability's own, before X.
+- **Shape.** `DelayedTrigger` with `duration` and `event` both absent is the reflexive trigger
+  (both present: a delayed trigger, unchanged bytes). Its `condition` and `once_per_event` are
+  absent. It stands only as the `then_effect` of the Conditional that names its action
+  (`CardRecord` refuses it elsewhere): "When you do, Y" =
+  `Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None, condition=None, effect=Y))`,
+  the "If you do" gate (CR 118.12) around a reflexive trigger. Serialization omits both keys.
+- **Engine.** At the gate it triggers (`TriggerBinder.fire_reflexive`): queued like any trigger,
+  put on the stack at the next priority point in APNAP order, its targets chosen then (603.3d:
+  none legal, removed); its source and controller are the resolving ability's (603.7d-e); it
+  reads that resolution's bindings, X and event register, not its designation. Every
+  designation walker (`binding._designation_slots`, `query.spell_target_slots`,
+  `activation_target_slots`, `optional_offer`) reads only the ability's own nodes
+  (`ability_tree.own_nodes`: a delayed, reflexive or granted ability, or a token's, designates
+  for itself). That also fixes M20 Sorin, Vampire Lord's -8, whose activation asked the target
+  of the ability it grants.
+- **Census.** 22 cards in the 19 sets print a reflexive trigger; 3 trees hold one (Tolarian
+  Kraken by the compiler, Cavalier of Night and Sorin, Imperious Bloodlord by record); the other
+  19 sentences are unparsed. Two new branchings (M21), registered by
+  `reports/ontology_census_2026-11-12_triggertiming_post_full.json`: Conditional `then:
+  DelayedTrigger`, DelayedTrigger `reflexive`.
+- **Rejected.** (a) A new node `ReflexiveTrigger(effect)`: CR 603.12 makes reflexive triggers
+  delayed triggers with two exceptions, so a second class would duplicate DelayedTrigger. (b) The
+  gate in the node (`condition=MAY_DONE`): `condition` is CR 603.4's intervening "if", read again
+  on resolution, so one field would carry two meanings. (c) Keep `Conditional(MAY_DONE, Y)` and
+  choose Y's targets late in the engine: "if you do" and "when you do" would share bytes and play
+  differently (a response window, targets after the action). (d) A delayed trigger on a real
+  event of the action: most actions (pay, discard, reveal) have no event spec, and "this
+  resolution" would need a new duration.
+
+**R6-2 The condition is only an intervening "if" (CR 603.4): an encoding rule, no new field.**
+- **Cause.** `condition` is the intervening "if", read as the event occurs and again as the
+  ability resolves; templates and the MAPPER_GUIDE put event qualifiers there too, so they were
+  re-read on resolution: Tide Skimmer's "with two or more creatures with flying", Makeshift
+  Battalion's "and at least two other creatures attack", Mazemind Tome's and Nine Lives' state
+  thresholds (CR 603.8), Sanctum of All's "while you control six or more Shrines", Brineborn
+  Cutthroat's "during an opponent's turn". Each one's ruling (where it has one) says it is not
+  re-read.
+- **Rule.** A qualifier that is part of the trigger event is a conjunct of the event's subject
+  filter (`filter`; `subject` on ZoneChangeEvent), read once as the event is matched; subject-free
+  predicates already stand in filters (`CONTROLLER_COUNT_GE` is handle-free). The checker
+  `ontology_conformance.check_trigger_timing` flags a card with more trigger conditions than
+  intervening "if"s, and a compiled "When you do" that is not a reflexive trigger.
+- **Mangara, the Diplomat is not in this class.** Its Oracle text, "Whenever an opponent attacks
+  with creatures, if two or more of those creatures are attacking you and/or planeswalkers you
+  control", prints an intervening "if": the re-read is right. Its ruling counts an attacker that
+  left the battlefield by what it was attacking before it left: `ATTACK_AGAINST_COUNT_GE` now
+  counts the triggering declaration's attackers, a departed one by its last known attack
+  (`quantity.LastKnown.attacking`). No tree changes.
+- **Rejected.** A second trigger field read once (`event_condition`), or a flag making the
+  condition read once: two fields, or one field with two meanings, for what the event filter
+  already says. A per-event count field (`DeclareAttackersEvent.count`): one field per event kind
+  and qualifier, and "this creature and at least two others" would still not fit it.
+
+**Blast radius** (by script over the 19 sets, `reports/trigger_timing_2026-11-12/`):
+- trees changed: 8 compiler trees (M21 Tolarian Kraken, Tide Skimmer, Makeshift Battalion,
+  Mazemind Tome, Nine Lives, Sanctum of All; WAR Makeshift Battalion; FDN Mazemind Tome), and 4
+  records (M20 Cavalier of Night, Sorin, Imperious Bloodlord; M20 and FDN Brineborn Cutthroat);
+  6 M21 goldens;
+- verified cards out of the verified pool until re-verified (9): M21 Tide Skimmer, Makeshift
+  Battalion, Mazemind Tome, Nine Lives, Sanctum of All; M20 Cavalier of Night, Brineborn
+  Cutthroat; FDN Mazemind Tome, Brineborn Cutthroat. Stamps M21 270 -> 265, M20 257 -> 255, FDN
+  175 -> 173;
+- verified cards that play differently with unchanged bytes: M20 Sorin, Vampire Lord (its -8 asks
+  no target and grants to each Vampire you control); unverified, M21 Mangara (an attacker that
+  left still counts);
+- 300 seeded heuristic games (100 each, M21, M20, FDN), decks from the cards verified before and
+  after: byte-identical digests, 0 crashes.

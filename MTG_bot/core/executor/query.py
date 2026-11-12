@@ -92,6 +92,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     count_semantics,
     is_loyalty_ability,
+    own_nodes,
     walk,
 )
 from MTG_bot.core.compiler.compiler import casts_itself_from_another_zone
@@ -635,7 +636,9 @@ def optional_offer(
     # that nothing can pay offers only skip (CR 117.3: no resources, no
     # action), and _v_pay RAISES if a 'fire' decision ever reaches an
     # unpaid cost, so the offer MUST narrow first (query/runtime identity).
-    for node in walk(effect.inner):
+    # Only the action's own nodes: a trigger or ability it creates (CR 603.7, 603.12) does not
+    # make this action impossible (Tolarian Kraken's "When you do" target never narrows the {1}).
+    for node in own_nodes(effect.inner):
         if isinstance(node, Atom) and node.verb is Verb.PAY:
             pay_cost = node.args.get("cost")
             if isinstance(pay_cost, Cost):
@@ -653,7 +656,7 @@ def optional_offer(
                 ):
                     return MAY_VOCAB[1:]
     search_seen = False
-    for node in walk(effect.inner):
+    for node in own_nodes(effect.inner):
         if not isinstance(node, Atom):
             continue
         # The re-search tail — a MOVE_ZONE after a SEARCH (in walk order,
@@ -705,7 +708,7 @@ def optional_offer(
     # empty-hand discard above) and the may-offer narrows to skip — one
     # payment oracle, the SAME build_payment_plan the engine folds, never a
     # second affordability arithmetic.
-    for node in walk(effect.inner):
+    for node in own_nodes(effect.inner):
         if isinstance(node, Atom) and node.verb is Verb.CAST:
             sel = node.args.get("source")
             if sel is not None and getattr(sel, "referent", "") in ("event", "result"):
@@ -1406,7 +1409,7 @@ def spell_target_slots(
             return slots
         return _affordable_target_slots(executor, [aura], spell_handle, seat, pay)
     player_refs: set[ControllerRef] = set()
-    for inner in walk(node.effect):
+    for inner in own_nodes(node.effect):  # a delayed, reflexive or granted ability designates for itself
         player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue
@@ -1538,7 +1541,7 @@ def _designation_only_slot(
     Without it the ability would be activated with no designation and do
     nothing. Single-target by construction: every such encoding in M21/ZNR/FDN
     prints one target."""
-    for inner in walk(effect):
+    for inner in own_nodes(effect):
         if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
             continue
         found = combat_target_filters(inner.args.get("event"))
@@ -1583,7 +1586,7 @@ def activation_target_slots(
     if effect is None:
         return slots
     player_refs: set[ControllerRef] = set()
-    for inner in walk(effect):
+    for inner in own_nodes(effect):  # a delayed, reflexive or granted ability designates for itself
         player_refs |= _rotation_player_refs(inner)
         if not isinstance(inner, Atom):
             continue

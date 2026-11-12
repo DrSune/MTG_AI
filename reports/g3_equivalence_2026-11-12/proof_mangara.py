@@ -13,8 +13,15 @@ and mana pool, the journal dump) over the scenarios that exercise the attacked o
     S3  both attack your planeswalker                                     printed: draw
     S4  one attacks your planeswalker only                                printed: no draw
     S5  S2, and the attacked planeswalker changes control to the opponent
-        while the trigger waits (CR 506.4: it leaves combat)               printed: draw
+        while the trigger waits (CR 506.4: it leaves combat)               printed: no draw
     S6  S1, and one attacker leaves the battlefield while the trigger waits printed: draw
+
+(2026-11-12, later: Mangara's Oracle text is "Whenever an opponent attacks with creatures, if two
+or more of those creatures are attacking you and/or planeswalkers you control, draw a card": an
+intervening "if", read again as the trigger resolves (CR 603.4), so S5 draws nothing. Its ruling
+counts an attacker that left the battlefield by what it was attacking before it left, so S6 draws;
+the engine drew nothing there until ATTACK_AGAINST_COUNT_GE read that last known attack. M2 is
+therefore NOT an equivalent mutant: S5 tells it from the card, and a pack shaped like S5 kills it.)
   3-seat (GameWorld(num_players=3), driven directly; packs are 2-seat):
     T1  Mangara at p2; p1 attacks p0's planeswalker with two               printed: no draw
     T2  Mangara at p2; p1 attacks p0 with two                              printed: no draw
@@ -254,13 +261,13 @@ check("S3 both at your walker", lambda t: two_seat(t, {"a": "pw", "b": "pw"}), (
       {"M1": False, "M2": False})
 check("S4 one at your walker", lambda t: two_seat(t, {"a": "pw"}), (0, 1),
       {"M1": False, "M2": False})
-# S5/S6: the CARD's hand is 0 here although the printed card draws (no intervening "if"):
-# the engine re-checks the count on resolution (binding.resolve). Expected hands state the
-# ENGINE's card so the script pins what happens; the printed answer is (1, 1).
+# S5/S6: the intervening "if" is re-checked on resolution (binding.resolve, CR 603.4): with the
+# walker stolen only one of those creatures still attacks you or a planeswalker you control (no
+# card); an attacker that left the battlefield counts by its last known attack (a card).
 check("S5 walker stolen while the trigger waits", lambda t: two_seat(t, {"a": True, "b": "pw"}, steal_walker),
       (0, 1), {"M1": False, "M2": True})
 check("S6 attacker gone while the trigger waits", lambda t: two_seat(t, {"a": True, "b": True}, kill_b),
-      (0, 1), {"M1": False, "M2": False})
+      (1, 1), {"M1": False, "M2": False})
 check("T1 3-seat: p1 attacks p0's walker, Mangara at p2", lambda t: three_seat(t, 2, 0, {"a": "pw", "b": "pw"}),
       (1, 1, 0), {"M1": False, "M2": False, "M1+M2": True})
 check("T2 3-seat: p1 attacks p0, Mangara at p2", lambda t: three_seat(t, 2, 0, {"a": True, "b": True}),

@@ -1,0 +1,50 @@
+The new tests and packs run against the base, b776cf74 (a git-archive copy importing its own
+code, the test file copied in; packs run as the suite runs them, the known_bugs/ ones with every
+card record applied, as `cardtool runpack` does). Every one passes on this branch.
+
+## MTG_bot/core/test_executor_trigger_timing.py on b776cf74: 12 fail. The one pass pins Mangara's
+## S5 (no card when the attacked planeswalker changes control), which the base already did right.
+PASSED MTG_bot/core/test_executor_trigger_timing.py::test_mangara_does_not_count_an_attack_on_a_planeswalker_you_no_longer_control
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_is_a_delayed_trigger_with_no_duration_and_no_event
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_a_reflexive_trigger_stands_only_as_the_then_effect_of_its_gate
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_kraken_offers_the_payment_first_and_targets_among_what_is_left
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_kraken_pays_with_no_legal_target_and_its_reflexive_trigger_is_removed
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_sorin_chooses_the_reflexive_target_after_the_sacrifice
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_sorin_declining_the_sacrifice_designates_nothing
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_cavalier_of_night_may_sacrifice_with_no_opposing_creature
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_sorin_vampire_lord_minus_eight_designates_nothing_it_grants
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_tide_skimmer_draws_when_a_flyer_leaves_before_its_trigger_resolves
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_makeshift_battalion_counter_when_an_attacker_leaves_before_its_trigger_resolves
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_mangara_counts_an_attacker_that_left_by_what_it_was_attacking
+FAILED MTG_bot/core/test_executor_trigger_timing.py::test_mazemind_tome_exiles_when_its_counters_drop_before_its_trigger_resolves
+12 failed, 1 passed in 3.69s
+
+## Packs on b776cf74
+FAIL tools/scenarios/tolarian_kraken_pays_with_no_legal_target.json
+FAIL tools/scenarios/tolarian_kraken_target_chosen_after_payment.json
+FAIL tools/scenarios/tolarian_kraken_tap.json
+FAIL tools/scenarios/tolarian_kraken_untap.json
+FAIL tools/scenarios/tolarian_kraken_skip_payment.json
+FAIL tools/scenarios/sorin_vampire_lord_minus_eight_asks_no_target.json
+FAIL tools/scenarios/known_bugs/sorin_imperious_bloodlord_reflexive_target_after_sacrifice.json
+FAIL tools/scenarios/known_bugs/sorin_imperious_bloodlord_declined_sacrifice_asks_no_target.json
+FAIL tools/scenarios/known_bugs/cavalier_of_night_sacrifices_with_no_opposing_creature.json
+
+## tools/audit/ontology_conformance.check_trigger_timing over every set file, on b776cf74
+## (the function copied in); none on this branch
+FDN:Mazemind Tome: 1 trigger condition(s), 0 intervening "if"
+FDN:Brineborn Cutthroat: 1 trigger condition(s), 0 intervening "if"
+M20:Cavalier of Night: a compiled "When you do" is not a reflexive trigger
+M20:Brineborn Cutthroat: 1 trigger condition(s), 0 intervening "if"
+M20:Sorin, Imperious Bloodlord: a compiled "When you do" is not a reflexive trigger
+M21:Nine Lives: 1 trigger condition(s), 0 intervening "if"
+M21:Sanctum of All: 1 trigger condition(s), 0 intervening "if"
+M21:Mazemind Tome: 1 trigger condition(s), 0 intervening "if"
+M21:Tolarian Kraken: a compiled "When you do" is not a reflexive trigger
+M21:Makeshift Battalion: 1 trigger condition(s), 0 intervening "if"
+M21:Tide Skimmer: 1 trigger condition(s), 0 intervening "if"
+WAR:Makeshift Battalion: 1 trigger condition(s), 0 intervening "if"
+
+## reports/g3_equivalence_2026-11-12/proof_mangara.py: S6 (an attacker gone while the trigger
+## waits) draws nothing on b776cf74 and one card here (its ruling: the attacker's last known
+## attack). S5 draws nothing on both.

@@ -59,6 +59,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import functools
 import hashlib
 import json
 import re
@@ -690,30 +691,91 @@ def names_designated_player(card) -> bool:
     return False
 
 
-def check_designated_players(sets) -> list[str]:
-    """``SET:name`` of every card whose tree (card records applied, as the card tools
-    compile them) names a designated player while its text says neither "target player"
-    nor "target opponent"."""
+@functools.cache
+def records_corpus(sets: tuple[str, ...]) -> tuple:
+    """``(set, raw card, compile result)`` for every card of ``sets``, card records applied
+    (verified or not), as the card tools compile them. A refused shape compiles to nothing."""
     from MTG_bot.core.compiler import card_records
     from MTG_bot.core.compiler.compiler import compile_pool
     from MTG_bot.core.errors import StateCorruptionError
 
     registry = build_full_registry()
-    flagged = []
+    out = []
     for s in sets:
         pool = ingest_pool(REPO / "MTG_bot" / "data" / f"{s}.json")
         records = card_records.load_records(s)
         for oid, raw in sorted(pool.items()):
             try:
-                card = compile_pool(
+                result = compile_pool(
                     {oid: raw}, registry, records=records, require_verified=False
-                ).results[oid].card
+                ).results[oid]
             except (StateCorruptionError, ValueError):
-                continue  # a refused shape compiles to nothing
-            face = raw.back_face.sentences if raw.back_face is not None else ()
-            text = " ".join((*raw.sentences, *face))
-            if not _DESIGNATED_PLAYER_TEXT.search(text) and names_designated_player(card):
-                flagged.append(f"{s}:{card.name}")
+                continue
+            out.append((s, raw, result))
+    return tuple(out)
+
+
+def _sentences(raw) -> tuple[str, ...]:
+    face = raw.back_face.sentences if raw.back_face is not None else ()
+    return (*raw.sentences, *face)
+
+
+def check_designated_players(sets) -> list[str]:
+    """``SET:name`` of every card whose tree (card records applied, as the card tools
+    compile them) names a designated player while its text says neither "target player"
+    nor "target opponent"."""
+    return [
+        f"{s}:{result.card.name}"
+        for s, raw, result in records_corpus(tuple(sets))
+        if not _DESIGNATED_PLAYER_TEXT.search(" ".join(_sentences(raw)))
+        and names_designated_player(result.card)
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Trigger timing: reflexive triggers (CR 603.12), trigger conditions (CR 603.4)
+# ---------------------------------------------------------------------------
+#: An intervening "if" (CR 603.4): a trigger's event clause, then ", if". An ability word
+#: ("Raid — ") or a quote (a granted ability) may come first.
+_INTERVENING_IF = re.compile(r'(?:^|")(?:[A-Z][a-z]+(?: [a-z]+)? — )?(?:When|Whenever|At)\b[^.,"]*, if\b')
+
+
+def trigger_timing_faults(sentences, compiled_sentences, abilities) -> list[str]:
+    """What one card's tree reads of its triggers at the wrong time (``check_trigger_timing``):
+    ``sentences`` its text, ``compiled_sentences`` those that compiled, ``abilities`` its tree."""
+    nodes = list(iter_nodes(abilities))
+    faults = []
+    if any(x.startswith("When you do") for x in compiled_sentences) and not any(
+        isinstance(n, at.DelayedTrigger) and n.reflexive for n in nodes
+    ):
+        faults.append('a compiled "When you do" is not a reflexive trigger')
+    conditions = sum(
+        1 for n in nodes
+        if isinstance(n, (at.TriggeredAbility, at.DelayedTrigger)) and n.condition is not None
+    )
+    ifs = sum(len(_INTERVENING_IF.findall(x)) for x in sentences)
+    if conditions > ifs:
+        faults.append(f'{conditions} trigger condition(s), {ifs} intervening "if"')
+    return faults
+
+
+def check_trigger_timing(sets) -> list[str]:
+    """``SET:name: why`` of every card whose tree reads a part of a trigger at the wrong time:
+
+    - a "When you do" sentence that compiled, while the tree holds no reflexive trigger
+      (DelayedTrigger with no duration and no event, CR 603.12): its effect, targets
+      included, would be chosen with the ability that creates it;
+    - more trigger conditions than intervening "if"s in its text: the condition is read again
+      as the trigger resolves (CR 603.4), so a qualifier that is part of the trigger event
+      ("with two or more", "during an opponent's turn", "when there are four or more
+      counters") belongs in the event's filter, read once."""
+    flagged = []
+    for s, raw, result in records_corpus(tuple(sets)):
+        unparsed = {u for u, _hint in (*result.unparsed, *result.back_face_unparsed)}
+        text = _sentences(raw)
+        compiled = [x for x in text if x not in unparsed]
+        flagged += [f"{s}:{raw.identity.name}: {why}"
+                    for why in trigger_timing_faults(text, compiled, result.card.abilities)]
     return flagged
 
 

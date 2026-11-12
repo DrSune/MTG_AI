@@ -59,7 +59,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations import DurationLedger
-from MTG_bot.core.executor.events import GameEvent
+from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, GameEvent
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -471,7 +471,9 @@ class LastKnown(NamedTuple):
     """An object's last known information as it left the battlefield (CR 608.2h), captured
     once, before its counters ceased (CR 122.2), its continuous effects ended (CR 400.7) and
     its control entries expired: what anything that needs the object as it last existed reads
-    (Executor.departed_lki). ``op`` is the public op in which it left."""
+    (Executor.departed_lki). ``op`` is the public op in which it left; ``attacking`` the player
+    or planeswalker it was attacking then, None if it was not attacking (it leaves combat as it
+    leaves the battlefield, CR 506.4)."""
 
     power: int | None
     toughness: int | None
@@ -479,6 +481,7 @@ class LastKnown(NamedTuple):
     keywords: tuple[str, ...]
     controller: Handle
     op: int
+    attacking: Handle | None = None
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -1554,22 +1557,45 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         return any(handle in blockers for blockers in ctx.executor.blocked_by.values())
     if pred is FAtomPred.ATTACK_AGAINST_COUNT_GE:
-        # Mangara, the Diplomat: count the CURRENT attacker set whose
-        # ATTACKED object passes inner_filter. The pred reads the executor's
-        # attack record, evaluated in the firing ability's coordinates:
-        # CONTROLLER_IS YOU = "attacking you" (a player matches themself),
-        # and an attacked planeswalker matches through its controller
-        # (creatures attack planeswalkers, CR 508.1b).
-        if ctx.executor is None:
+        # Mangara, the Diplomat's intervening "if" (CR 603.4): "if two or
+        # more of THOSE creatures are attacking you and/or planeswalkers you
+        # control", read as the attackers are declared and again as the
+        # ability resolves. Those creatures are every creature declared in the
+        # triggering declaration (its DECLARE_ATTACKERS rows: one put onto the
+        # battlefield attacking is not among them, CR 508.4); outside an attack
+        # firing, the attack record. Each is judged by what it attacks now, in
+        # the firing ability's coordinates: CONTROLLER_IS YOU = "attacking you"
+        # (a player matches themself), an attacked planeswalker matches through
+        # its controller (CR 508.1b). One removed from combat attacks nothing;
+        # one that left the battlefield is judged by what it was attacking as
+        # it left (its last known information, CR 608.2h; the card's ruling).
+        ex = ctx.executor
+        if ex is None:
             raise NotImplementedError(
                 "executor: filter pred ATTACK_AGAINST_COUNT_GE reads the "
                 "executor's attack record (bare ExecCtx)"
             )
         assert atom.count is not None and atom.inner_filter is not None
         threshold = resolve(atom.count, ctx)
+        those = list(ex.attackers)
+        event = ctx.event
+        if isinstance(event, GameEvent) and event.kind == KIND_DECLARE_ATTACKERS:
+            those = [
+                row.subject
+                for row in ex.journal.turn_window()
+                if row.kind == KIND_DECLARE_ATTACKERS and row.declare_group == event.declare_group
+            ]
         counted = 0
-        for attacker in ctx.executor.attackers:
-            attacked = ctx.executor.attacked.get(attacker)
+        for attacker in those:
+            lki = ex.departed_lki.get(attacker)
+            if attacker in ex.attackers:
+                attacked = ex.attacked.get(attacker)
+            elif lki is not None and not (
+                attacker in world.cards and world.zone_of(attacker).kind == ZONE_BATTLEFIELD
+            ):
+                attacked = lki.attacking
+            else:
+                attacked = None
             if attacked is None:
                 continue
             if eval_filter(atom.inner_filter, attacked, ctx):

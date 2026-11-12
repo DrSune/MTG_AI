@@ -161,7 +161,9 @@ def _attack_trigger(**extra: object) -> at.TriggeredAbility:
 def test_once_per_event_tables() -> None:
     for tag in ("TriggeredAbility", "DelayedTrigger"):
         assert ("once_per_event", "opt:bool") in at._SPECS[tag]
-        assert at._OMIT_IF_EMPTY[tag] == frozenset({"once_per_event"})
+    assert at._OMIT_IF_EMPTY["TriggeredAbility"] == frozenset({"once_per_event"})
+    # a reflexive trigger (CR 603.12) also has no duration and no event
+    assert at._OMIT_IF_EMPTY["DelayedTrigger"] == frozenset({"duration", "event", "once_per_event"})
 
 
 def test_once_per_event_absent_keeps_the_bytes_and_true_round_trips() -> None:

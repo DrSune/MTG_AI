@@ -37,7 +37,6 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DelayedTrigger,
     DurationUntilEndOfNextTurn,
-    EachPlayer,
     Effect,
     FAnd,
     FAtom,
@@ -143,9 +142,8 @@ _CONTINUATION_PREFIXES: tuple[str, ...] = (
     "If you search your library this way",
     "Then ",
     # "Otherwise" attaches as the else_effect of the previous Conditional
-    # (_merge_otherwise); "When you do" attaches inside the previous
-    # OptionalEffect whose inner pays a cost (Tolarian Kraken's "you may
-    # pay {1}", _merge_do_continuation).
+    # (_merge_otherwise); "When you do" is a reflexive trigger gated like
+    # "If you do" (_merge_if_do_continuation).
     "Otherwise",
     "When you do",
 )
@@ -1077,57 +1075,6 @@ def _merge_otherwise(prev_effect: Effect, inner: Effect) -> Effect:
     return _append_optional_to_seq(prev_effect, inner)
 
 
-def _contains_pay_atom(effect: Effect) -> bool:
-    """True if any Atom with ``Verb.PAY`` appears anywhere inside ``effect``.
-
-    Structural test for the "When you do" antecedent: the continuation's
-    "do" refers to paying the cost, so the prior effect must actually
-    contain the PAY atom.
-    """
-    if isinstance(effect, Atom):
-        return effect.verb is Verb.PAY
-    if isinstance(effect, Seq):
-        return any(_contains_pay_atom(s) for s in effect.steps)
-    if isinstance(effect, Choose):
-        return any(_contains_pay_atom(o) for o in effect.options)
-    if isinstance(effect, OptionalEffect):
-        return _contains_pay_atom(effect.inner)
-    if isinstance(effect, Conditional):
-        if _contains_pay_atom(effect.then_effect):
-            return True
-        return effect.else_effect is not None and _contains_pay_atom(effect.else_effect)
-    if isinstance(effect, Repeat):
-        return _contains_pay_atom(effect.inner)
-    if isinstance(effect, EachPlayer):
-        return _contains_pay_atom(effect.effect)
-    if isinstance(effect, DelayedTrigger):
-        return _contains_pay_atom(effect.effect)
-    return False
-
-
-def _merge_do_continuation(prev_effect: Effect, continuation: Effect) -> Effect:
-    """"When you do, …" joins the INSIDE of the prior ``OptionalEffect``
-    that pays a cost.
-
-    Tolarian Kraken: "When you draw a card, you may pay {1}. When you do,
-    …" — the second optional only EXISTS if the payment was made, so the
-    parsed continuation (already optional if the text says "you may") is
-    injected into the prior OptionalEffect's inner sequence, the shape of
-    :func:`_merge_search_shuffle`.  A sibling append here would fabricate
-    an independent optional the text never grants.  Any other prior falls
-    back to the default continuation merge (sibling optional step), as in
-    :func:`_merge_otherwise`.
-    """
-    if isinstance(prev_effect, OptionalEffect) and _contains_pay_atom(
-        prev_effect.inner
-    ):
-        inner = prev_effect.inner
-        if isinstance(inner, Seq):
-            return OptionalEffect(inner=Seq(steps=inner.steps + (continuation,)))
-        return OptionalEffect(inner=Seq(steps=(inner, continuation)))
-    return _append_optional_to_seq(prev_effect, continuation)
-
-
 def _merge_if_do_continuation(
     prev_effect: Effect, continuation: Effect, sentence: str
 ) -> Effect:
@@ -1144,10 +1091,18 @@ def _merge_if_do_continuation(
     one encoding, and the executor records whether the step before the gate
     actually happened (Archfiend's Vessel's "exile it. If you do, create a
     Demon" makes no Demon when the Vessel left the battlefield first).
+
+    "When you do, Y" (CR 603.12) is the same gate around a reflexive trigger:
+    Y does not happen in this resolution. It triggers, goes on the stack and
+    chooses its targets then, after the action (Sorin, Imperious Bloodlord's
+    sacrificed Vampire is no longer a legal target; Tolarian Kraken's {1} is
+    offered whatever the board).
     """
     inner = continuation
     if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
         inner = OptionalEffect(inner=inner)
+    if sentence.strip().startswith("When you do"):
+        inner = DelayedTrigger(duration=None, event=None, condition=None, effect=inner)
     gated = Conditional(pred=FAtom(pred=FAtomPred.MAY_DONE), then_effect=inner)
     return _append_mandatory_to_seq(prev_effect, gated)
 
@@ -1946,10 +1901,9 @@ def compile_card(
         #     (no OptionalEffect wrap — the effect always fires).
         #   - "Otherwise": else_effect of the last Conditional, falling back
         #     to the default merge.
-        #   - "When you do": inside the prior cost-paying OptionalEffect,
-        #     falling back to the default merge.
         #   - "If you do" (CR 118.12): gated on whether the previous step
-        #     happened, Conditional(MAY_DONE, tail).
+        #     happened, Conditional(MAY_DONE, tail); "When you do" (CR
+        #     603.12) the same gate around a reflexive DelayedTrigger.
         #   - default continuation: a step of its own, optional only when
         #     the sentence says "may".
         if _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
@@ -1958,9 +1912,7 @@ def compile_card(
             merge = _append_mandatory_to_seq
         elif sentence.strip().startswith("Otherwise"):
             merge = _merge_otherwise
-        elif sentence.strip().startswith("When you do"):
-            merge = _merge_do_continuation
-        elif sentence.strip().startswith(("If you do,", "If you do so,")):
+        elif sentence.strip().startswith(("If you do,", "If you do so,", "When you do,")):
 
             def _if_do_merge(
                 prev_effect: Effect, continuation: Effect, _s: str = sentence
