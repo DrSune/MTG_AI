@@ -143,3 +143,23 @@ hands whose lands are all basic.)
   - r28 at update 10 (its `last.pt`): +0.38 and +0.59, base 0.023.
 - **Open:** v0 throws back 36% of 3-land hands where only some spells are castable. Whether
   that is too eager needs the cost of keeping them, which this check does not measure.
+
+## 6. Registered after launch, before its data (2026-11-12 17:58, r28 at update 20)
+
+The red team (PLAN_CEILING §15) found a bias in R3. `curriculum_job`'s share for past versions
+(0.15) falls through to the newest when only one version exists (`learner.py:537-540`). So r28
+plays 85% of its games against its v0, the network R3's gates test against. After v1, r27 played
+70% against v1, 15% against u1000 and 15% against the heuristic. That favours r28 in R3. R3 is
+still read as registered; R3b reads the same question without that bias.
+
+| # | Metric | Prediction | Falsifier |
+|---|---|---|---|
+| R3b | r28 at update 75 against r27 at update 165 (`runs/window2/r27_latest.pt`), head to head. Both trained from v1's weights, for 75 and 88 updates. 1,000 deals 930,000-930,999, both seats, greedy, coherent, the verified pool, run from r28's worktree (44a62d9) | 0.51-0.56 | 95% upper bound below 0.50: the fixed trainer's network is weaker than the flawed one's at matched training |
+
+- **Where r28's weights come from.** Its `last.pt` at update 75, copied as soon as the save
+  lands (`runs/r28_looks/r28_u75.pt`).
+- **When it runs.** In a pause of r28 of about 5 minutes, after its gate at 75 is read. A pause
+  changes nothing in the reads, which go by update count.
+- **What it cannot tell apart.** r27's network carried its mulligan drift (198), so a pass means
+  the fixed trainer gave the stronger network. It does not say how much of the gap is the
+  mulligan.
