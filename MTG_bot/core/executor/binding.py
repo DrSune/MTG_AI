@@ -1642,6 +1642,7 @@ class TriggerBinder:
         propagates. May-offers ask the executor's decision stream."""
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
+        kept: list[Handle] | None = None
         if obj.target_node is not None and obj.declared_targets:
             # CR 608.2b: the targets chosen from a TARGET slot are checked again
             # against that slot now; with none still legal the ability does not
@@ -1666,6 +1667,13 @@ class TriggerBinder:
                 and not (h.namespace == "card"
                          and moved_since(self.executor.journal, h, obj.declared_clock))
             ]  # CR 400.7: a target that changed zones since is a new object
+        elif any(h.namespace == "player" for h in obj.declared_targets):
+            # CR 608.2b: a designated player (_designate's player slot; a pre-bound
+            # antecedent is a card) is checked again by the rule it was chosen by: one who
+            # has since gained protection from the source is no longer a legal target.
+            legal = self._target_players(obj.node, obj.ctx)
+            kept = [h for h in obj.declared_targets if h in legal]
+        if kept is not None:
             if not kept:
                 self.executor.events.append(
                     (len(self.executor.events), "NO_LEGAL_TARGETS", str(obj.source), "trigger")
@@ -1923,6 +1931,22 @@ class TriggerBinder:
         selectors, reads_target_player, _ = cls._designation_slots(node)
         return bool(selectors) or reads_target_player
 
+    def _target_players(self, node: _AnyTrigger, ctx: ExecCtx) -> list[Handle]:
+        """The players a trigger's "target opponent" / "target player" may designate now: the
+        ability controller's opponents, or every player (CR 115.1, 102.2), minus those with
+        protection from its source (CR 702.16b: Runed Halo naming the trigger's card). Chosen
+        from as it goes on the stack (:meth:`_designate`) and checked against again as it
+        resolves (:meth:`resolve`, CR 608.2b)."""
+        from MTG_bot.core.executor.legality import protected_from
+
+        opponent_only = self._designation_slots(node)[2]
+        players = (
+            players_for_ref(ControllerRef.OPPONENT, ctx)
+            if opponent_only
+            else list(ctx.world.player_order)
+        )
+        return [h for h in players if not protected_from(self.executor, h, ctx.source)]
+
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The trigger designation channel (CR 603.1).
         Returns False when the ability is removed from the stack (CR
@@ -1943,7 +1967,8 @@ class TriggerBinder:
         * a designated-player read with no Selector ("target opponent",
           "target player") → the ABILITY CONTROLLER's opponents, or every
           player, minus those with protection from the source; one
-          candidate is auto-filled (no ask);
+          candidate is auto-filled (no ask), none removes the ability (the
+          word "target" makes it a required target, CR 603.3d);
         * a multi-slot trigger (two distinct TARGETs, or a TARGET and a
           TARGET_PLAYER) → raises (this channel has no per-slot
           designation, and never guess-binds a second slot).
@@ -1971,7 +1996,7 @@ class TriggerBinder:
         n candidates cannot fill it; ``QAtLeast``/QX in a trigger TARGET
         raises.
         """
-        selectors, reads_target_player, opponent_only = self._designation_slots(node)
+        selectors, reads_target_player, _ = self._designation_slots(node)
         if not selectors and not reads_target_player:
             return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):
@@ -1982,49 +2007,33 @@ class TriggerBinder:
                 "the second)"
             )
         if reads_target_player:
-            # The synthetic player slot (spell_target_slots' twin): the
-            # candidate population is the ENGINE's player rule — the ability
-            # controller's opponents for "target opponent", every player for
-            # "target player" (CR 115.1, 102.2) — and the cross-seat
-            # ruling is CR 603.1's: the ABILITY's controller designates, so an
-            # opponent's trigger asks the OPPONENT's seat (ctx.controller IS
-            # that seat, the firing context was built from payload.controller).
-            from MTG_bot.core.executor.legality import protected_from
-
-            # CR 702.16b: a player with protection from the source of the
-            # ability can't be its target (Runed Halo naming the trigger's card).
-            opponents = [
-                h
-                for h in (
-                    players_for_ref(ControllerRef.OPPONENT, ctx)
-                    if opponent_only
-                    else list(ctx.world.player_order)
-                )
-                if not protected_from(self.executor, h, ctx.source)
-            ]
-            if not opponents:
-                ctx.bindings["target"] = []  # no legal player: the ability
-                # resolves without one (unlike a required TARGET slot, this
-                # player slot is not removed under CR 603.3d).
-            elif len(opponents) == 1:
-                ctx.bindings["target"] = opponents[0]
+            # The synthetic player slot (spell_target_slots' twin), populated by
+            # _target_players; the cross-seat ruling is CR 603.1's: the
+            # ABILITY's controller designates, so an opponent's trigger asks the
+            # OPPONENT's seat (ctx.controller IS that seat, the firing context
+            # was built from payload.controller).
+            players = self._target_players(node, ctx)
+            if not players:
+                # CR 603.3d: "target opponent" / "target player" is a required target (every
+                # trigger reaching here prints the word), so with no legal player the ability
+                # is removed from the stack: Vito, Thorn of the Dusk Rose's "target opponent
+                # loses that much life" with that opponent's Runed Halo naming Vito.
+                return False
+            if len(players) == 1:
+                ctx.bindings["target"] = players[0]
             else:
-                vocab = tuple(str(h) for h in sorted(opponents))
+                vocab = tuple(str(h) for h in sorted(players))
                 answer = ctx.take_decision(
                     vocab,
                     f"target:{ctx.controller}:{ctx.source}:{site_digest(vocab)}",
                 )
                 ctx.bindings["target"] = next(
-                    h for h in sorted(opponents) if str(h) == answer
+                    h for h in sorted(players) if str(h) == answer
                 )
             # TARGETING feed — a genuine designation made here is an
-            # event (pre-bound firings never reach this method). The empty
-            # set emits nothing.
-            designated = ctx.bindings["target"]
+            # event (pre-bound firings never reach this method).
             self.executor.journal.emit_targeting(
-                ctx.source,
-                ctx.controller,
-                designated if isinstance(designated, list) else [designated],
+                ctx.source, ctx.controller, [ctx.bindings["target"]]
             )
             return True
         selector = selectors[0]

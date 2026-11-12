@@ -62,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     DurationUntilLeaves,
     DurationWhileCondition,
     EachPlayer,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -89,7 +90,6 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
 )
@@ -1292,20 +1292,12 @@ def _build_exile_that_until_leaves(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_etb_choose_name(m: re.Match[str]) -> SentenceOutcome:
     """``As this enchantment enters, choose a card name.`` (Runed Halo)
-    — Verb.CHOOSE_NAME on an enters trigger; ``FAtomPred.NAME_CHOSEN``
-    reads the pick back in the protection static (a B4 template)."""
+    — Verb.CHOOSE_NAME as the entering state's effect: an "As [this]
+    enters" replacement (CR 614.1c), never a trigger, so the name is chosen
+    as the permanent enters (CR 614.12a) and ``FAtomPred.NAME_CHOSEN`` in
+    the protection static (a B4 template) never reads an unmade choice."""
     return AbilityOutcome(
-        ability=TriggeredAbility(
-            event=ZoneChangeEvent(
-                from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
-                to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-                # "As THIS enchantment enters": the entering object is the
-                # card itself.
-                subject=FAtom(pred=FAtomPred.IS_SOURCE),
-            ),
-            condition=None,
-            effect=Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())),
-        )
+        ability=EtBState(effect=Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=())))
     )
 
 

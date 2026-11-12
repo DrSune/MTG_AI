@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     CardRecord,
     Choose,
+    EtBState,
     FAtom,
     FAtomPred,
     Keyword,
@@ -57,7 +58,7 @@ from MTG_bot.core.executor.query import (
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import another_target_reason, cast, play_land
 from MTG_bot.core.identity import Handle
 
 BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
@@ -231,6 +232,17 @@ class Probe:
 
         runner = ScenarioRunner(pack, self.supply, setup_provider=setup_provider)
         runner.setup_asks = setup_asks  # type: ignore[attr-defined]
+        if where == "battlefield" and any(
+            isinstance(a, EtBState) and a.effect is not None for a in self.card.abilities
+        ):
+            # A permanent is on the battlefield only by having entered it, so the probed card has
+            # made the choice its "As this enters" requires (Runed Halo's card name, CR 614.1c,
+            # 614.12a), with the default answer: no game leaves it unmade for its abilities to read.
+            runner.ex.decisions.provider = setup_provider
+            try:
+                runner.ex._apply_etb_state(runner.handles["card"])
+            finally:
+                runner.ex.decisions.provider = None
         return runner
 
     def names(self, r: ScenarioRunner) -> Callable[[Any], str]:
@@ -507,7 +519,14 @@ class Probe:
                 if slot.min_count == 0:
                     picks.append(())
             per_slot.append([p for p in picks if validate_target_selection(slot, list(p)) is None])
-        combos = [tuple(itertools.chain.from_iterable(c)) for c in itertools.product(*per_slot)]
+        # "Another target" (Rookie Mistake, Garruk, Savage Herald's -2): never an object another
+        # slot already targets, the engine's own rule (stack.another_target_reason, CR 115.3); a
+        # game never offers that pair (stack.slot_options), so neither does the probe.
+        combos = [
+            tuple(itertools.chain.from_iterable(c))
+            for c in itertools.product(*per_slot)
+            if another_target_reason(slots, c) is None
+        ]
         return combos[:MAX_TARGET_SETS]
 
     def _modes(self, node: SpellAbility) -> list[tuple[int, ...]]:

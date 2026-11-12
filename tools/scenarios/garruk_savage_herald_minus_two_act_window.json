@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Brute", "power": 4, "toughness": 4, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "pal", "name": "Pal", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "gsh", "set": 5},
+  {"op": "act", "seat": 0, "words": ["act:gsh:1", "brute", "victim"]}
+ ],
+ "expect": {
+  "zone": {"victim": "graveyard", "brute": "battlefield", "pal": "battlefield", "gsh": "battlefield"},
+  "damage": {},
+  "life": {"0": 20, "1": 20},
+  "counters": {"gsh": {"LOYALTY": 3}}
+ },
+ "notes": "Printed: '[-2]: Target creature you control deals damage equal to its power to another target creature.' Through the act window, as a dealt game asks it (the bench router): the -2 is a row of the menu, and its two targets are asked one slot at a time (CR 601.2c via 602.2b): first a creature you control (the Brute), then another creature (the Victim). The Brute deals 4 to the Victim, which dies; the Brute is dealt nothing (not a fight), and Garruk goes from 5 to 3 loyalty. The M21 campaign (KNOWLEDGE 2026-10-30/177) found act windows skipped activations with several target slots, so the -2 was never used."
+}

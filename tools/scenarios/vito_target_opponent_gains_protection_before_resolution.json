@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vito", "real": "Vito, Thorn of the Dusk Rose", "zone": "battlefield", "controller": 0},
+  {"key": "leech", "name": "Leech", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "guard", "name": "Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "leech", "target": "guard", "amount": 2, "hold": true},
+  {"op": "enter", "key": "h", "decisions": ["Vito, Thorn of the Dusk Rose"]}
+ ],
+ "expect": {"life": {"0": 22, "1": 20}, "damage": {"guard": 2}},
+ "notes": "CR 608.2b on a trigger's designated player. The lifelink Leech's 2 damage gains its controller 2 and Vito, Thorn of the Dusk Rose's 'target opponent loses that much life' goes on the stack targeting the opponent, and waits. Then a Runed Halo is put onto the opponent's battlefield (the harness's stand-in for an effect that puts it there) naming Vito: the opponent now has protection from Vito, so as the ability resolves its only target is illegal and it does not resolve. The opponent stays at 20. Before the fix only a TARGET selector's targets were checked again, never a trigger's designated player, and the opponent lost 2."
+}

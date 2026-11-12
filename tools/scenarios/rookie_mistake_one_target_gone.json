@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rm", "real": "Rookie Mistake", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Bear A", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "b", "name": "Opp Ape", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Rookie Mistake", "key": "rm", "targets": ["a", "b"], "hold": true},
+  {"op": "move", "key": "a", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"rm": "graveyard", "a": "hand"},
+  "power": {"b": 1},
+  "toughness": {"b": 3}
+ },
+ "notes": "Printed: 'Target creature gets +0/+2 until end of turn. Another target creature gets -2/-0 until end of turn.' The first target is returned to its owner's hand in response. As the spell resolves one target is illegal and the other legal: the spell resolves and only the legal target is affected (CR 608.2b), so the Ape still gets -2/-0."
+}

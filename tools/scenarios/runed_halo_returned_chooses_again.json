@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1}},
+ "steps": [
+  {"op": "enter", "key": "h", "decisions": ["Shock"]},
+  {"op": "move", "key": "h", "to": "hand"},
+  {"op": "enter", "key": "h", "hold_triggers": true, "decisions": ["Runed Halo"]},
+  {"op": "cast", "real": "Shock", "key": "s", "controller": 1, "targets": ["p0"]}
+ ],
+ "expect": {"life": {"0": 18}, "zone": {"s": "graveyard", "h": "battlefield"}},
+ "notes": "CR 400.7: Runed Halo returned to its owner's hand and put onto the battlefield again is a new object, with no memory of the name its earlier existence chose. The new Halo chooses Runed Halo as it enters (CR 614.1c, 614.12a), so the opponent's Shock may target its controller at once: 20 - 2 = 18. Before the fix the choice was an enters trigger and the name was kept by the card across zones, so while the new Halo's trigger waited, its controller still had protection from Shock, the old object's choice, and the Shock was refused."
+}

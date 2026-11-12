@@ -426,6 +426,11 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
             initial_counters=((at.CounterKind.SOUL, at.QConst(2)),),
         ),
     ),
+    # "As this enchantment enters, choose a card name" (Runed Halo)
+    (
+        "etb_effect",
+        lambda: at.EtBState(effect=at.Atom(at.Verb.CHOOSE_NAME, at.AtomArgs(pairs=()))),
+    ),
     # K) CostModifier + the five CostDelta variants
     (
         "costmod_reduce_generic",
@@ -675,6 +680,10 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 initial_counters=[(at.CounterKind.SOUL, at.QConst(1))],  # type: ignore[arg-type]
             ),
         ),
+        (
+            "etb_effect_str",
+            lambda: at.EtBState(effect="choose a card name"),  # type: ignore[arg-type]
+        ),
         # K) CostModifier + CostDelta
         (
             "costmod_delta_quantity",
@@ -863,6 +872,8 @@ def test_omit_keys_absent_by_default() -> None:
     assert "controller" not in d and "from_zone" not in d and "ordinal" not in d
     d = at.to_dict(at.DamageDealtEvent(at.QConst(2), _SRC))
     assert "source" not in d and "combat" not in d
+    d = at.to_dict(at.EtBState(tapped=True))
+    assert "condition" not in d and "effect" not in d
 
 
 def test_explicit_empty_omit_fields_decode() -> None:

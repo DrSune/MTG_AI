@@ -1894,10 +1894,12 @@ def _printed_match(filter_: Filter, type_line: str) -> bool:
 
 
 def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
-    """CHOOSE_NAME (Runed Halo's ETB "choose a card name"): the chosen name
-    is RECORDED (executor.name_choices, keyed by the source that wrote it)
-    and read back by the NAME_CHOSEN filter predicate (quantity._eval_atom),
-    e.g. in the PROTECTION keyword param the static grants.
+    """CHOOSE_NAME (Runed Halo's "As this enchantment enters, choose a card
+    name", made as it enters: EtBState.effect): the chosen name is RECORDED
+    (executor.name_choices, keyed by the source that wrote it, until that
+    object leaves the battlefield) and read back by the NAME_CHOSEN filter
+    predicate (quantity._eval_atom), e.g. in the PROTECTION keyword param
+    the static grants.
 
     For a free-text name the pick is a decision token out of the enumerable
     candidate NAMES, narrowed by the optional ``name_filter`` (Necromentia's

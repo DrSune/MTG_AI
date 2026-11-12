@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Brute", "power": 4, "toughness": 4, "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "power": 3, "toughness": 3, "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "gsh", "set": 5},
+  {"op": "activate", "key": "gsh", "idx": 1, "seat": 0, "targets": ["brute", "victim"], "hold": true},
+  {"op": "move", "key": "brute", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"victim": "battlefield", "brute": "hand", "gsh": "battlefield"},
+  "damage": {},
+  "counters": {"gsh": {"LOYALTY": 3}}
+ },
+ "notes": "Printed: '[-2]: Target creature you control deals damage equal to its power to another target creature.' The Brute is returned to its owner's hand in response. As the ability resolves the Brute is an illegal target and the Victim is still legal, so the ability resolves, but an illegal target performs no action (CR 608.2b): no creature deals the damage, and the Victim is dealt none. The loyalty cost stays paid (5 to 3)."
+}
