@@ -625,5 +625,46 @@
  },
  "probe": {
   "sha": "4f45c341053e97027b24afad1d40d1af1df0a4e4886606a1cce0c096a5628262"
+ },
+ "verified": {
+  "tree_sha": "b71a59241a578668f58b676668db84366e99279e5129d6cbad02e77f07519c4a",
+  "probe_sha": "3df778647bf2b015a4ea42808a95c78c493ef2d692644f8398b5aea013d8ee71",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1-B",
+  "clauses": [
+   {
+    "clause": "Target creature you control gains protection from the color of your choice until end of turn",
+    "status": "OK",
+    "evidence": "target slot 1..1 of [you_bear, you_giant] (own creatures only); ask choose [0..4] = five colours; +PROTECTION then 'after the turn ends' -PROTECTION",
+    "issue": ""
+   },
+   {
+    "clause": "which colour is applied (W U B R G)",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace shows only '+PROTECTION', not the colour; packs B04_1..B04_3 check red/green prevent damage and a different colour does not",
+    "issue": ""
+   },
+   {
+    "clause": "Scry 1",
+    "status": "OK",
+    "evidence": "ask scry [top, bottom] once, both answers played",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/gods_willing_1.json",
+   "tools/scenarios/cards/M20/gods_willing_2.json",
+   "tools/scenarios/cards/M20/gods_willing_3.json",
+   "tools/scenarios/cards/M20/gods_willing_4.json",
+   "tools/scenarios/cards/M20/gods_willing_5.json"
+  ],
+  "mutation": {
+   "mutants": 30,
+   "killed": 29,
+   "score": 0.9666666666666667,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/controller"
+   ]
+  }
  }
 }

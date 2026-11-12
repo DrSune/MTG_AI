@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "B04_2",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'gains protection from the color of your choice'. Choose red; a GREEN source is not stopped by protection from red, so 3 damage destroys the 0/3 Wall (CR 704.5g).",
+ "cards": [
+  {"key": "gw", "real": "Gods Willing", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Wall", "type": "Creature — Wall", "power": 0, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "src", "name": "Colored Source", "type": "Creature", "power": 3, "toughness": 3, "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "gw", "controller": 0, "targets": ["mine"], "decisions": ["3", "top"]},
+  {"op": "deal_damage", "source": "src", "target": "mine", "amount": 3}
+ ],
+ "expect": {"zone": {"gw": "graveyard", "mine": "graveyard"}}
+}

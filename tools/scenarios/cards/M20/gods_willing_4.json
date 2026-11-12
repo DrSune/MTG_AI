@@ -1,0 +1,101 @@
+{
+ "set": "M20",
+ "name": "gods_willing_protection_only_on_target",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Target creature you control gains protection from the color of your choice until end of turn.' Two of my 0/3 Walls and an opponent 0/3 Wall; I target Wall One and choose red (4th option). Then a red source deals 3 damage to each Wall: Wall One (protected) survives; my other Wall and the opponent's Wall (not targeted) die.",
+ "cards": [
+  {
+   "key": "gw",
+   "real": "Gods Willing",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "name": "Wall One",
+   "type": "Creature \u2014 Wall",
+   "power": 0,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "name": "Wall Two",
+   "type": "Creature \u2014 Wall",
+   "power": 0,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ow",
+   "name": "Opp Wall",
+   "type": "Creature \u2014 Wall",
+   "power": 0,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "src",
+   "name": "Red Source",
+   "type": "Creature",
+   "power": 3,
+   "toughness": 3,
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gw",
+   "controller": 0,
+   "targets": [
+    "w1"
+   ],
+   "decisions": [
+    "3",
+    "top"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "w1",
+   "amount": 3
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "w2",
+   "amount": 3
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "ow",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gw": "graveyard",
+   "w1": "battlefield",
+   "w2": "graveyard",
+   "ow": "graveyard"
+  }
+ }
+}
