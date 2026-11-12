@@ -77,10 +77,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Combat
 
-- **What closing B-102 and B-103 (B-106, gate R5-14) left open** (2026-11-12). The trigger axis
-  `TriggeredAbility.once_per_event` (and `DelayedTrigger`'s; CR 603.2c) closed them: absent, a
-  trigger fires once per occurrence its event matches; True, once per event. A creature put onto
-  the battlefield attacking gets no DECLARE_ATTACKERS row (CR 508.4).
+- **What closing B-102 and B-103 (B-106, gate R5-14) left open** (2026-11-12, closed in 6f020b8).
+  The trigger axis `TriggeredAbility.once_per_event` (and `DelayedTrigger`'s; CR 603.2c) closed
+  them: absent, a trigger fires once per occurrence its event matches; True, once per event. A
+  creature put onto the battlefield attacking gets no DECLARE_ATTACKERS row (CR 508.4).
   - The binder groups an event's occurrences only for a declaration (its DECLARE_ATTACKERS rows
     share a group) and a combat damage step (its DAMAGE rows to one recipient, gathering the
     dealers `source` names). A once-per-event trigger on any other event kind refuses to bind
