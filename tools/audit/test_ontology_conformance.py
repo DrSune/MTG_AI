@@ -507,6 +507,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # Unsubstantiate's "target spell or creature" as FOr(STACK_KIND_EQ SPELL,
         # TYPE_EQ Creature) (BACKLOG B-110, abilities on the stack are targets).
         "ontology_census_2026-11-11_b110_post_full.json",
+        # Transmogrify's "That player puts that card onto the battlefield, then
+        # shuffles the rest": EachPlayer over a referent ref (BACKLOG B-113).
+        "ontology_census_2026-11-12_m21gaps_post_full.json",
     ):
         full = oc.REPO / "reports" / name
         if not full.exists():

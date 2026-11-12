@@ -2481,9 +2481,9 @@ def attack_blocked_reason(
     creature-ness (the LIVE type line — GRANT_TYPE overlay aware), untapped
     (CR 508.1a: the chosen creatures must be untapped, so a creature tapped
     for mana or by Frost Breath cannot attack; attacking then taps the rest,
-    VIGILANCE excepted, CR 508.1f), DEFENDER (CR 702.3b; Drowsing
-    Tyrannodon's "can attack as though it didn't have defender" lifts it
-    through a LOSE_ABILITY static), summoning sickness (CR 302.6) unless the
+    VIGILANCE excepted, CR 508.1f), DEFENDER (CR 702.3b) unless an
+    attack policy lets the creature attack as though it didn't have defender
+    (CR 609.4, :func:`attack_policy_applies`), summoning sickness (CR 302.6) unless the
     creature has HASTE (CR 702.10a), and the PREVENT_EFFECT attack veto
     (Faith's Fetters' "enchanted permanent can't attack", consumed through
     the prevention registry)."""
@@ -2499,7 +2499,9 @@ def attack_blocked_reason(
         return "not a creature"
     if world.cards[creature].tapped:
         return "tapped (CR 508.1a)"
-    if executor.layers.keyword_of(creature, Keyword.DEFENDER):
+    if executor.layers.keyword_of(creature, Keyword.DEFENDER) and not attack_policy_applies(
+        executor, creature, "AS_NO_DEFENDER"
+    ):
         return "defender (CR 702.3b)"
     if not executor.layers.keyword_of(creature, Keyword.HASTE) and not (
         _controlled_since_turn_start(executor, creature)
@@ -2508,6 +2510,20 @@ def attack_blocked_reason(
     if executor.replacements.prevents_attack_declaration(creature):
         return "attack prevented (PREVENT_EFFECT, CR 508.1A)"
     return None
+
+
+def attack_policy_applies(executor: Executor, creature: Handle, scope: str) -> bool:
+    """CR 609.4: may ``creature`` attack "as though" ``scope`` were true? A live
+    ATTACK_POLICY layer, static (Drowsing Tyrannodon's "As long as you control a
+    creature with power 4 or greater, this creature can attack as though it didn't
+    have defender") or made by a resolving ability, names it. ``AS_NO_DEFENDER``
+    lifts only the defender restriction on attacking (CR 702.3b): the creature
+    still has defender for every other purpose."""
+    return any(
+        layer.atoms[0].args.get("scope") == scope
+        and creature in _rule_subjects(executor, layer)
+        for layer in executor.layers.live_records("attack_policy")
+    )
 
 
 def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
@@ -2523,12 +2539,12 @@ def legal_attackers(executor: Executor, seat: Handle) -> tuple[Handle, ...]:
     )
 
 
-def _mandate_subjects(executor: Executor, layer: LayerRecord) -> tuple[Handle, ...]:
-    """The creatures one LIVE mandate layer binds. A ``resolved`` record
-    (a dispatched mandate with a duration) designated its creatures
-    once, at resolution; a static one re-resolves its ``cards`` selector in
-    the layer anchor's coordinates every combat, like any continuous-effect
-    scope."""
+def _rule_subjects(executor: Executor, layer: LayerRecord) -> tuple[Handle, ...]:
+    """The creatures one LIVE combat-rule layer (a mandate or an attack
+    policy) binds. A ``resolved`` record (a dispatched rule with a duration)
+    designated its creatures once, at resolution; a static one re-resolves
+    its ``cards`` selector in the layer anchor's coordinates every combat,
+    like any continuous-effect scope."""
     if layer.resolved:
         return layer.targets
     selector = layer.atoms[0].args.get("cards")
@@ -2560,8 +2576,8 @@ def mandated_attackers(executor: Executor, seat: Handle) -> frozenset[Handle]:
             and executor.controller_of(handle) == seat
         ):
             mandated.add(handle)
-    for layer in executor.layers.live_mandate_layers():
-        for handle in _mandate_subjects(executor, layer):
+    for layer in executor.layers.live_records("mandate"):
+        for handle in _rule_subjects(executor, layer):
             if (
                 handle in world.cards
                 and world.zone_of(handle).kind == ZONE_BATTLEFIELD
@@ -2680,8 +2696,8 @@ def mandated_to_be_blocked(executor: Executor) -> frozenset[Handle]:
     for handle in executor.mandate_block:
         if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
             mandated.add(handle)
-    for layer in executor.layers.live_mandate_block_layers():
-        for handle in _mandate_subjects(executor, layer):
+    for layer in executor.layers.live_records("mandate_block"):
+        for handle in _rule_subjects(executor, layer):
             if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
                 mandated.add(handle)
     return frozenset(mandated)

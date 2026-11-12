@@ -82,6 +82,7 @@ from MTG_bot.core.ability_tree import (
     LifeGainedEvent,
     LifeLostEvent,
     OptionalEffect,
+    PhasingEvent,
     PtDelta,
     PtDirection,
     QAtMost,
@@ -156,6 +157,10 @@ _UNSUPPORTED_EVENTS: dict[type, str] = {
     # a "spell" filter could not be judged on the object as it was.
     CounteredEvent: "a prevention event only (no trigger feed: the countered "
     "spell has left the stack by the time the journal row is matched)",
+    # "can't phase in" reads PhasingEvent (a PREVENT_EFFECT the phasing step
+    # consults). Phasing is a status, not a zone change (CR 702.26d), and the
+    # journal has no phasing row, so nothing feeds a "whenever ... phases" trigger.
+    PhasingEvent: "a prevention event only (no journal row records phasing)",
 }
 
 # Delayed-trigger window tags the end-of-turn sweep expires. ``UntilNextTurn``

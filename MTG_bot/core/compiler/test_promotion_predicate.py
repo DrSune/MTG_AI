@@ -38,10 +38,13 @@ from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
 
 # M21's CHOOSE surfaces per bucket of the predicate's decision order (base tree).
-TOTAL_SURFACES = 144
+# 2026-11-12: Transmogrify's reveal-until tail added three referent surfaces (its
+# REVEAL controller and EachPlayer ref, "that creature's controller", and the
+# MOVE_ZONE of "that card"): referent 35 -> 38, total 144 -> 147.
+TOTAL_SURFACES = 147
 CORE_LIFTABLE = 21
 SELF_DESIGNATION = 50
-ANAPHORIC_REFERENT = 35
+ANAPHORIC_REFERENT = 38
 COST_VICTIM = 25
 COUNT_NOT_ONE = 13
 

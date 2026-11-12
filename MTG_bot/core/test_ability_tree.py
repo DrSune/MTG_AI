@@ -1581,8 +1581,9 @@ def test_atom_args_roundtrip_wraps_values() -> None:
 def test_verb_count_in_spec_range() -> None:
     # docs/DESIGN_CARD_POOL.md plans roughly 60 verbs; a ceiling below that
     # keeps the closed vocabulary from growing unnoticed (raising it is a
-    # deliberate edit).
-    assert 30 <= len(at.Verb) <= 50
+    # deliberate edit: 51 for ATTACK_POLICY, Drowsing Tyrannodon's "can attack
+    # as though it didn't have defender", 2026-11-12).
+    assert 30 <= len(at.Verb) <= 51
 
 
 def test_keyword_enum_is_closed_pool_set() -> None:

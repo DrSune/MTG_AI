@@ -55,6 +55,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     Duration,
     DurationPermanent,
+    DurationUntilEndOfNextTurn,
     DurationUntilLeaves,
     DurationUntilNextStep,
     DurationUntilNextTurn,
@@ -221,7 +222,9 @@ class LayerRecord:
     ``"mandate"`` / ``"mandate_block"`` (MANDATE_ATTACK / MANDATE_BLOCK
     rules — "attacks each combat if able"; the legality surface resolves
     the atom's ``cards`` selector at every declare-attackers /
-    declare-blockers), and
+    declare-blockers), ``"attack_policy"`` (ATTACK_POLICY, the same
+    ``cards`` shape: "can attack as though it didn't have defender",
+    read by the attack legality), and
     ``"disclosure"`` (REVEAL/LOOK_AT payload statics — the recorded zone-
     knowledge fact, selector-less and inert at re-apply by rules right).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
@@ -229,7 +232,7 @@ class LayerRecord:
     record stays for the audit dump). ``ledger_ids`` maps each materialized
     PT target to its DurationLedger record id. ``resolved`` marks a record
     a RESOLVED spell or ability created (a dispatched "mandate"/
-    "mandate_block" with fixed ``targets``; the runtime "grant",
+    "mandate_block"/"attack_policy" with fixed ``targets``; the runtime "grant",
     "lose" and "type_grant" records): CR 611.2a, it lasts as long as its
     duration says, so its source leaving the battlefield does not end it
     (:meth:`LayerRegistry.detach_source` skips it; an UntilLeaves duration
@@ -351,24 +354,26 @@ class LayerRegistry:
                 dropped += 1
         return dropped
 
-    def register_mandate(
+    def register_rule(
         self,
         kind: str,
         source: Handle,
         controller: Handle,
         targets: tuple[Handle, ...],
         atom: Atom,
-        duration: Duration,
+        duration: Duration | None,
     ) -> LayerRecord:
-        """A DISPATCHED MANDATE_ATTACK / MANDATE_BLOCK atom that
-        carries a duration ("attacks this turn if able", "must be blocked
-        this turn if able", goad's "until your next turn"). The creatures
-        were designated at resolution (fixed ``targets``), and the record
-        rides the registry's duration expiry: Eot at cleanup (CR 514.2),
-        UntilNextTurn when the controller's next turn begins (CR 611.2b),
-        UntilNextStep at its step, While while its condition holds,
-        UntilLeaves when the source leaves. ``kind`` is ``"mandate"`` or
-        ``"mandate_block"``, so legality reads it beside the static ones."""
+        """A DISPATCHED combat rule atom: a MANDATE_ATTACK / MANDATE_BLOCK
+        that carries a duration ("attacks this turn if able", "must be blocked
+        this turn if able", goad's "until your next turn"), or an
+        ATTACK_POLICY ("it can attack this turn as though it didn't have
+        defender"). The creatures were designated at resolution (fixed
+        ``targets``), and the record rides the registry's duration expiry:
+        Eot at cleanup (CR 514.2), UntilNextTurn when the controller's next
+        turn begins (CR 611.2b), UntilNextStep at its step, While while its
+        condition holds, UntilLeaves when the source leaves. ``kind`` is
+        ``"mandate"``, ``"mandate_block"`` or ``"attack_policy"``, so legality
+        reads it beside the static ones."""
         return self._new_resolved(kind, source, controller, (atom,), targets, duration)
 
     def _new_resolved(
@@ -519,7 +524,9 @@ class LayerRegistry:
         # exactly like any static record — Furor leaving ends the mandate
         # with it); the remaining atoms take the ordinary layer path below.
         # MANDATE_BLOCK (Canopy Stalker "must be blocked if able", CR 509.1h)
-        # splits the same way into "mandate_block" layers, and PREVENT_EFFECT
+        # and ATTACK_POLICY (Drowsing Tyrannodon "can attack as though it
+        # didn't have defender", CR 609.4) split the same way into
+        # "mandate_block" / "attack_policy" layers, and PREVENT_EFFECT
         # atoms (the PREVENTION static family — Tome Anima "can't be blocked", Faith's Fetters'
         # two-part attack/block veto) route to the REPLACEMENT registry as
         # lifetime PreventionRecords — the same record shape the activated
@@ -538,54 +545,33 @@ class LayerRegistry:
         # liveness exactly like a mandate, and inert at re-apply because it
         # mutates nothing by rules right: the record IS the promise ("the
         # card is played revealed").
-        looks = [atom for atom in atoms if atom.verb in (Verb.REVEAL, Verb.LOOK_AT)]
-        mandates = [atom for atom in atoms if atom.verb is Verb.MANDATE_ATTACK]
-        mandates_block = [atom for atom in atoms if atom.verb is Verb.MANDATE_BLOCK]
         prevents = [atom for atom in atoms if atom.verb is Verb.PREVENT_EFFECT]
+        # One record per atom, kind by kind in this order (the record seq is
+        # fingerprinted), each live exactly while the static is.
+        split_kinds = (
+            ("disclosure", (Verb.REVEAL, Verb.LOOK_AT)),
+            ("mandate", (Verb.MANDATE_ATTACK,)),
+            ("mandate_block", (Verb.MANDATE_BLOCK,)),
+            ("attack_policy", (Verb.ATTACK_POLICY,)),
+        )
+        split_verbs = {verb for _kind, verbs in split_kinds for verb in verbs}
         rest = [
             atom
             for atom in atoms
-            if atom.verb
-            not in (
-                Verb.MANDATE_ATTACK,
-                Verb.MANDATE_BLOCK,
-                Verb.PREVENT_EFFECT,
-                Verb.REVEAL,
-                Verb.LOOK_AT,
-            )
+            if atom.verb not in split_verbs and atom.verb is not Verb.PREVENT_EFFECT
         ]
         records: list[LayerRecord] = [
             self._new(
-                "disclosure",
+                kind,
                 handle,
                 controller,
-                (look,),
+                (atom,),
                 condition=static.condition,
-                duration=_static_while_duration([look]),
+                duration=_static_while_duration([atom]),
             )
-            for look in looks
-        ]
-        records += [
-            self._new(
-                "mandate",
-                handle,
-                controller,
-                (mandate,),
-                condition=static.condition,
-                duration=_static_while_duration([mandate]),
-            )
-            for mandate in mandates
-        ]
-        records += [
-            self._new(
-                "mandate_block",
-                handle,
-                controller,
-                (mandate,),
-                condition=static.condition,
-                duration=_static_while_duration([mandate]),
-            )
-            for mandate in mandates_block
+            for kind, verbs in split_kinds
+            for atom in atoms
+            if atom.verb in verbs
         ]
         for atom in prevents:
             event = atom.args.get("event")
@@ -1017,15 +1003,18 @@ class LayerRegistry:
         return expired
 
     def expire_until_next_turn(self, player: Handle) -> int:
+        """``player``'s turn begins: "until your next turn" records end (CR 611.2b),
+        and "until the end of your next turn" ones become "until end of turn", so this
+        turn's cleanup sweep ends them (CR 514.2)."""
         expired = 0
         for layer in self.records:
-            if (
-                isinstance(layer.duration, DurationUntilNextTurn)
-                and layer.status != "expired"
-                and layer.controller == player
-            ):
+            if layer.status == "expired" or layer.controller != player:
+                continue
+            if isinstance(layer.duration, DurationUntilNextTurn):
                 self._expire_layer(layer)
                 expired += 1
+            elif isinstance(layer.duration, DurationUntilEndOfNextTurn):
+                layer.tag = "Eot"
         return expired
 
     # ------------------------------------------------------------- derived
@@ -1189,28 +1178,18 @@ class LayerRegistry:
                     return True
         return False
 
-    def live_mandate_layers(self) -> list[LayerRecord]:
-        """Every LIVE ``"mandate"`` layer record (MANDATE_ATTACK, static or
-        dispatched). NOT keyed by the anchor controller — the rule's subject
-        set comes from each layer's own ``cards`` selector or designated
-        ``targets`` (an aura's "enchanted creature attacks if able" binds
-        that creature's CONTROLLER, which may be an opponent of the aura's
-        controller)."""
+    def live_records(self, kind: str) -> list[LayerRecord]:
+        """Every LIVE layer record of a combat-rule ``kind`` (``"mandate"``:
+        MANDATE_ATTACK; ``"mandate_block"``: MANDATE_BLOCK, CR 509.1h;
+        ``"attack_policy"``: ATTACK_POLICY), static or dispatched. NOT keyed by
+        the anchor controller — the rule's subject set comes from each layer's
+        own ``cards`` selector or designated ``targets`` (an aura's "enchanted
+        creature attacks if able" binds that creature's CONTROLLER, which may
+        be an opponent of the aura's controller)."""
         return [
             layer
             for layer in self.records
-            if layer.kind == "mandate" and layer.status == "live"
-        ]
-
-    def live_mandate_block_layers(self) -> list[LayerRecord]:
-        """MANDATE_BLOCK (Canopy Stalker, CR 509.1h): every
-        LIVE ``"mandate_block"`` layer, same anchor rule as the attack
-        side (the ``cards`` selector resolves in the layer's own
-        coordinates)."""
-        return [
-            layer
-            for layer in self.records
-            if layer.kind == "mandate_block" and layer.status == "live"
+            if layer.kind == kind and layer.status == "live"
         ]
 
     # ------------------------------------------- damage policy + protection

@@ -60,7 +60,6 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationPermanent,
     DurationUntilLeaves,
-    DurationWhileCondition,
     EachPlayer,
     FAnd,
     FAtom,
@@ -1414,15 +1413,13 @@ def _build_aslong_attack_despite_defender(m: re.Match[str]) -> SentenceOutcome:
     """``As long as you control a creature with power N or greater, this
     creature can attack as though it didn't have defender.`` (Drowsing
     Tyrannodon) — StaticAbility carrying the as-long-as gate in
-    ``condition`` (never a duration) over a LOSE_ABILITY atom that strips
-    Keyword.DEFENDER from self, scoped by DurationWhileCondition inside the
-    atom.
+    ``condition`` over an ATTACK_POLICY atom (scope AS_NO_DEFENDER) on self.
 
-    "Can attack as though it didn't have defender" is encoded as actually
-    losing defender: Defender's only rules text on this pool is "This
-    creature can't attack", so the two effects coincide; there is no
-    as-though machinery, and losing the keyword is the closest honest
-    encoding.
+    An "as though" effect (CR 609.4): only the CR 702.3b restriction on
+    attacking is lifted. The creature keeps defender, so it is still "a
+    creature with defender" to every other rule and effect (Portcullis
+    Vine's sacrifice cost); losing the keyword would be stronger than
+    printed there and weaker nowhere else.
     """
     p = int(m.group("p"))
     cond = FAtom(
@@ -1436,17 +1433,16 @@ def _build_aslong_attack_despite_defender(m: re.Match[str]) -> SentenceOutcome:
         ),
     )
     atom = Atom(
-        verb=Verb.LOSE_ABILITY,
+        verb=Verb.ATTACK_POLICY,
         args=AtomArgs(
             pairs=(
                 (
-                    "target",
+                    "cards",
                     _self_selector(
                         Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)
                     ),
                 ),
-                ("ability", KeywordAbility(keyword=Keyword.DEFENDER)),
-                ("duration", DurationWhileCondition(filter=cond)),
+                ("scope", "AS_NO_DEFENDER"),
             )
         ),
     )
@@ -2134,7 +2130,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-aslong-attack-despite-defender",
-        name="as-long-as power gate strips Defender (LOSE_ABILITY, C9)",
+        name="as-long-as power gate: attack as though no defender (ATTACK_POLICY)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^As long as you control a creature with power (?P<p>\d+) or "

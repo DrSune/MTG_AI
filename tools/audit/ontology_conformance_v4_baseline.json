@@ -138,7 +138,7 @@
     "Drowsing Tyrannodon": {
       "count": 1,
       "shapes": [
-        "8ee9c29664ca15fe"
+        "7c858c4d428b66aa"
       ]
     },
     "Duress": {
@@ -579,6 +579,14 @@
       "shapes": [
         "9583947c6a67fa87",
         "a98f20d7dd8d5f17"
+      ]
+    },
+    "Transmogrify": {
+      "count": 3,
+      "shapes": [
+        "779c65e6cf28ffeb",
+        "8b10a755c5de2665",
+        "e9657d722e0378c3"
       ]
     },
     "Treasure": {

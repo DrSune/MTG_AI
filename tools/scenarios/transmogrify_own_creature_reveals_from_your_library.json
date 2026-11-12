@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "sp", "real": "Transmogrify", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Squire", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Their Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "theirs", "name": "Their Giant", "power": "6", "toughness": "6", "type": "Creature", "zone": "library", "controller": 1},
+  {"key": "found", "name": "My Dragon", "power": "5", "toughness": "5", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "land", "name": "My Land", "type": "Land", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:sp", "mine"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "mine": "exile", "ogre": "battlefield", "found": "battlefield", "land": "library", "theirs": "library"},
+  "controller": {"found": 0}
+ },
+ "notes": "Transmogrify on the caster's own creature: 'that creature's controller' is the caster, so the caster reveals from their own library (My Land, then My Dragon) and puts My Dragon onto the battlefield; the opponent's library is not touched. The player is the exiled creature's controller as it last existed on the battlefield (CR 608.2h), never a player the caster picks."
+}

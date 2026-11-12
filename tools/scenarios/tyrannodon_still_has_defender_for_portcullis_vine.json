@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "v", "real": "Portcullis Vine", "zone": "battlefield", "controller": 0},
+  {"key": "t", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+  {"key": "g", "real": "Blood Glutton", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "v", "idx": 0, "seat": 0, "decisions": ["t"]}
+ ],
+ "expect": {
+  "zone": {"t": "graveyard", "v": "battlefield", "g": "battlefield"},
+  "tapped": {"v": true},
+  "hand": {"0": 1}
+ },
+ "notes": "BACKLOG B-80. Drowsing Tyrannodon: 'Defender. As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.' An 'as though' effect (CR 609.4) lifts only the restriction on attacking (CR 702.3b): with the 4-power Blood Glutton in play the Tyrannodon still has defender, so Portcullis Vine's '{2}, {T}, Sacrifice a creature with defender: Draw a card' may sacrifice it (the cost designation is answered with its key). Before the fix the static compiled to LOSE_ABILITY(DEFENDER): the Tyrannodon stopped having defender, the sacrifice menu offered only the Vine, and this pack failed."
+}

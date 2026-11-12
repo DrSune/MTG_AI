@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "sp", "real": "Transmogrify", "zone": "hand", "controller": 0},
+  {"key": "bull", "name": "Doomed Bull", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ox", "name": "Ox", "power": "2", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "deep", "name": "Deep Creature", "power": "5", "toughness": "5", "type": "Creature", "zone": "library", "controller": 1},
+  {"key": "found", "name": "Second Card", "power": "2", "toughness": "2", "type": "Creature", "zone": "library", "controller": 1},
+  {"key": "top", "name": "Top Sorcery", "type": "Sorcery", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:sp", "bull"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard", "bull": "exile", "ox": "battlefield", "found": "battlefield", "top": "library", "deep": "library"},
+  "controller": {"found": 1}
+ },
+ "notes": "Printed Transmogrify: 'Exile target creature. That creature's controller reveals cards from the top of their library until they reveal a creature card. That player puts that card onto the battlefield, then shuffles the rest into their library.' Cast from the act menu as a dealt game casts it: one target question (the Bull), and no player question: 'that creature's controller' is not a target. Seat 1 reveals Top Sorcery, then Second Card, the first creature card, which enters under seat 1's control (CR 110.2a); Top Sorcery is shuffled back and Deep Creature was never revealed. Before the fix the tree read TARGET_PLAYER (the menu asked a second, player target) and searched only the library's top card, so a noncreature on top put nothing onto the battlefield."
+}

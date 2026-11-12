@@ -1025,7 +1025,7 @@ class TestReplayDeterminism(unittest.TestCase):
 
 class TestCapabilitySurface(unittest.TestCase):
     def test_v2_size(self):
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 45)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 46)  # + ATTACK_POLICY (2026-11-12)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

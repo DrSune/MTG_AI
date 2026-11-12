@@ -31,6 +31,10 @@ The vocab, and where each expiry point is driven from (all inside
     recorded controller's next ``begin_turn`` (:meth:`expire_until_next_turn`).
     (A delayed trigger's window is :mod:`binding`'s own table, swept at end
     of turn, not this ledger.)
+  * ``DurationUntilEndOfNextTurn`` — ``"UntilEndOfNextTurn"``: the layer and
+    prevention records re-tag to ``"Eot"`` as their controller's next turn
+    begins, so that turn's cleanup sweep ends them (CR 514.2). The ledger has
+    no P/T carrier for it and refuses one.
   * ``DurationPermanent`` — ``"Permanent"``: only another effect removes it.
 
 **PT resolution rule:** effective P/T = printed BASE, then every modifier —
@@ -50,6 +54,7 @@ from MTG_bot.core.ability_tree import (
     Duration,
     DurationEot,
     DurationPermanent,
+    DurationUntilEndOfNextTurn,
     DurationUntilLeaves,
     DurationUntilNextStep,
     DurationUntilNextTurn,
@@ -66,6 +71,7 @@ _DURATION_TAG: dict[type, str] = {
     DurationEot: "Eot",
     DurationPermanent: "Permanent",
     DurationUntilNextTurn: "UntilNextTurn",
+    DurationUntilEndOfNextTurn: "UntilEndOfNextTurn",
     DurationWhileCondition: "While",
     DurationUntilLeaves: "UntilLeaves",
 }
@@ -295,6 +301,12 @@ class DurationLedger:
             )
         if isinstance(duration, DurationUntilNextTurn):
             return DurationMeta(tag=tag, next_turn_owner=controller)
+        if isinstance(duration, DurationUntilEndOfNextTurn):
+            # The layer and prevention registries end it (their records re-tag to Eot as
+            # the controller's next turn begins); no P/T effect prints it.
+            raise NotImplementedError(
+                "executor: a P/T change until the end of your next turn has no ledger expiry"
+            )
         return None
 
     # -------------------------------------------------------------- folding

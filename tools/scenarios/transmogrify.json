@@ -36,9 +36,6 @@
    "key": "sp",
    "targets": [
     "t"
-   ],
-   "decisions": [
-    "player:1"
    ]
   }
  ],
@@ -54,5 +51,5 @@
    ]
   }
  },
- "notes": "WAVE2B (2026-10-01) re-run: printed 'Exile target creature. That creature's controller reveals cards from the top of their library until they reveal a creature card. That player PUTS THAT CARD ONTO THE BATTLEFIELD, then shuffles the rest into their library.' The exile lands (opponent's Bull exiles correctly); the reveal-until-creature and put-onto-battlefield tail is a no-op: the opponent's library top IS a printed Creature ('Library 5', 1/1) and the battlefield stays empty. C3: engine contract (query.py:778-798, 14b) synthesizes a second positional slot for TARGET_PLAYER reads; cast now designates ('t', seat 1) via the r22b player:N token \u2014 TARGET_PLAYER then binds controller-of-target, the card's 'that creature's controller'."
+ "notes": "Printed: 'Exile target creature. That creature's controller reveals cards from the top of their library until they reveal a creature card. That player puts that card onto the battlefield, then shuffles the rest into their library.' The opponent's Bull is exiled; seat 1's library top is a printed Creature (the runner's 'Library 5', 1/1), the first creature card revealed, so it enters. The spell has one target, the creature: 'that creature's controller' is the exiled creature's controller (CR 608.2h), not a player target (before the REVEAL-until fix the cast designated a second, player target with the 'player:1' token)."
 }

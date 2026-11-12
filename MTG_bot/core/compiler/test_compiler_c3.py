@@ -4,10 +4,9 @@
    EachPlayer(ALL_OPPONENTS, Conditional(FNot(hand ZONE_COUNT_GE 1), LOSE_LIFE 3))
    inside the loyalty-+1 ActivatedAbility, placed before the discard it reads
    (docs/ATOM_DIVERGENCES.md D17).
-2. Transmogrify's reveal-until pair is a top-of-library creature SEARCH
-   (ZonePosition.TOP, TARGET_PLAYER) whose destination carries "puts that card
-   onto the battlefield", then the SHUFFLE; the instant's three plain effects
-   fold into one Seq.
+2. Transmogrify reveals until a creature card (REVEAL ``until``) as the exiled
+   creature's controller, and that player puts the card onto the battlefield and
+   shuffles (EachPlayer over the same referent); the three effects fold into one Seq.
 3. Peer into the Abyss: the target player loses exactly half their life,
    rounded up, after the draw.
 """
@@ -32,16 +31,13 @@ from MTG_bot.core.ability_tree import (
     QConst,
     QProp,
     QPropField,
-    QUnbounded,
     Rounding,
     Seq,
     Selector,
-    SelectorMode,
     SpellAbility,
     Verb,
     Zone,
     ZoneKind,
-    ZonePosition,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
@@ -138,84 +134,67 @@ class TestC3CompilerPins(unittest.TestCase):
             Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),
         )
 
-    # ---- transmogrify: top-of-library SEARCH + TARGET_PLAYER SHUFFLE ----
+    # ---- transmogrify: REVEAL until a creature, then that player puts it ----
 
     def test_transmog_spell_folds_to_three_step_seq(self) -> None:
-        """MOVE_ZONE (exile), Seq(SEARCH, REVEAL), SHUFFLE: the three plain
-        sentence effects fold into the SpellAbility's single Seq; the second
-        sentence contributes the nested dig plus its disclosure REVEAL."""
+        """MOVE_ZONE (exile), REVEAL (until a creature card), EachPlayer (that
+        player puts that card onto the battlefield, then shuffles): the three
+        sentence effects fold into the SpellAbility's single Seq."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility)
         assert isinstance(spell.effect, Seq)
-        steps = spell.effect.steps
-        self.assertEqual(len(steps), 3)
-        # Exile is a MOVE_ZONE.
-        head, mid, tail = steps
-        assert isinstance(head, Atom) and isinstance(tail, Atom)
-        self.assertIs(head.verb, Verb.MOVE_ZONE)
-        assert isinstance(mid, Seq)
-        self.assertEqual(
-            [s.verb for s in mid.steps if isinstance(s, Atom)],
-            [Verb.SEARCH, Verb.REVEAL],
-        )
-        self.assertIs(tail.verb, Verb.SHUFFLE)
+        head, reveal, tail = spell.effect.steps
+        assert isinstance(head, Atom) and isinstance(reveal, Atom)
+        self.assertIs(head.verb, Verb.MOVE_ZONE)  # "Exile target creature."
+        self.assertIs(reveal.verb, Verb.REVEAL)
+        assert isinstance(tail, EachPlayer)
 
-    def test_transmog_search_is_top_scoped_target_player(self) -> None:
-        """SEARCH cards = Selector(QConst(1), TYPE_EQ Creature, Zone(LIBRARY,
-        TARGET_PLAYER, TOP)): TOP means the pick only ever takes the library
-        top; the destination Zone(BATTLEFIELD, TARGET_PLAYER) carries "puts
-        that card onto the battlefield"."""
+    def test_transmog_reveals_until_a_creature_as_its_controller(self) -> None:
+        """REVEAL(controller="that creature's controller", count 1, until TYPE_EQ
+        Creature): the controller is the referent-"target" selector (the exiled
+        creature's controller, CR 608.2h), never TARGET_PLAYER, so the spell has
+        one target (KNOWLEDGE/2026-11-05/184: it used to designate a player too)."""
         res = self._compile(_TRANSMOG)
         (spell,) = res.card.abilities
         assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
-        mid = spell.effect.steps[1]
-        # The dig leads the Seq, so its ONE_OF menu never sees the
-        # disclosure's look window.
-        assert isinstance(mid, Seq)
-        search, disclosure = mid.steps
-        assert isinstance(search, Atom) and isinstance(disclosure, Atom)
-        self.assertIs(disclosure.verb, Verb.REVEAL)
-        self.assertIs(disclosure.args.get("controller"), ControllerRef.TARGET_PLAYER)
-        self.assertIsInstance(disclosure.args.get("count"), QUnbounded)
-        cards = search.args.get("cards")
+        reveal = spell.effect.steps[1]
+        assert isinstance(reveal, Atom)
+        controller = reveal.args.get("controller")
+        assert isinstance(controller, Selector)
+        self.assertEqual(controller.referent, "target")
+        self.assertEqual(reveal.args.get("count"), QConst(1))
+        self.assertEqual(
+            reveal.args.get("until"), FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+        )
+        self.assertNotIn("TARGET_PLAYER", repr(spell))
+
+    def test_transmog_that_player_puts_it_and_shuffles(self) -> None:
+        """EachPlayer(ref=that creature's controller): MOVE_ZONE of "that card"
+        (the REVEAL's result) to the battlefield under that player (YOU inside
+        the rotation, CR 110.2a), then SHUFFLE of their library."""
+        res = self._compile(_TRANSMOG)
+        (spell,) = res.card.abilities
+        assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
+        tail = spell.effect.steps[2]
+        assert isinstance(tail, EachPlayer)
+        assert isinstance(tail.ref, Selector)
+        self.assertEqual(tail.ref.referent, "target")
+        assert isinstance(tail.effect, Seq)
+        put, shuffle = tail.effect.steps
+        assert isinstance(put, Atom) and isinstance(shuffle, Atom)
+        self.assertIs(put.verb, Verb.MOVE_ZONE)
+        cards = put.args.get("cards")
         assert isinstance(cards, Selector)
-        self.assertEqual(cards.count, QConst(1))
-        # The search pick is asked on the ONE_OF channel.
-        self.assertIs(cards.mode, SelectorMode.ONE_OF)
-        flt = cards.filter
-        assert isinstance(flt, FAtom)
-        self.assertIs(flt.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(flt.string_value, "Creature")
+        self.assertEqual(cards.referent, "result")
         self.assertEqual(
-            cards.zones[0],
-            Zone(
-                kind=ZoneKind.LIBRARY,
-                controller=ControllerRef.TARGET_PLAYER,
-                position=ZonePosition.TOP,
-            ),
+            put.args.get("destination"),
+            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
         )
-        self.assertEqual(
-            search.args.get("destination"),
-            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.TARGET_PLAYER),
-        )
-        self.assertIs(search.args.get("controller"), ControllerRef.TARGET_PLAYER)
-
-    def test_transmog_shuffle_rest_is_target_player_owned(self) -> None:
-        """SHUFFLE zone = Zone(LIBRARY, TARGET_PLAYER) with no position: the
-        anaphoric "their library" rides the exile's target binding."""
-        res = self._compile(_TRANSMOG)
-        (spell,) = res.card.abilities
-        assert isinstance(spell, SpellAbility) and isinstance(spell.effect, Seq)
-        shuffle = spell.effect.steps[2]
-        assert isinstance(shuffle, Atom)
         self.assertIs(shuffle.verb, Verb.SHUFFLE)
-        zone = shuffle.args.get("zone")
-        assert isinstance(zone, Zone)
         self.assertEqual(
-            zone, Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.TARGET_PLAYER)
+            shuffle.args.get("zone"), Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)
         )
-        self.assertIsNone(zone.position)
 
     # ---- Peer into the Abyss: half the target player's life ----
 

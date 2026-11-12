@@ -1275,6 +1275,16 @@ def role_player(ctx: ExecCtx, atom: Atom, role: str = "controller") -> Handle:
                 f"{value.name} denotes none here"
             )
         return players[0]
+    if isinstance(value, Selector) and value.referent is not None:
+        # "That creature's controller reveals ..." (Transmogrify): the controller of
+        # the one object in scope (role_players' fold, CR 608.2h).
+        players = role_players(ctx, atom, role)
+        if len(players) != 1:
+            raise ValueError(
+                f"executor: {atom.verb.name} {role!r} is one player, but the referent "
+                f"{value.referent!r} names {len(players)}"
+            )
+        return players[0]
     raise NotImplementedError(
         f"executor: {atom.verb.name} {role!r} referent-selector player is 12b's"
     )
@@ -1307,6 +1317,23 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
         raise NotImplementedError(
             f"executor: {atom.verb.name} {role!r} referent-selector players are 12b's"
         )
+    return _players_of(ctx, handles)
+
+
+def players_for(ref: ControllerRef | Selector, ctx: ExecCtx) -> list[Handle]:
+    """The players an EachPlayer ``ref`` denotes: a ControllerRef's seats
+    (:func:`players_for_ref`), or for a referent Selector the controller of each
+    object it names ("That player puts that card onto the battlefield, then
+    shuffles the rest into their library", Transmogrify: the creature's
+    controller as it last existed, CR 608.2h)."""
+    if isinstance(ref, Selector):
+        return _players_of(ctx, resolve_selector(ref, ctx))
+    return players_for_ref(ref, ctx)
+
+
+def _players_of(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
+    """Each handle's player side: a player itself, a card its (last known)
+    controller."""
     world = ctx.world
     players: set[Handle] = set()
     for handle in handles:

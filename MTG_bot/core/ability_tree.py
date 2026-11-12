@@ -94,6 +94,10 @@ _MANA_POLICY_SCOPES = ("THIS_MANA", "ALL_YOURS")
 # against the union of all scope vocabularies; the per-verb vocabulary is
 # enforced on the enclosing Atom (_SCOPE_VOCAB_BY_VERB).
 _DAMAGE_ASSIGN_SCOPES = ("AS_UNBLOCKED",)
+# _ATTACK_POLICY_SCOPES: the ATTACK_POLICY "scope" role vocabulary —
+# AS_NO_DEFENDER is "can attack as though it didn't have defender" (Drowsing
+# Tyrannodon; CR 609.4, 702.3b). Closed, validated like the two above.
+_ATTACK_POLICY_SCOPES = ("AS_NO_DEFENDER",)
 # _MOVE_JOURNAL_KINDS / _MOVE_POP_ORDERS: the closed vocabularies of the
 # MOVE_ZONE atom's two string slots — journal_kind (the event kind the move
 # is journalled as: "MILL" for a mill, "MOVE" for every other move) and
@@ -214,6 +218,14 @@ class Verb(Enum):
     # may" stays OUTSIDE the atom: the granted StaticAbility holds
     # OptionalEffect(Atom(DAMAGE_ASSIGN_POLICY, ...)).
     DAMAGE_ASSIGN_POLICY = "DAMAGE_ASSIGN_POLICY"
+    # ATTACK_POLICY: an attack-legality "as though" rule (CR 609.4) — "this
+    # creature can attack as though it didn't have defender" (Drowsing
+    # Tyrannodon; scope AS_NO_DEFENDER). The creature keeps defender (a
+    # "creature with defender" for every other rule, e.g. Portcullis Vine's
+    # sacrifice cost); only the CR 702.3b restriction on attacking is lifted.
+    # `cards` names the creatures (the MANDATE_ATTACK subject role),
+    # `duration` an "attack this turn" window.
+    ATTACK_POLICY = "ATTACK_POLICY"
     # TRIGGER_ADDITIONAL (Sanctum of All "that ability triggers an
     # additional time"): the {count} axis of the extra-trigger family — the
     # AbilityTriggerEvent firing re-triggers the ability it matched
@@ -410,6 +422,12 @@ class FAtomPred(Enum):
     CONTROLLER_COUNT_LE = "CONTROLLER_COUNT_LE"
     IS_SOURCE = "IS_SOURCE"  # the object is the source of the current ability
     IS_ANY_TARGET = "IS_ANY_TARGET"  # "another target" (Selfless Savior)
+    IS_RESULT = (
+        "IS_RESULT"  # the object is one the previous instruction acted on, the
+        # ``result`` register (the referent="result" anaphora as a filter):
+        # Teferi, Timeless Voyager's "they can't phase in" after "each creature
+        # target opponent controls phases out". No slots (precedent IS_ANY_TARGET).
+    )
     IS_PERMANENT = "IS_PERMANENT"  # on the battlefield, vs a card in a zone
     IS_TOKEN = "IS_TOKEN"  # Gadrak: "nontoken creature that died this turn"
     DIED_THIS_TURN = "DIED_THIS_TURN"  # turn-scoped; Carrion Grub, Gadrak
@@ -1419,10 +1437,12 @@ class FAtom:
                 raise ValueError(f"FAtom: {self.pred.name} requires slot 'count'")
             if isinstance(self.count, QConst) and self.count.value < 1:
                 raise ValueError(f"FAtom: {self.pred.name} requires count >= 1")
-            if isinstance(self.event, (StepEvent, AbilityTriggerEvent, CounteredEvent)) or (
+            if isinstance(
+                self.event, (StepEvent, AbilityTriggerEvent, PhasingEvent, CounteredEvent)
+            ) or (
                 isinstance(self.event, DeclareBlockersEvent) and self.event.count is not None
             ):
-                # no history to read: the first two are never journalled, a
+                # no history to read: the first three are never journalled, a
                 # countered spell has left the stack before its row could be
                 # matched (a "spell" filter cannot be judged afterwards), and a
                 # block row is one pair, so a blocker count cannot be read off it
@@ -1508,6 +1528,14 @@ class DurationUntilNextTurn:
 
 
 @dataclass(frozen=True)
+class DurationUntilEndOfNextTurn:
+    """Until the end of the controller's next turn: the effect ends in the cleanup step
+    (CR 514.2) of the first turn of its controller that begins after it was created
+    (Teferi, Timeless Voyager's "Until the end of your next turn, they can't phase in.").
+    Created during that player's own turn, it lasts through the turn after it too."""
+
+
+@dataclass(frozen=True)
 class DurationWhileCondition:
     """While a condition holds (continuous effects)."""
 
@@ -1573,6 +1601,7 @@ Duration = (
     DurationEot
     | DurationPermanent
     | DurationUntilNextTurn
+    | DurationUntilEndOfNextTurn
     | DurationWhileCondition
     | DurationUntilNextStep
     | DurationUntilLeaves
@@ -1801,6 +1830,27 @@ class TapStateEvent:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"TapStateEvent: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class PhasingEvent:
+    """A permanent phased in or out (CR 702.26; a status change, not a zone change,
+    702.26d). ``phased_in`` is the new status, ``filter`` selects the permanent:
+    Teferi, Timeless Voyager's "they can't phase in" is a PREVENT_EFFECT over
+    ``PhasingEvent(phased_in=True, filter=IS_RESULT)``."""
+
+    phased_in: bool
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.phased_in, bool):
+            raise ValueError(
+                f"PhasingEvent: phased_in must be a bool, got {self.phased_in!r}"
+            )
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"PhasingEvent: filter must be a Filter, got {type(self.filter).__name__}"
             )
 
 
@@ -2075,6 +2125,7 @@ EventSpec = (
     | CreatureDiesEvent
     | BecomesBlockedEvent
     | TapStateEvent
+    | PhasingEvent
     | TurnPhaseEvent
     | StepEvent
     | DamageDealtEvent
@@ -2523,6 +2574,7 @@ CostDelta = (
 _SCOPE_VOCAB_BY_VERB: dict[Verb, tuple[str, ...]] = {
     Verb.MANA_POLICY: _MANA_POLICY_SCOPES,
     Verb.DAMAGE_ASSIGN_POLICY: _DAMAGE_ASSIGN_SCOPES,
+    Verb.ATTACK_POLICY: _ATTACK_POLICY_SCOPES,
 }
 
 
@@ -2568,10 +2620,11 @@ class AtomArgs:
             if role == "scope" and value not in (
                 *_MANA_POLICY_SCOPES,
                 *_DAMAGE_ASSIGN_SCOPES,
+                *_ATTACK_POLICY_SCOPES,
             ):
                 raise ValueError(
                     f"AtomArgs: role 'scope' must be one of "
-                    f"{(*_MANA_POLICY_SCOPES, *_DAMAGE_ASSIGN_SCOPES)}, "
+                    f"{(*_MANA_POLICY_SCOPES, *_DAMAGE_ASSIGN_SCOPES, *_ATTACK_POLICY_SCOPES)}, "
                     f"got {value!r}"
                 )
             # MOVE_ZONE's closed string slots — single-verb vocabularies,
@@ -2780,15 +2833,25 @@ class EachPlayer:
     """Apply `effect` once per player denoted by `ref` ("each opponent
     creates a token / sacrifices a creature"). `ref` = the player set:
     ALL_OPPONENTS for "each opponent", OPPONENT/YOU for the singular
-    per-player reading."""
+    per-player reading, or a referent Selector for the controller of an object
+    already in scope ("That creature's controller ... puts that card onto the
+    battlefield, then shuffles ... their library", Transmogrify: referent
+    "target"), the "its controller" reading of a ``controller`` role."""
 
-    ref: ControllerRef
+    ref: ControllerRef | Selector
     effect: Effect
 
     def __post_init__(self) -> None:
-        if not isinstance(self.ref, ControllerRef):
+        if isinstance(self.ref, Selector):
+            if self.ref.referent is None:
+                raise ValueError(
+                    "EachPlayer: a Selector ref names an object in scope (its controller), "
+                    "so it must carry a referent"
+                )
+        elif not isinstance(self.ref, ControllerRef):
             raise ValueError(
-                f"EachPlayer: ref must be a ControllerRef, got {type(self.ref).__name__}"
+                f"EachPlayer: ref must be a ControllerRef or a referent Selector, got "
+                f"{type(self.ref).__name__}"
             )
         if not _is_effect(self.effect):
             raise ValueError(
@@ -3406,6 +3469,7 @@ _EV_CLASSES = (
     CreatureDiesEvent,
     BecomesBlockedEvent,
     TapStateEvent,
+    PhasingEvent,
     AbilityTriggerEvent,
     TurnPhaseEvent,
     StepEvent,
@@ -3422,6 +3486,7 @@ _D_CLASSES = (
     DurationEot,
     DurationPermanent,
     DurationUntilNextTurn,
+    DurationUntilEndOfNextTurn,
     DurationWhileCondition,
     DurationUntilLeaves,
     DurationUntilNextStep,
@@ -3511,6 +3576,7 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.IS_BLOCKING: (frozenset(), frozenset()),
     FAtomPred.IS_SOURCE: (frozenset(), frozenset()),
     FAtomPred.IS_ANY_TARGET: (frozenset(), frozenset()),
+    FAtomPred.IS_RESULT: (frozenset(), frozenset()),
     FAtomPred.IS_PERMANENT: (frozenset(), frozenset()),
     FAtomPred.IS_TOKEN: (frozenset(), frozenset()),
     FAtomPred.DIED_THIS_TURN: (frozenset(), frozenset()),
@@ -3669,8 +3735,12 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # "spells that cost {X} or less to cast" — Filter-valued like the
     # name_filter / condition roles above.
     "filter": _F_CLASSES,
-    # scope: MANA_POLICY's / DAMAGE_ASSIGN_POLICY's closed string
-    # vocabularies, validated in AtomArgs.__post_init__ and per verb in
+    # until: REVEAL's stop condition — "reveal cards from the top of your library
+    # until you reveal a creature card" (Transmogrify): cards are revealed one at a
+    # time until `count` of them match this Filter, or the library runs out.
+    "until": _F_CLASSES,
+    # scope: MANA_POLICY's / DAMAGE_ASSIGN_POLICY's / ATTACK_POLICY's closed
+    # string vocabularies, validated in AtomArgs.__post_init__ and per verb in
     # Atom.__post_init__.
     "scope": (str,),
     # step: PREVENT_EFFECT's "during a target's next untap step" role
@@ -3789,8 +3859,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.SCRY: {"controller": True, "count": True},
     # REVEAL's duration: "Play with the top card of your library revealed"
     # is a continuous revealed state — DurationPermanent, top of library
-    # implicit as for LOOK_AT.
-    Verb.REVEAL: {"controller": True, "count": True, "duration": False},
+    # implicit as for LOOK_AT. `until`: the reveal goes on card by card until
+    # `count` revealed cards match it ("until they reveal a creature card",
+    # Transmogrify); the matching cards are the ``result`` ("that card").
+    Verb.REVEAL: {"controller": True, "count": True, "duration": False, "until": False},
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
     # GAIN_CONTROL's duration: "gain control of target creature until end
@@ -3860,6 +3932,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # vocabulary (AS_UNBLOCKED); filter optionally narrows the affected
     # damage dealers.
     Verb.DAMAGE_ASSIGN_POLICY: {"scope": True, "filter": False},
+    # ATTACK_POLICY: cards = the creatures the "as though" applies to (MANDATE_ATTACK's
+    # subject role); scope = the closed _ATTACK_POLICY_SCOPES; duration = an "attack this
+    # turn" window when a resolving ability creates it.
+    Verb.ATTACK_POLICY: {"cards": True, "scope": True, "duration": False},
 }
 
 # Keyword -> tuple of allowed param signatures; each signature is a tuple
@@ -3935,6 +4011,7 @@ _DATACLASSES: tuple[type, ...] = (
     DurationEot,
     DurationPermanent,
     DurationUntilNextTurn,
+    DurationUntilEndOfNextTurn,
     DurationWhileCondition,
     DurationUntilLeaves,
     DurationUntilNextStep,
@@ -3946,6 +4023,7 @@ _DATACLASSES: tuple[type, ...] = (
     CreatureDiesEvent,
     BecomesBlockedEvent,
     TapStateEvent,
+    PhasingEvent,
     AbilityTriggerEvent,
     TurnPhaseEvent,
     StepEvent,
@@ -4062,6 +4140,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "DurationEot": (),
     "DurationPermanent": (),
     "DurationUntilNextTurn": (),
+    "DurationUntilEndOfNextTurn": (),
     "DurationWhileCondition": (("filter", "filter"),),
     # source: a referent string, serialized bare; its vocabulary is
     # validated in __post_init__ (so also on the from_dict path).
@@ -4097,6 +4176,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CreatureDiesEvent": (("filter", "filter"),),
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
+    "PhasingEvent": (("phased_in", "bool"), ("filter", "filter")),
     "AbilityTriggerEvent": (("filter", "filter"),),
     "TurnPhaseEvent": (("phase", "enum:Phase"), ("actor", "opt:filter")),
     "StepEvent": (
@@ -4169,7 +4249,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("else_effect", "opt:effect"),
     ),
     "Repeat": (("count", "quantity"), ("inner", "effect")),
-    "EachPlayer": (("ref", "enum:ControllerRef"), ("effect", "effect")),
+    "EachPlayer": (("ref", "controller_ref_or_selector"), ("effect", "effect")),
     "DelayedTrigger": (
         ("duration", "duration"),
         ("event", "event"),
@@ -4292,6 +4372,7 @@ _EVENT_TAGS = frozenset(
         "CreatureDiesEvent",
         "BecomesBlockedEvent",
         "TapStateEvent",
+        "PhasingEvent",
         "AbilityTriggerEvent",
         "TurnPhaseEvent",
         "StepEvent",
@@ -4319,6 +4400,7 @@ _DURATION_TAGS = frozenset(
         "DurationEot",
         "DurationPermanent",
         "DurationUntilNextTurn",
+        "DurationUntilEndOfNextTurn",
         "DurationWhileCondition",
         "DurationUntilLeaves",
         "DurationUntilNextStep",

@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "t", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "attackers": {"bear": true, "t": false},
+  "not_asked": ["t"],
+  "life": {"1": 17}
+ },
+ "notes": "Drowsing Tyrannodon's attack permission holds only 'as long as you control a creature with power 4 or greater'. With a 3/3 beside it (and itself 3/3) the condition is false, defender's restriction applies (CR 702.3b) and the declare-attackers step never asks it; the Bear attacks alone (20 -> 17). Pins that the ATTACK_POLICY static is gated by its condition."
+}

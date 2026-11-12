@@ -27,7 +27,9 @@ shapes and both fingerprint-dumped:
     ability (the Capture Sphere / Faith's Fetters / Frost Breath family). A
     veto-before-application record: condition + event spec + optional step
     + duration. Consumers: the untap step
-    (:meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze),
+    (:meth:`ReplacementRegistry.prevents_untap` — the Frost Breath freeze —
+    and :meth:`ReplacementRegistry.prevents_phase_in`, Teferi, Timeless
+    Voyager's "they can't phase in"),
     card damage, counter placement, the attack/block declarations,
     activation (legality's ``ability_playable`` through
     :meth:`ReplacementRegistry.prevents_activation`) and countering.
@@ -61,6 +63,7 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     Duration,
     DurationEot,
+    DurationUntilEndOfNextTurn,
     DurationUntilLeaves,
     DurationUntilNextStep,
     DurationUntilNextTurn,
@@ -74,6 +77,7 @@ from MTG_bot.core.ability_tree import (
     FNot,
     FOr,
     LifeGainedEvent,
+    PhasingEvent,
     QAtLeast,
     Quantity,
     QUnbounded,
@@ -895,14 +899,34 @@ class ReplacementRegistry:
         doesn't untap during its controller's untap step" is IS_ATTACHED_TO_
         SOURCE ∧ creature, read off the Aura). A static carrier works while
         its source is on the battlefield."""
+        return self._status_change_vetoed(
+            card,
+            lambda rec: isinstance(rec.event, TapStateEvent)
+            and rec.event.tapped is False
+            and rec.step in (None, Step.UNTAP),
+        )
+
+    def prevents_phase_in(self, card: Handle) -> bool:
+        """The phasing consumer (CR 702.26a, the untap step's first action): does a
+        live prevention keep this phased-out permanent from phasing in? Teferi,
+        Timeless Voyager's [−8] "Until the end of your next turn, they can't phase
+        in." is PhasingEvent(phased_in=True) over the creatures it phased out (the
+        ``result`` register, locked into ``targets`` as it resolved). Judged like
+        :meth:`prevents_untap`."""
+        return self._status_change_vetoed(
+            card, lambda rec: isinstance(rec.event, PhasingEvent) and rec.event.phased_in
+        )
+
+    def _status_change_vetoed(self, card: Handle, applies) -> bool:
+        """Does a live prevention the ``applies(rec)`` test picks veto ``card``'s
+        status change? A resolved record covers the objects locked into its
+        ``targets``; one with none, and a static carrier while its source is on the
+        battlefield, covers what its condition and event filter match, judged over
+        the card in the record's coordinates."""
         for rec in sorted(self.preventions, key=lambda r: r.seq):
-            if rec.status == "expired":
+            if rec.status == "expired" or not applies(rec):
                 continue
             event = rec.event
-            if not isinstance(event, TapStateEvent) or event.tapped is not False:
-                continue
-            if rec.step not in (None, Step.UNTAP):
-                continue
             if rec.targets:
                 if card in rec.targets:
                     return True
@@ -1279,13 +1303,18 @@ class ReplacementRegistry:
         return expired
 
     def expire_until_next_turn(self, player: Handle) -> int:
-        return sum(
-            self._expire(rec)
-            for rec in self.preventions
-            if isinstance(rec.duration, DurationUntilNextTurn)
-            and rec.controller == player
-            and rec.status != "expired"
-        )
+        """``player``'s turn begins: "until your next turn" preventions end (CR 611.2b),
+        and "until the end of your next turn" ones become "until end of turn", so this
+        turn's cleanup sweep ends them (CR 514.2)."""
+        expired = 0
+        for rec in self.preventions:
+            if rec.status == "expired" or rec.controller != player:
+                continue
+            if isinstance(rec.duration, DurationUntilNextTurn):
+                expired += self._expire(rec)
+            elif isinstance(rec.duration, DurationUntilEndOfNextTurn):
+                rec.tag = "Eot"
+        return expired
 
     # ---------------------------------------------------------- determinism
 

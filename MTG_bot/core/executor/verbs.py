@@ -1198,10 +1198,12 @@ def _v_lose(ctx: ExecCtx, atom: Atom) -> None:
 
 def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     """PREVENT_EFFECT: a pre-application veto record. The condition's
-    affected set is materialized NOW from the designated targets (the
-    IS_ANY_TARGET anaphora is only decidable at this boundary); each
+    affected set is materialized NOW (its anaphora is only decidable at this
+    boundary): the designated targets (IS_ANY_TARGET, Frost Breath's "those
+    creatures"), or the objects the previous instruction acted on (IS_RESULT,
+    the ``result`` register: Teferi, Timeless Voyager's "they"). Each
     consuming lane reads the records for its event (the UNTAP step reads the
-    TapStateEvent family, Frost Breath)."""
+    TapStateEvent family, the phasing step the PhasingEvent one)."""
     condition = atom.args.get("condition")
     event = atom.args.get("event")
     assert isinstance(condition, Filter) and isinstance(event, EventSpec)
@@ -1213,14 +1215,15 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
         raise NotImplementedError("executor: PREVENT_EFFECT controller scoping is 12e")
     if ctx.replacements is None:
         raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
-    designated = ctx.binding_handles("target") or []
     # CR 608.2b: the targeting restrictions written beside IS_ANY_TARGET in
     # a combat slot ("another target creature with power 2 or less") are checked
     # as the ability resolves; the creatures that pass are locked in, and the
     # record reads only that set afterwards (replacements._slot_holds), so a
     # pump after resolution does not undo "can't be blocked this turn".
-    from MTG_bot.core.executor.query import combat_target_filters
+    from MTG_bot.core.executor.query import combat_target_filters, names_pred
 
+    register = "result" if names_pred(condition, FAtomPred.IS_RESULT) else "target"
+    designated = ctx.binding_handles(register) or []
     bound = combat_target_filters(event)
     targets = tuple(
         h
@@ -1416,6 +1419,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     """LOOK_AT / REVEAL: nothing moves; the knowledge is the event record.
 
     The cards are the top N of the library (the REVEAL/LOOK_AT convention),
+    for a REVEAL with ``until`` the cards from the top down to the Nth match,
     or for an anaphoric REVEAL the window an earlier look showed."""
     if atom.args.get("duration") is not None:
         raise NotImplementedError(
@@ -1430,7 +1434,25 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     # LOOK_AT window for the following ONE_OF/REST partition instead of
     # collapsing the population to the first card.
     prior_window = tuple(ctx.look_window)
-    if isinstance(count_q, QUnbounded):
+    until = atom.args.get("until")
+    if until is not None:
+        # "Reveal cards from the top of your library until you reveal a creature
+        # card" (Transmogrify): one card at a time, top first, until ``count``
+        # revealed cards match ``until``, or every card is revealed (no match).
+        # The matches are "that card" (the ``result``), every revealed card the
+        # window, so "the rest" are the window's other cards; nothing moves
+        # (CR 701.20b).
+        assert isinstance(until, Filter)  # role table: a Filter
+        n = amount(ctx, atom, "count")
+        seen_cards, found = [], []
+        for card in reversed(lib.entries):
+            if len(found) >= n:
+                break
+            seen_cards.append(card)
+            if eval_filter(until, card, ctx):
+                found.append(card)
+        ctx.bindings["result"] = found
+    elif isinstance(count_q, QUnbounded):
         # QUnbounded is not number-resolvable, and here it means the ENTIRE
         # zone — the Cultivate compile idiom (REVEAL with an unbounded count
         # stands for the searched library, since the grammar cannot
@@ -1458,6 +1480,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     if (
         prior_window
         and atom.verb is Verb.REVEAL
+        and until is None
         and len(prior_window) > len(seen_cards)
     ):
         ctx.look_window = prior_window
@@ -2128,20 +2151,22 @@ def _v_mandate_attack(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _dispatch_mandate(
-    ctx: ExecCtx, atom: Atom, kind: str, ledger: set[Handle]
+    ctx: ExecCtx, atom: Atom, kind: str, ledger: set[Handle] | None
 ) -> list[Handle]:
-    """Record one dispatched MANDATE_ATTACK / MANDATE_BLOCK; returns the
-    designated creatures. The atom's ``duration`` role is honoured. Without
-    one (or Permanent) the creatures join the dispatch ``ledger``, which
-    lasts until each leaves the battlefield. With one ("this turn", "until
-    your next turn") the rule ends with its duration (CR 611.2a/b, 514.2),
-    so it becomes a ``resolved`` layer record riding the registry's expiry
-    points."""
+    """Record one dispatched combat rule (MANDATE_ATTACK / MANDATE_BLOCK /
+    ATTACK_POLICY); returns the designated creatures. The atom's ``duration``
+    role is honoured. Without one (or Permanent) a mandate's creatures join
+    the dispatch ``ledger``, which lasts until each leaves the battlefield
+    (a rule with no ledger, ``None``, becomes a duration-less ``resolved``
+    record, which ends the same way, CR 400.7). With one ("this turn",
+    "until your next turn") the rule ends with its duration (CR 611.2a/b,
+    514.2), so it becomes a ``resolved`` layer record riding the registry's
+    expiry points."""
     assert ctx.executor is not None
     cards = role_handles(ctx, atom, "cards")
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
-    if duration is None or isinstance(duration, DurationPermanent):
+    if ledger is not None and (duration is None or isinstance(duration, DurationPermanent)):
         ledger.update(cards)
         return cards
     if isinstance(duration, DurationUntilLeaves) and duration.source != "source":
@@ -2152,7 +2177,7 @@ def _dispatch_mandate(
             "expiry anchor (only the ability's source is tracked)"
         )
     if cards:
-        ctx.executor.layers.register_mandate(
+        ctx.executor.layers.register_rule(
             kind, ctx.source, ctx.controller, tuple(cards), atom, duration
         )
     return cards
@@ -2175,6 +2200,27 @@ def _v_mandate_block(ctx: ExecCtx, atom: Atom) -> None:
             len(ctx.events),
             atom.verb.name,
             str(ctx.source),
+            tuple(sorted(str(c) for c in cards)),
+        )
+    )
+
+
+def _v_attack_policy(ctx: ExecCtx, atom: Atom) -> None:
+    """ATTACK_POLICY (CR 609.4) made by a resolving ability — "It can attack this
+    turn as though it didn't have defender" (Roving Keep, Skyclave Squid): the
+    creatures designated now carry the policy for the atom's duration, a
+    ``resolved`` "attack_policy" layer record. The static shape (Drowsing
+    Tyrannodon) registers through layers._new_static; the attack legality reads
+    both (:func:`legality.attack_policy_applies`)."""
+    if ctx.executor is None:
+        raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
+    cards = _dispatch_mandate(ctx, atom, "attack_policy", None)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            str(atom.args.get("scope")),
             tuple(sorted(str(c) for c in cards)),
         )
     )
@@ -2452,10 +2498,11 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # The damage-exchange verb (CR 701.12).
     Verb.FIGHT: _v_fight,
     # The combat rule lines: attack and block mandates (CR 508.1 "attacks
-    # if able", 509.1h) and the damage-assignment policy.
+    # if able", 509.1h), the damage-assignment and attack policies (CR 609.4).
     Verb.MANDATE_ATTACK: _v_mandate_attack,
     Verb.MANDATE_BLOCK: _v_mandate_block,
     Verb.DAMAGE_ASSIGN_POLICY: _v_damage_assign_policy,
+    Verb.ATTACK_POLICY: _v_attack_policy,
     # The control/attachment verbs (Traitorous Greed, Enthralling Hold,
     # the Equip carriers).
     Verb.GAIN_CONTROL: _v_gain_control,
