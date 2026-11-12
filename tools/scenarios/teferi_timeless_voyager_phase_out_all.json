@@ -23,5 +23,5 @@
   "not_asked_to_block": ["ogre", "bear"],
   "life": {"0": 20, "1": 19}
  },
- "notes": "Teferi, Timeless Voyager [-8]: 'Each creature target opponent controls phases out.' With 8 loyalty it goes to 0 and dies; the ability still resolves. Both of seat 1's creatures phase out, seat 0's Aura on one of them phases out indirectly (CR 702.26g); seat 1's artifact and seat 0's own creature do not. The phased-out creatures cannot block (702.26b), so the Sprite's 1 damage connects. The second sentence ('Until the end of your next turn, they can't phase in') is not modelled yet: see tools/scenarios/known_bugs/teferi_timeless_voyager_cant_phase_in.json."
+ "notes": "Teferi, Timeless Voyager [-8]: 'Each creature target opponent controls phases out.' With 8 loyalty it goes to 0 and dies; the ability still resolves. Both of seat 1's creatures phase out, seat 0's Aura on one of them phases out indirectly (CR 702.26g); seat 1's artifact and seat 0's own creature do not. The phased-out creatures cannot block (702.26b), so the Sprite's 1 damage connects. The second sentence ('Until the end of your next turn, they can't phase in') is pinned by tools/scenarios/cards/M21/teferi_timeless_voyager_*.json."
 }

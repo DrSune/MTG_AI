@@ -621,6 +621,35 @@ class TestMandates(CombatCase):
         self.assertEqual(self.world.players[self.p1].life, 18)  # only alpha
 
 
+class TestAttackPolicy(CombatCase):
+    def test_attack_this_turn_as_though_it_had_no_defender(self):
+        # "It can attack this turn as though it didn't have defender" (Roving
+        # Keep's activation, Skyclave Squid's landfall): a resolved ATTACK_POLICY
+        # with an end-of-turn duration (CR 609.4, 611.2a). The wall attacks this
+        # turn, keeps defender throughout, and next turn defender stops it again.
+        wall = self.real("Wall of Runes", self.p0)
+        stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
+        self.begin()
+        self.ex.begin_turn(self.p0)
+        self.assertEqual(attack_blocked_reason(self.ex, self.p0, wall), "defender (CR 702.3b)")
+        self.ex.execute(
+            atom(Verb.ATTACK_POLICY, cards=target_sel(), scope="AS_NO_DEFENDER",
+                 duration=DurationEot()),
+            source=wall,
+            controller=self.p0,
+            bindings={"cards": wall},
+        )
+        self.assertIsNone(attack_blocked_reason(self.ex, self.p0, wall))
+        self.assertTrue(self.ex.layers.keyword_of(wall, Keyword.DEFENDER))
+        self.ex.combat_step(self.p0)
+        self.assertEqual(len(self.asks_for(wall)), 1)
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.ex.end_turn()
+        self.ex.advance_turn()
+        self.assertEqual(attack_blocked_reason(self.ex, self.p0, wall), "defender (CR 702.3b)")
+
+
 class TestEndOfCombat(CombatCase):
     def test_attackers_cleared_marks_survive_to_cleanup(self):
         alpha = self.synth("Alpha", 4, 4, self.p0)

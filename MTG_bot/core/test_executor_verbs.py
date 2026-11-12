@@ -695,6 +695,59 @@ class TestManaScryShuffleLook(ExecutorCase):
         self.assertEqual(ev1[0][3], (str(self.libs[3]), str(self.libs[2])))
         self.assertEqual(self.world.fingerprint(), fp)  # no state touched
 
+    def _reveal_until_creature_then_take_it(self, controller) -> list:
+        """Transmogrify's shape: reveal until a creature card, then move "that card"
+        (the result) to its owner's hand."""
+        that_card = Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                             zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result")
+        return self.ex.apply_effect(
+            Seq((
+                atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QConst(1), until=CREATURE),
+                atom(Verb.MOVE_ZONE, cards=that_card, destination=HAND_YOU),
+            )),
+            source=self.alpha,
+            controller=controller,
+        )
+
+    def test_reveal_until_stops_at_the_first_match(self):
+        spell = self.world.add_card(card_id("Top Sorcery", type_line="Sorcery"), self.p0)
+        events = self._reveal_until_creature_then_take_it(self.p0)
+        self.assertEqual(events[0][1:], ("REVEAL", str(self.p0), (str(spell), str(self.libs[3]))))
+        self.assertEqual(self.world.zone_of(self.libs[3]).kind, ZONE_HAND)  # that card
+        self.assertEqual(self.world.zone_of(spell).kind, ZONE_LIBRARY)  # revealed, unmoved
+        self.assertEqual(self.world.zone_of(self.libs[2]).kind, ZONE_LIBRARY)  # never revealed
+
+    def test_reveal_until_without_a_match_reveals_everything(self):
+        self.world.move_to_zone(self.p1_lib, self.p1, ZONE_GRAVEYARD)  # p1's one creature card
+        lands = [self.world.add_card(card_id(f"Land {i}", type_line="Land"), self.p1)
+                 for i in (1, 2)]
+        events = self._reveal_until_creature_then_take_it(self.p1)
+        self.assertEqual(events[0][1:], ("REVEAL", str(self.p1), (str(lands[1]), str(lands[0]))))
+        for land in lands:  # no "that card": nothing moves
+            self.assertEqual(self.world.zone_of(land).kind, ZONE_LIBRARY)
+
+    def test_each_player_over_its_controller(self):
+        # "Exile target creature. That player ... their library" (Transmogrify): the
+        # rotation runs as the exiled creature's controller, by last known
+        # information (CR 608.2h), not as a designated player.
+        its_controller = Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                  zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="target")
+        self.ex.apply_effect(
+            Seq((
+                atom(Verb.MOVE_ZONE, target=target_sel(),
+                     destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                EachPlayer(ref=its_controller,
+                           effect=atom(Verb.DRAW, controller=ControllerRef.YOU, amount=QConst(1))),
+            )),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": self.beta},
+        )
+        self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_EXILE)
+        self.assertEqual(self.world.zone_of(self.p1_lib).kind, ZONE_HAND)  # p1 drew
+        self.assertEqual(self.world.zone_of(self.h1).kind, ZONE_HAND)
+        self.assertEqual(self.world.zone_of(self.libs[3]).kind, ZONE_LIBRARY)  # p0 did not
+
 
 class TestSelectors(ExecutorCase):
     def test_handle_sorting_is_canonical(self):

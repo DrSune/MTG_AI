@@ -35,7 +35,7 @@ from MTG_bot.core.ability_tree import (
     CostTap,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
-    DurationUntilNextTurn,
+    DurationUntilEndOfNextTurn,
     Effect,
     FAnd,
     FAtom,
@@ -44,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     OptionalEffect,
+    PhasingEvent,
     QAtLeast,
     QConst,
     QUnbounded,
@@ -233,30 +234,18 @@ def _phase_out_atom() -> Atom:
 def _phase_in_atom() -> Atom:
     """The compiler's canonical phase-in prevention atom.
 
-    Mirrors ``compiler._phase_in_prevention_effect``: prevents the opponent's
-    command-zone permanents re-entering the battlefield until the controller's
-    next turn.
+    Mirrors ``compiler._phase_in_prevention_effect``: the permanents the
+    previous instruction phased out (IS_RESULT) can't phase in (a
+    PhasingEvent) until the end of the controller's next turn.
     """
+    they = FAtom(FAtomPred.IS_RESULT)
     return Atom(
         verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
             pairs=(
-                (
-                    "condition",
-                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
-                ),
-                (
-                    "event",
-                    ZoneChangeEvent(
-                        from_zone=Zone(
-                            kind=ZoneKind.COMMAND, controller=ControllerRef.OPPONENT
-                        ),
-                        to_zone=Zone(
-                            kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.OPPONENT
-                        ),
-                    ),
-                ),
-                ("duration", DurationUntilNextTurn()),
+                ("condition", they),
+                ("event", PhasingEvent(phased_in=True, filter=they)),
+                ("duration", DurationUntilEndOfNextTurn()),
             )
         ),
     )

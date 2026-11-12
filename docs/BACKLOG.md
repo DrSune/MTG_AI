@@ -493,30 +493,29 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   a5c6dfb) was the only TokenSpec in the 19 sets missing a card type, and it could not attack or
   block. Either `TokenSpec.__post_init__` checks that the line equals the composed fields, or the
   executor mints from the fields.
-- **B-75 [2026-10-29, branch `engine/phasing`] Phasing (CR 702.26) is implemented as a status; one
-  printed clause still has no ontology.**
-  - **Open, weaker than printed: Teferi, Timeless Voyager's "Until the end of your next turn, they
-    can't phase in."** Accepted as divergence D16 by ontology R5-9 (gate round 3 GO,
-    2026-10-30; `docs/ATOM_DIVERGENCES.md`). The compiler's built-in `_phase_in_prevention_effect` (`compiler.py` ~206)
-    emits `PREVENT_EFFECT(event=ZoneChangeEvent(COMMAND/OPPONENT -> BATTLEFIELD/OPPONENT),
-    condition=CONTROLLER_IS OPPONENT, duration=DurationUntilNextTurn)`. Phasing is not a zone
-    change, so the record is inert and the creatures phase back in at their controller's next
-    untap step. Repro: `tools/scenarios/known_bugs/teferi_timeless_voyager_cant_phase_in.json`.
-    What the clause needs, for the next gated ontology round:
-    - an event: a phasing event shaped like `TapStateEvent`, e.g. `PhasingEvent(phased_in: bool,
-      filter: Filter)`, that the phasing step offers to the prevention registry before each
-      phase-in (the consumer: `Executor._phasing_step`);
-    - "they": the creatures the preceding PHASE_OUT phased out. PHASE_OUT writes the `result`
-      register, so either a filter referent for it or the `_v_prevent` convention of materialising
-      the affected set at registration (today it reads the `target` binding, here the targeted
-      player). `CONTROLLER_IS OPPONENT` is broader than "they" (it would also hold a creature
-      phased out earlier by another effect, stronger than printed);
-    - the duration: `DurationUntilNextTurn` ends as your next turn begins, the printed text at
-      its end. Phase-ins happen only in their controller's untap step, so no reachable game tells
-      them apart today; a PHASE_IN effect during that turn would.
+- **B-75 [2026-10-29, branch `engine/phasing`] Phasing (CR 702.26) is implemented as a status.**
+  - **Fixed 2026-11-12 (1cac720): Teferi, Timeless Voyager's "Until the end of your next
+    turn, they can't phase in."** (divergence D16, closed). The compiler's built-in
+    `_phase_in_prevention_effect` emits `PREVENT_EFFECT(condition=IS_RESULT,
+    event=PhasingEvent(phased_in=True, filter=IS_RESULT), duration=DurationUntilEndOfNextTurn)`:
+    - "they" are the creatures the [−8]'s PHASE_OUT phased out: `FAtomPred.IS_RESULT` reads the
+      `result` register, and `verbs._v_prevent` locks that set into the record as it resolves.
+      Gate round 4 fixes: IS_RESULT stands only in an Atom role that takes a Filter and cannot
+      take a referent Selector (`ability_tree._is_result_role`; anywhere else, such as a
+      selector's filter, `Selector(referent="result")` is the one encoding), and a read with no
+      register raises;
+    - `Executor._phasing_step` asks `ReplacementRegistry.prevents_phase_in` (CR 702.26a) before
+      each phase-in, and an Aura attached to a creature that stays out stays out with it (702.26g);
+    - the record re-tags to `Eot` as its controller's next turn begins, so that turn's cleanup ends
+      it (CR 514.2); the layer registry does the same, and the P/T ledger refuses the duration (no
+      carrier).
+    Packs `tools/scenarios/cards/M21/teferi_timeless_voyager_*.json` (`_cant_phase_in`, moved from
+    `known_bugs/`; `_only_they_cant_phase_in`; `_phases_in_after_your_next_turn`), tests
+    `test_executor_phasing.py::TestCantPhaseIn`.
   - No carrier: the phasing keyword (702.26a's phase-out half), PHASE_IN (702.26c by an effect),
     a directly phased-out Aura (702.26i), "for as long as" durations tracking a phased-out
-    permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1).
+    permanent (702.26f; `DurationUntilLeaves` must not end on phasing, R5-1), and a trigger on
+    phasing (the journal has no phasing row; the binder refuses a `PhasingEvent` trigger).
 - **B-77 [fixer A, m21-fidelity item 4] A spell's "would die this turn, exile it instead" has no
   duration in the tree** (play is right; the encoding is implicit).
   - Scorching Dragonfire (M21, ELD, FDN), Obliterating Bolt (FDN) and Blitz of the Thunder-Raptor
@@ -533,19 +532,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     sorcery (no IR change; the gap stays implicit).
   - The spell-side death replacement is still skipped by DESTROY and other direct graveyard moves
     (B-72).
-- **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender" has no
-  component** (Drowsing Tyrannodon, live in M21; slightly weaker than printed).
-  - It compiles to LOSE_ABILITY(DEFENDER) while you control a creature with power 4 or more, so
-    the Tyrannodon stops having defender (Portcullis Vine cannot sacrifice it as "a creature with
-    defender"). Review pack `tyrannodon_still_has_defender_for_portcullis_vine` (batch B) fails.
-  - The attack legality reads DEFENDER directly (`legality.py`, "no 'can attack as though it
-    didn't' carrier in the corpus"). Options for the gated ontology round: (a) an attack
-    permission atom (a "may attack despite defender" policy, the MANA_POLICY/GRANT_ACTIVATION
-    family) the attack check consults; (b) a parameter on KeywordAbility(DEFENDER) carrying the
-    "as long as" condition. (a) keeps DEFENDER a plain keyword and is reusable for "can block as
-    though" cards; recommended.
-  - Re-checked on 18afa85 (2026-10-30): tree unchanged; the Portcullis Vine pack still fails, the
-    two attack packs pass.
+- **B-80 [fixer A, m21-fidelity] "Can attack as though it didn't have defender"** (CR 609.4,
+  702.3b).
+  - **Fixed 2026-11-12 (1cac720) for Drowsing Tyrannodon**, option (a): the static compiles
+    to `StaticAbility(condition=<you control a creature with power 4 or greater>,
+    ATTACK_POLICY(cards=self, scope=AS_NO_DEFENDER))`. `layers._new_static` registers it as an
+    `"attack_policy"` record, and `legality.attack_blocked_reason` lifts defender's restriction
+    only while `attack_policy_applies`; the Tyrannodon keeps defender, so Portcullis Vine may
+    sacrifice it. A resolving ability's "can attack this turn as though ..." registers a resolved
+    record (`verbs._v_attack_policy`; test `test_executor_combat.py::TestAttackPolicy`). Packs
+    `tyrannodon_still_has_defender_for_portcullis_vine` (the review pack named here was in neither
+    the repository nor its history; rebuilt from this entry, it fails on the old tree) and
+    `drowsing_tyrannodon_without_a_big_creature_cannot_attack`.
+  - Remaining: the five other cards with the clause leave it unparsed (Novice Knight and Arcades,
+    the Strategist M19, Roving Keep ELD, Skyclave Sentinel and Skyclave Squid ZNR). The component
+    covers their static and "this turn" shapes; no template emits it yet. No card in the 19 sets
+    prints "can block as though".
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
   - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
@@ -593,6 +595,54 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Demonic Embrace's "You may cast this card from your graveyard ..." is refused
     (`compiler.casts_itself_from_another_zone`, a KNOWN-GAP row), so the card is engine-unsupported
     until R5-2's permission lane (PERMIT_CAST) brings it back.
+  - Furious Rise's "You may play that card until you exile another card with this enchantment."
+    is suppressed at assembly (`compiler._is_result_anaphoric_cast_permission`, KNOWN-GAP "play
+    permission"); by the 2026-10-02 decision (KNOWLEDGE/2026-10-02/08) the card stays
+    engine-supported, so in castable and compiled games its end-step trigger only exiles your top
+    card (weaker than printed; not in the verified pool). Checked 2026-11-12: the trigger, its
+    intervening "if" and the exile are right; what is missing needs the lane:
+    - a permission to play a card from exile, cast it or play it as a land (CR 305.1): no verb (R5-2
+      PERMIT_CAST was never implemented), no executor state, no menu row (`executor.menu` offers
+      land drops and casts from hand, and activated abilities, only);
+    - its window, which ends when the next card is exiled with Furious Rise (CR 607.2a): an
+      event-ended duration with no carrier. R5-8 proposed `DurationUntilEndOfNextTurn` as the
+      approximation (divergence D15, never added); that duration now exists (Teferi, Timeless
+      Voyager, 1cac720).
+    Known-bug pack `tools/scenarios/known_bugs/furious_rise_play_the_exiled_card.json` (fails
+    today: the exiled card is not offered on your next turn).
+- **B-113 [2026-11-12] REVEAL `until` (ontology R5-13's redesign of FIRST_MATCH) plays
+  Transmogrify (1cac720); the rest of the family does not compile.**
+  - Transmogrify: `REVEAL(controller=<that creature's controller>, count=1, until=TYPE_EQ
+    Creature)` reveals cards one at a time from the top until the first creature card (the
+    `result`; every revealed card is the look window; `count` is the number of revealed cards
+    that pass `until`, so `until=FAnd(())` and a QUnbounded `count` are refused), then
+    `EachPlayer(ref=<that creature's controller>, Seq(MOVE_ZONE result -> battlefield YOU,
+    SHUFFLE library YOU))`. "That creature's controller" is a referent-"target" Selector, read by
+    last known information (CR 608.2h).
+    Before, the tree read TARGET_PLAYER, so the menu asked a second, player target the card does
+    not print (KNOWLEDGE/2026-11-05/184 "two-target spells"), and it searched only the library's
+    top card: a noncreature on top put nothing onto the battlefield. Packs
+    `transmogrify_reveals_until_a_creature`, `transmogrify_own_creature_reveals_from_your_library`,
+    `transmogrify`.
+  - The other 11 "reveal ... until" cards in the 19 sets are unparsed. Their tails move "the
+    rest" (to the bottom in a random order: Vivien, Nature's Avenger, Evolutionary Leap, Spinner
+    of Souls, Jalira, Esika, Lukka; to the graveyard with the match: Consuming Aberration), count
+    several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
+    replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
+    selector reads it yet, and "in a random order" has no IR (known_bugs/2026-11-05
+    random_order_is_fixed).
+- **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
+  D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
+  controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
+  to `LOSE_LIFE(controller=TARGET_PLAYER)`; it plays right only because the trigger lane binds the
+  dying creature and `selectors.players_for_ref` reads its last known controller. The rule (
+  `docs/MAPPER_GUIDE.md`): "its controller" and "that player" are a referent Selector, never
+  TARGET_PLAYER, which is a target (CR 115.1). Scheduled, not done: one compiler template
+  (`B2b-massacre-wurm`), one golden (M21; the FDN printing compiles from the same template), then
+  re-verify both cards (their verified trees change, so both leave the verified pool until then).
+  The conformance test `tools/audit/test_ontology_conformance.py::
+  test_a_designated_player_is_a_printed_target` lists Massacre Wurm as its one exception
+  (`ontology_conformance.DESIGNATED_PLAYER_EXCEPTIONS`); the fold removes it there.
 - **B-101 [fixer A, 2026-10-30] Protection residues after V44** (one oracle,
   `legality.protected_from`):
   - 702.16n/p ("this effect doesn't remove Auras") has no IR; no compiled card needs it (M15

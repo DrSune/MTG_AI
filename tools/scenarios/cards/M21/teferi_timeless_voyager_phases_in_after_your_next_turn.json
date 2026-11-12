@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "voyager", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "shackle", "name": "Shackle", "type": "Enchantment — Aura", "keywords": ["ENCHANT"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "voyager", "set": 9},
+  {"op": "enchant", "aura": "shackle", "host": "ogre"},
+  {"op": "activate", "key": "voyager", "idx": 2, "seat": 0, "targets": ["p1"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0, 1],
+  "phased_out": {"ogre": false, "shackle": false},
+  "attached": {"shackle": "ogre"},
+  "zone": {"ogre": "battlefield", "shackle": "battlefield"}
+ },
+ "notes": "Teferi, Timeless Voyager [-8]: '... Until the end of your next turn, they can't phase in.' The prevention ends in the cleanup step of seat 0's next turn (CR 514.2), so the Ogre phases in during seat 1's untap step after it (CR 702.26a), and seat 0's Aura, which phased out with it indirectly, phases in with it, still attached (CR 702.26g)."
+}

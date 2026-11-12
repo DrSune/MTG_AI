@@ -59,6 +59,7 @@ for _name in (
     "_QPROP_STR_REFERENTS",
     "_MANA_POLICY_SCOPES",
     "_DAMAGE_ASSIGN_SCOPES",
+    "_ATTACK_POLICY_SCOPES",
     "_MOVE_JOURNAL_KINDS",
     "_MOVE_POP_ORDERS",
 ):
@@ -171,7 +172,9 @@ def classify_branch(node):
         if node.else_effect is not None:
             kids += (f"else:{type(node.else_effect).__name__}",)
     elif cls == "EachPlayer":
-        menu, cnt = f"ref:{node.ref.name}", "-"
+        # a ControllerRef, or a referent Selector ("that creature's controller")
+        ref = node.ref.name if hasattr(node.ref, "name") else f"referent:{node.ref.referent}"
+        menu, cnt = f"ref:{ref}", "-"
         kids = (type(node.effect).__name__,)
     elif cls == "DelayedTrigger":
         menu, cnt = f"event:{type(node.event).__name__}", "-"

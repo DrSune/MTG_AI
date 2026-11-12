@@ -1842,81 +1842,61 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
     return EffectOutcome(effect=Seq(steps=(search, reveal, to_bf, to_hand, shuffle)))
 
 
+def _its_controller() -> Selector:
+    """"That creature's controller" / "that player" after "Exile target creature":
+    the controller of the designated object (referent "target"), as it last existed
+    on the battlefield (CR 608.2h). Not a player target: the spell has one target."""
+    return Selector(
+        QConst(1),
+        SelectorMode.CHOOSE,
+        _UNIVERSAL,
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
+        referent="target",
+    )
+
+
 def _build_transmog_reveal_creature(m: re.Match[str]) -> SentenceOutcome:
     """``That creature's controller reveals cards from the top of their
-    library until they reveal a creature card.`` (Transmogrify s2): a CHOOSE
-    search for a creature on top of TARGET_PLAYER's library, then a
-    whole-zone REVEAL that journals the disclosure (nothing moves).
-    ``ZonePosition.TOP`` enumerates exactly the library top, so the search
-    never reaches a deeper card; TARGET_PLAYER is "that creature's
-    controller", bound by the s1 exile's target.
-
-    The REVEAL trails the search on purpose: a REVEAL opens a look window,
-    and the search's library-top selector (promoted to ONE_OF) re-scopes its
-    menu to an open window (executor selectors.py), which would make the
-    whole library its menu. The s3 SHUFFLE closes the window.
-
-    Lossy, as the grammar has no reveal-until iterator: a non-creature top
-    card finds nothing instead of digging deeper, and the disclosure is
-    journalled after the put."""
-    reveal = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(
-            pairs=(
-                ("controller", ControllerRef.TARGET_PLAYER),
-                ("count", QUnbounded()),
-            )
-        ),
+    library until they reveal a creature card.`` (Transmogrify s2):
+    REVEAL with an ``until`` filter, revealed by the exiled creature's
+    controller from their library. The first creature card revealed is the
+    ``result`` ("that card" of s3); nothing moves."""
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.REVEAL,
+            args=AtomArgs(
+                pairs=(
+                    ("controller", _its_controller()),
+                    ("count", QConst(1)),
+                    ("until", FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")),
+                )
+            ),
+        )
     )
-    search = Atom(
-        verb=Verb.SEARCH,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "cards",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        zones=(Zone(
-                            kind=ZoneKind.LIBRARY,
-                            controller=ControllerRef.TARGET_PLAYER,
-                            position=ZonePosition.TOP,
-                        ),),
-                    ),
-                ),
-                (
-                    "destination",
-                    Zone(ZoneKind.BATTLEFIELD, ControllerRef.TARGET_PLAYER),
-                ),
-                ("controller", ControllerRef.TARGET_PLAYER),
-            )
-        ),
-    )
-    return EffectOutcome(effect=Seq(steps=(search, reveal)))
 
 
 def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
     """``That player puts that card onto the battlefield, then shuffles the
-    rest into their library.`` (Transmogrify s3): the put is s2's SEARCH
-    destination (the grammar cannot name "that card" across the
-    reveal-until), so this is only the SHUFFLE of TARGET_PLAYER's library
-    ("That player" is the s1 exile's target)."""
-    shuffle = Atom(
-        verb=Verb.SHUFFLE,
+    rest into their library.`` (Transmogrify s3): EachPlayer over the exiled
+    creature's controller, so "that player" puts the revealed creature card
+    (the ``result``) onto the battlefield under their control (CR 110.2a) and
+    shuffles their library, which holds the rest of the revealed cards."""
+    put = Atom(
+        verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
-                (
-                    "zone",
-                    Zone(
-                        kind=ZoneKind.LIBRARY,
-                        controller=ControllerRef.TARGET_PLAYER,
-                    ),
-                ),
+                ("cards", _result_selector()),
+                ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
             )
         ),
     )
-    return EffectOutcome(effect=shuffle)
+    shuffle = Atom(
+        verb=Verb.SHUFFLE,
+        args=AtomArgs(pairs=(("zone", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),)),
+    )
+    return EffectOutcome(
+        effect=EachPlayer(ref=_its_controller(), effect=Seq(steps=(put, shuffle)))
+    )
 
 
 def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
@@ -3296,7 +3276,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-transmogrify-reveal-creature",
-        name="top-of-library creature search for that player (SEARCH TOP, C3)",
+        name="that creature's controller reveals until a creature card (REVEAL until)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^That creature's controller reveals cards from the top of their "
@@ -3307,7 +3287,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-transmogrify-shuffle-rest",
-        name="shuffle-remainder tail (SHUFFLE Zone LIBRARY TARGET_PLAYER, C3)",
+        name="that player puts that card onto the battlefield, shuffles the rest (EachPlayer)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^That player puts that card onto the battlefield, then shuffles "

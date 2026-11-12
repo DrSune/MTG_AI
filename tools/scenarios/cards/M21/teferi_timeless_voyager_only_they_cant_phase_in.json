@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "voyager", "real": "Teferi, Timeless Voyager", "zone": "battlefield", "controller": 0},
+  {"key": "master", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Ogre", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "voyager", "set": 9},
+  {"op": "loyalty", "key": "master", "set": 5},
+  {"op": "activate", "key": "master", "idx": 2, "seat": 0, "targets": ["bear"]},
+  {"op": "activate", "key": "voyager", "idx": 2, "seat": 0, "targets": ["p1"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "phased_out": {"bear": false, "ogre": true}
+ },
+ "notes": "'They can't phase in' names the creatures Teferi, Timeless Voyager's [-8] phased out, not every creature seat 1 controls. Teferi, Master of Time's [-3] phased the Bear out first, so the [-8] did not phase it out (a phased-out permanent is treated as though it does not exist, CR 702.26b) and it phases in at seat 1's next untap step; the Ogre, which the [-8] phased out, stays out (IS_RESULT, the result register locked into the prevention as it resolved)."
+}

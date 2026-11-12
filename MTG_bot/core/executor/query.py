@@ -1500,13 +1500,15 @@ def designation_bound(filter_: object) -> bool:
     """Does a filter name the ability's own target (an IS_ANY_TARGET
     conjunct)? Its other conjuncts then describe that target ("another target
     creature with power 2 or less"), so they are targeting restrictions."""
+    return names_pred(filter_, FAtomPred.IS_ANY_TARGET)
+
+
+def names_pred(filter_: object, pred: FAtomPred) -> bool:
+    """Is ``pred`` the filter itself or one of its top-level conjuncts?"""
     if isinstance(filter_, FAtom):
-        return filter_.pred is FAtomPred.IS_ANY_TARGET
+        return filter_.pred is pred
     if isinstance(filter_, FAnd):
-        return any(
-            isinstance(c, FAtom) and c.pred is FAtomPred.IS_ANY_TARGET
-            for c in filter_.children
-        )
+        return any(isinstance(c, FAtom) and c.pred is pred for c in filter_.children)
     return False
 
 

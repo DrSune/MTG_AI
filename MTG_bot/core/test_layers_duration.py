@@ -9,9 +9,9 @@ planeswalker on the battlefield).
 The M21 cards pinned here:
   * Predatory Wurm    — MODIFY_PT while (your Garruk planeswalker)
   * Sigiled Contender — GRANT_ABILITY LIFELINK while (+1/+1 counter)
-  * Drowsing Tyrannodon — LOSE_ABILITY DEFENDER while (creature with power
-    >= 4); it mirrors the gate in StaticAbility.condition too, so it pins
-    that the two gates agree.
+  * Drowsing Tyrannodon — ATTACK_POLICY AS_NO_DEFENDER gated by
+    StaticAbility.condition alone (creature with power >= 4): the condition
+    lane keeps its record live and dormant, and the keyword stays.
 Plus the registration contract on synthetic statics.
 """
 
@@ -44,6 +44,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
+from MTG_bot.core.executor.legality import attack_policy_applies
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, GameWorld
 
@@ -239,28 +240,31 @@ class TestSigiledContenderWhileCounter(DurationRoleCase):
         self.assertEqual(layer.status, "live")
 
 
-class TestDrowsingTyrannodonDoubleGate(DurationRoleCase):
-    """The gate sits in StaticAbility.condition AND the duration role:
-    pinned so the condition lane keeps working and both gates agree."""
+class TestDrowsingTyrannodonAttackPolicy(DurationRoleCase):
+    """The "as long as" gate sits in StaticAbility.condition over an
+    ATTACK_POLICY (CR 609.4): the record is live exactly while a creature with
+    power 4 or greater is under its controller's control, and the Tyrannodon
+    keeps defender throughout (BACKLOG B-80)."""
 
     NAME = "Drowsing Tyrannodon"
 
-    def test_defender_cycle_and_double_gate(self) -> None:
+    def test_policy_cycle_keeps_defender(self) -> None:
         dino = self.play(self.NAME)
-        self.assertTrue(self.kw(dino, Keyword.DEFENDER), "starts OFF")
-        (layer,) = self.static_layers(dino)
+        (layer,) = [
+            r for r in self.ex.layers.records if r.source == dino and r.kind == "attack_policy"
+        ]
         self.assertIsNotNone(layer.condition, "condition lane intact")
-        self.assertIsInstance(
-            layer.duration, DurationWhileCondition, "duration lane now carried"
-        )
+        self.assertEqual(layer.status, "dormant", "starts OFF: it is 3/3")
         muscle = self.world.add_card(
             synth_id("Muscle", "4", "4"), self.p0, ZONE_BATTLEFIELD
         )
         self.settle()
-        self.assertFalse(self.kw(dino, Keyword.DEFENDER), "ON: a 4-power ally")
+        self.assertTrue(attack_policy_applies(self.ex, dino, "AS_NO_DEFENDER"), "ON")
+        self.assertTrue(self.kw(dino, Keyword.DEFENDER), "still a creature with defender")
         self.world.move_to_zone(muscle, self.p0, ZONE_EXILE)
         self.settle()
-        self.assertTrue(self.kw(dino, Keyword.DEFENDER), "OFF again")
+        self.assertFalse(attack_policy_applies(self.ex, dino, "AS_NO_DEFENDER"), "OFF again")
+        self.assertTrue(self.kw(dino, Keyword.DEFENDER))
 
 
 class TestDurationRoleRegistrationContract(DurationRoleCase):

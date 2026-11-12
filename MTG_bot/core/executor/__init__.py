@@ -119,7 +119,7 @@ from MTG_bot.core.executor.returns import ReturnRegistry, ReturnRow
 from MTG_bot.core.executor.selectors import (
     atom_target_slot_key as _atom_target_slot_key,
 )
-from MTG_bot.core.executor.selectors import players_for_ref
+from MTG_bot.core.executor.selectors import players_for
 from MTG_bot.core.executor.stack import SpellStack
 from MTG_bot.core.executor.verbs import HANDLERS, damage_source, run_atom
 from MTG_bot.core.identity import Handle, HandleSpace
@@ -1094,14 +1094,16 @@ class Executor:
             # YOU-relative (Goremand's SACRIFICE filter CONTROLLER_IS YOU,
             # MILL's controller role, Zone(PLAYER,YOU)), so rotation IS the
             # rebinding; the spell's designations stay visible (bindings
-            # carried, never rewritten). Players go in players_for_ref's
+            # carried, never rewritten). A referent ref ("that creature's
+            # controller", Transmogrify) is the controller of the object it
+            # names (CR 608.2h). Players go in players_for_ref's
             # seat order, not APNAP order (CR 101.4); the two differ only
             # when a later seat is active. The per-op decision POOL cursor
             # rides across the sub-contexts (one positional supply answers
             # every ask in order) and is written back; the stream lanes are
             # executor-owned and need no forwarding. Each inner atom
             # journals its own boundary under the stable source.
-            for player in players_for_ref(effect.ref, ctx):
+            for player in players_for(effect.ref, ctx):
                 inner = self._ctx(
                     source=ctx.source,
                     controller=player,
@@ -2113,7 +2115,7 @@ class Executor:
         if step == UNTAP:
             assert active is not None
             self._untap_step(active)
-            # "Until your next turn" ends as the turn begins (CR 611.2b); zone
+            # "Until your next turn" ends as the turn begins (CR 611.2a); zone
             # moves "until your next turn" return now (CR 610.3). What they
             # trigger waits for the upkeep (CR 503.1a).
             self.ledger.expire_until_next_turn(active)
@@ -3195,13 +3197,15 @@ class Executor:
         back with the permanent it is attached to, never by itself
         (702.26g). The other half of 502.1, permanents WITH phasing phasing
         out, has no carrier: no card in the pools has the phasing keyword.
-        Nothing can stop a phase-in here yet: Teferi, Timeless Voyager's
-        "they can't phase in" compiles to a ZoneChangeEvent that a status
-        change never produces (docs/BACKLOG.md). Returns what phased in."""
+        A permanent that "can't phase in" (Teferi, Timeless Voyager's [−8], a
+        PhasingEvent prevention) stays out, and so does what is attached to
+        it. Returns what phased in."""
         returning = sorted(
             card
             for card, (controller, host) in self.phased_out.items()
-            if host is None and controller == player
+            if host is None
+            and controller == player
+            and not self.replacements.prevents_phase_in(card)
         )
         back: list[Handle] = []
         for card in returning:

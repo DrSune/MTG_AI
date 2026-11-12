@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "rise", "real": "Furious Rise", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Big", "power": "5", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "dog", "real": "Alpine Watchdog", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "act", "seat": 0, "words": ["cast:dog"]}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "zone": {"dog": "battlefield", "rise": "battlefield"}
+ },
+ "notes": "KNOWN BUG (weaker than printed), fails today. Furious Rise: 'At the beginning of your end step, if you control a creature with power 4 or greater, exile the top card of your library. You may play that card until you exile another card with Furious Rise.' With the 5/5 out, seat 0's end step exiles Alpine Watchdog (that part works: furious_rise_exiles_with_a_big_creature.json). On seat 0's next turn the Watchdog may be cast from exile, so the menu must offer 'cast:dog'. It does not: the second sentence is suppressed at assembly (compiler._is_result_anaphoric_cast_permission, KNOWN-GAP 'play permission') because the engine has no permission to play a card from exile (DESIGN_ATOM_ONTOLOGY R5-2 PERMIT_CAST, never implemented), and its window, 'until you exile another card with Furious Rise', is an event-ended duration with no carrier (R5-8, divergence D15). docs/BACKLOG.md."
+}

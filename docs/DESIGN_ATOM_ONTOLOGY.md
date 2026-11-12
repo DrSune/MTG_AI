@@ -315,12 +315,13 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 | R5-1 `duration` on MOVE_ZONE (B-60c) | **implemented** (lane r5a; FIX-THEN-GO in rounds 1 and 2, every round-2 fix applied): return registry `returns.py`, journal-provenance 400.7, 610.3a-d, returns through replacements, Aura host choice |
 | R5-6 `actor` on TargetingEvent | **implemented** (lane r5a) |
 | R5-7 `AbilityActivatedEvent` + `is_mana_ability` (605.1a) | **implemented** (lane r5b, round 3 GO). The B-90 payment witness skips locked mana abilities and journals its activations (lane vfix, B-109) |
-| R5-9 Teferi, Timeless Voyager stays weaker | **recorded** as D16 |
+| R5-9 Teferi, Timeless Voyager stays weaker | **superseded 2026-11-12** (1cac720, assigned by the coordinator, no gate round): `PhasingEvent`, `FAtomPred.IS_RESULT` and R5-8's `DurationUntilEndOfNextTurn` play the clause; D16 closed, BACKLOG B-75 |
 | R5-10 `STACK_KIND_EQ` + counter-window mode ask | **implemented** (lane r5b) |
 | R5-11 `TokenSpec.colors` | **implemented** (lane r5b) |
 | `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
 | R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
-| R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` goes to round 4 |
+| R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` **implemented 2026-11-12** (1cac720, no gate round) for Transmogrify, with `EachPlayer.ref` taking a referent Selector ("that creature's controller"); BACKLOG B-113 |
+| `Verb.ATTACK_POLICY` (scope `AS_NO_DEFENDER`, CR 609.4; BACKLOG B-80) | **implemented 2026-11-12** (1cac720, no gate round): Drowsing Tyrannodon keeps defender and attacks as though it had none |
 | R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | for round 4 |
 | R5-15 `ControllerRef.TARGET_OPPONENT` (lane vfix2, an identity fix) | implemented; post-hoc check in round 4 |
 | v2's `DurationUntil(event)`, `EXILED_BY_SOURCE`, PHASE_OUT `duration`, `GRANT_ABILITY(ReplacementAbility)` route | withdrawn (round 2) |
@@ -421,7 +422,9 @@ The v2 shape stands: CAST stays one-shot (608.2g), PERMIT_CAST is the permission
 ### R5-9 v3 Teferi, Timeless Voyager stays weaker than printed
 "They can't phase in" would need a phasing event used by one card in 19 sets (§9 ii). Its creatures
 phase in at their controller's next untap step. That is weaker than printed, recorded as D16 and in
-BACKLOG B-75.
+BACKLOG B-75. **Superseded 2026-11-12** (1cac720): the clause is
+`PREVENT_EFFECT(condition=IS_RESULT, event=PhasingEvent(phased_in=True, filter=IS_RESULT),
+duration=DurationUntilEndOfNextTurn)`, consulted by the untap step's phasing; D16 is closed.
 
 ### R5-10 v3 Stack objects say what they are
 - **Encoding.** `FAtom(STACK_KIND_EQ, string_value ∈ {SPELL, ACTIVATED, TRIGGERED})`, a closed

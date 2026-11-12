@@ -37,7 +37,6 @@ from MTG_bot.core.ability_tree import (
     DeclareBlockersEvent,
     DurationEot,
     DurationUntilLeaves,
-    DurationWhileCondition,
     EtBState,
     FAnd,
     FAtom,
@@ -2107,7 +2106,7 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertEqual(cond.count, QConst(7))
         self.assertIs(activated[0].timing, ActivationWindow.SORCERY)
 
-    def test_drowsing_defender_strip(self) -> None:
+    def test_drowsing_attacks_as_though_no_defender(self) -> None:
         outcome = self._match_one(
             "As long as you control a creature with power 4 or greater, "
             "this creature can attack as though it didn't have defender."
@@ -2129,18 +2128,17 @@ class TestB5aRound9BStructures(unittest.TestCase):
         self.assertEqual(type_a.string_value, "Creature")
         self.assertEqual(power_ge.pred, FAtomPred.POWER_GE)
         self.assertEqual(power_ge.count, QConst(4))
-        # effect: LOSE_ABILITY strips DEFENDER from self, DurationWhileCondition
+        # effect: ATTACK_POLICY AS_NO_DEFENDER on self (CR 609.4) -- the
+        # keyword stays, so it is still "a creature with defender" (B-80)
         atom = _as_atom(ab.effect)
-        self.assertIs(atom.verb, Verb.LOSE_ABILITY)
+        self.assertIs(atom.verb, Verb.ATTACK_POLICY)
         pairs = _pairs_dict(atom)
-        ability = pairs["ability"]
-        assert isinstance(ability, KeywordAbility)
-        self.assertIs(ability.keyword, Keyword.DEFENDER)
-        target = pairs["target"]
-        assert isinstance(target, Selector)
-        self.assertEqual(target.filter, FAtom(pred=FAtomPred.IS_SOURCE))
-        self.assertIs(target.mode, SelectorMode.CHOOSE)
-        self.assertEqual(pairs["duration"], DurationWhileCondition(filter=cond))
+        self.assertEqual(set(pairs), {"cards", "scope"})
+        self.assertEqual(pairs["scope"], "AS_NO_DEFENDER")
+        cards = pairs["cards"]
+        assert isinstance(cards, Selector)
+        self.assertEqual(cards.filter, FAtom(pred=FAtomPred.IS_SOURCE))
+        self.assertIs(cards.mode, SelectorMode.CHOOSE)
 
     def test_pc3_steward_tail_disjoint_from_speaker(self) -> None:
         """The bare "Activate only as a sorcery." tail and the Speaker

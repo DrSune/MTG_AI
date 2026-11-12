@@ -15,14 +15,17 @@ import unittest
 from MTG_bot.core.ability_tree import (
     ControllerRef,
     DamageDealtEvent,
+    DurationUntilEndOfNextTurn,
     FAnd,
     FAtom,
     FAtomPred,
+    PhasingEvent,
     QConst,
     QUnbounded,
     ReplacementAbility,
     Selector,
     SelectorMode,
+    Seq,
     TokenSpec,
     TriggeredAbility,
     Verb,
@@ -221,6 +224,71 @@ class TestCombat(PhasingCase):
         self.ex.phase_out([attacker])
         self.assertEqual(self.ex.attackers, [])
         self.assertEqual(self.ex.attacked, {})
+
+
+class TestCantPhaseIn(PhasingCase):
+    """Teferi, Timeless Voyager's [−8] as compiled: "Each creature target opponent
+    controls phases out. Until the end of your next turn, they can't phase in." The
+    prevention covers the creatures the PHASE_OUT acted on (IS_RESULT, locked in as it
+    resolves) and lasts until the cleanup step of its controller's next turn."""
+
+    def voyager_minus_eight(self, source) -> None:
+        theirs = Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_OPPONENT), CREATURE)),
+            zones=(BF_ANY,),
+        )
+        they = FAtom(FAtomPred.IS_RESULT)
+        self.ex.apply_effect(
+            Seq((
+                atom(Verb.PHASE_OUT, target=theirs),
+                atom(Verb.PREVENT_EFFECT, condition=they,
+                     event=PhasingEvent(phased_in=True, filter=they),
+                     duration=DurationUntilEndOfNextTurn()),
+            )),
+            source=source,
+            controller=self.p0,
+            bindings={"target": [self.p1]},
+        )
+
+    def test_they_stay_out_through_your_next_turn(self) -> None:
+        walker = self.creature("Walker", self.p0)
+        ogre = self.creature("Ogre", self.p1)
+        self.ex.begin_turn(self.p0)
+        self.voyager_minus_eight(walker)
+        [rec] = self.ex.replacements.preventions
+        self.assertEqual((rec.targets, rec.tag), ((ogre,), "UntilEndOfNextTurn"))
+        self.ex.advance_turn()  # p1's untap step: it can't phase in
+        self.assertIn(ogre, self.ex.phased_out)
+        self.ex.advance_turn()  # p0's next turn begins: the effect ends with it
+        self.assertEqual((rec.tag, rec.status), ("Eot", "live"))
+        self.ex.advance_turn()  # p0's cleanup ended it; p1's untap step phases it in
+        self.assertEqual(rec.status, "expired")
+        self.assertNotIn(ogre, self.ex.phased_out)
+
+    def test_nothing_phased_out_nothing_held(self) -> None:
+        walker = self.creature("Walker", self.p0)
+        self.ex.begin_turn(self.p0)
+        self.voyager_minus_eight(walker)  # p1 controls no creature
+        [rec] = self.ex.replacements.preventions
+        self.assertEqual(rec.targets, ())
+        later = self.creature("Later", self.p1)
+        self.phase_out(later)  # phased out by another effect: not "they"
+        self.ex.advance_turn()
+        self.assertNotIn(later, self.ex.phased_out)
+
+    def test_a_ledger_change_cannot_last_until_the_end_of_your_next_turn(self) -> None:
+        bear = self.creature("Bear", self.p0)
+        self.ex.begin_turn(self.p0)
+        with self.assertRaises(NotImplementedError):
+            self.ex.execute(
+                atom(Verb.MODIFY_PT, target=target_creature(), power=QConst(1),
+                     duration=DurationUntilEndOfNextTurn()),
+                source=bear,
+                controller=self.p0,
+                bindings={"target": [bear]},
+            )
 
 
 if __name__ == "__main__":

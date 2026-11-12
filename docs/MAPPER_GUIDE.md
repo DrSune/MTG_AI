@@ -158,7 +158,15 @@ $PY tools/cards/cardtool.py --help
     sets, in this order: both zones, the library only, the graveyard only. "If you search your
     library this way, shuffle." adds a SHUFFLE only to the options that search the library. See
     `parse` on any named tutor, or `templates.and_or_zone_search`.
-  - "its controller" is a `referent='target'` selector in the `controller` role.
+  - **"its controller" and "that player" are a referent Selector, never TARGET_PLAYER.** The
+    referent names the object in scope: `referent='target'` for a target's controller ("Exile
+    target creature. Its controller ..."), `referent='event'` for the triggering object's (Gloom
+    Sower's "that creature's controller"). Put it in the `controller` role, or make it
+    `EachPlayer.ref` when that player then acts in their own zones (Transmogrify's "That player puts
+    that card onto the battlefield, then shuffles the rest into their library"). TARGET_PLAYER and
+    TARGET_OPPONENT are targets (CR 115.1): in a spell or an activation they open a player target
+    the card does not print. `tools/audit/test_ontology_conformance.py` flags a card that names
+    one while its text says neither "target player" nor "target opponent" (ATOM_DIVERGENCES D18).
   - "N damage to that creature's controller" has no encoding yet: a second TARGET selector over
     the PLAYER zone is a target slot of its own, so the caster would pick who takes the damage.
     Mark such a card needs-atom (M20 Chandra's Outrage).

@@ -36,7 +36,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DelayedTrigger,
-    DurationUntilNextTurn,
+    DurationUntilEndOfNextTurn,
     EachPlayer,
     Effect,
     FAnd,
@@ -49,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     KickerAbility,
     OptionalEffect,
+    PhasingEvent,
     QBin,
     QAtLeast,
     QConst,
@@ -197,30 +198,19 @@ _PHASE_IN_PREVENT_RE = re.compile(
 def _phase_in_prevention_effect() -> Atom:
     """Canonical phase-in prevention atom.
 
-    Prevents the opponent's command-zone permanents entering the battlefield
-    until the controller's next turn.  ``DurationUntilNextTurn`` carries the
-    "until the end of your next turn" scope.
+    "They" are the permanents the previous instruction phased out (IS_RESULT,
+    the ``result`` register PHASE_OUT writes), and what they can't do is phase
+    in (a PhasingEvent: phasing is a status, not a zone change, CR 702.26d),
+    until the end of the controller's next turn (DurationUntilEndOfNextTurn).
     """
+    they = FAtom(FAtomPred.IS_RESULT)
     return Atom(
         verb=Verb.PREVENT_EFFECT,
         args=AtomArgs(
             pairs=(
-                (
-                    "condition",
-                    FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
-                ),
-                (
-                    "event",
-                    ZoneChangeEvent(
-                        from_zone=Zone(
-                            kind=ZoneKind.COMMAND, controller=ControllerRef.OPPONENT
-                        ),
-                        to_zone=Zone(
-                            kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.OPPONENT
-                        ),
-                    ),
-                ),
-                ("duration", DurationUntilNextTurn()),
+                ("condition", they),
+                ("event", PhasingEvent(phased_in=True, filter=they)),
+                ("duration", DurationUntilEndOfNextTurn()),
             )
         ),
     )
