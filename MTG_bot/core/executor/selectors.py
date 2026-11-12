@@ -187,30 +187,16 @@ def controller_matches(
     return who is ControllerRef.ANY
 
 
-def filter_reads_bound_player(filter_: object) -> bool:
-    """Does this Filter read the designated TARGET_PLAYER seat through
-    ``CONTROLLER_IS``? A BATTLEFIELD seat is expressed ONLY as this atom
-    (zone=BF-ANY + ``FAtom(CONTROLLER_IS, TARGET_PLAYER)``), so every
-    designation scan (binding._designate, the query cast/activation lanes)
-    must consult FILTERS, not just raw ControllerRef/Zone pair values, or
-    the flag silently flips off. The scope to filters is deliberate: a
-    Selector or Verb-role ZONE carrying TARGET_PLAYER can be anaphoric
-    (Brash Taunter's "that creature or player"), and in trigger designation
-    those must NOT open a designation lane (the multi-lane guard would
-    raise).
-
-    The query cast/activation lanes also open a player slot from a
-    selector's zones (query._designated_player_refs): Tormod's Crypt's
-    "Exile target player's graveyard" is a target (CR 115.1), not a
-    container read."""
-    return bool(filter_bound_player_refs(filter_))
-
-
 def filter_bound_player_refs(filter_: object) -> set[ControllerRef]:
     """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a Filter
-    reads through ``CONTROLLER_IS`` — :func:`filter_reads_bound_player`'s answer
-    with the ref kept, so a designation slot knows whether it is "target
-    player" (any player) or "target opponent"."""
+    reads through ``CONTROLLER_IS``, so a designation slot knows whether it is
+    "target player" (any player) or "target opponent". A BATTLEFIELD seat is
+    expressed ONLY as this atom (zone=BF-ANY + ``FAtom(CONTROLLER_IS,
+    TARGET_PLAYER)``), so every designation scan (binding._designate, the query
+    cast/activation lanes) must consult FILTERS, not just raw ControllerRef/Zone
+    pair values. The query cast/activation lanes also open a player slot from a
+    selector's zones (query._designated_player_refs): Tormod's Crypt's "Exile
+    target player's graveyard" is a target (CR 115.1), not a container read."""
     if isinstance(filter_, FAtom):
         found: set[ControllerRef] = set()
         if (

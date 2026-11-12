@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... destroy up to one target artifact or enchantment that player controls.' 'Up to one' lets the controller choose no target (CR 601.2c, 115.6; for a trigger CR 603.3d): the ask offers NONE beside the Relic and the Charm, and with NONE nothing is destroyed. See feline_sovereign_controller_chooses_the_charm.",
+ "cards": [
+  {"key": "feline", "real": "Feline Sovereign", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "Bronze Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "charm", "name": "Silver Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"feline": true}, "decisions": ["NONE"]}
+ ],
+ "expect": {
+  "zone": {"relic": "battlefield", "charm": "battlefield"},
+  "life": {"0": 20, "1": 18}
+ }}

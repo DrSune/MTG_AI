@@ -7,7 +7,15 @@ from __future__ import annotations
 
 import unittest
 
-from MTG_bot.core.ability_tree import ControllerRef, Keyword, QConst, SpellAbility, Verb
+from MTG_bot.core.ability_tree import (
+    ControllerRef,
+    Keyword,
+    QConst,
+    Selector,
+    SelectorMode,
+    SpellAbility,
+    Verb,
+)
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
 from MTG_bot.core.executor.query import spell_target_slots
@@ -20,7 +28,7 @@ from MTG_bot.core.state import (
     ZONE_LIBRARY,
     GameWorld,
 )
-from MTG_bot.core.test_executor_binding import atom, card_id
+from MTG_bot.core.test_executor_binding import BF_ANY, UNIV, atom, card_id
 
 
 class ThreeSeatOpponentsTest(unittest.TestCase):
@@ -71,6 +79,29 @@ class ThreeSeatOpponentsTest(unittest.TestCase):
             (slot,) = [s for s in spell_target_slots(self.ex, node, spell_handle=spell, seat=self.p0) if s.synthetic]
             self.assertEqual(slot.candidates, expected)
             self.assertFalse(slot.forced)
+
+    def test_a_damage_trigger_asks_which_opponent_it_targets(self) -> None:
+        # Brash Taunter: "Whenever this creature is dealt damage, it deals that much damage to
+        # target opponent." Seat 1's Ogre deals it 2: its controller chooses either opponent as
+        # the trigger goes on the stack (CR 603.3d, 115.1), here seat 2. The damage source's
+        # controller once stood as the target, unasked (binding._put's DAMAGE pre-bind).
+        taunter = self.real("Brash Taunter", self.p0, ZONE_BATTLEFIELD)
+        ogre = self.world.add_card(card_id("Ogre", "3", "3"), self.p1, ZONE_BATTLEFIELD)
+        self.start()
+        asked: list[tuple[str, ...]] = []
+
+        def seat_two(vocab: tuple[str, ...], what: str) -> str:
+            if what.startswith("target:"):
+                asked.append(vocab)
+            return str(self.p2) if str(self.p2) in vocab else vocab[0]
+
+        self.ex.decisions.provider = seat_two
+        hit = atom(Verb.DEAL_DAMAGE, amount=QConst(2),
+                   target=Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,)))
+        self.ex.execute(hit, source=ogre, controller=self.p1, bindings={"target": taunter})
+        self.ex.fire_triggers()
+        self.assertEqual(asked, [(str(self.p1), str(self.p2))])
+        self.assertEqual(self.lives(), [20, 20, 18])
 
     def test_each_opponent_is_dealt_damage(self) -> None:
         # Storm Caller: "When this creature enters, it deals 2 damage to each opponent."

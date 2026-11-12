@@ -75,6 +75,20 @@ def test_the_probe_never_targets_one_object_for_two_slots_of_another_target() ->
         assert "targets=['you_bear', 'you_giant']" in rep.text()
 
 
+def test_the_probe_shows_the_asks_a_combat_makes() -> None:
+    # Feline Sovereign: "Whenever one or more Cats you control deal combat damage to a player,
+    # destroy up to one target artifact or enchantment that player controls." The engine asks the
+    # controller as the trigger goes on the stack (CR 603.3d, 601.2c). The scenario runner's combat
+    # op used to answer that ask itself, unseen, with its first word, so the trace showed the Relic
+    # destroyed and no choice (verification wave 1, packet A15).
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Feline Sovereign")
+    text = probe.Probe(sup, "M21", oid).report().text()
+    attack = text.split("[stimulus: this creature attacks alone, unblocked")[1].split("\n[")[0]
+    assert "ask target: [opp_relic, opp_charm, NONE] -> opp_relic" in attack
+    assert "opp_relic moves battlefield -> graveyard (by card/DESTROY)" in attack
+
+
 def test_a_card_on_the_probe_board_has_made_its_as_enters_choice() -> None:
     # Runed Halo: "As this enchantment enters, choose a card name" (CR 614.1c). A permanent is on
     # the battlefield only by having entered it, so the board's Halo has chosen a name, and the

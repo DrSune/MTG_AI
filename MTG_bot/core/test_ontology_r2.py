@@ -457,14 +457,11 @@ class TestRecipientFidelity(R2FoldCase):
 
 
 class TestDesignationValidation(R2FoldCase):
-    """The DAMAGE dealer pre-bind may only stand as a TARGET slot's FROZEN
-    DESIGNATION when it PASSES that slot's filter:
-    ``TriggerBinder._prebind_legal_for_targets`` validates it through the
-    SAME ``query.legal_targets`` population the ask lane uses and lifts it
-    on failure, so CR 603.1 designates properly. Unvalidated, a non-event
-    filter (here CONTROLLER_IS OPPONENT) would misfire: no ask, no
-    TARGETING journal row, and the dealer destroying ITSELF while the
-    trophy lives."""
+    """The DAMAGE dealer pre-bind never stands as a printed TARGET slot's
+    designation: ``TriggerBinder._put`` lifts it and ``_designate`` asks, or
+    fills the one legal choice (CR 603.3d). Standing, it would misfire on a
+    non-event filter (here CONTROLLER_IS OPPONENT): no ask, no TARGETING
+    journal row, and the dealer destroying ITSELF while the trophy lives."""
 
     def test_non_event_filter_target_asks_not_the_dealer(self):
         """A damage trigger whose DESTROY targets an OPPONENT's artifact:

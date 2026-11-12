@@ -327,8 +327,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     opponent (Storm Caller); each opponent mills (Thieves' Guild Enforcer); Massacre Wurm's -2/-2
     and its per-controller life loss; "as long as an opponent has eight or more cards in their
     graveyard", read from the second opponent; "target opponent" offering every opponent and
-    "target player" offering every player (V21); and Teferi's Ageless Insight's draw-step
-    exception across the other players' turns.
+    "target player" offering every player (V21); Teferi's Ageless Insight's draw-step
+    exception across the other players' turns; and, since 2026-11-12, Brash Taunter's trigger
+    asking which opponent it targets (before, the dealer pre-bind of `binding._put` stood as the
+    target: the damage source's controller, unasked).
   - The one wrong answer was `selectors.role_player`. It took the FIRST player a ControllerRef
     denotes as the one acting player of DRAW, SCRY, LOOK_AT/REVEAL, ADD_MANA and MOVE
     `pop_order=TOP`. It now raises when the ref denotes several. This is a hard stop where a silent
@@ -341,6 +343,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
       ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
   - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`.
+- **A printed "target opponent" read without a TARGET selector still takes a trigger's
+  pre-bind** (2026-11-12): `binding._put` binds the dealer of a DAMAGE firing, or the dead
+  creature of a DIES firing, for an effect that reads a designated player and prints no TARGET
+  slot. That serves the "that player" anaphora (TARGET_PLAYER, D18, Massacre Wurm), but a
+  TARGET_OPPONENT read is always a printed target: with several opponents its controller must be
+  asked (CR 603.3d). No compiled tree in the 19 sets has one; lift the pre-bind for
+  TARGET_OPPONENT when one appears.
 - **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
   With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
   `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
@@ -817,10 +826,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     the board, and the "Aura" probe card is a 2/2 creature.
   - A 0/0 X creature dies at setup (Wildwood Scourge); stimuli never end the turn, so "until end
     of turn" on a triggered effect goes unexercised; the opponent's attack stimulus never asks
-    for blocks; an Equipment's attachment is invisible without a static; combat stimuli answer
-    trigger target asks and unprimed "may" choices internally; pools emptying at end of turn
-    hide payments.
+    for blocks; an Equipment's attachment is invisible without a static; pools emptying at end
+    of turn hide payments.
   - An animated land shows only +HASTE (no P/T or type) in G1 (Wakeroot Elemental).
+- **Regenerate the wave-1 packets whose G1 trace changed** (2026-11-12): combat stimuli now show
+  the asks a combat makes (a trigger's target, a may-offer, a mode), which the pack runner's
+  combat op used to answer unseen with their first word; packet A15 (Feline Sovereign) showed a
+  target destroyed that nobody was shown to choose, although the engine had asked. A verdict read
+  from an old trace fails `cardtool verify` ("the reviewer read a different trace"). Of wave 1's
+  cards only A15 changed (16 of 1,125 M21/M20/FDN traces, draft records applied). 14 of the 688
+  verified cards' traces changed too (Battle-Rattle Shaman and Solemn Simulacrum in M21 and FDN,
+  Dire Fleet Warmonger, Elder Gargaroth, Garruk's Harbinger, Goblin Arsonist, Jeskai Elder,
+  Pitchburn Devils, Siege Striker, Spined Megalodon, Steadfast Sentry, Tomebound Lich); their
+  records' `probe_sha` only matters to a re-run of `cardtool verify`.
 - **Pack runner (`tools/run_scenarios.py`)** (pack-repair agent and verifiers, 2026-11-05 and
   2026-11-06):
   - **Decision words no ask uses pass silently** (the third silent-pass hole, after unread expect

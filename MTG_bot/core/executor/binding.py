@@ -132,7 +132,6 @@ from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
     filter_bound_player_refs,
-    filter_reads_bound_player,
     players_for_ref,
 )
 from MTG_bot.core.identity import Handle
@@ -1580,36 +1579,24 @@ class TriggerBinder:
         # (the dealer); a DIES firing (Massacre Wurm's "that player")
         # binds here; anything else the effect reads as target/TARGET_PLAYER
         # gets a real designation ask through :meth:`_designate`.
-        # The DAMAGE pre-bind is the TARGET_PLAYER-anaphora read (Brash
-        # Taunter's echo). A trigger whose printed TARGET slot designates
-        # from an EVENT-SUBJECT-parameterized population (Feline Sovereign's
-        # / Chandra's Incinerator's "that player controls", compiled as
-        # CONTROLLER_IS who=<Selector referent='event'>) can never be served
-        # by the dealer designation — the pre-bind must not swallow the ask
-        # for it. The narrow gate keeps every TARGET_PLAYER reader (Brash
-        # Taunter's echo zone) bound to the dealer.
+        # The DAMAGE pre-bind serves only a designated player read with no
+        # printed TARGET slot (the TARGET_PLAYER anaphora, divergence D18).
         if (
             event.kind == KIND_DAMAGE
             and event.cause is not None
             and ctx.bindings.get("target") == event.cause
-            and (
-                not self._designates(node)
-                or self._damage_designation_is_event_borne(node)
-                or not self._prebind_legal_for_targets(node, ctx)
-            )
+            and (not self._designates(node) or self._designation_slots(node)[0])
         ):
             # An effect that designates nothing has no use for the dealer pre-bind, and a
             # binding-first role would read it: "creatures you control get +1/+0" (Wildfire
             # Elemental) would pump only the creature that dealt the damage.
-            # The shape gate alone would keep the pre-bind for a TARGET slot
-            # with a NON-event filter (e.g. CONTROLLER_IS OPPONENT), and
-            # resolve_selector takes a bound handle as FROZEN DESIGNATION
-            # WITHOUT CONSULTING the selector's zones+filter, so the dealer
-            # would resolve the slot against ITSELF (destroy itself, no ask,
-            # no journal). So the dealer designation may only stand when
-            # it is actually LEGAL for every printed TARGET slot
-            # (_prebind_legal_for_targets, which documents the known-narrow
-            # cases and their backstop).
+            # A printed TARGET slot is chosen by the ability's controller as it goes on the stack
+            # (CR 603.3d, 115.1): :meth:`_designate` asks, or fills the one legal choice. The dealer
+            # never stands for it, even where it is a legal choice: resolve_selector takes a bound
+            # handle as the designation, so Brash Taunter's "target opponent" was the dealer's
+            # controller, unasked, with two opponents to choose from, and "whenever this deals
+            # combat damage to a player, return target creature to its owner's hand" would bounce
+            # its own dealer.
             del ctx.bindings["target"]
         if ctx.bindings.get("target") is None:
             if (
@@ -1709,110 +1696,6 @@ class TriggerBinder:
             obj.ctx.bindings["target"] = kept if len(kept) != 1 else kept[0]
         self.executor._run_guarded_effect(obj.node.effect, obj.ctx, "trigger")
         return "resolved"
-
-    @staticmethod
-    def _filter_reads_event_ref(filter_: object) -> bool:
-        """Does this filter tree gate on CONTROLLER_IS whose
-        ``who`` slot is an EVENT-REFERENT Selector (the frozen-IR shape of
-        "that player controls" where THAT PLAYER is the event subject —
-        Feline Sovereign's DESTROY, Chandra's Incinerator's burn)?"""
-        if isinstance(filter_, FAtom):
-            who = filter_.who
-            if (
-                filter_.pred is FAtomPred.CONTROLLER_IS
-                and isinstance(who, Selector)
-                and who.referent in ("event", "result")
-            ):
-                return True
-            return any(
-                TriggerBinder._filter_reads_event_ref(inner)
-                for inner in (filter_.inner_filter, filter_.right_inner_filter)
-                if inner is not None
-            )
-        if isinstance(filter_, (FAnd, FOr)):
-            return any(
-                TriggerBinder._filter_reads_event_ref(c) for c in filter_.children
-            )
-        if isinstance(filter_, FNot):
-            return TriggerBinder._filter_reads_event_ref(filter_.inner)
-        return False
-
-    @classmethod
-    def _damage_designation_is_event_borne(cls, node: _AnyTrigger) -> bool:
-        """The narrow gate: True iff the trigger's printed TARGET
-        slots designate from an event-subject-parameterized population
-        (every TARGET-mode, referent-free Selector's filter reads the
-        event-ref CONTROLLER_IS) AND the node reads the TARGET_PLAYER
-        designation nowhere (Brash Taunter's echo zone keeps its dealer
-        pre-bind). A node failing either side keeps the pre-bind."""
-        targets: list[Selector] = []
-        for inner in walk(node.effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                if isinstance(value, Selector):
-                    if value.mode is SelectorMode.TARGET and value.referent is None:
-                        targets.append(value)
-                    if filter_reads_bound_player(value):
-                        return False
-                elif filter_reads_bound_player(value):
-                    return False
-            if filter_reads_bound_player(inner):
-                return False
-        if not targets:
-            return False
-        return all(cls._filter_reads_event_ref(sel.filter) for sel in targets)
-
-    def _prebind_legal_for_targets(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
-        """May the dealer pre-bind stand as the FROZEN DESIGNATION of every
-        printed TARGET slot of this trigger? resolve_selector takes a bound
-        handle without re-checking the selector's filter, so the check must
-        happen at the lift site.
-        ONE legality opinion (query/runtime identity): the slot's
-        population is :func:`query.legal_targets` — the SAME enumeration
-        the :meth:`_designate` ask lane uses; the designation is legal iff
-        it is IN that population, with the zone-side rule folded in: a
-        CARD designation legalises a PLAYER-side slot through its
-        controller (exactly what makes Brash Taunter's echo lane work).
-        A trigger with no TARGET slot needs nothing of the pre-bind and
-        answers True (the dealer stays). Validation never asks; a failing
-        designation LIFTS the pre-bind and the ask lane re-runs from
-        the selector's own filter. KNOWN-NARROW (by design): neither this
-        check nor the shape gate (:meth:`_damage_designation_is_event_borne`)
-        ever reads the trigger's CONDITION, and the TARGET_PLAYER scan misses
-        BARE-ROLE reads (LOSE_LIFE controller=TARGET_PLAYER). A node
-        whose lift opens both a TARGET slot and a bare-role read is
-        caught LOUD by :meth:`_designate`'s broader scan + multi-slot
-        raise — never a silent bind."""
-        from MTG_bot.core.executor.query import legal_targets
-
-        designated = ctx.bindings.get("target")
-        for inner in walk(node.effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                if not (
-                    isinstance(value, Selector)
-                    and value.mode is SelectorMode.TARGET
-                    and value.referent is None
-                ):
-                    continue
-                slot = legal_targets(
-                    self.world,
-                    self.executor,
-                    value,
-                    source=ctx.source,
-                    controller=ctx.controller,
-                    bindings=ctx.bindings,
-                )
-                candidates = set(slot.candidates)
-                if designated in candidates:
-                    continue
-                owner = self.executor.controller_of(designated)
-                if owner is not None and owner in candidates:
-                    continue  # a CARD designation legalises a player
-                return False
-        return True
 
     @classmethod
     def _modes_need_targets(cls, choose: Choose) -> bool:
@@ -1993,7 +1876,8 @@ class TriggerBinder:
         of ``stack.cast``'s designate-then-apply.
 
         Routing table (per-card, event-kind driven — see _put):
-        * DAMAGE firing → the dealer (in _ctx);
+        * DAMAGE firing whose effect reads a designated player and prints no
+          TARGET slot → the dealer (in _ctx);
         * CREATURE_DIES firing → the dead creature (in _put);
         * a single distinct TARGET-mode Selector → enumerated ask (below);
         * a designated-player read with no Selector ("target opponent",
@@ -2160,12 +2044,10 @@ class TriggerBinder:
             if event.kind == KIND_CREATURE_DIES:
                 bindings["result"] = event.subject  # the was-snapshot subject
         if event.kind == KIND_DAMAGE and event.cause is not None:
-            # Brash Taunter: the frozen IR compiles the echo's
-            # "it deals that much damage to any target" as TARGET_PLAYER,
-            # which reads bindings["target"]. In a DAMAGE firing that
-            # designation IS the dealer — bind
-            # it, so TARGET_PLAYER means "the controller of the source of
-            # that damage" (_put lifts the pre-bind where it does not fit).
+            # The dealer: a TARGET_PLAYER read with no printed target is the
+            # anaphora "the controller of the source of that damage" (D18).
+            # _put lifts the pre-bind for every other effect, a printed
+            # TARGET slot included (CR 603.3d: its controller chooses).
             bindings["target"] = event.cause
         amount = (
             event.amount
