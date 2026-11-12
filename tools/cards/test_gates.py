@@ -27,25 +27,36 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     ControllerRef,
     Cost,
+    DurationPermanent,
     FAnd,
     Keyword,
+    OptionalEffect,
     QConst,
     QUnbounded,
     Selector,
     SelectorMode,
+    StaticAbility,
+    TargetingEvent,
+    TriggeredAbility,
     Verb,
     Zone,
     ZoneKind,
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
+from MTG_bot.core.executor.binding import _required_target_keys
 from MTG_bot.core.executor.games import compile_supply
 
 DATA = HERE.parents[1] / "MTG_bot" / "data"
 
 
 @cache
-def _supply() -> Any:
-    return compile_supply("all", "M21", require_verified=False)
+def _compiled(code: str) -> Any:
+    return compile_supply("all", code, require_verified=False)
+
+
+def _supply(code: str = "M21") -> Any:
+    """One supply per set (a mutant swapped into it is what every helper sees)."""
+    return _compiled(code)
 
 
 @cache
@@ -53,12 +64,12 @@ def _raw() -> dict:
     return ingest_pool(DATA / "M21.json")
 
 
-def _oid(name: str) -> str:
-    return next(o for o, m in _supply().metas.items() if m.name == name)
+def _oid(name: str, code: str = "M21") -> str:
+    return next(o for o, m in _supply(code).metas.items() if m.name == name)
 
 
-def _card(name: str) -> Any:
-    return _supply().pool.results[_oid(name)].card
+def _card(name: str, code: str = "M21") -> Any:
+    return _supply(code).pool.results[_oid(name, code)].card
 
 
 def _where(card: Any) -> set[tuple[str, str]]:
@@ -84,11 +95,12 @@ def _at(card: Any, where: str) -> Any:
     return node
 
 
-def _game(pack: dict, card: Any = None, setup: Any = None) -> tuple:
-    """The whole observable game after the pack's steps, with ``card`` (a mutant) swapped in;
-    ``setup`` may adjust the world before the steps run."""
-    sup = _supply()
-    with gates.swapped(sup, _oid(card.name), card) if card is not None else _Null():
+def _game(pack: dict, card: Any = None, setup: Any = None, inspect: Any = None) -> tuple:
+    """The whole observable game after the pack's steps, on the supply of the pack's set, with
+    ``card`` (a mutant) swapped in; ``setup`` may adjust the world before the steps run, and
+    ``inspect(runner)`` adds what it returns to the game."""
+    sup = _supply(pack["set"])
+    with gates.swapped(sup, _oid(card.name, pack["set"]), card) if card is not None else _Null():
         r = ScenarioRunner(pack, sup)
         if setup is not None:
             setup(r)
@@ -112,7 +124,8 @@ def _game(pack: dict, card: Any = None, setup: Any = None) -> tuple:
         seats = {str(p): (w.players[p].life, tuple(str(x) for x in w.players[p].zone("library").entries),
                           tuple(sorted((k, v) for k, v in w.players[p].mana_pool.items() if v)))
                  for p in w.player_order}
-        return objs, seats, ex.journal.dump(), refused
+        game = (objs, seats, ex.journal.dump(), refused)
+        return game if inspect is None else (*game, inspect(r))
 
 
 class _Null:
@@ -128,8 +141,8 @@ def _library(seat: int, prefix: str, n: int = 6) -> list[dict]:
              "toughness": "1", "zone": "library", "controller": seat} for i in range(n)]
 
 
-def _pack(cards: list[dict], steps: list[dict], mana: dict | None = None) -> dict:
-    return {"set": "M21", "world": {"life": 20, "seed": 7, "library_top": True}, "cards": cards,
+def _pack(cards: list[dict], steps: list[dict], mana: dict | None = None, code: str = "M21") -> dict:
+    return {"set": code, "world": {"life": 20, "seed": 7, "library_top": True}, "cards": cards,
             "steps": steps, "mana": mana or {}}
 
 
@@ -626,3 +639,292 @@ def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() 
     trigger = next(ab for ab in adept.abilities if hasattr(ab, "once_per_event"))
     with pytest.raises(ValueError, match="gathers occurrences"):
         dataclasses.replace(trigger, once_per_event=True)
+
+
+# ------------------------------------- verification wave 1's equivalent mutants (KNOWLEDGE 201)
+def _everyone(card: Any, where: str) -> Any:
+    """The "target->all" mutant at ``where``, as gates.mutants builds it."""
+    sel = _at(card, where)
+    return _mutant(card, where, dataclasses.replace(sel, mode=SelectorMode.ALL, count=QUnbounded()))
+
+
+def _wall(key: str, name: str, seat: int) -> dict:
+    return {"key": key, "name": name, "type": "Creature — Wall", "power": "0", "toughness": "3",
+            "zone": "battlefield", "controller": seat}
+
+
+GODS = "1/0/effect/steps/0/options/{}/args/target"
+
+
+def test_target_to_all_on_twins_in_a_resolution_choice_is_dead() -> None:
+    """Gods Willing (M20): "Target creature you control gains protection from the color of your
+    choice until end of turn. Scry 1." The colour is a Choose made as the spell resolves, and
+    each of its five options carries the same TARGET selector: the cast lane walks them all to one
+    slot (query.spell_target_slots) and refuses a cast that does not designate it, so a mutant
+    whose chosen colour holds the ALL selector protects the designated creature only
+    (role_handles). Where the printed "target" matters: two creatures you control, one
+    targeted, a source of each colour dealing damage to both; a fizzle; no legal target."""
+    gw = _card("Gods Willing", "M20")
+    offered = _where(gw)
+    assert not {w for op, w in offered if op == "target->all"}
+    assert ("amount+1", GODS.format(0) + "/count") in offered  # the designation's count stays live
+    assert ("controller YOU->OPPONENT", GODS.format(0) + "/filter/children/0/who") in offered
+    mutants = [_everyone(gw, GODS.format(j)) for j in range(5)]
+    spell = {"key": "gw", "real": "Gods Willing", "zone": "hand", "controller": 0}
+    for i, colour in enumerate("WUBRG"):
+        source = {"key": "src", "name": "Source", "type": "Creature", "power": "3", "toughness": "3",
+                  "colors": [colour], "zone": "battlefield", "controller": 1}
+        hits = [{"op": "deal_damage", "source": "src", "target": k, "amount": 3, "controller": 1}
+                for k in ("w1", "w2", "ow")]
+        pack = _pack([spell, _wall("w1", "Wall One", 0), _wall("w2", "Wall Two", 0), _wall("ow", "Opp Wall", 1), source],
+                     [{"op": "cast", "key": "gw", "targets": ["w1"], "decisions": [str(i), "top"]}, *hits],
+                     {"0": {"W": 1}}, "M20")
+        real = _game(pack)
+        assert {o[0]: o[1] for o in real[0].values() if "Wall" in o[0]} == {
+            "Wall One": "battlefield", "Wall Two": "graveyard", "Opp Wall": "graveyard"}, colour
+        for j, mutant in enumerate(mutants):
+            assert _game(pack, mutant) == real, (colour, j)
+    # the target leaves while the spell waits: both fizzle and ask nothing (no colour, no scry)
+    fizzle = _pack([spell, _wall("w1", "Wall One", 0), _wall("w2", "Wall Two", 0)],
+                   [{"op": "cast", "key": "gw", "targets": ["w1"], "hold": True}, {"op": "move", "key": "w1", "to": "hand"}],
+                   {"0": {"W": 1}}, "M20")
+    # no creature you control: both refuse the cast
+    alone = _pack([spell, _wall("ow", "Opp Wall", 1)], [{"op": "cast", "key": "gw", "decisions": ["0", "top"]}],
+                  {"0": {"W": 1}}, "M20")
+    assert _game(fizzle)[3] is None and _game(alone)[3] is not None
+    for pack in (fizzle, alone):
+        real = _game(pack)
+        for j, mutant in enumerate(mutants):
+            assert _game(pack, mutant) == real, j
+    # the near shape: the same five grants as a modal spell (a top-level Choose, CR 700.2), whose
+    # announced mode alone has targets (query.with_modes); a mutant's mode holds no slot
+    modal = dataclasses.replace(gw, abilities=(dataclasses.replace(gw.abilities[0], effect=gw.abilities[0].effect.steps[0]),))
+    assert gates._twin_targets(modal.abilities[0], (1, 0)) == set()
+    assert ("target->all", "1/0/effect/options/3/args/target") in _where(modal)
+    red = {"key": "src", "name": "Source", "type": "Creature", "power": "3", "toughness": "3", "colors": ["R"],
+           "zone": "battlefield", "controller": 1}
+    hits = [{"op": "deal_damage", "source": "src", "target": k, "amount": 3, "controller": 1} for k in ("w1", "w2")]
+    pack = _pack([spell, _wall("w1", "Wall One", 0), _wall("w2", "Wall Two", 0), red],
+                 [{"op": "cast", "key": "gw", "decisions": ["3"]}, *hits], {"0": {"W": 1}}, "M20")
+    walls = {o[0]: o[1] for o in _game(pack, _everyone(modal, "1/0/effect/options/3/args/target"))[0].values()
+             if "Wall" in o[0]}
+    assert walls == {"Wall One": "battlefield", "Wall Two": "battlefield"}  # every creature you control
+    assert _game(pack, modal)[3] is not None  # the card's mode needs its target
+
+
+BATTLESONG = "1/0/effect/steps/{}/args/target"
+
+
+def test_target_to_all_on_twins_in_a_trigger_is_dead() -> None:
+    """Battlesong Berserker (FDN): "Whenever you attack, target creature you control gets +1/+0
+    and gains menace until end of turn." Both steps carry the same TARGET selector: the trigger
+    designates the one slot as it goes on the stack (binding.TriggerBinder._designate), and the
+    slot outside any Choose stays required in each mutant (binding._required_target_keys), so the
+    ALL step acts on the designation (role_handles). Three creatures you control, two attack."""
+    bb = _card("Battlesong Berserker", "FDN")
+    offered = _where(bb)
+    assert not {w for op, w in offered if op == "target->all"}
+    assert ("amount+1", BATTLESONG.format(0) + "/count") in offered
+    sel = _at(bb, BATTLESONG.format(0))
+    mutants = [_everyone(bb, BATTLESONG.format(step)) for step in (0, 1)]
+    for mutant in mutants:  # CR 603.3d removes the card and the mutant alike
+        assert repr(sel) in _required_target_keys(mutant.abilities[0].effect)
+    creature = {"type": "Creature", "zone": "battlefield"}
+    cards = [{"key": "bb", "real": "Battlesong Berserker", "zone": "battlefield", "controller": 0},
+             {**creature, "key": "bear", "name": "Bear", "power": "2", "toughness": "2", "controller": 0},
+             {**creature, "key": "elf", "name": "Elf", "power": "1", "toughness": "1", "controller": 0},
+             {**creature, "key": "ox", "name": "Opp Ox", "power": "3", "toughness": "3", "controller": 1}]
+    for target, pumped in (("bear", "Bear"), ("bb", "Battlesong Berserker")):
+        pack = _pack(cards, [{"op": "combat", "seat": 0, "attack": {"bb": True, "bear": True, "elf": False},
+                              "decisions": [target]}], code="FDN")
+        real = _game(pack)
+        assert {o[0] for o in real[0].values() if o[6] and "MENACE" in o[6]} == {pumped}
+        for mutant in mutants:
+            assert _game(pack, mutant) == real, target
+
+
+KRAKEN = "1/0/effect/inner/steps/1/inner/options/{}/args/target"
+
+
+def test_target_to_all_on_twins_in_a_trigger_choice_stays_live() -> None:
+    """The near shape: Tolarian Kraken's "you may tap or untap target creature" puts the twins in
+    the two options of a Choose, so the card's slot is required (every option carries it) and
+    each mutant's is not (binding._required_target_keys). With no legal target (the Kraken alone,
+    with protection from blue from Feat of Resistance) the card's trigger is removed as it goes
+    on the stack (CR 603.3d) and the mutant's waits there. (CR 603.12 would put the draw trigger
+    on the stack too; the reflexive trigger is the BACKLOG item "Reflexive triggers choose their
+    targets too early".)"""
+    kraken = _card("Tolarian Kraken")
+    assert gates._twin_targets(kraken.abilities[0], (1, 0)) == set()
+    sel = _at(kraken, KRAKEN.format(0))
+    assert repr(sel) in _required_target_keys(kraken.abilities[0].effect)
+    for option in (0, 1):
+        assert ("target->all", KRAKEN.format(option)) in _where(kraken)
+        assert repr(sel) not in _required_target_keys(_everyone(kraken, KRAKEN.format(option)).abilities[0].effect)
+    pack = _pack([{"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
+                  {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+                  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}],
+                 [{"op": "cast", "key": "feat", "targets": ["k"], "decisions": ["1"]},
+                  {"op": "cast", "key": "ct", "hold": True}, {"op": "resolve"},
+                  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": True}],
+                 {"0": {"W": 1, "R": 1, "C": 1}})
+
+    def stack(r: ScenarioRunner) -> tuple:
+        return tuple(frame.spell_kind for frame in r.ex.stack.frames)
+
+    assert _game(pack, inspect=stack)[4] == ()
+    for option in (0, 1):
+        assert _game(pack, _everyone(kraken, KRAKEN.format(option)), inspect=stack)[4] == ("TRIGGERED",)
+
+
+def test_trigger_scope_of_an_end_step_raid_is_dead() -> None:
+    """Searslicer Goblin (FDN): "Raid — At the beginning of your end step, if you attacked this
+    turn, create a 1/1 red Goblin creature token." The condition already requires TURN_OF YOU, so
+    on the opponent's turn the scope mutant's event matches and its intervening "if" fails at once
+    (TriggerBinder._queue): nothing is queued. Both players attack, each end step passes. The
+    near shape, Barrin, Tolarian Archmage (M21), has no TURN_OF in its condition: its scope mutant
+    stays and draws on the opponent's end step."""
+    gob = _card("Searslicer Goblin", "FDN")
+    offered = _where(gob)
+    assert not {op for op, _w in offered if op.startswith("trigger scope")}
+    assert ("controller YOU->OPPONENT", "1/0/event/actor/who") in offered  # whose end step: live
+    assert ("controller YOU->OPPONENT", "1/0/condition/children/0/who") in offered
+    every_turn = _mutant(gob, "1/0/event", dataclasses.replace(gob.abilities[0].event, actor=None))
+    creature = {"type": "Creature", "zone": "battlefield"}
+    pack = _pack([{"key": "sg", "real": "Searslicer Goblin", "zone": "battlefield", "controller": 0},
+                  {**creature, "key": "bear", "name": "Bear", "power": "2", "toughness": "2", "controller": 0},
+                  {**creature, "key": "ox", "name": "Opp Ox", "power": "3", "toughness": "3", "controller": 1}],
+                 [{"op": "combat", "seat": 0, "attack": {"bear": True}}, {"op": "end_turn"}, {"op": "advance_turn"},
+                  {"op": "combat", "seat": 1, "attack": {"ox": True}}, {"op": "end_turn"}, {"op": "advance_turn"}],
+                 code="FDN")
+    real = _game(pack)
+    assert sum(o[0] == "Goblin" for o in real[0].values()) == 1  # your end step only
+    assert _game(pack, every_turn) == real
+    barrin = _card("Barrin, Tolarian Archmage")
+    assert ("trigger scope: your turn -> each turn", "1/1/event") in _where(barrin)
+    pack = _pack([{"key": "ba", "real": "Barrin, Tolarian Archmage", "zone": "battlefield", "controller": 0},
+                  {**creature, "key": "bear", "name": "Bear", "power": "2", "toughness": "2", "controller": 0}],
+                 [{"op": "end_turn"}, {"op": "advance_turn"}, {"op": "move", "key": "bear", "to": "hand"},
+                  {"op": "end_turn"}])
+
+    def hand(game: tuple) -> int:
+        return sum(o[1] == "hand" for o in game[0].values())
+
+    every_turn = _mutant(barrin, "1/1/event", dataclasses.replace(barrin.abilities[1].event, actor=None))
+    assert (hand(_game(pack)), hand(_game(pack, every_turn))) == (2, 3)
+
+
+BEETLE = "1/0/effect/args/condition"
+
+
+def test_static_prevention_condition_is_dead() -> None:
+    """Blightbeetle (M20): "Creatures your opponents control can't have +1/+1 counters put on
+    them." layers._new_static registers the PREVENT_EFFECT with the StaticAbility's own condition;
+    the atom's ``condition`` is never read (only the resolved lane, verbs._v_prevent, and a
+    TargetingEvent static, legality._own_targeting_restrictions, read it). A read condition
+    "creatures you control" beside the event's "creatures your opponents control" would prevent
+    nothing: Sorin's +1 on each side's Vampire, Squad Captain entering with counters on each side.
+    The near shape, Pack Leader's resolved prevention (M21), keeps its condition live."""
+    beetle = _card("Blightbeetle", "M20")
+    offered = _where(beetle)
+    assert not {w for _op, w in offered if w.startswith(BEETLE)}
+    assert ("controller OPPONENT->YOU", "1/0/effect/args/event/filter/children/0/who") in offered
+    flipped = _mutant(beetle, f"{BEETLE}/children/0/who", ControllerRef.YOU)
+    dropped = _mutant(beetle, BEETLE, FAnd(children=()))
+    bb = {"key": "bb", "real": "Blightbeetle", "zone": "battlefield", "controller": 0}
+
+    def vampire(key: str, seat: int) -> dict:
+        return {"key": key, "name": f"Vampire {seat}", "type": "Creature — Vampire", "power": "2", "toughness": "2",
+                "zone": "battlefield", "controller": seat}
+
+    def sorin(key: str, seat: int) -> dict:
+        return {"key": key, "real": "Sorin, Imperious Bloodlord", "zone": "battlefield", "controller": seat}
+
+    packs = {  # the vampire or captain, and whether the printed card lets its counter land
+        ("ov", False): _pack([bb, sorin("s1", 1), vampire("ov", 1)],
+                             [{"op": "advance_turn"}, {"op": "loyalty", "key": "s1", "set": 4},
+                              {"op": "activate", "key": "s1", "idx": 0, "seat": 1, "targets": ["ov"]}], code="M20"),
+        ("mv", True): _pack([bb, sorin("s0", 0), vampire("mv", 0)],
+                            [{"op": "loyalty", "key": "s0", "set": 4},
+                             {"op": "activate", "key": "s0", "idx": 0, "seat": 0, "targets": ["mv"]}], code="M20"),
+        ("cap", False): _pack([bb, vampire("ov", 1), {"key": "cap", "real": "Squad Captain", "zone": "hand", "controller": 1}],
+                              [{"op": "enter", "key": "cap"}], code="M20"),
+        ("cap", True): _pack([bb, vampire("mv", 0), {"key": "cap", "real": "Squad Captain", "zone": "hand", "controller": 0}],
+                             [{"op": "enter", "key": "cap"}], code="M20"),
+    }
+    for (key, lands), pack in packs.items():
+        real = _game(pack)
+        handle = str(ScenarioRunner(pack, _supply("M20")).handles[key])
+        assert bool(dict(real[0][handle][4]).get("PLUS_1_PLUS_1")) is lands, key
+        assert _game(pack, flipped) == real == _game(pack, dropped), key
+    leader = _card("Pack Leader")
+    where = "1/1/effect/args/condition/children/0/who"
+    assert ("controller YOU->OPPONENT", where) in _where(leader)
+    pack = _pack([{"key": "pl", "real": "Pack Leader", "zone": "battlefield", "controller": 0},
+                  {"key": "ox", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3",
+                   "zone": "battlefield", "controller": 1}],
+                 [{"op": "combat", "seat": 0, "attack": {"pl": True}, "block": {"ox": "pl"}}])
+
+    def leader_zone(game: tuple) -> str:
+        return next(o[1] for o in game[0].values() if o[0] == "Pack Leader")
+
+    assert leader_zone(_game(pack)) == "battlefield"  # the damage to it is prevented
+    assert leader_zone(_game(pack, _mutant(leader, where, ControllerRef.OPPONENT))) == "graveyard"
+    # a static over a TargetingEvent reads its atom's condition (Enthralling Hold's restriction)
+    atom = beetle.abilities[0].effect
+    event = TargetingEvent(filter=atom.args.get("event").filter)
+    targeting = StaticAbility(effect=dataclasses.replace(atom, args=AtomArgs(pairs=tuple(
+        (role, event if role == "event" else value) for role, value in atom.args.pairs))))
+    assert gates._static_prevention_conditions(targeting, (1, 0)) == set()
+    assert gates._static_prevention_conditions(beetle.abilities[0], (1, 0)) == {(1, 0, "effect", "args", "condition")}
+
+
+GARRUK_MAY = "1/2/effect/args/ability/effect"
+
+
+def test_granted_damage_policy_may_is_dead() -> None:
+    """Garruk, Savage Herald's -7: "Until end of turn, creatures you control gain 'You may have
+    this creature assign its combat damage as though it weren't blocked.'" The granted static is
+    never parsed as a layer; layers.policy_as_unblocked unwraps its OptionalEffect, and the combat
+    damage step asks the policy question of every blocked creature that carries it. The mandatory
+    mutant plays every answer the same, asks included. Its duration stays live: a permanent grant
+    asks again on a later turn."""
+    garruk = _card("Garruk, Savage Herald")
+    offered = _where(garruk)
+    assert ("optional->mandatory", GARRUK_MAY) not in offered
+    assert ("until-end-of-turn->permanent", "1/2/effect/args/duration") in offered
+    assert gates._granted_policy_may(_at(garruk, "1/2/effect"))
+    mandatory = _mutant(garruk, GARRUK_MAY, _at(garruk, GARRUK_MAY).inner)
+    creature = {"type": "Creature", "zone": "battlefield"}
+    cards = [{"key": "g", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},
+             {**creature, "key": "bear", "name": "Bear", "power": "2", "toughness": "2", "controller": 0},
+             {**creature, "key": "elf", "name": "Elf", "power": "1", "toughness": "1", "controller": 0},
+             {**creature, "key": "blk", "name": "Wall", "power": "0", "toughness": "5", "controller": 1},
+             {**creature, "key": "blk2", "name": "Wall Two", "power": "0", "toughness": "5", "controller": 1}]
+    minus7 = [{"op": "loyalty", "key": "g", "set": 7}, {"op": "activate", "key": "g", "idx": 2, "seat": 0}]
+
+    def asks(r: ScenarioRunner) -> tuple:
+        return tuple(r.asks_seen)
+
+    for policy in ({"bear": "UNBLOCKED"}, {"bear": "AS_BLOCKED"}, {}, {"bear": "UNBLOCKED", "elf": "AS_BLOCKED"}):
+        combat = {"op": "combat", "seat": 0, "attack": {"bear": True, "elf": True},
+                  "block": {"blk": "bear", "blk2": "elf"}, "policy": policy}
+        pack = _pack(cards, [*minus7, combat])
+        real = _game(pack, inspect=asks)
+        assert sum(what.startswith("policy:") for what, _v in real[4]) == 2  # each blocked creature is asked
+        assert _game(pack, mandatory, inspect=asks) == real, policy
+    later = {"op": "combat", "seat": 0, "attack": {"bear": True, "elf": False}, "block": {"blk": "bear"},
+             "policy": {"bear": "UNBLOCKED"}}
+    pack = _pack(cards, [*minus7, {"op": "advance_turn"}, {"op": "advance_turn"}, later])
+    permanent = _mutant(garruk, "1/2/effect/args/duration", DurationPermanent())
+    assert (_game(pack)[1]["player:1"][0], _game(pack, permanent)[1]["player:1"][0]) == (20, 18)
+    # the near shapes: a granted trigger's "may" is an ask of its own, and only the policy verb
+    # is unwrapped by its reader
+    grant = _at(garruk, "1/2/effect")
+    end_step = _card("Barrin, Tolarian Archmage").abilities[1].event
+    land_drop = _at(_card("Azusa, Lost but Seeking"), "1/0/effect").inner
+    for ability in (TriggeredAbility(event=end_step, condition=None, effect=_at(garruk, GARRUK_MAY)),
+                    StaticAbility(effect=OptionalEffect(inner=land_drop))):
+        other = dataclasses.replace(grant, args=AtomArgs(pairs=tuple(
+            (role, ability if role == "ability" else value) for role, value in grant.args.pairs)))
+        assert not gates._granted_policy_may(other)

@@ -1,0 +1,90 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed -7: 'Until end of turn, creatures you control gain \"You may have this creature assign its combat damage as though it weren't blocked.\"' The Bear is offered the choice once, in this turn's combat (it declines: the Wall takes 2). On seat 0's next turn the grant has ended, so the blocked Bear is NOT offered the choice again: exactly one policy ask over the whole pack, and the Wall takes the Bear's 2 again.",
+ "cards": [
+  {
+   "key": "g",
+   "real": "Garruk, Savage Herald",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "blk",
+   "name": "Wall",
+   "power": 0,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "g",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "g",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   },
+   "block": {
+    "blk": "bear"
+   },
+   "policy": {
+    "bear": "AS_BLOCKED"
+   }
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   },
+   "block": {
+    "blk": "bear"
+   }
+  }
+ ],
+ "expect": {
+  "policy_asks": {
+   "bear": "AS_BLOCKED,UNBLOCKED"
+  },
+  "life": {
+   "1": 20
+  },
+  "damage": {
+   "blk": 2
+  },
+  "zone": {
+   "g": "graveyard"
+  }
+ }
+}
