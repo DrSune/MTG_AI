@@ -418,6 +418,19 @@ the time for no measurable gain.
   but nothing here tests it. The belief audit (KNOWLEDGE/2026-11-12/195) measures what the
   worlds cost at horizon 1.
 
+**Correction, 2026-11-12 (the bug hunt, KNOWLEDGE/2026-11-12/197): N4 is confounded.**
+- In a simulation, `SimAgent` answers every attack and block ask of the searching seat from the
+  root's plan (search.py at e462628, :173-180). It has no turn check; `NetAgent` has one
+  (actor.py:102-110).
+- At horizon 2, the seat's next combat in the playout therefore replays the root's attack plan:
+  - the planned creatures attack again;
+  - every other creature declines, including any cast since.
+- Horizon 1 stops before that combat, so every horizon-1 number stands. P6's -0.0058 compares
+  horizon 1 with a horizon 2 that plays its second combat badly.
+- So "horizon 2 at uniform worlds does not pay" is not established. §10's clock budget stands on
+  horizon 1 regardless.
+- A horizon-2 measure needs the fixed code.
+
 ### 7.5 N6: against the heuristic (2026-11-12 03:18-03:37)
 
 | | raw (n = 0) | searched, n = 16 |
@@ -547,7 +560,7 @@ PLAN_CEILING §3.3 leaves three choices. They rest on:
 |---|---|---|
 | F1's training targets, gate B's generation first | **16** | Gate A was confirmed at 16 and only there. n = 8 halves the cost, but its targets are worse by about one doubling's gain (P1's slope, +0.008). Gate B was sized at 16: 300k targets in 12-15 machine-hours. Above 16, each doubling doubles the cost for at most +0.01 |
 | The searched anchor: r27's v0 plus search in the held-out pool, and the at most 3% of training games against searched opponents | **4** | 0.556 ± 0.012 on window 1's deals (+39 Elo), three quarters of the plateau's gain. By P1's slope, n = 16 is about +0.016 above it, about 11 Elo. Under batched load, 600 games took 9 min at n = 4 and 27 min at n = 16, against 34 s raw. An anchor needs many games more than it needs those 11 Elo |
-| Play under a clock | **16** | 15-20 s of search per game on the idle machine; p99 decision 4 s. n = 64 fits the clock too, at 72 s per game, but buys nothing measurable: +0.006 ± 0.008 over n = 16 by P1's slope above 8. The clock's margin goes to breadth instead: priority asks (N3: +0.008 ± 0.008 at 1.8 times the decisions, to confirm on fresh deals before play uses it), and simulator worlds or a longer horizon if the belief audit (195) shows they pay. Horizon 2 at uniform worlds does not (N4) |
+| Play under a clock | **16** | 15-20 s of search per game on the idle machine; p99 decision 4 s. n = 64 fits the clock too, at 72 s per game, but buys nothing measurable: +0.006 ± 0.008 over n = 16 by P1's slope above 8. The clock's margin goes to breadth instead: priority asks (N3: +0.008 ± 0.008 at 1.8 times the decisions, to confirm on fresh deals before play uses it), and simulator worlds or a longer horizon if the belief audit (195) shows they pay. N4's horizon 2 is confounded (§7.4, correction) |
 
 **What would reopen each:**
 - **F1:** gate B failing at 16 for want of corrections. Then try 32, if clear corrections rise with
