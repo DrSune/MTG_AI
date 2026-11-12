@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationUntilLeaves,
     DurationWhileCondition,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -66,7 +67,6 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     Verb,
     Zone,
-    ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
     canonical_json,
@@ -1676,11 +1676,12 @@ class TestRound7Structures(unittest.TestCase):
         self.assertEqual(_pairs_dict(atom)["duration"], DurationUntilLeaves())
 
     def test_etb_choose_name(self) -> None:
+        # CR 614.1c: "As this enchantment enters" is the entering state, never a trigger.
         outcome = self._match_one("As this enchantment enters, choose a card name.")
         ab = _as_ability(outcome).ability
-        assert isinstance(ab, TriggeredAbility)
-        assert isinstance(ab.event, ZoneChangeEvent)
-        self.assertIs(ab.event.to_zone.kind, ZoneKind.BATTLEFIELD)
+        assert isinstance(ab, EtBState)
+        self.assertFalse(ab.tapped)
+        self.assertEqual(ab.initial_counters, ())
         atom = _as_atom(ab.effect)
         self.assertIs(atom.verb, Verb.CHOOSE_NAME)
         self.assertEqual(atom.args.pairs, ())

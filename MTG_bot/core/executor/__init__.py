@@ -1178,7 +1178,8 @@ class Executor:
             if from_state != ZONE_BATTLEFIELD:
                 if event.zone_move[1] == ZONE_BATTLEFIELD:
                     # The compiled EtBState node ("enters the battlefield
-                    # tapped", "enters with a soul counter"). CR 614.1c:
+                    # tapped", "enters with a soul counter", "As this
+                    # enchantment enters, choose a card name"). CR 614.1c:
                     # the entered state is stamped as the permanent
                     # enters, BEFORE its ETB triggers go on the stack (this
                     # runs at the atom boundary, the binder drains at the
@@ -1190,6 +1191,9 @@ class Executor:
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
             self.etb_x.pop(anchor, None)  # the cast X leaves with it
+            # CR 400.7: so does the name it chose as it entered; a return is a new object that
+            # chooses again.
+            self.name_choices.pop(anchor, None)
             self.damage.pop(anchor, None)  # CR 120.6: marks leave with it
             self.damage_deathtouch.discard(anchor)  # the deathtouch flag too
             # Status leaves with the permanent. CR 110.5d: cards not on the
@@ -1273,12 +1277,36 @@ class Executor:
             )
             self._run_effect(atom, ctx)
 
+    def run_as_enters(self, card: Handle, effect: Effect) -> None:
+        """Run ``card``'s "As this enters" effect (an EtBState ``effect``). CR 614.1c, 614.12a:
+        "As this enchantment enters, choose a card name" is a replacement effect, not a trigger:
+        its controller chooses as it enters, without the stack and before anyone receives
+        priority, so the permanent is never on the battlefield with the choice unmade (Runed
+        Halo's protection reads it). The entry hook (:meth:`_apply_etb_state`) runs it before the
+        entered tapped state and counters; the card probe runs it alone on its board's card,
+        which is put on the battlefield without entering.
+
+        Only the choice verb whose cards have tests (CHOOSE_NAME) runs. Any other effect would run
+        inside the zone-change bookkeeping (:meth:`_on_zone_changes`) with nothing testing it
+        there, so it raises until a card that needs it (Sutured Ghoul, Devouring Hellion, Rescuer
+        Sphinx) brings its own tests."""
+        if not (isinstance(effect, Atom) and effect.verb is Verb.CHOOSE_NAME):
+            raise NotImplementedError(
+                "executor: an \"As this enters\" effect runs only as CHOOSE_NAME; "
+                f"{effect!r:.80} would run inside the zone-change bookkeeping, untested there"
+            )
+        self._run_effect(
+            effect,
+            self._ctx(source=card, controller=self.controller_of(card), bindings=None, decisions=()),
+        )
+
     def _apply_etb_state(self, card: Handle) -> None:
         """Stamp the compiled EtBState node on a permanent the journal
-        just saw ENTER the battlefield: the tapped flag and any initial
-        counters (CR 614.1c — part of the entering state, not a trigger,
-        so no TAP event is emitted and nothing is re-journalled; the
-        move's own journal row already carries the entry). A card whose
+        just saw ENTER the battlefield: what is done as it enters (its
+        ``effect``, :meth:`run_as_enters`), then the tapped flag
+        and any initial counters (CR 614.1c — part of the entering state, not
+        a trigger, so no TAP event is emitted and nothing is re-journalled;
+        the move's own journal row already carries the entry). A card whose
         record is not registered has no declared entered state."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
@@ -1308,6 +1336,8 @@ class Executor:
                 )
                 if not eval_filter(node.condition, card, ctx):
                     continue
+            if node.effect is not None:
+                self.run_as_enters(card, node.effect)
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:

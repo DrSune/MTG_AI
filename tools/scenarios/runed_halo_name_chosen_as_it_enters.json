@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}, "1": {"R": 1}},
+ "steps": [
+  {"op": "cast", "real": "Runed Halo", "key": "h", "hold": true},
+  {"op": "resolve", "hold": true, "decisions": ["Shock"]},
+  {"op": "act", "seat": 1, "words": ["cast:s", "p0"], "expect_raise": "does not offer 'player:0'"}
+ ],
+ "expect": {"zone": {"h": "battlefield", "s": "hand", "bear": "battlefield"}, "life": {"0": 20, "1": 20}},
+ "notes": "Window 2's NAME_CHOSEN crash (BACKLOG 2026-11-12; deals 900,114, 900,195, 900,283). Printed: 'As this enchantment enters, choose a card name. You have protection from the chosen card name.' CR 614.1c: 'As [this] enters' is a replacement effect, not a trigger; the name is chosen as Runed Halo enters (CR 614.12a), so nothing can happen between its entry and the choice. The Halo resolves (the name, Shock, is asked during its resolution) and the opponent holds priority at once: its act menu prices Shock, whose target ask offers the Bear and itself but not the Halo's controller (CR 702.16b). Before the fix the choice was an enters TRIGGER: the Halo sat on the battlefield with its protection live and no name while the trigger waited on the stack, and pricing Shock's targets raised NotImplementedError (NAME_CHOSEN needs a CHOOSE_NAME record)."
+}

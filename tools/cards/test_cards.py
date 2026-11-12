@@ -62,6 +62,29 @@ def test_the_probe_plays_a_modal_spell_one_mode_at_a_time() -> None:
     assert "opp_relic moves battlefield -> graveyard (by card/DESTROY)" in text
 
 
+def test_the_probe_never_targets_one_object_for_two_slots_of_another_target() -> None:
+    # "Another target creature" (CR 115.3): Rookie Mistake's second target and Garruk, Savage
+    # Herald's -2 never take the first slot's target, and a game never offers that pair
+    # (stack.slot_options), so the probe does not try it either.
+    sup = compile_supply("all", "M21", require_verified=False)
+    for name in ("Rookie Mistake", "Garruk, Savage Herald"):
+        oid = next(o for o, m in sup.metas.items() if m.name == name)
+        rep = probe.Probe(sup, "M21", oid).report()
+        assert not rep.errors, (name, rep.errors)
+        assert "targets=['you_bear', 'you_bear']" not in rep.text()
+        assert "targets=['you_bear', 'you_giant']" in rep.text()
+
+
+def test_a_card_on_the_probe_board_has_made_its_as_enters_choice() -> None:
+    # Runed Halo: "As this enchantment enters, choose a card name" (CR 614.1c). A permanent is on
+    # the battlefield only by having entered it, so the board's Halo has chosen a name, and the
+    # opponent's attack checks its controller's protection against that name.
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Runed Halo")
+    rep = probe.Probe(sup, "M21", oid).report()
+    assert not rep.errors, rep.errors
+
+
 def test_the_probe_plays_an_emblem_without_putting_it_in_a_hand() -> None:
     # An emblem is never a card in a hand (CR 114.1), so it gets no "from your hand, the card
     # enters" stimulus. Basri Ket's emblem compiles in M21.

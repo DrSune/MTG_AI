@@ -3099,24 +3099,36 @@ class CostModifier:
 @dataclass(frozen=True)
 class EtBState:
     """The entered state of a permanent: `tapped` ("this creature enters
-    tapped") and/or `initial_counters` ("enters with 3 +1/+1 counters",
-    "this Equipment enters with a soul counter"). An Ability node on the
-    card record. Each counter entry is a (CounterKind, Quantity) pair;
+    tapped"), `initial_counters` ("enters with 3 +1/+1 counters",
+    "this Equipment enters with a soul counter") and/or `effect`, what is
+    done as it enters ("As this enchantment enters, choose a card name",
+    Runed Halo). An Ability node on the card record. CR 614.1c: "enters
+    with" and "As [this permanent] enters" are replacement effects that
+    modify how the permanent enters, not triggered abilities: nothing goes
+    on the stack, and a choice they require is made as the permanent
+    enters (CR 614.12a), so no ability of the permanent ever sees it
+    unmade. Each counter entry is a (CounterKind, Quantity) pair;
     `initial_counters` is a set — sorted at construction (the kind keys
     the counter map, so wording order carries no semantics). A
-    no-op state (untapped, no counters) is rejected — a no-op is not a
-    node in the tree (Seq's rule)."""
+    no-op state (untapped, no counters, no effect) is rejected — a no-op
+    is not a node in the tree (Seq's rule)."""
 
     tapped: bool = False
     initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
     # ZNR kicker: "if it was kicked, it enters with a +1/+1 counter" — an
     # optional gate on the entering state (omitted from the bytes when None).
     condition: Filter | None = None
+    # "As this permanent enters, <effect>" (omitted from the bytes when None).
+    effect: Effect | None = None
 
     def __post_init__(self) -> None:
         if self.condition is not None and not isinstance(self.condition, Filter):
             raise ValueError(
                 f"EtBState: condition must be a Filter or None, got {self.condition!r}"
+            )
+        if self.effect is not None and not _is_effect(self.effect):
+            raise ValueError(
+                f"EtBState: effect must be an Effect or None, got {type(self.effect).__name__}"
             )
         if not isinstance(self.tapped, bool):
             raise ValueError(f"EtBState: tapped must be a bool, got {self.tapped!r}")
@@ -3139,9 +3151,9 @@ class EtBState:
                     "EtBState: counter count must be a Quantity, got "
                     f"{type(count).__name__}"
                 )
-        if not self.tapped and not self.initial_counters:
+        if not self.tapped and not self.initial_counters and self.effect is None:
             raise ValueError(
-                "EtBState: a no-op state is not a node (tapped or counters required)"
+                "EtBState: a no-op state is not a node (tapped, counters or an effect required)"
             )
         # The counters are a dict keyed by kind, so the (kind, quantity)
         # entries are a SET — sort at construction.
@@ -4212,6 +4224,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("tapped", "bool"),
         ("initial_counters", "tup:counter_placement"),
         ("condition", "opt:filter"),
+        ("effect", "opt:effect"),
     ),
     "KickerAbility": (("cost", "cost"),),
     "EmblemAbility": (("embedded", "ability"),),
@@ -4392,7 +4405,7 @@ _UNION_CONVS: dict[str, frozenset[str]] = {
 # empty default is injected) and present. This table is the only place a
 # spec field may be absent from the tagged dict.
 _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
-    "EtBState": frozenset({"condition"}),
+    "EtBState": frozenset({"condition", "effect"}),
     "BackFace": frozenset({"abilities"}),
     "QBin": frozenset({"rounding"}),
     # Selector.zones is REQUIRED (no empty default): a dict without zones

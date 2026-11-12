@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     CardRecord,
     Choose,
+    EtBState,
     FAtom,
     FAtomPred,
     Keyword,
@@ -57,7 +58,7 @@ from MTG_bot.core.executor.query import (
     spell_target_slots,
     validate_target_selection,
 )
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.stack import another_target_reason, cast, play_land
 from MTG_bot.core.identity import Handle
 
 BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
@@ -231,6 +232,21 @@ class Probe:
 
         runner = ScenarioRunner(pack, self.supply, setup_provider=setup_provider)
         runner.setup_asks = setup_asks  # type: ignore[attr-defined]
+        as_enters = [
+            a.effect for a in self.card.abilities if isinstance(a, EtBState) and a.effect is not None
+        ]
+        if where == "battlefield" and as_enters:
+            # A permanent is on the battlefield only by having entered it, so the probed card has
+            # made the choice its "As this enters" requires (Runed Halo's card name, CR 614.1c,
+            # 614.12a), with the default answer: no game leaves it unmade for its abilities to read.
+            # Only that choice: the board's card keeps the untapped, counter-free state every other
+            # card has there.
+            runner.ex.decisions.provider = setup_provider
+            try:
+                for effect in as_enters:
+                    runner.ex.run_as_enters(runner.handles["card"], effect)
+            finally:
+                runner.ex.decisions.provider = None
         return runner
 
     def names(self, r: ScenarioRunner) -> Callable[[Any], str]:
@@ -507,7 +523,14 @@ class Probe:
                 if slot.min_count == 0:
                     picks.append(())
             per_slot.append([p for p in picks if validate_target_selection(slot, list(p)) is None])
-        combos = [tuple(itertools.chain.from_iterable(c)) for c in itertools.product(*per_slot)]
+        # "Another target" (Rookie Mistake, Garruk, Savage Herald's -2): never an object another
+        # slot already targets, the engine's own rule (stack.another_target_reason, CR 115.3); a
+        # game never offers that pair (stack.slot_options), so neither does the probe.
+        combos = [
+            tuple(itertools.chain.from_iterable(c))
+            for c in itertools.product(*per_slot)
+            if another_target_reason(slots, c) is None
+        ]
         return combos[:MAX_TARGET_SETS]
 
     def _modes(self, node: SpellAbility) -> list[tuple[int, ...]]:

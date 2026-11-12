@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vito", "real": "Vito, Thorn of the Dusk Rose", "zone": "battlefield", "controller": 0},
+  {"key": "leech", "name": "Leech", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "guard", "name": "Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "h", "decisions": ["Vito, Thorn of the Dusk Rose"]},
+  {"op": "deal_damage", "source": "leech", "target": "guard", "amount": 2}
+ ],
+ "expect": {"life": {"0": 22, "1": 20}, "damage": {"guard": 2}},
+ "notes": "Window 2's TARGET_PLAYER crash (BACKLOG 2026-11-12; deal 900,085). The opponent's Runed Halo names Vito, Thorn of the Dusk Rose, so that opponent has protection from Vito and can't be the target of its ability (CR 702.16b). The lifelink Leech deals 2 damage: its controller gains 2 (CR 702.15b) and Vito triggers ('Whenever you gain life, target opponent loses that much life'). Its only opponent is not a legal target, so the ability is removed from the stack as it would be put there (CR 603.3d): nobody loses life. Before the fix the trigger went on the stack with an empty designation and its resolution raised ValueError (TARGET_PLAYER needs a bound target)."
+}

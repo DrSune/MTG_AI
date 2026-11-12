@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rm", "real": "Rookie Mistake", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Bear A", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "b", "name": "Opp Ape", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:rm", "a", "b"]}
+ ],
+ "expect": {
+  "zone": {"rm": "graveyard"},
+  "power": {"a": 2, "b": 1},
+  "toughness": {"a": 4, "b": 3},
+  "mana_pool": {"0": {"U": 0}}
+ },
+ "notes": "Printed: 'Target creature gets +0/+2 until end of turn. Another target creature gets -2/-0 until end of turn.' Through the act window, as a dealt game asks it: the cast is a row of the menu and its two targets are asked one slot at a time (CR 601.2c). The first, your Bear, gets +0/+2; the second, the opponent's Ape, -2/-0. The M21 campaign (KNOWLEDGE 2026-10-30/177) left this card unverified as a probe limit of the several-target-slot act windows."
+}

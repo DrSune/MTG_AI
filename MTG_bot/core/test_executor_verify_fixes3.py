@@ -49,6 +49,9 @@
 * State-based actions are performed, repeatedly, before triggered abilities
   resolve, and again after each one (CR 117.5, 704.3).
 * "If it entered from your graveyard" reads this object's own entry (CR 400.7).
+* "As this enchantment enters, choose a card name" is chosen as it enters, never by a
+  trigger (CR 614.1c), and the choice leaves with the object (CR 400.7): Runed Halo (packs
+  runed_halo_*).
 """
 
 from __future__ import annotations
@@ -1417,6 +1420,61 @@ class TestW45EnteredFromIsPerObject(FixerCase):
         self.move(card, ZoneKind.HAND, ZoneKind.BATTLEFIELD)
         # A new object (CR 400.7) that entered from the hand.
         self.assertFalse(self.entered_from_graveyard(card))
+
+
+class TestAsEntersChoice(unittest.TestCase):
+    """Runed Halo: "As this enchantment enters, choose a card name" is a replacement effect
+    (CR 614.1c), so the name is recorded as the Halo enters, with no trigger waiting, and it
+    belongs to that object: it leaves the record when the Halo leaves (CR 400.7)."""
+
+    def test_the_name_is_chosen_as_it_enters_and_leaves_with_it(self):
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 0}],
+            "steps": [],
+            "expect": {},
+        }
+        runner = ScenarioRunner(pack, get_supply("all", "M21"))
+        halo = runner.handles["h"]
+        # Held triggers stay queued: before the fix the name waited in one.
+        runner.run_step({"op": "enter", "key": "h", "hold_triggers": True, "decisions": ["Runed Halo"]})
+        self.assertEqual(runner.ex.name_choices.get(halo), "Runed Halo")
+        self.assertEqual(runner.world.triggers, [])
+        runner.run_step({"op": "move", "key": "h", "to": "graveyard"})
+        self.assertNotIn(halo, runner.ex.name_choices)
+
+    def test_only_the_choice_verb_runs_as_it_enters(self):
+        # Any other "As this enters" effect would run inside the zone-change bookkeeping with
+        # nothing testing it there: it raises until a card that needs it brings its own tests.
+        from MTG_bot.core.ability_tree import Atom, AtomArgs, CardRecord, EtBState
+        from MTG_bot.core.executor.games import get_supply
+        from tools.run_scenarios import ScenarioRunner
+
+        pack = {
+            "set": "M21",
+            "world": {"life": 20, "seed": 7},
+            "cards": [{"key": "idol", "name": "Idol", "type": "Enchantment", "zone": "hand",
+                       "controller": 0}],
+            "steps": [],
+            "expect": {},
+        }
+        runner = ScenarioRunner(pack, get_supply("all", "M21"))
+        idol = runner.handles["idol"]
+        oid = runner.world.cards[idol].identity.oracle_id
+        draw = Atom(Verb.DRAW, AtomArgs(pairs=(("amount", QConst(1)), ("controller", ControllerRef.YOU))))
+        runner.ex.binder.records[oid] = CardRecord(
+            oracle_id=oid, name="Idol", type_line="Enchantment", types=("Enchantment",), subtypes=(),
+            supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=2,
+            power=None, toughness=None, loyalty=None, keywords=(),
+            abilities=(EtBState(effect=draw),), is_token=False)
+        hand = len(runner.world.players[runner.p0].zone(ZONE_HAND).entries)
+        with self.assertRaisesRegex(NotImplementedError, "runs only as CHOOSE_NAME"):
+            runner.run_step({"op": "enter", "key": "idol"})
+        self.assertEqual(len(runner.world.players[runner.p0].zone(ZONE_HAND).entries), hand - 1)
 
 
 if __name__ == "__main__":

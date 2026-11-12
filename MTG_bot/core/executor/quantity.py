@@ -901,8 +901,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return len(world.cards[handle].identity.colors) >= threshold
     if pred is FAtomPred.NAME_CHOSEN:
         # Runed Halo: the object's name is the one the SOURCE's CHOOSE_NAME
-        # atom recorded. No record is an UNANSWERED question: flagged, never
-        # "False" (the FLIP_WON convention).
+        # atom recorded, as the source entered (EtBState.effect, CR 614.1c).
+        # No record is an UNANSWERED question: flagged, never "False" (the
+        # FLIP_WON convention).
         ex = ctx.executor
         if ex is None or ctx.source not in ex.name_choices:
             raise NotImplementedError(
