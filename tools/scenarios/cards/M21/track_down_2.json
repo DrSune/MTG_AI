@@ -10,7 +10,7 @@
   ],
   "mana": {"0": {"G": 2}},
   "steps": [
-    {"op": "cast", "key": "td", "real": "Track Down", "decisions": ["top", "top", "top"]}
+    {"op": "cast", "key": "td", "real": "Track Down", "decisions": ["top", "top", "top", "card:1", "card:2"]}
   ],
   "expect": {
     "zone": {"td": "graveyard", "opener": "hand", "forest": "hand", "x1": "library", "x2": "library"},

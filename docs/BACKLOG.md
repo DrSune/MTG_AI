@@ -228,6 +228,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
+- **A move from a hand asks its cards as a discard** (2026-11-12): MOVE_ZONE `from` HAND takes the
+  discard lane (`verbs._v_move_zone`, `_discard_picks`), whose ask is `discard:<seat>:...`, so
+  Cavalier of Gales's "put two cards from your hand on top of your library" reaches a bench seat
+  as "choose what to discard" (protocol.py's prompt for the kind). The cards and their order are
+  right; the label is not. Name the ask by its destination, or give the move its own kind.
 - **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
   (`core/executor/games.py:402` `identity_of`).
 - **B-64 [verifier, FDN round 2] A may-offer, and a Choose inside it, still offer an action that
@@ -280,12 +285,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   triggers, and keeps a token that a queued firing names in the world as its last-known
   information until that firing resolves, so a trigger that moves "it" could still move such a
   token, as before W4-4.
-- **Order choices are never asked** (M20 verification round, 2026-11-05; 21/21 planted faults
-  caught):
-  - Scry keeps the cards it leaves on top in handle order (verbs._v_scry): the player's "any order"
-    choice is removed. Weaker only, but live on verified M21 scry cards (B-81: alters options).
-  - "Any order" is never asked (Anticipate, Cavalier of Gales, Goblin Ringleader: WRONG); "random
-    order" is fixed (Drawn from Dreams, Brightwood Tracker: OK under B-81, information only).
 - **Abilities that work from the graveyard are refused** (CR 113.6k; M20 Sanitarium Skeleton), and
   the same row on the battlefield is a paid no-op (the Demonic Embrace shape; extend
   query.inert_row to "moves its own source from a zone it is not in"). Repro:
@@ -413,6 +412,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **MOVE_ZONE `arrange` waits for its gate round** (2026-11-12; DESIGN_ATOM_ONTOLOGY binds an IR
+  change). "In any order" and "in a random order" compiled alike, so neither was honoured (B-81's
+  ruling kept the fixed order for "random"; verification wave 1 judged See the Truth WRONG). The
+  change: an optional MOVE_ZONE role `arrange`, a closed string vocabulary {"RANDOM"} like
+  `pop_order`, accepted only with a LIBRARY destination. Absent, the owner arranges the cards
+  (CR 401.4; "in any order" restates it, so it gets no encoding of its own, as `once_per_event`
+  absent is CR 603.2c's default). B5b-rest-bottom-random and two M20 records emit it. The
+  executor asks one `arrange:<owner>:<TOP|BOTTOM>:<cards left>` per card but the last, the lowest
+  first, for every move into a library position and for both of a scry's groups (CR 701.22a), and
+  shuffles a RANDOM group with its own seeded stream. A several-card move into a library that a
+  SHUFFLE follows ("shuffle them into your library") would ask an order the shuffle discards, and
+  its G3 "random" mutant would be equivalent; no compiled tree has one. To rule: the role's name
+  and home (a Zone field was the alternative), and whether "random" or "any" should be the absent
+  value ("in a random order" is the commoner wording: 54 distinct cards of the 19 sets to 22,
+  reminder text left out).
 - **B-41 The grammar does not generalize to unseen text**: at first touch PC-2 on sentence shapes
   absent from M21/ZNR is 0.080 (M20) and 0.111 (KHM), against 0.89 on seen shapes. On cards with
   new text, PC-1 is 0.11 (M20) and 0.03 (KHM) (KNOWLEDGE /159). Tied rank 1 needs compositional
@@ -530,8 +544,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
     replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
     18afa85 (2026-10-30): tree unchanged, still unreachable.
-  - Not significant, kept: Garruk's Harbinger "in a random order" (the bottom order is
-    information, no option changes); Cultivate's REVEAL count (REVEAL is a recorded no-op);
+  - Not significant, kept: Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
     Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
     Equipment); Barrin's unconstrained "a permanent" (anything moving from the battlefield is
@@ -603,8 +616,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     of Souls, Jalira, Esika, Lukka; to the graveyard with the match: Consuming Aberration), count
     several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
     replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
-    selector reads it yet, and "in a random order" has no IR (known_bugs/2026-11-05
-    random_order_is_fixed).
+    selector reads it yet. "In a random order" is MOVE_ZONE's `arrange` RANDOM (2026-11-12,
+    pending its gate round).
 - **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
   D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
   controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
@@ -763,6 +776,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   six verified packs kills; `cards/M21/subira_draws_for_each_small_creature_that_connects.json`
   kills it, for its next verification. FDN Battlesong Berserker's record (not verified) got the
   same flag.
+- **Re-verify M21 Garruk's Harbinger, M20 Drawn from Dreams and M20 Brightwood Tracker**
+  (2026-11-12, after the gate round for MOVE_ZONE `arrange`). Their "in a random order" move
+  gained `arrange` RANDOM (Garruk's Harbinger from the compiler's B5b-rest-bottom-random, the two
+  M20 cards in their records' `ir`), so their tree shas changed and they left the verified pool
+  (M21 260 -> 259, M20 254 -> 252). Without the role the engine now asks the owner the order
+  (CR 401.4). Garruk's Harbinger plays as before in the other pools (its packs pass; its bottom
+  order is random now, which none of them pins). The M20 records are not applied while
+  unverified, so in the other pools Brightwood Tracker plays the compiler's tree (a vanilla
+  creature) and Drawn from Dreams none (no spell); their spec packs wait in
+  `tools/scenarios/known_bugs/{brightwood_tracker,drawn_from_dreams}_rest_to_bottom_in_a_random_order.json`
+  (both pass against the records' trees, asking no order). G3 mutates the role both ways,
+  critical ("library order: random -> the owner's" / "the owner's -> random"); all three cards'
+  G1 traces kill the first.
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
@@ -815,6 +841,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Dire Fleet Warmonger, Elder Gargaroth, Garruk's Harbinger, Goblin Arsonist, Jeskai Elder,
   Pitchburn Devils, Siege Striker, Spined Megalodon, Steadfast Sentry, Tomebound Lich); their
   records' `probe_sha` only matters to a re-run of `cardtool verify`.
+  - The same day the engine began asking the order of cards put into a library together
+    (MOVE_ZONE `arrange`, CR 401.4, 701.22a) and stopped letting a damage trigger's dealer stand
+    in for a printed target: packets A07 (See the Truth), B05 (Goblin Ringleader), B07
+    (Anticipate) and B08 (Cavalier of Gales) now show `arrange` asks, and the verified M21 Brash
+    Taunter (TARGETING rows), Stormwing Entity and Track Down (scry order asks) trace
+    differently too.
 - **Pack runner (`tools/run_scenarios.py`)** (pack-repair agent and verifiers, 2026-11-05 and
   2026-11-06):
   - **Decision words no ask uses pass silently** (the third silent-pass hole, after unread expect

@@ -65,7 +65,9 @@
    "decisions": [
     "bottom",
     "bottom",
-    "bottom"
+    "bottom",
+    "card:2",
+    "card:3"
    ]
   }
  ],

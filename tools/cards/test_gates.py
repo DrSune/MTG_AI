@@ -609,6 +609,19 @@ def test_partitioned_search_destination_is_a_placeholder() -> None:
         assert _game(pack, _mutant(cult, CULTIVATE_SEARCH, new)) == real
 
 
+def test_library_order_mutants_only_where_several_cards_go_to_a_library() -> None:
+    """MOVE_ZONE arrange (CR 401.4), both directions critical: dropping RANDOM would let Garruk's
+    Harbinger's controller choose the order of the rest, and adding it would take See the Truth's
+    choice away. Never on a move of one card into a library (Teferi, Timeless Voyager's -3,
+    Garruk, Savage Herald's +1), where there is no order: that mutant would be equivalent."""
+    assert "library order: random -> the owner's" in {op for op, _w in _where(_card("Garruk's Harbinger"))}
+    assert "library order: the owner's -> random" in {op for op, _w in _where(_card("See the Truth"))}
+    assert gates.is_critical("library order: random -> the owner's")
+    assert gates.is_critical("library order: the owner's -> random")
+    for name in ("Teferi, Timeless Voyager", "Garruk, Savage Herald"):
+        assert not {op for op, _w in _where(_card(name)) if op.startswith("library order")}, name
+
+
 def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() -> None:
     """once_per_event (CR 603.2c), both directions critical: dropping it (Tide Skimmer would draw
     for each flyer) and forgetting it (Hooded Blightfang's drain fires per deathtouch attacker, so

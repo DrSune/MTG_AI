@@ -26,7 +26,8 @@
    "real": "See the Truth",
    "key": "sp",
    "decisions": [
-    "card:5"
+    "card:5",
+    "card:4"
    ]
   }
  ],

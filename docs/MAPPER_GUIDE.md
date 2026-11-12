@@ -140,6 +140,10 @@ $PY tools/cards/cardtool.py --help
     attacked object ("attacks a planeswalker you control with one or more creatures"), the
     recipients gathered ("one or more creatures you control are dealt damage"), and "one or more
     ... deal damage" that may be noncombat. Report them as `needs-atom`.
+- **Cards put into a library together.** "...and the rest on the bottom of your library in any
+  order" is a `MOVE_ZONE` with no `arrange` role: the engine asks the owner the order (CR 401.4).
+  "...in a random order" adds `'arrange': 'RANDOM'`. See `parse "Put the rest on the bottom of
+  your library in a random order."`. Only a library destination takes the role.
 - **SEARCH.** Leave out the `controller` role. The executor never reads it (the searched zone comes from
   the `cards` selector), and the compiler is split 14/15 on writing it (divergence D12).
 - **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a
@@ -245,7 +249,7 @@ For each printed clause:
 - **WRONG:** the trace or the tree contradicts the text. Say how. A choice the text gives a player
   that the engine never asks ("any number", "in any order") is WRONG: it alters legal options. A
   fixed order where the text says "random order" is information only, so OK (B-81 ruling, KNOWLEDGE
-  2026-11-05/184 §10).
+  2026-11-05/184 §10); an order the engine asks where the text says "random order" is WRONG.
 - **NOT_EXERCISED:** nothing in the trace shows the clause (a trigger whose event the board cannot
   produce, a condition never true). Write a spec pack for it (below).
 

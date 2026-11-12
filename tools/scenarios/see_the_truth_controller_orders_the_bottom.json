@@ -1,0 +1,16 @@
+{
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "See the Truth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 10, "G": 10, "W": 10, "U": 10, "B": 10}},
+ "steps": [
+  {"op": "cast", "real": "See the Truth", "key": "sp", "decisions": ["card:6", "card:5"]}
+ ],
+ "expect": {
+  "zone": {"sp": "graveyard"},
+  "hand": {"0": 1},
+  "library": {"0": ["Library 2", "Library 1", "Library 0", "Library 3", "Library 4"]}
+ },
+ "notes": "Printed: 'Look at the top three cards of your library. Put one of them into your hand and the rest on the bottom of your library in any order.' The top three are Library 5 (card:6), Library 4 (card:5) and Library 3 (card:4). Library 5 goes to the hand; the controller orders the other two (CR 401.4, verbs._arrange: the card that goes lowest first) and puts Library 4 under Library 3, the order the engine's fixed handle order never gave. Before 2026-11-12 the order was never asked (verification wave 1; BACKLOG 'Order choices are never asked'): the word card:5 went unused and Library 3 ended lowest. Decision words are literal handles: a cast step hands its words to the engine raw."
+}

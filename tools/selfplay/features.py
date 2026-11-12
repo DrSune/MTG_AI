@@ -76,6 +76,8 @@ ASK_KINDS = (
     "priority",
     # which of a player's simultaneous triggered abilities resolves first (CR 603.3b)
     "trigger",
+    # the order of cards put into one end of a library at once (CR 401.4, a scry's groups)
+    "arrange",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or

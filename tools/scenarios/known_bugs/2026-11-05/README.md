@@ -23,5 +23,6 @@ regressions; KNOWLEDGE/2026-11-05/184 lists them).
   Siege Striker): "Discard any number of cards" is never asked: an unbounded CHOOSE takes the whole
   population (the /141 deferral). Weaker than printed, never stronger. The folder's dies-trigger
   half is fixed (fix/w2-stack).
-- **random_order_is_fixed** (Drawn from Dreams; verified Garruk's Harbinger): "in a random order" and
-  "in any order" compile alike, so the order is neither random nor chosen. Needs an IR order role.
+
+random_order_is_fixed (Drawn from Dreams) was removed on 2026-11-12: "in a random order" is
+MOVE_ZONE's `arrange` RANDOM, and without it the owner orders the cards (CR 401.4).

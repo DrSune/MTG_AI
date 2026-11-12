@@ -534,9 +534,9 @@ def test_explicit_empty_omit_fields_decode() -> None:
 
 def test_verb_role_table_pins() -> None:
     # MOVE_ZONE is the ONE move atom: objects ride one of
-    # cards/target/amount, with from/journal_kind/pop_order slots and an
+    # cards/target/amount, with from/journal_kind/pop_order slots, an
     # optional duration (CR 610.3, "exile ... until this creature leaves the
-    # battlefield").
+    # battlefield") and an optional arrange ("in a random order", CR 401.4).
     assert at._VERB_ROLES[at.Verb.MOVE_ZONE] == {
         "destination": True,
         "cards": False,
@@ -548,6 +548,7 @@ def test_verb_role_table_pins() -> None:
         "pop_order": False,
         "tapped_on_enter": False,
         "duration": False,
+        "arrange": False,
     }
     assert at._VERB_ROLES[at.Verb.SEARCH] == {
         "cards": True,
@@ -556,6 +557,28 @@ def test_verb_role_table_pins() -> None:
         "tapped_on_enter": False,
     }
     assert at._ROLE_TYPES["tapped_on_enter"] == (bool,)
+
+
+def test_arrange_is_random_only_and_only_into_a_library() -> None:
+    # CR 401.4: the owner arranges cards put into one position of a library together, so "in any
+    # order" has no encoding (the role is absent); "in a random order" is arrange RANDOM, and only
+    # a library destination orders anything.
+    looked = (at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.TOP),)
+    rest = at.Selector(at.QConst(1), at.SelectorMode.REST, at.FAnd(children=()), zones=looked)
+    bottom = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, position=at.ZonePosition.BOTTOM)
+    random = at.Atom(
+        at.Verb.MOVE_ZONE,
+        at.AtomArgs((("cards", rest), ("destination", bottom), ("arrange", "RANDOM"))),
+    )
+    assert at.from_dict("Atom", at.to_dict(random)) == random
+    with pytest.raises(ValueError, match="'arrange' must be one of"):
+        at.AtomArgs((("arrange", "ANY"),))
+    graveyard = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
+    with pytest.raises(ValueError, match="CR 401.4"):
+        at.Atom(
+            at.Verb.MOVE_ZONE,
+            at.AtomArgs((("cards", rest), ("destination", graveyard), ("arrange", "RANDOM"))),
+        )
 
 
 def test_new_fatom_rule_rows() -> None:

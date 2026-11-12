@@ -143,6 +143,9 @@ class SeatRouter:
             return f"You play {order}. Mulligans taken so far: {count}."
         if kind == "mulligan_bottom":  # mulligan_bottom:<seat>:<cards still to put there>
             return f"Cards still to put on the bottom, this one included: {count}."
+        if kind == "arrange":  # arrange:<owner>:<TOP|BOTTOM>:<cards still to place> (verbs._arrange)
+            end = what.split(":")[3].lower()
+            return f"They go to the {end} of your library. Cards still to place: {count}."
         if kind != "scry":
             return ""
         # The k-th scry ask of one scry is about the k-th card from the top, which the scrying

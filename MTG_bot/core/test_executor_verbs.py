@@ -43,6 +43,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
 )
 from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.verbs import token_oracle_id
@@ -651,11 +652,66 @@ class TestManaScryShuffleLook(ExecutorCase):
             atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(9)),
             source=self.alpha,
             controller=self.p0,
-            decisions=("top", "top", "top", "top"),
+            # all four on top, then their order (CR 701.22a), lowest first: as they were
+            decisions=("top", "top", "top", "top", *(str(h) for h in self.libs[:3])),
         )
         self.assertEqual(
             self.world.players[self.p0].zone(ZONE_LIBRARY).entries, self.libs
         )
+
+    def test_scry_asks_the_order_of_each_group(self):
+        # CR 701.22a: "put any number of them on the bottom of your library in any order and the
+        # rest on top of your library in any order". L4 and L2 stay on top, L3 and L1 go to the
+        # bottom; each group's order is the scryer's, asked lowest card first (verbs._arrange).
+        l1, l2, l3, l4 = self.libs
+        self.ex.execute(
+            atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(4)),
+            source=self.alpha,
+            controller=self.p0,
+            decisions=("top", "bottom", "top", "bottom", str(l3), str(l4)),
+        )
+        self.assertEqual(self.world.players[self.p0].zone(ZONE_LIBRARY).entries, [l3, l1, l4, l2])
+        asked = [what for what, _ in self.ex.decisions.ask_log if what.startswith("arrange:")]
+        self.assertEqual(asked, [f"arrange:{self.p0}:BOTTOM:2", f"arrange:{self.p0}:TOP:2"])
+
+    def _to_library(self, end, cards, *, decisions=(), **roles):
+        self.ex.execute(
+            atom(
+                Verb.MOVE_ZONE,
+                cards=target_sel(UNIV, LIB_YOU),
+                destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU, position=end),
+                **roles,
+            ),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"cards": list(cards)},
+            decisions=decisions,
+        )
+        return self.world.players[self.p0].zone(ZONE_LIBRARY).entries
+
+    def test_cards_put_on_the_bottom_together_are_ordered_by_their_owner(self):
+        # CR 401.4 (See the Truth: "the rest on the bottom of your library in any order"): L3 goes
+        # lowest, then L1, then L2; L4 stays on top.
+        l1, l2, l3, l4 = self.libs
+        lib = self._to_library(ZonePosition.BOTTOM, (l1, l2, l3), decisions=(str(l3), str(l1)))
+        self.assertEqual(lib, [l3, l1, l2, l4])
+
+    def test_cards_put_on_top_together_are_ordered_too(self):
+        # The same rule on top. L1 and L2 move within their library, which leaves a card where it
+        # was unless the move re-places it: L2 goes lower, L1 on top.
+        l1, l2, l3, l4 = self.libs
+        lib = self._to_library(ZonePosition.TOP, (l1, l2), decisions=(str(l2),))
+        self.assertEqual(lib, [l3, l4, l2, l1])
+
+    def test_a_random_order_asks_nobody(self):
+        # "Put the rest on the bottom of your library in a random order" (arrange RANDOM): no
+        # player chooses (an ask would raise: no decision is supplied); L1..L3 end up under L4 in
+        # some order.
+        l1, l2, l3, l4 = self.libs
+        lib = self._to_library(ZonePosition.BOTTOM, (l1, l2, l3), arrange="RANDOM")
+        self.assertEqual(sorted(lib[:3]), [l1, l2, l3])
+        self.assertEqual(lib[3], l4)
+        self.assertFalse([w for w, _ in self.ex.decisions.ask_log if w.startswith("arrange:")])
 
     def test_shuffle_replay_identical_same_seed(self):
         def run(seed):

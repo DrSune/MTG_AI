@@ -520,6 +520,14 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                           dataclasses.replace(node, once_per_event=None)))
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and gathers_occurrences(node.event):
             cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
+        elif isinstance(node, Atom) and _orders_a_library(node):
+            # CR 401.4: the owner arranges the cards, unless "in a random order" (arrange RANDOM)
+            pairs = tuple(p for p in node.args.pairs if p[0] != "arrange")
+            if len(pairs) < len(node.args.pairs):
+                cands.append(("library order: random -> the owner's", Atom(node.verb, AtomArgs(pairs))))
+            else:
+                cands.append(("library order: the owner's -> random",
+                              Atom(node.verb, AtomArgs((*pairs, ("arrange", "RANDOM"))))))
         elif isinstance(node, QConst):
             cands.append(("amount+1", QConst(node.value + 1)))
             if node.value > 1:
@@ -602,5 +610,17 @@ def g3(supply: Any, set_code: str, oid: str, limit: int = 80) -> dict[str, Any]:
 def is_critical(op: str) -> bool:
     """Survivors of these operators block verification (gate G3): they are the abusable faults."""
     return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
-                          "target->all", "optional", "trigger scope", "trigger count", "each occurrence"))
+                          "target->all", "optional", "trigger scope", "trigger count", "each occurrence",
+                          "library order"))
+
+
+def _orders_a_library(atom: Atom) -> bool:
+    """A MOVE_ZONE that can put several cards into one library at once, whose order its
+    ``arrange`` role decides (CR 401.4). A move of one card has no order: no mutant there."""
+    dest = atom.args.get("destination")
+    if atom.verb is not Verb.MOVE_ZONE or not (isinstance(dest, Zone) and dest.kind is ZoneKind.LIBRARY):
+        return False
+    sel = atom.args.get("cards") or atom.args.get("target")
+    return isinstance(sel, Selector) and sel.referent is None and (
+        sel.mode in (SelectorMode.REST, SelectorMode.ALL) or sel.count != QConst(1))
 
