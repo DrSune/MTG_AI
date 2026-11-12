@@ -163,3 +163,50 @@ still read as registered; R3b reads the same question without that bias.
 - **What it cannot tell apart.** r27's network carried its mulligan drift (198), so a pass means
   the fixed trainer gave the stronger network. It does not say how much of the gap is the
   mulligan.
+
+**The looks at 25, 50 and 75** (2026-11-12 17:55-21:07; `reports/r28_2026-11-12/look.py`, the
+last row per update; each gate 2,000 games against v0 = r27's v1 weights, both seats, greedy):
+
+| Updates | 1-25 | 26-50 | 51-75 | Prediction |
+|---|---|---|---|---|
+| The mulligan per game, pooled | 1.326 | 1.288 | 1.278 | R1: 1.25-1.45 in every block to 150 |
+| Gate against v0, at the block's end | 0.521 [0.507, 0.535] | 0.517 [0.502, 0.532] | 0.5165 [0.501, 0.532] | R3 |
+| Training win rate against the heuristic / v0 (sampled play) | 0.715 / 0.506 | 0.728 / 0.515 | 0.730 / 0.520 | — |
+| Entropy | 0.255 | 0.248 | 0.243 | — |
+
+- **R2 so far:** the mulligan's KL over act's has a median of 2.36 over updates 1-75 (quartiles
+  1.87 and 3.04, highest 4.99). It is read at 100.
+- **R4 holds** (updates 2-50):
+  - `train_s` median 167 s (160-180);
+  - the interval between updates median 205 s (47 intervals, gate updates left out);
+  - the previous weights' share of a batch median 0.63 (lowest 0.07, at update 26).
+- **R5 holds:** `kl` median 0.0064 (0.0037-0.0080).
+- **R6 holds:** lowest MemAvailable 44.2 GiB.
+- No void game, no non-finite step, no KL stop.
+
+**R3 is falsified.**
+- The three gates' mean is 0.5182. r27's three gates against v1 averaged 0.5107. The difference
+  is +0.0075 (SE about 0.006), below the +0.01 floor.
+- §6's bias favours r28 (85% of its games against v0), so the true difference is smaller still.
+- As §2 allowed: the fix removed the mulligan's impulses (R1 and R2 hold), but r27's stall after
+  v1 was not the defect's.
+- In both runs the network stands about 0.51-0.52 against its init 25 to 75 updates later, with
+  no trend from 25 to 75.
+- The training win rate against v0 rises, 0.506 to 0.520. That is sampled play, and it is not a
+  strength measure: the learner's entropy fell 0.255 to 0.243, while v0 samples as it always
+  did. The greedy gates are the read.
+
+**R3b: inside the band, not decisive.**
+- r28 at update 75 against r27 at update 165: 0.513 [0.495, 0.531], 2,000 games (deals
+  930,000-930,999, both seats; 21:05-21:07, r28 paused for 3 minutes).
+- The falsifier (upper bound below 0.50) is not met, and the estimate lies inside 0.51-0.56.
+- The interval holds 0.50. At matched training, the fixed trainer's network is not shown to be
+  weaker than the flawed one's, and not shown to be stronger.
+
+**What R3 means for the plan.**
+- The question after v1 is the rate of learning, not the mulligan.
+- Gate B's break-even rule (196 §9) takes r28's rate at update 400. Its gates at 100-400 are
+  that rate's data.
+- The per-kind look at 100 (`kinds_split.py`: each kind's own learning against the drift the
+  rest of the batch causes on it) reads where an update's signal goes. It is PLAN_CEILING §15's
+  "signal before direction" applied to the trainer itself.
