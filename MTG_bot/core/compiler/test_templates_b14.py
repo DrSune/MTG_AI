@@ -273,4 +273,6 @@ def test_b14_registers_its_templates() -> None:
         "B14-cant-attack-unless",
         "B14-cant-be-blocked-if",
         "B14-enters-with-counters-if",
+        "B14-as-long-as-self",
+        "B14-self-as-long-as",
     }

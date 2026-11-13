@@ -546,6 +546,14 @@ class FAtomPred(Enum):
         # the count slot carries the threshold Quantity from the text
         # (the PRED carries slots only — the number is template-side).
     )
+    LIFE_TOTAL_GE = (
+        "LIFE_TOTAL_GE"  # your current life total (CR 119.1) is at least
+        # ``count``: "as long as you have 25 or more life" (Twinblade Paladin).
+        # Not LIFE_LEAD_OVER_START_GE: that one is relative to the starting
+        # life total, which is 40 in Commander (CR 103.4c). "N or less life" is
+        # FNot(LIFE_TOTAL_GE(N + 1)), never a second predicate. ``who`` is YOU,
+        # the only reading printed (FAtom refuses any other).
+    )
     NAME_PARTITION_COUNT_GE = (
         "NAME_PARTITION_COUNT_GE"  # the
         # maximum size of an EXACT-name group over the inner_filter-
@@ -1288,13 +1296,15 @@ class FAtom:
       count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
                      HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                     NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE);
+                     LIFE_TOTAL_GE, NAME_PARTITION_COUNT_GE,
+                     ATTACK_AGAINST_COUNT_GE);
                      a dynamic threshold (QProp/QBin/QCount) is as legal
                      as a literal
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
       who          — ControllerRef | Selector (CONTROLLER_IS,
                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
+                     LIFE_TOTAL_GE (YOU only),
                      INSTANT_OR_SORCERY_CAST_THIS_TURN,
                      CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
                      WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP):
@@ -1506,6 +1516,28 @@ class FAtom:
                     "FAtom: SUBJECT_OF_EVENT_THIS_TURN cannot read a cast: use "
                     "WAS_CAST_THIS_TURN, which follows a spell onto the battlefield"
                 )
+            if getattr(self.event, "ordinal", None) is not None:
+                # "the first time" names one occurrence for a trigger; a history
+                # count says how much happened, so an ordinal here would be a
+                # second byte form of the count ("drew two or more cards") or
+                # a reading no card prints
+                raise ValueError(
+                    f"FAtom: {self.pred.name} reads how often the event happened from "
+                    "its count; an event ordinal is a trigger's (the trigger binder reads it)"
+                )
+        if self.pred is FAtomPred.LIFE_TOTAL_GE:
+            # (a negative literal count is refused by QConst itself)
+            if self.count is None:
+                raise ValueError("FAtom: LIFE_TOTAL_GE requires slot 'count'")
+            if self.who is not ControllerRef.YOU:
+                # YOU is the only reading the 19 sets print (gate round 8, M1). Over
+                # several players FNot(N + 1) would read "each of them has N or less
+                # life" where "an opponent has N or less life" means one; TARGET_PLAYER,
+                # TARGET_OPPONENT and a referent "target" read one binding (three byte
+                # forms of one meaning, D18), and a TARGET_* in a filter designates
+                # nothing (the designation scans read only CONTROLLER_IS). Another value
+                # comes back with a card that prints it, and its tests.
+                raise ValueError(f"FAtom: LIFE_TOTAL_GE who must be YOU, got {self.who!r}")
         if (
             self.pred is FAtomPred.CONTROLLER_IS
             and self.who
@@ -1661,6 +1693,17 @@ _MOVE_ZONE_DURATIONS: tuple[type, ...] = (
 # ---------------------------------------------------------------------------
 
 
+def _check_ordinal(owner: str, ordinal: object) -> None:
+    """The one ordinal contract (CastSpellEvent, CardDrawnEvent, LifeGainedEvent,
+    LifeLostEvent): the Nth such event of one player this turn, an int >= 1, or None for
+    every one. Only the trigger binder reads it: a turn-history atom, a replacement and an
+    Atom's ``event`` role (PREVENT_EFFECT) refuse an event that carries one."""
+    if ordinal is not None and (
+        isinstance(ordinal, bool) or not isinstance(ordinal, int) or ordinal < 1
+    ):
+        raise ValueError(f"{owner}: ordinal must be an int >= 1, got {ordinal!r}")
+
+
 @dataclass(frozen=True)
 class ZoneChangeEvent:
     """A permanent changed zones. ETB = from anywhere to the battlefield —
@@ -1715,14 +1758,7 @@ class CastSpellEvent:
             raise ValueError(
                 f"CastSpellEvent: from_zone must be a Zone, got {type(self.from_zone).__name__}"
             )
-        if self.ordinal is not None and (
-            isinstance(self.ordinal, bool)
-            or not isinstance(self.ordinal, int)
-            or self.ordinal < 1
-        ):
-            raise ValueError(
-                f"CastSpellEvent: ordinal must be an int >= 1, got {self.ordinal!r}"
-            )
+        _check_ordinal("CastSpellEvent", self.ordinal)
         if self.from_zone_not is not None and not isinstance(self.from_zone_not, Zone):
             raise ValueError(
                 f"CastSpellEvent: from_zone_not must be a Zone, got {type(self.from_zone_not).__name__}"
@@ -2031,14 +2067,7 @@ class CardDrawnEvent:
             raise ValueError(
                 f"CardDrawnEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
-        if self.ordinal is not None and (
-            isinstance(self.ordinal, bool)
-            or not isinstance(self.ordinal, int)
-            or self.ordinal < 1
-        ):
-            raise ValueError(
-                f"CardDrawnEvent: ordinal must be an int >= 1, got {self.ordinal!r}"
-            )
+        _check_ordinal("CardDrawnEvent", self.ordinal)
 
 
 @dataclass(frozen=True)
@@ -2046,15 +2075,24 @@ class LifeGainedEvent:
     """Life was gained ("whenever you gain life, target opponent loses that
     much life"). The ``actor`` Filter is evaluated over the GAINING PLAYER
     journalled as the event subject (None = any player; "whenever you gain
-    life" = ``actor=FAtom(CONTROLLER_IS, YOU)``)."""
+    life" = ``actor=FAtom(CONTROLLER_IS, YOU)``).
+
+    ``ordinal`` = the Nth time that player gained life this turn (None = every
+    gain), as CardDrawnEvent.ordinal counts draws: "whenever you gain life for
+    the first time each turn" (Attended Healer) is 1, gains made before the
+    permanent arrived included (the card's ruling). One gain is one source
+    causing it at once (CR 119.9): two lifelink creatures dealing combat
+    damage together are two; a gain of 0 is none."""
 
     actor: Filter | None = None
+    ordinal: int | None = None
 
     def __post_init__(self) -> None:
         if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
                 f"LifeGainedEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
+        _check_ordinal("LifeGainedEvent", self.ordinal)
 
 
 @dataclass(frozen=True)
@@ -2065,15 +2103,25 @@ class LifeLostEvent:
     evaluated over the LOSING player (None = any player). Damage dealt to a
     player makes that player lose that much life (CR 120.3a), and paying life
     is losing it (CR 119.4), so the journal's player DAMAGE rows and its
-    LIFE_LOST rows are both this event."""
+    LIFE_LOST rows are both this event.
+
+    ``ordinal`` = the Nth time that player lost life this turn (None = every
+    loss), LifeGainedEvent's twin: "whenever you lose life for the first time
+    each turn" (Vengeful Warchief) is 1. One loss is one source's damage to
+    that player at once (CR 120.3a), or one effect's or payment's loss (CR
+    119.3, 119.4): several creatures dealing combat damage to the player in
+    one step are several losses, all at once (CR 510.2), of which one is the
+    first."""
 
     actor: Filter | None = None
+    ordinal: int | None = None
 
     def __post_init__(self) -> None:
         if self.actor is not None and not _is_filter(self.actor):
             raise ValueError(
                 f"LifeLostEvent: actor must be a Filter, got {type(self.actor).__name__}"
             )
+        _check_ordinal("LifeLostEvent", self.ordinal)
 
 
 @dataclass(frozen=True)
@@ -2708,6 +2756,12 @@ class AtomArgs:
                     f"AtomArgs: role 'arrange' must be one of {_MOVE_ARRANGE} (absent: the owner "
                     f"arranges the cards, CR 401.4), got {value!r}"
                 )
+            if role == "event" and getattr(value, "ordinal", None) is not None:
+                # PREVENT_EFFECT's event: no prevention lane counts events (gate round 8, m1)
+                raise ValueError(
+                    "AtomArgs: an event ordinal is a trigger's (the trigger binder reads it); "
+                    "no prevention lane counts events"
+                )
         # The mill lane is defined by TOP-pop; a journal_kind="MILL" site
         # that forgets pop_order would silently fall through to the generic
         # MOVE lane (wrong bookkeeping).
@@ -3320,6 +3374,12 @@ class ReplacementAbility:
         if not _is_event(self.event):
             raise ValueError(
                 f"ReplacementAbility: event must be an EventSpec, got {type(self.event).__name__}"
+            )
+        if getattr(self.event, "ordinal", None) is not None:
+            # no replacement lane reads one; ignored, it would replace every event
+            raise ValueError(
+                "ReplacementAbility: an event ordinal is a trigger's (the trigger binder "
+                "reads it); no replacement lane counts events"
             )
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
@@ -3965,6 +4025,9 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # LIFE_LEAD_OVER_START_GE: count = the threshold; no who slot (the
     # predicate binds its subject player directly).
     FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
+    # LIFE_TOTAL_GE: who = YOU; count = the threshold, required (both
+    # checked in FAtom.__post_init__).
+    FAtomPred.LIFE_TOTAL_GE: (frozenset({"count", "who"}), frozenset({"count", "who"})),
     FAtomPred.NAME_PARTITION_COUNT_GE: (
         frozenset({"inner_filter", "count"}),
         frozenset({"inner_filter", "count"}),
@@ -4512,8 +4575,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("actor", "opt:filter"),
         ("ordinal", "opt:int"),
     ),
-    "LifeGainedEvent": (("actor", "opt:filter"),),
-    "LifeLostEvent": (("actor", "opt:filter"),),
+    "LifeGainedEvent": (("actor", "opt:filter"), ("ordinal", "opt:int")),
+    "LifeLostEvent": (("actor", "opt:filter"), ("ordinal", "opt:int")),
     "SacrificeEvent": (("actor", "opt:filter"),),
     "AbilityActivatedEvent": (
         ("source", "filter"),
@@ -4805,8 +4868,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "CastSpellEvent": frozenset({"actor", "from_zone", "ordinal", "from_zone_not"}),
     "CardDrawnEvent": frozenset({"ordinal", "actor"}),
     "TurnPhaseEvent": frozenset({"actor"}),
-    "LifeGainedEvent": frozenset({"actor"}),
-    "LifeLostEvent": frozenset({"actor"}),
+    "LifeGainedEvent": frozenset({"actor", "ordinal"}),
+    "LifeLostEvent": frozenset({"actor", "ordinal"}),
     "SacrificeEvent": frozenset({"actor"}),
     "AbilityActivatedEvent": frozenset({"actor"}),
     "TargetingEvent": frozenset({"actor"}),

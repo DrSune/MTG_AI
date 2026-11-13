@@ -1,0 +1,107 @@
+Ontology gate round 8's fixes (M1, m1, m6), 2026-11-13: the round's tests run against the
+reviewed head 0be3db11's code (a git archive, with this branch's test module copied in as
+MTG_bot/core/test_r8_new_life_family.py), then on the branch:
+  pytest <test module> -k 'refuses_what_has_no_meaning or read_only_by_a_trigger or one_order'
+18 of the 23 fail on 0be3db11: the 13 `who` refusals (5 of those forms built there, the other 8
+were refused with the old message), the PREVENT_EFFECT ordinal for the 4 classes, the grant
+order. The 5 that pass there are the count and slot refusals the round did not touch.
+
+=== on 0be3db11
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU0]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU1]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU2]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU3]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU4]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU5]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU6]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU7]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU8]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU9]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU10]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU11]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-who must be YOU12]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[CardDrawnEvent]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[CastSpellEvent]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[LifeGainedEvent]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[LifeLostEvent]
+FAILED MTG_bot/core/test_r8_new_life_family.py::test_a_static_grants_its_keywords_in_one_order
+18 failed, 5 passed, 28 deselected in 1.93s
+=== on the worktree
+23 passed, 28 deselected in 1.44s
+
+LIFE_TOTAL_GE `who` forms that build (reports/life_family_2026-11-13/who_forms.py <checkout>):
+r8head builds: ['TARGET_PLAYER', 'TARGET_OPPONENT', 'YOU', 'referent target', 'referent event', 'referent result']
+agent-aa99e614a0d6abc56 builds: ['YOU']
+
+Trees: tree_dump.py on git archives of the merge f8dc201d and of main 8f7b3774, and on the
+branch with the fixes; tree_diff.py <base> <branch>.
+
+=== the merge f8dc201d -> the fixes
+compiler trees changed (0):
+trees with records applied changed (0):
+compiler: fewer unparsed sentences (0):
+compiler: newly compiling whole (0): []
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (8):
+   FDN Ajani's Pridemate ['life-trigger']
+   FDN Marauding Blight-Priest ['life-trigger']
+   M20 Ajani, Strength of the Pride ['life-trigger']
+   M20 Bloodthirsty Aerialist ['life-trigger']
+   M20 Epicure of Blood ['life-trigger']
+   M20 Vilis, Broker of Blood ['life-trigger']
+   M21 Light of Promise ['life-trigger']
+   M21 Vito, Thorn of the Dusk Rose ['life-trigger']
+verified stamps matching, per set (base -> branch): {'FDN': '177->177', 'M20': '261->261', 'M21': '271->271'}
+
+=== main 8f7b3774 -> the branch with the fixes
+compiler trees changed (11):
+   FDN Angel of Vitality
+   FDN Cat Collector
+   FDN Drogskol Reaver
+   FDN Twinblade Paladin
+   M11 Serra Ascendant
+   M14 Archangel of Thune
+   M20 Angel of Vitality
+   M20 Twinblade Paladin
+   M20 Vengeful Warchief
+   ZNR Attended Healer
+   ZNR Cleric of Life's Bond
+trees with records applied changed (11):
+   FDN Angel of Vitality compiler -> compiler unverified
+   FDN Cat Collector compiler -> compiler unverified
+   FDN Drogskol Reaver compiler -> compiler unverified
+   FDN Twinblade Paladin compiler -> compiler unverified
+   M11 Serra Ascendant compiler -> compiler unverified
+   M14 Archangel of Thune compiler -> compiler unverified
+   M20 Angel of Vitality needs-atom record -> record unverified
+   M20 Twinblade Paladin needs-atom record -> record unverified
+   M20 Vengeful Warchief needs-atom record -> record unverified
+   ZNR Attended Healer compiler -> compiler unverified
+   ZNR Cleric of Life's Bond compiler -> compiler unverified
+compiler: fewer unparsed sentences (11):
+   FDN Angel of Vitality 2 -> 0
+   FDN Cat Collector 2 -> 1
+   FDN Drogskol Reaver 1 -> 0
+   FDN Twinblade Paladin 1 -> 0
+   M11 Serra Ascendant 1 -> 0
+   M14 Archangel of Thune 1 -> 0
+   M20 Angel of Vitality 2 -> 0
+   M20 Twinblade Paladin 1 -> 0
+   M20 Vengeful Warchief 1 -> 0
+   ZNR Attended Healer 2 -> 1
+   ZNR Cleric of Life's Bond 2 -> 1
+compiler: newly compiling whole (8): [('FDN', 'Angel of Vitality'), ('FDN', 'Drogskol Reaver'), ('FDN', 'Twinblade Paladin'), ('M11', 'Serra Ascendant'), ('M14', 'Archangel of Thune'), ('M20', 'Angel of Vitality'), ('M20', 'Twinblade Paladin'), ('M20', 'Vengeful Warchief')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (8):
+   FDN Ajani's Pridemate ['life-trigger']
+   FDN Marauding Blight-Priest ['life-trigger']
+   M20 Ajani, Strength of the Pride ['life-trigger']
+   M20 Bloodthirsty Aerialist ['life-trigger']
+   M20 Epicure of Blood ['life-trigger']
+   M20 Vilis, Broker of Blood ['life-trigger']
+   M21 Light of Promise ['life-trigger']
+   M21 Vito, Thorn of the Dusk Rose ['life-trigger']
+verified stamps matching, per set (base -> branch): {'FDN': '177->177', 'M20': '261->261', 'M21': '271->271'}
+

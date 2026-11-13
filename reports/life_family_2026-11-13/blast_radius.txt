@@ -1,0 +1,59 @@
+Blast radius of the life family (2026-11-13), base 07bf26ff -> this branch, by script:
+  tree_dump.py <checkout> <out.json> on each checkout, then tree_diff.py <base> <branch>
+
+compiler trees changed (11):
+   FDN Angel of Vitality
+   FDN Cat Collector
+   FDN Drogskol Reaver
+   FDN Twinblade Paladin
+   M11 Serra Ascendant
+   M14 Archangel of Thune
+   M20 Angel of Vitality
+   M20 Twinblade Paladin
+   M20 Vengeful Warchief
+   ZNR Attended Healer
+   ZNR Cleric of Life's Bond
+trees with records applied changed (11):
+   FDN Angel of Vitality compiler -> compiler unverified
+   FDN Cat Collector compiler -> compiler unverified
+   FDN Drogskol Reaver compiler -> compiler unverified
+   FDN Twinblade Paladin compiler -> compiler unverified
+   M11 Serra Ascendant compiler -> compiler unverified
+   M14 Archangel of Thune compiler -> compiler unverified
+   M20 Angel of Vitality needs-atom record -> record unverified
+   M20 Twinblade Paladin needs-atom record -> record unverified
+   M20 Vengeful Warchief needs-atom record -> record unverified
+   ZNR Attended Healer compiler -> compiler unverified
+   ZNR Cleric of Life's Bond compiler -> compiler unverified
+compiler: fewer unparsed sentences (11):
+   FDN Angel of Vitality 2 -> 0
+   FDN Cat Collector 2 -> 1
+   FDN Drogskol Reaver 1 -> 0
+   FDN Twinblade Paladin 1 -> 0
+   M11 Serra Ascendant 1 -> 0
+   M14 Archangel of Thune 1 -> 0
+   M20 Angel of Vitality 2 -> 0
+   M20 Twinblade Paladin 1 -> 0
+   M20 Vengeful Warchief 1 -> 0
+   ZNR Attended Healer 2 -> 1
+   ZNR Cleric of Life's Bond 2 -> 1
+compiler: newly compiling whole (8): [('FDN', 'Angel of Vitality'), ('FDN', 'Drogskol Reaver'), ('FDN', 'Twinblade Paladin'), ('M11', 'Serra Ascendant'), ('M14', 'Archangel of Thune'), ('M20', 'Angel of Vitality'), ('M20', 'Twinblade Paladin'), ('M20', 'Vengeful Warchief')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (8):
+   FDN Ajani's Pridemate ['life-trigger']
+   FDN Marauding Blight-Priest ['life-trigger']
+   M20 Ajani, Strength of the Pride ['life-trigger']
+   M20 Bloodthirsty Aerialist ['life-trigger']
+   M20 Epicure of Blood ['life-trigger']
+   M20 Vilis, Broker of Blood ['life-trigger']
+   M21 Light of Promise ['life-trigger']
+   M21 Vito, Thorn of the Dusk Rose ['life-trigger']
+verified stamps matching, per set (base -> branch): {'FDN': '177->177', 'M20': '261->261', 'M21': '273->273'}
+
+300 seeded heuristic games (replay.py: seeds 910000-910099 per set, every third coherent,
+the rest stress), verified pools, decks dealt from the cards verified on both checkouts;
+digest = tools/selfplay/preflight._digest; replay_compare.py <base> <branch>:
+M21: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+M20: deckable 261 (base) / 261 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+FDN: deckable 177 (base) / 177 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)

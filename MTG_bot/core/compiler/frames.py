@@ -44,6 +44,7 @@ from MTG_bot.core.compiler import (
     templates_b2b,
     templates_b3,
     templates_b5c,
+    templates_b9,
 )
 from MTG_bot.core.compiler.templates import (
     EffectOutcome,
@@ -127,6 +128,12 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
          effect,
          condition,
      )),
+    # "Whenever you gain|lose life [for the first time each turn], <clause>" (Attended Healer,
+    # Cat Collector): B9's life head and event (templates_b9.life_event, the ordinal included).
+    (_frame("B13-life", "when(ever) you gain|lose life [for the first time each turn], <clause>",
+            rf"{templates_b9.LIFE_TRIGGER_RE}, (?P<clause>.+)"),
+     lambda m, effect, condition: templates_b2a._ability(
+         templates_b9.life_event(m), effect, condition)),
     # The targeting trigger with its actor (Thorn Lieutenant).
     (_frame("B13-targeted",
             "whenever this creature becomes the target of a spell or ability an opponent controls, "

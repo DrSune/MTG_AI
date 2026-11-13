@@ -598,7 +598,7 @@ class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
     def test_80_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 79)
+        self.assertEqual(len(TEMPLATES), 80)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -614,7 +614,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 79)
+        self.assertEqual(len(reg), 80)
 
 
 # ---------------------------------------------------------------------------

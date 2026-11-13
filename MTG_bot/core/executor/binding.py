@@ -84,6 +84,7 @@ from MTG_bot.core.ability_tree import (
     LifeGainedEvent,
     LifeLostEvent,
     OptionalEffect,
+    Phase,
     PhasingEvent,
     PtDelta,
     PtDirection,
@@ -1125,22 +1126,21 @@ class TriggerBinder:
             return eval_filter(node.filter, blocker, ctx)
         if kind == KIND_DAMAGE and isinstance(node, DamageDealtEvent):
             return self._match_damage(node, event, source, controller)
-        if kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent):
-            assert event.subject is not None  # the gaining player
-            ctx = self._ctx(source, controller, event)
-            return node.actor is None or eval_filter(node.actor, event.subject, ctx)
-        if (
+        if (kind == KIND_LIFE_GAINED and isinstance(node, LifeGainedEvent)) or (
             isinstance(node, LifeLostEvent)
             and kind in (KIND_LIFE_LOST, KIND_DAMAGE)
             and event.subject is not None
             and event.subject.namespace == "player"
         ):
-            # Life lost, the LifeGainedEvent twin. A player is dealt
-            # damage by losing that much life (CR 120.3a; the DAMAGE row of a
-            # player is journalled from the life change), and every other loss,
-            # a payment included (CR 119.4), is a LIFE_LOST row.
+            # Life gained, or life lost, its twin: a player is dealt damage by
+            # losing that much life (CR 120.3a; the DAMAGE row of a player is
+            # journalled from the life change), and every other loss, a payment
+            # included (CR 119.4), is a LIFE_LOST row.
+            assert event.subject is not None  # the gaining or losing player
             ctx = self._ctx(source, controller, event)
-            return node.actor is None or eval_filter(node.actor, event.subject, ctx)
+            if node.actor is not None and not eval_filter(node.actor, event.subject, ctx):
+                return False
+            return node.ordinal is None or node.ordinal == self._life_ordinal(event)
         if kind == KIND_CAST and isinstance(node, CastSpellEvent):
             return self._match_cast(node, event, source, controller)
         if (
@@ -1271,6 +1271,28 @@ class TriggerBinder:
             if row.kind != KIND_CAST or row.clock > event.clock or row.cast[0] != caster:
                 continue
             if self._cast_fits(node, row, source, controller):
+                count += 1
+        return count
+
+    def _life_ordinal(self, event: GameEvent) -> int:
+        """The ordinal a LifeGainedEvent's or LifeLostEvent's ``ordinal`` compares with: the
+        number of times this row's player gained (or lost) life this turn, up to and including
+        this row (CardDrawnEvent.ordinal's contract, counted here instead of stamped on the
+        row). One LIFE_GAINED row is one gain (an atom's net change for one player); a loss is
+        a LIFE_LOST row or one player DAMAGE row, one per source, so the creatures that damage a
+        player in one combat damage step are that many losses, of which exactly one is first.
+        Every row of the row's own turn counts (back to that turn's upkeep marker, as
+        ``EventJournal.turn_window`` reads a turn), rows from before the permanent arrived too
+        (Vengeful Warchief's ruling)."""
+        gain = event.kind == KIND_LIFE_GAINED
+        kinds = (KIND_LIFE_GAINED,) if gain else (KIND_LIFE_LOST, KIND_DAMAGE)
+        count = 0
+        for row in reversed(self.executor.journal.events):
+            if row.clock > event.clock:
+                continue
+            if row.kind == KIND_TURN_PHASE and row.data[0] == Phase.UPKEEP.name:
+                break
+            if row.kind in kinds and row.subject == event.subject:
                 count += 1
         return count
 

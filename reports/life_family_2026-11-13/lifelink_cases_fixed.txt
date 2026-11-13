@@ -1,0 +1,4 @@
+trample: life 25, gain rows [(5, 'DEAL_DAMAGE')], Pridemate counters 1  (the rules: life 25, one row of 5, 1 counter)
+trample with Angel of Vitality: life 26, gain rows [(6, 'GAIN_LIFE')], Pridemate counters 1  (the rules: life 26, one row of 6, 1 counter)
+two blockers: life 24, gain rows [(4, 'DEAL_DAMAGE')], Pridemate counters 1  (the rules: life 24, one row of 4, 1 counter)
+noncombat with Angel of Vitality: life 23, gain rows [(3, 'GAIN_LIFE')], Pridemate counters 1  (the rules: life 23, one row of 3, 1 counter)

@@ -12,11 +12,15 @@ target the spell. Three carriers:
 * "Spells you control can't be countered this turn." — a one-shot effect lasting the turn (Veil of
   Summer); it covers spells cast after it resolved (CR 611.2c).
 
-The statics with a turn-history condition (conditions.py): bloodthirst (CR 702.54a, whose
-reminder text is the ability), "can't attack unless", "can't be blocked if" and "enters with a
-+1/+1 counter on it if". Each is the existing carrier with the condition put in its condition
-slot: Gadrak's "can't attack unless" (StaticAbility.condition = FNot of the condition), Tome
-Anima's "can't be blocked as long as", the kicker Baloth's gated EtBState.
+The statics with a condition of conditions.py: bloodthirst (CR 702.54a, whose reminder text is
+the ability), "can't attack unless", "can't be blocked if", "enters with a +1/+1 counter on it
+if", and "this creature gets +P/+T [and has <keywords>]" or "has <keywords>" as long as the
+condition holds, the condition first or last (Twinblade Paladin, Angel of Vitality, Serra
+Ascendant). Each is the existing carrier with the condition put in its condition slot: Gadrak's
+"can't attack unless" (StaticAbility.condition = FNot of the condition), Tome Anima's "can't be
+blocked as long as", the kicker Baloth's gated EtBState, Thieves' Guild Enforcer's self static
+(MODIFY_PT, then GRANT_ABILITY per keyword, the keywords sorted: one static's effects share a
+timestamp, CR 613.7, so their printed order means nothing).
 
 Priority 10, as B11: no other template matches these sentences.
 """
@@ -35,6 +39,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DurationEot,
+    Effect,
     EtBState,
     FAnd,
     FAtom,
@@ -42,7 +47,11 @@ from MTG_bot.core.ability_tree import (
     Filter,
     FNot,
     FOr,
+    KeywordAbility,
+    PtDelta,
+    PtDirection,
     QConst,
+    Seq,
     StaticAbility,
     Verb,
 )
@@ -53,6 +62,8 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b6 import _self_selector
+from MTG_bot.core.compiler.templates_b11 import _KW_LIST_RE, _keyword_list
 
 _BUCKET: Final[str] = "B14"
 _PRIORITY: Final[int] = 10
@@ -160,6 +171,51 @@ def _build_enters_with_counters_if(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+#: "gets +P/+T [and has <keywords>]" | "has <keywords>": what a self static gives this creature.
+_SELF_STATIC: Final[str] = (
+    rf"(?:gets \+(?P<p>\d+)/\+(?P<t>\d+)(?: and has {_KW_LIST_RE})?"
+    rf"|has {_KW_LIST_RE.replace('?P<kws>', '?P<kws_only>')})"
+)
+
+
+def _build_self_static_as_long_as(m: re.Match[str]) -> SentenceOutcome:
+    """As long as <condition>, this creature gets +P/+T [and has <keywords>] / has <keywords>,
+    the condition first or last: one tree for both wordings. "As long as" is the static's
+    condition, never a duration; the effect is Thieves' Guild Enforcer's (MODIFY_PT, then a
+    GRANT_ABILITY per keyword, on this creature), the keywords sorted by name."""
+    steps: list[Effect] = []
+    if m.group("p"):
+        steps.append(
+            Atom(
+                verb=Verb.MODIFY_PT,
+                args=AtomArgs(
+                    pairs=(
+                        ("target", _self_selector()),
+                        ("power", PtDelta(PtDirection.INCREASE, QConst(int(m.group("p"))))),
+                        ("toughness", PtDelta(PtDirection.INCREASE, QConst(int(m.group("t"))))),
+                    )
+                ),
+            )
+        )
+    keywords = m.group("kws") or m.group("kws_only")
+    # One static's effects share a timestamp (CR 613.7), so the printed keyword order means
+    # nothing: the grants are sorted, one tree for "flying and lifelink" and "lifelink and flying".
+    for keyword in sorted(_keyword_list(keywords) if keywords else (), key=lambda k: k.name):
+        steps.append(
+            Atom(
+                verb=Verb.GRANT_ABILITY,
+                args=AtomArgs(
+                    pairs=(
+                        ("target", _self_selector()),
+                        ("ability", KeywordAbility(keyword=keyword)),
+                    )
+                ),
+            )
+        )
+    effect = steps[0] if len(steps) == 1 else Seq(steps=tuple(steps))
+    return AbilityOutcome(ability=StaticAbility(effect=effect, condition=_condition(m)))
+
+
 def _t(tid: str, name: str, pattern: str, build) -> Template:
     return Template(
         tid=tid, name=name, bucket=_BUCKET, pattern=re.compile(pattern), priority=_PRIORITY,
@@ -190,4 +246,8 @@ TEMPLATES: tuple[Template, ...] = (
        rf"^{conditions.ABILITY_WORD}This creature enters with (?P<word>{'|'.join(_COUNTERS)}) "
        rf"\+1/\+1 counters? on it if {_COND}\.$",
        _build_enters_with_counters_if),
+    _t("B14-as-long-as-self", "as long as <condition>, this creature gets +P/+T or has <keywords>",
+       rf"^As long as {_COND}, this creature {_SELF_STATIC}\.$", _build_self_static_as_long_as),
+    _t("B14-self-as-long-as", "this creature gets +P/+T or has <keywords> as long as <condition>",
+       rf"^This creature {_SELF_STATIC} as long as {_COND}\.$", _build_self_static_as_long_as),
 )

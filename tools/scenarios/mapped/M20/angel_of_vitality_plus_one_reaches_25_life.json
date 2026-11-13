@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 21, "seed": 7},
+ "notes": "Printed: 'If you would gain life, you gain that much life plus 1 instead.' and 'This creature gets +2/+2 as long as you have 25 or more life.' Both players start at 21. Healer of the Glade enters ('you gain 3 life'): the gain is replaced by a gain of that much plus 1 (CR 614.6; the replaced amount is the event's, QProp(event, AMOUNT)), so 21 -> 25, and at 25 life (inclusive) the Angel is 4/4. The opponent's life is untouched. On the base (07bf26ff) neither sentence compiled (and the replacement's action could not read the replaced amount): 24 life, a 2/2 Angel.",
+ "cards": [
+  {"key": "angel", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "hg", "real": "Healer of the Glade", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hg"}
+ ],
+ "expect": {
+  "life": {"0": 25, "1": 21},
+  "power": {"angel": 4},
+  "toughness": {"angel": 4}
+ }
+}

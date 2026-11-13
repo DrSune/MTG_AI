@@ -94,7 +94,7 @@ gate round 7, `EmblemSpec.abilities`).
 | Selector.zone + Selector.zones | Zone + tuple[Zone,…] | **SET-R0** | **R0 schema fold**: ONE `zones: tuple[Zone,…]` (heterogeneous Zone objects whole), construction sort by canonical_json (Zone is not orderable — bare sorted() TypeError trap), C2 referent convention keeps neutral `Zone(ANY,ANY)`; `Selector.zone` (scalar) deleted; ALL consumers set-iterate; PRIMARY-ZONE-KEYED LANES become ∃-predicates: selectors.py:428-430 (r19b TOP window — lane body :445 must extract the MATCHED LIBRARY+TOP zone's controller, not ∃-test-then-reuse), :484 (16a PLAYER re-point), :705/:754, verbs.py:247-249 (firemaw) |
 | KeywordAbility.params | tuple[Quantity\|Filter\|Cost,…] | **OPERATOR** | positional (mode-specific arg slots) |
 | CostModifier.extra_deltas | tuple[CostDelta,…] | **OPERATOR-AUDIT** | sum-order presumed free; R1b audit before any SET reclass |
-| QBin.left/right, Conditional.then/else, ordinals (CardDrawn, CastSpell), DelayedTrigger slots | scalars/named fields | **OPERATOR** | position IS semantics (field names, not order) |
+| QBin.left/right, Conditional.then/else, ordinals (CardDrawn, CastSpell, LifeGained, LifeLost), DelayedTrigger slots | scalars/named fields | **OPERATOR** | position IS semantics (field names, not order) |
 
 **O2 (time law)**: Seq order kept because later steps may DEPEND on earlier ones
 ("for each of those", mid-resolution QProp, later-step legality) and printed order is
@@ -120,6 +120,7 @@ constructor set.
 | F8 | phantom menu | Choose(count==len) | V2′: must be encoded ALL |
 | F9 | the CR 609.4 policy family | MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY (round 4) | fold candidate: before a fourth policy verb (nine "as though it had flash" cards wait), decide one POLICY verb with a scope enum |
 | F10 | CR 110.5 status-change events | TapStateEvent, PhasingEvent (round 4; one card) | one family: fold when a third status event appears |
+| F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
 
 Enum-only STRICT variance clusters (SpellKind×5, Keyword×19, PtDelta-direction) =
 GOOD generalization (§9) — never fusion targets.
@@ -514,7 +515,65 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     over another player's hidden zone, and an emblem's choices, were not asked; the bench called
     every NONE "no block". Logged: "any number" over a menu the engine cannot ask takes all of it
     (not live).
-- BINDING STATE: rounds 1–7 complete; further ontology changes require a NEW gated round (any
+- R8 round 8 (adversarial, 2026-11-13; one reviewer on 0be3db11, the life family, §12, branch
+  `worktree-agent-aa99e614a0d6abc56`): **FIX-THEN-GO**, nothing FATAL. Upheld in the reviewer's
+  own runs: the CR reading (one loss is one source's damage at once, or one effect's or payment's
+  loss, CR 120.3a, 119.3, 119.4; the payment case; a loss before the permanent arrived uses up the
+  turn), the `ordinal` design (counted at match time, nothing stamped on the journal),
+  LIFE_TOTAL_GE beside LIFE_LEAD_OVER_START_GE (F11 deferred), the one-tree B14 claim, and the
+  blast radius (11 trees, 0 verified in or out, 300/300 replays).
+  - **The change.** `FAtomPred.LIFE_TOTAL_GE(who, count)` (R8-1); `ordinal` on LifeGainedEvent
+    and LifeLostEvent (R8-2); a replaced gain's amount published to the replacement's action
+    (R8-3). One new FAtom predicate, one field on two event classes (OPERATOR, §3), no verb.
+  - **MAJOR, fixed:**
+    - M1. `LIFE_TOTAL_GE.who` admitted three byte forms of one meaning: TARGET_PLAYER,
+      TARGET_OPPONENT and Selector(referent="target") read the same "target" binding (D18 in a new
+      slot), and a TARGET_* in a filter never designates (the designation scans read only
+      CONTROLLER_IS), so "if target opponent has 10 or less life" would have reached resolution
+      with no target chosen. Every compiled use is YOU and no card of the 19 sets reads another
+      player's life total: `FAtom.__post_init__` refuses any `who` but YOU, and another value
+      comes back only with a card and its tests. 0be3db11 built TARGET_PLAYER, TARGET_OPPONENT and
+      the referents target, event and result; the branch builds YOU only.
+      `test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning` (13 `who` forms
+      refused; they fail on 0be3db11).
+  - **MINOR, fixed:**
+    - m1. PREVENT_EFFECT's `event` role took an event with an ordinal, which no prevention lane
+      reads: `AtomArgs` refuses it. `test_an_ordinal_is_read_only_by_a_trigger` (resolving and
+      static, the four ordinal classes; they fail on 0be3db11).
+    - m2. The round is R8 (the emblem branch merged as round 7): §12 and R8-1..3, F11, the NUMBERS
+      header, the BACKLOG, the test module, the three M20 records' notes.
+    - m4. The lifelink BACKLOG entry completed: outside combat a life-gain replacement makes each
+      per-target gain its own boundary, so the rows do not merge (a lifelinker dealing 1 to each of
+      two creatures beside Angel of Vitality and Ajani's Pridemate: 24 life where the rules give
+      23, 2 rows, 2 counters), and the newly whole trees inheriting the fault are named, none to be
+      stamped verified before the fix: FDN Drogskol Reaver, M14 Archangel of Thune, Twinblade
+      Paladin and Angel of Vitality (M20, FDN).
+    - m5. "As long as" on a self static has two encodings: the static's `condition` (14 statics,
+      B14's among them) and a DurationWhileCondition on the atom, in five verified trees where the
+      review named two (M21 Predatory Wurm, Sigiled Contender; the M20 records Celestial Messenger,
+      Vivien's Crocodile, Unchained Berserker). Divergence D22, the fold scheduled in the BACKLOG.
+    - m6. B14's keyword grants followed printed order: they are sorted (one static's effects share
+      a timestamp, CR 613.7). 0 trees change: no B14 static in the 19 sets grants two keywords. Six
+      trees of other templates keep printed order: divergence D23, folded with D22.
+      `test_a_static_grants_its_keywords_in_one_order` (fails on 0be3db11).
+    - nit. §12's reason for rejecting a once-each-turn flag is now the one-representation rule:
+      "the Nth event this turn" is already `ordinal`.
+  - Blast radius of the fixes (the merge f8dc201d against them, 19 sets, every record applied): 0
+    trees changed, 0 verified cards in or out (M21 271, M20 261, FDN 177). The branch against
+    main 8f7b3774: the same 11 trees, 8 whole.
+  - **The lifelink fault, fixed in its own commit** (the reviewer's instruction; §12 R8-4): one
+    lifelink source's damage dealt at once is one life-gain event whatever the number of
+    recipients, several sources several. Cause: the gain was made per recipient, per target in
+    `verbs._v_deal_damage` and per (dealer, recipient) atom in `Executor._damage_wave`, and a
+    life-gain replacement made each per-target gain its own boundary. Fix: one gain per atom,
+    and per combat dealer in its last atom. The reviewer's three cases are tests failing on
+    46aa2f3e, with two packs.
+    Blast radius: no tree changes; in 1,500 seeded games on the verified pools, 17 combat damage
+    steps (17 games) had a lifelink dealer with two or more recipients and now journal one gain
+    row; play differs in 3 games, where M21 Vito, Thorn of the Dusk Rose and FDN Ajani's Pridemate
+    and Marauding Blight-Priest trigger once instead of once per recipient. Same winners, 0
+    crashes.
+- BINDING STATE: rounds 1–8 complete; further ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
@@ -808,3 +867,159 @@ evidence, censuses and blast-radius scripts are in `reports/trigger_timing_2026-
   left still counts);
 - 300 seeded heuristic games (100 each, M21, M20, FDN), decks from the cards verified before and
   after: byte-identical digests, 0 crashes.
+
+## 12. Round R8 — the life family (2026-11-13; gate round 8 FIX-THEN-GO, fixed: §9)
+
+The card backlog's wave 3, ranked first by its planning census: M20 Twinblade Paladin, Angel of
+Vitality and Vengeful Warchief, with reach in M11, M14, ZNR and FDN. Census, blast-radius scripts
+and base runs: `reports/life_family_2026-11-13/`. Tests: `MTG_bot/core/test_executor_life_family.py`.
+
+**R8-1 `FAtomPred.LIFE_TOTAL_GE(who, count)`: your life total now is at least `count`
+(CR 119.1).**
+- Slots: `count` and `who`, both required (FAtom checks `count` itself, as EVENT_THIS_TURN's: the
+  generic loop never checks it). A negative literal is refused by QConst.
+- `who` is YOU, every compiled use; any other value is refused (gate round 8, M1). Another one
+  comes back only with a card that prints it, and its tests:
+  - over several players (OPPONENT, ANY, ALL_OPPONENTS, DEFENDING_PLAYER) the slot would need a
+    quantifier, and "N or less life", which is FNot(LIFE_TOTAL_GE(N + 1)) and never a second
+    predicate, would read "each of them" where "an opponent has N or less life" means one;
+  - TARGET_PLAYER, TARGET_OPPONENT and a referent "target" read one binding, three byte forms of
+    one meaning (D18 in a new slot), and a TARGET_* in a filter designates nothing: the
+    designation scans read only CONTROLLER_IS, so "If target opponent has 10 or less life" would
+    reach resolution with no target chosen;
+  - the referents "source" and "controller" name you again (CR 113.8).
+- It reads no subject: in `ontology_conformance.SUBJECT_FREE`, one qualifier slot per event class
+  (§11 R6-2). Every compiled use is a static's condition.
+- Compiler: `conditions.py` reads "you have N or more|less life" (the FNot rule in code). B14 reads
+  "as long as <condition>, this creature gets +P/+T [and has <keywords>] | has <keywords>" either
+  way round, one tree, Thieves' Guild Enforcer's effect byte for byte. Its keyword grants are
+  sorted (gate round 8, m6): one static's effects share a timestamp (CR 613.7), so "flying and
+  lifelink" and "lifelink and flying" are one tree. Other templates keep printed order (D23).
+- Census: 7 sentences print an absolute threshold, 5 of them compile (Twinblade Paladin and Angel
+  of Vitality in M20 and FDN, M11 Serra Ascendant). M13 Elderscale Wurm's two also need a damage
+  floor and a set-life verb. 11 more sentences on 10 cards are relative to the starting life total.
+- **Not a second encoding of LIFE_LEAD_OVER_START_GE.** That one reads the lead over the starting
+  life total, which is 40 in Commander and 25 in two-player Brawl (CR 103.4). Angel of Vitality's
+  ruling: "In formats where your life total doesn't start at 20, ... still applies if your life
+  total is 25 or more." Fold candidate F11 (§4) when a starting-life quantity lands.
+- Rejected:
+  - LIFE_LEAD_OVER_START_GE(count - 20): wrong in Commander.
+  - A comparison over QProp(controller, LIFE): QProp reads only the ability's controller, and a
+    general "quantity >= quantity" atom would subsume a dozen *_GE predicates, a fold round of its
+    own.
+  - No `who` (LIFE_LEAD_OVER_START_GE's choice): kept, closed to YOU, so another player's life is
+    a value of the slot when its card comes, not a second predicate.
+  - A DurationWhileCondition on the atom: "as long as" is the static's condition. Five verified
+    trees still write it on the atom (divergence D22, fold scheduled).
+
+**R8-2 `ordinal` on LifeGainedEvent and LifeLostEvent (CR 603.2).**
+- CardDrawnEvent.ordinal's contract, one helper for all four ordinals
+  (`ability_tree._check_ordinal`): the Nth such event of that player this turn, an int >= 1; absent
+  means every event. Serialization omits it when absent: no tree's bytes change.
+- Only the trigger binder reads it (`binding._life_ordinal`). It counts at match time, over the
+  row's own turn back to its upkeep marker, events from before the permanent arrived included
+  (Vengeful Warchief's and Attended Healer's rulings). It stamps nothing on the journal: the rows,
+  the journal dump and every replay fingerprint keep their bytes.
+- A turn-history atom (EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN), a ReplacementAbility and an
+  Atom's `event` role (PREVENT_EFFECT, gate round 8, m1) refuse an event with an ordinal, for all
+  four classes. A history count says how much happened, so an ordinal there is a second byte
+  form of the count or a reading no card prints. No replacement or prevention lane counts
+  events. 0 trees of the 19 sets did any of it.
+- **One event.**
+  - A gain is one LIFE_GAINED row: one source causing it at once (CR 119.9). Two lifelinkers
+    dealing combat damage together are two.
+  - A loss is one LIFE_LOST row (an effect's loss or a payment, CR 119.3, 119.4), or one player
+    DAMAGE row (one source's damage, CR 120.3a).
+  - Several creatures that damage a player in one combat damage step are that many losses, dealt
+    at once (CR 510.2), of which exactly one is the first: "the first time each turn" triggers
+    once.
+  - One lifelink source's damage dealt at once is one gain, whatever the number of recipients
+    (CR 120.3f, 119.9 and the rulings): R8-4. Still a gap (BACKLOG): a lifelink source damaging
+    its own controller leaves no row.
+- Compiler: one life-trigger head, `templates_b9.LIFE_TRIGGER_RE` and `life_event`: "When|Whenever
+  you gain|lose life [for the first time each turn | for the first time during each of your
+  turns]". B9's +1/+1-counter template and the frame B13-life (any clause that parses alone) share
+  it. "During each of your turns" puts TURN_OF YOU in `actor`, the event's one qualifier slot.
+- Census: 6 sentences on 6 cards, 4 compile (M20 Vengeful Warchief; ZNR Attended Healer, Cleric
+  of Life's Bond; FDN Cat Collector). FDN Vanguard Seraph needs surveil, ELD Deathless Knight its
+  "return this card from your graveyard".
+- Rejected:
+  - A once-each-turn flag on the ability: "the Nth event this turn" already has one
+    representation, `ordinal`; a flag would be a second (and it would also miss the rulings: a
+    loss before the permanent arrived uses up the turn).
+  - The trigger condition: read again on resolution (CR 603.4), and §11 R6-2 keeps qualifiers out
+    of it.
+  - EVENT_THIS_TURN in `actor`: it sums amounts and counts the row being matched, so a first loss
+    of 3 cannot be told from a second.
+  - Stamping the ordinal on the journal rows as CARD_DRAWN does: a player DAMAGE row's `data[1]` is
+    its combat step, and every journal dump would change.
+
+**R8-3 A replaced gain's amount (an engine fix, no IR change).**
+- `verbs._v_gain_life` queues (record, player, amount). The executor's drain binds the player as
+  `event` and publishes the amount as `event_amount`, so Angel of Vitality's GAIN_LIFE(QBin(ADD,
+  QProp(event, AMOUNT), 1)) reads the replaced gain (CR 614.6), Conclave Mentor's shape on the life
+  lane. Before, the action raised: no event register.
+- A gain of 0 is no life-gain event, and nothing replaces it (CR 119.10).
+- Two Angels chain through the CR 614.5 guard: +2, as their ruling says.
+- Compiler: B5b "If you would gain life, you gain that much life plus N instead." (Angel of
+  Vitality in M20 and FDN).
+- Left out: "you gain twice that much life" (M13 Rhox Faithmender, ORI Alhammarret's Archive).
+  Beside a "+1" it needs the CR 616.1 order choice, which the life lane does not ask (BACKLOG).
+
+**R8-4 One lifelink source's damage dealt at once is one life-gain event (an engine fix, no IR
+change; gate round 8 asked for it in its own commit).**
+- The rule: damage dealt by a source with lifelink makes its controller gain that much life (CR
+  120.3f, 702.15b). The rulings of Ajani's Pridemate, Angel of Vitality and Twinblade Paladin: a
+  single lifelink creature dealing combat damage to several recipients at once (trample, two
+  blockers) is one event, "the ability will apply only once"; each lifelink creature is a separate
+  event.
+- The cause: the gain was made per recipient. `verbs._v_deal_damage` gained after each player it
+  damaged and `_deal_damage_to_card` after each card. Outside combat one atom's gains then merged
+  in the journal's per-atom life diff (`EventJournal.record_atom`), unless a life-gain replacement
+  consumed them: each per-target gain queued its own replacement, whose action the executor's
+  drain runs as its own boundary, so Angel of Vitality added 1 per recipient and each gain was its
+  own row. In combat `Executor._damage_wave` runs one DEAL_DAMAGE atom per (dealer, recipient),
+  each its own boundary, so a trampler and its blocker made two rows. The per-atom life diff is
+  not itself the cause: it writes one row per player per atom, and after the fix one atom holds a
+  source's one gain (its own fault, a player damaged and gaining in one atom, is the BACKLOG's
+  net-life entry).
+- The fix: `_v_deal_damage` sums what one atom dealt to all its recipients and gains once, after
+  them; `_deal_damage_to_card` returns the dealt amount and gains nothing; a fight gains per blow,
+  each fighter its own source. In combat the wave gives a dealer's earlier atoms
+  `ExecCtx.lifelink_held`, where each leaves what it dealt, and its last atom `lifelink_carried`,
+  their sum: the dealer's one gain lands in its last atom's boundary, the row's shape unchanged
+  (cause the dealer, verb DEAL_DAMAGE, or the replacement's GAIN_LIFE). A dealer with one
+  recipient, a one-target atom and a fight run as before, event for event.
+- Tests, each failing on 46aa2f3e (the round's fixes): a trampler over a 0/2, with and without
+  Angel of Vitality; a lifelinker blocked by two 0/2s; one DEAL_DAMAGE of 1 to each of two
+  creatures beside the Angel and Ajani's Pridemate (23 life, one row, one counter, no trigger
+  order to ask); the controls, two lifelinkers at once and a double striker, pass on both
+  (`test_executor_life_family.py`). Packs `mapped/FDN/ajanis_pridemate_one_gain_per_lifelink_source`
+  (two lifelinkers, one of them trampling over a 0/2: 2 counters, 3 on 46aa2f3e) and
+  `mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler` (26 life and 1 counter, 27
+  and 2 on 46aa2f3e).
+- Blast radius (`reports/life_family_2026-11-13/lifelink_blast_radius.txt`): no tree changes.
+  1,500 seeded heuristic games on the verified pools (500 each; M21 271, M20 261, FDN 177
+  deckable), 46aa2f3e against the fix: 17 combat damage steps, in 17 games, had a lifelink dealer
+  with two or more recipients (M21 7, M20 1, FDN 9: Blood Glutton, Basri's Acolyte, Baneslayer
+  Angel, Cavalier of Night, Ajani's Pridemate and FDN creatures granted lifelink). Their journals
+  differ, the dealer's gains now one row; the other 1,483 journals are identical. Play differs in
+  3 games, where a verified card reading life gain triggered once per recipient and now once: M21
+  Vito, Thorn of the Dusk Rose; FDN Ajani's Pridemate and Marauding Blight-Priest (one game two
+  turns longer, 13 -> 15). Same winners; 0 crashes either side.
+
+**Blast radius** (by script over the 19 sets, `reports/life_family_2026-11-13/`):
+- trees changed: 11, all unverified. M20 Twinblade Paladin, Angel of Vitality and Vengeful Warchief
+  (needs-atom records re-mapped to the compiler's tree); FDN Twinblade Paladin, Angel of Vitality,
+  Cat Collector and Drogskol Reaver; M11 Serra Ascendant; M14 Archangel of Thune; ZNR Attended
+  Healer and Cleric of Life's Bond. 8 of them now compile whole.
+- 0 verified cards leave or join the verified pool; the stamps match (M21 273, M20 261, FDN 177).
+- Still-verified cards with unchanged bytes that read a touched path: the 8 with a life trigger
+  and no ordinal, whose binder lane is unchanged for them.
+- The V4′ CHOOSE baseline gains Cleric of Life's Bond's self-selector (IS_SOURCE, no decision). No
+  new branching row (the uncapped census: one existing row's count, 83 -> 84).
+- 300 seeded heuristic games (100 each, M21, M20, FDN), decks from the cards verified on both:
+  300/300 identical digests, 0 crashes either side.
+- Random-play soaks that deal the new trees (M20 with the unverified records, FDN, ZNR, M11; 700
+  games): 0 crashes, 0 detector hits; each family card in those pools was cast in 2 to 33 games
+  (not M14 Archangel of Thune, M14 deals no deck, nor FDN Cat Collector, still partly compiled).

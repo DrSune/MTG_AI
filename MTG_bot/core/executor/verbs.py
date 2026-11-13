@@ -528,19 +528,21 @@ def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
         # Replacement before apply, as in _v_deal_damage. A live
-        # LifeGainedEvent replacement (Life Goes On) consumes the event — no
-        # life mutation happens (the journal sees no gain at all), the
+        # LifeGainedEvent replacement (Angel of Vitality) consumes the event: no
+        # life mutation happens (the journal sees no gain at all), and the
         # replacement's ACTION runs as a nested journalled effect once this
-        # atom's boundary closes, and the CR 614.4a chain guard (the
-        # executor's drain) keeps the same record from re-replacing its own
-        # 8-life action.
+        # atom's boundary closes, with the gaining player bound as ``event`` and
+        # the replaced amount as the event's (CR 614.6: "that much life plus 1"
+        # reads QProp(event, AMOUNT)). The CR 614.5 chain guard (the executor's
+        # drain) keeps the same record from replacing its own action's gain. CR
+        # 119.10: a gain of 0 is no life-gain event, so nothing replaces it.
         repl = (
             ctx.replacements.replacement_for_life_gained(ctx, player)
-            if ctx.replacements is not None
+            if ctx.replacements is not None and n > 0
             else None
         )
         if repl is not None:
-            ctx.pending_replacements.append(repl)
+            ctx.pending_replacements.append((repl, player, n))
             ctx.events.append(
                 (
                     len(ctx.events),
@@ -564,7 +566,10 @@ def _lifelink_gain(ctx: ExecCtx, n: int) -> None:
     and the KIND_LIFE_GAINED rows that Light of Promise's granted trigger and
     Indulging Patrician's LIFE_GAINED_THIS_TURN_GE threshold read are real
     life-gain events, not invisible arithmetic. The gain belongs to the
-    SOURCE's (last known) controller."""
+    SOURCE's (last known) controller. ``n`` is the source's whole damage
+    dealt at once, ONE life-gain event however many recipients share it (CR
+    120.3f): a DEAL_DAMAGE atom's (``_v_deal_damage``), a combat dealer's in
+    its damage step (``Executor._damage_wave``), one fighting creature's."""
     if n <= 0:
         return
     if ctx.executor is None or ctx.layers is None:
@@ -681,6 +686,9 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         # amount were read in the ability's own coordinates above.
         ctx = replace(ctx, source=source)
     combat = bool(getattr(ctx.executor, "_combat_wave_open", False))
+    # CR 120.3f: the source's lifelink gains what it dealt to ALL its recipients at once, ONE
+    # life-gain event (the rulings of Ajani's Pridemate and Angel of Vitality), after them all.
+    lifelinked = 0
     for target in targets:
         n_i = n
         if target.namespace == "player" and _protection_prevents(ctx, target, n_i):
@@ -736,7 +744,7 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
             # "that much damage" readers count it.
             p.life = p.life - n_i
             ctx.events.append((len(ctx.events), "DAMAGE", str(target), p.life))
-            _lifelink_gain(ctx, n_i)  # lifelink reads ANY damage dealt
+            lifelinked += n_i  # lifelink reads ANY damage dealt
             continue
         # CR 120.4/120.6: damage is MARKED, never instant-lethal. The mark
         # rides the executor's damage ledger and the settle tail's
@@ -745,9 +753,16 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         # exchange is a simultaneous double kill. The DAMAGE tuple feeds the
         # journal's KIND_DAMAGE row (events.py), which "is dealt damage"
         # triggers (Brash Taunter) read.
-        if _deal_damage_to_card(ctx, target, n_i):
+        marked = _deal_damage_to_card(ctx, target, n_i)
+        if marked is not None:
             dealt.append(target)
+            lifelinked += marked
     ctx.bindings["result"] = dealt
+    if ctx.lifelink_held is not None:
+        # A combat dealer's earlier recipient: its last recipient's atom gains the whole step's.
+        ctx.lifelink_held.append(lifelinked)
+    else:
+        _lifelink_gain(ctx, lifelinked + ctx.lifelink_carried)
 
 
 #: CR 120.1a: the only objects damage can be dealt to.
@@ -776,13 +791,15 @@ def _protection_prevents(ctx: ExecCtx, recipient: Handle, n: int) -> bool:
     return True
 
 
-def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
+def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> int | None:
     """One card-side damage application: mark it, journal it, decide nothing.
     CR 702.2b: when the SOURCE carries DEATHTOUCH the mark is flagged
     lethal-in-itself, so the state check buries a 3/3 under one point of
     Fetid Imp venom (the keyword is read by :func:`_source_has`, so a
-    granted deathtouch counts and a lost one stops counting). Returns whether
-    damage was dealt (False: not damageable, protected, or prevented)."""
+    granted deathtouch counts and a lost one stops counting). Returns the
+    damage dealt, after any replacement's rewrite (None: none was dealt, the
+    object not damageable, protected, or the damage prevented). The caller
+    gains its lifelink: one gain per source's damage at once (CR 120.3f)."""
     if ctx.executor is None:
         raise ValueError(
             "executor: card damage needs an executor-backed ExecCtx "
@@ -793,9 +810,9 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
         # a creature or a planeswalker (a land, a noncreature artifact): no
         # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
         # forced binding (a harness stimulus) can.
-        return False
+        return None
     if _protection_prevents(ctx, target, n):
-        return False  # CR 702.16e: a permanent with protection from the source
+        return None  # CR 702.16e: a permanent with protection from the source
     # Prevention before apply for card damage (Pack Leader). A live
     # DamageDealtEvent PreventionRecord (from the PREVENT_EFFECT lane) vetoes
     # the WHOLE mark (QUnbounded = "all"); the vetoed event leaves NO DAMAGE
@@ -818,7 +835,7 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
                     n,
                 )
             )
-            return False
+            return None
     # The replacement lane over CARD damage (Fiery Emancipation). The
     # consult's QUANTITY-MODIFICATION half rewrites the mark before it lands
     # — the permanent lane (walker loyalty below, the damage ledger, the
@@ -857,8 +874,8 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
     # CR 120.4d: damage dealt to a PLANESWALKER removes that many loyalty
     # counters — the walker lane never MARKS damage (there is no toughness
     # read for it; the zero-loyalty state check in the settle sweep does the
-    # burying). The DAMAGE row and lifelink ride the dealt amount exactly
-    # like the creature lane.
+    # burying). The DAMAGE row and the caller's lifelink read the dealt amount
+    # exactly like the creature lane.
     state = ctx.world.cards.get(target)
     if state is not None and state.identity.loyalty is not None:
         counters = state.counters
@@ -867,13 +884,11 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> bool:
             have = int(str(state.identity.loyalty))
         counters["LOYALTY"] = max(0, have - n)
         ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
-        _lifelink_gain(ctx, n)
-        return True
+        return n
     deathtouch = _source_has(ctx, Keyword.DEATHTOUCH)
     ctx.executor.mark_damage(target, n, deathtouch=deathtouch)
     ctx.events.append((len(ctx.events), "DAMAGE", str(target), n))
-    _lifelink_gain(ctx, n)  # after the mark, on the dealt amount
-    return True
+    return n  # the caller's lifelink gains it, after the mark, on the dealt amount
 
 
 def _fight_attacker(ctx: ExecCtx) -> Handle | None:
@@ -950,7 +965,8 @@ def _v_fight(ctx: ExecCtx, atom: Atom) -> None:
             # CR 701.12b, 120.1: each fighting creature deals its own damage, so
             # the creature, not the spell or ability, is the source that protection
             # (702.16e), deathtouch (702.2b) and lifelink (702.15b) read.
-            _deal_damage_to_card(replace(ctx, source=a), b, power)
+            blow = replace(ctx, source=a)
+            _lifelink_gain(blow, _deal_damage_to_card(blow, b, power) or 0)
 
 
 def _set_tapped(ctx: ExecCtx, atom: Atom, tapped: bool) -> None:

@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
+    LifeLostEvent,
     PtDelta,
     PtDirection,
     QConst,
@@ -373,12 +374,33 @@ def _build_gain_life_each_opponent_loses(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+#: "When(ever) you gain|lose life [for the first time each turn | for the first time during each
+#: of your turns]": the trigger head :func:`life_event` reads (frames.py's life frame shares it).
+LIFE_TRIGGER_RE: Final[str] = (
+    r"(?:When|Whenever) you (?P<life>gain|lose) life"
+    r"(?: for the first time (?P<first>each turn|during each of your turns))?"
+)
+
+
+def life_event(m: re.Match[str]) -> LifeGainedEvent | LifeLostEvent:
+    """The event of a :data:`LIFE_TRIGGER_RE` head. "For the first time each turn" is the
+    turn's first such event, ``ordinal=1``, whenever the permanent arrived (Vengeful Warchief's
+    ruling); "during each of your turns" adds TURN_OF YOU, a qualifier that reads no subject, in
+    the event's one slot for it, ``actor`` (DESIGN_ATOM_ONTOLOGY §11 R6-2)."""
+    you = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+    actor = you
+    if m.group("first") == "during each of your turns":
+        actor = FAnd(children=(you, FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU)))
+    ordinal = 1 if m.group("first") else None
+    if m.group("life") == "gain":
+        return LifeGainedEvent(actor=actor, ordinal=ordinal)
+    return LifeLostEvent(actor=actor, ordinal=ordinal)
+
+
 def _build_gain_life_counter_self(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(
         ability=TriggeredAbility(
-            event=LifeGainedEvent(
-                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
-            ),
+            event=life_event(m),
             condition=None,
             effect=Atom(
                 verb=Verb.PUT_COUNTER,
@@ -539,8 +561,9 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     _template(
         "B9-gain-life-counter-self",
-        "whenever you gain life, put a +1/+1 counter on this creature",
-        r"^Whenever you gain life, put a \+1/\+1 counter on this creature\.$",
+        "whenever you gain|lose life [for the first time each turn], put a +1/+1 counter on "
+        "this creature",
+        rf"^{LIFE_TRIGGER_RE}, put a \+1/\+1 counter on this creature\.$",
         _build_gain_life_counter_self,
     ),
     _template(

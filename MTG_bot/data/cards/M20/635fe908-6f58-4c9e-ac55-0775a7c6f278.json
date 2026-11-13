@@ -4,9 +4,225 @@
  "oracle_id": "635fe908-6f58-4c9e-ac55-0775a7c6f278",
  "name": "Angel of Vitality",
  "text_sha": "02f03e978cfe57298a82e27221529b41f858ad8c82ce82cb2d184cca3dcbf223",
- "needs_atom": {
-  "missing": "s3 'This creature gets +2/+2 as long as you have 25 or more life.': no predicate compares a player's current life total with a threshold (LIFE_LEAD_OVER_START_GE is relative to the starting life, so it would mean 25 only at 20 starting life and is wrong in Commander). Also s2 'If you would gain life, you gain that much life plus 1 instead.' maps to ReplacementAbility(LifeGainedEvent(you), GAIN_LIFE amount QBin(ADD, QProp(event, AMOUNT), 1)) like Conclave Mentor, but the engine's life-gain replacement drain (executor/__init__.py:1044, verbs.py _v_gain_life) publishes no event amount: the probe stimulus 'you gain 3 life' raises NotImplementedError 'QProp referent event only resolves inside a trigger firing'.",
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "ReplacementAbility",
+    "event": {
+     "tag": "LifeGainedEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "action": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "ADD"
+         },
+         "left": {
+          "tag": "QProp",
+          "referent": "event",
+          "field": {
+           "tag": "QPropField",
+           "name": "AMOUNT"
+          },
+          "agg": {
+           "tag": "QAgg",
+           "name": "FIRST"
+          }
+         },
+         "right": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "LIFE_TOTAL_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 25
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-life-family",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "If you would gain life, you gain that much life plus 1 instead.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "This creature gets +2/+2 as long as you have 25 or more life.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since the life family (ontology round R8, gate round 8). The replacement is Conclave Mentor's shape on the life lane: GAIN_LIFE of QProp(event, AMOUNT) + 1, the replaced amount now published by the executor (verbs._v_gain_life); a gain of 0 is no event (CR 119.10). The +2/+2 static reads FAtomPred.LIFE_TOTAL_GE(YOU, 25), the life total now (the card's ruling for formats not starting at 20). Pack tools/scenarios/mapped/M20/angel_of_vitality_plus_one_reaches_25_life.json (21 + 3 + 1 = 25, a 4/4 Angel). One lifelink source dealing damage to several recipients at once is one life-gain event (its ruling), so the +1 applies once: the engine gains once per source since the lifelink fix of gate round 8 (DESIGN_ATOM_ONTOLOGY §12 R8-4; pack tools/scenarios/mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler.json, a trampler over a 0/2: 20 -> 26)."
+ },
+ "probe": {
+  "sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6"
  }
 }

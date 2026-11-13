@@ -4,9 +4,218 @@
  "oracle_id": "d373dc71-5196-43a0-8cc5-67e2a591aad0",
  "name": "Twinblade Paladin",
  "text_sha": "55095e9e0769f903293a48b6feae943412c6819b8f185f50e99914d56b06ae9d",
- "needs_atom": {
-  "missing": "LIFE-TOTAL THRESHOLD predicate for 'As long as you have 25 or more life, this creature has double strike.': no FAtomPred compares a player's current life total with a number (e.g. FAtom(LIFE_GE, who=YOU, count=QConst(25)), or a generic quantity comparison over QProp(controller, LIFE)). The nearest, LIFE_LEAD_OVER_START_GE (quantity.py:1719, life minus the starting life total), equals 'life >= 25' only when the game starts at 20 life; in Commander (40) count=5 would demand 45 life, and no quantity names the starting life to offset it. The rest maps: the compiled B9-gain-life-counter-self trigger, and the static grant would be Thieves' Guild Enforcer's StaticAbility(condition=...) with GRANT_ABILITY DOUBLE_STRIKE on the source.",
-  "author": "claude-mapper-m20-7",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeGainedEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "DOUBLE_STRIKE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "LIFE_TOTAL_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 25
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-life-family",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "As long as you have 25 or more life, this creature has double strike.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since the life family (ontology round R8, gate round 8): the static's condition is FAtomPred.LIFE_TOTAL_GE(who=YOU, count=25), the life total now (CR 119.1), not LIFE_LEAD_OVER_START_GE (relative to the starting life, 40 in Commander). The probe's board sits at 20 life, so the double strike is not exercised there; pack tools/scenarios/mapped/M20/twinblade_paladin_double_strike_at_25_life.json gains to exactly 25 and attacks (22 -> 14). One lifelink source dealing damage to several recipients at once is one life-gain event (its ruling), one counter: the engine gains once per source since the lifelink fix of gate round 8 (DESIGN_ATOM_ONTOLOGY §12 R8-4; pack tools/scenarios/mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler.json)."
+ },
+ "probe": {
+  "sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01"
  }
 }

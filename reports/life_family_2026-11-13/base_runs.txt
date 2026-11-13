@@ -1,0 +1,67 @@
+The life family's tests and packs run on the base, 07bf26ff (git archive), 2026-11-13:
+  pytest MTG_bot/core/test_executor_life_family.py MTG_bot/core/test_scenario_packs.py::test_mapped_pack
+45 of the 46 unit tests fail; the one that passes is the refusal of an ordinal on an event
+class that never took one (DamageDealtEvent, SacrificeEvent), true on both by construction.
+The 3 new M20 packs fail; the 10 mapped packs that pass are the earlier ones. On the branch
+all 46 and all 13 pass.
+
+PASSED MTG_bot/core/test_executor_life_family.py::test_an_event_class_without_an_ordinal_takes_none
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/FDN/brineborn_cutthroat_1]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/blightbeetle_stolen_reads_its_new_controller]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/brineborn_cutthroat_1]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/cavalier_of_gales_stolen_shuffles_its_owners_library]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/cavalier_of_night_2]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/cavalier_of_night_sacrifices_with_no_opposing_creature]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/sanitarium_skeleton_not_on_the_battlefield]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/sanitarium_skeleton_returns_from_the_graveyard]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/sorin_imperious_bloodlord_declined_sacrifice_asks_no_target]
+PASSED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/sorin_imperious_bloodlord_reflexive_target_after_sacrifice]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_reads_one_players_life_now_both_ways_through_fnot
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_is_not_the_lead_over_the_starting_life
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_reads_a_designated_or_referent_player
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-requires slot 'count']
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-requires slot 'who']
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-negative]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-does not take slot 'string_value']
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-does not take slot 'inner_filter']
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player0]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player1]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player2]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player3]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player4]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player5]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player6]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_refuses_what_has_no_meaning[<lambda>-must name one player7]
+FAILED MTG_bot/core/test_executor_life_family.py::test_life_total_round_trips_and_is_a_subject_free_qualifier
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[0-LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[0-LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[-1-LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[-1-LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[True-LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[True-LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[1-LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[1-LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[1.0-LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_ordinal_is_an_int_from_one[1.0-LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[CardDrawnEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[CastSpellEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[LifeGainedEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_an_ordinal_is_read_only_by_a_trigger[LifeLostEvent]
+FAILED MTG_bot/core/test_executor_life_family.py::test_an_absent_ordinal_keeps_every_trees_bytes
+FAILED MTG_bot/core/test_executor_life_family.py::test_warchief_counts_the_first_loss_of_each_turn_only
+FAILED MTG_bot/core/test_executor_life_family.py::test_warchief_does_not_count_a_loss_from_before_it_arrived
+FAILED MTG_bot/core/test_executor_life_family.py::test_three_attackers_in_one_damage_step_are_three_losses_one_of_them_first
+FAILED MTG_bot/core/test_executor_life_family.py::test_two_lifelinkers_at_once_are_two_gains_one_of_them_first
+FAILED MTG_bot/core/test_executor_life_family.py::test_the_first_gain_during_each_of_your_turns
+FAILED MTG_bot/core/test_executor_life_family.py::test_a_life_gain_replacement_reads_the_replaced_amount
+FAILED MTG_bot/core/test_executor_life_family.py::test_angel_of_vitality_gains_that_much_plus_one_once_per_gain
+FAILED MTG_bot/core/test_executor_life_family.py::test_two_angels_each_add_one
+FAILED MTG_bot/core/test_executor_life_family.py::test_the_life_thresholds_follow_the_life_total
+FAILED MTG_bot/core/test_executor_life_family.py::test_the_life_condition_phrases
+FAILED MTG_bot/core/test_executor_life_family.py::test_as_long_as_reads_the_same_either_way_round
+FAILED MTG_bot/core/test_executor_life_family.py::test_the_first_time_each_turn_is_an_ordinal
+FAILED MTG_bot/core/test_executor_life_family.py::test_that_much_life_plus_one_is_the_hand_built_replacement
+FAILED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/angel_of_vitality_plus_one_reaches_25_life]
+FAILED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/twinblade_paladin_double_strike_at_25_life]
+FAILED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/vengeful_warchief_first_loss_each_turn]
+48 failed, 11 passed in 6.13s

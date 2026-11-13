@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 22, "seed": 7},
+ "notes": "Printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' and 'As long as you have 25 or more life, this creature has double strike.' Both players start at 22. Healer of the Glade enters ('you gain 3 life'): 22 -> 25, and the Paladin gets one +1/+1 counter (4/4). At exactly 25 life it has double strike (FAtomPred.LIFE_TOTAL_GE, 'or more' is inclusive; CR 119.1), so attacking unblocked it deals 4 first-strike and 4 regular combat damage: the opponent goes 22 -> 14. On the base (07bf26ff) the second sentence did not compile: 4 damage, 18.",
+ "cards": [
+  {"key": "tb", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "hg", "real": "Healer of the Glade", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hg"},
+  {"op": "combat", "seat": 0, "attack": {"tb": true}}
+ ],
+ "expect": {
+  "life": {"0": 25, "1": 14},
+  "counters": {"tb": {"PLUS_1_PLUS_1": 1}},
+  "attackers": {"tb": true}
+ }
+}

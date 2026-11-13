@@ -1,0 +1,37 @@
+statics with a condition: 20, 14 on cards printing 'as long as'
+   M21 Conspicuous Snoop: 'As long as the top card of your library is a Goblin card, this creature has all activated abilities of that card.'
+   M21 Drowsing Tyrannodon: "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender."
+   M21 Gadrak, the Crown-Scourge: (no 'as long as')
+   M21 Gnarled Sage: "As long as you've drawn two or more cards this turn, this creature gets +0/+2 and has vigilance."
+   M21 Radha, Heart of Keld: (no 'as long as')
+   M21 Thieves' Guild Enforcer: 'As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.'
+   M21 Tome Anima: "This creature can't be blocked as long as you've drawn two or more cards this turn."
+   ZNR Expedition Champion: 'This creature gets +2/+0 as long as you control another Warrior.'
+   ZNR Expedition Healer: 'This creature has lifelink as long as you control another Cleric.'
+   ZNR Expedition Skulker: 'This creature has deathtouch as long as you control another Rogue.'
+   M20 Angel of Vitality: 'This creature gets +2/+2 as long as you have 25 or more life.'
+   M20 Blood Burglar: (no 'as long as')
+   M20 Daggersail Aeronaut: (no 'as long as')
+   M20 Elvish Reclaimer: 'This creature gets +2/+2 as long as there are three or more land cards in your graveyard.'
+   M20 Twinblade Paladin: 'As long as you have 25 or more life, this creature has double strike.'
+   M11 Bloodcrazed Goblin: (no 'as long as')
+   M11 Serra Ascendant: 'As long as you have 30 or more life, this creature gets +5/+5 and has flying.'
+   DOM Relic Runner: (no 'as long as')
+   FDN Angel of Vitality: 'This creature gets +2/+2 as long as you have 25 or more life.'
+   FDN Twinblade Paladin: 'As long as you have 25 or more life, this creature has double strike.'
+statics with a DurationWhileCondition on an atom: 5
+   M21 Predatory Wurm (verified)
+   M21 Sigiled Contender (verified)
+   M20 Celestial Messenger (verified)
+   M20 Unchained Berserker (verified)
+   M20 Vivien's Crocodile (verified)
+statics granting two or more keywords: 9
+   10E Loxodon Warhammer ['TRAMPLE', 'LIFELINK'] printed order
+   10E Serra's Embrace ['FLYING', 'VIGILANCE'] sorted
+   M11 Sword of Vengeance ['FIRST_STRIKE', 'VIGILANCE', 'TRAMPLE', 'HASTE'] printed order
+   DOM Forebear's Blade ['VIGILANCE', 'TRAMPLE'] printed order
+   FDN Leyline Axe ['DOUBLE_STRIKE', 'TRAMPLE'] sorted
+   FDN Unflinching Courage ['TRAMPLE', 'LIFELINK'] printed order
+   FDN Vivien Reid ['VIGILANCE', 'TRAMPLE', 'INDESTRUCTIBLE'] printed order
+   ELD Embercleave ['DOUBLE_STRIKE', 'TRAMPLE'] sorted
+   THB Shadowspear ['TRAMPLE', 'LIFELINK'] printed order

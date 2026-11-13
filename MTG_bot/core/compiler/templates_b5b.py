@@ -58,6 +58,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
+    LifeGainedEvent,
     TriggeredAbility,
     PtDelta,
     PtDirection,
@@ -1132,6 +1133,39 @@ def _build_repl_counter_plus_one(m: re.Match[str]) -> SentenceOutcome:
                                 QBinOp.ADD,
                                 QProp("event", QPropField.COUNTER_COUNT),
                                 QConst(1),
+                            ),
+                        ),
+                    )
+                ),
+            ),
+        )
+    )
+
+
+def _build_repl_life_plus(m: re.Match[str]) -> SentenceOutcome:
+    """Angel of Vitality: "If you would gain life, you gain that much life plus 1 instead."
+
+    Conclave Mentor's shape on the life lane: the gain is replaced (CR 614.6) by a gain of the
+    replaced amount plus N, which the executor publishes as the event's (QProp(event, AMOUNT));
+    a gain of 0 is no life-gain event, so nothing replaces it (CR 119.10).
+    """
+    return AbilityOutcome(
+        ability=ReplacementAbility(
+            event=LifeGainedEvent(
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+            ),
+            condition=None,
+            action=Atom(
+                verb=Verb.GAIN_LIFE,
+                args=AtomArgs(
+                    pairs=(
+                        ("controller", ControllerRef.YOU),
+                        (
+                            "amount",
+                            QBin(
+                                QBinOp.ADD,
+                                QProp("event", QPropField.AMOUNT),
+                                QConst(int(m.group("n"))),
                             ),
                         ),
                     )
@@ -2899,6 +2933,16 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_repl_counter_plus_one,
+    ),
+    Template(
+        tid="B5b-repl-life-plus",
+        name="if you would gain life, you gain that much life plus N instead",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If you would gain life, you gain that much life plus (?P<n>\d+) instead\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_repl_life_plus,
     ),
     Template(
         tid="B5b-repl-die-exile",

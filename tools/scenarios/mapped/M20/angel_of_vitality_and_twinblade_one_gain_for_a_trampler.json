@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: Angel of Vitality, 'If you would gain life, you gain that much life plus 1 instead. This creature gets +2/+2 as long as you have 25 or more life.'; Twinblade Paladin, 'Whenever you gain life, put a +1/+1 counter on this creature. As long as you have 25 or more life, this creature has double strike.' A trampling 5/5 lifelinker blocked by a 0/2 assigns 2 to it and 3 to the player at once: one life-gain event of 5 (CR 120.3f; both cards' rulings: with lifelink damage to several recipients at once 'the ability will apply only once'), which the Angel makes 6 (20 -> 26): one Twinblade counter, and a 4/4 Angel at 25 or more life. On 46aa2f3e, before the lifelink fix, each recipient was its own gain, each replaced: 3 and 4 (27 life), two counters.",
+ "cards": [
+  {"key": "angel", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "tb", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "lt", "name": "Trampling Lifelinker", "type": "Creature — Beast", "power": "5", "toughness": "5", "keywords": ["LIFELINK", "TRAMPLE"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"lt": true}, "block": {"wall": "lt"}, "trample": {"lt": [0]}}
+ ],
+ "expect": {
+  "life": {"0": 26, "1": 17},
+  "counters": {"tb": {"PLUS_1_PLUS_1": 1}},
+  "power": {"angel": 4}
+ }
+}
