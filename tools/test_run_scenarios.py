@@ -126,14 +126,21 @@ def test_the_silent_pass_guards_hold_in_a_trigger_window(tmp_path) -> None:
 # ------------------------------------------------------------------------- three or more players
 
 
-def test_a_three_player_world(tmp_path) -> None:
+@pytest.mark.parametrize("shock", [
+    {"op": "cast", "key": "shock", "targets": ["p2"]},
+    {"op": "act", "seat": 0, "words": ["cast:shock", "p2"]},  # the bench router, one seat of three
+])
+def test_a_three_player_world(tmp_path, shock) -> None:
     """Three seats: turns go round the table, nobody skips the first draw (CR 103.8c), and a
-    "p2" target and the seat-2 lanes reach the third player."""
+    "p2" target and the seat-2 lanes reach the third player. An expect lane the runner never
+    reads still fails the pack."""
     pack = {"world": THREE, "cards": [_card("shock", "Shock", "hand")], "mana": {"0": {"R": 1}},
-            "steps": [{"op": "cast", "key": "shock", "targets": ["p2"]}, *THEIR_TURN, *THEIR_TURN],
+            "steps": [shock, *THEIR_TURN, *THEIR_TURN],
             "expect": {"life": {"0": 20, "1": 20, "2": 18}, "hand": {"0": 1, "1": 1, "2": 1},
                        "turn_seats": [0, 1, 2], "graveyard": {"0": ["Shock"], "2": []}}}
     assert _run(tmp_path, pack) == []
+    unread = _run(tmp_path, {**pack, "expect": {**pack["expect"], "hands": {"2": 1}}})
+    assert unread == ["expect lanes this runner never checks: ['hands']"]
 
 
 @pytest.mark.parametrize(("pack", "error"), [
