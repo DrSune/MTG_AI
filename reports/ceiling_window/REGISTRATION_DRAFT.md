@@ -7,8 +7,9 @@ appended to that note and never edit §1-§8.
 **Context.** `docs/PLAN_CEILING.md` §14.1 and §14.5 as amended 2026-11-13 02:25:
 - r28's gates have sat at about 0.54 against its init since update 100 (199 §7), and R3 is
   falsified (199 §5);
-- the four package ordering lines carry no signal (202 §2), and 202 registered the ceiling read
-  as the next test of "richer decks, more skill";
+- the four package ordering lines carry no signal (202 §2), the sacrifice line with its outlets
+  costs 0.173 when forced (202 §3), and 202 registered the ceiling read as the next test of
+  "richer decks, more skill": no measured line has value yet;
 - so the window measures the skill spread per deck distribution, and plays the games that fix
   the held-out pool L's ratings (§7.2, §14.4), as a pause in r28.
 
@@ -148,7 +149,7 @@ the next turn (§5).
 |---|---|---|
 | Lower bound above 0, estimate +0.02 or more | Package decks hold more of the skill the search finds in one turn: more for the network to learn there | §14.1's A/B: r29 trains with a package share (its value registered with r29), beside r28 continued at matched updates; both rated on L, which holds every shape |
 | Lower bound above 0, estimate below +0.02 | A real but small gain | The same A/B, registered with its expected gain at most the measured one |
-| The interval holds 0 and its upper bound is below +0.02 | No material extra headroom at the search's horizon | r29 is not the package A/B. The levers of §14.4 for a stall come first: training both seats of learner-against-learner games (about twice the on-policy decisions per game), and the own-decklist columns asked again on package decks (200 §1). Package decks stay out of training; a specialist still needs a line class with measured value (202 §3's sacrifice line) |
+| The interval holds 0 and its upper bound is below +0.02 | No material extra headroom at the search's horizon | r29 is not the package A/B. The levers of §14.4 for a stall come first: training both seats of learner-against-learner games (about twice the on-policy decisions per game), and the own-decklist columns asked again on package decks (200 §1). Package decks stay out of training; a specialist still needs a line class with measured value, and none has one yet (202 §2-§3) |
 | The upper bound below 0 | Package decks hold less | As the row above |
 | The interval holds 0 and reaches +0.02 | Unresolved | 1,500 more deals of `a_coherent` and `a_package` (deals 1,101,500+, about 95 minutes) in r28's next pause, then this table again; no r29 decision from this window |
 
@@ -173,18 +174,23 @@ pilot that plays synergies (§14.4).
 
 ## 5. Confounds, measured or named
 
-1. **The code is not r28's.** The window runs at its own commit, over 100 commits after r28's pin
-   44a62d9 (package mode exists only there). Measured on the CPU:
-   - the verified M21 pool grew from 262 to 275 cards; 13 are new to r28 (Archfiend's Vessel;
-     Basri, Devoted Paladin; Drowsing Tyrannodon; Feline Sovereign; Garruk, Savage Herald; Hooded
-     Blightfang; Rookie Mistake; Runed Halo; Teferi's Ageless Insight; Teferi, Timeless Voyager;
-     Tolarian Kraken; Transmogrify; Unsubstantiate);
-   - they make 4.9% of the spells in coherent and drafted decks and 5.3% in package decks
-     (`checks.py newcards 44a62d97 1100000 400`; 96-97% of deals hold one), so they are not a
-     difference between shapes. Package decks concentrate them in two payoffs (Feline Sovereign,
-     Hooded Blightfang);
-   - `--refresh-table` rebuilds 12 of the table's 613 rows and adds 10 component tokens at zero
-     (`@once_per_event`, `role:arrange`, `PhasingEvent`, `Verb.ATTACK_POLICY`, ...);
+1. **The code is not r28's.** The window runs at its own commit, over 120 commits after r28's pin
+   44a62d9 (package mode exists only there). Measured on the CPU at this branch's merge of main
+   d5600c24 (`checks.py newcards 44a62d97 1100000 400`):
+   - the verified M21 pool holds 271 cards against r28's 262. 13 are new to r28 (Archfiend's
+     Vessel; Basri, Devoted Paladin; Drowsing Tyrannodon; Feline Sovereign; Garruk, Savage Herald;
+     Hooded Blightfang; Rookie Mistake; Runed Halo; Teferi's Ageless Insight; Teferi, Timeless
+     Voyager; Tolarian Kraken; Transmogrify; Unsubstantiate), and 4 that r28 plays are not dealt
+     (Basri Ket; Garruk, Unleashed; Liliana, Waker of the Dead; Siege Striker: changed tonight,
+     awaiting re-verification);
+   - the 13 make 5.2% of the spells in coherent and drafted decks and 5.3% in package decks
+     (96-97% of deals hold one), so they are not a difference between shapes. Package decks
+     concentrate them in two payoffs (Feline Sovereign, Hooded Blightfang);
+   - the pool moves as cards are verified: **the coordinator re-runs that command at the window's
+     pin** and puts its lines in the note;
+   - `--refresh-table` rebuilds 13 of the table's 613 rows and adds 12 component tokens at zero
+     (`@once_per_event`, `role:arrange`, `EmblemSpec`, `PhasingEvent`, `Verb.ATTACK_POLICY`, ...;
+     the second smoke's log, §8);
    - the arrange ask (CR 401.4: cards put into a library together, a scry's groups) is a new ask
      kind: the network reads it as its "other" kind (`model.load`) and its end column through
      zero weights.

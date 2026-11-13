@@ -51,10 +51,13 @@ def newcards(pin: str, seed0: int, n: int) -> None:
             "print(json.dumps(sorted(get_supply('verified', 'M21').deckable)))")
     out = subprocess.run([sys.executable, "-P", "-c", code], cwd=tree, check=True, text=True,
                          capture_output=True, env={**os.environ, "PYTHONPATH": str(tree)}).stdout
-    sup = get_supply("verified", "M21")
-    new = set(sup.deckable) - set(json.loads(out.splitlines()[-1]))
-    print(json.dumps({"verified_here": len(sup.deckable),
-                      "new": sorted(sup.metas[c].name for c in new)}))
+    sup, pinned = get_supply("verified", "M21"), set(json.loads(out.splitlines()[-1]))
+    new = set(sup.deckable) - pinned
+    gone = pinned - set(sup.deckable)  # verified at PIN, not here: names from the castable pool
+    names = get_supply("castable", "M21").metas
+    print(json.dumps({"verified_here": len(sup.deckable), "verified_at_pin": len(pinned),
+                      "new": sorted(sup.metas[c].name for c in new),
+                      "gone": sorted(names[c].name if c in names else c for c in gone)}))
     critic = json.loads(Path(CRITIC).read_text())
     deal = {"coherent": lambda s: deal_decks(s, DK.DEAL_SEED, sup, "coherent"),
             "package": lambda s: PK.package_decks(s, sup),
