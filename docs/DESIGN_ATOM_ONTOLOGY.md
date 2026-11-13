@@ -561,6 +561,18 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
   - Blast radius of the fixes (the merge f8dc201d against them, 19 sets, every record applied): 0
     trees changed, 0 verified cards in or out (M21 271, M20 261, FDN 177). The branch against
     main 8f7b3774: the same 11 trees, 8 whole.
+  - **The lifelink fault, fixed in its own commit** (the reviewer's instruction; §12 R8-4): one
+    lifelink source's damage dealt at once is one life-gain event whatever the number of
+    recipients, several sources several. Cause: the gain was made per recipient, per target in
+    `verbs._v_deal_damage` and per (dealer, recipient) atom in `Executor._damage_wave`, and a
+    life-gain replacement made each per-target gain its own boundary. Fix: one gain per atom,
+    and per combat dealer in its last atom. The reviewer's three cases are tests failing on
+    46aa2f3e, with two packs.
+    Blast radius: no tree changes; in 1,500 seeded games on the verified pools, 17 combat damage
+    steps (17 games) had a lifelink dealer with two or more recipients and now journal one gain
+    row; play differs in 3 games, where M21 Vito, Thorn of the Dusk Rose and FDN Ajani's Pridemate
+    and Marauding Blight-Priest trigger once instead of once per recipient. Same winners, 0
+    crashes.
 - BINDING STATE: rounds 1–8 complete; further ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
@@ -922,9 +934,8 @@ and base runs: `reports/life_family_2026-11-13/`. Tests: `MTG_bot/core/test_exec
     at once (CR 510.2), of which exactly one is the first: "the first time each turn" triggers
     once.
   - One lifelink source's damage dealt at once is one gain, whatever the number of recipients
-    (CR 120.3f, 119.9 and the rulings), where the engine makes one per recipient (BACKLOG; the
-    gate's instruction: fixed in its own commit after the round's fixes). Also a gap (BACKLOG): a
-    lifelink source damaging its own controller leaves no row.
+    (CR 120.3f, 119.9 and the rulings): R8-4. Still a gap (BACKLOG): a lifelink source damaging
+    its own controller leaves no row.
 - Compiler: one life-trigger head, `templates_b9.LIFE_TRIGGER_RE` and `life_event`: "When|Whenever
   you gain|lose life [for the first time each turn | for the first time during each of your
   turns]". B9's +1/+1-counter template and the frame B13-life (any clause that parses alone) share
@@ -954,6 +965,48 @@ and base runs: `reports/life_family_2026-11-13/`. Tests: `MTG_bot/core/test_exec
   Vitality in M20 and FDN).
 - Left out: "you gain twice that much life" (M13 Rhox Faithmender, ORI Alhammarret's Archive).
   Beside a "+1" it needs the CR 616.1 order choice, which the life lane does not ask (BACKLOG).
+
+**R8-4 One lifelink source's damage dealt at once is one life-gain event (an engine fix, no IR
+change; gate round 8 asked for it in its own commit).**
+- The rule: damage dealt by a source with lifelink makes its controller gain that much life (CR
+  120.3f, 702.15b). The rulings of Ajani's Pridemate, Angel of Vitality and Twinblade Paladin: a
+  single lifelink creature dealing combat damage to several recipients at once (trample, two
+  blockers) is one event, "the ability will apply only once"; each lifelink creature is a separate
+  event.
+- The cause: the gain was made per recipient. `verbs._v_deal_damage` gained after each player it
+  damaged and `_deal_damage_to_card` after each card. Outside combat one atom's gains then merged
+  in the journal's per-atom life diff (`EventJournal.record_atom`), unless a life-gain replacement
+  consumed them: each per-target gain queued its own replacement, whose action the executor's
+  drain runs as its own boundary, so Angel of Vitality added 1 per recipient and each gain was its
+  own row. In combat `Executor._damage_wave` runs one DEAL_DAMAGE atom per (dealer, recipient),
+  each its own boundary, so a trampler and its blocker made two rows. The per-atom life diff is
+  not itself the cause: it writes one row per player per atom, and after the fix one atom holds a
+  source's one gain (its own fault, a player damaged and gaining in one atom, is the BACKLOG's
+  net-life entry).
+- The fix: `_v_deal_damage` sums what one atom dealt to all its recipients and gains once, after
+  them; `_deal_damage_to_card` returns the dealt amount and gains nothing; a fight gains per blow,
+  each fighter its own source. In combat the wave gives a dealer's earlier atoms
+  `ExecCtx.lifelink_held`, where each leaves what it dealt, and its last atom `lifelink_carried`,
+  their sum: the dealer's one gain lands in its last atom's boundary, the row's shape unchanged
+  (cause the dealer, verb DEAL_DAMAGE, or the replacement's GAIN_LIFE). A dealer with one
+  recipient, a one-target atom and a fight run as before, event for event.
+- Tests, each failing on 46aa2f3e (the round's fixes): a trampler over a 0/2, with and without
+  Angel of Vitality; a lifelinker blocked by two 0/2s; one DEAL_DAMAGE of 1 to each of two
+  creatures beside the Angel and Ajani's Pridemate (23 life, one row, one counter, no trigger
+  order to ask); the controls, two lifelinkers at once and a double striker, pass on both
+  (`test_executor_life_family.py`). Packs `mapped/FDN/ajanis_pridemate_one_gain_per_lifelink_source`
+  (two lifelinkers, one of them trampling over a 0/2: 2 counters, 3 on 46aa2f3e) and
+  `mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler` (26 life and 1 counter, 27
+  and 2 on 46aa2f3e).
+- Blast radius (`reports/life_family_2026-11-13/lifelink_blast_radius.txt`): no tree changes.
+  1,500 seeded heuristic games on the verified pools (500 each; M21 271, M20 261, FDN 177
+  deckable), 46aa2f3e against the fix: 17 combat damage steps, in 17 games, had a lifelink dealer
+  with two or more recipients (M21 7, M20 1, FDN 9: Blood Glutton, Basri's Acolyte, Baneslayer
+  Angel, Cavalier of Night, Ajani's Pridemate and FDN creatures granted lifelink). Their journals
+  differ, the dealer's gains now one row; the other 1,483 journals are identical. Play differs in
+  3 games, where a verified card reading life gain triggered once per recipient and now once: M21
+  Vito, Thorn of the Dusk Rose; FDN Ajani's Pridemate and Marauding Blight-Priest (one game two
+  turns longer, 13 -> 15). Same winners; 0 crashes either side.
 
 **Blast radius** (by script over the 19 sets, `reports/life_family_2026-11-13/`):
 - trees changed: 11, all unverified. M20 Twinblade Paladin, Angel of Vitality and Vengeful Warchief

@@ -231,33 +231,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   LIFE_GAINED_THIS_TURN_GE, "whenever you gain life", and since 2026-11-13 the life events'
   `ordinal`: such a loss does not use up Vengeful Warchief's "first time"). Fix: journal player
   damage and lifelink gains from the verbs' own tuples, not the life diff.
-- **One lifelink source damaging several recipients at once makes one life-gain event per
-  recipient** (2026-11-13, found with the life family; completed by ontology gate round 8, m4).
-  By the rulings (Ajani's Pridemate, Angel of Vitality, Twinblade Paladin: "if a single creature
-  you control with lifelink deals combat damage to multiple creatures, players, planeswalkers,
-  and/or battles at the same time ..., the ability will apply only once"; CR 119.9, 120.3f) it is
-  one event; several lifelink sources are several events. Cases:
-  `reports/life_family_2026-11-13/lifelink_cases.py` (output `lifelink_cases.txt`).
-  - In combat `Executor._damage_wave` runs one DEAL_DAMAGE atom per (dealer, recipient), so the
-    journal holds one LIFE_GAINED row per recipient. A trampling 5/5 lifelinker blocked by a 0/2
-    gives rows of 2 and 3 and Ajani's Pridemate 2 counters; with Angel of Vitality, 3 and 4 (27
-    life where the rules give 26). A 4/4 lifelinker blocked by two 0/2 walls gives rows of 2 and 2
-    and 2 counters.
-  - Outside combat one atom's own rows merge, but `verbs._v_deal_damage` calls `_lifelink_gain`
-    per target. With a life-gain replacement in play each per-target gain is replaced, and each
-    replacement's action is its own journal boundary (the executor's drain), so the rows do not
-    merge either: a lifelinker dealing 1 damage to each of two creatures with Angel of Vitality
-    and Ajani's Pridemate gives 24 life where the rules give 23, 2 gain rows and 2 counters.
-  - Stronger than printed: every "whenever you gain life" card triggers once per recipient
-    (verified: FDN Ajani's Pridemate, Marauding Blight-Priest; M20 Bloodthirsty Aerialist, Epicure
-    of Blood; M21 Light of Promise's grant, Vito), and Angel of Vitality adds 1 per recipient. The
-    gate reviewer's 1,500 seeded games on the verified pools: 13 damage steps in 2 games differ
-    (M20 Epicure of Blood, FDN Marauding Blight-Priest trigger once more).
-  - The trees the life family made whole inherit it, so none of these is stamped verified
-    before the fix lands: FDN Drogskol Reaver, M14 Archangel of Thune, Twinblade Paladin (M20 and
-    FDN), Angel of Vitality (M20 and FDN).
-  - Fix: gather a dealer's lifelink damage per atom, and per dealer in a combat damage step, and
-    gain once; measure the replay shift on the verified pool.
 - **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
   fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
   a graveyard as graveyard-only, while the activation lane reads the same rule in

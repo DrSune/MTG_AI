@@ -175,6 +175,16 @@ class ExecCtx:
     # the set, so the same effect can never re-replace its own replacement
     # (one application per event chain, per event kind).
     replaced_seq: frozenset[int] = frozenset()
+    # One source's damage dealt at once is ONE life-gain event, whatever the
+    # number of recipients (CR 120.3f; the rulings of Ajani's Pridemate and
+    # Angel of Vitality), so a DEAL_DAMAGE atom gains its lifelink damage once,
+    # after all its recipients (verbs._v_deal_damage). A combat damage step
+    # runs one atom per (dealer, recipient): Executor._damage_wave gives a
+    # dealer's earlier atoms ``lifelink_held``, where each leaves what it
+    # dealt, and its last atom ``lifelink_carried``, their sum, which that
+    # atom's one gain adds.
+    lifelink_held: list[int] | None = None
+    lifelink_carried: int = 0
     # A Seq that contains ONE_OF/REST partition MOVE_ZONE siblings
     # (Cultivate) searches to DESIGNATE, not to deliver: set by
     # the Seq walker's pre-scan so the SEARCH atom knows its found cards

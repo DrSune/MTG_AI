@@ -1,0 +1,304 @@
+The lifelink fix (DESIGN_ATOM_ONTOLOGY §12 R8-4), 2026-11-13: one lifelink source's damage dealt
+at once is one life-gain event, whatever the number of recipients. Before = 46aa2f3e (the
+round-8 fixes), after = the fix. Exports by `git archive`; CPU only, niced.
+
+1. The cases (reports/life_family_2026-11-13/lifelink_cases.py): before in lifelink_cases.txt,
+after in lifelink_cases_fixed.txt.
+
+2. The tests, this branch's module copied into the export of 46aa2f3e, then on the branch:
+  pytest <module> -k 'trampling_lifelinker or blocked_by_two or replaced_gain or
+                      double_striking or two_lifelinkers'
+=== on 46aa2f3e (the round's fixes, before the lifelink fix)
+FAILED MTG_bot/core/test_lifelink_new_life_family.py::test_a_trampling_lifelinker_and_its_blocker_are_one_gain[False-25]
+FAILED MTG_bot/core/test_lifelink_new_life_family.py::test_a_trampling_lifelinker_and_its_blocker_are_one_gain[True-26]
+FAILED MTG_bot/core/test_lifelink_new_life_family.py::test_a_lifelinker_blocked_by_two_creatures_is_one_gain
+FAILED MTG_bot/core/test_lifelink_new_life_family.py::test_one_lifelink_hit_on_two_creatures_is_one_replaced_gain
+PASSED MTG_bot/core/test_lifelink_new_life_family.py::test_two_lifelinkers_at_once_are_two_gains_one_of_them_first
+PASSED MTG_bot/core/test_lifelink_new_life_family.py::test_a_double_striking_lifelinker_gains_once_per_damage_step
+4 failed, 2 passed, 50 deselected in 3.84s
+=== on the worktree
+PASSED MTG_bot/core/test_executor_life_family.py::test_two_lifelinkers_at_once_are_two_gains_one_of_them_first
+PASSED MTG_bot/core/test_executor_life_family.py::test_a_trampling_lifelinker_and_its_blocker_are_one_gain[False-25]
+PASSED MTG_bot/core/test_executor_life_family.py::test_a_trampling_lifelinker_and_its_blocker_are_one_gain[True-26]
+PASSED MTG_bot/core/test_executor_life_family.py::test_a_lifelinker_blocked_by_two_creatures_is_one_gain
+PASSED MTG_bot/core/test_executor_life_family.py::test_one_lifelink_hit_on_two_creatures_is_one_replaced_gain
+PASSED MTG_bot/core/test_executor_life_family.py::test_a_double_striking_lifelinker_gains_once_per_damage_step
+6 passed, 50 deselected in 3.33s
+
+3. The two new packs (tools/scenarios/mapped/FDN/ajanis_pridemate_one_gain_per_lifelink_source,
+tools/scenarios/mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler), run by
+tools/run_scenarios.py --dir <a copy of the two> on each side:
+=== on 46aa2f3e
+FAIL ajanis_pridemate_one_gain_per_lifelink_source.json
+     counters[pm]: expected {'PLUS_1_PLUS_1': 2}, got {'PLUS_1_PLUS_1': 3}
+FAIL angel_of_vitality_and_twinblade_one_gain_for_a_trampler.json
+     life[0]: expected 26, got 27
+     counters[tb]: expected {'PLUS_1_PLUS_1': 1}, got {'PLUS_1_PLUS_1': 2}
+0/2 packs passed
+=== on the fix
+PASS ajanis_pridemate_one_gain_per_lifelink_source.json
+PASS angel_of_vitality_and_twinblade_one_gain_for_a_trampler.json
+2/2 packs passed
+
+4. Replays: 500 seeded heuristic games per set on the verified pools (no tree changes, so one
+pool on both sides), per side
+  lifelink_replay.py <checkout> 500 <out.json>
+then lifelink_replay_compare.py <before.json> <after.json> <dump.json>, the differing games'
+journals by lifelink_replay.py <checkout> 500 <journals.json> <dump.json> on each side, and
+lifelink_replay_compare.py again with the journals (each replayed game's journal sha equals its
+first run's). A 'split lifelink step' is a combat damage step in which a dealer with lifelink
+had two or more recipients.
+
+M21: deckable 271; games 500; identical digests 499; identical journals 493; crashes 0 before / 0 after; split lifelink steps before 7 in 7 games, after 7
+  game 66: split steps 1 -> 1; digest same; outcome win -> win, turns 22 -> 22, lives [0, 16] -> [0, 16]
+    first differing journal row 491 of 573 / 572:
+      before [492, 'LIFE_GAINED', 'player:1', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(3,)']
+      before [493, 'DAMAGE', 'card:9=Sporeweb Weaver', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(3, 151)']
+      before [494, 'LIFE_GAINED', 'player:1', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(1,)']
+      before [495, 'DAMAGE', 'card:48=Kitesail Freebooter', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(1, 151)']
+      before [496, 'COMBAT_DAMAGE', 'card:68=Baneslayer Angel', 'card:68=Baneslayer Angel', 'COMBAT_DAMAGE', "(((3, Handle(namespace='card', index=9)), (1, Handle(namespace='card', index=48))),)"]
+      after  [492, 'DAMAGE', 'card:9=Sporeweb Weaver', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(3, 151)']
+      after  [493, 'LIFE_GAINED', 'player:1', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(4,)']
+      after  [494, 'DAMAGE', 'card:48=Kitesail Freebooter', 'card:68=Baneslayer Angel', 'DEAL_DAMAGE', '(1, 151)']
+      after  [495, 'COMBAT_DAMAGE', 'card:68=Baneslayer Angel', 'card:68=Baneslayer Angel', 'COMBAT_DAMAGE', "(((3, Handle(namespace='card', index=9)), (1, Handle(namespace='card', index=48))),)"]
+      after  [496, 'ZONE_CHANGE', 'card:9=Sporeweb Weaver', 'None', 'STATE_CHECK', "('battlefield', 'graveyard', Handle(namespace='player', index=0), Handle(namespace='player', index=0))"]
+  game 72: split steps 1 -> 1; digest same; outcome win -> win, turns 20 -> 20, lives [-1, 4] -> [-1, 4]
+    first differing journal row 447 of 519 / 518:
+      before [448, 'LIFE_GAINED', 'player:1', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2,)']
+      before [449, 'DAMAGE', 'card:9=Solemn Simulacrum', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2, 156)']
+      before [450, 'LIFE_GAINED', 'player:1', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2,)']
+      before [451, 'DAMAGE', 'card:10=Subira, Tulzidi Caravanner', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2, 156)']
+      before [452, 'COMBAT_DAMAGE', 'card:9=Solemn Simulacrum', 'card:9=Solemn Simulacrum', 'COMBAT_DAMAGE', "(((2, Handle(namespace='card', index=98)),),)"]
+      after  [448, 'DAMAGE', 'card:9=Solemn Simulacrum', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2, 156)']
+      after  [449, 'LIFE_GAINED', 'player:1', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(4,)']
+      after  [450, 'DAMAGE', 'card:10=Subira, Tulzidi Caravanner', 'card:98=Blood Glutton', 'DEAL_DAMAGE', '(2, 156)']
+      after  [451, 'COMBAT_DAMAGE', 'card:9=Solemn Simulacrum', 'card:9=Solemn Simulacrum', 'COMBAT_DAMAGE', "(((2, Handle(namespace='card', index=98)),),)"]
+      after  [452, 'COMBAT_DAMAGE', 'card:10=Subira, Tulzidi Caravanner', 'card:10=Subira, Tulzidi Caravanner', 'COMBAT_DAMAGE', "(((2, Handle(namespace='card', index=98)),),)"]
+  game 254: split steps 1 -> 1; digest same; outcome win -> win, turns 29 -> 29, lives [26, -3] -> [26, -3]
+    first differing journal row 665 of 683 / 682:
+      before [666, 'LIFE_GAINED', 'player:0', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2,)']
+      before [667, 'DAMAGE', 'card:68=Scavenging Ooze', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2, 239)']
+      before [668, 'LIFE_GAINED', 'player:0', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2,)']
+      before [669, 'DAMAGE', 'card:89=Llanowar Visionary', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2, 239)']
+      before [670, 'DAMAGE', 'card:118=Snarespinner', 'card:22=Gadrak, the Crown-Scourge', 'DEAL_DAMAGE', '(5, 239)']
+      after  [666, 'DAMAGE', 'card:68=Scavenging Ooze', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2, 239)']
+      after  [667, 'LIFE_GAINED', 'player:0', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(4,)']
+      after  [668, 'DAMAGE', 'card:89=Llanowar Visionary', 'card:10=Blood Glutton', 'DEAL_DAMAGE', '(2, 239)']
+      after  [669, 'DAMAGE', 'card:118=Snarespinner', 'card:22=Gadrak, the Crown-Scourge', 'DEAL_DAMAGE', '(5, 239)']
+      after  [670, 'DAMAGE', 'player:1', 'card:30=Bone Pit Brute', 'DEAL_DAMAGE', '(4, 239)']
+  game 301: split steps 1 -> 1; digest differs; outcome win -> win, turns 32 -> 32, lives [0, 6] -> [-1, 6]
+    first differing journal row 682 of 702 / 700:
+      before [683, 'LIFE_GAINED', 'player:1', "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1,)']
+      before [684, 'DAMAGE', "card:12=Archfiend's Vessel", "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 202)']
+      before [685, 'LIFE_GAINED', 'player:1', "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1,)']
+      before [686, 'DAMAGE', 'card:25=Library Larcenist', "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 202)']
+      before [687, 'DAMAGE', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'DEAL_DAMAGE', '(1, 202)']
+      after  [683, 'DAMAGE', "card:12=Archfiend's Vessel", "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 202)']
+      after  [684, 'LIFE_GAINED', 'player:1', "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(2,)']
+      after  [685, 'DAMAGE', 'card:25=Library Larcenist', "card:61=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 202)']
+      after  [686, 'DAMAGE', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'DEAL_DAMAGE', '(1, 202)']
+      after  [687, 'COMBAT_DAMAGE', "card:12=Archfiend's Vessel", "card:12=Archfiend's Vessel", 'COMBAT_DAMAGE', "(((1, Handle(namespace='card', index=61)),),)"]
+  game 361: split steps 1 -> 1; digest same; outcome win -> win, turns 34 -> 34, lives [-7, 11] -> [-7, 11]
+    first differing journal row 767 of 863 / 862:
+      before [768, 'LIFE_GAINED', 'player:1', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(2,)']
+      before [769, 'DAMAGE', 'card:36=Tempered Veteran', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(2, 247)']
+      before [770, 'LIFE_GAINED', 'player:1', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(1,)']
+      before [771, 'DAMAGE', 'card:59=Igneous Cur', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 247)']
+      before [772, 'DAMAGE', 'player:0', 'card:112=Celestial Enforcer', 'DEAL_DAMAGE', '(2, 247)']
+      after  [768, 'DAMAGE', 'card:36=Tempered Veteran', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(2, 247)']
+      after  [769, 'LIFE_GAINED', 'player:1', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(3,)']
+      after  [770, 'DAMAGE', 'card:59=Igneous Cur', "card:84=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 247)']
+      after  [771, 'DAMAGE', 'player:0', 'card:112=Celestial Enforcer', 'DEAL_DAMAGE', '(2, 247)']
+      after  [772, 'DAMAGE', "card:84=Basri's Acolyte", 'card:120=Saproling', 'DEAL_DAMAGE', '(1, 247)']
+  game 370: split steps 1 -> 1; digest same; outcome win -> win, turns 17 -> 17, lives [25, 0] -> [25, 0]
+    first differing journal row 336 of 352 / 350:
+      before [337, 'LIFE_GAINED', 'player:0', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(2,)']
+      before [338, 'DAMAGE', 'card:88=Skyway Sniper', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(2, 115)']
+      before [339, 'LIFE_GAINED', 'player:0', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(1,)']
+      before [340, 'DAMAGE', 'card:103=Fierce Empath', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(1, 115)']
+      before [341, 'LIFE_GAINED', 'player:0', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(1,)']
+      after  [337, 'DAMAGE', 'card:88=Skyway Sniper', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(2, 115)']
+      after  [338, 'DAMAGE', 'card:103=Fierce Empath', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(1, 115)']
+      after  [339, 'LIFE_GAINED', 'player:0', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(4,)']
+      after  [340, 'DAMAGE', 'card:108=Battle-Rattle Shaman', 'card:12=Blood Glutton', 'DEAL_DAMAGE', '(1, 115)']
+      after  [341, 'DAMAGE', 'player:1', 'card:37=Burlfist Oak', 'DEAL_DAMAGE', '(4, 115)']
+  game 417: split steps 1 -> 1; digest same; outcome win -> win, turns 16 -> 16, lives [-7, 20] -> [-7, 20]
+    first differing journal row 383 of 406 / 405:
+      before [384, 'LIFE_GAINED', 'player:1', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1,)']
+      before [385, 'DAMAGE', 'card:59=Fierce Empath', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 100)']
+      before [386, 'LIFE_GAINED', 'player:1', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1,)']
+      before [387, 'DAMAGE', 'card:120=Saproling', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 100)']
+      before [388, 'DAMAGE', "card:113=Basri's Acolyte", 'card:120=Saproling', 'DEAL_DAMAGE', '(1, 100)']
+      after  [384, 'DAMAGE', 'card:59=Fierce Empath', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 100)']
+      after  [385, 'LIFE_GAINED', 'player:1', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(2,)']
+      after  [386, 'DAMAGE', 'card:120=Saproling', "card:113=Basri's Acolyte", 'DEAL_DAMAGE', '(1, 100)']
+      after  [387, 'DAMAGE', "card:113=Basri's Acolyte", 'card:120=Saproling', 'DEAL_DAMAGE', '(1, 100)']
+      after  [388, 'DAMAGE', "card:113=Basri's Acolyte", 'card:121=Saproling', 'DEAL_DAMAGE', '(1, 100)']
+M20: deckable 261; games 500; identical digests 500; identical journals 499; crashes 0 before / 0 after; split lifelink steps before 1 in 1 games, after 1
+  game 425: split steps 1 -> 1; digest same; outcome win -> win, turns 22 -> 22, lives [-11, 18] -> [-11, 18]
+    first differing journal row 484 of 497 / 496:
+      before [485, 'LIFE_GAINED', 'player:1', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(1,)']
+      before [486, 'DAMAGE', 'card:18=Brineborn Cutthroat', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(1, 166)']
+      before [487, 'LIFE_GAINED', 'player:1', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(3,)']
+      before [488, 'DAMAGE', 'card:120=Elemental', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(3, 166)']
+      before [489, 'DAMAGE', 'player:0', 'card:116=Bloodthirsty Aerialist', 'DEAL_DAMAGE', '(9, 166)']
+      after  [485, 'DAMAGE', 'card:18=Brineborn Cutthroat', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(1, 166)']
+      after  [486, 'LIFE_GAINED', 'player:1', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(4,)']
+      after  [487, 'DAMAGE', 'card:120=Elemental', 'card:113=Cavalier of Night', 'DEAL_DAMAGE', '(3, 166)']
+      after  [488, 'DAMAGE', 'player:0', 'card:116=Bloodthirsty Aerialist', 'DEAL_DAMAGE', '(9, 166)']
+      after  [489, 'DAMAGE', 'card:113=Cavalier of Night', 'card:120=Elemental', 'DEAL_DAMAGE', '(1, 166)']
+FDN: deckable 177; games 500; identical digests 498; identical journals 491; crashes 0 before / 0 after; split lifelink steps before 9 in 9 games, after 9
+  game 26: split steps 1 -> 1; digest same; outcome win -> win, turns 18 -> 18, lives [0, 29] -> [0, 29]
+    first differing journal row 250 of 400 / 399:
+      before [251, 'LIFE_GAINED', 'player:1', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(3,)']
+      before [252, 'DAMAGE', 'card:10=Shipwreck Dowser', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(3, 87)']
+      before [253, 'LIFE_GAINED', 'player:1', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(1,)']
+      before [254, 'DAMAGE', 'card:22=Solemn Simulacrum', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(1, 87)']
+      before [255, 'DAMAGE', 'player:0', 'card:103=Goblin Boarders', 'DEAL_DAMAGE', '(4, 87)']
+      after  [251, 'DAMAGE', 'card:10=Shipwreck Dowser', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(3, 87)']
+      after  [252, 'LIFE_GAINED', 'player:1', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(4,)']
+      after  [253, 'DAMAGE', 'card:22=Solemn Simulacrum', 'card:62=Swab Goblin', 'DEAL_DAMAGE', '(1, 87)']
+      after  [254, 'DAMAGE', 'player:0', 'card:103=Goblin Boarders', 'DEAL_DAMAGE', '(4, 87)']
+      after  [255, 'DAMAGE', 'card:62=Swab Goblin', 'card:120=Cat', 'DEAL_DAMAGE', '(1, 87)']
+  game 140: split steps 1 -> 1; digest same; outcome win -> win, turns 19 -> 19, lives [46, -4] -> [46, -4]
+    first differing journal row 463 of 480 / 479:
+      before [464, 'LIFE_GAINED', 'player:0', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(2,)']
+      before [465, 'DAMAGE', 'card:75=Raging Redcap', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(2, 143)']
+      before [466, 'LIFE_GAINED', 'player:0', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(1,)']
+      before [467, 'DAMAGE', 'card:121=Dog', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(1, 143)']
+      before [468, 'DAMAGE', 'player:1', 'card:58=Meteor Golem', 'DEAL_DAMAGE', '(3, 143)']
+      after  [464, 'DAMAGE', 'card:75=Raging Redcap', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(2, 143)']
+      after  [465, 'LIFE_GAINED', 'player:0', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(3,)']
+      after  [466, 'DAMAGE', 'card:121=Dog', "card:20=Bishop's Soldier", 'DEAL_DAMAGE', '(1, 143)']
+      after  [467, 'DAMAGE', 'player:1', 'card:58=Meteor Golem', 'DEAL_DAMAGE', '(3, 143)']
+      after  [468, 'DAMAGE', "card:20=Bishop's Soldier", 'card:75=Raging Redcap', 'DEAL_DAMAGE', '(1, 143)']
+  game 188: split steps 1 -> 1; digest same; outcome win -> win, turns 18 -> 18, lives [-3, 27] -> [-3, 27]
+    first differing journal row 394 of 411 / 409:
+      before [395, 'LIFE_GAINED', 'player:1', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(2,)']
+      before [396, 'DAMAGE', 'card:45=Elementalist Adept', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(2, 135)']
+      before [397, 'LIFE_GAINED', 'player:1', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(1,)']
+      before [398, 'DAMAGE', 'card:120=Goblin', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(1, 135)']
+      before [399, 'LIFE_GAINED', 'player:1', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(1,)']
+      after  [395, 'DAMAGE', 'card:45=Elementalist Adept', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(2, 135)']
+      after  [396, 'DAMAGE', 'card:120=Goblin', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(1, 135)']
+      after  [397, 'LIFE_GAINED', 'player:1', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(4,)']
+      after  [398, 'DAMAGE', 'card:121=Goblin', 'card:104=Llanowar Elves', 'DEAL_DAMAGE', '(1, 135)']
+      after  [399, 'DAMAGE', 'player:0', 'card:110=Treetop Snarespinner', 'DEAL_DAMAGE', '(1, 135)']
+  game 208: split steps 1 -> 1; digest same; outcome win -> win, turns 26 -> 26, lives [0, 15] -> [0, 15]
+    first differing journal row 395 of 482 / 481:
+      before [396, 'LIFE_GAINED', 'player:1', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(5,)']
+      before [397, 'DAMAGE', 'card:11=Spectral Sailor', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(5, 123)']
+      before [398, 'LIFE_GAINED', 'player:1', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(1,)']
+      before [399, 'DAMAGE', 'card:45=Firebrand Archer', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(1, 123)']
+      before [400, 'DAMAGE', 'player:0', 'card:120=Soldier', 'DEAL_DAMAGE', '(1, 123)']
+      after  [396, 'DAMAGE', 'card:11=Spectral Sailor', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(5, 123)']
+      after  [397, 'LIFE_GAINED', 'player:1', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(6,)']
+      after  [398, 'DAMAGE', 'card:45=Firebrand Archer', 'card:118=Brineborn Cutthroat', 'DEAL_DAMAGE', '(1, 123)']
+      after  [399, 'DAMAGE', 'player:0', 'card:120=Soldier', 'DEAL_DAMAGE', '(1, 123)']
+      after  [400, 'COMBAT_DAMAGE', 'card:11=Spectral Sailor', 'card:11=Spectral Sailor', 'COMBAT_DAMAGE', "(((1, Handle(namespace='card', index=118)),),)"]
+  game 243: split steps 1 -> 1; digest differs; outcome win -> win, turns 16 -> 16, lives [-22, 60] -> [-22, 60]
+    first differing journal row 325 of 434 / 433:
+      before [326, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(4,)']
+      before [327, 'DAMAGE', 'card:16=Enigma Drake', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(4, 115)']
+      before [328, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(3,)']
+      before [329, 'DAMAGE', 'card:29=Aegis Turtle', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(3, 115)']
+      before [330, 'DAMAGE', 'player:0', 'card:101=Skyraker Giant', 'DEAL_DAMAGE', '(4, 115)']
+      after  [326, 'DAMAGE', 'card:16=Enigma Drake', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(4, 115)']
+      after  [327, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(7,)']
+      after  [328, 'DAMAGE', 'card:29=Aegis Turtle', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE', '(3, 115)']
+      after  [329, 'DAMAGE', 'player:0', 'card:101=Skyraker Giant', 'DEAL_DAMAGE', '(4, 115)']
+      after  [330, 'DAMAGE', 'player:0', 'card:117=Ancestor Dragon', 'DEAL_DAMAGE', '(5, 115)']
+  game 265: split steps 1 -> 1; digest differs; outcome win -> win, turns 13 -> 15, lives [41, 0] -> [50, -10]
+    first differing journal row 264 of 292 / 328:
+      before [265, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(6,)']
+      before [266, 'DAMAGE', 'card:68=Battle-Rattle Shaman', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(6, 87)']
+      before [267, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(1,)']
+      before [268, 'DAMAGE', 'card:73=Resolute Reinforcements', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(1, 87)']
+      before [269, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(1,)']
+      after  [265, 'DAMAGE', 'card:68=Battle-Rattle Shaman', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(6, 87)']
+      after  [266, 'DAMAGE', 'card:73=Resolute Reinforcements', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(1, 87)']
+      after  [267, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(8,)']
+      after  [268, 'DAMAGE', 'card:120', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE', '(1, 87)']
+      after  [269, 'DAMAGE', 'player:1', 'card:26=Marauding Blight-Priest', 'DEAL_DAMAGE', '(3, 87)']
+  game 417: split steps 1 -> 1; digest same; outcome win -> win, turns 25 -> 25, lives [13, -6] -> [13, -6]
+    first differing journal row 313 of 902 / 901:
+      before [314, 'LIFE_GAINED', 'player:1', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(3,)']
+      before [315, 'DAMAGE', 'card:7=Prideful Parent', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(3, 112)']
+      before [316, 'LIFE_GAINED', 'player:1', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(1,)']
+      before [317, 'DAMAGE', 'card:40=Regal Caracal', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(1, 112)']
+      before [318, 'LIFE_GAINED', 'player:0', 'card:123=Cat', 'DEAL_DAMAGE', '(2,)']
+      after  [314, 'DAMAGE', 'card:7=Prideful Parent', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(3, 112)']
+      after  [315, 'LIFE_GAINED', 'player:1', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(4,)']
+      after  [316, 'DAMAGE', 'card:40=Regal Caracal', 'card:113=Storm Fleet Spy', 'DEAL_DAMAGE', '(1, 112)']
+      after  [317, 'LIFE_GAINED', 'player:0', 'card:123=Cat', 'DEAL_DAMAGE', '(2,)']
+      after  [318, 'DAMAGE', 'card:113=Storm Fleet Spy', 'card:123=Cat', 'DEAL_DAMAGE', '(2, 112)']
+  game 422: split steps 1 -> 1; digest same; outcome win -> win, turns 17 -> 17, lives [39, -1] -> [39, -1]
+    first differing journal row 246 of 308 / 307:
+      before [247, 'LIFE_GAINED', 'player:0', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(2,)']
+      before [248, 'DAMAGE', 'card:111=Dawnwing Marshal', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(2, 82)']
+      before [249, 'LIFE_GAINED', 'player:0', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(1,)']
+      before [250, 'DAMAGE', 'card:114=Enigma Drake', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(1, 82)']
+      before [251, 'DAMAGE', 'player:1', 'card:36=Thrashing Brontodon', 'DEAL_DAMAGE', '(3, 82)']
+      after  [247, 'DAMAGE', 'card:111=Dawnwing Marshal', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(2, 82)']
+      after  [248, 'LIFE_GAINED', 'player:0', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(3,)']
+      after  [249, 'DAMAGE', 'card:114=Enigma Drake', 'card:13=Druid of the Cowl', 'DEAL_DAMAGE', '(1, 82)']
+      after  [250, 'DAMAGE', 'player:1', 'card:36=Thrashing Brontodon', 'DEAL_DAMAGE', '(3, 82)']
+      after  [251, 'DAMAGE', 'card:13=Druid of the Cowl', 'card:111=Dawnwing Marshal', 'DEAL_DAMAGE', '(2, 82)']
+  game 455: split steps 1 -> 1; digest same; outcome win -> win, turns 20 -> 20, lives [-4, 4] -> [-4, 4]
+    first differing journal row 394 of 535 / 534:
+      before [395, 'LIFE_GAINED', 'player:1', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(4,)']
+      before [396, 'DAMAGE', 'card:5=Enigma Drake', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(4, 129)']
+      before [397, 'LIFE_GAINED', 'player:1', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(2,)']
+      before [398, 'DAMAGE', 'card:24=Erudite Wizard', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(2, 129)']
+      before [399, 'COMBAT_DAMAGE', 'card:24=Erudite Wizard', 'card:24=Erudite Wizard', 'COMBAT_DAMAGE', "(((5, Handle(namespace='card', index=101)),),)"]
+      after  [395, 'DAMAGE', 'card:5=Enigma Drake', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(4, 129)']
+      after  [396, 'LIFE_GAINED', 'player:1', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(6,)']
+      after  [397, 'DAMAGE', 'card:24=Erudite Wizard', 'card:101=Bigfin Bouncer', 'DEAL_DAMAGE', '(2, 129)']
+      after  [398, 'COMBAT_DAMAGE', 'card:24=Erudite Wizard', 'card:24=Erudite Wizard', 'COMBAT_DAMAGE', "(((5, Handle(namespace='card', index=101)),),)"]
+      after  [399, 'COMBAT_DAMAGE', 'card:101=Bigfin Bouncer', 'card:101=Bigfin Bouncer', 'COMBAT_DAMAGE', "(((4, Handle(namespace='card', index=5)), (2, Handle(namespace='card', index=24))),)"]
+
+5. The three games whose play differs (lifelink_readers.py <before journals> <after journals>
+   M21:301 FDN:243 FDN:265): the rows caused by the cards that read life gain, from
+the first differing journal row to the next untap step, on each side.
+
+== M21 game 301, first differing row 682
+   before [694, 'COMBAT_DAMAGE', 'card:82=Vito, Thorn of the Dusk Rose', 'card:82=Vito, Thorn of the Dusk Rose', 'COMBAT_DAMAGE'] (((1, Handle(namespace='player', index=0)),),)
+   before [699, 'TARGETING', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'TARGET'] (Handle(namespace='card', index=82), Handle(namespace='playe
+   before [700, 'TARGETING', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'TARGET'] (Handle(namespace='card', index=82), Handle(namespace='playe
+   before [701, 'LIFE_LOST', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'LOSE_LIFE'] (1,)
+   before: 4 rows caused by a life-gain reader before the next untap
+   after [693, 'COMBAT_DAMAGE', 'card:82=Vito, Thorn of the Dusk Rose', 'card:82=Vito, Thorn of the Dusk Rose', 'COMBAT_DAMAGE'] (((1, Handle(namespace='player', index=0)),),)
+   after [698, 'TARGETING', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'TARGET'] (Handle(namespace='card', index=82), Handle(namespace='playe
+   after [699, 'LIFE_LOST', 'player:0', 'card:82=Vito, Thorn of the Dusk Rose', 'LOSE_LIFE'] (2,)
+   after: 3 rows caused by a life-gain reader before the next untap
+== FDN game 243, first differing row 325
+   before [326, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE'] (4,)
+   before [328, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE'] (3,)
+   before [337, 'COMBAT_DAMAGE', "card:65=Ajani's Pridemate", "card:65=Ajani's Pridemate", 'COMBAT_DAMAGE'] (((4, Handle(namespace='card', index=16)), (3, Handle(namesp
+   before: 3 rows caused by a life-gain reader before the next untap
+   after [327, 'LIFE_GAINED', 'player:1', "card:65=Ajani's Pridemate", 'DEAL_DAMAGE'] (7,)
+   after [336, 'COMBAT_DAMAGE', "card:65=Ajani's Pridemate", "card:65=Ajani's Pridemate", 'COMBAT_DAMAGE'] (((4, Handle(namespace='card', index=16)), (3, Handle(namesp
+   after: 2 rows caused by a life-gain reader before the next untap
+== FDN game 265, first differing row 264
+   before [265, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE'] (6,)
+   before [267, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE'] (1,)
+   before [269, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE'] (1,)
+   before [275, 'COMBAT_DAMAGE', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'COMBAT_DAMAGE'] (((6, Handle(namespace='card', index=68)), (1, Handle(namesp
+   before [276, 'COMBAT_DAMAGE', 'card:26=Marauding Blight-Priest', 'card:26=Marauding Blight-Priest', 'COMBAT_DAMAGE'] (((3, Handle(namespace='player', index=1)),),)
+   before [286, 'COUNTER_PLACED', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'PUT_COUNTER'] ('PLUS_1_PLUS_1', 1)
+   before [287, 'LIFE_LOST', 'player:1', 'card:26=Marauding Blight-Priest', 'LOSE_LIFE'] (1,)
+   before [288, 'COUNTER_PLACED', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'PUT_COUNTER'] ('PLUS_1_PLUS_1', 1)
+   before [289, 'LIFE_LOST', 'player:1', 'card:26=Marauding Blight-Priest', 'LOSE_LIFE'] (1,)
+   before [290, 'COUNTER_PLACED', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'PUT_COUNTER'] ('PLUS_1_PLUS_1', 1)
+   before [291, 'LIFE_LOST', 'player:1', 'card:26=Marauding Blight-Priest', 'LOSE_LIFE'] (1,)
+   before: 11 rows caused by a life-gain reader before the next untap
+   after [267, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE'] (8,)
+   after [273, 'COMBAT_DAMAGE', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'COMBAT_DAMAGE'] (((6, Handle(namespace='card', index=68)), (1, Handle(namesp
+   after [274, 'COMBAT_DAMAGE', 'card:26=Marauding Blight-Priest', 'card:26=Marauding Blight-Priest', 'COMBAT_DAMAGE'] (((3, Handle(namespace='player', index=1)),),)
+   after [284, 'COUNTER_PLACED', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'PUT_COUNTER'] ('PLUS_1_PLUS_1', 1)
+   after [285, 'LIFE_LOST', 'player:1', 'card:26=Marauding Blight-Priest', 'LOSE_LIFE'] (1,)
+   after [323, 'LIFE_GAINED', 'player:0', "card:22=Ajani's Pridemate", 'DEAL_DAMAGE'] (9,)
+   after [326, 'COMBAT_DAMAGE', "card:22=Ajani's Pridemate", "card:22=Ajani's Pridemate", 'COMBAT_DAMAGE'] (((9, Handle(namespace='player', index=1)),),)
+   after [327, 'COMBAT_DAMAGE', 'card:26=Marauding Blight-Priest', 'card:26=Marauding Blight-Priest', 'COMBAT_DAMAGE'] (((3, Handle(namespace='player', index=1)),),)
+   after: 8 rows caused by a life-gain reader before the next untap
+

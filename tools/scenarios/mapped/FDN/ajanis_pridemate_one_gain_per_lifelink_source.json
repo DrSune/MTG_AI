@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' Two lifelink creatures attack together. The trampling 5/5 is blocked by a 0/2 and assigns 2 to it and 3 to the player; the 2/2 is unblocked. One source's damage dealt at once is one life-gain event, whatever the number of recipients (CR 120.3f; this card's ruling: 'if a single creature you control with lifelink deals combat damage to multiple creatures, players, planeswalkers, and/or battles at the same time ..., the ability will apply only once'), and two sources are two (its ruling: 'each creature with lifelink dealing combat damage causes a separate life-gain event'): gains of 5 and 2 (20 -> 27), two counters. On 46aa2f3e, before the lifelink fix, each recipient was its own gain: 2, 3 and 2, three counters.",
+ "cards": [
+  {"key": "pm", "real": "Ajani's Pridemate", "zone": "battlefield", "controller": 0},
+  {"key": "lt", "name": "Trampling Lifelinker", "type": "Creature — Beast", "power": "5", "toughness": "5", "keywords": ["LIFELINK", "TRAMPLE"], "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Small Lifelinker", "type": "Creature — Cat", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"lt": true, "l2": true}, "block": {"wall": "lt"}, "trample": {"lt": [0]}}
+ ],
+ "expect": {
+  "life": {"0": 27, "1": 15},
+  "counters": {"pm": {"PLUS_1_PLUS_1": 2}}
+ }
+}

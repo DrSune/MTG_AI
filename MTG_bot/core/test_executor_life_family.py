@@ -301,6 +301,80 @@ def test_two_lifelinkers_at_once_are_two_gains_one_of_them_first() -> None:
     assert _plus_counters(r, "cleric") == 1
 
 
+# One lifelink source's damage dealt at once is ONE life-gain event, whatever the number of
+# recipients (CR 120.3f; the rulings of Ajani's Pridemate and Angel of Vitality: "if a single
+# creature you control with lifelink deals combat damage to multiple creatures, players,
+# planeswalkers, and/or battles at the same time ..., the ability will apply only once"). Each of
+# these fails on 46aa2f3e, which made one gain per recipient
+# (reports/life_family_2026-11-13/lifelink_cases.txt).
+
+
+def _gains(r: ScenarioRunner) -> list[int]:
+    return [e.amount for e in r.ex.journal.turn_window()
+            if e.kind == KIND_LIFE_GAINED and e.subject == r.p0]
+
+
+def _lifelinker(power: str, *keywords: str) -> dict:
+    return _creature("lt", 0, power, toughness=power, keywords=["LIFELINK", *keywords])
+
+
+@pytest.mark.parametrize(("angel", "life"), [(False, 25), (True, 26)])
+def test_a_trampling_lifelinker_and_its_blocker_are_one_gain(angel, life) -> None:
+    """A trampling 5/5 lifelinker blocked by a 0/2 assigns 2 to it and 3 to the player: one gain
+    of 5 (with Angel of Vitality, of 6), one Pridemate counter. 46aa2f3e: rows 2 and 3 (3 and 4,
+    27 life, with the Angel), 2 counters."""
+    cards = [_lifelinker("5", "TRAMPLE"), _creature("wall", 1, "0", toughness="2"),
+             _real("pm", "Ajani's Pridemate")]
+    if angel:
+        cards.append(_real("angel", "Angel of Vitality"))
+    r = _runner("FDN", cards)
+    r.run_step({"op": "combat", "seat": 0, "attack": {"lt": True}, "block": {"wall": "lt"},
+                "trample": {"lt": [0]}})
+    assert _gains(r) == [life - 20] and r.world.players[r.p0].life == life
+    assert r.world.players[r.p1].life == 17
+    assert _plus_counters(r, "pm") == 1
+
+
+def test_a_lifelinker_blocked_by_two_creatures_is_one_gain() -> None:
+    """A 4/4 lifelinker blocked by two 0/2s deals 2 to each at once: one gain of 4, one counter.
+    46aa2f3e: rows 2 and 2, 2 counters."""
+    r = _runner("FDN", [_lifelinker("4"), _creature("w1", 1, "0", toughness="2"),
+                        _creature("w2", 1, "0", toughness="2"), _real("pm", "Ajani's Pridemate")])
+    r.run_step({"op": "combat", "seat": 0, "attack": {"lt": True},
+                "block": {"w1": "lt", "w2": "lt"}})
+    assert _gains(r) == [4] and r.world.players[r.p0].life == 24
+    assert _plus_counters(r, "pm") == 1
+
+
+def test_one_lifelink_hit_on_two_creatures_is_one_replaced_gain() -> None:
+    """Outside combat one DEAL_DAMAGE atom is one source's damage at once: 1 to each of two
+    creatures is one gain of 2, which Angel of Vitality makes 3 (23 life), one Pridemate counter,
+    and no trigger order to ask. 46aa2f3e: each per-target gain was replaced on its own, its action
+    its own journal boundary: 24 life, 2 rows, 2 counters."""
+    r = _runner("FDN", [_lifelinker("1"), _creature("b1", 1), _creature("b2", 1),
+                        _real("pm", "Ajani's Pridemate"), _real("angel", "Angel of Vitality")])
+    ping = Atom(Verb.DEAL_DAMAGE, AtomArgs(pairs=(
+        ("amount", QConst(1)),
+        ("target", at.Selector(QConst(2), at.SelectorMode.TARGET,
+                               FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                               zones=(at.Zone(at.ZoneKind.BATTLEFIELD, ControllerRef.ANY),))),
+    )))
+    r.ex.execute(ping, source=r.handles["lt"], controller=r.p0,
+                 bindings={"target": [r.handles["b1"], r.handles["b2"]]})
+    assert _gains(r) == [3] and r.world.players[r.p0].life == 23
+    assert _plus_counters(r, "pm") == 1
+    assert r.ex.damage == {r.handles["b1"]: 1, r.handles["b2"]: 1}
+
+
+def test_a_double_striking_lifelinker_gains_once_per_damage_step() -> None:
+    """The control, true before and after: each combat damage step is its own damage event (CR
+    510.4), so a double striker's lifelink is two gains, and two counters."""
+    r = _runner("FDN", [_lifelinker("2", "DOUBLE_STRIKE"), _real("pm", "Ajani's Pridemate")])
+    r.run_step({"op": "combat", "seat": 0, "attack": {"lt": True}})
+    assert _gains(r) == [2, 2] and r.world.players[r.p1].life == 16
+    assert _plus_counters(r, "pm") == 2
+
+
 def test_the_first_gain_during_each_of_your_turns() -> None:
     """FDN Cat Collector: "for the first time during each of your turns" is the first gain of the
     turn (ordinal 1) on your turn (TURN_OF YOU in the event's actor)."""

@@ -2955,7 +2955,8 @@ class Executor:
         counts once per recipient), each damage-
         bearing dealer emits ONE COMBAT_DAMAGE row carrying the whole as-
         signment (CR 603.2: one "deals combat damage" event per dealer,
-        however it splits); the step's priority point that follows checks the
+        however it splits) and gains its lifelink once (CR 120.3f: one
+        life-gain event per dealer); the step's priority point that follows checks the
         state-based actions and puts the triggers on the stack. CR 120.7: a 0-power attacker deals no damage at
         all — no life change, no DAMAGE row, no combat-damage event."""
         strikes: list[tuple[Handle, tuple[tuple[int, Handle], ...]]] = []
@@ -2982,13 +2983,23 @@ class Executor:
         self._combat_wave_open = self._op_seq
         try:
             for dealer, plan in strikes:
-                for amount, recipient in plan:
+                # CR 120.3f, 510.2: a dealer's combat damage is dealt at once, so its
+                # lifelink is ONE life-gain event however many recipients share it (a
+                # trampler and its blocker, two blockers): the dealer's earlier atoms
+                # hold what they dealt, its last atom gains the whole. Every atom
+                # deals a positive amount from its dealer, so each reaches the gain.
+                held: list[int] = []
+                for slot, (amount, recipient) in enumerate(plan):
                     ctx = self._ctx(
                         source=dealer,
                         controller=self.controller_of(dealer),
                         bindings={"target": recipient},
                         decisions=(),
                     )
+                    if slot < len(plan) - 1:
+                        ctx.lifelink_held = held
+                    else:
+                        ctx.lifelink_carried = sum(held)
                     self._run_effect(_combat_damage_atom(amount, recipient), ctx)
         finally:
             self._combat_wave_open = 0
