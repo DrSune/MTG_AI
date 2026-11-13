@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "846887e4-744f-44ce-9110-d09680b11e95",
+ "name": "Tolarian Kraken",
+ "text_sha": "051e159fdbdffcdcd8879e6d48a60bac06ae8d6070d70df1e51914609253cb7e",
+ "verified": {
+  "tree_sha": "b003f6153cb3a41596419b077755fe8b53dce9269cf394bf9180ca5d3062c009",
+  "probe_sha": "7fadf126ec880564ab2b681b78790003d99c086733d128473025365ab22e2e7c",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "clauses": [
+   {
+    "clause": "Whenever you draw a card, you may pay {1}",
+    "status": "OK",
+    "evidence": "[you draw a card]: ask may [fire, skip], mana C-1; opponent draws do not trigger; draw-two triggers twice",
+    "issue": ""
+   },
+   {
+    "clause": "When you do, you may tap or untap target creature",
+    "status": "OK",
+    "evidence": "ask target, ask may, ask choose [0,1] -> tap; packs A09_1 (tap), A09_2 (untap), A09_3 (decline pay: nothing, no target ask), A09_4 (decline the may)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/tolarian_kraken_1.json",
+   "tools/scenarios/cards/M21/tolarian_kraken_2.json",
+   "tools/scenarios/cards/M21/tolarian_kraken_3.json",
+   "tools/scenarios/cards/M21/tolarian_kraken_4.json",
+   "tools/scenarios/cards/M21/tolarian_kraken_5.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 10,
+   "score": 0.8333333333333334,
+   "survived": [
+    "target->all at 1/0/effect/steps/1/then_effect/effect/inner/options/0/args/target",
+    "target->all at 1/0/effect/steps/1/then_effect/effect/inner/options/1/args/target"
+   ]
+  }
+ }
+}

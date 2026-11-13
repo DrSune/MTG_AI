@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"kr","real":"Tolarian Kraken","zone":"battlefield","controller":0},
+  {"key":"mt","real":"Mazemind Tome","zone":"battlefield","controller":0},
+  {"key":"tgt","name":"Target","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":1,"tapped":false}],
+ "mana":{"0":{"C":3}},
+ "steps":[{"op":"activate","key":"mt","idx":1,"seat":0,"decisions":["fire","tgt","skip"]}],
+ "expect":{"tapped":{"tgt":false},"hand":{"0":1},"mana_pool":{"0":{"C":0}}},
+ "notes":"Paid {1} but declined the may tap-or-untap: the target stays untapped."}
