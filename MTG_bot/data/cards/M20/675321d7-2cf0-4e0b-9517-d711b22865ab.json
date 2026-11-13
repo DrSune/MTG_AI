@@ -175,5 +175,42 @@
  },
  "probe": {
   "sha": "13564ca37634ba31c79429237e7d754f93687ac1a57794edde3bba1bdb7240f3"
+ },
+ "verified": {
+  "tree_sha": "c7771273768dc89034a29a0be8db876663fc95044caa1c585fa2947582315fb3",
+  "probe_sha": "13564ca37634ba31c79429237e7d754f93687ac1a57794edde3bba1bdb7240f3",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1e",
+  "clauses": [
+   {
+    "clause": "Whenever one or more tokens you control enter, ... ",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Raise the Alarm)]: two Soldiers created at once, one trigger; a nontoken creature entering gives none",
+    "issue": ""
+   },
+   {
+    "clause": "put that many +1/+1 counters on this creature.",
+    "status": "OK",
+    "evidence": "same stimuli: one trigger, 2 counters, 2/2 -> 4/4",
+    "issue": ""
+   },
+   {
+    "clause": "tokens an opponent controls do not trigger; two separate token instructions trigger twice",
+    "status": "NOT_EXERCISED",
+    "evidence": "board cannot make opponent tokens or two events; pack A03_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/woodland_champion_1.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

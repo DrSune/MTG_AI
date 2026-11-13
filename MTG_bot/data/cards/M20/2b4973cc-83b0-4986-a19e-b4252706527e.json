@@ -441,5 +441,54 @@
  },
  "probe": {
   "sha": "79d9e2309112a175a3cd0987ee924d40d8a6cdab444a0115873353ac8c0a622e"
+ },
+ "verified": {
+  "tree_sha": "f58a4e9d1cc5d83c126fef30d6477fb29383bad7aa5b835990c1a1a729b000a3",
+  "probe_sha": "79d9e2309112a175a3cd0987ee924d40d8a6cdab444a0115873353ac8c0a622e",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1e",
+  "clauses": [
+   {
+    "clause": "As this artifact enters, choose a creature type.",
+    "status": "OK",
+    "evidence": "[cast ask quality: Ape,Bear,Bird,Elf,Giant,Ox,Zombie] asked before entering; existing creature types only",
+    "issue": ""
+   },
+   {
+    "clause": "Creatures you control of the chosen type get +1/+1.",
+    "status": "OK",
+    "evidence": "[cast | ask 1 -> Bear] you_bear 2/2->3/3; [Giant] you_giant 4/4->5/5; Ape/Bird/Elf/Ox/Zombie no change; no opponent creature changed",
+    "issue": ""
+   },
+   {
+    "clause": "{3},{T}: Look at the top three; you may reveal a creature card of the chosen type and put it into hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[activate [2]] asks may fire/skip, taps, 3 library cards targeted, but the library holds no creature of the chosen type so no reveal/move-to-hand is ever seen. Packs A02_1, A02_2.",
+    "issue": ""
+   },
+   {
+    "clause": "Put the rest on the bottom of your library in a random order.",
+    "status": "NOT_EXERCISED",
+    "evidence": "no library movement is shown in the trace; no order ask offered (consistent with random). Pack A02_1 pins the revealed card leaving and the rest staying in the library.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/icon_of_ancestry_1.json",
+   "tools/scenarios/cards/M20/icon_of_ancestry_2.json"
+  ],
+  "mutation": {
+   "mutants": 27,
+   "killed": 21,
+   "score": 0.7777777777777778,
+   "survived": [
+    "widen filter (drop part 2) at 1/1/effect/args/target/filter",
+    "drop step 0 at 1/2/effect/steps/1/inner",
+    "drop step 1 at 1/2/effect/steps/1/inner",
+    "amount+1 at 1/2/effect/steps/1/inner/steps/1/args/cards/count",
+    "widen filter (drop part 1) at 1/2/effect/steps/1/inner/steps/1/args/cards/filter",
+    "zone HAND->BATTLEFIELD at 1/2/effect/steps/1/inner/steps/1/args/destination"
+   ]
+  }
  }
 }

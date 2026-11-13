@@ -1,0 +1,14 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Printed: 'Whenever one or more tokens YOU CONTROL enter': the opponent casts Raise the Alarm (two Soldiers under seat 1): no counters. Then seat 0 casts Raise the Alarm twice (two separate instructions = two events, two triggers, 2 counters each) and Yoked Ox (a nontoken creature): 4 counters.",
+ "cards":[
+  {"key":"champ","real":"Woodland Champion","zone":"battlefield","controller":0},
+  {"key":"oalarm","real":"Raise the Alarm","zone":"hand","controller":1},
+  {"key":"alarm1","real":"Raise the Alarm","zone":"hand","controller":0},
+  {"key":"alarm2","real":"Raise the Alarm","zone":"hand","controller":0},
+  {"key":"ox","real":"Yoked Ox","zone":"hand","controller":0}],
+ "mana":{"0":{"W":5},"1":{"W":2}},
+ "steps":[{"op":"cast","real":"Raise the Alarm","key":"oalarm","controller":1},
+          {"op":"cast","real":"Raise the Alarm","key":"alarm1"},
+          {"op":"cast","real":"Raise the Alarm","key":"alarm2"},
+          {"op":"cast","real":"Yoked Ox","key":"ox"}],
+ "expect":{"counters":{"champ":{"PLUS_1_PLUS_1":4}},"power":{"champ":6},"toughness":{"champ":6}}}

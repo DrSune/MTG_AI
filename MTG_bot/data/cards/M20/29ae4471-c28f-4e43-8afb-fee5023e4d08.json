@@ -180,5 +180,40 @@
  },
  "probe": {
   "sha": "0f6b9e34cac503337ef24520b34a631c32016c022feef3c821d2e62de48ba5ae"
+ },
+ "verified": {
+  "tree_sha": "2fbd9d0d0cf55c675d036df1c700318ab3f413259123cc3b5f17f275b369613c",
+  "probe_sha": "0f6b9e34cac503337ef24520b34a631c32016c022feef3c821d2e62de48ba5ae",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1e",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked] no 'becomes tapped' event, unlike other creatures",
+    "issue": ""
+   },
+   {
+    "clause": "As this creature enters, choose a color.",
+    "status": "OK",
+    "evidence": "[cast ask quality: W,U,B,R,G] asked before entering, five colours, no colourless",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "chosen colour W only; the white spells fire it (+1 counter each, incl. at instant speed). A spell of a non-chosen colour and an opponent's spell never cast. Pack A04_1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/diamond_knight_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }
