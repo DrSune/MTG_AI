@@ -273,7 +273,10 @@ def test_a_dies_trigger_that_moves_its_card_functions_on_the_battlefield() -> No
 class TestLookingBackAcrossOneDrain(_Case):
     """Controls: an event matched after another in the same drain (two instructions of one
     resolution) still finds a departed object as it was, though the layers were brought up to
-    date for the first event's other triggers: its last known information answers."""
+    date for the first event's other triggers (here "whenever you gain life", whose filter the
+    first instruction's gain makes the binder read): its last known information answers."""
+
+    READS = TriggeredAbility(at.LifeGainedEvent(actor=YOU_ARE), None, _gain(QConst(0)))
 
     def test_a_granted_keyword_of_a_creature_that_died_in_the_second_instruction(self) -> None:
         flying = FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING)
@@ -282,11 +285,12 @@ class TestLookingBackAcrossOneDrain(_Case):
                                         zones=(BF_YOU,)))
         self.ex.attach_card(self.watch, self.record_for(self.watch, [
             at.StaticAbility(grant),
-            TriggeredAbility(CreatureDiesEvent(filter=FAnd((OTHER_OF_YOURS, flying))), None, _gain())]))
+            TriggeredAbility(CreatureDiesEvent(filter=FAnd((OTHER_OF_YOURS, flying))), None, _gain()), self.READS]))
         self.ex.layers.recompute()
         [bear] = self.creatures(1, [])
         self.ex.layers.recompute()
         assert self.ex.layers.keyword_of(bear, Keyword.FLYING)
+        self.ex.decisions.provider = in_trigger_order
         self.ex.apply_effect(at.Seq((_gain(QConst(5)), atom(Verb.DESTROY, target=EVERY))),
                              source=self.watch, controller=self.p0, bindings={"target": [bear]})
         assert self.gains() == [5, 1]
@@ -300,10 +304,11 @@ class TestLookingBackAcrossOneDrain(_Case):
                                        FAnd((CREATURE, YOU_ARE)), zones=(BF_YOU,)))
         self.ex.attach_card(self.watch, self.record_for(self.watch, [
             at.StaticAbility(make),
-            TriggeredAbility(CreatureDiesEvent(filter=FAnd((OTHER_OF_YOURS, knight))), None, _gain())]))
+            TriggeredAbility(CreatureDiesEvent(filter=FAnd((OTHER_OF_YOURS, knight))), None, _gain()), self.READS]))
         [bear] = self.creatures(1, [])
         self.ex.layers.recompute()
         assert "Knight" in self.ex.layers.type_overlay(bear)
+        self.ex.decisions.provider = in_trigger_order
         self.ex.apply_effect(at.Seq((_gain(QConst(5)), atom(Verb.DESTROY, target=EVERY))),
                              source=self.watch, controller=self.p0, bindings={"target": [bear]})
         assert self.gains() == [5, 1]
@@ -375,12 +380,10 @@ class TestTheLayersAfterTheEvent(_Case):
         self.ex.layers.recompute()
         assert self.ex.layers.keyword_of(bear, Keyword.PROWESS)
 
-        def cast_after_the_death() -> None:
+        with self.ex.atomic():  # one action: no state check between the death and the cast
             self.ex.execute(atom(Verb.DESTROY, target=EVERY), source=bear, controller=self.p1,
                             bindings={"target": [self.watch]})
             self.ex.journal.emit_cast(spell, self.p0, "INSTANT", "hand", None)
-
-        _held(self.ex, cast_after_the_death)
         self.ex.fire_triggers()
         assert self.ex.ledger.effective_pt(self.world.cards[bear].identity, bear,
                                            self.world.cards[bear].counters) == (2, 2)
