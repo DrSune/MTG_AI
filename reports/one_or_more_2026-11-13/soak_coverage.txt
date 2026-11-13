@@ -1,0 +1,19 @@
+Round R10's soak coverage (2026-11-13; `.venv/bin/python reports/one_or_more_2026-11-13/soak_coverage.py`,
+the soak's own games: tools/cards/soak.play_one, stress decks, seeds 1..N):
+
+M20 (compiled, unverified records, 200 games, 0 crashes, 1 detector hits): dealt ['Angelic Guardian', 'Woodland Champion']; games cast in: {'Woodland Champion': 12, 'Angelic Guardian': 4}; gathered firings (card x objects: count): {'Angelic Guardian x1': 2, 'Angelic Guardian x2': 4, 'Angelic Guardian x3': 2, 'Angelic Guardian x6': 1, 'Woodland Champion x1': 1}
+M19 (compiled, 200 games, 0 crashes, 1 detector hits): dealt ['Desecrated Tomb']; games cast in: {'Desecrated Tomb': 46}; gathered firings (card x objects: count): {'Desecrated Tomb x1': 1}
+KHM (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Elvish Warmaster']; games cast in: {'Elvish Warmaster': 4}; gathered firings (card x objects: count): {}
+
+The two detector hits, replayed (a scratch replay of soak.play_one with the journal printed):
+- M20 seed 89: d3_counters, "phantom placement: PLUS_1_PLUS_1 x1 on card:45 at clock 796 while not
+  on the battlefield": card:45 is Knight of the Ebon Legion, its end-step counter; neither Woodland
+  Champion nor Angelic Guardian was cast in that game, and no flagged trigger fired.
+- M19 seed 116: d5_pt_recompute, "recompute mismatch on card:79 (Ravenous Harpy): assert 1/2 vs
+  fold -1/0 ... NOTE: a SET_PT/MODIFY_PT layer is a possible benign" cause (Strangling Spores'
+  -3/-3 was cast); Desecrated Tomb, cast in that game, only makes a Bat.
+
+The first draft (8b8c35b9) also had a frame for Elvish Warmaster's head: in the same 100 KHM
+castable games it fired 201 times, each 'x1' (its own Elf Warrior token re-triggering it, a loop
+stopped by the tripwire; the printed "This ability triggers only once each turn" did not compile).
+The frame was dropped (de082e81).

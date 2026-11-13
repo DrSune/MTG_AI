@@ -1195,3 +1195,8 @@ whole; Elvish Warmaster stays unparsed (above); Devourer of Memory's clause has 
   Their stamps stand (the tree sha is unchanged); a re-verification must kill it with a pack
   moving two objects at once (the probe has no such stimulus: BACKLOG). Terror of the Peaks' is
   stillborn.
+- Random-play soaks dealing the new trees (M20 compiled with the unverified records 200 games, M19
+  compiled 200, KHM castable 100): 0 crashes; Woodland Champion cast in 12 games, Angelic Guardian
+  in 4, Desecrated Tomb in 46; 11 gathered firings (the Guardian's with 1, 2, 3 and 6 attackers).
+  2 detector hits, both in other cards' paths (`soak_coverage.txt`).
+- Ontology conformance (M21, ZNR): PASS, errors 0, warns 7, V4′ new CHOOSE emissions 0, on both.
