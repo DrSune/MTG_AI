@@ -29,7 +29,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
-    QConst,
     QUnbounded,
     Selector,
     SelectorMode,
