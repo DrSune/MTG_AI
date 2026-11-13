@@ -1,0 +1,99 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Vivien Reid +1 printed: look at the top four cards; you may reveal a creature or land card from among them and put it into your hand; the rest go on the bottom of your library in random order. Top four: Zap (instant), Grizzly (creature), Zap2, Zap3; the fifth (Fifth, a creature) is not among them. Grizzly goes to hand; Fifth stays; the three instants go to the bottom. (cards list bottom-first among library cards: the last listed is on top, library_top.)",
+ "cards": [
+  {
+   "key": "viv",
+   "real": "Vivien Reid",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fifth",
+   "name": "Fifth",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z3",
+   "name": "Zap Three",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z2",
+   "name": "Zap Two",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gr",
+   "name": "Grizzly",
+   "type": "Creature",
+   "power": 2,
+   "toughness": 2,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z1",
+   "name": "Zap One",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "viv",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gr": "hand",
+   "fifth": "library",
+   "z1": "library",
+   "z2": "library",
+   "z3": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "counters": {
+   "viv": {
+    "LOYALTY": 6
+   }
+  },
+  "library": {
+   "0": [
+    "Fifth",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

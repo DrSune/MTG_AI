@@ -824,5 +824,76 @@
  },
  "probe": {
   "sha": "8cbfc62c53e93afea61694ed776055e843e8db1d4eeaafedcee749b554a337e1"
+ },
+ "verified": {
+  "tree_sha": "8348d6d0fd66a207fd779d0746d318418d78added5ec4e806e6d0f03717c5180",
+  "probe_sha": "8cbfc62c53e93afea61694ed776055e843e8db1d4eeaafedcee749b554a337e1",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-A",
+  "clauses": [
+   {
+    "clause": "+1: look at the top four cards of your library",
+    "status": "OK",
+    "evidence": "activate [0]: four candidate cards offered (Library 2..5#1)",
+    "issue": ""
+   },
+   {
+    "clause": "You may reveal a creature or land card from among them and put it into your hand",
+    "status": "OK",
+    "evidence": "ask may [fire, skip]; fire -> one_of among the four -> hand; skip -> no card. Eligibility filter (noncreature nonland refused) pinned by pack A04_2",
+    "issue": ""
+   },
+   {
+    "clause": "Put the rest on the bottom of your library in a random order",
+    "status": "OK",
+    "evidence": "tree 'arrange': 'RANDOM', rest to BOTTOM, no ordering ask; trace asks nothing after. Pack A04_2 pins the rest at the bottom",
+    "issue": ""
+   },
+   {
+    "clause": "-3: Destroy target artifact, enchantment, or creature with flying",
+    "status": "OK",
+    "evidence": "target slot 1..1 of [opp_flier, you_relic, you_charm, opp_relic, opp_charm] (no nonflying creature); each destroyed",
+    "issue": ""
+   },
+   {
+    "clause": "-8: emblem: creatures you control get +2/+2 and have vigilance, trample, and indestructible",
+    "status": "NOT_EXERCISED",
+    "evidence": "[2] not activatable (loyalty 5<8). Pack A04_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/vivien_reid_1.json",
+   "tools/scenarios/cards/FDN/vivien_reid_2.json"
+  ],
+  "mutation": {
+   "mutants": 42,
+   "killed": 20,
+   "score": 0.47619047619047616,
+   "survived": [
+    "drop step 0 at 1/0/effect/steps/1/inner",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter/children/0",
+    "drop step 0 at 1/2/effect/args/emblem/abilities/0/effect",
+    "drop step 1 at 1/2/effect/args/emblem/abilities/0/effect",
+    "drop step 2 at 1/2/effect/args/emblem/abilities/0/effect",
+    "drop step 3 at 1/2/effect/args/emblem/abilities/0/effect",
+    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/power/magnitude",
+    "amount-1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/power/magnitude",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter/children/0/who",
+    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/toughness/magnitude",
+    "amount-1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/toughness/magnitude",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter/children/0/who",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter/children/0/who",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

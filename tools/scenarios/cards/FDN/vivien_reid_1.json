@@ -1,0 +1,12 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+"notes":"Vivien Reid -8 printed: emblem: creatures you control get +2/+2 and have vigilance, trample, and indestructible. Applies to a creature already there and one that enters later; not to the opponent's creatures.",
+"cards":[{"key":"viv","real":"Vivien Reid","zone":"battlefield","controller":0},
+{"key":"wolf","name":"Wolf","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"late","name":"Late","type":"Creature","power":1,"toughness":1,"zone":"hand","controller":0},
+{"key":"foe","name":"Foe","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":1}],
+"steps":[{"op":"loyalty","key":"viv","set":8},
+{"op":"activate","key":"viv","idx":2,"seat":0},
+{"op":"enter","key":"late"}],
+"expect":{"power":{"wolf":4,"late":3,"foe":2},"toughness":{"wolf":4,"late":3,"foe":2},
+"battlefield_keywords":{"Wolf":["VIGILANCE","TRAMPLE","INDESTRUCTIBLE"],"Late":["VIGILANCE","TRAMPLE","INDESTRUCTIBLE"],"Foe":[]},
+"zone":{"viv":"graveyard"}}}

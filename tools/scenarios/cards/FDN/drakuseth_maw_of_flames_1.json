@@ -1,0 +1,8 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+"notes":"Drakuseth printed: whenever it attacks, 4 damage to any target and 3 damage to each of up to two OTHER targets. Targets: 4 to foe4 (4/4 dies), 3 to foe3 (3/3 dies), stop (up to two: one only); foe2 (3/3) untouched. Then 7 combat damage to the player: 13.",
+"cards":[{"key":"dr","real":"Drakuseth, Maw of Flames","zone":"battlefield","controller":0},
+{"key":"foe4","name":"Foe Four","type":"Creature","power":4,"toughness":4,"zone":"battlefield","controller":1},
+{"key":"foe3","name":"Foe Three","type":"Creature","power":3,"toughness":3,"zone":"battlefield","controller":1},
+{"key":"foe2","name":"Foe Two","type":"Creature","power":3,"toughness":3,"zone":"battlefield","controller":1}],
+"steps":[{"op":"combat","seat":0,"attack":{"dr":true},"decisions":["foe4","foe3","NONE"]}],
+"expect":{"zone":{"foe4":"graveyard","foe3":"graveyard","foe2":"battlefield","dr":"battlefield"},"life":{"1":13}}}

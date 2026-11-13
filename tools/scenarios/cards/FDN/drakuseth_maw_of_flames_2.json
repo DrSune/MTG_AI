@@ -1,0 +1,7 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+"notes":"Drakuseth: the 4 damage may go to a player (any target) and the two other 3-damage targets are two different objects: player seat 1 takes 4, two 3/3s take 3 each and die, then 7 combat: 20-4-7=9.",
+"cards":[{"key":"dr","real":"Drakuseth, Maw of Flames","zone":"battlefield","controller":0},
+{"key":"fa","name":"Foe A","type":"Creature","power":3,"toughness":3,"zone":"battlefield","controller":1},
+{"key":"fb","name":"Foe B","type":"Creature","power":3,"toughness":3,"zone":"battlefield","controller":1}],
+"steps":[{"op":"combat","seat":0,"attack":{"dr":true},"decisions":["player:1","fa","fb"]}],
+"expect":{"zone":{"fa":"graveyard","fb":"graveyard"},"life":{"1":9}}}
