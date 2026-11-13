@@ -1707,7 +1707,10 @@ class TriggerBinder:
                 controller=obj.controller,
                 bindings=bindings,
             )
-            slot = _widen_any_target(self.executor, obj.target_node, slot, obj.source) or slot
+            slot = (
+                _widen_any_target(self.executor, obj.target_node, slot, obj.source, obj.controller)
+                or slot
+            )
             from MTG_bot.core.executor.returns import moved_since
 
             kept = [
@@ -1791,7 +1794,10 @@ class TriggerBinder:
                         controller=ctx.controller,
                         bindings=ctx.bindings,
                     )
-                    slot = _widen_any_target(self.executor, value, slot, ctx.source) or slot
+                    slot = (
+                        _widen_any_target(self.executor, value, slot, ctx.source, ctx.controller)
+                        or slot
+                    )
                     if len(slot.candidates) < need:
                         return False
             return True
@@ -1882,10 +1888,11 @@ class TriggerBinder:
     def _target_players(self, node: _AnyTrigger, ctx: ExecCtx) -> list[Handle]:
         """The players a trigger's "target opponent" / "target player" may designate now: the
         ability controller's opponents, or every player (CR 115.1, 102.2), minus those with
-        protection from its source (CR 702.16b: Runed Halo naming the trigger's card). Chosen
-        from as it goes on the stack (:meth:`_designate`) and checked against again as it
-        resolves (:meth:`resolve`, CR 608.2b)."""
-        from MTG_bot.core.executor.legality import protected_from
+        protection from its source (CR 702.16b: Runed Halo naming the trigger's card) or
+        hexproof against its controller (CR 702.11c). Chosen from as it goes on the stack
+        (:meth:`_designate`) and checked against again as it resolves (:meth:`resolve`, CR
+        608.2b)."""
+        from MTG_bot.core.executor.legality import player_targetable
 
         opponent_only = self._designation_slots(node)[2]
         players = (
@@ -1893,7 +1900,7 @@ class TriggerBinder:
             if opponent_only
             else list(ctx.world.player_order)
         )
-        return [h for h in players if not protected_from(self.executor, h, ctx.source)]
+        return [h for h in players if player_targetable(self.executor, h, ctx.source, ctx.controller)]
 
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The trigger designation channel (CR 603.1).
@@ -2007,7 +2014,9 @@ class TriggerBinder:
             # selector would ask a register it never saw.
             bindings=ctx.bindings,
         )
-        slot = _widen_any_target(self.executor, selector, slot, ctx.source) or slot
+        slot = (
+            _widen_any_target(self.executor, selector, slot, ctx.source, ctx.controller) or slot
+        )
         candidates = sorted(slot.candidates)
         count = selector.count
         # CR 603.3d: an exact-count slot the ability needs in every

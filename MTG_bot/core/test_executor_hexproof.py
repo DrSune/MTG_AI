@@ -30,21 +30,25 @@ import unittest
 
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    DurationEot,
     FAtom,
     FAtomPred,
+    FOr,
     Keyword,
     KeywordAbility,
     QConst,
+    QUnbounded,
     Selector,
     SelectorMode,
     SpellKind,
+    StaticAbility,
     Verb,
     Zone,
     ZoneKind,
 )
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.executor.stack import cast, park
-from MTG_bot.core.executor.query import legal_targets
+from MTG_bot.core.executor.query import _widen_any_target, legal_targets, player_target_slot
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, ZONE_STACK
 from MTG_bot.core.test_executor_binding import etb_trigger
 from MTG_bot.core.test_executor_layers import (
@@ -405,6 +409,108 @@ class TestHexproofOnStack(HexproofCase):
         spell = self.hexproof_spell("Sporeweb Weaver", self.p1, hexproof_from=("U",))
         own = self.spell_source("Bounce", ("U",), self.p1)
         self.assertIn(spell, self.targetable_stack_spells(own, self.p1))
+
+
+class TestPlayerHexproof(HexproofCase):
+    """CR 702.11c-d: a player with hexproof can't be the target of spells or abilities their
+    opponents control ("from [quality]": of that quality). The static "You have hexproof"
+    (Leyline of Sanctity) and the one-shot grant to you and your permanents (Veil of Summer) give
+    it; every target surface that lists players refuses the player: a PLAYER-zone selector, the
+    synthesized "target player"/"target opponent" slot, the players of "any target", and a
+    trigger's player designation. Each test fails on the engine before the fix, which never read
+    a player's hexproof."""
+
+    YOU = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(Zone(ZoneKind.PLAYER, ControllerRef.YOU),))
+
+    def leyline(self, seat):
+        """A permanent with "You have hexproof." (templates_b16), controlled by ``seat``."""
+        handle = self.world.add_card(card_id("Leyline", type_line="Enchantment"), seat, ZONE_BATTLEFIELD)
+        hexproof = KeywordAbility(keyword=Keyword.HEXPROOF)
+        self.attach(handle, [StaticAbility(effect=atom(Verb.GRANT_ABILITY, target=self.YOU, ability=hexproof))])
+        return handle
+
+    def veil(self, seat, colors=("B", "U")):
+        """Veil of Summer's grant: you and the permanents you control, hexproof from the colours,
+        until end of turn."""
+        you_and_yours = Selector(
+            QUnbounded(), SelectorMode.ALL, FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            zones=(BF_ANY, Zone(ZoneKind.PLAYER, ControllerRef.YOU)),
+        )
+        quality = FOr(tuple(FAtom(FAtomPred.COLOR_HAS, color=c) for c in colors))
+        self.ex.apply_effect(
+            atom(Verb.GRANT_ABILITY, target=you_and_yours, duration=DurationEot(),
+                 ability=KeywordAbility(keyword=Keyword.HEXPROOF, params=(quality,))),
+            source=self.banner,
+            controller=seat,
+        )
+        self.settle()
+
+    def player_slot(self, source, seat, ref=ControllerRef.TARGET_PLAYER):
+        return set(player_target_slot(self.ex, seat, {ref}, source=source).candidates)
+
+    def players_in(self, selector, source, controller):
+        return set(legal_targets(self.world, self.ex, selector, source=source,
+                                 controller=controller).candidates) & {self.p0, self.p1}
+
+    def test_you_have_hexproof_refuses_the_opponents_target_player(self):
+        self.leyline(self.p1)
+        shock = self.spell_source("Shock", ("R",), self.p0)
+        self.assertEqual(self.player_slot(shock, self.p0), {self.p0})  # not p1
+        self.assertEqual(self.player_slot(shock, self.p0, ControllerRef.TARGET_OPPONENT), set())
+        # p1 still targets themself (702.11c: "your opponents control").
+        own = self.spell_source("Peer", ("B",), self.p1)
+        self.assertEqual(self.player_slot(own, self.p1), {self.p0, self.p1})
+
+    def test_a_player_zone_selector_and_any_target_leave_the_player_out(self):
+        self.leyline(self.p1)
+        shock = self.spell_source("Shock", ("R",), self.p0)
+        players = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(ANY_PLAYER,))
+        self.assertEqual(self.players_in(players, shock, self.p0), {self.p0})
+        any_target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(ANY_ANY,))
+        slot = legal_targets(self.world, self.ex, any_target, source=shock, controller=self.p0)
+        widened = _widen_any_target(self.ex, any_target, slot, shock, self.p0)
+        self.assertNotIn(self.p1, widened.candidates)
+        self.assertIn(self.p0, widened.candidates)
+
+    def test_hexproof_from_blue_and_black_refuses_only_those_colours(self):
+        bear = self.plain_creature("Bear", self.p1)  # a permanent p1 controls: hexproof too
+        self.veil(self.p1)
+        # CR 611.2c: the objects were fixed as the spell resolved; one entering later is not.
+        late = self.plain_creature("Late Bear", self.p1)
+        blue = self.spell_source("Opt", ("U",), self.p0)
+        black = self.spell_source("Duress", ("B",), self.p0)
+        red = self.spell_source("Shock", ("R",), self.p0)
+        for source in (blue, black):
+            self.assertEqual(self.player_slot(source, self.p0, ControllerRef.TARGET_OPPONENT), set())
+            self.assertNotIn(bear, self.targetable_creatures(source, self.p0))
+            self.assertIn(late, self.targetable_creatures(source, self.p0))
+        self.assertEqual(self.player_slot(red, self.p0, ControllerRef.TARGET_OPPONENT), {self.p1})
+        self.assertIn(bear, self.targetable_creatures(red, self.p0))
+
+    def test_the_grant_ends_with_the_turn(self):
+        self.veil(self.p1)
+        black = self.spell_source("Duress", ("B",), self.p0)
+        self.assertEqual(self.player_slot(black, self.p0, ControllerRef.TARGET_OPPONENT), set())
+        self.ex.layers.sweep_at_eot()
+        self.settle()
+        self.assertEqual(self.player_slot(black, self.p0, ControllerRef.TARGET_OPPONENT), {self.p1})
+
+    def test_a_trigger_targeting_an_opponent_with_hexproof_is_removed(self):
+        # CR 603.3d: "target opponent loses 2 life" with the only opponent hexproof.
+        self.leyline(self.p1)
+        lose = atom(Verb.LOSE_LIFE, controller=ControllerRef.TARGET_OPPONENT, amount=QConst(2))
+        drainer = self.world.add_card(card_id("Drainer", "1", "1"), self.p0, ZONE_HAND)
+        self.attach(drainer, [etb_trigger(lose)])
+        self.ex.execute(
+            atom(Verb.MOVE_ZONE,
+                 cards=Selector(QConst(1), SelectorMode.ALL, UNIV,
+                                zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),)),
+                 destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)),
+            source=drainer,
+            controller=self.p0,
+            bindings={"cards": drainer},
+        )
+        self.assertEqual(self.world.players[self.p1].life, 20)
 
 
 ANY_PLAYER = Zone(ZoneKind.PLAYER, ControllerRef.ANY)

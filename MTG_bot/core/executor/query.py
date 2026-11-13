@@ -103,7 +103,7 @@ from MTG_bot.core.executor.legality import (
     build_payment_plan,
     ctx_for,
     off_battlefield_activations,
-    protected_from,
+    player_targetable,
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
@@ -695,7 +695,10 @@ def optional_offer(
                 # way the target ask does (_widen_any_target), or a board with no creature or
                 # planeswalker would narrow Goblin Arsonist's may to skip
                 _player_widening_applies(value)
-                and any(not protected_from(executor, h, source) for h in executor.world.players)
+                and any(
+                    player_targetable(executor, h, source, controller)
+                    for h in executor.world.players
+                )
             ):
                 return MAY_VOCAB[1:]
     # The CAST atom's third unactionable shape. The compiler turns "you may
@@ -1214,7 +1217,7 @@ def player_target_slot(
     anywhere names an opponent: "that player" anaphora after "Target opponent
     reveals their hand" read TARGET_PLAYER, and the designating word decides.
     A player with protection from ``source`` (the spell, or the ability's
-    source) can't be its target (CR 702.16b)."""
+    source) or hexproof against ``seat`` can't be its target (CR 702.16b, 702.11c)."""
     players = executor.world.player_order
     opponent_only = ControllerRef.TARGET_OPPONENT in refs
     candidates = tuple(
@@ -1222,7 +1225,7 @@ def player_target_slot(
             h
             for h in players
             if not (opponent_only and h == seat)
-            and not protected_from(executor, h, source)
+            and player_targetable(executor, h, source, seat)
         )
     )
     ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
@@ -1357,7 +1360,7 @@ def _spell_slot(
     )
     if enum_value is not value:
         slot = replace(slot, selector=value)
-    widened = _widen_any_target(executor, value, slot, source)
+    widened = _widen_any_target(executor, value, slot, source, seat)
     if widened is not None:
         slot = widened
     return _clamp_cast_target_slot(executor, inner, role, slot, source, seat)
@@ -1715,22 +1718,23 @@ def _widen_any_target(
     executor: Executor,
     selector: Selector,
     slot: TargetSlot,
-    source: Handle | None = None,
+    source: Handle,
+    controller: Handle,
 ) -> TargetSlot | None:
     """Players join an "any target" population — the universal ANY-zone
     shape or the battlefield idiom (:func:`_player_widening_applies`); None
-    means "no widening applies". CR 702.16b: a player with protection from
-    ``source`` (the spell, or the source of the ability, doing the
-    targeting) is not added; the cards already faced the same veto in
-    ``enumerate_candidates``. Runed Halo naming Shock keeps its controller
-    out of Shock's "any target"."""
+    means "no widening applies". A player with protection from ``source``
+    (the spell, or the source of the ability, doing the targeting; CR
+    702.16b) or hexproof against ``controller`` (CR 702.11c) is not added;
+    the cards already faced the same vetoes in ``enumerate_candidates``.
+    Runed Halo naming Shock keeps its controller out of Shock's "any target"."""
     if not _player_widening_applies(selector):
         return None
     world = executor.world
     players = {h for h in world.players}
     if players & set(slot.candidates):
         return None
-    players = {h for h in players if not protected_from(executor, h, source)}
+    players = {h for h in players if player_targetable(executor, h, source, controller)}
     candidates = tuple(sorted(set(slot.candidates) | players))
     forced = slot.forced
     if isinstance(selector.count, QConst):
