@@ -1,0 +1,50 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "62c240ac-f2dd-4e39-9e82-50307efa833e",
+ "name": "Archfiend's Vessel",
+ "text_sha": "16e7fbc0ddfa982f0d051f7c81845e1c44b5fc28ca394d4f4dad6633d6bfe662",
+ "verified": {
+  "tree_sha": "c8f234752829a106ac8bcc9ed29da33c2e780b12ffce7bfd690b7c34ff9a0747",
+  "probe_sha": "45062a8dcd2f138d9f808c2fbbbee0487989cf52301642ae82ee1b7e85614923",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "clauses": [
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "attacks unblocked/blocked: you 20->21 (gain 1 with 1 damage)",
+    "issue": ""
+   },
+   {
+    "clause": "ETB from graveyard: exile it, if you do create 5/5 black flying Demon",
+    "status": "NOT_EXERCISED",
+    "evidence": "only hand entries in trace (no trigger, correct); packs A01_1 (graveyard) and A01_2 (hand)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/archfiend's_vessel_1.json",
+   "tools/scenarios/cards/M21/archfiend's_vessel_2.json",
+   "tools/scenarios/cards/M21/archfiend's_vessel_3.json",
+   "tools/scenarios/cards/M21/archfiend's_vessel_4.json",
+   "tools/scenarios/cards/M21/archfiend's_vessel_5.json",
+   "tools/scenarios/cards/M21/archfiend's_vessel_6.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 1,
+   "score": 0.1111111111111111,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/zone/controller",
+    "controller YOU->OPPONENT at 1/0/condition/children/1/zone/controller",
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "zone EXILE->GRAVEYARD at 1/0/effect/steps/0/args/destination",
+    "amount+1 at 1/0/effect/steps/1/then_effect/args/count"
+   ]
+  }
+ }
+}

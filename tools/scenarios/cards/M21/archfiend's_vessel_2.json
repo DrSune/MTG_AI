@@ -1,0 +1,30 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Entering from hand: no trigger, Vessel stays, no Demon.",
+ "cards": [
+  {
+   "key": "v",
+   "real": "Archfiend's Vessel",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "v"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "v": "battlefield"
+  },
+  "tokens": {
+   "Demon": 0
+  }
+ }
+}

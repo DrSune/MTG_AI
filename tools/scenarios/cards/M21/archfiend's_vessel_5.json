@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "vessel",
+   "real": "Archfiend's Vessel",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "B": 1
+   }
+  },
+  {
+   "op": "test_permission_cast",
+   "key": "vessel",
+   "from": "graveyard",
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "kick_rows": {
+   "vessel": {
+    "from": "graveyard"
+   }
+  },
+  "zone": {
+   "vessel": "exile"
+  },
+  "tokens": {
+   "Demon": 1
+  },
+  "battlefield_pt": {
+   "Demon": [
+    5,
+    5
+   ]
+  },
+  "battlefield_keywords": {
+   "Demon": [
+    "FLYING"
+   ]
+  },
+  "mana_pool": {
+   "1": {}
+  }
+ },
+ "notes": "Printed: if you cast it from your graveyard, exile it and create a 5/5 flying Demon. Seat 1 casts its own Vessel from its own graveyard: it is 'you' for that Vessel, so it exiles and makes the Demon. It is seat 1's own turn (a creature spell is sorcery speed)."
+}

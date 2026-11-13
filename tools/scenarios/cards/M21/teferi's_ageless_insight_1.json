@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: with Teferi's Ageless Insight, a draw other than the first in your draw step draws two. Seat 0 casts Crash Through (draw a card): draws 2, hand 2.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Teferi's Ageless Insight",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "name": "L1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "name": "L2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "name": "L3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ct",
+   "real": "Crash Through"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  }
+ }
+}
