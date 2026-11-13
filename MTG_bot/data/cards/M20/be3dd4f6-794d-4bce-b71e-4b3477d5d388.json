@@ -4,9 +4,126 @@
  "oracle_id": "be3dd4f6-794d-4bce-b71e-4b3477d5d388",
  "name": "Vengeful Warchief",
  "text_sha": "f558d56da975f0d3511cd37e00c56a7bce95fe0c364f07f3d62fd1b8a971ec35",
- "needs_atom": {
-  "missing": "An ordinal on LifeLostEvent: 'Whenever you lose life for the first time each turn' is the first life-loss event of the turn for you (CR 603.2). LifeLostEvent (2026-11-06) has only actor; only CastSpellEvent and CardDrawnEvent carry ordinal ('your second card each turn'). No trigger condition can stand in: EVENT_THIS_TURN counts life rows by their amount, so a first loss of 3 already counts 3 and a later loss cannot be told from the first. The effect maps (Scion of the Swarm's PUT_COUNTER on the source); needed: LifeLostEvent(actor=YOU, ordinal=1), counted per player by the binder like CardDrawnEvent.ordinal.",
-  "author": "claude-mapper-wave3",
-  "date": "2026-11-06"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeLostEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     },
+     "ordinal": 1
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-life-family",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever you lose life for the first time each turn, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since the life family (ontology gate round 7): LifeLostEvent(actor=YOU, ordinal=1), the first life loss of the turn, counted by the trigger binder over the whole turn (the ruling: a loss before it arrived uses up the turn). One loss is one source's damage at once or one effect's or payment's loss, so three creatures damaging you in one combat damage step are three losses, one of them first. Pack tools/scenarios/mapped/M20/vengeful_warchief_first_loss_each_turn.json (three attackers at once: one counter; the next turn's first loss: a second)."
+ },
+ "probe": {
+  "sha": "c58bdc59f540850264617496b52ea63f590221f5fdf3b60a9b3d2796a2d98eb9"
  }
 }

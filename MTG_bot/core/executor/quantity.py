@@ -103,8 +103,9 @@ class ExecCtx:
     rng: Callable[[str], random.Random] = _default_rng  # executor-owned seeds
     token_counts: dict[str, int] = field(default_factory=dict)
     # The event register: the triggering GameEvent (or None outside trigger
-    # context) and the damage amount it carried, so QProp("event", AMOUNT)
-    # and the event|result referents resolve inside a firing.
+    # context) and the damage or life amount it carried, so QProp("event",
+    # AMOUNT) and the event|result referents resolve inside a firing; inside
+    # a life-gain replacement's action, the replaced gain's amount.
     event: object = None
     event_amount: int | None = None
     # The counter count a CounterPlacedEvent replacement is rewriting
@@ -150,18 +151,22 @@ class ExecCtx:
     one_of_window: tuple[Handle, ...] = ()
     # Replacements consume the event and queue their ACTION; the action
     # runs AFTER the consuming atom's journal boundary (one diff per
-    # mutation, no double-emitted events). Damage and life replacements
+    # mutation, no double-emitted events). Damage and draw replacements
     # queue bare records (a bindings-less action ctx). A ZONE-CHANGE
     # replacement (Containment Priest) queues ``(record, moving card)`` so
     # the drain can bind the moving card as ``event`` for the action's
-    # referent selector. A COUNTER-PLACEMENT replacement (Conclave Mentor)
-    # queues ``(record, card, kind, count)``: the drain binds the receiving
-    # card as ``event`` AND publishes the placed count into
-    # ``event_counter_count`` so the action's "that many plus one" reads
-    # the EVENT, not the card's accumulated ledger.
+    # referent selector. A LIFE-GAIN replacement (Angel of Vitality) queues
+    # ``(record, player, amount)``: the drain binds the gaining player as
+    # ``event`` and publishes the replaced amount into ``event_amount``, so
+    # "that much life plus 1" reads the event. A COUNTER-PLACEMENT
+    # replacement (Conclave Mentor) queues ``(record, card, kind, count)``:
+    # the drain binds the receiving card as ``event`` AND publishes the
+    # placed count into ``event_counter_count`` so the action's "that many
+    # plus one" reads the EVENT, not the card's accumulated ledger.
     pending_replacements: list[
         ReplacementRecord
         | tuple[ReplacementRecord, Handle]
+        | tuple[ReplacementRecord, Handle, int]
         | tuple[ReplacementRecord, Handle, CounterKind, int]
     ] = field(default_factory=list)
     # The CR 614.4a loop guard (Life Goes On): the seqs of the
@@ -582,11 +587,12 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
             return ctx.event_counter_count
         return sum(ctx.world.cards[handle].counters.values())
     if field is QPropField.AMOUNT:
-        # The triggering event's damage amount (Brash Taunter).
+        # The triggering event's damage or life amount (Brash Taunter, Light of
+        # Promise), or the replaced gain's (Angel of Vitality).
         if ctx.event_amount is None:
             raise NotImplementedError(
-                "executor: QProp AMOUNT needs a triggering damage event "
-                "(fired from a DamageDealtEvent)"
+                "executor: QProp AMOUNT needs a damage or life event (a trigger "
+                "firing, or a life-gain replacement's action)"
             )
         return ctx.event_amount
     if field is QPropField.THIS_WAY_COUNT:
@@ -1649,6 +1655,20 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         player = players_for_ref(ControllerRef.YOU, ctx)[0]
         lead = world.players[player].life - ctx.executor.starting_life[player]
         return lead >= threshold
+    if pred is FAtomPred.LIFE_TOTAL_GE:
+        # Twinblade Paladin's "as long as you have 25 or more life": the player's
+        # life total now (CR 119.1), whatever it started at (CR 103.4; the card's
+        # ruling for formats that do not start at 20). ``who`` names one player
+        # (FAtom refuses a ref that names several), the judged handle is unused.
+        from MTG_bot.core.executor.selectors import players_for
+
+        assert atom.count is not None and atom.who is not None
+        players = players_for(atom.who, ctx)
+        if len(players) != 1:
+            raise ValueError(
+                f"executor: LIFE_TOTAL_GE reads one player's life, {atom.who!r} named {players}"
+            )
+        return world.players[players[0]].life >= resolve(atom.count, ctx)
     if pred is FAtomPred.LIFE_GAINED_THIS_TURN_GE:
         # Sanguine Indulgence's CostModifier condition: the
         # CARDS_DRAWN_THIS_TURN_GE twin over the LIFE_GAINED rows (subject is

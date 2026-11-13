@@ -1,11 +1,15 @@
-"""Turn-history conditions: the "if <condition>" phrases that read what happened this turn, as
-Filters.
+"""Conditions: the "if <condition>" phrases that read what happened this turn, and one that reads
+the game now (your life total), as Filters.
 
 One grammar for every place a condition is printed: an intervening "if" in a trigger (frames.py,
-CR 603.4), a trailing "if"/"unless" after an effect or a static ability (frames.py, templates_b14),
-and the relative clause of a target noun phrase (templates_b11). ``PATTERN`` is the grammar as a
-regex and ``condition`` builds the Filter of a phrase it matches, from the same table, so a
-template can never match a phrase it cannot encode.
+CR 603.4), a trailing "if"/"unless" after an effect or a static ability, and "as long as" before or
+after one (frames.py, templates_b14), and the relative clause of a target noun phrase
+(templates_b11). ``PATTERN`` is the grammar as a regex and ``condition`` builds the Filter of a
+phrase it matches, from the same table, so a template can never match a phrase it cannot encode.
+
+"You have N or more life" (Twinblade Paladin, Angel of Vitality, Serra Ascendant) reads
+``FAtomPred.LIFE_TOTAL_GE``, your life total now (CR 119.1); "N or less life" is the same atom
+negated at N + 1, never a second predicate.
 
 Most phrases read the one turn-history atom, ``FAtomPred.EVENT_THIS_TURN`` over an EventSpec:
 - "<you|an opponent|a player> lost [N or more] life this turn" (Savage Gorger, Knight of the Ebon
@@ -140,6 +144,13 @@ def _life_gained(m: re.Match[str]) -> Filter:
     )
 
 
+def _life_total(m: re.Match[str]) -> Filter:
+    n = _number(m.group("lt_n"))
+    if m.group("lt_dir") == "more":
+        return FAtom(pred=FAtomPred.LIFE_TOTAL_GE, who=ControllerRef.YOU, count=QConst(n))
+    return FNot(FAtom(pred=FAtomPred.LIFE_TOTAL_GE, who=ControllerRef.YOU, count=QConst(n + 1)))
+
+
 #: (phrase, builder). Group names are unique across the table, so PATTERN can join them.
 _PHRASES: Final[tuple[tuple[str, Callable[[re.Match[str]], Filter]], ...]] = (
     (rf"(?P<ll_who>you|an opponent|a player) lost (?:(?P<ll_n>{_N}) or more )?life this turn",
@@ -151,6 +162,7 @@ _PHRASES: Final[tuple[tuple[str, Callable[[re.Match[str]], Filter]], ...]] = (
     (r"an opponent (?:was|has been) dealt damage this turn", _opponent_dealt_damage),
     (r"a creature died this turn", _creature_died),
     (rf"you(?:'ve)? gained (?:(?P<lg_n>{_N}) or more )?life this turn", _life_gained),
+    (rf"you have (?P<lt_n>{_N}) or (?P<lt_dir>more|less) life", _life_total),
 )
 _COMPILED: Final = tuple((re.compile(p), build) for p, build in _PHRASES)
 

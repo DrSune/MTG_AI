@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you lose life for the first time each turn, put a +1/+1 counter on this creature.' (LifeLostEvent ordinal 1, CR 603.2). On the opponent's turn three unblocked 1/3s deal combat damage to seat 0 at once: three losses, one per source (CR 120.3a), all in one combat damage step (CR 510.2), of which one is the first: one counter, not three (20 -> 17). On the opponent's next turn one attacker deals that turn's first loss: a second counter (17 -> 16). The ruling: one counter however much life is lost. On the base (07bf26ff) the sentence did not compile: no counter.",
+ "cards": [
+  {"key": "chief", "real": "Vengeful Warchief", "zone": "battlefield", "controller": 0},
+  {"key": "a0", "name": "Opp Raider A", "type": "Creature — Orc", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "a1", "name": "Opp Raider B", "type": "Creature — Orc", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "a2", "name": "Opp Raider C", "type": "Creature — Orc", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"a0": true, "a1": true, "a2": true}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"a0": true}}
+ ],
+ "expect": {
+  "life": {"0": 16, "1": 20},
+  "counters": {"chief": {"PLUS_1_PLUS_1": 2}}
+ }
+}

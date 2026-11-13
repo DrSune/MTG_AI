@@ -513,19 +513,21 @@ def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
         # Replacement before apply, as in _v_deal_damage. A live
-        # LifeGainedEvent replacement (Life Goes On) consumes the event — no
-        # life mutation happens (the journal sees no gain at all), the
+        # LifeGainedEvent replacement (Angel of Vitality) consumes the event: no
+        # life mutation happens (the journal sees no gain at all), and the
         # replacement's ACTION runs as a nested journalled effect once this
-        # atom's boundary closes, and the CR 614.4a chain guard (the
-        # executor's drain) keeps the same record from re-replacing its own
-        # 8-life action.
+        # atom's boundary closes, with the gaining player bound as ``event`` and
+        # the replaced amount as the event's (CR 614.6: "that much life plus 1"
+        # reads QProp(event, AMOUNT)). The CR 614.5 chain guard (the executor's
+        # drain) keeps the same record from replacing its own action's gain. CR
+        # 119.10: a gain of 0 is no life-gain event, so nothing replaces it.
         repl = (
             ctx.replacements.replacement_for_life_gained(ctx, player)
-            if ctx.replacements is not None
+            if ctx.replacements is not None and n > 0
             else None
         )
         if repl is not None:
-            ctx.pending_replacements.append(repl)
+            ctx.pending_replacements.append((repl, player, n))
             ctx.events.append(
                 (
                     len(ctx.events),

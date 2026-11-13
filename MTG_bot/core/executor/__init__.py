@@ -950,6 +950,7 @@ class Executor:
                 entry = ctx.pending_replacements.pop(0)
                 repl_bindings: dict[str, Binding] | None = None
                 counter_reg: tuple[CounterKind, int] | None = None
+                amount_reg: int | None = None
                 if isinstance(entry, tuple):
                     if len(entry) == 4:
                         # Conclave Mentor: a counter-placement
@@ -961,6 +962,14 @@ class Executor:
                         repl, event_card, counter_kind, counter_n = entry
                         repl_bindings = {"event": [event_card]}
                         counter_reg = (counter_kind, counter_n)
+                    elif len(entry) == 3:
+                        # Angel of Vitality: a life-gain consumer queued
+                        # (record, gaining player, amount) — the action's
+                        # "that much life" is the replaced event's amount
+                        # (ADD(QProp(event, AMOUNT), 1)), the event register
+                        # a trigger firing carries too (binding._ctx).
+                        repl, event_player, amount_reg = entry
+                        repl_bindings = {"event": [event_player]}
                     else:
                         # Containment Priest: a zone-change consumer
                         # queued (record, moving card) — the action's
@@ -978,6 +987,7 @@ class Executor:
                 )
                 if counter_reg is not None:
                     inner.event_counter_count = counter_reg[1]
+                inner.event_amount = amount_reg
                 # The CR 614.5 chain guard travels with the action: the
                 # record that consumed THIS event cannot consume the event
                 # its own action produces.
