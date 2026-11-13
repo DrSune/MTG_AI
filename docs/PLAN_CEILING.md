@@ -1009,6 +1009,19 @@ a GPU window once they pass, whether or not gate B or F1 run.
 | the next GPU window | L's ratings; the skill spread by deck distribution; the first specialist if its tools passed | — |
 | then | one registered A/B (r29), chosen by what the window found: richer decks, own-decklist inputs, or both seats | — |
 
+**Amended 2026-11-13 02:25: the ceiling-read window comes before r28's read at 400.**
+- **Why:**
+  - r28's R3 is falsified (199 §5), and its gates have sat at about 0.54 against its init since
+    update 100 (199 §7).
+  - The package ordering lines carry no signal (202 §2).
+  - So the skill spread per deck distribution is the decisive next measurement, and more
+    plateaued updates add little before it.
+- **How:** the window runs as a pause in r28, as the look at 100 did, once its jobs are smoked on
+  CPU and its predictions are registered in a KNOWLEDGE note. It holds the skill spread per deck
+  distribution (coherent, package, drafted) and L's frozen ratings.
+- **What stays:** r28 resumes afterwards. Its read at 400 and the gate-B decision (196 §9) stay
+  as registered, later by the window's length (about 4-5 hours).
+
 ## 15. Red team (2026-11-12 evening, one reviewer on §14's first draft)
 
 | Finding | Severity | Disposition |

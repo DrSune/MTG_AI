@@ -24,8 +24,10 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     CostTap,
+    CounterKind,
     DurationEot,
     DurationPermanent,
+    EmblemSpec,
     FAnd,
     FAtom,
     FAtomPred,
@@ -43,10 +45,13 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import ability_playable, activate, ctx_for
+from MTG_bot.core.executor.query import activation_target_slots
 from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.executor.stack import StackObject, land_playable, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
+from MTG_bot.core.test_executor_control_follows import conclave_mentor_replacement
+from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _ORACLE = iter(range(1, 1 << 16))
 
@@ -84,7 +89,7 @@ def scope_you() -> Selector:
     return Selector(QConst(99), SelectorMode.ALL, CREATURE, zones=(BF_YOU,))  # pyright: ignore[reportArgumentType]
 
 
-def rec(name, oid, abilities=(), type_line="Creature", emblem=None) -> CardRecord:
+def rec(name, oid, abilities=(), type_line="Creature") -> CardRecord:
     creature = "Creature" in type_line
     walker = "Planeswalker" in type_line
     return CardRecord(
@@ -103,8 +108,7 @@ def rec(name, oid, abilities=(), type_line="Creature", emblem=None) -> CardRecor
         loyalty=3 if walker else None,  # CardRecord: int, PW-exactly
         keywords=(),
         abilities=tuple(abilities),
-        is_token=type_line == "Emblem",  # CardRecord: emblems are token-shaped
-        emblem=emblem,
+        is_token=False,
     )
 
 
@@ -121,12 +125,10 @@ class PermCase(unittest.TestCase):
     def settle(self):
         self.ex.layers.recompute()
 
-    def place(self, name, seat, type_line="Creature", abilities=(), emblem=None):
+    def place(self, name, seat, type_line="Creature", abilities=()):
         cid = card_id(name, "2", "2", type_line)
         handle = self.world.add_card(cid, seat, ZONE_BATTLEFIELD)
-        self.ex.attach_card(
-            handle, rec(name, cid.oracle_id, abilities, type_line, emblem)
-        )
+        self.ex.attach_card(handle, rec(name, cid.oracle_id, abilities, type_line))
         return handle
 
     def life(self, player):
@@ -545,74 +547,82 @@ class TestActivationWindow(PermCase):
 # ------------------------------------------------------------------ GET_EMBLEM
 
 
-EMBLEM_OID = "00000000-0000-0000-0002-000000000e01"
-
-
-def garruk_emblem():
-    return rec(
-        "Garruk's emblem",
-        EMBLEM_OID,
-        [
+def garruk_emblem() -> EmblemSpec:
+    """An emblem whose end-step trigger gains its owner 2 life."""
+    return EmblemSpec(
+        abilities=(
             TriggeredAbility(
-                TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)), None, gain(2)
-            )
-        ],
-        type_line="Emblem",
+                TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
+                None,
+                gain(2),
+            ),
+        )
     )
 
 
+def get_emblem(emblem: EmblemSpec, who: ControllerRef = ControllerRef.YOU) -> Atom:
+    return atom(Verb.GET_EMBLEM, emblem=emblem, controller=who)
+
+
 class TestEmblems(PermCase):
-    def source_card(self, emblem):
-        return self.place(
-            "Garruk, Unleashed",
-            self.p0,
-            type_line="Planeswalker",
-            abilities=[],
-            emblem=emblem,
-        )
+    """CR 114.2: "[player] gets an emblem with [ability]" puts an emblem into that player's command
+    zone, owned and controlled by them; its abilities ride the GET_EMBLEM (EmblemSpec)."""
+
+    def source_card(self):
+        return self.place("Garruk, Unleashed", self.p0, type_line="Planeswalker")
 
     def test_get_emblem_binds_owner_anchored_trigger(self):
-        pw = self.source_card(garruk_emblem())
+        pw = self.source_card()
         self.ex.begin_turn(self.p0)
-        events = self.ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=self.p0)
+        events = self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
         self.assertTrue(any(row[1] == "GET_EMBLEM" for row in events))
         self.assertEqual(len(self.ex.emblems), 1)
-        emblem_handle = next(iter(self.ex.emblems.values()))
+        emblem_handle = next(iter(self.ex.emblems))
         self.assertNotIn(emblem_handle, self.world.cards)  # never a world card
         self.assertEqual(self.ex.binder.emblem_owner[emblem_handle], self.p0)
         self.ex.end_turn()
         self.assertEqual(self.life(self.p0), 22)  # END_TURN trigger for the OWNER
         self.assertEqual(self.life(self.p1), 20)
 
-    def test_duplicate_emblem_is_idempotent(self):
-        pw = self.source_card(garruk_emblem())
-        first = self.ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=self.p0)
-        second = self.ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=self.p0)
-        self.assertFalse(any(row[-1] == "duplicate" for row in first))
-        self.assertTrue(any(row[-1] == "duplicate" for row in second))
-        self.assertEqual(len(self.ex.emblems), 1)
-        handle = next(iter(self.ex.emblems.values()))
-        bound = sum(1 for (h, _i) in self.ex.binder.attached if h == handle)
-        self.assertEqual(bound, 1)  # ONE trigger binding, not two
+    def test_each_get_emblem_makes_a_new_emblem(self):
+        # CR 114.2: each effect puts its own emblem into the command zone, so two emblems with
+        # the same ability trigger twice (Chandra, Awakened Inferno's +2, used again).
+        pw = self.source_card()
+        self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
+        self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
+        self.assertEqual(len(self.ex.emblems), 2)
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]  # the two triggers' order
         self.ex.begin_turn(self.p0)
         self.ex.end_turn()
-        self.assertEqual(self.life(self.p0), 22)  # NOT 24 — one emblem, one trigger
+        self.assertEqual(self.life(self.p0), 24)  # two emblems, two triggers
+
+    def test_each_opponent_gets_one_and_is_its_you(self):
+        # "Each opponent gets an emblem with ...": the opponent owns it, so "your end step" is
+        # theirs and "you" gain the life.
+        stock_libraries(self.world)
+        pw = self.source_card()
+        self.ex.execute(get_emblem(garruk_emblem(), ControllerRef.ALL_OPPONENTS), source=pw,
+                        controller=self.p0)
+        self.assertEqual(list(self.ex.binder.emblem_owner.values()), [self.p1])
+        self.ex.begin_turn(self.p0)
+        self.ex.end_turn()
+        self.assertEqual((self.life(self.p0), self.life(self.p1)), (20, 20))
+        self.ex.begin_turn(self.p1)
+        self.ex.end_turn()
+        self.assertEqual((self.life(self.p0), self.life(self.p1)), (20, 22))
 
     def test_emblem_static_anchors_to_owner(self):
-        emblem = rec(
-            "Liliana's emblem",
-            "00000000-0000-0000-0002-000000000e02",
-            [
+        emblem = EmblemSpec(
+            abilities=(
                 StaticAbility(
                     effect=atom(Verb.GRANT_TYPE, target=scope_you(), types=("Demon",))
-                )
-            ],
-            type_line="Emblem",
+                ),
+            )
         )
-        pw = self.source_card(emblem)
+        pw = self.source_card()
         self.place("Ally", self.p0)
         self.place("Foe", self.p1)
-        self.ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=self.p0)
+        self.ex.execute(get_emblem(emblem), source=pw, controller=self.p0)
         self.settle()
         overlays = {
             self.world.cards[h].identity.name: self.ex.layers.type_overlay(h)
@@ -622,26 +632,87 @@ class TestEmblems(PermCase):
         self.assertEqual(overlays["Ally"], ("Demon",))  # "creatures you control"
         self.assertEqual(overlays["Foe"], ())
 
-    def test_orphan_and_unbound_sources_raise(self):
-        bare = self.place("Amnesia", self.p0, type_line="Planeswalker")
-        with self.assertRaises(ValueError):
-            self.ex.execute(atom(Verb.GET_EMBLEM), source=bare, controller=self.p0)
-        ghost = type(bare)("card", 999_998)
-        with self.assertRaises(ValueError):
-            self.ex.execute(atom(Verb.GET_EMBLEM), source=ghost, controller=self.p0)
-
     def test_get_emblem_rejects_roles(self):
-        pw = self.source_card(garruk_emblem())
         with self.assertRaises(ValueError):
-            self.ex.execute(
-                atom(Verb.GET_EMBLEM, target=target_sel()),
-                source=pw,
-                controller=self.p0,
-            )
+            atom(Verb.GET_EMBLEM, emblem=garruk_emblem(), controller=ControllerRef.YOU,
+                 target=target_sel())
+        with self.assertRaises(ValueError):
+            atom(Verb.GET_EMBLEM)  # no emblem, nobody to get it
+
+    def test_another_abilitys_targets_are_its_own(self):
+        # CR 602.2b, 603.3d: an emblem's triggered ability chooses its targets when it triggers,
+        # a granted ability when it is activated: never the ability that makes or grants them
+        # (Liliana, Waker of the Dead's -7; Sorin, Vampire Lord's -8 gave its "target creature"
+        # slot to the -8 itself). "Target opponent gets an emblem" is the -8's own target.
+        pw = self.source_card()
+        foe = self.place("Foe", self.p1)
+        reanimate = TriggeredAbility(
+            TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
+            None,
+            atom(Verb.TAP, target=target_sel()),
+        )
+        targeted = EmblemSpec(abilities=(reanimate,))
+        mine = get_emblem(targeted)
+        theirs = get_emblem(targeted, ControllerRef.TARGET_OPPONENT)
+        self.assertEqual(activation_target_slots(self.ex, mine, source=pw, seat=self.p0), [])
+        slots = activation_target_slots(self.ex, theirs, source=pw, seat=self.p0)
+        self.assertEqual([s.candidates for s in slots], [(self.p1,)])
+        grant = atom(
+            Verb.GRANT_ABILITY,
+            target=scope_you(),
+            ability=ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=atom(Verb.TAP, target=target_sel())),
+            duration=DurationEot(),
+        )
+        self.assertEqual(activation_target_slots(self.ex, grant, source=pw, seat=self.p0), [])
+        self.assertIn(foe, self.world.cards)
+
+    def test_an_emblems_choice_is_asked_of_its_owner(self):
+        # CR 114.2, 114.4: an emblem's ability is its owner's, so a choice in it is the owner's,
+        # asked as a card's is (before, a non-card source took the first candidate silently).
+        pw = self.source_card()
+        self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
+        emblem = next(iter(self.ex.emblems))
+        first, second = self.place("Ally", self.p0), self.place("Other", self.p0)
+        asks = []
+
+        def provider(vocab, what):
+            asks.append((what, self.ex.decisions.asking_seat))
+            return str(second)
+
+        self.ex.decisions.provider = provider
+        creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        one = Selector(QConst(1), SelectorMode.CHOOSE, creature, zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),))
+        self.ex.execute(atom(Verb.TAP, target=one), source=emblem, controller=self.p0)
+        self.assertEqual([seat for _, seat in asks], [self.p0])
+        self.assertTrue(asks[0][0].startswith(f"choose:{emblem}:"), asks)
+        self.assertEqual((self.world.cards[first].tapped, self.world.cards[second].tapped), (False, True))
+
+    def _counters_under_an_emblem(self, who: ControllerRef) -> tuple[int, int]:
+        """Conclave Mentor's counter replacement as the text of an emblem P0's planeswalker gives
+        ``who``; one +1/+1 counter is then put on P0's creature and one on P1's."""
+        pw = self.source_card()
+        mine, theirs = self.place("Ally", self.p0), self.place("Foe", self.p1)
+        replacement = EmblemSpec(abilities=(conclave_mentor_replacement(),))
+        self.ex.execute(get_emblem(replacement, who), source=pw, controller=self.p0)
+        counter = atom(Verb.PUT_COUNTER, target=target_sel(), counter_kind=CounterKind.PLUS_1_PLUS_1,
+                       count=QConst(1))
+        for creature in (mine, theirs):
+            self.ex.execute(counter, source=pw, controller=self.p0, bindings={"target": creature})
+        return (self.world.cards[mine].counters.get("PLUS_1_PLUS_1", 0),
+                self.world.cards[theirs].counters.get("PLUS_1_PLUS_1", 0))
+
+    def test_an_emblems_replacement_reads_its_owner_as_you(self):
+        # CR 114.4: an emblem's replacement ability works from the command zone, its "you" the
+        # emblem's owner (DOM Jaya Ballard's emblem has one). Before, the replacement registry
+        # asked for the emblem's controller as of a card on the battlefield and raised.
+        self.assertEqual(self._counters_under_an_emblem(ControllerRef.YOU), (2, 1))
+
+    def test_an_opponents_emblem_replacement_reads_the_opponent_as_you(self):
+        self.assertEqual(self._counters_under_an_emblem(ControllerRef.ALL_OPPONENTS), (1, 2))
 
     def test_binder_dump_has_emblems_row(self):
-        pw = self.source_card(garruk_emblem())
-        self.ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=self.p0)
+        pw = self.source_card()
+        self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
         rows = {row[0] for row in self.ex.binder.dump()}
         self.assertIn("emblems", rows)
 
@@ -691,27 +762,7 @@ class TestEmblems(PermCase):
                 "Planeswalker",
             )
             pw = world.add_card(g, p0, ZONE_BATTLEFIELD)
-            ex.attach_card(
-                pw,
-                rec(
-                    "Garruk, Unleashed",
-                    g.oracle_id,
-                    [],
-                    "Planeswalker",
-                    emblem=rec(
-                        "Garruk's emblem",
-                        EMBLEM_OID,
-                        [
-                            TriggeredAbility(
-                                TurnPhaseEvent(Phase.END_TURN, actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),
-                                None,
-                                gain(2),
-                            )
-                        ],
-                        "Emblem",
-                    ),
-                ),
-            )
+            ex.attach_card(pw, rec("Garruk, Unleashed", g.oracle_id, [], "Planeswalker"))
             host_id = fixed("00000000-0000-0000-0009-000000000b01", "Boar")
             host = world.add_card(host_id, p1, ZONE_BATTLEFIELD)
             ex.attach_card(host, rec("Boar", host_id.oracle_id))
@@ -727,13 +778,42 @@ class TestEmblems(PermCase):
                 controller=p0,
                 bindings={"target": host},
             )
-            ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=p0)
-            ex.execute(atom(Verb.GET_EMBLEM), source=pw, controller=p0)  # duplicate row
+            ex.execute(get_emblem(garruk_emblem()), source=pw, controller=p0)
+            ex.execute(get_emblem(garruk_emblem()), source=pw, controller=p0)  # a second emblem
+            ex.decisions.provider = lambda vocab, what: vocab[0]  # the two triggers' order
             ex.attach_aura(pw, host)  # oracle edge write (table is opaque in v1)
             ex.end_turn()
             return ex.state_fingerprint()
 
         self.assertEqual(script(11), script(11))
+
+
+class TestEmblemRecipients(PermCase):
+    """Who gets the emblem with three seats, where "each opponent" and "target opponent" differ
+    (CR 114.2; the recipients EMBLEM_RECIPIENTS allows)."""
+
+    def setUp(self):
+        self.world = GameWorld(num_players=3, start_life=20, master_seed=21)
+        self.p0, self.p1, self.p2 = self.world.player_order
+        self.ex = Executor(self.world)
+        self.pw = self.place("Garruk, Unleashed", self.p0, type_line="Planeswalker")
+
+    def owners(self):
+        return sorted(self.ex.binder.emblem_owner.values())
+
+    def test_each_opponent_gets_one(self):
+        self.ex.execute(get_emblem(garruk_emblem(), ControllerRef.ALL_OPPONENTS), source=self.pw,
+                        controller=self.p0)
+        self.assertEqual(self.owners(), [self.p1, self.p2])
+
+    def test_the_target_opponent_gets_one(self):
+        self.ex.execute(get_emblem(garruk_emblem(), ControllerRef.TARGET_OPPONENT), source=self.pw,
+                        controller=self.p0, bindings={"target": self.p2})
+        self.assertEqual(self.owners(), [self.p2])
+
+    def test_you_get_one(self):
+        self.ex.execute(get_emblem(garruk_emblem()), source=self.pw, controller=self.p0)
+        self.assertEqual(self.owners(), [self.p0])
 
 
 if __name__ == "__main__":  # pragma: no cover

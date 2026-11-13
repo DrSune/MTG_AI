@@ -220,7 +220,7 @@ def test_v3_excludes_referent_and_non_target_modes():
 def test_v1_clean_on_the_live_module():
     out = oc.check_v1()
     assert out["unclassified"] == [] and out["stale"] == []
-    assert out["container_fields"] == out["classify_tokens"] == 26
+    assert out["container_fields"] == out["classify_tokens"] == 27
 
 
 def test_v1_reports_unclassified_and_stale(monkeypatch):

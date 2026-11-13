@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "vivien_reid_emblem_anthem",
+ "notes": "Printed: '[−8]: You get an emblem with \"Creatures you control get +2/+2 and have vigilance, trample, and indestructible.\"' Vivien at 8 loyalty uses her -8 and goes to the graveyard at 0 loyalty; the emblem stays (CR 114.4). Its static ability gives her controller's creatures +2/+2, vigilance, trample and indestructible, the one already there and the one that enters later alike, and the opponent's nothing. The emblem rides the -8's GET_EMBLEM in the FDN record (2026-11-13). Before, the emblem-encoding branch left the -8 unparsed, its quote compiling to nothing, and the pack fails there; main played it from the 'Vivien Reid Emblem' entry's record, attached to the -8 by name.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "viv", "real": "Vivien Reid", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "viv", "set": 8, "seat": 0},
+  {"op": "activate", "key": "viv", "idx": 2, "seat": 0},
+  {"op": "enter", "key": "wolf"}
+ ],
+ "expect": {
+  "zone": {"viv": "graveyard", "wolf": "battlefield"},
+  "power": {"bear": 4, "wolf": 3, "ogre": 3},
+  "toughness": {"bear": 4, "wolf": 3, "ogre": 3},
+  "battlefield_keywords": {"Bear": ["INDESTRUCTIBLE", "TRAMPLE", "VIGILANCE"], "Wolf": ["INDESTRUCTIBLE", "TRAMPLE", "VIGILANCE"], "Ogre": []}
+ }
+}

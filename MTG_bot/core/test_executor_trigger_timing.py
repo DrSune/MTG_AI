@@ -34,7 +34,7 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     DurationEot,
     EachPlayer,
-    EmblemAbility,
+    EmblemSpec,
     EtBState,
     FAtom,
     FAtomPred,
@@ -203,7 +203,9 @@ REFUSED = {
     "in a static ability": lambda: StaticAbility(effect=GATED),
     "in a replacement": lambda: ReplacementAbility(event=YOU_DRAW, condition=None, action=GATED),
     "in an enters-with state": lambda: EtBState(effect=GATED),
-    "in an emblem's ability": lambda: EmblemAbility(embedded=_trigger(GATED)),
+    "in an emblem's ability": lambda: ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=Atom(
+        Verb.GET_EMBLEM, AtomArgs(pairs=(("controller", ControllerRef.YOU),
+                                         ("emblem", EmblemSpec(abilities=(_trigger(GATED),))))))),
 }
 
 

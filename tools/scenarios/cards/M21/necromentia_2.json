@@ -9,7 +9,7 @@
  ],
  "steps": [
   {"op": "mana", "seat": 0, "add": {"B": 2, "C": 1}},
-  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Grim Twin"]}
+  {"op": "cast", "key": "nec", "controller": 0, "targets": ["p1"], "decisions": ["Grim Twin", "card:1", "card:2"]}
  ],
  "expect": {
   "zone": {"h1": "exile", "lib": "exile"},
@@ -17,5 +17,5 @@
   "battlefield_pt": {"Zombie": [2, 2]},
   "hand": {"1": 0}
  },
- "notes": "Printed: '... creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' One copy exiled from the opponent's hand and one from their library: exactly one Zombie (the library copy does not count), and it is a 2/2."
+ "notes": "Printed: '... creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' One copy exiled from the opponent's hand and one from their library: exactly one Zombie (the library copy does not count), and it is a 2/2. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved (a cast step's resolution asks read handles)."
 }

@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationPermanent,
     DurationUntilLeaves,
+    EmblemSpec,
     EventSpec,
     FAnd,
     FAtom,
@@ -59,6 +60,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    canonical_json,
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.offers import offer_or_autopick
@@ -122,37 +124,44 @@ def _move_to(
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
 
 
-def _discard_picks(ctx: ExecCtx, sel: Selector, player: Handle) -> list[Handle]:
-    """The cards ``player`` discards for one discard instruction.
+def _hand_picks(ctx: ExecCtx, sel: Selector, player: Handle, discard: bool) -> list[Handle]:
+    """The cards ``player`` moves out of their own hand for one instruction: a discard (CR
+    701.9a, to the graveyard) or a put ("put two cards from your hand on top of your library",
+    Cavalier of Gales).
 
-    A discard moves cards from the discarding player's OWN hand (CR 701.9a), so the pool is that
-    hand re-read at take time and filtered through the Selector (the raw Selector population of
-    Bad Deal spans both hands). Fewer cards than the count simply discards fewer. CR 701.9b: by
-    default the discarding player chooses which cards; a CHOOSE discard asks THAT player, one
-    card per ask over the shrinking hand, in the cost lane's ``discard:<seat>:<source>:<digest>``
-    shape (legality.pay_costs). A fixed count no smaller than the pool leaves no choice and asks
-    nothing. "Up to N" (QAtMost) lets the player stop at any pick, the first included: "up to N"
-    names every number from zero to N. RANDOM keeps the executor-seeded draw; QUnbounded takes
-    the whole pool.
+    The pool is that player's OWN hand, re-read at take time and filtered through the Selector
+    (the raw Selector population of Bad Deal spans both hands). Fewer cards than the count simply
+    moves fewer. The player whose hand it is chooses which cards (CR 701.9b for a discard): a
+    CHOOSE asks THAT player, one card per ask over the shrinking hand. A discard is asked in the
+    cost lane's ``discard:<seat>:<source>:<digest>`` shape (legality.pay_costs); a put elsewhere is
+    no discard, so it is asked as the effect lane's choice, ``choose:<source>:<i>of<n>:<digest>``
+    (selectors.resolve_selector). A fixed count no smaller than the pool leaves no choice and asks
+    nothing. "Up to N" (QAtMost) and "any number" (QUnbounded, every number from zero to the whole
+    hand, CR 107.1c) let the player stop at any pick with NONE, the first included. RANDOM keeps
+    the executor-seeded draw; ALL ("discard your hand") takes the whole pool.
     """
     live = list(ctx.world.players[player].zone(ZONE_HAND).entries)
     pool = sorted(h for h in live if eval_filter(sel.filter, h, ctx))
     if sel.mode is SelectorMode.RANDOM:
         rng = ctx.rng("RANDOM")
         rng.shuffle(pool)  # seeded: replay-identical
-    if isinstance(sel.count, QUnbounded):
+    unbounded = isinstance(sel.count, QUnbounded)
+    if unbounded and sel.mode is not SelectorMode.CHOOSE:
         return pool
-    want = resolve(sel.count, ctx)
-    optional = isinstance(sel.count, QAtMost)
+    want = len(pool) if unbounded else resolve(sel.count, ctx)
+    optional = unbounded or isinstance(sel.count, QAtMost)
     if sel.mode is not SelectorMode.CHOOSE or want <= 0 or (want >= len(pool) and not optional):
         return pool[:want]
     picks: list[Handle] = []
     remaining = list(pool)
-    for _pick in range(min(want, len(pool))):
+    for pick_no in range(min(want, len(pool))):
         vocab = tuple(str(h) for h in remaining) + (("NONE",) if optional else ())
-        answer = ctx.take_decision_of(
-            player, vocab, f"discard:{player}:{ctx.source}:{site_digest(vocab)}"
-        )
+        if discard:
+            what = f"discard:{player}:{ctx.source}:{site_digest(vocab)}"
+        else:
+            mid = f"{pick_no + 1}of{want}:" if want > 1 else ""
+            what = f"choose:{ctx.source}:{mid}{site_digest(vocab)}"
+        answer = ctx.take_decision_of(player, vocab, what)
         if answer == "NONE":
             break
         pick = next(h for h in remaining if str(h) == answer)
@@ -237,11 +246,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     in (SelectorMode.ONE_OF, SelectorMode.REST),
                 )
             else:
-                # CR 608.2e / 101.4: the discarding players choose in APNAP
-                # order, then the cards are discarded simultaneously (below).
+                # CR 608.2e / 101.4: the players choose in APNAP order, then
+                # the cards move simultaneously (below).
                 cards = []
                 for player in apnap_order(ctx.world, players):
-                    cards.extend(_discard_picks(ctx, sel, player))
+                    cards.extend(_hand_picks(ctx, sel, player, dest_kind == ZONE_GRAVEYARD))
         hands = {p: ctx.world.players[p].zone(ZONE_HAND).entries for p in players}
         moved: list = []
         # Cards put from a hand into a library (Cavalier of Gales: "put two cards from your hand
@@ -298,10 +307,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
         n = 0 if isinstance(sel.count, QUnbounded) else resolve(sel.count, ctx)
         # The ONE_OF/REST partition modes SELECT specific cards (the pick /
-        # its complement) — the top-n draw idiom and the count clamp apply
-        # to the CHOOSE/draw idioms only; a partition atom moves exactly what
-        # its Selector resolves.
-        partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+        # its complement), and so does an ALL over the looked-at cards (the
+        # top of a library: every card of the window that passes the filter,
+        # selectors.resolve_selector) — the top-n draw idiom and the count
+        # clamp apply to the CHOOSE/draw idioms only; a partition atom moves
+        # exactly what its Selector resolves.
+        partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST) or (
+            sel.mode is SelectorMode.ALL
+            and any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP for z in sel.zones)
+        )
         # The draw idiom is "move THE top n of your library to hand" — an
         # UNFILTERED, referent-less selector. A filtered CHOOSE on a library
         # zone is a SEARCH tail ("put IT into your hand", Chandra's Firemaw):
@@ -1686,6 +1700,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
             ctx,
             journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
             ask_choose=True,  # a CHOOSE search designation is a decision
+            search=True,  # its searcher sees the searched zones, hidden or not (CR 701.23a)
         )
         if h.namespace == "card"
     ]
@@ -2107,43 +2122,48 @@ def _v_mana_policy(ctx: ExecCtx, atom: Atom) -> None:
     ctx.events.append((len(ctx.events), "MANA_POLICY", str(ctx.source), scope))
 
 
-def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
-    """GET_EMBLEM: the emblem is a nested
-    ``CardRecord`` on the SOURCE's compiled record (the compiler links
-    owner -> emblem one-directionally), so the handler resolves the record
-    through the binder bridge and hands the emblem record to the binder's
-    emblem path (:meth:`binding.TriggerBinder.bind_emblem`) under a
-    synthetic executor-owned handle. The emblem is NOT a world card — it
-    never enters a zone; its triggers bind to the OWNER and its statics
-    anchor to the OWNER (the emblem's "you"). CR 113.7: getting a second
-    copy of the same emblem does nothing — the (owner, emblem oid) table is
-    the idempotence gate, recorded as a duplicate event, never a rebind."""
-    executor = _executor_or_raise(ctx, atom.verb.name)
-    record = executor.binder.handle_record.get(ctx.source)
-    if record is None:
-        state = ctx.world.cards.get(ctx.source)
-        if state is not None:
-            record = executor.binder.records.get(state.identity.oracle_id)
-    if record is None:
-        raise ValueError(
-            f"executor: GET_EMBLEM source {ctx.source} has no compiled record "
-            "to carry an emblem (attach the permanent or register its oracle)"
-        )
-    if record.emblem is None:
-        raise ValueError(
-            f"executor: {record.name} carries no emblem record — the compiler "
-            "found no paired emblem card (orphan flag, not a guess)"
-        )
-    granted = executor.get_emblem(ctx.controller, record.emblem)
-    ctx.events.append(
-        (
-            len(ctx.events),
-            "GET_EMBLEM",
-            str(ctx.source),
-            record.emblem.oracle_id,
-            str(granted) if granted is not None else "duplicate",
-        )
+def emblem_record(spec: EmblemSpec, source_name: str) -> CardRecord:
+    """The record an emblem binds under (``binding.TriggerBinder.bind_emblem``): the spec's
+    abilities and nothing else (CR 114.3), under a deterministic uuid-shaped hash of the spec, so
+    one emblem text is one record whichever card makes it. The name is a label for traces only
+    (an emblem has no name, CR 114.3)."""
+    digest = hashlib.sha256(("mtg-emblem:" + canonical_json(spec)).encode()).hexdigest()
+    return CardRecord(
+        oracle_id=f"{digest[:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}",
+        name=f"{source_name} Emblem",
+        type_line="Emblem",
+        types=("Emblem",),
+        subtypes=(),
+        supertypes=(),
+        colors=(),
+        color_identity=frozenset(),
+        mana_cost=None,
+        mana_value=0,
+        power=None,
+        toughness=None,
+        loyalty=None,
+        keywords=(),
+        abilities=spec.abilities,
+        is_token=True,
     )
+
+
+def _v_get_emblem(ctx: ExecCtx, atom: Atom) -> None:
+    """GET_EMBLEM (CR 114.2): each player the ``controller`` role names gets an emblem with the
+    EmblemSpec's abilities, which that player owns and controls: "you" (YOU), "each opponent"
+    (ALL_OPPONENTS), "target opponent" (the designation). Every GET_EMBLEM puts a NEW emblem into
+    the command zone, so a second one works beside the first (Chandra, Awakened Inferno's +2,
+    used again, makes another). The emblem is not a world card: it is executor state under a
+    synthetic handle, and its owner is its "you" (:meth:`binding.TriggerBinder.bind_emblem`: its
+    triggers bind to the owner, its statics anchor to the owner, its replacements register)."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    spec = atom.args.get("emblem")
+    assert isinstance(spec, EmblemSpec)  # Atom validation guarantees it
+    source = ctx.world.cards.get(ctx.source)
+    record = emblem_record(spec, source.identity.name if source is not None else "Card")
+    for player in sorted(role_players(ctx, atom)):
+        handle = executor.get_emblem(player, record)
+        ctx.events.append((len(ctx.events), "GET_EMBLEM", str(ctx.source), str(player), str(handle)))
 
 
 def _v_grant_type(ctx: ExecCtx, atom: Atom) -> None:

@@ -45,6 +45,7 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("CardRecord", "abilities"): "IDENTITY",
     ("BackFace", "abilities"): "IDENTITY",
     ("TokenSpec", "abilities"): "IDENTITY",
+    ("EmblemSpec", "abilities"): "IDENTITY",
     ("CardRecord", "types"): "IDENTITY",
     ("CardRecord", "subtypes"): "IDENTITY",
     ("CardRecord", "supertypes"): "IDENTITY",

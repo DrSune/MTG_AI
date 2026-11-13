@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     DurationUntilEndOfNextTurn,
     Effect,
+    EmblemSpec,
     FAnd,
     FAtom,
     FAtomPred,
@@ -67,7 +68,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     walk,
 )
-from MTG_bot.core.compiler.ingest import RawCard
+from MTG_bot.core.compiler.ingest import RawCard, split_sentences
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     ActivationGateOutcome,
@@ -218,6 +219,89 @@ def _phase_in_prevention_effect() -> Atom:
             )
         ),
     )
+
+
+# "[−8]: You get an emblem with "…"" and its recipients (CR 114.2): you, each opponent, target
+# opponent, as the ``controller`` role names them for every player verb. The quote ends the
+# sentence or the ability goes on after it (Nissa, Who Shakes the World's "... Search your library
+# for any number of Forest cards, ..."). The loyalty cost is required: no other emblem maker of the
+# 19 sets has a wording the compiler reads.
+_EMBLEM_RE = re.compile(
+    r'^\[(?P<loy>[+\u2212]\d+)\]: (?P<who>You get|Each opponent gets|Target opponent gets) '
+    r'an emblem with "(?P<quote>.+)"(?: (?P<rest>.+))?$'
+)
+_EMBLEM_RECIPIENT = {
+    "You get": ControllerRef.YOU,
+    "Each opponent gets": ControllerRef.ALL_OPPONENTS,
+    "Target opponent gets": ControllerRef.TARGET_OPPONENT,
+}
+
+
+def _emblem_sentences(
+    raw: RawCard, registry: TemplateRegistry
+) -> dict[int, tuple[SentenceOutcome, tuple[int, ...]]]:
+    """The loyalty abilities that make an emblem, by sentence index: the outcome, and the indices
+    of the sentences after it that the sentence split cut out of its quote ("... under your
+    control. It gains haste."", Liliana, Waker of the Dead's [−7]).
+
+    The quote is the emblem's own text: it compiles as a card of its own (an emblem has no
+    characteristics but its abilities, CR 114.3) through the same templates, and its abilities
+    ride the GET_EMBLEM atom as its EmblemSpec, so the card shows what its emblem does. An emblem
+    whose text does not compile in full leaves the sentence unparsed: never an empty emblem."""
+    out: dict[int, tuple[SentenceOutcome, tuple[int, ...]]] = {}
+    sentences = raw.sentences
+    for i, sentence in enumerate(sentences):
+        if not sentence.startswith("[") or " an emblem with \"" not in sentence:
+            continue
+        joined, taken = sentence, []
+        while joined.count('"') % 2 and i + len(taken) + 1 < len(sentences):
+            taken.append(i + len(taken) + 1)
+            joined = f"{joined} {sentences[taken[-1]]}"
+        m = _EMBLEM_RE.fullmatch(joined)
+        if m is None:
+            continue
+        name = f"{raw.identity.name} Emblem"
+        text = replace(
+            raw,
+            identity=replace(raw.identity, name=name),
+            type_line="Emblem",
+            types=("Emblem",),
+            subtypes=(),
+            supertypes=(),
+            colors=(),
+            color_identity=frozenset(),
+            mana_cost_raw=None,
+            mana_value=0,
+            power_raw=None,
+            toughness_raw=None,
+            loyalty_raw=None,
+            keywords=(),
+            sentences=split_sentences(m.group("quote")),
+            layout="emblem",
+            is_token=False,
+            is_emblem=True,
+            back_face=None,
+        )
+        try:
+            result = compile_card(text, registry)
+            emblem = EmblemSpec(abilities=result.card.abilities)
+        except (ValueError, StateCorruptionError):
+            continue
+        if result.unparsed or result.ambiguities or result.card.keywords:
+            continue  # an emblem has abilities only (CR 114.3)
+        who = _EMBLEM_RECIPIENT[m.group("who")]
+        effect: Effect = Atom(
+            verb=Verb.GET_EMBLEM, args=AtomArgs(pairs=(("emblem", emblem), ("controller", who)))
+        )
+        if m.group("rest"):
+            rest = [c.outcome for c in registry.match(m.group("rest"))]
+            if not rest or not isinstance(rest[0], EffectOutcome):
+                continue
+            effect = Seq(steps=(effect, rest[0].effect))
+        delta = int(m.group("loy").replace("\u2212", "-"))
+        ability = ActivatedAbility(cost=Cost(parts=(CostLoyalty(delta),)), effect=effect)
+        out[i] = (AbilityOutcome(ability=ability), tuple(taken))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -661,16 +745,15 @@ class CompileResult:
 class PoolCompile:
     """The output of compiling a full pool.
 
-    ``cards``          — oracle_id → CardRecord (excludes emblems).
-    ``emblems``        — oracle_id → emblem CardRecord.
-    ``orphan_emblems`` — oracle_ids of emblems whose owner was not found.
+    ``cards``          — oracle_id → CardRecord (excludes emblem entries).
+    ``emblems``        — oracle_id → emblem entry's CardRecord (an emblem as its own MTGJSON
+                         entry; the card that makes it carries it in its GET_EMBLEM atom).
     ``results``        — oracle_id → CompileResult for every card.
     ``summary``        — aggregate stats (total, fully, partially, …).
     """
 
     cards: dict[str, CardRecord]
     emblems: dict[str, CardRecord]
-    orphan_emblems: tuple[str, ...]
     results: dict[str, CompileResult]
     summary: dict[str, Any]
 
@@ -1604,7 +1687,22 @@ def compile_card(
     # (unparsed).
     outcomes: list[_OutcomeSlot] = []
 
-    for sentence in raw.sentences:
+    # Step 0: the abilities that make an emblem (compiler built-in: the quote is compiled as the
+    # emblem's own text, _emblem_sentences).
+    emblems = _emblem_sentences(raw, registry)
+    quoted = {j for _outcome, taken in emblems.values() for j in taken}
+
+    for i, sentence in enumerate(raw.sentences):
+        if i in emblems:
+            outcomes.append(emblems[i][0])
+            continue
+        if i in quoted:
+            # the rest of an emblem's quote, compiled with its first sentence
+            rr = RuleReminderOutcome(reason="emblem_quote")
+            rule_reminders.append(rr)
+            outcomes.append(rr)
+            continue
+
         # Step 1: rule reminder check
         rr = _is_rule_reminder(sentence, raw)
         if rr is not None:
@@ -2459,9 +2557,9 @@ def compile_pool(
 ) -> PoolCompile:
     """Compile an entire pool (oracle_id → RawCard).
 
-    Emblems are compiled and attached to their owner CardRecord via
-    ``related_names``.  Emblems are excluded from the standalone ``cards``
-    dict.  Missing owners become ``orphan_emblems``.
+    Emblem entries (an emblem as its own MTGJSON entry) compile on their own and are excluded
+    from the standalone ``cards`` dict and the summary's card counts: the card that makes an
+    emblem carries it in its GET_EMBLEM atom.
 
     ``records`` (oracle_id → card record, card_records.py) puts a mapped tree
     in place of the compiler's; with ``require_verified`` (the default) only a
@@ -2514,43 +2612,7 @@ def compile_pool(
         if raw.is_emblem:
             emblem_oids.add(oid)
 
-    # Build name → oracle_id lookup for owner resolution
-    name_to_oid: dict[str, str] = {}
-    for oid, raw in pool.items():
-        if not raw.is_emblem:
-            name_to_oid[raw.identity.name] = oid
-
-    # Attach emblems to owners, then build the card dict from the UPDATED
-    # results. This must be two passes: the pool is name-sorted, so an owner
-    # (e.g. "Basri Ket") always precedes its emblem ("Basri Ket Emblem"). A
-    # single interleaved loop would capture the owner's pre-attachment card
-    # into ``cards`` before the emblem pass updates ``results[owner_oid]``,
-    # leaving every ``cards[...].emblem`` as None.
-    emblems: dict[str, CardRecord] = {}
-    orphan_emblems: list[str] = []
-
-    for oid, raw in pool.items():
-        if raw.is_emblem:
-            emblems[oid] = results[oid].card
-            # Find owner
-            owner_oid: str | None = None
-            for owner_name in raw.related_names:
-                if owner_name in name_to_oid:
-                    owner_oid = name_to_oid[owner_name]
-                    break
-            # An owner whose planeswalker is its BACK face (KHM Valki, God of Lies //
-            # Tibalt, Cosmic Impostor) cannot carry the emblem on its creature front
-            # (CardRecord: "only a Planeswalker may carry an emblem"), and faces are not
-            # castable yet, so the emblem is unreachable in play: keep it an orphan.
-            if owner_oid is None or "Planeswalker" not in results[owner_oid].card.types:
-                orphan_emblems.append(oid)
-            else:
-                # Rebuild owner's CardRecord with emblem
-                owner_result = results[owner_oid]
-                owner_card = replace(owner_result.card, emblem=results[oid].card)
-                results[owner_oid] = replace(owner_result, card=owner_card)
-
-    # Second pass: collect non-emblem cards (now with emblems attached).
+    emblems = {oid: results[oid].card for oid in emblem_oids}
     cards: dict[str, CardRecord] = {}
     for oid, raw in pool.items():
         if not raw.is_emblem:
@@ -2593,7 +2655,6 @@ def compile_pool(
     summary: dict[str, Any] = {
         "total": total,
         "emblems": len(emblems),
-        "orphan_emblems": len(orphan_emblems),
         "fully_compiled": fully_compiled,
         "partially_compiled": partially_compiled,
         "ambiguity_count": ambiguity_count,
@@ -2606,7 +2667,6 @@ def compile_pool(
     return PoolCompile(
         cards=cards,
         emblems=emblems,
-        orphan_emblems=tuple(sorted(orphan_emblems)),
         results=results,
         summary=summary,
     )

@@ -178,3 +178,17 @@ def test_the_cli_takes_one_line_family_or_a_package(argv, ok, monkeypatch) -> No
     with pytest.raises(SystemExit) as exc:
         LV.main(["ckpt", *argv])
     assert (str(exc.value) == "parsed") is ok
+
+
+def test_activations_join_a_producer_step_only_when_asked() -> None:
+    """plays reads act:<card>:<i> rows only with "act" in its kinds: an order line's follow-through
+    activates a producer (a sacrifice outlet) under --activations, and never otherwise."""
+    from types import SimpleNamespace as NS
+
+    from MTG_bot.core.identity import Handle
+
+    card = Handle("card", 7)
+    ex = NS(world=NS(cards={card: NS(identity=NS(oracle_id="outlet"))}))
+    options = (NS(token="pass"), NS(token=f"act:{card}:0"), NS(token=f"cast:{card}"))
+    assert LV.plays(ex, options, frozenset({"outlet"})) == [2]
+    assert LV.plays(ex, options, frozenset({"outlet"}), ("cast", "land", "act")) == [1, 2]

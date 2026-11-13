@@ -17,6 +17,11 @@ three rules:
 
 The lift table is PRINTED every run; ``--lift-out PATH`` additionally writes
 it as JSON. Nothing in this tool mutates the IR.
+
+These are R3's rules, the record of that round. The engine's live rules are
+``MTG_bot.core.executor.selectors._choose_lift_allowed``: since R3, "up to N"
+and "any number" are asked (with a NONE stop), a search asks over the hidden
+zones it searches, and an emblem's choices are its owner's.
 """
 
 from __future__ import annotations

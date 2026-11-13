@@ -2529,9 +2529,8 @@ class TestAmbiguity(unittest.TestCase):
 
 class TestCompilePoolSynthetic(unittest.TestCase):
     def _pool(self) -> dict[str, RawCard]:
-        # The grammar requires an emblem's owner to be a Planeswalker with a
-        # loyalty value (CardRecord.__post_init__), and an emblem to be an
-        # "Emblem"-typed token record — mirror the real M21 pool shape.
+        # An emblem as its own MTGJSON entry (the M21 pool shape): it compiles on its own and is
+        # no card of the pool; the card that makes the emblem carries it in its GET_EMBLEM.
         owner = _raw_card("Owner", 1, types=("Planeswalker", "Card"), loyalty_raw="3")
         emblem = _raw_card(
             "Emblem",
@@ -2549,16 +2548,14 @@ class TestCompilePoolSynthetic(unittest.TestCase):
         )
         return {_oid(1): owner, _oid(2): emblem, _oid(3): orphan}
 
-    def test_emblem_attachment_and_orphans(self) -> None:
+    def test_emblem_entries_are_no_cards(self) -> None:
         pc = compile_pool(self._pool(), TemplateRegistry())
         self.assertEqual(set(pc.cards), {_oid(1)})
         self.assertEqual(set(pc.emblems), {_oid(2), _oid(3)})
-        self.assertEqual(pc.orphan_emblems, (_oid(3),))
-        self.assertIs(pc.cards[_oid(1)].emblem, pc.emblems[_oid(2)])
+        self.assertEqual(pc.cards[_oid(1)], pc.results[_oid(1)].card)  # nothing attached
         s = pc.summary
         self.assertEqual(s["total"], 1)
         self.assertEqual(s["emblems"], 2)
-        self.assertEqual(s["orphan_emblems"], 1)
         self.assertEqual(s["fully_compiled"], 1)
         self.assertEqual(s["partially_compiled"], 0)
         self.assertEqual(s["known_gap_count"], 0)
@@ -2825,6 +2822,59 @@ _M21_PATH = Path(__file__).resolve().parents[2] / "data" / "M21.json"
 # ---------------------------------------------------------------------------
 
 
+class TestEmblemCompile(unittest.TestCase):
+    """ "[player] gets an emblem with "..."" (CR 114.2): the quote compiles as the emblem's own text
+    into GET_EMBLEM's EmblemSpec, and who gets it is the controller role."""
+
+    GARRUK = (
+        'an emblem with "At the beginning of your end step, you may search your library for a '
+        'creature card, put it onto the battlefield, then shuffle."'
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.reg = build_full_registry()
+
+    def _get_emblem(self, sentence: str) -> Atom | None:
+        raw = _raw_card("Walker", 1, types=("Planeswalker",), loyalty_raw="3", sentences=(sentence,))
+        res = compile_card(raw, self.reg)
+        found = [n for n in walk(res.card) if isinstance(n, Atom) and n.verb is Verb.GET_EMBLEM]
+        return found[0] if found else None
+
+    def test_who_gets_the_emblem_is_the_controller_role(self) -> None:
+        for who, ref in (
+            ("You get", ControllerRef.YOU),
+            ("Each opponent gets", ControllerRef.ALL_OPPONENTS),
+            ("Target opponent gets", ControllerRef.TARGET_OPPONENT),
+        ):
+            atom = self._get_emblem(f"[+2]: {who} {self.GARRUK}")
+            assert atom is not None, who
+            self.assertIs(atom.args.get("controller"), ref)
+            emblem = atom.args.get("emblem")
+            self.assertEqual(len(emblem.abilities), 1)
+            self.assertIsInstance(emblem.abilities[0], TriggeredAbility)
+
+    def test_an_emblem_text_that_does_not_compile_leaves_the_sentence_unparsed(self) -> None:
+        raw = _raw_card(
+            "Walker", 1, types=("Planeswalker",), loyalty_raw="3",
+            sentences=('[−8]: You get an emblem with "Nobody understands this."',),
+        )
+        res = compile_card(raw, self.reg)
+        self.assertEqual(len(res.unparsed), 1)  # never an empty emblem
+        self.assertFalse(any(isinstance(n, Atom) and n.verb is Verb.GET_EMBLEM for n in walk(res.card)))
+
+    def test_the_ability_goes_on_after_the_quote(self) -> None:
+        # Nissa, Who Shakes the World's shape: the clause after the quote is the ability's too.
+        raw = _raw_card("Walker", 1, types=("Planeswalker",), loyalty_raw="3",
+                        sentences=(f"[−7]: You get {self.GARRUK} Draw a card.",))
+        ability = compile_card(raw, self.reg).card.abilities[0]
+        self.assertIsInstance(ability.effect, Seq)
+        self.assertEqual([s.verb for s in ability.effect.steps], [Verb.GET_EMBLEM, Verb.DRAW])
+        raw = _raw_card("Walker", 1, types=("Planeswalker",), loyalty_raw="3",
+                        sentences=(f"[−7]: You get {self.GARRUK} Nobody understands this.",))
+        self.assertEqual(len(compile_card(raw, self.reg).unparsed), 1)
+
+
 class TestM21Smoke(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -2834,11 +2884,22 @@ class TestM21Smoke(unittest.TestCase):
     def test_all_results_present(self) -> None:
         self.assertEqual(len(self.pc.results), len(self.pool))
 
-    def test_emblems_attached(self) -> None:
-        self.assertEqual(self.pc.summary["emblems"], 3)
-        self.assertEqual(len(self.pc.orphan_emblems), 0)
-        attached = sum(1 for c in self.pc.cards.values() if c.emblem is not None)
-        self.assertEqual(attached, 3)
+    def test_planeswalkers_carry_their_emblems(self) -> None:
+        # Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead: each one's ultimate is a
+        # GET_EMBLEM whose EmblemSpec holds the quoted text's abilities, the same abilities as
+        # the emblem's own MTGJSON entry.
+        pc = compile_pool(self.pool, build_full_registry())  # the smoke pool has no templates
+        self.assertEqual(pc.summary["emblems"], 3)
+        entries = {c.name: c for c in pc.emblems.values()}
+        found = {}
+        for card in pc.cards.values():
+            for node in walk(card):
+                if isinstance(node, Atom) and node.verb is Verb.GET_EMBLEM:
+                    found[card.name] = node
+        self.assertEqual(sorted(found), ["Basri Ket", "Garruk, Unleashed", "Liliana, Waker of the Dead"])
+        for name, node in found.items():
+            self.assertIs(node.args.get("controller"), ControllerRef.YOU)
+            self.assertEqual(node.args.get("emblem").abilities, entries[f"{name} Emblem"].abilities)
 
     def test_summary_consistency(self) -> None:
         s = self.pc.summary

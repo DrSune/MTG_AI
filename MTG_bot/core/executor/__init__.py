@@ -485,11 +485,9 @@ class Executor:
         self.name_pool: tuple[tuple[str, str], ...] = ()
         # ----------------------------------------------- emblems + attachments
         # Granted emblems are replayed state that is NOT world cards (an
-        # emblem never enters a zone): (owner, emblem oracle_id) -> the
-        # synthetic Handle("emblem", n) the binder bound its triggers to.
-        # The key doubles as the CR 113.7 idempotence gate: a second copy
-        # of the same emblem does nothing.
-        self.emblems: dict[tuple[Handle, str], Handle] = {}
+        # emblem never enters a zone): the synthetic Handle("emblem", n) the
+        # binder bound its abilities to -> (owner, emblem oracle_id).
+        self.emblems: dict[Handle, tuple[Handle, str]] = {}
         self._emblem_seq = 0
         # Attachment relation (auras/equipment): AURA handle -> HOST handle.
         # CardState has no attachment field, so the table lives
@@ -2110,12 +2108,19 @@ class Executor:
             return True
         return False
 
-    def pass_until(self, step: str) -> int:
+    def pass_until(self, step: str, *, waiting: bool = False) -> int:
         """Both players pass at every priority point (the undriven auto-pass)
         until ``step`` holds priority with an empty stack, or the turn has
-        ended. Returns how many triggered abilities resolved."""
+        ended. ``waiting``: stop at ``step``'s next priority point instead,
+        before anyone passes there. Called before the step begins, that is
+        its first: its turn-based actions done and what they triggered on
+        the stack (CR 117.3b, 117.5), where a game loop asks the active
+        player (games._play_turns). Returns how many triggered abilities
+        resolved."""
         fired = 0
         while self._to_priority():
+            if waiting and self.phase == step:
+                break
             fired += self._settle()
             if self.phase in (step, TURN_ENDED):
                 break
@@ -2388,6 +2393,14 @@ class Executor:
         declared attack with an empty stack. Leaves ``attackers`` and
         ``defending_player`` set for :meth:`combat_blocks`. Returns the
         trigger-firing count."""
+        self.start_combat(seat)
+        return self.pass_until(DECLARE_ATTACKERS)
+
+    def start_combat(self, seat: Handle) -> None:
+        """``seat``'s combat phase begins, after the checks: its beginning of
+        combat step (CR 507) starts, unless that step or the declare attackers
+        step is already the current one. Nobody passes here; a driver runs
+        the steps (:meth:`combat_attacks`, or :meth:`pass_until`)."""
         world = self.world
         if not self.turn_open:
             raise ValueError(f"combat_step: no turn is open ({seat})")
@@ -2399,7 +2412,6 @@ class Executor:
             raise ValueError(f"combat_step: {seat} has no defending player")
         if self.phase not in (BEGIN_COMBAT, DECLARE_ATTACKERS):
             self._jump_to(BEGIN_COMBAT)
-        return self.pass_until(DECLARE_ATTACKERS)
 
     def combat_blocks(self, seat: Handle) -> int:
         """The rest of the combat phase with both players passing (CR 509-511):
@@ -3093,20 +3105,15 @@ class Executor:
 
     # ------------------------------------------------------- emblem / attach
 
-    def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle | None:
-        """Grant ``owner`` their emblem (CR 113.7). Returns the synthetic
-        handle, or ``None`` when the owner ALREADY has this emblem (a
-        second copy does nothing — the idempotence gate, visible as the
-        duplicate event row in the verb handler). The emblem is executor
-        replayed state, not a world card: its triggers bind to the owner
-        through the binder, its statics anchor to the owner in the layer
+    def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle:
+        """Put a new emblem into ``owner``'s command zone (CR 114.2) and return its synthetic
+        handle. Each one is an object of its own, so a second emblem with the same abilities works
+        beside the first. The emblem is executor replayed state, not a world card: its triggers
+        bind to the owner through the binder, its statics anchor to the owner in the layer
         registry, and both are folded into the fingerprint."""
-        key = (owner, emblem.oracle_id)
-        if key in self.emblems:
-            return None
         handle = Handle("emblem", self._emblem_seq)
         self._emblem_seq += 1
-        self.emblems[key] = handle
+        self.emblems[handle] = (owner, emblem.oracle_id)
         self.binder.bind_emblem(handle, emblem, owner)
         self.layers.recompute()  # emblem statics are live the moment it lands
         return handle
@@ -3488,7 +3495,7 @@ class Executor:
                 tuple(
                     sorted(
                         ((str(owner), oid), str(handle))
-                        for (owner, oid), handle in self.emblems.items()
+                        for handle, (owner, oid) in self.emblems.items()
                     )
                 )
             ).encode()

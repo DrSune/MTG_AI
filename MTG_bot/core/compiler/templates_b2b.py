@@ -844,14 +844,14 @@ def _build_spined_megalodon(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_siege_striker(m: re.Match[str]) -> SentenceOutcome:
-    """You may tap any number of untapped creatures you control."""
+    """You may tap any number of untapped creatures you control. "Any number" already names
+    none (CR 107.1c), asked pick by pick with a stop, so the "you may" is no choice of its own:
+    no OptionalEffect around the pick (declining and stopping at once played the same)."""
     return _ability(
         _attack_event(),
-        OptionalEffect(
-            inner=Atom(
-                verb=Verb.TAP,
-                args=AtomArgs(pairs=(("target", _untapped_creatures_you_control()),)),
-            )
+        Atom(
+            verb=Verb.TAP,
+            args=AtomArgs(pairs=(("target", _untapped_creatures_you_control()),)),
         ),
     )
 

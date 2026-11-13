@@ -12,7 +12,7 @@ sections below):
   I) EachPlayer                      (per-player effect)
   J) EtBState                        (entered state: tapped/counters)
   K) CostModifier + CostDelta family (continuous cost changes)
-  L) EmblemAbility                   (embedded emblem ability)
+  L) EmblemSpec                      (an emblem's abilities, on GET_EMBLEM)
   M) Verb.PAY                        (pay a cost as an effect)
   N) ControllerRef.OWNER             (owner-scoped zones)
 
@@ -70,29 +70,29 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     (
         "simple_card",
         T._simple_card,
-        "9bd3f0e185eb0f51ca7a99e64f472a22bab2acd4b8cb24582904cc163ffb6a39",
+        "12136c7348dfd0f258e8e60a6a0e72fa0e47612e49e36c8ea89701d53327eaf0",
     ),
     (
         # the multi-part Cost is sorted at construction (canonical, not printed order)
         "tarmogoyf",
         T._tarmogoyf_like,
-        "eaae09ba37aca5bf40655293c56598765f010e74ad02a0f39cc0368d97838c5f",
+        "1f4dc2606ebeab82236a94a6c6fcc47a4c1304a82db7e0d3b4302f8024faf527",
     ),
     (
         "planeswalker_emblem",
         T._pw_with_emblem,
-        "dd59119e6b0280be53fcaaf8147f15f5d2ea3447ab3a04c44e065182d3ea913c",
+        "99b33d4d0fe97e1d5338cf9be39cd2a9c7927c418f70e30a08d824dd07371297",
     ),
     (
         # the treasure token's tap+sacrifice Cost is sorted at construction
         "token_creator",
         T._token_creator,
-        "37ae8c521b8b21127109b55db11bc7c5b9e7876baabf4ddce0c601b72bf82b69",
+        "97d5d7c3ad5c258b1d56785ce41bcd312f2a6afa6778f53f4fe8e41aaae95e9d",
     ),
     (
         "walk_sample",
         T._walk_sample,
-        "13e2c77c7d60a54c074aea253f3346db119dec1c91c3d237389ca42da211280b",
+        "442a3aacaad3872005407268ff4dd00f48ab50abc7ed18b30f3b5a8b056e6538",
     ),
     (
         "src_selector",
@@ -266,7 +266,7 @@ def _pay_generic() -> at.Atom:
     return at.Atom(at.Verb.PAY, at.AtomArgs(pairs=(("cost", cost),)))
 
 
-def _emblem_triggered() -> at.EmblemAbility:
+def _emblem_triggered() -> at.EmblemSpec:
     emb = at.TriggeredAbility(
         at.TurnPhaseEvent(
             at.Phase.END_TURN,
@@ -275,7 +275,7 @@ def _emblem_triggered() -> at.EmblemAbility:
         None,
         _atom_mill(),
     )
-    return at.EmblemAbility(emb)
+    return at.EmblemSpec(abilities=(emb,))
 
 
 _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
@@ -472,15 +472,23 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
             at.CostDeltaWaiveMana(),
         ),
     ),
-    # L) EmblemAbility
+    # L) EmblemSpec
     ("emblem_triggered", _emblem_triggered),
     (
         "emblem_static",
-        lambda: at.EmblemAbility(at.StaticAbility(_atom_mill())),
+        lambda: at.EmblemSpec(abilities=(at.StaticAbility(_atom_mill()),)),
     ),
     (
-        "emblem_activated",
-        lambda: at.EmblemAbility(at.ActivatedAbility(at.Cost(), _atom_mill())),
+        "get_emblem_each_opponent",
+        lambda: at.Atom(
+            at.Verb.GET_EMBLEM,
+            at.AtomArgs(
+                pairs=(
+                    ("emblem", _emblem_triggered()),
+                    ("controller", at.ControllerRef.ALL_OPPONENTS),
+                )
+            ),
+        ),
     ),
     # M) Verb.PAY
     ("pay_generic", _pay_generic),
@@ -711,18 +719,16 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 "2",  # type: ignore[arg-type]
             ),
         ),
-        # L) EmblemAbility
+        # L) EmblemSpec
         (
             "emblem_not_ability",
-            lambda: at.EmblemAbility(
-                _atom_mill(),  # type: ignore[arg-type]
+            lambda: at.EmblemSpec(
+                abilities=(_atom_mill(),),  # type: ignore[arg-type]
             ),
         ),
         (
-            "emblem_str",
-            lambda: at.EmblemAbility(
-                "x",  # type: ignore[arg-type]
-            ),
+            "emblem_activated",
+            lambda: at.EmblemSpec(abilities=(at.ActivatedAbility(at.Cost(), _atom_mill()),)),
         ),
         # M) Verb.PAY
         ("pay_missing_cost", lambda: at.Atom(at.Verb.PAY, at.AtomArgs(pairs=()))),
@@ -981,8 +987,8 @@ def test_new_nodes_in_closed_tables() -> None:
         "EachPlayer",
         "CostModifier",
         "EtBState",
-        "EmblemAbility",
+        "EmblemSpec",
     ):
         assert tag in specs, f"{tag} missing from _SPECS"
     assert at._TAG[at.QThisTurn] == "QThisTurn"
-    assert at._TAG[at.EmblemAbility] == "EmblemAbility"
+    assert at._TAG[at.EmblemSpec] == "EmblemSpec"

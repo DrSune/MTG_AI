@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "mu_yanling_sky_dancer_emblem_islands_draw",
+ "notes": "Printed: '[-8]: You get an emblem with \"Islands you control have '{T}: Draw a card.'\"' Mu Yanling at 8 loyalty uses her -8: she goes to the graveyard at 0 loyalty, the emblem stays (CR 114.4, its abilities function in the command zone), and her controller's Island taps to draw a card. Her controller's Swamp and the opponent's Island get nothing. Before 2026-11-12 the record's GET_EMBLEM was empty: the Island had no ability (the pack fails there).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mu", "real": "Mu Yanling, Sky Dancer", "zone": "battlefield", "controller": 0},
+  {"key": "isl", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "swp", "real": "Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "their_isl", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "mu", "set": 8, "seat": 0},
+  {"op": "activate", "key": "mu", "idx": 2, "seat": 0},
+  {"op": "activate", "key": "swp", "idx": -1, "seat": 0, "expect_raise": "has no granted ability"},
+  {"op": "activate", "key": "their_isl", "idx": -1, "seat": 1, "expect_raise": "has no granted ability"},
+  {"op": "activate", "key": "isl", "idx": -1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"mu": "graveyard", "isl": "battlefield"},
+  "hand": {"0": 1, "1": 0},
+  "tapped": {"isl": true, "swp": false, "their_isl": false}
+ }
+}

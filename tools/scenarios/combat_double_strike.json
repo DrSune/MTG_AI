@@ -26,9 +26,6 @@
       "attack": {
         "striker": true,
         "grog": true
-      },
-      "may": {
-        "striker": false
       }
     }
   ],

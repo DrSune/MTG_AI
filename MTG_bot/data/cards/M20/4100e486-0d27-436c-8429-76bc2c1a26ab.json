@@ -102,12 +102,11 @@
           {
            "tag": "Selector",
            "count": {
-            "tag": "QConst",
-            "value": 4
+            "tag": "QUnbounded"
            },
            "mode": {
             "tag": "SelectorMode",
-            "name": "ONE_OF"
+            "name": "ALL"
            },
            "filter": {
             "tag": "FAtom",
@@ -238,9 +237,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-6",
-  "date": "2026-11-05",
-  "draft_py": "# Goblin Ringleader (M20)\n# Haste (compiled keyword)\n# When this creature enters, reveal the top four cards of your library. Put all Goblin cards\n# revealed this way into your hand and the rest on the bottom of your library in any order.\n# \"All Goblin cards\" = a mandatory ONE_OF partition of the revealed window with count 4 (the\n# window's size): QConst picks carry no stop token and clamp at the Goblins present, so every\n# Goblin among the four goes to hand; REST sends the others to the bottom.\n_top = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=4),\n                    mode=SelectorMode.ONE_OF,\n                    filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Goblin'),\n                    zones=_top,\n                ),\n                'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.REST,\n                    filter=FAnd(children=()),\n                    zones=_top,\n                ),\n                'destination': Zone(\n                    kind=ZoneKind.LIBRARY,\n                    controller=ControllerRef.YOU,\n                    position=ZonePosition.BOTTOM,\n                ),\n            }),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "author": "claude-wave2-m20-faults",
+  "date": "2026-11-12",
+  "draft_py": "# Goblin Ringleader (M20). Re-mapped 2026-11-12 (wave 2).\n# Haste (compiled keyword)\n# \"When this creature enters, reveal the top four cards of your library. Put all Goblin cards\n# revealed this way into your hand and the rest on the bottom of your library in any order.\"\n# \"All Goblin cards revealed this way\" is no choice: an ALL over the top of the library, which\n# while the reveal's window is open is the four revealed cards (as See the Truth's ONE_OF and REST\n# read it), filtered SUBTYPE_EQ Goblin ('Goblin card' = any card with the subtype). The first\n# mapping's ONE_OF with count 4 asked the order of the picks, a choice the text does not give.\n# \"The rest\" is See the Truth's REST to the bottom; no `arrange` role, so their owner orders them\n# (CR 401.4: \"in any order\").\n_top = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Goblin'),\n                    zones=_top,\n                ),\n                'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.REST,\n                    filter=FAnd(children=()),\n                    zones=_top,\n                ),\n                'destination': Zone(\n                    kind=ZoneKind.LIBRARY,\n                    controller=ControllerRef.YOU,\n                    position=ZonePosition.BOTTOM,\n                ),\n            }),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
   "clauses": [
    {
     "clause": "Haste",
@@ -252,7 +251,7 @@
    },
    {
     "clause": "Put all Goblin cards revealed this way into your hand and the rest on the bottom of your library in any order.",
-    "ir": "abilities[0].effect.steps[1] (every Goblin of the revealed four to hand) + abilities[0].effect.steps[2] (the rest to the bottom)"
+    "ir": "abilities[0].effect.steps[1] (every Goblin of the revealed four to hand, no choice) + abilities[0].effect.steps[2] (the rest to the bottom, their owner orders them)"
    },
    {
     "clause": "Cast (creature spell)",
@@ -260,9 +259,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "'Put all Goblin cards revealed this way into your hand' = mandatory ONE_OF over the revealed window with count 4 (QConst: no stop token, clamps at the Goblins present), then REST to the bottom (See the Truth shape). The k>1 ONE_OF asks the pick order (outcome-neutral). 'Goblin card' = SUBTYPE_EQ Goblin (any card type). Pack: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m6/packs/goblin_ringleader_mixed.json"
+  "notes": "Re-mapped 2026-11-12 (verification wave 1 judged the first mapping WRONG: 'all Goblin cards' was a ONE_OF of count 4, which asked the order of the picks). 'All Goblin cards revealed this way' is an ALL over the top of the library, the revealed window while it is open (the engine reads it so since 2026-11-12, as it reads See the Truth's ONE_OF and REST); 'the rest' is the REST to the bottom, their owner orders them (CR 401.4). The probe board's library has no Goblin; tools/scenarios/mapped/M20/goblin_ringleader_all_goblins_no_choice.json reveals two."
  },
  "probe": {
-  "sha": "259082ae566ce1a123a56a87885910f8f5ccfa5dacf48d937acf0c59b0fcfa66"
+  "sha": "75d0a48eddddb0cfd857a8bb87c4256ebaf92b38c66b21ed9ae341cb45aa8f97"
  }
 }

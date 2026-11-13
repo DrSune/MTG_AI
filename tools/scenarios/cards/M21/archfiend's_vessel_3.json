@@ -1,0 +1,31 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: when this enters, if it entered from your graveyard, exile it; if you do create a 5/5 flying Demon. Seat 1 owns/controls the Vessel in ITS graveyard (its controller's graveyard): it exiles and seat 1 gets the Demon.",
+ "cards": [
+  {
+   "key": "v",
+   "real": "Archfiend's Vessel",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "v",
+   "to": "battlefield"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "v": "exile"
+  },
+  "tokens": {
+   "Demon": 1
+  }
+ }
+}

@@ -1,0 +1,828 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b5f20a6d-8c3e-452f-9d98-4886f0fa052a",
+ "name": "Vivien Reid",
+ "text_sha": "160acbe2998a29944edfd78e09ffb71ef2d53790d8781eca3860fefe1c434947",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOOK_AT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "REVEAL"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ],
+            [
+             "count",
+             {
+              "tag": "QConst",
+              "value": 1
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "MOVE_ZONE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "ONE_OF"
+              },
+              "filter": {
+               "tag": "FOr",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Creature",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Land",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "LIBRARY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                },
+                "position": {
+                 "tag": "ZonePosition",
+                 "name": "TOP"
+                }
+               }
+              ]
+             }
+            ],
+            [
+             "destination",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "HAND"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "arrange",
+          {
+           "tag": "String",
+           "value": "RANDOM"
+          }
+         ],
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "REST"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "TOP"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "position": {
+            "tag": "ZonePosition",
+            "name": "BOTTOM"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -3
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DESTROY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "KEYWORD_HAS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": {
+               "tag": "Keyword",
+               "name": "FLYING"
+              },
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Artifact",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Enchantment",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -8
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GET_EMBLEM"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "emblem",
+        {
+         "tag": "EmblemSpec",
+         "abilities": [
+          {
+           "tag": "StaticAbility",
+           "effect": {
+            "tag": "Seq",
+            "steps": [
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "MODIFY_PT"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "power",
+                 {
+                  "tag": "PtDelta",
+                  "direction": {
+                   "tag": "PtDirection",
+                   "name": "INCREASE"
+                  },
+                  "magnitude": {
+                   "tag": "QConst",
+                   "value": 2
+                  }
+                 }
+                ],
+                [
+                 "target",
+                 {
+                  "tag": "Selector",
+                  "count": {
+                   "tag": "QUnbounded"
+                  },
+                  "mode": {
+                   "tag": "SelectorMode",
+                   "name": "ALL"
+                  },
+                  "filter": {
+                   "tag": "FAnd",
+                   "children": [
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "CONTROLLER_IS"
+                     },
+                     "string_value": null,
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": {
+                      "tag": "ControllerRef",
+                      "name": "YOU"
+                     },
+                     "inner_filter": null
+                    },
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "TYPE_EQ"
+                     },
+                     "string_value": "Creature",
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": null,
+                     "inner_filter": null
+                    }
+                   ]
+                  },
+                  "zones": [
+                   {
+                    "tag": "Zone",
+                    "kind": {
+                     "tag": "ZoneKind",
+                     "name": "BATTLEFIELD"
+                    },
+                    "controller": {
+                     "tag": "ControllerRef",
+                     "name": "ANY"
+                    }
+                   }
+                  ]
+                 }
+                ],
+                [
+                 "toughness",
+                 {
+                  "tag": "PtDelta",
+                  "direction": {
+                   "tag": "PtDirection",
+                   "name": "INCREASE"
+                  },
+                  "magnitude": {
+                   "tag": "QConst",
+                   "value": 2
+                  }
+                 }
+                ]
+               ]
+              }
+             },
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "GRANT_ABILITY"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "ability",
+                 {
+                  "tag": "KeywordAbility",
+                  "keyword": {
+                   "tag": "Keyword",
+                   "name": "VIGILANCE"
+                  },
+                  "params": []
+                 }
+                ],
+                [
+                 "target",
+                 {
+                  "tag": "Selector",
+                  "count": {
+                   "tag": "QUnbounded"
+                  },
+                  "mode": {
+                   "tag": "SelectorMode",
+                   "name": "ALL"
+                  },
+                  "filter": {
+                   "tag": "FAnd",
+                   "children": [
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "CONTROLLER_IS"
+                     },
+                     "string_value": null,
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": {
+                      "tag": "ControllerRef",
+                      "name": "YOU"
+                     },
+                     "inner_filter": null
+                    },
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "TYPE_EQ"
+                     },
+                     "string_value": "Creature",
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": null,
+                     "inner_filter": null
+                    }
+                   ]
+                  },
+                  "zones": [
+                   {
+                    "tag": "Zone",
+                    "kind": {
+                     "tag": "ZoneKind",
+                     "name": "BATTLEFIELD"
+                    },
+                    "controller": {
+                     "tag": "ControllerRef",
+                     "name": "ANY"
+                    }
+                   }
+                  ]
+                 }
+                ]
+               ]
+              }
+             },
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "GRANT_ABILITY"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "ability",
+                 {
+                  "tag": "KeywordAbility",
+                  "keyword": {
+                   "tag": "Keyword",
+                   "name": "TRAMPLE"
+                  },
+                  "params": []
+                 }
+                ],
+                [
+                 "target",
+                 {
+                  "tag": "Selector",
+                  "count": {
+                   "tag": "QUnbounded"
+                  },
+                  "mode": {
+                   "tag": "SelectorMode",
+                   "name": "ALL"
+                  },
+                  "filter": {
+                   "tag": "FAnd",
+                   "children": [
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "CONTROLLER_IS"
+                     },
+                     "string_value": null,
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": {
+                      "tag": "ControllerRef",
+                      "name": "YOU"
+                     },
+                     "inner_filter": null
+                    },
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "TYPE_EQ"
+                     },
+                     "string_value": "Creature",
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": null,
+                     "inner_filter": null
+                    }
+                   ]
+                  },
+                  "zones": [
+                   {
+                    "tag": "Zone",
+                    "kind": {
+                     "tag": "ZoneKind",
+                     "name": "BATTLEFIELD"
+                    },
+                    "controller": {
+                     "tag": "ControllerRef",
+                     "name": "ANY"
+                    }
+                   }
+                  ]
+                 }
+                ]
+               ]
+              }
+             },
+             {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "GRANT_ABILITY"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "ability",
+                 {
+                  "tag": "KeywordAbility",
+                  "keyword": {
+                   "tag": "Keyword",
+                   "name": "INDESTRUCTIBLE"
+                  },
+                  "params": []
+                 }
+                ],
+                [
+                 "target",
+                 {
+                  "tag": "Selector",
+                  "count": {
+                   "tag": "QUnbounded"
+                  },
+                  "mode": {
+                   "tag": "SelectorMode",
+                   "name": "ALL"
+                  },
+                  "filter": {
+                   "tag": "FAnd",
+                   "children": [
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "CONTROLLER_IS"
+                     },
+                     "string_value": null,
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": {
+                      "tag": "ControllerRef",
+                      "name": "YOU"
+                     },
+                     "inner_filter": null
+                    },
+                    {
+                     "tag": "FAtom",
+                     "pred": {
+                      "tag": "FAtomPred",
+                      "name": "TYPE_EQ"
+                     },
+                     "string_value": "Creature",
+                     "color": null,
+                     "colors": [],
+                     "count": null,
+                     "counter_kind": null,
+                     "keyword": null,
+                     "who": null,
+                     "inner_filter": null
+                    }
+                   ]
+                  },
+                  "zones": [
+                   {
+                    "tag": "Zone",
+                    "kind": {
+                     "tag": "ZoneKind",
+                     "name": "BATTLEFIELD"
+                    },
+                    "controller": {
+                     "tag": "ControllerRef",
+                     "name": "ANY"
+                    }
+                   }
+                  ]
+                 }
+                ]
+               ]
+              }
+             }
+            ]
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-wave2-m20-faults",
+  "date": "2026-11-13",
+  "draft_py": "# Vivien Reid (FDN). Mapped 2026-11-13 for the emblem encoding: the [-8]'s emblem rides its\n# GET_EMBLEM (EmblemSpec, controller YOU). Its abilities are the ones mapper A wrote for the FDN\n# \"Vivien Reid Emblem\" entry (2026-10-29), which the pool used to attach by name; that record is\n# retired with this one.\n# \"[+1]: Look at the top four cards of your library. You may reveal a creature or land card from\n# among them and put it into your hand. Put the rest on the bottom of your library in a random\n# order.\": See the Truth's LOOK_AT (count 4), Garruk's Harbinger's \"you may reveal ... from among\n# them and put it into your hand\" (B4-reveal-one-from-among, a creature-or-land FOr) and its\n# B5b-rest-bottom-random REST with arrange RANDOM (Brightwood Tracker's record has the same three\n# steps). The [-3] and the cast carrier are the compiler's.\n_top_of_library = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\nplus_one = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=Seq(\n        steps=(\n            A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n            OptionalEffect(\n                inner=Seq(\n                    steps=(\n                        A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                        A(Verb.MOVE_ZONE, {\n                            'cards': Selector(\n                                count=QConst(value=1),\n                                mode=SelectorMode.ONE_OF,\n                                filter=FOr(\n                                    children=(\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                    ),\n                                ),\n                                zones=_top_of_library,\n                            ),\n                            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                        }),\n                    ),\n                ),\n            ),\n            A(Verb.MOVE_ZONE, {\n                'arrange': 'RANDOM',\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.REST,\n                    filter=FAnd(children=()),\n                    zones=_top_of_library,\n                ),\n                'destination': Zone(\n                    kind=ZoneKind.LIBRARY,\n                    controller=ControllerRef.YOU,\n                    position=ZonePosition.BOTTOM,\n                ),\n            }),\n        ),\n    ),\n)\n_yours = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nemblem_static = StaticAbility(\n    effect=Seq(steps=(\n        A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            'target': _yours,\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        }),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.VIGILANCE), 'target': _yours}),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.TRAMPLE), 'target': _yours}),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE), 'target': _yours}),\n    )),\n)\nminus_eight = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-8),)),\n    effect=A(Verb.GET_EMBLEM, {'controller': ControllerRef.YOU, 'emblem': EmblemSpec(abilities=(emblem_static,))}),\n)\nminus_three, carrier = compiled\nabilities = [plus_one, minus_three, minus_eight, carrier]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Look at the top four cards of your library.",
+    "ir": "abilities[0].cost + abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You may reveal a creature or land card from among them and put it into your hand.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "Put the rest on the bottom of your library in a random order.",
+    "ir": "abilities[0].effect.steps[2]"
+   },
+   {
+    "clause": "[−3]: Destroy target artifact, enchantment, or creature with flying.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "[−8]: You get an emblem with \"Creatures you control get +2/+2 and have vigilance, trample, and indestructible.\"",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Mapped 2026-11-13 for the emblem encoding: the -8's GET_EMBLEM carries its emblem (EmblemSpec, controller YOU), the abilities mapper A wrote 2026-10-29 for the FDN 'Vivien Reid Emblem' entry, which the pool attached by name until the emblem encoding retired that path (the entry's record is removed). The +1 is See the Truth's LOOK_AT, Garruk's Harbinger's reveal-one-from-among (creature or land) and its rest-bottom-random REST (Brightwood Tracker's record has the same three steps); the -3 and the carrier are the compiler's. G1 starts at loyalty 5, so the -8 is played by tools/scenarios/mapped/FDN/vivien_reid_emblem_anthem.json."
+ },
+ "probe": {
+  "sha": "8cbfc62c53e93afea61694ed776055e843e8db1d4eeaafedcee749b554a337e1"
+ }
+}

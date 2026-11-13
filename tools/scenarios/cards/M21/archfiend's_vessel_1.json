@@ -1,0 +1,31 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: when this enters, if it entered from your graveyard, exile it. If you do, create a 5/5 black Demon with flying.",
+ "cards": [
+  {
+   "key": "v",
+   "real": "Archfiend's Vessel",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "v",
+   "to": "battlefield"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "v": "exile"
+  },
+  "tokens": {
+   "Demon": 1
+  }
+ }
+}

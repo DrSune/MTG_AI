@@ -78,8 +78,8 @@ def text_sha(raw: RawCard) -> str:
 
 
 def tree_sha(card: CardRecord) -> str:
-    """The card's mapped meaning: keywords, abilities and P/T, without the emblem (an emblem is its
-    own pool entry with its own record)."""
+    """The card's mapped meaning: keywords, abilities (an emblem the card makes included, in its
+    GET_EMBLEM) and P/T."""
     return _sha(
         {
             "keywords": [to_dict(k) for k in card.keywords],

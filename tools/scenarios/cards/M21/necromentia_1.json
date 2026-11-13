@@ -113,7 +113,11 @@
     "p1"
    ],
    "decisions": [
-    "Grim Twin"
+    "Grim Twin",
+    "card:2",
+    "card:3",
+    "card:5",
+    "card:6"
    ]
   }
  ],
@@ -141,5 +145,5 @@
    ]
   }
  },
- "notes": "Printed: 'Choose a card name other than a basic land card name. Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them. That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' Name Grim Twin: the opponent's four copies (two in hand, one in library, one in graveyard) are exiled; the opponent's other hand card and MY own copy stay. Two were exiled from their hand: exactly two Zombie tokens. The opponent's library (six fillers) is shuffled: the set of six remains."
+ "notes": "Printed: 'Choose a card name other than a basic land card name. Search target opponent's graveyard, hand, and library for any number of cards with that name and exile them. That player shuffles, then creates a 2/2 black Zombie creature token for each card exiled from their hand this way.' Name Grim Twin: the opponent's four copies (two in hand, one in library, one in graveyard) are exiled; the opponent's other hand card and MY own copy stay. Two were exiled from their hand: exactly two Zombie tokens. The opponent's library (six fillers) is shuffled: the set of six remains. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved (a cast step's resolution asks read handles)."
 }

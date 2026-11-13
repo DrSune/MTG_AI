@@ -1,0 +1,227 @@
+{
+ "plural_role": {
+  "LOSE_LIFE": [
+   [
+    "M21",
+    "Bad Deal",
+    "verified",
+    "ANY"
+   ],
+   [
+    "M21",
+    "Caged Zombie",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M21",
+    "Hooded Blightfang",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M21",
+    "Indulging Patrician",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M21",
+    "Sanctum of Stone Fangs",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M21",
+    "Spirit of Malevolence",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "ZNR",
+    "Malakir Blood-Priest",
+    "compiled",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "ZNR",
+    "Marauding Blight-Priest",
+    "compiled",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M20",
+    "Corpse Knight",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M20",
+    "Epicure of Blood",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M20",
+    "Vampire Opportunist",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "M10",
+    "Howling Banshee",
+    "compiled",
+    "ANY"
+   ],
+   [
+    "M11",
+    "Howling Banshee",
+    "compiled",
+    "ANY"
+   ],
+   [
+    "ORI",
+    "Rabid Bloodsucker",
+    "compiled",
+    "ANY"
+   ],
+   [
+    "M19",
+    "Epicure of Blood",
+    "compiled",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "FDN",
+    "Marauding Blight-Priest",
+    "verified",
+    "ALL_OPPONENTS"
+   ],
+   [
+    "FDN",
+    "Vampire Spawn",
+    "verified",
+    "ALL_OPPONENTS"
+   ]
+  ],
+  "MOVE_ZONE": [
+   [
+    "M21",
+    "Bad Deal",
+    "verified",
+    "OPPONENT"
+   ],
+   [
+    "M21",
+    "Liliana, Waker of the Dead",
+    "compiled",
+    "ANY"
+   ],
+   [
+    "M20",
+    "Dragon Mage",
+    "verified",
+    "ANY"
+   ],
+   [
+    "ORI",
+    "Liliana, Heretical Healer // Liliana, Defiant Necromancer",
+    "compiled",
+    "ANY"
+   ]
+  ]
+ },
+ "eachplayer": {
+  "Conditional": [
+   [
+    "M21",
+    "Liliana, Waker of the Dead",
+    "compiled",
+    "ALL_OPPONENTS"
+   ]
+  ],
+  "Seq": [
+   [
+    "M21",
+    "Transmogrify",
+    "verified",
+    "selector"
+   ]
+  ],
+  "one atom: CREATE_TOKEN": [
+   [
+    "M21",
+    "Pursued Whale",
+    "verified",
+    "ALL_OPPONENTS",
+    null
+   ]
+  ],
+  "one atom: DEAL_DAMAGE": [
+   [
+    "M21",
+    "Keral Keep Disciples",
+    "verified",
+    "ALL_OPPONENTS",
+    null
+   ]
+  ],
+  "one atom: DRAW": [
+   [
+    "M20",
+    "Dragon Mage",
+    "verified",
+    "ANY",
+    "YOU"
+   ]
+  ],
+  "one atom: LOSE_LIFE": [
+   [
+    "M21",
+    "Peer into the Abyss",
+    "verified",
+    "TARGET_PLAYER",
+    "YOU"
+   ]
+  ],
+  "one atom: MOVE_ZONE": [
+   [
+    "M21",
+    "Thieves' Guild Enforcer",
+    "verified",
+    "ALL_OPPONENTS",
+    "YOU"
+   ],
+   [
+    "ZNR",
+    "Ruin Crab",
+    "compiled",
+    "ALL_OPPONENTS",
+    "YOU"
+   ],
+   [
+    "M20",
+    "Yarok's Fenlurker",
+    "verified",
+    "ALL_OPPONENTS",
+    "YOU"
+   ]
+  ],
+  "one atom: SACRIFICE": [
+   [
+    "M21",
+    "Goremand",
+    "verified",
+    "ALL_OPPONENTS",
+    null
+   ],
+   [
+    "M21",
+    "Run Afoul",
+    "verified",
+    "TARGET_OPPONENT",
+    null
+   ]
+  ]
+ }
+}
