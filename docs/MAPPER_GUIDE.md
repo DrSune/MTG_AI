@@ -247,6 +247,15 @@ $PY tools/cards/cardtool.py --help
       (CR 103.8a) and nothing is drawn at setup: declare a card in hand if the pack needs it there.
       Six filler "Library N" cards go on top of the pack's own unless
       `"world": {"library_top": true}`.
+    - Three things a pack can do since 2026-11-13, each refusing what it cannot apply (the
+      runner docstring has the details):
+      - respond while a combat trigger waits: `"respond_to_triggers": {"DECLARE_ATTACKERS":
+        [steps]}` on a combat step runs the steps with the attack triggers on the stack;
+      - play with three or more players: `"world": {"players": 3}` (nobody skips the first
+        draw, CR 103.8c; every seat a pack names must exist);
+      - cast a card from another zone: `{"op": "test_permission_cast", "key": k, "from":
+        "graveyard"}`, as though a permission let you, at the card's own timing and full cost.
+        The CAST row records the zone (`"kick_rows": {k: {"from": "graveyard"}}`).
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.
