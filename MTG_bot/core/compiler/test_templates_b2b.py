@@ -20,6 +20,7 @@ from MTG_bot.core.ability_tree import (
     AbilityActivatedEvent,
     AbilityKind,
     Atom,
+    AtomArgs,
     BecomesBlockedEvent,
     CardDrawnEvent,
     CastSpellEvent,
@@ -523,7 +524,7 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 60)
+        self.assertEqual(len(templates_b2b.TEMPLATES), 62)
         self.assertEqual(len(templates_b2b.UNCOVERED), 1)
 
     def test_bucket_labels_b2b(self) -> None:
@@ -2722,3 +2723,71 @@ class TestB2bRound10Mangara(unittest.TestCase):
             dict(eff.args.pairs),
             {"controller": ControllerRef.YOU, "amount": QConst(1)},
         )
+
+
+class TestB2bOneOrMoreRound10(unittest.TestCase):
+    """Ontology round R10 (gate round 10): "one or more" heads whose effect reads the gathered
+    objects, once_per_event on a zone change and on a declaration (CR 603.2c)."""
+
+    CHAMPION = (
+        "Whenever one or more tokens you control enter, put that many +1/+1 counters on this "
+        "creature."
+    )
+    GUARDIAN = (
+        "Whenever one or more creatures you control attack, they gain indestructible until end "
+        "of turn."
+    )
+
+    def test_woodland_champion_is_a_gathered_zone_change_counting_that_many(self) -> None:
+        m = _single_match(_registry(), self.CHAMPION)
+        self.assertEqual(m.template.tid, "B2b-tokens-enter-that-many-counters")
+        expected = TriggeredAbility(
+            event=ZoneChangeEvent(
+                from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+                subject=FAnd(children=(
+                    FAtom(pred=FAtomPred.IS_TOKEN),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )),
+            ),
+            condition=None,
+            effect=Atom(verb=Verb.PUT_COUNTER, args=AtomArgs(pairs=(
+                ("count", QProp(referent="event", field=QPropField.THAT_MANY_COUNT)),
+                ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                ("target", templates_b2b._self_selector()),
+            ))),
+            once_per_event=True,
+        )
+        self.assertEqual(_ability(m), expected)
+
+    def test_angelic_guardian_grants_to_every_declared_attacker(self) -> None:
+        m = _single_match(_registry(), self.GUARDIAN)
+        self.assertEqual(m.template.tid, "B2b-attackers-gain-keyword-eot")
+        ability = _ability(m)
+        self.assertEqual(ability.event, DeclareAttackersEvent(filter=FAnd(children=(
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        ))))
+        self.assertIs(ability.once_per_event, True)
+        self.assertIsNone(ability.condition)
+        eff = _atom(ability)
+        self.assertIs(eff.verb, Verb.GRANT_ABILITY)
+        self.assertEqual(dict(eff.args.pairs), {
+            "ability": KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),
+            "duration": DurationEot(),
+            "target": templates_b2b._event_reference(),
+        })
+        # any bare keyword the B11 table knows, the same tree
+        other = _ability(_single_match(_registry(), self.GUARDIAN.replace(
+            "indestructible", "first strike")))
+        self.assertEqual(_atom(other).args.get("ability"),
+                         KeywordAbility(keyword=Keyword.FIRST_STRIKE))
+        self.assertEqual(_registry().match(self.GUARDIAN.replace("indestructible", "wings")), ())
+
+    def test_one_object_wordings_stay_out(self) -> None:
+        reg = _registry()
+        for sentence in (
+            "Whenever a token you control enters, put that many +1/+1 counters on this creature.",
+            "Whenever a creature you control attacks, they gain indestructible until end of turn.",
+        ):
+            self.assertEqual(reg.match(sentence), (), sentence)

@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature.' An Undead Servant enters with three cards named Undead Servant in the graveyard: its enters trigger creates three Zombies in one instruction, one event (CR 603.2c), so the Champion gets 3 counters from one trigger (the unit test test_executor_one_or_more.py counts the one placement). The opponent's Raise the Alarm makes tokens the Champion's controller does not control: nothing. On the base (30fabc4a) the sentence did not compile: no counter.",
+ "cards": [
+  {"key": "champ", "real": "Woodland Champion", "zone": "battlefield", "controller": 0},
+  {"key": "s0", "real": "Undead Servant", "zone": "hand", "controller": 0},
+  {"key": "s1", "real": "Undead Servant", "zone": "graveyard", "controller": 0},
+  {"key": "s2", "real": "Undead Servant", "zone": "graveyard", "controller": 0},
+  {"key": "s3", "real": "Undead Servant", "zone": "graveyard", "controller": 0},
+  {"key": "alarm", "real": "Raise the Alarm", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "s0"},
+  {"op": "mana", "seat": 1, "add": {"W": 2}},
+  {"op": "cast", "key": "alarm", "real": "Raise the Alarm", "controller": 1}
+ ],
+ "expect": {
+  "tokens": {"Zombie": 3, "Soldier": 2},
+  "counters": {"champ": {"PLUS_1_PLUS_1": 3}},
+  "power": {"champ": 5}
+ }
+}

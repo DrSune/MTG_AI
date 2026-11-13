@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.' The Guardian and a Bear attack; with the trigger on the stack the Bear is returned to its owner's hand and put back onto the battlefield. It is a new object (CR 400.7), not one of the creatures that attacked, so it does not gain indestructible: 10 damage kills it, while the Guardian survives it. Seat 1 takes the Guardian's 5. Red without the resolution-time CR 400.7 check (the grant would follow the Bear's handle) and on the base (30fabc4a), where the sentence did not compile.",
+ "cards": [
+  {"key": "guardian", "real": "Angelic Guardian", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"guardian": true, "bear": true},
+   "respond_to_triggers": {"DECLARE_ATTACKERS": [
+    {"op": "move", "key": "bear", "to": "hand"},
+    {"op": "enter", "key": "bear"}
+   ]}},
+  {"op": "deal_damage", "source": "giant", "target": "guardian", "amount": 10},
+  {"op": "deal_damage", "source": "giant", "target": "bear", "amount": 10}
+ ],
+ "expect": {
+  "life": {"1": 15},
+  "zone": {"guardian": "battlefield", "bear": "graveyard"},
+  "damage": {"guardian": 10}
+ }
+}

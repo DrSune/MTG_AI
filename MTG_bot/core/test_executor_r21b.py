@@ -233,8 +233,10 @@ class ControllerCountGtTest(LegalityCase):
 
 
 class ThatManyRegisterTest(LegalityCase):
-    """``result`` precedence over the ``declare_attackers``
-    fallback, and the double-absence raise."""
+    """``result`` precedence over the ``gathered`` fallback (a gathered
+    event's objects, ontology round R10; the declaration register before),
+    and the double-absence raise: the one object a single event names is
+    never a "that many"."""
 
     THAT = QProp("event", QPropField.THAT_MANY_COUNT)
 
@@ -255,20 +257,20 @@ class ThatManyRegisterTest(LegalityCase):
         self.assertEqual(
             self.resolve_with(
                 result=[self.alpha, self.beta],
-                declare_attackers=[self.alpha, self.beta, self.alpha],
+                gathered=[self.alpha, self.beta, self.alpha],
             ),
             2,
         )
 
     def test_declaration_fallback_answers_when_result_absent(self):
-        # Basri's -2: the TRIGGER is the antecedent; the group rides in
-        # on the declare_attackers register
+        # Basri's -2: the TRIGGER is the antecedent; the attackers it
+        # gathered ride in on the gathered register
         self.assertEqual(
-            self.resolve_with(declare_attackers=[self.alpha, self.beta]), 2
+            self.resolve_with(gathered=[self.alpha, self.beta]), 2
         )
 
     def test_single_handle_binding_counts_one(self):
-        self.assertEqual(self.resolve_with(declare_attackers=self.alpha), 1)
+        self.assertEqual(self.resolve_with(gathered=self.alpha), 1)
 
     def test_both_absent_raises(self):
         with self.assertRaises(NotImplementedError):

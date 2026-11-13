@@ -213,6 +213,13 @@ class GameEvent:
     cause: Handle | None
     cause_verb: str
     data: tuple[object, ...] = ()
+    # The atom boundary that journalled the row (``EventJournal.record_atom``): the clock of its
+    # first row. The objects one boundary moves are moved at once, one event of several
+    # occurrences (CR 603.2c): the tokens one effect creates, the cards one instruction or one
+    # state-based-action check (CR 704.3) moves. A draw is the exception: each card is a draw of
+    # its own (CR 121.2). 0 for a row emitted outside an atom. Replays and forks re-derive it, so
+    # it stays out of ``dump()`` and no fingerprint or game log changes.
+    batch: int = 0
 
     # Typed views onto the documented per-kind data layouts (one cast
     # site per shape, right here, instead of one per matcher branch).
@@ -369,9 +376,10 @@ class EventJournal:
         cause: Handle | None,
         cause_verb: str,
         data: tuple[object, ...] = (),
+        batch: int = 0,
     ) -> GameEvent:
         self._clock += 1
-        event = GameEvent(self._clock, kind, subject, cause, cause_verb, data)
+        event = GameEvent(self._clock, kind, subject, cause, cause_verb, data, batch)
         self.events.append(event)
         return event
 
@@ -535,10 +543,15 @@ class EventJournal:
         """Diff the world against ``before`` and emit every triggered-rule
         event the atom caused. Returns the newly appended events. ``combat``
         names the combat damage step the atom deals damage in (0: none); its
-        DAMAGE rows carry it (``GameEvent.combat_step``)."""
+        DAMAGE rows carry it (``GameEvent.combat_step``). Every row carries the boundary's
+        ``batch``, a drawn card's its own (``GameEvent.batch``)."""
         start = len(self.events)
         world = self.world
         after = self._capture()
+        batch = self._clock + 1  # the clock of this boundary's first row
+
+        def emit(kind: str, subject: Handle, data: tuple[object, ...]) -> None:
+            self._emit(kind, subject, cause, cause_verb, data, batch)
 
         # --- zone membership: moves, ETBs, deaths, draws, token creates.
         for card, (owner, kind) in after.zones.items():
@@ -546,27 +559,17 @@ class EventJournal:
             from_state = was[1] if was else None
             if was is not None and was == (owner, kind):
                 continue
-            self._emit(
-                KIND_ZONE_CHANGE,
-                card,
-                cause,
-                cause_verb,
-                (from_state, kind, was[0] if was else None, owner),
-            )
-            if from_state == ZONE_LIBRARY and kind == ZONE_HAND and cause_verb == "DRAW":
-                # CR 121.1, 121.5: only a draw is a draw. A card put into a
-                # hand from a library without the word "draw" (a search, Garruk's
-                # reveal-and-put, a tutor) is a zone change, not a CARD_DRAWN row.
-                # Every draw runs through a DRAW atom (_v_draw; the turn's draw is
-                # the _TURN_DRAW atom), whose boundary moves nothing else.
+            # CR 121.1, 121.5: only a draw is a draw. A card put into a hand from a library
+            # without the word "draw" (a search, Garruk's reveal-and-put, a tutor) is a zone
+            # change, not a CARD_DRAWN row. Every draw runs through a DRAW atom (_v_draw; the
+            # turn's draw is the _TURN_DRAW atom), whose boundary moves nothing else.
+            drawn = from_state == ZONE_LIBRARY and kind == ZONE_HAND and cause_verb == "DRAW"
+            if drawn:
+                batch = self._clock + 1  # CR 121.2: cards are drawn one at a time
+            emit(KIND_ZONE_CHANGE, card, (from_state, kind, was[0] if was else None, owner))
+            if drawn:
                 self.draw_counts[owner] = self.draw_counts.get(owner, 0) + 1
-                self._emit(
-                    KIND_CARD_DRAWN,
-                    card,
-                    cause,
-                    cause_verb,
-                    (owner, self.draw_counts[owner]),
-                )
+                emit(KIND_CARD_DRAWN, card, (owner, self.draw_counts[owner]))
             if from_state == ZONE_BATTLEFIELD and kind == ZONE_GRAVEYARD:
                 identity = world.cards[card].identity
                 # The was-snapshot folds counters too (a 2/2 that died with a
@@ -582,11 +585,9 @@ class EventJournal:
                     if self.controller_override is not None
                     else None
                 )
-                self._emit(
+                emit(
                     KIND_CREATURE_DIES,
                     card,
-                    cause,
-                    cause_verb,
                     (
                         from_state,
                         was[0],
@@ -606,7 +607,7 @@ class EventJournal:
             if after.zones.get(card, (None, None))[1] != ZONE_BATTLEFIELD:
                 continue
             if card in before.tapped and before.tapped[card] != tapped:
-                self._emit(KIND_TAP_STATE, card, cause, cause_verb, (tapped,))
+                emit(KIND_TAP_STATE, card, (tapped,))
 
         # --- counters: CounterPlacedEvent feed (removals have no trigger
         # vocabulary in the frozen grammar, so they emit nothing).
@@ -615,13 +616,7 @@ class EventJournal:
             for name, value in sorted(counters.items()):
                 gained = value - was.get(name, 0)
                 if gained > 0:
-                    self._emit(
-                        KIND_COUNTER_PLACED,
-                        card,
-                        cause,
-                        cause_verb,
-                        (name, gained),
-                    )
+                    emit(KIND_COUNTER_PLACED, card, (name, gained))
 
         # --- life: gains are events; DEAL_DAMAGE losses are damage; every
         # other decrease (LOSE_LIFE, life-as-cost) is a LIFE_LOST row.
@@ -631,19 +626,11 @@ class EventJournal:
             if was_life is None or was_life == now_life:
                 continue
             if now_life > was_life:
-                self._emit(
-                    KIND_LIFE_GAINED,
-                    player,
-                    cause,
-                    cause_verb,
-                    (now_life - was_life,),
-                )
+                emit(KIND_LIFE_GAINED, player, (now_life - was_life,))
             elif cause_verb == "DEAL_DAMAGE":
-                self._emit(
+                emit(
                     KIND_DAMAGE,
                     player,
-                    cause,
-                    cause_verb,
                     (was_life - now_life, combat) if combat else (was_life - now_life,),
                 )
             else:
@@ -652,13 +639,7 @@ class EventJournal:
                 # DAMAGE/LIFE_GAINED rows above, so a journal fold
                 # (start + ΣLIFE_GAINED − ΣDAMAGE − ΣLIFE_LOST)
                 # reconstructs the final life exactly.
-                self._emit(
-                    KIND_LIFE_LOST,
-                    player,
-                    cause,
-                    cause_verb,
-                    (was_life - now_life,),
-                )
+                emit(KIND_LIFE_LOST, player, (was_life - now_life,))
 
         # --- non-lethal card damage leaves no state trace: the handlers'
         # event tuples carry its amount.
@@ -670,13 +651,7 @@ class EventJournal:
                     if entry[0] in before.consumed_raw:
                         continue  # a nested boundary journalled it already
                     consumed.add(entry[0])
-                    self._emit(
-                        KIND_DAMAGE,
-                        subject,
-                        cause,
-                        cause_verb,
-                        (entry[3], combat) if combat else (entry[3],),
-                    )
+                    emit(KIND_DAMAGE, subject, (entry[3], combat) if combat else (entry[3],))
 
         self._close(before, after, consumed | before.consumed_raw)
         return self.events[start:]

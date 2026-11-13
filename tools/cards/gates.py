@@ -685,7 +685,10 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
             cands.append(("trigger count: once per event -> each occurrence",
                           dataclasses.replace(node, once_per_event=None)))
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and gathers_occurrences(node.event):
-            cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
+            try:
+                cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
+            except ValueError:
+                pass  # stillborn: the effect reads one object of the event ("its power")
         elif isinstance(node, Atom) and orders_a_library(node) and path not in one_card:
             # CR 401.4: the owner arranges the cards, unless "in a random order" (arrange RANDOM)
             pairs = tuple(p for p in node.args.pairs if p[0] != "arrange")

@@ -4,9 +4,152 @@
  "oracle_id": "2f959c67-2b0b-4ba8-a8aa-90c25a3806ec",
  "name": "Angelic Guardian",
  "text_sha": "37582fe4ece050a757c519c96350fdc785fb6daf9101ac479d1196076f47fe08",
- "needs_atom": {
-  "missing": "OBJECT REFERENCE to the triggering declaration's attackers for 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.': 'they' = the creatures whose attack fired the trigger. The binder records exactly that set (binding.py:1453, ctx.bindings['declare_attackers']), but the IR can only read it as a number (QPropField.THAT_MANY_COUNT fallback, quantity.py:626); no Selector referent (source/controller/target/event/result) selects it, and referent 'event' is a single attacker row. The nearest tree, GRANT_ABILITY INDESTRUCTIBLE EOT over FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature, IS_ATTACKING), also covers creatures put onto the battlefield attacking before it resolves (CR 508.4; e.g. Basri Ket's -2 Soldier tokens from the same declaration: stronger than printed). The event maps: DeclareAttackersEvent(filter=FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature)) (Tide Skimmer; fires once per declaration).",
-  "author": "claude-mapper-m20-7",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "INDESTRUCTIBLE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "ANY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ],
+         "referent": "event"
+        }
+       ]
+      ]
+     }
+    },
+    "once_per_event": true
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-one-or-more-r10",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever one or more creatures you control attack, they gain indestructible until end of turn.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since ontology round R10 (gate round 10): B2b-attackers-gain-keyword-eot, the 'whenever one or more creatures you control attack' head (DeclareAttackersEvent, once_per_event, CR 508.3d) and GRANT_ABILITY INDESTRUCTIBLE until end of turn over Selector(referent='event'), which under the flag names every attacker the declaration gathered (CR 603.2c, ability_tree.gathers_objects): 'they'. A creature put onto the battlefield attacking was never declared (CR 508.4) and one that changed zones before the ability resolves is a new object (CR 400.7): neither gains it. Closes the needs-atom of 2026-11-05 (no referent selected the declaration's attackers). Packs tools/scenarios/mapped/M20/angelic_guardian_attackers_are_indestructible.json and angelic_guardian_bounced_attacker_is_a_new_object.json; the CR 508.4 case in MTG_bot/core/test_executor_one_or_more.py (a destroy effect cannot show it: DESTROY ignores indestructible, BACKLOG)."
+ },
+ "probe": {
+  "sha": "49a196dd6cc72633f7419523a8dd0ef7f16c1239dbf5bdfb58b6c0cd0d26c9d7"
  }
 }

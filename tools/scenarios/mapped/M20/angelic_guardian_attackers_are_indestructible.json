@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.' The Guardian and a Bear attack, a second Bear stays home: one trigger for the declaration (CR 508.3d), and 'they' are the two attackers (CR 603.2c: the event referent names every attacker the declaration gathered). After combat 10 damage each: the attackers survive (CR 702.12b), the Bear that stayed home dies. Seat 1 takes 5 + 2. On the base (30fabc4a) the sentence did not compile (a needs-atom record): every creature dies.",
+ "cards": [
+  {"key": "guardian", "real": "Angelic Guardian", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "homebody", "name": "Homebody", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"guardian": true, "bear": true}},
+  {"op": "deal_damage", "source": "giant", "target": "guardian", "amount": 10},
+  {"op": "deal_damage", "source": "giant", "target": "bear", "amount": 10},
+  {"op": "deal_damage", "source": "giant", "target": "homebody", "amount": 10}
+ ],
+ "expect": {
+  "life": {"1": 13},
+  "zone": {"guardian": "battlefield", "bear": "battlefield", "homebody": "graveyard"},
+  "damage": {"guardian": 10, "bear": 10}
+ }
+}

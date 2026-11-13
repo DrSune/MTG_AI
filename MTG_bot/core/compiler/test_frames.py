@@ -15,7 +15,17 @@ from pathlib import Path
 
 import pytest
 
-from MTG_bot.core.ability_tree import ActivatedAbility, CostLoyalty, TriggeredAbility
+from MTG_bot.core.ability_tree import (
+    ActivatedAbility,
+    ControllerRef,
+    CostLoyalty,
+    FAtom,
+    FAtomPred,
+    TriggeredAbility,
+    Zone,
+    ZoneChangeEvent,
+    ZoneKind,
+)
 from MTG_bot.core.compiler import frames
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
@@ -69,6 +79,27 @@ def test_composed_abilities_have_the_frames_shape(registry) -> None:
     assert loyalty.cost.parts == (CostLoyalty(-2),)
     activated = frames.compose("{2}, {T}: Draw a card.", registry)[0].outcome.ability
     assert isinstance(activated, ActivatedAbility) and len(activated.cost.parts) == 2
+
+
+def test_one_or_more_heads_trigger_once_per_event(registry) -> None:
+    """Desecrated Tomb's and Elvish Warmaster's heads: one trigger for the objects one event
+    moves (CR 603.2c, ontology round R10)."""
+    tomb = frames.compose("Whenever one or more creature cards leave your graveyard, create a 1/1 "
+                          "black Bat creature token with flying.", registry)[0].outcome.ability
+    assert tomb.once_per_event is True
+    assert tomb.event == ZoneChangeEvent(
+        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU), Zone(ZoneKind.ANY, ControllerRef.ANY),
+        subject=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))
+    elves = frames.compose("Whenever one or more other Elves you control enter, create a 1/1 green "
+                           "Elf Warrior creature token.", registry)[0].outcome.ability
+    assert elves.once_per_event is True and elves.event.to_zone.kind is ZoneKind.BATTLEFIELD
+    assert FAtom(FAtomPred.SUBTYPE_EQ, string_value="Elf") in elves.event.subject.children
+    # a plural the table does not hold stays out: a guessed singular could name no subtype
+    assert frames.compose("Whenever one or more other Dwarves you control enter, draw a card.",
+                          registry) == ()
+    # "that many" or "they" read the gathered objects: a pronoun keeps the clause out
+    assert frames.compose("Whenever one or more creature cards leave your graveyard, draw that "
+                          "many cards.", registry) == ()
 
 
 @pytest.mark.parametrize("set_code", SETS)

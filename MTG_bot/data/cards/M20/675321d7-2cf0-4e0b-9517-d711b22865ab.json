@@ -4,9 +4,176 @@
  "oracle_id": "675321d7-2cf0-4e0b-9517-d711b22865ab",
  "name": "Woodland Champion",
  "text_sha": "9ee8de2adff1519807b71e8ffb859ffbf016de7c2893d417998750188fcadba4",
- "needs_atom": {
-  "missing": "'Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature': a BATCHED zone-change trigger (CR 603.2c, once per set of tokens entering simultaneously) whose 'that many' is the batch size. ZoneChangeEvent fires once per object and only DECLARE_ATTACKERS firings record a group register (binding.py declare_attackers), so the closest tree (per-token trigger, one counter each) makes N counter events of 1 instead of one event of N: stronger than printed with Conclave Mentor (+1 per event: 2N instead of N+1) and Wildwood Scourge (one trigger per event).",
-  "author": "claude-mapper-m20-6",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "IS_TOKEN"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QProp",
+         "referent": "event",
+         "field": {
+          "tag": "QPropField",
+          "name": "THAT_MANY_COUNT"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "once_per_event": true
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-one-or-more-r10",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since ontology round R10 (gate round 10, one or more objects moved at once): B2b-tokens-enter-that-many-counters, a ZoneChangeEvent (ANY -> BATTLEFIELD YOU, subject a token you control) with once_per_event, one trigger for the tokens one event moves (CR 603.2c: one instruction's tokens, the objects one atom boundary journals, GameEvent.batch). 'That many' is QProp(event, THAT_MANY_COUNT), the number of tokens the event gathered, the ones that left before the ability resolves included (the card's ruling). Closes the needs-atom of 2026-11-05 (a batched zone-change trigger whose 'that many' is the batch size). Packs tools/scenarios/mapped/M20/woodland_champion_two_tokens_at_once.json (Raise the Alarm's two Soldiers: one trigger, 2 counters; Ferocious Pup's Wolf: a second) and woodland_champion_three_zombies_at_once.json (Undead Servant's three Zombies: 3 counters; the opponent's tokens: none); the trigger counts and a token leaving before resolution in MTG_bot/core/test_executor_one_or_more.py."
+ },
+ "probe": {
+  "sha": "13564ca37634ba31c79429237e7d754f93687ac1a57794edde3bba1bdb7240f3"
  }
 }

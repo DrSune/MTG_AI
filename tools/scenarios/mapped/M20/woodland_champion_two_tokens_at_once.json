@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature.' Raise the Alarm creates two Soldiers at once: one event (CR 603.2c, one instruction's tokens), so the Champion triggers once and gets that many, 2 counters (2/2 -> 4/4). Ferocious Pup's own effect then makes one Wolf: a second event, a second trigger, a third counter (5/5). On the base (30fabc4a) the sentence did not compile (a needs-atom record): no counter.",
+ "cards": [
+  {"key": "champ", "real": "Woodland Champion", "zone": "battlefield", "controller": 0},
+  {"key": "alarm", "real": "Raise the Alarm", "zone": "hand", "controller": 0},
+  {"key": "pup", "real": "Ferocious Pup", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2}},
+  {"op": "cast", "key": "alarm", "real": "Raise the Alarm"},
+  {"op": "enter", "key": "pup"}
+ ],
+ "expect": {
+  "tokens": {"Soldier": 2, "Wolf": 1},
+  "counters": {"champ": {"PLUS_1_PLUS_1": 3}},
+  "power": {"champ": 5},
+  "toughness": {"champ": 5}
+ }
+}

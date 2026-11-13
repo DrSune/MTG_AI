@@ -773,7 +773,10 @@ class QUnbounded:
 class QCount:
     """The number of objects a selector matches (Tarmogoyf-class P/T,
     Frantic Inventory's draw count, Gadrak's "for each nontoken creature
-    that died this turn")."""
+    that died this turn"). Never over a referent Selector: the number of
+    objects an earlier instruction acted on or a gathered event names is
+    QProp("event", THAT_MANY_COUNT) ("that many"), the one encoding; "source"
+    and "controller" name one object."""
 
     selector: Selector
 
@@ -781,6 +784,11 @@ class QCount:
         if not isinstance(self.selector, Selector):
             raise ValueError(
                 f"QCount: selector must be a Selector, got {type(self.selector).__name__}"
+            )
+        if self.selector.referent is not None:
+            raise ValueError(
+                "QCount: a referent Selector's number is QProp('event', THAT_MANY_COUNT), "
+                f"not a count of Selector(referent={self.selector.referent!r})"
             )
 
 
@@ -1091,7 +1099,8 @@ class Selector:
     "event" = the triggering event's subject object (cast → the cast
     spell; damage_dealt → the damaged recipient; becomes_blocked → the
     blocker; declare_attackers → the attacker; targeting → the new
-    target). When set, the selector denotes the bound object and
+    target), and under a trigger that gathers objects (:func:`gathers_objects`)
+    every one of them ("they"). When set, the selector denotes the bound object and
     ``filter`` (if non-universal) acts as a type-check on it, not a fresh
     search. A referent selector must be ``mode=CHOOSE`` +
     ``count=QConst(1)`` + ``zones == (Zone(ANY, ANY),)`` exactly (a bound
@@ -3050,15 +3059,22 @@ def orders_a_library(atom: Atom) -> bool:
 
 def gathers_occurrences(event: object) -> bool:
     """Can one event hold several occurrences a trigger on ``event`` matches, so that once per
-    event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can,
-    and so can the dealers of one combat damage step (CR 510.2), the dealers being the
-    DamageDealtEvent's ``source``. Not when the subject is the trigger's source or what it is
-    attached to ("whenever this creature attacks": one occurrence per event), not for damage that
-    is not only combat damage (``combat`` not True: the engine groups a combat damage step, and a
-    noncombat event has one dealer), and not with no dealer named ("is dealt damage" is already
-    one event per recipient). Other event kinds answer False: the engine does not group them."""
+    event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can; so
+    can the objects one event moves into or out of a zone (the tokens one effect creates, the
+    cards one instruction or one state-based-action check moves: one zone change of several
+    objects, CR 603.2c, 704.3), and the dealers of one combat damage step (CR 510.2), the dealers
+    being the DamageDealtEvent's ``source``. Not when the subject is the trigger's source or what
+    it is attached to ("whenever this creature attacks", "when this creature enters": one
+    occurrence per event), not for damage that is not only combat damage (``combat`` not True:
+    the engine groups a combat damage step, and a noncombat event has one dealer), and not with
+    no dealer named ("is dealt damage" is already one event per recipient). Other event kinds
+    answer False: the engine does not group them."""
     if isinstance(event, DeclareAttackersEvent):
         subject = event.filter
+    elif isinstance(event, ZoneChangeEvent):
+        if event.subject is None:
+            return True
+        subject = event.subject
     elif isinstance(event, DamageDealtEvent) and event.combat is True and event.source is not None:
         subject = event.source
     else:
@@ -3071,22 +3087,62 @@ def gathers_occurrences(event: object) -> bool:
     )
 
 
+def gathers_objects(event: object, once_per_event: object) -> bool:
+    """Does a trigger's event register hold several objects? Once per event over a declaration
+    or a zone change it holds every attacker declared, or every object moved, that the event
+    matches (CR 603.2c): Selector(referent="event") is all of them ("they gain indestructible",
+    Angelic Guardian) and QProp("event", THAT_MANY_COUNT) their number ("that many", Woodland
+    Champion, Basri Ket's -2). A gathered combat damage event keeps its one subject, the player
+    dealt damage (Feline Sovereign's "that player")."""
+    return once_per_event is True and isinstance(event, (DeclareAttackersEvent, ZoneChangeEvent))
+
+
 def _check_once_per_event(owner: str, event: object, value: object) -> None:
     """TriggeredAbility.once_per_event's one encoding: True or absent (never False), and on an
-    attack or damage event only where it changes the play (:func:`gathers_occurrences`): flagged
-    "whenever this creature attacks" would be a second encoding of the unflagged trigger. Other
-    event kinds keep the flag, which the binder refuses until it groups them."""
+    attack, zone-change or damage event only where it changes the play
+    (:func:`gathers_occurrences`): flagged "whenever this creature attacks" or "when this creature
+    enters" would be a second encoding of the unflagged trigger. Other event kinds keep the flag,
+    which the binder refuses until it groups them."""
     if value is None:
         return
     if value is not True:
         raise ValueError(f"{owner}: once_per_event is True or absent, got {value!r}")
-    if isinstance(event, (DeclareAttackersEvent, DamageDealtEvent)) and not gathers_occurrences(
-        event
-    ):
+    if isinstance(
+        event, (DeclareAttackersEvent, DamageDealtEvent, ZoneChangeEvent)
+    ) and not gathers_occurrences(event):
         raise ValueError(
             f"{owner}: once_per_event needs an event that gathers occurrences; this "
             f"{type(event).__name__} has a self or attached subject, damage that is not only "
             "combat damage, or no dealer named"
+        )
+
+
+def _reads_one_event_object(effect: object) -> bool:
+    """Does ``effect`` read one object of its event register, a QProp of "event" other than
+    THAT_MANY_COUNT ("its power")? Its own nodes, and a reflexive trigger's in it, which reads the
+    register of the resolution that created it (CR 603.12); another ability's have their own."""
+    for node in walk(effect, skip=_FOREIGN_ABILITY_NODES):
+        if isinstance(node, DelayedTrigger) and node.reflexive and node is not effect:
+            if _reads_one_event_object(node.effect):
+                return True
+        elif (
+            isinstance(node, QProp)
+            and node.referent == "event"
+            and node.field is not QPropField.THAT_MANY_COUNT
+        ):
+            return True
+    return False
+
+
+def _check_gathered_reads(owner: str, event: object, once_per_event: object, effect: object) -> None:
+    """Where the event register holds several objects (:func:`gathers_objects`) there is no "it":
+    the register is read as those objects (Selector(referent="event"), "they") or their number
+    (QProp("event", THAT_MANY_COUNT), "that many"). Another QProp of "event" would read the one
+    of them that comes first in handle order."""
+    if gathers_objects(event, once_per_event) and _reads_one_event_object(effect):
+        raise ValueError(
+            f"{owner}: once_per_event gathers several objects into the event register; a QProp "
+            "of 'event' other than THAT_MANY_COUNT reads one of them"
         )
 
 
@@ -3151,6 +3207,7 @@ class DelayedTrigger:
             raise ValueError(
                 f"DelayedTrigger: effect must be an Effect, got {type(self.effect).__name__}"
             )
+        _check_gathered_reads("DelayedTrigger", self.event, self.once_per_event, self.effect)
 
     @property
     def reflexive(self) -> bool:
@@ -3210,13 +3267,16 @@ class TriggeredAbility:
     "whenever another creature dies" for each one that died. True: once for
     the whole event, however many of its occurrences match: "whenever you
     attack" and "whenever one or more creatures you control attack" trigger
-    once per declaration (CR 508.3d); "whenever one or more Cats you control
-    deal combat damage to a player" once per combat damage step and player
-    (CR 510.2), gathering the dealers its `source` names. Never False, and
-    on an attack or damage event never where it changes nothing
-    (:func:`gathers_occurrences`: "whenever this creature attacks", damage
-    that is not only combat damage, "is dealt damage"): one encoding for
-    each meaning."""
+    once per declaration (CR 508.3d); "whenever one or more tokens you
+    control enter" once per zone change, however many tokens it moved;
+    "whenever one or more Cats you control deal combat damage to a player"
+    once per combat damage step and player (CR 510.2), gathering the dealers
+    its `source` names. On a declaration or a zone change the event register
+    then holds every object gathered (:func:`gathers_objects`). Never False,
+    and on an attack, zone-change or damage event never where it changes
+    nothing (:func:`gathers_occurrences`: "whenever this creature attacks",
+    "when this creature enters", damage that is not only combat damage, "is
+    dealt damage"): one encoding for each meaning."""
 
     event: EventSpec
     condition: Filter | None
@@ -3237,6 +3297,7 @@ class TriggeredAbility:
             raise ValueError(
                 f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}"
             )
+        _check_gathered_reads("TriggeredAbility", self.event, self.once_per_event, self.effect)
 
 
 @dataclass(frozen=True)

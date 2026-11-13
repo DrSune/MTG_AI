@@ -675,6 +675,18 @@ def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() 
         dataclasses.replace(trigger, once_per_event=True)
 
 
+def test_a_zone_change_trigger_gets_the_once_per_event_mutant_where_it_lives() -> None:
+    """Ontology round R10: a zone change of several objects is one event (CR 603.2c), so a
+    per-object "whenever a creature you control enters" trigger gets the critical "each
+    occurrence -> once per event" mutant (Garruk's Uprising), and the gathered one (Woodland
+    Champion) its reverse. Where the effect reads one object of the event (Terror of the Peaks'
+    "that creature's power") the IR refuses the flag: the mutant is stillborn, never a crash."""
+    assert ("each occurrence -> once per event", "1/2") in _where(_card("Garruk's Uprising"))
+    assert ("trigger count: once per event -> each occurrence", "1/0") in _where(
+        _card("Woodland Champion", "M20"))
+    assert not {op for op, _w in _where(_card("Terror of the Peaks")) if "occurrence" in op}
+
+
 # ------------------------------------- verification wave 1's equivalent mutants (KNOWLEDGE 201)
 def _everyone(card: Any, where: str) -> Any:
     """The "target->all" mutant at ``where``, as gates.mutants builds it."""

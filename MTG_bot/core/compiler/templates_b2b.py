@@ -126,6 +126,7 @@ from MTG_bot.core.compiler.templates import (
     Template,
     and_or_zone_search,
 )
+from MTG_bot.core.compiler.templates_b11 import _KEYWORDS, _KW_ALT
 
 _BUCKET: Final[str] = "B2b"
 _PRIORITY: Final[int] = 50
@@ -2223,6 +2224,74 @@ def _build_mangara_attackers_draw(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
+def _build_tokens_enter_that_many_counters(m: re.Match[str]) -> SentenceOutcome:
+    """``Whenever one or more tokens you control enter, put that many +1/+1 counters on this
+    creature.`` (Woodland Champion)
+
+    "One or more" is once_per_event: one trigger for the tokens one event puts onto the
+    battlefield (one effect's tokens, the objects one atom boundary moves: CR 603.2c,
+    ``GameEvent.batch``), its event register holding them all. "That many" is QProp(event,
+    THAT_MANY_COUNT), their number, the ones that leave before the ability resolves included (the
+    card's ruling). The subject is the "<class> you control enters" shape (Garruk's Uprising) over
+    IS_TOKEN."""
+    return _ability(
+        ZoneChangeEvent(
+            from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+            to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
+            subject=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.IS_TOKEN),
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                )
+            ),
+        ),
+        Atom(
+            verb=Verb.PUT_COUNTER,
+            args=AtomArgs(
+                pairs=(
+                    ("count", QProp(referent="event", field=QPropField.THAT_MANY_COUNT)),
+                    ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                    ("target", _self_selector()),
+                )
+            ),
+        ),
+        once_per_event=True,
+    )
+
+
+def _build_attackers_gain_keyword_eot(m: re.Match[str]) -> SentenceOutcome:
+    """``Whenever one or more creatures you control attack, they gain <keyword> until end of
+    turn.`` (Angelic Guardian)
+
+    The head is "whenever one or more creatures you control attack" (once_per_event, CR 508.3d).
+    "They" are the attackers the declaration names: the event referent, which under the flag holds
+    every one of them (CR 603.2c, ``ability_tree.gathers_objects``). A creature put onto the
+    battlefield attacking was never declared (CR 508.4) and does not gain it; one that changed
+    zones before the ability resolves is a new object (CR 400.7) and does not either. The grant is
+    "it gains <keyword> until end of turn"'s (B5b) over that referent."""
+    return _ability(
+        DeclareAttackersEvent(
+            filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                )
+            )
+        ),
+        Atom(
+            verb=Verb.GRANT_ABILITY,
+            args=AtomArgs(
+                pairs=(
+                    ("target", _event_reference()),
+                    ("ability", KeywordAbility(keyword=_KEYWORDS[m.group("kw")])),
+                    ("duration", DurationEot()),
+                )
+            ),
+        ),
+        once_per_event=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Templates
 # ---------------------------------------------------------------------------
@@ -2734,6 +2803,24 @@ TEMPLATES: Final[tuple[Template, ...]] = (
             r"planeswalkers you control, draw a card\.$"
         ),
         _build_mangara_attackers_draw,
+    ),
+    _template(
+        "B2b-tokens-enter-that-many-counters",
+        "Woodland Champion",
+        _exact(
+            "Whenever one or more tokens you control enter, put that many +1/+1 counters on "
+            "this creature."
+        ),
+        _build_tokens_enter_that_many_counters,
+    ),
+    _template(
+        "B2b-attackers-gain-keyword-eot",
+        "Angelic Guardian",
+        re.compile(
+            rf"^Whenever one or more creatures you control attack, they gain (?P<kw>{_KW_ALT}) "
+            r"until end of turn\.$"
+        ),
+        _build_attackers_gain_keyword_eot,
     ),
 )
 

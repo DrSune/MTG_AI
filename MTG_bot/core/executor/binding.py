@@ -105,6 +105,7 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     count_semantics,
+    gathers_objects,
     own_nodes,
     walk,
 )
@@ -303,7 +304,8 @@ class _Firing:
     """One queued trigger instance's execution payload, keyed by the
     instance's (tick-unique) clock. ``carried``: a reflexive trigger's
     creating resolution (every other firing builds its context from its
-    event)."""
+    event). ``gathered``: the objects of a gathered event
+    (:func:`~MTG_bot.core.ability_tree.gathers_objects`), read as it occurred."""
 
     source: Handle
     controller: Handle
@@ -311,6 +313,7 @@ class _Firing:
     event: GameEvent
     seq: int
     carried: _Carried | None = None
+    gathered: tuple[Handle, ...] | None = None
 
 
 @dataclass
@@ -381,13 +384,14 @@ class TriggerBinder:
         self.delayed: list[DelayedBinding] = []
         self._seen_journal_len = 0
         self._seq = 0
-        # CR 603.2c: (source, node-id, declare-group) for every queue a
-        # once-per-event DeclareAttackersEvent trigger already made. The
-        # journal carries ONE row per declared attacker; "whenever you attack"
-        # triggers once on the whole declaration, so the shared group id
-        # collapses the row fan-out (a once-per-occurrence trigger takes
-        # every row it matches).
-        self._declare_queued: set[tuple[Handle, int, int]] = set()
+        # CR 603.2c: (source, node-id, row kind, event id) for every queue a
+        # once-per-event trigger on a declaration or a zone change already
+        # made. The journal carries ONE row per declared attacker or moved
+        # object; "whenever you attack" and "whenever one or more tokens you
+        # control enter" trigger once on the whole event, so the shared declare
+        # group or atom batch collapses the row fan-out (a once-per-occurrence
+        # trigger takes every row it matches).
+        self._gathered_queued: set[tuple[Handle, int, str, int]] = set()
         # Cached synthetic keyword-trigger nodes, keyed (family, holder):
         # ONE node object per (family, handle).
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
@@ -639,12 +643,13 @@ class TriggerBinder:
                 "count has no trigger reader"
             )
         if trigger.once_per_event and not isinstance(
-            event, (DeclareAttackersEvent, DamageDealtEvent)
+            event, (DeclareAttackersEvent, DamageDealtEvent, ZoneChangeEvent)
         ):
             # CR 603.2c: _queue gathers one event's occurrences only for a
-            # declaration (its rows share a declare group) and a combat damage
-            # step (its rows share the step); elsewhere the ability would
-            # trigger once per occurrence, more often than printed.
+            # declaration (its rows share a declare group), a zone change (its
+            # rows share an atom boundary's batch) and a combat damage step (its
+            # rows share the step); elsewhere the ability would trigger once per
+            # occurrence, more often than printed.
             raise NotImplementedError(
                 f"executor: {card_name} once-per-event trigger on {kind.__name__} has no "
                 "event grouping"
@@ -812,6 +817,7 @@ class TriggerBinder:
         additional: bool = False,
         delayed: bool = False,
         carried: _Carried | None = None,
+        gathered: tuple[Handle, ...] | None = None,
     ) -> None:
         if source in self.quarantined:
             # Tripwire guard: a flagged loop source never queues
@@ -829,19 +835,29 @@ class TriggerBinder:
             # trigger (GRANT_ABILITY) is never bound, so it is checked here.
             record = self.handle_record.get(source)
             self._check_trigger(node, record.name if record is not None else str(source))
-        if not additional and node.once_per_event and event.kind == KIND_DECLARE_ATTACKERS:
-            # CR 603.2c, 508.3d: "whenever you attack" and "whenever one or more
-            # creatures you control attack" trigger once on the declaration, so
-            # the per-attacker row fan-out queues ONE instance per ability per
-            # declare group (Tide Skimmer's "attack with two or more" fires
-            # once); two identical creatures are different sources. A trigger
-            # without the flag ("whenever a creature you control attacks", CR
-            # 508.3a) queues one instance per attacker it matches, that attacker
-            # its event (Hooded Blightfang, Basri, Devoted Paladin's -1).
-            key = (source, id(node), event.declare_group)
-            if key in self._declare_queued:
+        if not additional and gathers_objects(node.event, node.once_per_event):
+            # CR 603.2c, 508.3d: "whenever you attack", "whenever one or more
+            # creatures you control attack" and "whenever one or more tokens you
+            # control enter" trigger once on the whole event: the declaration, or
+            # the objects one atom boundary moved (GameEvent.batch). Its rows fan
+            # out one per object, so ONE instance is queued per ability per event
+            # (Tide Skimmer's "attack with two or more" fires once); two identical
+            # creatures are different sources. The instance holds every object of
+            # the event its spec matches, judged as the event occurred (CR 603.10:
+            # a departed one by its last known information): "they" and "that
+            # many". A trigger without the flag ("whenever a creature you control
+            # attacks", CR 508.3a) queues one instance per object it matches, that
+            # object its event (Hooded Blightfang, Basri, Devoted Paladin's -1).
+            group = event.declare_group if event.kind == KIND_DECLARE_ATTACKERS else event.batch
+            key = (source, id(node), event.kind, group)
+            if key in self._gathered_queued:
                 return
-            self._declare_queued.add(key)
+            self._gathered_queued.add(key)
+            gathered = tuple(
+                e.subject
+                for e in self._occurrences(event)
+                if e.subject is not None and self._match_node(node.event, e, source, controller)
+            )
         if (
             not additional
             and event.kind == KIND_DAMAGE
@@ -888,6 +904,7 @@ class TriggerBinder:
             event=event,
             seq=self._seq,
             carried=carried,
+            gathered=gathered,
         )
         self.firings[instance.clock] = payload
         if not additional:
@@ -899,6 +916,26 @@ class TriggerBinder:
             # it again, which is what keeps two extra-trigger carriers from
             # chasing each other.
             self._fan_ability_triggers(payload)
+
+    def _occurrences(self, event: GameEvent) -> list[GameEvent]:
+        """The rows of the one event ``event`` is an occurrence of (CR 603.2c): the attacker rows
+        of its declaration (one declare group), or the zone changes of its atom boundary (one
+        batch, ``GameEvent.batch``). Each is journalled whole before the binder matches any of
+        its rows."""
+        journal = self.executor.journal
+        if event.kind == KIND_DECLARE_ATTACKERS:
+            return [
+                e
+                for e in journal.turn_window()
+                if e.kind == KIND_DECLARE_ATTACKERS and e.declare_group == event.declare_group
+            ]
+        rows = []
+        for e in reversed(journal.events):
+            if e.clock < event.batch:  # a batch's rows begin at its own clock
+                break
+            if e.kind == KIND_ZONE_CHANGE and e.batch == event.batch:
+                rows.append(e)
+        return rows[::-1]
 
     def _combat_damage_event(
         self, event: GameEvent, node: _AnyTrigger, source: Handle, controller: Handle
@@ -1591,35 +1628,16 @@ class TriggerBinder:
             ctx.bindings.update(payload.carried.bindings)
             ctx.x_value = payload.carried.x_value
             ctx.event, ctx.event_amount = payload.carried.event, payload.carried.event_amount
-        # Basri Ket's -2: a DECLARE_ATTACKERS firing records the attackers of
-        # its declaration group into a dedicated ``declare_attackers`` register.
-        # The granted "whenever … attacks, create a token" continuation
-        # counts the attackers with THAT_MANY_COUNT, whose primary reading
-        # is the in-resolution ``result`` register (Kinetic Augur's
-        # precedence); the group register is the fallback that
-        # answers when the trigger itself IS the antecedent (no producer
-        # atom ran in this resolution). Rows are journalled at declaration
-        # time, before the matcher drains any firing (the CR 603.2 group dedup
-        # relies on that ordering too), so the group is complete here.
-        if event.kind == KIND_DECLARE_ATTACKERS and event.subject is not None:
-            group = event.declare_group
-            spec = payload.node.event
-            # CR 603.2c: "Whenever one or more NONTOKEN creatures attack
-            # this turn, create that many ..." (Basri Ket's -2): the antecedent
-            # is the attackers the trigger's own event spec names, matched like
-            # the row that fired it (filter and attacked object), not every
-            # creature in the declaration. Two Bears and a token make 2.
-            ctx.bindings["declare_attackers"] = [
-                e.subject
-                for e in self.executor.journal.turn_window()
-                if e.kind == KIND_DECLARE_ATTACKERS
-                and e.declare_group == group
-                and e.subject is not None
-                and (
-                    not isinstance(spec, DeclareAttackersEvent)
-                    or self._match_node(spec, e, payload.source, payload.controller)
-                )
-            ]
+        if payload.gathered is not None:
+            # CR 603.2c: a gathered event names every object it gathered (_queue), not
+            # one row's: "they" (Selector(referent="event"), Angelic Guardian) is all of
+            # them, and "that many" (QProp("event", THAT_MANY_COUNT), Woodland Champion,
+            # Basri Ket's -2) their number, the ``gathered`` register, which keeps the
+            # ones that leave before resolution (their rulings; :meth:`resolve`).
+            # THAT_MANY_COUNT reads the in-resolution ``result`` register first
+            # (Kinetic Augur's precedence).
+            ctx.bindings["event"] = list(payload.gathered)
+            ctx.bindings["gathered"] = list(payload.gathered)
         node = payload.node
         designated = False  # targets chosen through _designate, checked again at resolution
         if isinstance(node.effect, Choose) and self._modes_need_targets(node.effect):
@@ -1715,6 +1733,19 @@ class TriggerBinder:
         propagates. May-offers ask the executor's decision stream."""
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
+        gathered = obj.ctx.binding_handles("gathered")
+        if gathered is not None:
+            # CR 400.7: "they" are the objects the event gathered; one that has changed zones
+            # since is a new object, which the effect does not touch. "That many" still counts
+            # it (the ``gathered`` register). A reflexive trigger's ctx.event is its creator's.
+            from MTG_bot.core.executor.returns import moved_since
+
+            event = obj.ctx.event
+            assert isinstance(event, GameEvent)
+            since = max(e.clock for e in self._occurrences(event))
+            obj.ctx.bindings["event"] = [
+                h for h in gathered if not moved_since(self.executor.journal, h, since)
+            ]
         kept: list[Handle] | None = None
         if obj.slot_designations and obj.declared_targets:
             # CR 608.2b, slot by slot, as a spell's targets are (stack.recheck_targets): an

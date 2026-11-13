@@ -627,14 +627,16 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         # guessed.
         handles = ctx.binding_handles("result")
         if handles is None:
-            # The trigger-antecedent reading (Basri Ket's -2). When the
-            # "that many" rides a DECLARE_ATTACKERS-triggered effect there
-            # IS no preceding producer atom: the DECLARATION itself is the
-            # antecedent set, and the binder's _put records the whole
-            # declaration group under this register. The ``result``
-            # register keeps strict precedence (Kinetic Augur stays on the
-            # producer path); this fallback only answers when it is absent.
-            handles = ctx.binding_handles("declare_attackers")
+            # The trigger-antecedent reading (Basri Ket's -2, Woodland
+            # Champion). When the "that many" rides the effect of a trigger
+            # that gathers objects (ability_tree.gathers_objects) there IS no
+            # preceding producer atom: the event's objects are the antecedent
+            # set, every one it gathered, those that have left since included
+            # (the cards' rulings), which the binder's _put records under this
+            # register. The ``result`` register keeps strict precedence
+            # (Kinetic Augur stays on the producer path); this fallback only
+            # answers when it is absent, and a single event never writes it.
+            handles = ctx.binding_handles("gathered")
         if handles is None:
             raise NotImplementedError(
                 "executor: THAT_MANY_COUNT has no producer register — no "

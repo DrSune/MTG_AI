@@ -702,6 +702,10 @@ def resolve_selector(
     if partition_window is not None and sel.mode in (SelectorMode.ONE_OF, SelectorMode.ALL):
         ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]
+    if sel.referent == "event":
+        # The triggering event's object, or every object a gathered event names
+        # ("they", ability_tree.gathers_objects): bound, never chosen, so no count slices it.
+        return candidates
 
     # The CAST-lane predicate arrives as ``ok``; the three clamp shapes are
     # the docstring's. A POPULATION clamp consumes the WHOLE population
