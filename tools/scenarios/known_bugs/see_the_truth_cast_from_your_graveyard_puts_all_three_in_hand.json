@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "stt", "real": "See the Truth", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "test_permission_cast", "key": "stt", "from": "graveyard"}
+ ],
+ "expect": {
+  "kick_rows": {"stt": {"from": "graveyard"}},
+  "zone": {"stt": "graveyard"},
+  "hand": {"0": 3},
+  "library": {"0": ["Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "KNOWN BUG, fails today (docs/BACKLOG.md, 'See the Truth's \"cast from anywhere other than your hand\" branch compiles wrong'). Printed: 'Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' Seat 0 casts it from its graveyard by a test permission (test_permission_cast; its ruling: the card gives no permission of its own). The 'instead' replaces the whole first instruction: all three looked-at cards (Library 5, 4 and 3) go to the hand, nothing goes to the bottom, and nothing is chosen or ordered, so the step carries no decision words. The sorcery then goes to its owner's graveyard. Today the tree runs the normal outcome first (choose one for the hand, order the rest on the bottom), then moves a count-1 choice over the looked-at cards to the hand: the step stops at the first choice, which the printed branch never asks. When the compiler's 'instead' arm lands, this pack passes and moves to tools/scenarios/."
+}

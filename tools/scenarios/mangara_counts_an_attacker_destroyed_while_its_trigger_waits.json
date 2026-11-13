@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "m", "real": "Mangara, the Diplomat", "zone": "battlefield", "controller": 0},
+  {"key": "a", "name": "Raider A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "b", "name": "Raider B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"a": true, "b": true},
+   "respond_to_triggers": {"DECLARE_ATTACKERS": [{"op": "move", "key": "b", "to": "graveyard"}]}}
+ ],
+ "expect": {
+  "attackers": {"a": true, "b": true},
+  "zone": {"b": "graveyard", "a": "battlefield", "m": "battlefield"},
+  "hand": {"0": 1, "1": 1},
+  "life": {"0": 18, "1": 20}
+ },
+ "notes": "Printed: 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' Its ruling (2020-06-23): 'If some of the attacking creatures leave the battlefield while Mangara's triggered ability is on the stack, use the player or planeswalker they were attacking before they left to determine whether you draw a card.' Seat 1 attacks seat 0 with two 2/2s; the trigger goes on the stack; in response (respond_to_triggers: the declare attackers step's first priority point, before anyone passes) Raider B is destroyed (the move op, another effect). The trigger's intervening 'if' is read again as it resolves (CR 603.4) and counts B by its last attack: two creatures attacked seat 0, so seat 0 draws (its hand 1: it skipped its first draw, CR 103.8a). Raider A is unblocked: seat 0 goes to 18. Seat 1 drew its turn's card."
+}
