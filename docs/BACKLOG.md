@@ -157,7 +157,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
   dealt pools. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
   source that left answers from its last known choice (`LastKnown.choices`), but Icon of
-  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin.
+  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin. The same drop
+  reaches the binder (2026-11-13): an object exiled and returned by two instructions of one
+  resolution has lost its last known information before the binder matches its departure, so a
+  look-back trigger there reads the controller and the granted abilities, keywords and types of
+  the new object.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
@@ -203,65 +207,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Triggers, events and the journal
 
-- **Permanents moving in one atom see each other's moves only in journal row order** (2026-11-13,
-  found building ontology round R10). CR 603.6a: as one event puts permanents onto the
-  battlefield, every permanent there, the newcomers included, is checked for enters triggers; CR
-  603.10a: leaves-the-battlefield triggers look back, so a creature dying beside others sees them
-  die. `TriggerBinder.on_events` attaches a permanent at its own ZONE_CHANGE row and detaches a
-  leaver at its own (or its dies row), so a trigger whose holder enters or leaves in the same atom
-  matches only the rows on its side of its own row. Affects per-object triggers ("whenever another
-  creature you control dies" on two creatures killed by one wrath: each should trigger for the
-  other) and the gathered ones (a "one or more other Elves enter" holder entering with them in
-  one atom; the gather reads the whole batch, but only once the holder is attached). A gathered
-  holder that leaves with its objects is all or nothing by handle order (gate round 10's MINOR-2):
-  a DESTROY of a Watchdog holding "whenever one or more other creatures you control leave the
-  battlefield" and three creatures gives no trigger when the Watchdog's row comes first, where CR
-  603.10a gives one trigger counting 3 (`reports/one_or_more_2026-11-13/holder_leaves_with_them.py
-  <checkout>`: gains [] where the rules give [3]).
-  `reports/one_or_more_2026-11-13/simultaneous_movers.py <checkout>`: two such creatures dying to
-  one DESTROY, or entering in one move, gain 1 life where the rules give 2, on 30fabc4a and on the
-  round-10 branch. The fix: attach every
-  entering permanent of a batch before matching its rows and detach its leavers after them,
-  respecting CR 113.6m (a graveyard-functioning ability does not look back onto the battlefield).
-  It changes verified play (a wrath with two death-trigger creatures); needs its own blast
-  radius.
-- **A per-object trigger's "it" follows an object that changed zones** (2026-11-13, round R10).
-  `Selector(referent='event')` in a trigger that does not gather reads the row's handle at
-  resolution, and handles survive zone moves, so an object that left and came back before the
-  trigger resolves (a new object, CR 400.7) is still "it": Marauding Raptor's 2 damage would hit
-  the creature flickered in response. A gathered trigger leaves such an object out (round R10,
-  `binding.resolve`). Evidence: Angelic Guardian's unflagged draft fails the pack
-  `mapped/M20/angelic_guardian_bounced_attacker_is_a_new_object` (the returned Bear keeps
-  indestructible). The fix filters the per-object referent lane by `returns.moved_since` against
-  the row's clock and keeps a QProp of the departed object on its last known information (Terror
-  of the Peaks' "that creature's power", CR 608.2h). Its reach: the verified trees with an event
-  referent Selector, 15 in M21, M20 and FDN (`tree_dump.py`'s event-selector fact; some are
-  replacement actions, whose `event` the drain binds).
-- **One instruction run once per player through EachPlayer is several events** (2026-11-13, gate
-  round 10's MINOR-1). `Executor` runs an EachPlayer body as one sub-execution per player
-  (executor/__init__.py, the EachPlayer branch of `_run_effect`), each its own atom boundary, so
-  "each player sacrifices a creature" moves its creatures in one batch per player. CR 101.4: the
-  players choose in APNAP order, then the actions happen at the same time, one event. Against a
-  flagged "whenever one or more other creatures leave the battlefield, you gain that much life" it
-  gains 1 twice where the rules give one trigger counting 2
-  (`reports/one_or_more_2026-11-13/eachplayer_split.py <checkout>`). Every EachPlayer zone-change tree is one
-  iteration with two players (several in Commander); none is beside a gathered trigger in the 19
-  sets' verified pools. The fix: one batch for the sub-executions of one EachPlayer (the journal
-  rows of its players' atoms share the first one's batch), with its own blast radius (every
-  per-object trigger on those moves sees the same rows; only gathered triggers count them
-  differently).
-- **A replaced death is its own event** (2026-11-13, round R10). A dies-window replacement's exile
-  (Scorching Dragonfire) runs as its own atom after the state-based check
-  (`Executor._state_checks`), so a gathered "one or more creatures are put into exile"
-  would see it apart from the check's other moves. None is printed in the 19 sets.
-- **An event-filter qualifier is read without the layers brought up to date** (2026-11-12, gate
-  round 6 m4). `TriggerBinder._queue` runs `layers.recompute()` before it reads an intervening
-  "if" (CR 603.10: the effects that exist right after the event), but `_match_node` reads the
-  event's filters as they stand. Since R6-2 the event qualifiers are in those filters (Tide
-  Skimmer's "two or more creatures with flying", Makeshift Battalion's "at least two other
-  creatures attack"), so a continuous effect that changed with the event (a flyer granted or lost
-  in the same op) can be misread. Recompute before matching an event whose node holds a qualifier
-  that reads characteristics, or once per drained batch.
+- **One EachPlayer is one event, but its body still runs player by player** (2026-11-13, left by
+  the one-event fix that closed gate round 10's MINOR-1). The boundaries of one EachPlayer share a
+  batch (CR 101.4: the actions happen at the same time; `Executor._one_event`), but each player
+  chooses and acts before the next chooses, in seat order (CR 101.4: every player chooses, in
+  APNAP order, then they all act), and a body of two instructions is one event where each
+  instruction should be one. No EachPlayer of the 19 sets has a body of two instructions over two
+  players (Transmogrify's names one player). A row journalled outside the shared batch between two
+  players' boundaries (a drawn card, its own event, CR 121.2; the choice rows a ONE_OF or REST
+  partition journals) splits the batch in the binder's drain, which groups an event's rows by
+  contiguity: the gathered counts stay right, but a permanent that moved in the first part no
+  longer sees the second (Yarok's Fenlurker in a game of three or more, where nothing watches it).
+- **An effect finds every object it moved itself, a hidden zone included** (2026-11-13, the
+  one-event fix). `TriggerBinder._gone` judges "it"/"they" as the trigger begins to resolve (CR
+  400.7), so a later instruction of the same effect finds an object an earlier one moved: right
+  for a public zone (CR 400.7: other parts of the effect can find it), not for a hand or a
+  library. No printed trigger moves its event's object into a hidden zone and acts on it again.
 - **A reflexive trigger cannot read the target of the ability that created it** (2026-11-12, gate
   round 6 m1). `fire_reflexive` carries its resolution's bindings without `target`, so the
   reflexive trigger's own targets are its own (CR 603.12); IKO Back for More's "Return target
@@ -318,15 +279,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   LIFE_GAINED_THIS_TURN_GE, "whenever you gain life", and since 2026-11-13 the life events'
   `ordinal`: such a loss does not use up Vengeful Warchief's "first time"). Fix: journal player
   damage and lifelink gains from the verbs' own tuples, not the life diff.
-- **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
-  fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
-  a graveyard as graveyard-only, while the activation lane reads the same rule in
-  `legality.activation_zone`. It skips 113.6m's "unless its trigger condition ... specifies that
-  the object is put into that zone", so three dies triggers that do it are bound in the graveyard
-  instead of looking back from the battlefield (CR 603.10a): M20 Cavalier of Gales, Cavalier of
-  Thorns, Immortal Phoenix. Its IS_SOURCE test also counts "another" (FNot). No game difference
-  is known (the dies row is matched by the graveyard binding, with the controller from last-known
-  information); fold the two readings into one classifier when the trigger lane is free.
+- **The trigger lane and the activation lane read CR 113.6m with two classifiers** (2026-11-12,
+  found with the activation-zone fix): `binding.functions_from_graveyard` and
+  `legality.activation_zone`. Since 2026-11-13 the trigger one reads 113.6m's "unless its trigger
+  condition ... specifies that the object is put into that zone" (M20 Cavalier of Gales, Cavalier
+  of Thorns and Immortal Phoenix bind on the battlefield and look back at their death, CR
+  603.10a; the binder now matches an event's look-back triggers before any graveyard binding,
+  so the old graveyard binding would have missed the death) and the polarity of IS_SOURCE
+  ("another" is not the card). Fold the two into one classifier when a card needs the trigger
+  lane to read another zone than the graveyard.
 - **A created token's ability record is keyed by its name alone** (2026-11-06): `_v_create_token`
   (verbs.py ~1340) registers the binder record under `token_oracle_id(spec.name)` once per game, so
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first

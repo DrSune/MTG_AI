@@ -393,6 +393,9 @@ class Executor:
         # CR 610.3: objects moved "until" an event, waiting to return.
         # Replayed state, folded into state_fingerprint while non-empty.
         self.returns = ReturnRegistry()
+        # The returns a shared event's boundaries ended, by the depth of the
+        # event, run when it is over (_one_event). Transient: empty between ops.
+        self._returns_due: dict[int, list[ReturnRow]] = {}
         # Built before the binder: its lifecycle hooks reach them during
         # attach.
         self.layers = LayerRegistry(self)
@@ -947,61 +950,64 @@ class Executor:
                 self.events[start:],
                 combat=self._combat_wave_open,
             )
-            # The zone-change bookkeeping: a permanent leaving the
-            # battlefield ends what is anchored on it (a return does not
-            # restore it), one entering gets its entered state.
-            self._on_zone_changes(new_events)
             # Replacements consumed during the atom run (the replaced event
             # never happened) queue their ACTION here, so it is journalled
             # as ITS OWN atom boundary — one diff per mutation, no
-            # double-emitted events.
-            while ctx.pending_replacements:
-                entry = ctx.pending_replacements.pop(0)
-                repl_bindings: dict[str, Binding] | None = None
-                counter_reg: tuple[CounterKind, int] | None = None
-                amount_reg: int | None = None
-                if isinstance(entry, tuple):
-                    if len(entry) == 4:
-                        # Conclave Mentor: a counter-placement
-                        # consumer queued (record, receiving card, kind,
-                        # amount) — the action's referent binds to the
-                        # card AND the COUNTER_COUNT prop register carries
-                        # the replaced event's count (ADD(QProp(event,
-                        # COUNTER_COUNT), 1) reads it, quantity.py).
-                        repl, event_card, counter_kind, counter_n = entry
-                        repl_bindings = {"event": [event_card]}
-                        counter_reg = (counter_kind, counter_n)
-                    elif len(entry) == 3:
-                        # Angel of Vitality: a life-gain consumer queued
-                        # (record, gaining player, amount) — the action's
-                        # "that much life" is the replaced event's amount
-                        # (ADD(QProp(event, AMOUNT), 1)), the event register
-                        # a trigger firing carries too (binding._ctx).
-                        repl, event_player, amount_reg = entry
-                        repl_bindings = {"event": [event_player]}
+            # double-emitted events — within this atom's event (CR 614.6:
+            # what a replacement does instead is part of the event it
+            # modified; GameEvent.batch).
+            with self._one_event(new_events):
+                # The zone-change bookkeeping: a permanent leaving the
+                # battlefield ends what is anchored on it (a return does not
+                # restore it), one entering gets its entered state.
+                self._on_zone_changes(new_events)
+                while ctx.pending_replacements:
+                    entry = ctx.pending_replacements.pop(0)
+                    repl_bindings: dict[str, Binding] | None = None
+                    counter_reg: tuple[CounterKind, int] | None = None
+                    amount_reg: int | None = None
+                    if isinstance(entry, tuple):
+                        if len(entry) == 4:
+                            # Conclave Mentor: a counter-placement
+                            # consumer queued (record, receiving card, kind,
+                            # amount) — the action's referent binds to the
+                            # card AND the COUNTER_COUNT prop register carries
+                            # the replaced event's count (ADD(QProp(event,
+                            # COUNTER_COUNT), 1) reads it, quantity.py).
+                            repl, event_card, counter_kind, counter_n = entry
+                            repl_bindings = {"event": [event_card]}
+                            counter_reg = (counter_kind, counter_n)
+                        elif len(entry) == 3:
+                            # Angel of Vitality: a life-gain consumer queued
+                            # (record, gaining player, amount) — the action's
+                            # "that much life" is the replaced event's amount
+                            # (ADD(QProp(event, AMOUNT), 1)), the event register
+                            # a trigger firing carries too (binding._ctx).
+                            repl, event_player, amount_reg = entry
+                            repl_bindings = {"event": [event_player]}
+                        else:
+                            # Containment Priest: a zone-change consumer
+                            # queued (record, moving card) — the action's
+                            # referent selector ("exile it") resolves against
+                            # the binding the die lane uses.
+                            repl, event_card = entry
+                            repl_bindings = {"event": [event_card]}
                     else:
-                        # Containment Priest: a zone-change consumer
-                        # queued (record, moving card) — the action's
-                        # referent selector ("exile it") resolves against
-                        # the binding the die lane uses.
-                        repl, event_card = entry
-                        repl_bindings = {"event": [event_card]}
-                else:
-                    repl = entry
-                inner = self._ctx(
-                    source=repl.source,
-                    controller=repl.controller,
-                    bindings=repl_bindings,
-                    decisions=(),
-                )
-                if counter_reg is not None:
-                    inner.event_counter_count = counter_reg[1]
-                inner.event_amount = amount_reg
-                # The CR 614.5 chain guard travels with the action: the
-                # record that consumed THIS event cannot consume the event
-                # its own action produces.
-                inner.replaced_seq = ctx.replaced_seq | {repl.seq}
-                self._run_effect(repl.action, inner)
+                        repl = entry
+                    inner = self._ctx(
+                        source=repl.source,
+                        controller=repl.controller,
+                        bindings=repl_bindings,
+                        decisions=(),
+                    )
+                    if counter_reg is not None:
+                        inner.event_counter_count = counter_reg[1]
+                    inner.event_amount = amount_reg
+                    # The CR 614.5 chain guard travels with the action: the
+                    # record that consumed THIS event cannot consume the event
+                    # its own action produces.
+                    inner.replaced_seq = ctx.replaced_seq | {repl.seq}
+                    self._run_effect(repl.action, inner)
         elif isinstance(effect, Seq):
             # Cultivate: when a partition MOVE_ZONE (the ONE_OF pick
             # / REST complement) appears among the steps, a SEARCH atom in
@@ -1121,18 +1127,22 @@ class Executor:
             # rides across the sub-contexts (one positional supply answers
             # every ask in order) and is written back; the stream lanes are
             # executor-owned and need no forwarding. Each inner atom
-            # journals its own boundary under the stable source.
-            for player in players_for(effect.ref, ctx):
-                inner = self._ctx(
-                    source=ctx.source,
-                    controller=player,
-                    bindings=ctx.bindings,
-                    decisions=ctx.decisions,
-                    x_value=ctx.x_value,
-                )
-                inner.decision_idx = ctx.decision_idx
-                self._run_effect(effect.effect, inner)
-                ctx.decision_idx = inner.decision_idx
+            # journals its own boundary under the stable source, and the
+            # boundaries are one event (CR 101.4: the actions happen at the
+            # same time): "each player sacrifices a creature" moves its
+            # creatures in one batch (GameEvent.batch).
+            with self._one_event():
+                for player in players_for(effect.ref, ctx):
+                    inner = self._ctx(
+                        source=ctx.source,
+                        controller=player,
+                        bindings=ctx.bindings,
+                        decisions=ctx.decisions,
+                        x_value=ctx.x_value,
+                    )
+                    inner.decision_idx = ctx.decision_idx
+                    self._run_effect(effect.effect, inner)
+                    ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
             if effect.reflexive:
                 # CR 603.12: it triggers now, on what this resolution did (the Conditional
@@ -1192,6 +1202,8 @@ class Executor:
                         for quality in (None, *CHOSEN_QUALITIES)
                         if (event.subject, quality) in self.name_choices
                     ),
+                    self.layers.type_overlay(event.subject),
+                    self.layers.granted_abilities(event.subject),
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1262,6 +1274,23 @@ class Executor:
         if due:
             self._run_returns(due)
 
+    @contextmanager
+    def _one_event(self, after: Sequence[GameEvent] = ()) -> Iterator[None]:
+        """The atom boundaries run inside are one event (``EventJournal.one_event``). An object
+        an "until" effect returns because of the event comes back once the whole event is over
+        (CR 610.3: the return is a second one-shot effect, created immediately after the
+        event), not between its boundaries; also when a step of the event raised (the guarded
+        effect lane skips it and goes on): the moves that ended them happened."""
+        depth = self.journal.open_depth()
+        opened = False
+        try:
+            with self.journal.one_event(after) as opened:
+                yield
+        finally:
+            due = self._returns_due.pop(depth, []) if opened else []
+            if due:
+                self._run_returns(due)
+
     def _run_returns(self, rows: list[ReturnRow]) -> None:
         """CR 610.3: the second one-shot effect of a zone move
         "until" an event, created immediately after that event.
@@ -1276,7 +1305,11 @@ class Executor:
         replacement effects apply (614: Containment Priest exiles a returning
         creature instead) and a returning Aura's owner chooses what it
         enchants as it enters, or it stays in exile (303.4f-g,
-        ``_v_move_zone``)."""
+        ``_v_move_zone``). The returns a shared event's boundaries end wait for the
+        whole event (:meth:`_one_event`)."""
+        if self.journal.event_open():
+            self._returns_due.setdefault(self.journal.open_depth(), []).extend(rows)
+            return
         live = [
             row
             for row in sorted(rows, key=lambda r: r.seq)
@@ -1807,22 +1840,25 @@ class Executor:
             new_events = self.journal.record_atom(
                 before, None, "STATE_CHECK", self.events[start:]
             )
-            self._on_zone_changes(new_events)
             # Drain the consumed deaths — each replacement's ACTION is
             # its OWN atom boundary (the _run_effect damage-lane pattern),
             # with the CR 614.5 guard on the inner ctx and the dead card
             # bound as the ``event`` referent its selector reads. The drain
             # runs BEFORE the trigger drain so no firing sees a limbo
-            # creature still marked lethal on the battlefield.
-            for card, repl in replaced:
-                inner = self._ctx(
-                    source=repl.source,
-                    controller=repl.controller,
-                    bindings={"event": [card]},
-                    decisions=(),
-                )
-                inner.replaced_seq = frozenset({repl.seq})
-                self._run_effect(repl.action, inner)
+            # creature still marked lethal on the battlefield. The exile that
+            # replaces a death is part of this check's event (CR 614.6, 704.3):
+            # it shares the check's batch.
+            with self._one_event(new_events):
+                self._on_zone_changes(new_events)
+                for card, repl in replaced:
+                    inner = self._ctx(
+                        source=repl.source,
+                        controller=repl.controller,
+                        bindings={"event": [card]},
+                        decisions=(),
+                    )
+                    inner.replaced_seq = frozenset({repl.seq})
+                    self._run_effect(repl.action, inner)
             # Queue the triggers this batch caused; they resolve once the
             # check is stable (the settle's drain).
             self.binder.on_events()

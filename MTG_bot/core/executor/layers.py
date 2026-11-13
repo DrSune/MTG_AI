@@ -75,6 +75,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     Step,
+    TriggeredAbility,
     Verb,
 )
 from MTG_bot.core.executor.durations import duration_tag
@@ -287,6 +288,10 @@ class LayerRegistry:
         # The ``resolved`` records (a subset of ``records``), so the
         # per-departure :meth:`forget_departed` scan stays O(resolved).
         self._resolved: list[LayerRecord] = []
+        # Has a layer of this game granted a triggered ability (Infernal Scarring's
+        # "When this creature dies")? Until one has, no permanent has a granted trigger,
+        # so the binder need not bring the layers up to date to look for one.
+        self.grants_triggers = False
 
     # ------------------------------------------------------------ lifecycle
 
@@ -481,6 +486,12 @@ class LayerRegistry:
             resolved=resolved,
         )
         self.records.append(layer)
+        if (kind == "grant" and isinstance(payload, TriggeredAbility)) or any(
+            a.verb is Verb.GRANT_ABILITY and isinstance(a.args.get("ability"), TriggeredAbility)
+            for a in layer.atoms
+            if isinstance(a, Atom)
+        ):
+            self.grants_triggers = True
         return layer
 
     def _new_static(
@@ -1145,6 +1156,10 @@ class LayerRegistry:
             for handle in sorted(self._keywords)
             if name in self._keywords[handle]
         )
+
+    def granted_hosts(self) -> list[Handle]:
+        """Every object with a live granted ability, Handle-sorted."""
+        return sorted(self._granted)
 
     def granted_abilities(self, handle: Handle) -> tuple[GrantedAbility, ...]:
         """Every live granted ability on ``handle``, layer-seq ordered (the

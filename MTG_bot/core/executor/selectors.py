@@ -197,7 +197,7 @@ def controller_matches(
     if isinstance(who, Selector):
         # A referent Selector (e.g. the event subject's controller): resolve
         # the bound object(s) and compare their player side.
-        candidates = resolve_selector(who, ctx)
+        candidates = resolve_selector(who, ctx, info=True)
         players = [
             c if c.namespace == "player" else controller_of(ctx, c) for c in candidates
         ]
@@ -561,8 +561,14 @@ def resolve_selector(
     ask_choose: bool = False,
     sacrifice: bool = False,
     search: bool = False,
+    info: bool = False,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
+
+    The event referent ("it", "they") names the objects a trigger's event names, those the
+    effect can still find (CR 400.7: not one that has become a new object since,
+    ``TriggerBinder._gone``). ``info``: a read of their information (CR 608.2h: "that
+    creature's controller"), which finds every one, as it last existed.
 
     ALL returns the filtered population in zone order; CHOOSE takes the
     first ``count`` of the Handle-sorted candidates (``QUnbounded`` takes
@@ -636,6 +642,9 @@ def resolve_selector(
             if bound is None:
                 raise ReferentAbsentRegisterError(sel.referent)
             candidates = bound
+            if sel.referent == "event" and not info:
+                gone = ctx.binding_handles("gone") or ()
+                candidates = [h for h in bound if h not in gone]
         else:
             raise NotImplementedError(
                 f"executor: selector referent {sel.referent!r} is not in the "
@@ -1364,7 +1373,7 @@ def role_players(ctx: ExecCtx, atom: Atom, role: str = "controller") -> list[Han
         if bound is not None and not anaphoric:
             handles = bound
         else:
-            handles = sorted(resolve_selector(value, ctx))
+            handles = sorted(resolve_selector(value, ctx, info=True))
     elif bound is not None:
         handles = bound
     elif isinstance(value, ControllerRef):
@@ -1383,7 +1392,7 @@ def players_for(ref: ControllerRef | Selector, ctx: ExecCtx) -> list[Handle]:
     shuffles the rest into their library", Transmogrify: the creature's
     controller as it last existed, CR 608.2h)."""
     if isinstance(ref, Selector):
-        return _players_of(ctx, resolve_selector(ref, ctx))
+        return _players_of(ctx, resolve_selector(ref, ctx, info=True))
     return players_for_ref(ref, ctx)
 
 

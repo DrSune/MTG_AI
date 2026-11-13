@@ -1,0 +1,78 @@
+== FDN game 12: base win winner 0 turns 21 lives [18, -3] | branch win winner 0 turns 21 lives [18, -3]
+first differing journal row: #516 (base 691 rows, branch 693)
+      511 TARGETING          card:72=Island                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+      512 TARGETING          card:81=Island                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+      513 TARGETING          card:88=Forest                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+      514 TARGETING          card:97=Island                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+      515 TARGETING          card:105=Forest                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+      516 TARGETING          card:114=Forest                       cause card:84=Spinner of Souls REST (Handle(namespace='card', index=84), Handle(namespace='player', index=1))
+  base:
+      517 TURN_PHASE         None=-                            cause player:0=- TURN ('END_TURN', Handle(namespace='player', index=0))
+      518 TAP_STATE          card:63=Island                       cause None=- UNTAP_STEP (False,)
+      519 TAP_STATE          card:79=Island                       cause None=- UNTAP_STEP (False,)
+      520 TAP_STATE          card:86=Forest                       cause None=- UNTAP_STEP (False,)
+  branch:
+      517 ZONE_CHANGE        card:96=Aegis Turtle                 cause card:84=Spinner of Souls MOVE_ZONE ('library', 'hand', Handle(namespace='player', index=1), Handle(namespace='player', index=1))
+      518 TURN_PHASE         None=-                            cause player:0=- TURN ('END_TURN', Handle(namespace='player', index=0))
+      519 TAP_STATE          card:63=Island                       cause None=- UNTAP_STEP (False,)
+      520 TAP_STATE          card:79=Island                       cause None=- UNTAP_STEP (False,)
+first differing decision: #43 of 61 / 63
+  base: [['may:card:84:957287a38299', 'fire'], ['attack:card:43:19', 'ATTACK']]
+  branch: [['trigger:player:1:ccd3f208fedd', 'card:84'], ['may:card:84:957287a38299', 'fire']]
+queued triggers, base -> branch:
+--- base
++++ branch
+@@ -18,4 +18,6 @@
+ queue @502 CREATURE_DIES subject=Strix Lookout -> Spinner of Souls CreatureDiesEvent
++queue @506 CREATURE_DIES subject=Fierce Empath -> Spinner of Souls CreatureDiesEvent
+   resolve Spinner of Souls: resolved @ journal 516
+-queue @577 CARD_DRAWN subject=Quick Study -> Erudite Wizard CardDrawnEvent
+-  resolve Erudite Wizard: resolved @ journal 578
++  resolve Spinner of Souls: resolved @ journal 517
++queue @578 CARD_DRAWN subject=Quick Study -> Erudite Wizard CardDrawnEvent
++  resolve Erudite Wizard: resolved @ journal 579
+
+== M21 game 60: base win winner 1 turns 28 lives [-7, 2] | branch win winner 1 turns 28 lives [-7, 2]
+first differing journal row: #730 (base 730 rows, branch 730)
+      725 COMBAT_DAMAGE      card:65=Stormwing Entity             cause card:65=Stormwing Entity COMBAT_DAMAGE (((3, Handle(namespace='player', index=0)),),)
+      726 COMBAT_DAMAGE      card:82=Niambi, Esteemed Speaker     cause card:82=Niambi, Esteemed Speaker COMBAT_DAMAGE (((2, Handle(namespace='player', index=0)),),)
+      727 COMBAT_DAMAGE      card:84=Concordia Pegasus            cause card:84=Concordia Pegasus COMBAT_DAMAGE (((1, Handle(namespace='player', index=0)),),)
+      728 COMBAT_DAMAGE      card:104=Mystic Skyfish               cause card:104=Mystic Skyfish COMBAT_DAMAGE (((3, Handle(namespace='player', index=0)),),)
+      729 COMBAT_DAMAGE      card:109=Vodalian Arcanist            cause card:109=Vodalian Arcanist COMBAT_DAMAGE (((1, Handle(namespace='player', index=0)),),)
+      730 GAME_LOST          player:0=-                            cause None=- STATE_CHECK ('LIFE',)
+  base:
+  branch:
+first differing decision: #51 of 51 / 51
+  base: []
+  branch: []
+queued triggers, base -> branch:
+--- base
++++ branch
+@@ -15,4 +15,2 @@
+   resolve Niambi, Esteemed Speaker: resolved @ journal 534
+-queue @534 LIFE_GAINED subject=player:1 -> Concordia Pegasus LifeGainedEvent
+-  resolve Concordia Pegasus: resolved @ journal 536
+ queue @581 ZONE_CHANGE subject=Niambi, Esteemed Speaker -> Niambi, Esteemed Speaker ZoneChangeEvent
+
+== M21 game 143: base win winner 0 turns 31 lives [4, -1] | branch win winner 0 turns 31 lives [4, -1]
+first differing journal row: #529 (base 529 rows, branch 529)
+      524 CAST               card:37=Garruk's Uprising            cause card:37=Garruk's Uprising CAST (Handle(namespace='player', index=0), 1, 'ENCHANTMENT', 'hand', None, False)
+      525 ZONE_CHANGE        card:37=Garruk's Uprising            cause card:37=Garruk's Uprising CAST ('stack', 'battlefield', Handle(namespace='player', index=0), Handle(namespace='player', index=0))
+      526 COUNTER_PLACED     card:43=Liliana, Waker of the Dead   cause card:43=Liliana, Waker of the Dead PUT_COUNTER ('LOYALTY', 1)
+      527 ABILITY_ACTIVATED  card:43=Liliana, Waker of the Dead   cause player:0=- ACTIVATE (0, False, 1)
+      528 LIFE_LOST          player:1=-                            cause card:43=Liliana, Waker of the Dead LOSE_LIFE (3,)
+      529 GAME_LOST          player:1=-                            cause None=- STATE_CHECK ('LIFE',)
+  base:
+  branch:
+first differing decision: #91 of 91 / 91
+  base: []
+  branch: []
+queued triggers, base -> branch:
+--- base
++++ branch
+@@ -28,2 +28,4 @@
+   resolve Riddleform: resolved @ journal 449
++queue @451 ZONE_CHANGE subject=Angel -> Watcher of the Spheres ZoneChangeEvent
++  resolve Watcher of the Spheres: resolved @ journal 452
+ queue @467 TURN_PHASE subject=None -> Sanctum of Fruitful Harvest TurnPhaseEvent
+

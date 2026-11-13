@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Final, NamedTuple, Union
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
     from MTG_bot.core.executor import Executor
     from MTG_bot.core.executor.events import EventJournal
-    from MTG_bot.core.executor.layers import LayerRegistry
+    from MTG_bot.core.executor.layers import GrantedAbility, LayerRegistry
     from MTG_bot.core.executor.replacements import (
         ReplacementRecord,
         ReplacementRegistry,
@@ -234,6 +234,10 @@ class ExecCtx:
     # carried out (CR 118.12); MAY_DONE reads it. Transient, per resolution,
     # like look_window.
     may_done: dict[str, bool] = field(default_factory=dict)
+    # Set while the binder matches a trigger that does not look back (CR 603.10): its filters
+    # read the objects as they are right after the event, one that left too (as a card in its
+    # new zone, not by its last known information: :func:`departed_lki`, :func:`last_known`).
+    after_event: bool = False
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -493,7 +497,9 @@ class LastKnown(NamedTuple):
     (Executor.departed_lki). ``op`` is the public op in which it left; ``attacking`` the player
     or planeswalker it was attacking then, None if it was not attacking (it leaves combat as it
     leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
-    value) pairs (Executor.name_choices; quality None for a card name)."""
+    value) pairs (Executor.name_choices; quality None for a card name); ``types`` the type words
+    an effect gave it (the layers' type overlay); ``granted`` the abilities an effect granted it
+    (a granted "When this creature dies" looks back at its death, CR 603.10a)."""
 
     power: int | None
     toughness: int | None
@@ -503,6 +509,8 @@ class LastKnown(NamedTuple):
     op: int
     attacking: Handle | None = None
     choices: tuple[tuple[str | None, str], ...] = ()
+    types: tuple[str, ...] = ()
+    granted: tuple[GrantedAbility, ...] = ()
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -511,7 +519,10 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     or zone change) and the object is gone, its last known information answers for
     it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
     each object it gathered, each in its own row. Otherwise None: the caller reads the
-    live object (a query's context, which carries the bindings but no event, included)."""
+    live object (a query's context, which carries the bindings but no event, included; a
+    trigger that does not look back, ``ctx.after_event``, CR 603.10)."""
+    if ctx.after_event:
+        return None
     found = departure_lki(handle, ctx.event, ctx.executor)
     ex, event = ctx.executor, ctx.event
     if (
@@ -549,12 +560,14 @@ def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     (CR 608.2h: "if it's no longer in the zone it was expected to be in ... the object's last
     known information"; CR 113.7a for the ability's own source): on the object's own departure
     event (:func:`departed_lki`); for the ability's source (Heartfire Immolator's "damage equal
-    to its power" after it was sacrificed); and for an object that left during the current op
-    (Angelic Ascension's "its controller" after the exile). None otherwise: a card that has been
-    sitting in a graveyard is read as it is now (its owner controls nothing, CR 108.4a; its
-    printed power, CR 400.7)."""
+    to its power" after it was sacrificed); for an object that left during the current op
+    (Angelic Ascension's "its controller" after the exile); and for an object the trigger's
+    event named that has become a new object since (the ``gone`` register,
+    ``TriggerBinder._gone``: Terror of the Peaks' "that creature's power" once that creature
+    has left). None otherwise: a card that has been sitting in a graveyard is read as it is
+    now (its owner controls nothing, CR 108.4a; its printed power, CR 400.7)."""
     found = departed_lki(handle, ctx)
-    if found is not None:
+    if found is not None or ctx.after_event:
         return found
     ex = ctx.executor
     if ex is None or handle.namespace != "card":
@@ -564,7 +577,7 @@ def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
         return None
     if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
         return None
-    if handle == ctx.source or snap.op == ex._op_seq:
+    if handle == ctx.source or snap.op == ex._op_seq or handle in (ctx.binding_handles("gone") or ()):
         return snap
     return None
 
@@ -680,17 +693,14 @@ def _register_value(field: QPropField, ctx: ExecCtx) -> int:
 
 
 def read_population(sel: Selector, ctx: ExecCtx) -> list[Handle]:
-    """The objects a read of ``sel`` (a count, "the greatest power among them") is about. A
-    gathered event's, Selector(referent="event") over a register of several, are every object it
-    gathered, those no longer among the "they" the effect acts on included (binding.resolve): CR
-    608.2h reads one that has left by its last known information. Any other Selector's are those
-    it resolves to."""
+    """The objects a read of ``sel`` (a count, "the greatest power among them") is about: those
+    it resolves to, read for their information (CR 608.2h). The event referent's are every
+    object the event named (a gathered event's every object it gathered), those the effect no
+    longer acts on included (TriggerBinder._gone), each read by its last known information
+    once it left."""
     from MTG_bot.core.executor.selectors import resolve_selector  # cycle-free at call time
 
-    gathered = ctx.binding_handles("gathered") if sel.referent == "event" else None
-    if gathered is None:
-        return resolve_selector(sel, ctx)
-    return [h for h in gathered if eval_filter(sel.filter, h, ctx)]
+    return resolve_selector(sel, ctx, info=True)
 
 
 def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
@@ -768,6 +778,19 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     for sep in _TYPE_LINE_SEPARATORS:
         text = text.replace(sep, " ")
     return [t for t in text.split() if t]
+
+
+def _type_words(handle: Handle, ctx: ExecCtx) -> set[str]:
+    """A card's type words: its printed type line and those an effect gives it, the layers'
+    overlay ("is a Knight in addition to its other types"). Judged on its own departure, the
+    ones it had as it left (CR 603.10a: its last known information)."""
+    words = set(_type_line_tokens(ctx.world.cards[handle].identity.type_line))
+    lki = departed_lki(handle, ctx)
+    if lki is not None:
+        words.update(lki.types)
+    elif ctx.layers is not None:
+        words.update(ctx.layers.type_overlay(handle))
+    return words
 
 
 #: The subtypes of the card types a creature face can share its type line with: artifact,
@@ -921,10 +944,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         assert atom.string_value is not None
         if handle not in world.cards:
             return False
-        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
-        if ctx.layers is not None:
-            words.update(ctx.layers.type_overlay(handle))
-        return atom.string_value in words
+        return atom.string_value in _type_words(handle, ctx)
     if pred is FAtomPred.NAME_CONTAINS:
         # Teferi's "a Teferi planeswalker" gate: case-sensitive substring on
         # the printed name, the grammar's NAME_EQ twin. The corpus gate word
@@ -1060,10 +1080,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         if quality == "CREATURE_TYPE":
             # SUBTYPE_EQ's reading, live types included ("is a Knight in addition"). The pick is a
             # creature type and no other kind of type shares its word, so the word is enough.
-            words = set(_type_line_tokens(identity.type_line))
-            if ctx.layers is not None:
-                words.update(ctx.layers.type_overlay(handle))
-            return chosen in words
+            return chosen in _type_words(handle, ctx)
         return identity.name == chosen
     if pred is FAtomPred.POWER_LE or pred is FAtomPred.PT_LE:
         assert atom.count is not None
@@ -1122,6 +1139,11 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         assert atom.keyword is not None
         if handle.namespace != "card" or handle not in world.cards:
             return False
+        lki = departed_lki(handle, ctx)
+        if lki is not None:
+            # CR 603.10a: judged on its own departure, the object as it left, its granted
+            # keywords included (the layers drop them once they are brought up to date).
+            return atom.keyword.name in lki.keywords
         if ctx.layers is None:
             raise NotImplementedError(
                 "executor: filter pred KEYWORD_HAS needs the layer "
