@@ -12,9 +12,11 @@ time each turn" on life events, and a replaced gain's amount.
 - A life-gain replacement's action reads the replaced gain as the event's amount (CR 614.6:
   Angel of Vitality's "that much life plus 1"), and a gain of 0 is no event (CR 119.10).
 
-Every test here fails on the base, 07bf26ff: the predicate, the ordinal and the templates do not
-exist there, and the replacement's action raises "QProp referent 'event' only resolves inside a
-trigger firing" (``reports/life_family_2026-11-13/base_runs.txt``).
+Every test here but one fails on the base, 07bf26ff: the predicate, the ordinal and the templates
+do not exist there, and the replacement's action raises "QProp referent 'event' only resolves
+inside a trigger firing" (``reports/life_family_2026-11-13/base_runs.txt``). The exception,
+``test_an_event_class_without_an_ordinal_takes_none``, pins that the event classes with no ordinal
+still take none, true on both.
 """
 
 from __future__ import annotations
