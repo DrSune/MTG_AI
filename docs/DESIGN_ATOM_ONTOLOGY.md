@@ -73,7 +73,7 @@ UNCLASSIFIED runtime field or STALE dict entry; `/126` carries the table rows):
 a CONTAINER field = annotation contains `tuple[` | `frozenset[` | `list[`.
 Runtime scan: **27 container fields** = 26 `tuple[` + 1 `frozenset[`
 (`CardRecord.color_identity`), 80 classes, zero unclassified (R5-11 added `TokenSpec.colors`;
-round 6, pending, `EmblemSpec.abilities`).
+gate round 7, `EmblemSpec.abilities`).
 
 | class.field | annotation | CLASSIFY | canonical form |
 |---|---|---|---|
@@ -142,8 +142,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 5 | MOVE_ZONE x `arrange` ("RANDOM": "put the rest on the bottom of your library in a random order"; absent = the owner arranges, CR 401.4), accepted only where `ability_tree.orders_a_library` holds | M21 Garruk's Harbinger (compiler, B5b-rest-bottom-random); M20 Drawn from Dreams and Brightwood Tracker (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12); 54 cards of the 19 sets print "in a random order", most still unparsed |
 | 2026-11-12, gate round 6 | Conditional `then:DelayedTrigger` ("<step>. When you do, Y": the "if you do" gate, CR 118.12, around a reflexive trigger, CR 603.12), accepted only where `ability_tree._reflexive_misplaced` holds (§11 R6-1) | M21 Tolarian Kraken (compiler, B2b-do-tap-or-untap); M20 Cavalier of Night and Sorin, Imperious Bloodlord (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12, trigger timing); 22 reflexive sentences on 21 cards of the 19 sets, 19 unparsed |
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
-| 2026-11-12, gate round 7 (pending) | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it: YOU, ALL_OPPONENTS, TARGET_OPPONENT; CR 114.2) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
-| 2026-11-12, gate round 7 (pending) | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
+| 2026-11-13, gate round 7 | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it, CR 114.2: YOU, ALL_OPPONENTS or TARGET_OPPONENT only, `ability_tree.EMBLEM_RECIPIENTS`; never under EachPlayer) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
+| 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
 
 ## 6. Identity + conformance
 
@@ -459,32 +459,62 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     moved from `known_bugs/` to `tools/scenarios/mapped/<SET>/`, where the suite plays them on the
     records. Verified pools on the merged tree (deckable, `get_supply("verified", <set>)`): M21
     264, M20 253, FDN 173 (main bc0d4606: 269, 255, 175).
-- R5 round 7 (proposed 2026-11-12, branch `worktree-agent-a68bbb5431c425326`, main 76f46aff
-  merged; awaiting the adversarial gate):
-  - **The emblem rides its maker.** `GET_EMBLEM(emblem=EmblemSpec(abilities), controller=who)`
-    replaces C19's role-less marker and `CardRecord.emblem` (an emblem's MTGJSON entry attached by
-    name at pool compile). The compiler compiles the quote as the emblem's own text; a quote that
-    does not compile leaves its sentence unparsed. `EmblemAbility` (unused) and `CardRecord.emblem`
-    are deleted: one encoding. Each GET_EMBLEM makes a new emblem (CR 114.2; the executor's
+- R7 round 7 (adversarial, 2026-11-13; one reviewer on d9a8a996, the M20 faults of verification
+  wave 1, branch `worktree-agent-a68bbb5431c425326`): **FIX-THEN-GO**, nothing FATAL. Upheld:
+  EmblemSpec on GET_EMBLEM (the fewest components: `CardRecord.emblem` and `EmblemAbility` go), a
+  new emblem per GET_EMBLEM (CR 114.2; Chandra, Awakened Inferno's ruling), "any number" asked
+  with a NONE stop (CR 107.1c), the hand put as `choose:`, the blast radius, the merge.
+  - **The change.** `GET_EMBLEM(emblem=EmblemSpec(abilities), controller=who)` replaces C19's
+    role-less marker and `CardRecord.emblem` (an emblem's MTGJSON entry attached by name at pool
+    compile). The compiler compiles the quote as the emblem's own text; a quote that does not
+    compile leaves its sentence unparsed. Each GET_EMBLEM makes a new emblem (the executor's
     one-per-(owner, emblem) table did nothing on a second: pack
-    `basri_ket_two_emblems_both_trigger` fails on main 76f46aff, one Soldier for two emblems).
-  - **Who gets it is the `controller` role**, as LOSE_LIFE's is in "each opponent loses 2 life":
-    a single-atom player verb names its player there. An EachPlayer around the GET_EMBLEM would
-    run too (it rotates the controller), but EachPlayer is for an effect each player goes through
-    on their own (Transmogrify's "that player puts that card onto the battlefield, then shuffles",
-    Liliana, Waker of the Dead's "each opponent who can't loses 3 life"), and functionally
-    identical wordings land in the same atoms (the owner directive, Status above).
-  - **ALL over the top of a library reads the open look window**, as ONE_OF and REST do, and
-    leaves the window to the REST after it (Goblin Ringleader).
-  - No new verb, role value class beyond EmblemSpec, or field classification beyond
-    `EmblemSpec.abilities` (IDENTITY).
-  - Pre-gate review (one fresh-eyes reviewer on 09f6078e and 720c13a6, 2026-11-13), fixed in
-    effadcc9: FDN Vivien Reid's -8 had lost the emblem its entry's record attached (the emblem
-    is now in her record); a search's exact count over another player's hidden zone, and an
-    emblem's choices, were not asked; the bench called every NONE "no block". Logged in the
-    BACKLOG: "any number" over a menu the engine cannot ask takes all of it (not live).
-- BINDING STATE: rounds 1–6 complete; round 7 proposed; further ontology changes require a
-  NEW gated round (any R-item that reclassifies a field or opens a normalization is Type-1).
+    `basri_ket_two_emblems_both_trigger` fails on main 76f46aff). ALL over the top of a library
+    reads the open look window, as ONE_OF and REST do, and leaves the rest to REST (Goblin
+    Ringleader). No new verb; one field classified, `EmblemSpec.abilities` (IDENTITY).
+  - **MAJOR, fixed:**
+    - M1. `EachPlayer(ALL_OPPONENTS, GET_EMBLEM(controller=YOU))` built and played as
+      `GET_EMBLEM(controller=ALL_OPPONENTS)` does: a second encoding. `EachPlayer.__post_init__`
+      refuses a GET_EMBLEM among its own nodes (a granted ability's stays that ability's);
+      `test_ability_tree.py::test_each_opponent_gets_an_emblem_has_one_encoding`.
+    - M2. GET_EMBLEM's `controller` took every ControllerRef and any player Selector: OWNER
+      raised at run time, OPPONENT gave every opponent one with three seats, DEFENDING_PLAYER
+      nobody outside combat, a "controller" or "source" referent was a second YOU, an ALL over
+      the players a second ANY, and a DEAL_DAMAGE `result` (ORI Chandra, Roaring Flame's natural
+      mapping) gave nobody one, as it lists permanents. `Atom.__post_init__` allows
+      `ability_tree.EMBLEM_RECIPIENTS` only (YOU, ALL_OPPONENTS, TARGET_OPPONENT, what the 19 sets
+      print); another comes with its card.
+      `test_get_emblem_refuses_every_other_recipient` (9 cases).
+    - M3. An emblem's ReplacementAbility crashed GET_EMBLEM (the replacement registry asked the
+      emblem for its controller as of a card), and would never have applied (its liveness gate
+      read the battlefield). `ReplacementRegistry.attach_source` takes the emblem's owner as the
+      record's controller and `_source_alive` keeps an emblem's records live (CR 114.4): fixed, not
+      narrowed, since DOM Jaya Ballard's and M15 Ajani Steadfast's emblems replace events.
+      `test_executor_permissions.py::TestEmblems::test_an_emblems_replacement_reads_its_owner_as_you`
+      and `..._the_opponent_as_you`.
+    - M4. The proposal's "a single-atom player verb names its player in the `controller` role"
+      is false for the corpus: DRAW, LOOK_AT/REVEAL, ADD_MANA and the mill lane read one player
+      (`selectors.role_player`), CREATE_TOKEN refuses more than one, so verified cards wrap single
+      atoms in EachPlayer. The rule is GET_EMBLEM's own: who gets the emblem is its
+      `controller`, as LOSE_LIFE's, GAIN_LIFE's and the hand lane's plural `controller` names
+      each player they act on; the corpus's two encodings of "each opponent <verb>s" are
+      divergence D21 (ATOM_DIVERGENCES), the fold scheduled in the BACKLOG.
+  - **MINOR, fixed:** m1, Siege Striker's "you may" around its "any number" tap played as a
+    stop at once: B2b-siege-striker drops the OptionalEffect (its tree changes; it leaves the
+    verified pool until re-verified); m4, refusal tests for an EmblemSpec holding a spell, an
+    "as ~ enters" state, a keyword, a cost modifier or a back face; m5, the §3 count's round; m7,
+    executor tests of the recipients with three seats (`TestEmblemRecipients`).
+  - **MINOR, in the BACKLOG:** m2, an ALL over the top of a library writes the look window's
+    partition state on every read, counts included; m3, ALL's count has two meanings; m4, a
+    GET_EMBLEM in a static ability's effect is accepted and never runs; m6, the network does
+    not see a player's emblems; m8, `compile_supply` counts an emblem's verbs as its maker's.
+  - Pre-gate review (one fresh-eyes reviewer on 09f6078e and 720c13a6), fixed in effadcc9:
+    FDN Vivien Reid's -8 had lost the emblem its entry's record attached; a search's exact count
+    over another player's hidden zone, and an emblem's choices, were not asked; the bench called
+    every NONE "no block". Logged: "any number" over a menu the engine cannot ask takes all of it
+    (not live).
+- BINDING STATE: rounds 1–7 complete; further ontology changes require a NEW gated round (any
+  R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
 

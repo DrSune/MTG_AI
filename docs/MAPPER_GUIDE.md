@@ -171,10 +171,12 @@ $PY tools/cards/cardtool.py --help
     Dancer's "Islands you control have '{T}: Draw a card.'" is a `StaticAbility` granting the
     activated ability); their "you" is the emblem's owner (CR 114.2). Triggered, static and
     replacement abilities only: the engine runs nothing else from the command zone.
-  - `controller` is who gets it: `YOU`, `ALL_OPPONENTS` for "each opponent gets", `TARGET_OPPONENT`
-    for "target opponent gets" (a target of the loyalty ability), as LOSE_LIFE's `controller` is in
-    "each opponent loses 2 life". Never an EachPlayer around the GET_EMBLEM. Each one is a new
-    emblem.
+  - `controller` is who gets it, and only these three are accepted: `YOU`, `ALL_OPPONENTS` for
+    "each opponent gets", `TARGET_OPPONENT` for "target opponent gets" (a target of the loyalty
+    ability). An EachPlayer around the GET_EMBLEM is refused (one encoding; other player verbs
+    still differ, ATOM_DIVERGENCES D21). Another recipient (ORI Chandra, Roaring Flame's "each
+    player dealt damage this way") is needs-atom until it comes with its tests. Each GET_EMBLEM
+    makes a new emblem.
   - The quote's text compiles by itself when its sentences parse (`parse` the quoted text alone).
     An emblem's own MTGJSON entry is not used: never write a record for it.
 - **Enchant.** The Enchant restriction rides on the keyword:

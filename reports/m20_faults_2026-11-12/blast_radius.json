@@ -841,5 +841,361 @@
    "cards": 5678,
    "trees_changed": 22
   }
+ },
+ "gate_round_7_fixes": {
+  "base": "50260225 (the branch with main 26616a73 merged, before the fixes)",
+  "head": "141a907c (the fixes)",
+  "compare": {
+   "10E": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     109,
+     109
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "DOM": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     57,
+     57
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "ELD": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     42,
+     42
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "FDN": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     177,
+     177
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     178,
+     178
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "IKO": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     40,
+     40
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "KHM": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     32,
+     32
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M10": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     80,
+     80
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M11": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     84,
+     84
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M12": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     83,
+     83
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M13": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     75,
+     75
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M14": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     79,
+     79
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M15": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     71,
+     71
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M19": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     115,
+     115
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "M20": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     261,
+     261
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     262,
+     262
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {
+     "Cavalier of Gales": [
+      "hand_put"
+     ],
+     "Sorin, Imperious Bloodlord": [
+      "nested_target"
+     ],
+     "Sorin, Vampire Lord": [
+      "nested_target"
+     ],
+     "Yarok's Fenlurker": [
+      "hand_put"
+     ]
+    }
+   },
+   "M21": {
+    "trees_changed": [
+     "Siege Striker"
+    ],
+    "trees_changed_with_every_record": [
+     "Siege Striker"
+    ],
+    "verified": [
+     272,
+     271
+    ],
+    "verified_left": [
+     "Siege Striker"
+    ],
+    "verified_joined": [],
+    "compiled": [
+     280,
+     280
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {
+     "Necromentia": [
+      "any_number"
+     ]
+    }
+   },
+   "ORI": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     68,
+     68
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "THB": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     43,
+     43
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "WAR": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     45,
+     45
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "ZNR": {
+    "trees_changed": [],
+    "trees_changed_with_every_record": [],
+    "verified": [
+     0,
+     0
+    ],
+    "verified_left": [],
+    "verified_joined": [],
+    "compiled": [
+     110,
+     110
+    ],
+    "compiled_left": [],
+    "compiled_joined": [],
+    "verified_flagged_unchanged_bytes": {}
+   },
+   "_totals": {
+    "cards": 5678,
+    "trees_changed": 1
+   }
+  }
  }
 }

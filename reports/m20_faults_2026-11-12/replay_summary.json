@@ -211,5 +211,57 @@
     ]
    }
   }
+ },
+ "gate_round_7_fixes": {
+  "base": "50260225",
+  "head": "141a907c",
+  "decks": "the cards verified on both (M21 271, M20 261, FDN 177; dealt-pool hashes equal: 03b361120a00c072, 094d424a74d133e2, 5784a187984e7bc6)",
+  "sets": {
+   "M21": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     137.4,
+     134.5
+    ],
+    "asks_differ": 0
+   },
+   "M20": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     129.9,
+     126.3
+    ],
+    "asks_differ": 0
+   },
+   "FDN": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     116.1,
+     117.9
+    ],
+    "asks_differ": 0
+   }
+  }
  }
 }
