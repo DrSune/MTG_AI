@@ -1,0 +1,320 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6883e79e-0b4f-4fb8-aee3-a3905246a408",
+ "name": "Spinner of Souls",
+ "text_sha": "be1ddb8d3c28f09f670c8179e9dba78f556a38fbbec51fa461728b0154c1d7ab",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "REACH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_TOKEN"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Seq",
+      "steps": [
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "REVEAL"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ],
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "until",
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "MOVE_ZONE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "CHOOSE"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": []
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "ANY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "ANY"
+                }
+               }
+              ],
+              "referent": "result"
+             }
+            ],
+            [
+             "destination",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "HAND"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "MOVE_ZONE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "arrange",
+             {
+              "tag": "String",
+              "value": "RANDOM"
+             }
+            ],
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "REST"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": []
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "LIBRARY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                },
+                "position": {
+                 "tag": "ZonePosition",
+                 "name": "TOP"
+                }
+               }
+              ]
+             }
+            ],
+            [
+             "destination",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "position": {
+               "tag": "ZonePosition",
+               "name": "BOTTOM"
+              }
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-fixer-a695",
+  "date": "2026-11-13",
+  "draft_py": "# FDN Spinner of Souls: \"Whenever another nontoken creature you control dies, you may reveal cards\n# from the top of your library until you reveal a creature card. Put that card into your hand and\n# the rest on the bottom of your library in a random order.\"\n# The dies event: Basri's Lieutenant's CreatureDiesEvent over creatures you control, narrowed by\n# \"another\" (FNot IS_SOURCE, Watcher of the Spheres) and \"nontoken\" (FNot IS_TOKEN, Gadrak). The\n# effect is the dig the B16 templates compile for Vivien, Nature's Avenger's -1, byte for byte,\n# inside the \"you may\": the second sentence moves \"that card\" and \"the rest\" of what was revealed,\n# so it happens only if you reveal.\ndies = CreatureDiesEvent(filter=FAnd(children=(\n    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n    FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),\n)))\ndig = Seq(steps=(\n    A(Verb.REVEAL, {\n        'controller': ControllerRef.YOU,\n        'count': QConst(value=1),\n        'until': FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    }),\n    Seq(steps=(\n        A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                referent='result',\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n        A(Verb.MOVE_ZONE, {\n            'arrange': 'RANDOM',\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.REST,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU,\n                            position=ZonePosition.TOP),),\n            ),\n            'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU,\n                                position=ZonePosition.BOTTOM),\n        }),\n    )),\n))\nspinner = TriggeredAbility(event=dies, condition=None, effect=OptionalEffect(inner=dig))\nabilities = [spinner, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever another nontoken creature you control dies, you may reveal cards from the top of your library until you reveal a creature card.",
+    "ir": "abilities[0].event, abilities[0].effect, abilities[0].effect.inner.steps[0]"
+   },
+   {
+    "clause": "Put that card into your hand and the rest on the bottom of your library in a random order.",
+    "ir": "abilities[0].effect.inner.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The dig is templates_b16's (Vivien, Nature's Avenger's -1, byte for byte) inside the 'you may': the second sentence moves what the reveal found, so it happens only if you reveal. The trigger event: another nontoken creature you control dies. Packs: tools/scenarios/mapped/FDN/spinner_of_souls_*.json."
+ },
+ "probe": {
+  "sha": "ded54f37506a1e3f7075ae6d924f5a0d4cf92468a150ae1fba3b955aaffcc41f"
+ }
+}

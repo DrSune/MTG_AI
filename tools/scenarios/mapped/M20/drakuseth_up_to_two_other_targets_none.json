@@ -1,0 +1,14 @@
+{
+ "name": "drakuseth_up_to_two_other_targets_none",
+ "set": "M20",
+ "note": "Drakuseth, Maw of Flames' second instance of 'target' is 'up to two' (CR 115.6): its controller sends the 4 to P1 and chooses no other target (NONE), so nothing else is dealt damage. P1 loses 4, then 7 combat damage. Red before 2026-11-13 (with this record): the trigger raised before any choice.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "drak", "real": "Drakuseth, Maw of Flames", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "OppBear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"drak": true}, "decisions": ["player:1", "NONE"]}
+ ],
+ "expect": {"zone": {"drak": "battlefield", "obear": "battlefield"}, "life": {"0": 20, "1": 9}}
+}

@@ -4,9 +4,358 @@
  "oracle_id": "7c520355-1ab8-4d6d-9a29-0f63d6b60024",
  "name": "Cavalier of Dawn",
  "text_sha": "8c98dced753cef3d5037f1e1d14c25ebbb314152195091ed0e5c39f24c8b3dcb",
- "needs_atom": {
-  "missing": "ENGINE: 'destroy up to one target nonland permanent. Its controller creates a 3/3 colorless Golem artifact creature token.' When the controller designates no target (the trigger's NONE word, a legal choice, CR 115.6), the Golem step has no antecedent and must do nothing, but verbs._v_create_token raises 'CREATE_TOKEN controller role resolved to 0 players (need exactly 1)' (core/executor/verbs.py:1263-1268): an engine crash on a legal choice. The G1 probe never reaches the NONE variant (MAX_PER_ACTION), so a review would not see it. Repro: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/cavalier_of_dawn/pack_none.json run with /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m2/cavalier_of_dawn/draft.py (the complete tree: B11-destroy-np with QAtMost(1) + B5b-its-controller-token + B13-dies return-to-hand); pack_target.json and pack_dies.json beside it pass.",
-  "author": "claude-mapper-m20-2",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_PERMANENT"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Golem",
+           "type_line": "Artifact Creature — Golem",
+           "types": [
+            "Artifact",
+            "Creature"
+           ],
+           "subtypes": [
+            "Golem"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 3
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 3
+           },
+           "keywords": [],
+           "abilities": []
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Artifact",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Enchantment",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-fixer-a695",
+  "date": "2026-11-13",
+  "draft_py": "# Cavalier of Dawn.\n# ETB: \"destroy up to one target nonland permanent\" = B11-destroy-np's selector with the targeted\n# \"up to one\" count QAtMost(1); \"Its controller creates a 3/3 colorless Golem artifact creature\n# token.\" = B5b-its-controller-token (Secure the Scene / Angelic Ascension: the controller role is a\n# referent='target' selector). With no target chosen nobody creates a Golem (CR 608.2b; the engine\n# gate verbs._actor_absent). Dies: the B13-dies frame + Shipwreck Dowser's return-to-hand with\n# \"artifact or enchantment\".\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(steps=(\n        A(Verb.DESTROY, {\n            'target': Selector(\n                count=QAtMost(n=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.IS_PERMANENT),\n                    FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n        A(Verb.CREATE_TOKEN, {\n            'controller': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                referent='target',\n            ),\n            'tokens': TokenSpec(\n                name='Golem',\n                type_line='Artifact Creature — Golem',\n                types=('Artifact', 'Creature'),\n                subtypes=('Golem',),\n                power=QConst(value=3),\n                toughness=QConst(value=3),\n                keywords=(),\n                abilities=(),\n            ),\n        }),\n    )),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FOr(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n    }),\n)\nabilities = [etb, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, destroy up to one target nonland permanent.",
+    "ir": "abilities[0].event, abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Its controller creates a 3/3 colorless Golem artifact creature token.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "When this creature dies, return target artifact or enchantment card from your graveyard to your hand.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (ENGINE: CREATE_TOKEN raised when 'up to one target' chose none, 2026-11-05). An instruction whose acting player is named through an antecedent naming nothing does nothing (CR 608.2b; verbs._actor_absent), in the trigger, spell and activation lanes. Packs: tools/scenarios/mapped/M20/cavalier_of_dawn_*.json."
+ },
+ "probe": {
+  "sha": "4758b3d6bbf7dfafe84dc7a64804d7c59e01c6f4a22464f0125f2172221f923a"
  }
 }

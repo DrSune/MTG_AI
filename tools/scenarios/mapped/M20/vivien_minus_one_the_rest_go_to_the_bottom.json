@@ -1,0 +1,21 @@
+{
+ "name": "vivien_minus_one_the_rest_go_to_the_bottom",
+ "set": "M20",
+ "note": "Vivien, Nature's Avenger's -1: 'Reveal cards from the top of your library until you reveal a creature card. Put that card into your hand and the rest on the bottom of your library in a random order.' P0's library from the top: Forest, Forest, Centaur Courser, Plains, then the runner's six creature fillers. The two Forests are revealed before the Courser: the Courser goes to the hand and both Forests under the library (their order is random; they share a name, so the exact list is fixed). Red before 2026-11-13 (with this record): the move of the Courser closed the reveal's window, so 'the rest' was the library's top card alone: one Forest went to the bottom and the other stayed on top.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "vivien", "real": "Vivien, Nature's Avenger", "zone": "battlefield", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "courser", "real": "Centaur Courser", "zone": "library", "controller": 0},
+  {"key": "forest1", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "forest2", "real": "Forest", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "vivien", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"courser": "hand", "forest1": "library", "forest2": "library"},
+  "counters": {"vivien": {"LOYALTY": 2}},
+  "library": {"0": ["Plains", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Forest", "Forest"]}
+ }
+}
