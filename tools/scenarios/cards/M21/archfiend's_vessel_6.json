@@ -1,0 +1,44 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "vessel",
+   "real": "Archfiend's Vessel",
+   "zone": "exile",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "test_permission_cast",
+   "key": "vessel",
+   "from": "exile"
+  }
+ ],
+ "expect": {
+  "kick_rows": {
+   "vessel": {
+    "from": "exile"
+   }
+  },
+  "zone": {
+   "vessel": "battlefield"
+  },
+  "tokens": {
+   "Demon": 0
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: the trigger needs it to have entered from, or been cast from, your GRAVEYARD. Cast from exile (by a permission) it matches neither: it stays on the battlefield, no Demon."
+}

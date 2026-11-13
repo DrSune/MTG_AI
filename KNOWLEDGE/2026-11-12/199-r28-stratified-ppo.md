@@ -298,3 +298,22 @@ GPU, from main at 1e958e36; the batch from `collect.sh ... 2800`, 139,274 rows; 
     smallest Δlog p). That fits its confident passes: the pass share is about 0.9 in r27's later
     updates, and a log-probability near 0 has a small gradient. Whether its slow learning is
     that, or noise in its advantages, is not separated here.
+
+**The look at 150** (2026-11-13 02:13-02:18; `look.py runs/selfplay/r28_stratified_ppo 150`):
+
+- **R1 holds, final.**
+  - The mulligan per game, pooled per block of 25 updates: 1.326, 1.288, 1.278, 1.280, 1.255,
+    1.317. Every block is inside 1.25-1.45, and none is near the 1.50 falsifier.
+  - r27 ran away at 151-165 (1.70). r28 holds for 150 updates on the stratified trainer.
+- **R5 holds:** `kl` median 0.0066 (0.0032-0.0109).
+- **The gates against v0** (2,000 games each):
+
+| Update | 25 | 50 | 75 | 100 | 125 | 150 |
+|---|---|---|---|---|---|---|
+| Score | 0.521 | 0.517 | 0.5165 | 0.5445 (0.5413 replayed) | 0.5453 | 0.541 [0.5255, 0.5565] |
+
+- **A plateau at about 0.54 since update 100,** under the 0.55 that freezes v1. That is about
+  +28 Elo over the init in 150 updates, most of it between 75 and 100.
+- The training win rates (sampled) agree: against the heuristic 0.715 to 0.729, against v0
+  0.506 to 0.533.
+- Gate B's break-even rule (196 §9) takes r28's rate at 400. At this pace it is small.

@@ -1,0 +1,73 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: only the Insight's controller ('you') draws double. Seat 1's turn: draw step draws 1 (hand 2: Crash Through + draw), casts Crash Through (hand 1) and draws exactly one: hand 2. Doubling would give 3.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Teferi's Ageless Insight",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "l1",
+   "name": "L1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "l2",
+   "name": "L2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "l3",
+   "name": "L3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "ct",
+   "real": "Crash Through",
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "hand": {
+   "1": 2
+  }
+ }
+}
