@@ -5,8 +5,8 @@
  "name": "Leyline of Sanctity",
  "text_sha": "121f5a76405697db63f1a79dd6ff653dffc13cef8ddb386568cba1d65d333548",
  "needs_atom": {
-  "missing": "Two pieces. (1) s1 'If this card is in your opening hand, you may begin the game with it on the battlefield.': no node for a pregame opening-hand action (CR 103.6); games.py deals the opening hand with no hook. (2) s2 'You have hexproof.': player hexproof (CR 702.11). The tree would be Runed Halo's player grant (StaticAbility GRANT_ABILITY HEXPROOF over Selector zones=(Zone(PLAYER, YOU),)), but the targeting veto never reads a player: legality._hexproof_vetoes_target never vetoes a handle the layers registry does not know (a player seat), so the grant would do nothing (the same gap as Veil of Summer).",
-  "author": "claude-mapper-wave4",
-  "date": "2026-11-06"
+  "missing": "s1 'If this card is in your opening hand, you may begin the game with it on the battlefield.': no node for a pregame opening-hand action (CR 103.6); games.py deals the opening hand with no hook. (s2 'You have hexproof.' compiles since 2026-11-13: templates_b16's player grant, and the engine refuses a hexproof player as a target, CR 702.11c; top-level pack leyline_of_sanctity_you_have_hexproof.json.)",
+  "author": "claude-fixer-a695",
+  "date": "2026-11-13"
  }
 }

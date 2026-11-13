@@ -1,0 +1,19 @@
+{
+ "name": "veil_of_summer_duress_loses_its_target",
+ "set": "M20",
+ "note": "Veil of Summer: 'You and permanents you control gain hexproof from blue and from black until end of turn.' On P1's turn P1 casts Duress (black) targeting P0 and keeps priority; P0 answers with Veil of Summer. Veil draws P0 a card (an opponent cast a black spell this turn) and gives P0 hexproof from black, so as Duress resolves its only target is illegal (CR 702.11d, 608.2b): it does not resolve, and P0 keeps the Spare Instant Duress would have taken. Red before 2026-11-13: player hexproof was never read, the third sentence did not compile, and Duress took the instant (P0's hand 1).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "veil", "real": "Veil of Summer", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare Instant", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "duress", "real": "Duress", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"B": 1}},
+  {"op": "cast", "key": "duress", "real": "Duress", "controller": 1, "targets": ["p0"], "hold": true},
+  {"op": "mana", "seat": 0, "add": {"G": 1}, "hold": true},
+  {"op": "cast", "key": "veil", "real": "Veil of Summer", "controller": 0}
+ ],
+ "expect": {"zone": {"duress": "graveyard", "veil": "graveyard", "spare": "hand"}, "hand": {"0": 2}}
+}

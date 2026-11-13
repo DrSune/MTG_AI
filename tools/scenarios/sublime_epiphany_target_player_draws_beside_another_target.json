@@ -1,0 +1,15 @@
+{
+ "name": "sublime_epiphany_target_player_draws_beside_another_target",
+ "set": "M21",
+ "note": "Sublime Epiphany with two modes (the set {2, 4}: '• Return target nonland permanent to its owner's hand.' and '• Target player draws a card.'), P0 targeting P1's Opp Bear and P0 itself. The Bear returns to P1's hand, and P0, the designated player, draws. Red before 2026-11-13: a designated-player read in a designation of several slots took the first handle of the union of the slots, the Bear, and drew for its controller (P1's hand 2, P0's 0); it now reads its own slot (selectors.designated_player).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 6}},
+ "steps": [
+  {"op": "cast", "key": "se", "real": "Sublime Epiphany", "controller": 0, "targets": ["bear", "p0"], "decisions": ["13"]}
+ ],
+ "expect": {"hand": {"0": 1, "1": 1}, "zone": {"bear": "hand", "se": "graveyard"}}
+}

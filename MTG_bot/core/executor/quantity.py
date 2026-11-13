@@ -140,13 +140,14 @@ class ExecCtx:
     # subtraction a no-op (the picked card already left the zone); it
     # matters for a same-zone split. Seq order pairs the nearest preceding
     # ONE_OF with its REST. A tuple: a k-of-n partition asks k times and
-    # REST subtracts every pick.
+    # REST subtracts every pick. A REVEAL with ``until`` writes its matches
+    # here too ("that card", the rest being the other revealed cards).
     one_of_picks: tuple[Handle, ...] = ()
     # The windowed candidate list a library-TOP ONE_OF partition resolved
-    # from (See the Truth): the sibling REST atom's population
-    # after run_atom has closed the raw look window at the ONE_OF atom's
-    # completion. Same lifetime and pairing rule as one_of_picks (Seq order
-    # pairs a REST with its nearest preceding ONE_OF).
+    # from (See the Truth), or every card a REVEAL ``until`` revealed: the
+    # sibling REST atom's population after run_atom has closed the raw look
+    # window. Same lifetime and pairing rule as one_of_picks (Seq order
+    # pairs a REST with its nearest preceding partition).
     one_of_window: tuple[Handle, ...] = ()
     # Replacements consume the event and queue their ACTION; the action
     # runs AFTER the consuming atom's journal boundary (one diff per

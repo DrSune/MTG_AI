@@ -59,6 +59,7 @@ from MTG_bot.core.compiler import (
     templates_b12,
     templates_b14,
     templates_b15,
+    templates_b16,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -93,6 +94,7 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b12,
     templates_b14,
     templates_b15,
+    templates_b16,
 )
 
 

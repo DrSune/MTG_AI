@@ -1,0 +1,15 @@
+{
+ "name": "cavalier_of_dawn_no_target_makes_no_golem",
+ "set": "M20",
+ "note": "Cavalier of Dawn: 'When this creature enters, destroy up to one target nonland permanent. Its controller creates a 3/3 colorless Golem artifact creature token.' Its controller designates no target (NONE: 'up to one' allows zero, CR 115.6), so nothing is destroyed and 'its controller' names nobody: no Golem (CR 608.2b). Red before 2026-11-13 (with this record): CREATE_TOKEN raised 'controller role resolved to 0 players'.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Dawn", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "OppBear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Cavalier of Dawn", "key": "cav", "decisions": ["NONE"]}
+ ],
+ "expect": {"zone": {"cav": "battlefield", "obear": "battlefield"}, "tokens": {"Golem": 0}}
+}

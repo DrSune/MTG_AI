@@ -1142,8 +1142,9 @@ class TestV44Protection(FixerCase):
         # "Any target": the widening leaves the protected player out for a red source only.
         any_target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),))
         slot = TargetSlot(selector=any_target, candidates=(self.beta,), min_count=1, max_count=1, forced=True)
-        self.assertNotIn(self.p0, _widen_any_target(self.ex, any_target, slot, self.red).candidates)
-        self.assertIn(self.p0, _widen_any_target(self.ex, any_target, slot, self.blue).candidates)
+        widen = _widen_any_target
+        self.assertNotIn(self.p0, widen(self.ex, any_target, slot, self.red, self.p1).candidates)
+        self.assertIn(self.p0, widen(self.ex, any_target, slot, self.blue, self.p1).candidates)
 
     def test_auras_fall_off_and_equipment_unattaches(self):
         aura = self.world.add_card(

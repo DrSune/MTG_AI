@@ -295,6 +295,16 @@ class TestTwinPredicatesAgree(unittest.TestCase):
             "plain universal filter, no ANY zone": Selector(
                 count=QConst(1), mode=SelectorMode.TARGET, filter=FAnd(()), zones=(bf,)
             ),
+            # "each of up to two other targets" (Drakuseth): the another-target marker beside
+            # the idiom still names players.
+            "other targets: the idiom beside the another-target marker": Selector(
+                count=QConst(2), mode=SelectorMode.TARGET,
+                filter=FAnd((FAtom(pred=FAtomPred.IS_ANY_TARGET), idiom)), zones=(bf,)
+            ),
+            "another target creature or planeswalker": Selector(
+                count=QConst(1), mode=SelectorMode.TARGET,
+                filter=FAnd((FAtom(pred=FAtomPred.IS_ANY_TARGET), c_or_pw)), zones=(bf,)
+            ),
         }
         for label, sel in shapes.items():
             self.assertIs(
@@ -323,6 +333,14 @@ class TestTwinPredicatesAgree(unittest.TestCase):
         self.assertFalse(_player_widening_applies(shapes["non-idiom FOr"]))
         self.assertFalse(
             _player_widening_applies(shapes["plain universal filter, no ANY zone"])
+        )
+        self.assertTrue(
+            _player_widening_applies(
+                shapes["other targets: the idiom beside the another-target marker"]
+            )
+        )
+        self.assertFalse(
+            _player_widening_applies(shapes["another target creature or planeswalker"])
         )
 
 

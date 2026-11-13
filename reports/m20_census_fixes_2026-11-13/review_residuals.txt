@@ -1,0 +1,42 @@
+== (a) non-TARGET referent-less Selector in role target, in an effect that designates: 28
+   FDN Duress (verified) [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   FDN Pilfer (verified) [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   FDN Scavenging Ooze (verified) [ActivatedAbility] PUT_COUNTER CHOOSE designation-can-be-empty=False
+   M10 Duress [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M11 Duress [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M13 Duress [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M13 Rewind [SpellAbility] UNTAP CHOOSE designation-can-be-empty=False
+   M13 Tormod's Crypt [ActivatedAbility] MOVE_ZONE ALL designation-can-be-empty=False
+   M13 Turn to Slag [SpellAbility] DESTROY ALL designation-can-be-empty=False
+   M14 Duress [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M14 Scavenging Ooze [ActivatedAbility] PUT_COUNTER CHOOSE designation-can-be-empty=False
+   M15 Blastfire Bolt [SpellAbility] DESTROY ALL designation-can-be-empty=False
+   M15 Tormod's Crypt [ActivatedAbility] MOVE_ZONE ALL designation-can-be-empty=False
+   M19 Duress [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M20 Chandra's Flame Wave (verified) [SpellAbility] DEAL_DAMAGE ALL designation-can-be-empty=False
+   M20 Chandra, Flame's Fury (verified) [ActivatedAbility] DEAL_DAMAGE ALL designation-can-be-empty=False
+   M20 Duress (verified) [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M20 Thought Distortion (verified) [SpellAbility] MOVE_ZONE ALL designation-can-be-empty=False
+   M20 Voracious Hydra (verified) [TriggeredAbility] PUT_COUNTER CHOOSE designation-can-be-empty=False
+   M21 Duress (verified) [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+   M21 Kitesail Freebooter (verified) [TriggeredAbility] CHOOSE ALL designation-can-be-empty=False
+   M21 Rewind (verified) [SpellAbility] UNTAP CHOOSE designation-can-be-empty=False
+   M21 Run Afoul (verified) [SpellAbility] SACRIFICE CHOOSE designation-can-be-empty=False
+   M21 Scavenging Ooze (verified) [ActivatedAbility] PUT_COUNTER CHOOSE designation-can-be-empty=False
+   M21 Teferi, Timeless Voyager (verified) [ActivatedAbility] PHASE_OUT ALL designation-can-be-empty=False
+   M21 Tormod's Crypt (verified) [ActivatedAbility] MOVE_ZONE ALL designation-can-be-empty=False
+   M21 Turn to Slag (verified) [SpellAbility] DESTROY ALL designation-can-be-empty=False
+   THB Elspeth's Nightmare [SpellAbility] CHOOSE ALL designation-can-be-empty=False
+== (b) a skippable atom followed by a result reader or Conditional: 12
+   FDN Duress (verified) [SpellAbility] REVEAL then a result reader
+   FDN Pilfer (verified) [SpellAbility] REVEAL then a result reader
+   M10 Duress [SpellAbility] REVEAL then a result reader
+   M11 Duress [SpellAbility] REVEAL then a result reader
+   M13 Duress [SpellAbility] REVEAL then a result reader
+   M14 Duress [SpellAbility] REVEAL then a result reader
+   M19 Duress [SpellAbility] REVEAL then a result reader
+   M20 Duress (verified) [SpellAbility] REVEAL then a result reader
+   M21 Duress (verified) [SpellAbility] REVEAL then a result reader
+   M21 Kitesail Freebooter (verified) [TriggeredAbility] REVEAL then a result reader
+   M21 Necromentia (verified) [SpellAbility] SEARCH then a result reader
+   M21 Transmogrify (verified) [SpellAbility] REVEAL then a result reader

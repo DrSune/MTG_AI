@@ -4,9 +4,372 @@
  "oracle_id": "002965be-a36f-4a09-9ce0-c6535bca1703",
  "name": "Veil of Summer",
  "text_sha": "370e9bc45696da6d05cc13c5bf05383626d8f812762a70a23eaf38042e569e7a",
- "needs_atom": {
-  "missing": "Player hexproof: 'You ... gain hexproof from blue and from black until end of turn' (CR 702.11). No compiled shape gives a player hexproof ('You have hexproof.' does not parse; Leyline of Sanctity is needs-atom), and the engine's targeting veto never reads one: legality._hexproof_vetoes_target returns False for any handle that is not a card ('player seat ... never hexproof here'), so a GRANT_ABILITY to Zone(PLAYER, YOU) would do nothing. Everything else now maps: sentences 1-2 compile (EVENT_THIS_TURN over an opponent's blue-or-black CastSpellEvent; PREVENT_EFFECT over CounteredEvent with DurationEot), and 'permanents you control gain hexproof from blue and from black until end of turn' is GRANT_ABILITY(KeywordAbility(HEXPROOF, (FOr(COLOR_HAS B, COLOR_HAS U),)), DurationEot, Selector ALL CONTROLLER_IS YOU on the battlefield) (Heroic Intervention's B5b-perm-hex-ind shape with Sporeweb Weaver's param).",
-  "author": "claude-mapper-wave3",
-  "date": "2026-11-06"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "EVENT_THIS_TURN"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null,
+        "event": {
+         "tag": "CastSpellEvent",
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "COLOR_HAS"
+            },
+            "string_value": null,
+            "color": "B",
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "COLOR_HAS"
+            },
+            "string_value": null,
+            "color": "U",
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "actor": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "OPPONENT"
+          },
+          "inner_filter": null
+         }
+        }
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "DRAW"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "amount",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "STACK_KIND_EQ"
+             },
+             "string_value": "SPELL",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "CounteredEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "STACK_KIND_EQ"
+              },
+              "string_value": "SPELL",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "HEXPROOF"
+           },
+           "params": [
+            {
+             "tag": "FOr",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "COLOR_HAS"
+               },
+               "string_value": null,
+               "color": "B",
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "COLOR_HAS"
+               },
+               "string_value": null,
+               "color": "U",
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            }
+           ]
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            },
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-fixer-a695",
+  "date": "2026-11-13",
+  "draft_py": "# Veil of Summer: the compiler's tree is whole (B13-if conditional draw, B14 \"can't be countered\n# this turn\", B16 \"You and permanents you control gain hexproof from blue and from black until end\n# of turn\").\nabilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Draw a card if an opponent has cast a blue or black spell this turn.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Spells you control can't be countered this turn.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "You and permanents you control gain hexproof from blue and from black until end of turn.",
+    "ir": "abilities[0].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (player hexproof, 2026-11-06). The engine now refuses a player with hexproof as a target of an opponent's spell or ability (CR 702.11c-d: legality._hexproof_vetoes_target reads players, legality.player_targetable for the synthesized player slots, layers.hexproof_of reads static and one-shot grants), and templates_b16 compiles sentence 3; the card compiles whole. Packs: tools/scenarios/mapped/M20/veil_of_summer_*.json."
+ },
+ "probe": {
+  "sha": "6b0eddd9491caebbc9aa3e71f88283b894f1b2375e2b95ff0f64b966d408ebe9"
  }
 }

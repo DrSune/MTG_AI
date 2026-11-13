@@ -1,0 +1,15 @@
+{
+ "name": "drakuseth_fdn_four_to_one_target_three_to_two_others",
+ "set": "FDN",
+ "note": "Drakuseth, Maw of Flames: 'Whenever Drakuseth attacks, Drakuseth deals 4 damage to any target and 3 damage to each of up to two other targets.' The trigger designates its two instances of 'target' in turn (CR 603.3d, 601.2c): OppBear for the 4, then P1 and OppGiant for the 3 (other targets: never OppBear again, CR 115.3). OppBear dies, OppGiant is dealt 3, P1 loses 3, then 7 combat damage from the unblocked flier. Red before 2026-11-13 (with this record): the trigger raised 'per-slot designation is /06 arc 3'.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "drak", "real": "Drakuseth, Maw of Flames", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "OppBear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "ogiant", "name": "OppGiant", "power": "4", "toughness": "5", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"drak": true}, "decisions": ["obear", "player:1", "ogiant"]}
+ ],
+ "expect": {"zone": {"drak": "battlefield", "obear": "graveyard", "ogiant": "battlefield"}, "damage": {"ogiant": 3}, "life": {"0": 20, "1": 10}}
+}

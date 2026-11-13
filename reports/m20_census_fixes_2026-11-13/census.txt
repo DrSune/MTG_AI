@@ -1,0 +1,100 @@
+== 1 player hexproof (printed): 7 cards
+   Crystal Barricade ['FDN']
+   Lazotep Plating ['WAR']
+   Leyline of Sanctity ['M11', 'M20']
+   Orbs of Warding ['ORI']
+   Shalai, Voice of Plenty ['DOM']
+   Teyo, the Shieldmage ['WAR']
+   Veil of Summer ['M20']
+== 2 an actor named through an 'up to' target: 3 cards
+   Cavalier of Dawn ['M20']
+   Soul of Shandalar ['M15']
+   Zulaport Duelist ['ZNR']
+== 3 a triggered sentence with two 'target' words: 6 cards
+   Capricious Efreet ['M10']
+   Drakuseth, Maw of Flames ['FDN', 'M20']
+   Gargos, Vicious Watcher ['M20']
+   Halvar, God of Battle // Sword of the Realms ['KHM']
+   Loaming Shaman ['M20']
+   Mizzium Meddler ['ORI']
+== 4 reveal ... until: 11 cards
+   Abundance ['10E']
+   Consuming Aberration ['FDN']
+   Dreamshaper Shaman ['THB']
+   Evolutionary Leap ['ORI']
+   Jalira, Master Polymorphist ['M15']
+   Lukka, Coppercoat Outcast ['IKO']
+   Mass Polymorph ['M11']
+   Polymorph ['M10']
+   Spinner of Souls ['FDN']
+   Transmogrify ['M21']
+   Vivien, Nature's Avenger ['M20']
+== 5a damage to a referent's controller: 9 cards
+   Bonecrusher Giant // Stomp ['ELD']
+   Chandra's Outrage ['M11', 'M12', 'M14', 'M20']
+   Chandra, Flame's Fury ['M20']
+   Cryoclasm ['10E']
+   Impending Doom ['THB']
+   Ravaging Blaze ['ORI']
+   Searing Barrage ['ELD']
+   Smash to Smithereens ['ORI']
+   Synchronized Spellcraft ['ZNR']
+== 5b a discard trigger: 8 cards
+   Bag of Holding ['M20']
+   Fell Specter ['M19']
+   Glint-Horn Buccaneer ['M20']
+   Liliana's Caress ['M11']
+   Megrim ['10E', 'M10']
+   Rielle, the Everwise ['IKO']
+   Tinybones, Bauble Burglar ['FDN']
+   Waste Not ['M15']
+== 5b a replacement that sends a discard elsewhere: 6 cards
+   Darksteel Colossus ['FDN', 'M10']
+   Dryad Militant ['FDN']
+   Legacy Weapon ['10E']
+   Leyline of the Void ['M11', 'M20']
+   Nexus of Fate ['M19']
+   Progenitus ['FDN']
+== trees, 1 a grant to a player: 8
+   FDN Crystal Barricade: HEXPROOF
+   M11 Leyline of Sanctity: HEXPROOF
+   M20 Leyline of Sanctity: HEXPROOF
+   M20 Veil of Summer: HEXPROOF
+   M21 Runed Halo (verified): PROTECTION
+   ORI Orbs of Warding: HEXPROOF
+   WAR Lazotep Plating: HEXPROOF
+   WAR Teyo, the Shieldmage: HEXPROOF
+== trees, 2 an atom whose acting player is a referent: 8
+   FDN Stroke of Midnight (verified): CREATE_TOKEN referent target
+   M20 Ajani, Inspiring Leader (verified): GAIN_LIFE referent target
+   M20 Cavalier of Dawn: CREATE_TOKEN referent target
+   M21 Angelic Ascension (verified): CREATE_TOKEN referent target
+   M21 Gloom Sower (verified): LOSE_LIFE referent event
+   M21 Liliana, Death Mage (verified): LOSE_LIFE referent target
+   M21 Secure the Scene (verified): CREATE_TOKEN referent target
+   M21 Transmogrify (verified): REVEAL referent target
+== trees, 3 ActivatedAbility with several designations: 1
+   M21 Garruk, Savage Herald (verified)
+== trees, 3 SpellAbility with several designations: 13
+   ELD Return to Nature
+   FDN Primal Might (verified)
+   M20 Rabid Bite (verified)
+   M20 Reckless Air Strike (verified)
+   M21 Hunter's Edge (verified)
+   M21 Primal Might (verified)
+   M21 Return to Nature (verified)
+   M21 Rookie Mistake (verified)
+   THB Return to Nature
+   WAR Casualties of War
+   WAR Return to Nature
+   ZNR Bloodchief's Thirst
+   ZNR Molten Blast
+== trees, 3 SpellAbility with several designations incl. a player: 1
+   M21 Sublime Epiphany
+== trees, 3 TriggeredAbility with several designations: 2
+   FDN Drakuseth, Maw of Flames
+   M20 Drakuseth, Maw of Flames
+== trees, 4 a REVEAL until: 3
+   FDN Spinner of Souls
+   M20 Vivien, Nature's Avenger
+   M21 Transmogrify (verified)

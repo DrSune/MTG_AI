@@ -26,6 +26,7 @@ from dataclasses import replace
 
 from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     Atom,
     AtomArgs,
     CardRecord,
@@ -1301,8 +1302,9 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         # the Scene). The role resolves through the same role_players lane
         # LOSE_LIFE uses for its controller-of-the-referent reads (a
         # referent-target selector folds a card binding to its controller).
-        # No role = the ability's controller. A resolution that names ZERO or
-        # MULTIPLE players is flagged, never guessed — the printed clause has
+        # No role = the ability's controller. One that names no player never
+        # gets here (run_atom: the instruction does nothing, CR 608.2b); one that
+        # names several is flagged, never guessed: the printed clause has
         # exactly one antecedent.
         resolved = sorted(role_players(ctx, atom, "controller"))
         if len(resolved) != 1:
@@ -1566,7 +1568,11 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
         # revealed cards match ``until``, or every card is revealed (no match).
         # The matches are "that card" (the ``result``), every revealed card the
         # window, so "the rest" are the window's other cards; nothing moves
-        # (CR 701.20b).
+        # (CR 701.20b). The reveal is a partition, as a ONE_OF pick is: the
+        # window and the matches are the anchors a later REST reads ("Put that
+        # card into your hand and the rest on the bottom of your library",
+        # Vivien, Nature's Avenger), after the move of "that card" has closed
+        # the look window (run_atom).
         assert isinstance(until, Filter)  # role table: a Filter
         n = amount(ctx, atom, "count")
         seen_cards, found = [], []
@@ -1577,6 +1583,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
             if eval_filter(until, card, ctx):
                 found.append(card)
         ctx.bindings["result"] = found
+        ctx.one_of_window, ctx.one_of_picks = tuple(seen_cards), tuple(found)
     elif isinstance(count_q, QUnbounded):
         # QUnbounded is not number-resolvable, and here it means the ENTIRE
         # zone — the Cultivate compile idiom (REVEAL with an unbounded count
@@ -2656,8 +2663,26 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
 }
 
 
+def _actor_absent(ctx: ExecCtx, atom: Atom) -> bool:
+    """CR 608.2b: an instruction whose acting player is named through an antecedent ("Its
+    controller creates a 3/3 Golem", Cavalier of Dawn; "Its controller mills two cards", Zulaport
+    Duelist: a referent Selector in the ``controller`` role) or through a designation ("Target
+    player draws a card", Sublime Epiphany: TARGET_PLAYER) needs information about that object or
+    player. With none there (an "up to one" target designated none, CR 115.6; the antecedent left
+    nothing; the designated player became an illegal target beside a target still legal), that
+    part of the effect does not happen. A referent with no register at all, and a designation
+    never made, still raise (selectors.resolve_selector, selectors.players_for_ref: a template
+    fold that never compiled the antecedent or never opened the slot)."""
+    actor = atom.args.get("controller")
+    named = (isinstance(actor, Selector) and actor.referent is not None) or (
+        isinstance(actor, ControllerRef) and actor in DESIGNATED_PLAYER_REFS
+    )
+    return named and not role_players(ctx, atom)
+
+
 def run_atom(atom: Atom, ctx: ExecCtx) -> None:
-    """Dispatch one Atom to its handler; unsupported verbs RAISE."""
+    """Dispatch one Atom to its handler; unsupported verbs RAISE. An atom whose acting player
+    is an absent antecedent does nothing (:func:`_actor_absent`)."""
     handler = HANDLERS.get(atom.verb)
     if handler is None:
         raise NotImplementedError(f"executor: verb {atom.verb.name} not implemented")
@@ -2667,7 +2692,8 @@ def run_atom(atom: Atom, ctx: ExecCtx) -> None:
     # other atom keeps the old ctx.source subject and a stale library
     # window can never leak forward. A look verb keeps/refreshes it.
     before = ctx.bindings.get("result")
-    handler(ctx, atom)
+    if not _actor_absent(ctx, atom):
+        handler(ctx, atom)
     if atom.verb not in (Verb.LOOK_AT, Verb.REVEAL):
         ctx.look_window = ()
     # The same one-sentence width for "it" = the result register: fresh only

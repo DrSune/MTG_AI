@@ -248,9 +248,24 @@ $PY tools/cards/cardtool.py --help
     TARGET_OPPONENT are targets (CR 115.1): in a spell or an activation they open a player target
     the card does not print. `tools/audit/test_ontology_conformance.py` flags a card that names
     one while its text says neither "target player" nor "target opponent" (ATOM_DIVERGENCES D18).
+    After "up to one target" the same Selector stands: with no target chosen, "its controller"
+    names nobody and the instruction does nothing (CR 608.2b; M20 Cavalier of Dawn's Golem).
   - "N damage to that creature's controller" has no encoding yet: a second TARGET selector over
     the PLAYER zone is a target slot of its own, so the caster would pick who takes the damage.
-    Mark such a card needs-atom (M20 Chandra's Outrage).
+    Mark such a card needs-atom (M20 Chandra's Outrage). (Under review: BACKLOG, "N damage to that
+    creature's controller".)
+  - **A trigger with several "target" words** designates them in turn, as a spell does
+    (Drakuseth, Maw of Flames). "Each of up to two other targets" (any targets) is a QAtMost(2)
+    TARGET slot whose filter is `FAnd(IS_ANY_TARGET, <the any-target FOr>)`: the "another target"
+    mark (templates_b5c); players still join it.
+  - **Hexproof on a player** (CR 702.11c): `parse "You have hexproof."` (a static, Runed Halo's
+    player grant) and `parse "You and permanents you control gain hexproof from blue and from black
+    until end of turn."` (one grant over the battlefield and your player zone).
+  - **"Reveal cards from the top of your library until you reveal a creature card. Put that card
+    into your hand and the rest on the bottom of your library in a random order."**: `parse` each
+    sentence (REVEAL `until`, then the `result` to hand and REST to the bottom, RANDOM). Behind
+    "you may", the whole dig is optional, since the second sentence moves only what the first
+    revealed (FDN Spinner of Souls).
   - Equip carries `timing=ActivationWindow.SORCERY` ("Equip only as a sorcery"). The compiler's
     equip template writes it (B-60, fixed); keep it in a hand-written tree.
 - **Tool tips.**

@@ -1,0 +1,19 @@
+{
+ "name": "veil_of_summer_hexproof_from_black_not_red",
+ "set": "M20",
+ "note": "Veil of Summer gives P0 and P0's permanents hexproof from blue and from black, not plain hexproof (CR 702.11d). After it resolves, P1's Murder (black) can't target P0's Centaur Courser and the cast is refused before anything is paid; P1's Shock (red) still targets P0 (2 damage). Red before 2026-11-13: the third sentence did not compile, and the Courser was destroyed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "veil", "real": "Veil of Summer", "zone": "hand", "controller": 0},
+  {"key": "courser", "real": "Centaur Courser", "zone": "battlefield", "controller": 0},
+  {"key": "murder", "real": "Murder", "zone": "hand", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"B": 3, "R": 1}},
+ "steps": [
+  {"op": "cast", "key": "veil", "real": "Veil of Summer", "controller": 0},
+  {"op": "cast", "key": "murder", "real": "Murder", "controller": 1, "targets": ["courser"], "expect_raise": "illegal"},
+  {"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["p0"]}
+ ],
+ "expect": {"zone": {"veil": "graveyard", "courser": "battlefield", "murder": "hand", "shock": "graveyard"}, "life": {"0": 18, "1": 20}}
+}
