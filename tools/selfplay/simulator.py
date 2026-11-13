@@ -97,12 +97,12 @@ class Data:
                      **meta: np.ndarray) -> Data:
         if any((len(t[0]), len(t[1])) != (v["h"], v["l"]) for v, t in zip(views, truth, strict=True)):
             raise ValueError("a label's size differs from the public size of its zone")
-        none = {"opts_i": np.zeros((0, 4), np.int16), "opts_f": np.zeros((0, 2), np.float16)}
+        none = {"opts_i": np.zeros((0, FT.OI), np.int16), "opts_f": np.zeros((0, 2), np.float16)}
         packed = M.pack([{**v, **none} for v in views])
         a = {k: getattr(packed, k) for k in M.Packed.FIELDS}
         # no position has an option (o_off stays 0); one unread row keeps collate_packed's
         # padding index in range
-        a["opts_i"], a["opts_f"] = np.zeros((1, 4), np.int16), np.zeros((1, 2), np.float16)
+        a["opts_i"], a["opts_f"] = np.zeros((1, FT.OI), np.int16), np.zeros((1, 2), np.float16)
         a.update(set=np.array(sets), **{k: np.array([v[k] for v in views])
                                         for k in ("h", "l", "turn", "seat")})
         for name, lists in (("public", [v["public"] for v in views]), ("hand", [t[0] for t in truth]),

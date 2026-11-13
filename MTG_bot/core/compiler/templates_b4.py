@@ -969,10 +969,7 @@ def _this_way() -> QProp:
 
 def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
     """``You may reveal a creature card or Garruk planeswalker card from
-    among them and put it into your hand.`` (Garruk's Harbinger) —
-    OptionalEffect ("may") over Seq(REVEAL 1, MOVE_ZONE ONE_OF): the
-    looked-at cards stay on top of the library, so the pool is the TOP
-    position and the pick is exactly ONE_OF.  NAME_CONTAINS
+    among them and put it into your hand.`` (Garruk's Harbinger).  NAME_CONTAINS
     "Garruk" covers the planeswalker leg."""
     pick_filter: Filter = FOr(
         children=(
@@ -985,6 +982,14 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
             ),
         )
     )
+    return EffectOutcome(effect=reveal_one_from_among(pick_filter))
+
+
+def reveal_one_from_among(pick_filter: Filter) -> OptionalEffect:
+    """"You may reveal a <kind of card> from among them and put it into your hand" after a look
+    at the top of your library: OptionalEffect ("may") over Seq(REVEAL 1, MOVE_ZONE ONE_OF): the
+    looked-at cards stay on top of the library, so the pool is the TOP position and the pick is
+    exactly ONE_OF (Garruk's Harbinger; Icon of Ancestry's "of the chosen type", B17)."""
     pool = Zone(
         kind=ZoneKind.LIBRARY,
         controller=ControllerRef.YOU,
@@ -1006,7 +1011,7 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    return EffectOutcome(effect=OptionalEffect(inner=Seq(steps=(reveal, move))))
+    return OptionalEffect(inner=Seq(steps=(reveal, move)))
 
 
 # ---------------------------------------------------------------------------

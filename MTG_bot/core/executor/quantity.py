@@ -716,6 +716,17 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+def creature_types(type_line: str) -> list[str]:
+    """The creature types a printed type line gives: the subtypes of each face that is a creature
+    or kindred card (CR 205.3d: an object has only subtypes of its own card types; 205.3m)."""
+    out: list[str] = []
+    for face in type_line.split("//"):
+        types, _, subtypes = face.partition("—")
+        if {"Creature", "Kindred", "Tribal"} & set(types.split()):
+            out.extend(subtypes.split())
+    return out
+
+
 def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     """Match one handle against a Filter IR node.
 
@@ -933,19 +944,32 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         threshold = resolve(atom.count, ctx)
         return len(world.cards[handle].identity.colors) >= threshold
     if pred is FAtomPred.NAME_CHOSEN:
-        # Runed Halo: the object's name is the one the SOURCE's CHOOSE_NAME
-        # atom recorded, as the source entered (EtBState.effect, CR 614.1c).
-        # No record is an UNANSWERED question: flagged, never "False" (the
-        # FLIP_WON convention).
+        # The object has what the SOURCE's CHOOSE_NAME of this quality recorded (CR 607.2d: the
+        # read refers only to its own object's choice): Runed Halo's name, Diamond Knight's
+        # colour, Icon of Ancestry's creature type, chosen as the source entered (EtBState.effect,
+        # CR 614.12a). No record is an UNANSWERED question: flagged, never "False" (the FLIP_WON
+        # convention).
         ex = ctx.executor
-        if ex is None or ctx.source not in ex.name_choices:
+        quality = atom.string_value
+        chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
+        if chosen is None:
             raise NotImplementedError(
-                "executor: NAME_CHOSEN needs a CHOOSE_NAME record for the "
-                f"source {ctx.source} (no name chosen yet)"
+                f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
+                f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
         if handle.namespace != "card":
             return False
-        return world.cards[handle].identity.name == ex.name_choices[ctx.source]
+        identity = world.cards[handle].identity
+        if quality == "COLOR":
+            return chosen in identity.colors  # printed colours: no effect changes a colour
+        if quality == "CREATURE_TYPE":
+            # SUBTYPE_EQ's reading, live types included ("is a Knight in addition"). The pick is a
+            # creature type and no other kind of type shares its word, so the word is enough.
+            words = set(_type_line_tokens(identity.type_line))
+            if ctx.layers is not None:
+                words.update(ctx.layers.type_overlay(handle))
+            return chosen in words
+        return identity.name == chosen
     if pred is FAtomPred.POWER_LE or pred is FAtomPred.PT_LE:
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)

@@ -76,6 +76,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Quantity,
     SpellAbility,
+    TokenSpec,
     Verb,
     Zone,
     ZoneKind,
@@ -103,6 +104,7 @@ from MTG_bot.core.executor.legality import (
     TURN_ENDED,
 )
 from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
+from MTG_bot.core.executor.quantity import creature_types
 from MTG_bot.core.executor.query import (
     TargetSlot,
     cast_mode_options,
@@ -214,6 +216,10 @@ class Supply:
     #: card record's ``verified.tree_sha`` equals the tree dealt). Empty for a set with no
     #: records.
     verified_ids: frozenset[str] = frozenset()
+    #: The creature types a chosen creature type is picked from (CR 205.3m), public as the pool is:
+    #: those of the deckable cards and of the creature tokens they make (FDN Release the Dogs'
+    #: Dog is no card's type), sorted. The executor's ``creature_type_pool``, ``name_pool``'s twin.
+    creature_types: tuple[str, ...] = ()
 
 
 _SUPPLY_CACHE: dict[str, Supply] = {}
@@ -369,6 +375,13 @@ def compile_supply(
         deckable = tuple(sorted(playable_engine))
     if not deckable:
         raise ValueError(f"pool_mode {mode!r} has no deckable cards")
+    creature_type_pool = {t for oid in deckable for t in creature_types(metas[oid].type_line)} | {
+        t
+        for oid in deckable
+        for node in walk(pool.results[oid].card)
+        if isinstance(node, TokenSpec) and "Creature" in node.types
+        for t in node.subtypes
+    }
     return Supply(
         mode=mode,
         pool=pool,
@@ -379,6 +392,7 @@ def compile_supply(
         pool_seconds=time.perf_counter() - started,
         shape_gaps=shape_gaps,
         verified_ids=verified,
+        creature_types=tuple(sorted(creature_type_pool)),
     )
 
 
@@ -1089,6 +1103,7 @@ def _setup_game(
     executor.name_pool = tuple(
         sorted({(supply.metas[oid].name, supply.metas[oid].type_line) for oid in supply.deckable})
     )
+    executor.creature_type_pool = supply.creature_types  # a chosen creature type, the same way
     for seat, deck in zip(world.player_order, decks, strict=True):
         shuffled_library(executor, seat, deck)
         if trace is not None:

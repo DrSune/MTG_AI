@@ -45,6 +45,7 @@ from MTG_bot.core.compiler import (
     templates_b3,
     templates_b5c,
     templates_b9,
+    templates_b17,
 )
 from MTG_bot.core.compiler.templates import (
     EffectOutcome,
@@ -134,6 +135,12 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
             rf"{templates_b9.LIFE_TRIGGER_RE}, (?P<clause>.+)"),
      lambda m, effect, condition: templates_b2a._ability(
          templates_b9.life_event(m), effect, condition)),
+    # "Whenever you cast a spell of the chosen color|type, <clause>" (Diamond Mare, Prism Ring):
+    # B17's head, the spell judged against the source's chosen quality (NAME_CHOSEN).
+    (_frame("B13-cast-chosen", "whenever you cast a spell of the chosen color|type, <clause>",
+            rf"{templates_b17.CHOSEN_CAST_RE}, (?P<clause>.+)"),
+     lambda m, effect, condition: templates_b2a._ability(
+         templates_b17.chosen_cast_event(m), effect, condition)),
     # The targeting trigger with its actor (Thorn Lieutenant).
     (_frame("B13-targeted",
             "whenever this creature becomes the target of a spell or ability an opponent controls, "

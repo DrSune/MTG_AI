@@ -1443,10 +1443,10 @@ class TestAsEntersChoice(unittest.TestCase):
         halo = runner.handles["h"]
         # Held triggers stay queued: before the fix the name waited in one.
         runner.run_step({"op": "enter", "key": "h", "hold_triggers": True, "decisions": ["Runed Halo"]})
-        self.assertEqual(runner.ex.name_choices.get(halo), "Runed Halo")
+        self.assertEqual(runner.ex.name_choices.get((halo, None)), "Runed Halo")
         self.assertEqual(runner.world.triggers, [])
         runner.run_step({"op": "move", "key": "h", "to": "graveyard"})
-        self.assertNotIn(halo, runner.ex.name_choices)
+        self.assertNotIn((halo, None), runner.ex.name_choices)
 
     def test_only_the_choice_verb_runs_as_it_enters(self):
         # Any other "As this enters" effect would run inside the zone-change bookkeeping with

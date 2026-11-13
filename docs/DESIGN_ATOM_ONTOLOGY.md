@@ -35,7 +35,7 @@ ability   := Triggered(event, condition?, effect, once_per_event?)  # absent: on
            | Activated(cost, effect, condition?, timing)
            | Static(effect, condition?) | Spell(kind, effect, additional_costs*)
            | Replacement(event, condition?, action) | Keyword
-           | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only, until tested
+           | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only (a card name, or its quality a colour or a creature type: R9), until tested
            | CostModifier | Kicker | BackFace
 effect    := Atom(verb, role→value pairs)                 # ONE operation = ONE Atom (T1)
            | Seq(steps 2+)                               # TIME: printed order (O2)
@@ -120,6 +120,7 @@ constructor set.
 | F8 | phantom menu | Choose(count==len) | V2′: must be encoded ALL |
 | F9 | the CR 609.4 policy family | MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY (round 4) | fold candidate: before a fourth policy verb (nine "as though it had flash" cards wait), decide one POLICY verb with a scope enum |
 | F10 | CR 110.5 status-change events | TapStateEvent, PhasingEvent (round 4; one card) | one family: fold when a third status event appears |
+| F12 | the chosen-quality pair's names | CHOOSE_NAME and NAME_CHOSEN name a card name but carry any chosen quality since R9 (§13): `quality` COLOR or CREATURE_TYPE, absent a card name | **rename deferred** (§13 R9-3): a quality-neutral pair (CHOOSE_QUALITY / QUALITY_CHOSEN) re-bakes M21 Runed Halo's verified tree and Necromentia's, for a label: the network reads a token as an id, not as English. Fold with the next round that re-bakes Runed Halo's tree, or with the third quality (a card type, IKO Umori; a basic land type, M10 Convincing Mirage), re-verifying Runed Halo |
 | F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
 
 Enum-only STRICT variance clusters (SpellKind×5, Keyword×19, PtDelta-direction) =
@@ -144,6 +145,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 6 | Conditional `then:DelayedTrigger` ("<step>. When you do, Y": the "if you do" gate, CR 118.12, around a reflexive trigger, CR 603.12), accepted only where `ability_tree._reflexive_misplaced` holds (§11 R6-1) | M21 Tolarian Kraken (compiler, B2b-do-tap-or-untap); M20 Cavalier of Night and Sorin, Imperious Bloodlord (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12, trigger timing); 22 reflexive sentences on 21 cards of the 19 sets, 19 unparsed |
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
 | 2026-11-13, gate round 7 | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it, CR 114.2: YOU, ALL_OPPONENTS or TARGET_OPPONENT only, `ability_tree.EMBLEM_RECIPIENTS`; never under EachPlayer) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
+| 2026-11-13, gate round 9 (pending) | EtBState `effect` CHOOSE_NAME x `quality` (COLOR, CREATURE_TYPE; `ability_tree.CHOSEN_QUALITIES`): "As this permanent enters, choose a color\|creature type" (§13 R9-1); accepted only as an EtBState's own effect (`ability_tree.chosen_quality_fault`) | compiler B17-etb-choose-quality: 20 printings of 17 cards (M20 Diamond Knight and Icon of Ancestry by record, the compiler's tree) | 11 trees: 6 whole (M20 Diamond Knight, Icon of Ancestry; FDN and M19 Diamond Mare; ORI Prism Ring; KHM Rally the Ranks), 5 partly; the 9 whose reader does not compile are refused (NUMBERS.md 2026-11-13, `reports/chosen_quality_2026-11-13/census.txt`) |
+| 2026-11-13, gate round 9 (pending) | FAtom NAME_CHOSEN x `string_value` (the same vocabulary): in a CastSpellEvent `filter` (B17-cast-chosen-counter, frame B13-cast-chosen), an anthem's ALL selector (B17-chosen-anthem), a look's ONE_OF pick (B17-reveal-chosen-type); read only on the object that chose it (CR 607.2d) | cast: M20 Diamond Knight, FDN and M19 Diamond Mare, ORI Prism Ring; anthem: M20 Icon of Ancestry, KHM Rally the Ranks, M15 Obelisk of Urd, ELD and FDN Heraldic Banner, M12 and FDN Adaptive Automaton ("Other"); pick: M20 Icon of Ancestry | cast 4 trees, anthem 7, pick 1 (**low-volume**); 17 more "of the chosen" sentences on 15 printings unread: 14 need a piece (BACKLOG), and KHM Crippling Fear's, Alrund's and IKO Umori's choose at resolution or a card type |
 | 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
 
 ## 6. Identity + conformance
@@ -573,6 +576,8 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     row; play differs in 3 games, where M21 Vito, Thorn of the Dusk Rose and FDN Ajani's Pridemate
     and Marauding Blight-Priest trigger once instead of once per recipient. Same winners, 0
     crashes.
+- R9 round 9 (pending, 2026-11-13): a quality chosen as a permanent enters, §13; the draft entry is
+  in the branch's report (`worktree-agent-a22ab085e5a636947`).
 - BINDING STATE: rounds 1–8 complete; further ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
@@ -1023,3 +1028,143 @@ change; gate round 8 asked for it in its own commit).**
 - Random-play soaks that deal the new trees (M20 with the unverified records, FDN, ZNR, M11; 700
   games): 0 crashes, 0 detector hits; each family card in those pools was cast in 2 to 33 games
   (not M14 Archangel of Thune, M14 deals no deck, nor FDN Cat Collector, still partly compiled).
+
+## 13. Round R9 — a quality chosen as a permanent enters (2026-11-13; gate round 9 pending)
+
+The card backlog's wave 3, second item: M20 Diamond Knight ("As this creature enters, choose a
+color. Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.") and
+Icon of Ancestry ("As this artifact enters, choose a creature type. Creatures you control of the
+chosen type get +1/+1. {3}, {T}: Look at the top three cards of your library. You may reveal a
+creature card of the chosen type from among them ..."), needs-atom records since 2026-11-05.
+Census, blast-radius scripts and base runs: `reports/chosen_quality_2026-11-13/`. Tests:
+`MTG_bot/core/test_executor_chosen_quality.py`, `MTG_bot/core/compiler/test_templates_b17.py`, two
+in `tools/selfplay/test_selfplay.py`; packs in `tools/scenarios/mapped/M20/` and `mapped/FDN/`.
+
+**R9-1 One role and one slot on round 4's pair: no new verb, predicate or field.**
+- The rules. "As [this permanent] enters, ..." is a replacement effect (CR 614.1c), and a choice it
+  requires is made before the permanent enters (614.12a). "Choose a [value]" and "the chosen
+  [value]" printed on one object are linked abilities: the second refers only to a choice made as
+  a result of the first (607.2d). A colour is one of the five (105.1; colourless is none, 105.2c),
+  a creature type one of 205.3m's.
+- The IR. `Verb.CHOOSE_NAME` takes an optional `quality` role from the closed
+  `ability_tree.CHOSEN_QUALITIES` = (COLOR, CREATURE_TYPE); `FAtomPred.NAME_CHOSEN` reads it back
+  with the same vocabulary in its `string_value` (`_FATOM_STRING_VOCAB`, STACK_KIND_EQ's closed
+  slot). Absent in both is a card name: Runed Halo's and Necromentia's bytes do not change, and
+  there is no NAME token to be a second form of absent.
+- Refused as the tree is built (`ability_tree.chosen_quality_fault`, from CardRecord; the compiler
+  raises it as a shape gap, StateCorruptionError, so a partly compiled card never stops a set):
+  1. a value outside the vocabulary, in either place;
+  2. `quality` on any other verb (the role table), and beside `name_filter`;
+  3. a NAME_CHOSEN of a quality (a card name included) with no CHOOSE_NAME of that quality on its
+     own object; a CHOOSE_NAME nothing on its object reads (a choice with no consequence, a
+     phantom ask: a card whose reading sentence did not compile is a shape gap, not a card that
+     asks a colour for nothing); two CHOOSE_NAMEs of one quality on one object;
+  4. a read on another object: a token's, an emblem's or the back face's abilities, a granted
+     ability (its source is the object it is granted to; CR 607.5 links a pair only granted
+     together), a keyword's parameters (hexproof's quality is judged in the targeting source's
+     coordinates); except a PROTECTION quality, which `legality.protected_from` judges in the
+     coordinates of the ability that gives it (Runed Halo's own grant);
+  5. a quality chosen anywhere but as an EtBState's own effect.
+- Why 5. A colour chosen and read once by a resolving effect is already the menu of five (`Choose`
+  over five grants: Feat of Resistance's and Gods Willing's "the color of your choice", verified),
+  so CHOOSE_NAME(COLOR) there would be its second encoding. A resolving creature-type choice (KHM
+  Crippling Fear, Haunting Voyage) has no encoding yet: its card brings one with its tests. A card
+  name keeps both places (Necromentia chooses in a spell).
+- The engine. `executor.name_choices` is keyed by (source, quality) and dropped when the source
+  leaves (CR 400.7). The colour menu is W, U, B, R, G, asked as `quality:<source>:COLOR`. The
+  creature-type menu is the format pool's (`Supply.creature_types`, set on the executor as
+  `creature_type_pool` beside `name_pool`: the creature types of the deckable cards' type lines
+  and of the creature tokens they make, M21's Saproling and FDN's Dog being no card's), public, so
+  it reveals no hidden card; a rig with no format names the world's, and the bench marks that ask
+  leaky. NAME_CHOSEN COLOR reads the printed colours (no effect changes one), CREATURE_TYPE
+  SUBTYPE_EQ's live words (the type line and GRANT_TYPE's overlay). A read with nothing chosen
+  raises, as round 4's did.
+- Choices before counters. `Executor._apply_etb_state` makes every "As this enters" choice before
+  it counts any entering counter, in whatever order the abilities print: FDN Banner of Kinship's
+  "enters with a fellowship counter ... for each creature you control of the chosen type" is
+  counted after its choice. A permanent a pack or the probe puts on the battlefield has made its
+  choice before the opening turn reads it (`ScenarioRunner._as_entered`; the probe's own case
+  moved there): Icon of Ancestry's anthem is read at once, where Runed Halo's quality was read
+  only when protection was asked.
+- The compiler (`templates_b17`, frame B13-cast-chosen): "As this artifact|creature|enchantment|land
+  enters, choose a color|creature type." (20 printings of 17 cards); "Whenever you cast a spell of
+  the chosen color|type, put a +1/+1 counter on this creature." and, through the frame, the same
+  head with any clause that parses alone ("you gain 1 life"); "[Other] creatures you control of
+  the chosen type|color get +P/+T."; "You may reveal a creature card of the chosen type from among
+  them and put it into your hand." (Garruk's Harbinger's shape, `templates_b4.reveal_one_from_among`).
+  "The chosen type" is a creature type: on a card that chose another kind of type the read has no
+  choice of its quality, a shape gap (no such card compiles). Not matched: "As it enters, choose a
+  color." (FDN Uncharted Haven: "it" has no context in a template) and a face named in full (KHM
+  The Ringhart Crest).
+- Census (`census.txt`): 22 printings of 19 cards choose a colour (10) or a creature type (12) as
+  they enter; B17 reads the choice on 20. Whole now: M20 Diamond Knight and Icon of Ancestry, FDN
+  and M19 Diamond Mare, ORI Prism Ring, KHM Rally the Ranks. Partly, with a reader: ELD and FDN
+  Heraldic Banner, M12 and FDN Adaptive Automaton, M15 Obelisk of Urd. Refused (shape gaps), since
+  no reader of their choice compiles: 10E Story Circle and Voice of All, FDN Banner of Kinship and
+  Secluded Courtyard, KHM Bloodline Pretender, Realmwalker, Reflections of Littjara and
+  Shimmerdrift Vale, M14 Door of Destinies; on the base they were partial, dealt in the all and
+  castable pools with the choice unparsed (Secluded Courtyard's any-colour mana unrestricted,
+  stronger than printed). Each is a piece short (BACKLOG). Card names chosen as a permanent
+  enters: Runed Halo compiles; Pithing Needle, Phyrexian Revoker, Alpine Moon and Sorcerous
+  Spyglass do not.
+- Rejected:
+  - a verb and a predicate per quality (CHOOSE_COLOR / COLOR_CHOSEN, CHOOSE_CREATURE_TYPE /
+    TYPE_CHOSEN): four components for one operation over three menus (AGENTS §9);
+  - a NAME value: two byte forms of a card name;
+  - the policies' `scope` role: one role name, two meanings;
+  - a new FAtom field: STACK_KIND_EQ's closed string slot already carries a vocabulary;
+  - five granted triggers made by an enters trigger (the 2026-11-05 needs-atom's emulation): a
+    trigger is not "as enters", and every read (statics, triggers, mana) would fork five ways;
+  - a missing choice read as False (the rulings' "no type was chosen: it does nothing"): every
+    entry makes the choice and the IR refuses every read the engine judges elsewhere, so a missing
+    choice is an engine fault, raised; a copy that entered without choosing has no card here;
+  - CR 205.3m's whole list (about 300) as the menu: the types no card or token of the pool has are
+    equal null picks for every as-enters card of the 19 sets, and the menu could never be the
+    network's; a symmetric card ("all creatures of the chosen type get -1/-1") would need one null
+    option (BACKLOG).
+
+**R9-2 What the network sees (AGENTS §10).**
+- The ask: a new kind, `quality`, appended to `features.ASK_KINDS` (no index moves) and started on
+  load as the `name` row (`ASK_GROWN_FROM`). Each option carries its value in a new option
+  column, `O_VALUE`: the component token the trees name it by (`features.value_token`: a colour is
+  its COLOR_HAS and ADD_MANA value `str:W`, a creature type the face token `sub:Elf` its cards
+  carry), embedded with the card-component embedding (`ir_emb`), so "Elf" in the menu is the
+  vector in every Elf card's component bag. Colour options are also the option types W to G, as
+  the mana ask's are.
+- The board: a permanent's chosen colour or creature type in a new card column, `C_CHOSEN` (the
+  same token), added to the card's embedding. 0 is the padding row: an old checkpoint computes
+  what it computed before on every observation without a choice (no parameter added, `model.load`
+  unchanged).
+- Not seen: a chosen card name (it has no component token; the `name` ask stays the fallback's),
+  and a creature-type menu wider than MAX_OPTIONS (64): in the M20 (69) and M21 (73) pools Icon of
+  Ancestry's choice is the fallback's (`HeuristicAgent._quality`: the type its own visible cards
+  most share), under the observation caps' scaffold. FDN's 47 fit; a colour menu always does.
+
+**R9-3 The rename: deferred (ledger F12).** CHOOSE_QUALITY / QUALITY_CHOSEN would say what the
+pair now does. Against now: it re-bakes M21 Runed Halo's verified tree (and Necromentia's), which
+then leave the verified pool until re-verified, for a label: the network reads `Verb.CHOOSE_NAME`
+as an id, not as English, and the meaning is in the role. Deferred, the blast radius stays purely
+additive (no verified tree changes, so the replays measure the engine change alone). Fold it with
+the next round that re-bakes Runed Halo, or with a third quality (a card type: IKO Umori; a basic
+land type: M10 Convincing Mirage), re-verifying both.
+
+**Blast radius** (by script over the 19 sets, base dafdd5ff;
+`reports/chosen_quality_2026-11-13/blast_radius.txt`):
+- trees changed: 20 compiler trees, all unverified, and 20 with records applied (the two M20
+  needs-atom records re-mapped to the compiler's tree through `cardtool write`): 6 now compile
+  whole, 5 parse more sentences, 9 are refused (above).
+- verified cards: 0 leave, 0 join; the stamps match (M21 275, M20 270, FDN 180).
+- Still-verified cards with unchanged bytes on a touched path: M21 Runed Halo (its choice and
+  read, keyed (source, None)) and Necromentia (its read); 7 with entering counters (M21 Malefic
+  Scythe, Wildwood Scourge; M20 Squad Captain, Voracious Hydra; FDN Gnarlid Colony, Goblin
+  Boarders, Wildwood Scourge), through the two-pass entry hook whose second pass is the old loop.
+- 300 seeded heuristic games (100 each, M21, M20, FDN), decks from the cards verified on both:
+  300/300 identical digests, 0 crashes either side.
+- Random-play soaks dealing the new trees (800 games: M20 compiled with the unverified records 200,
+  FDN compiled 200, FDN, KHM, ORI and M19 castable 100 each): 0 crashes. Every family card in
+  those pools was cast, in 4 to 33 games, its choice made by random answers. Detector hits: 2 in
+  one M20 game (D5 folds Omnath's counters across its two lives, BACKLOG) and 7 in four FDN games
+  (D3 and D5 classes that come up on the base's FDN pool too), in no game that cast a family card
+  (`soak_coverage.txt`).
+- The conformance checker's pools (M21, ZNR) hold no new tree: no V4′ CHOOSE emission, no V5′
+  drift beyond the baseline's.

@@ -1,0 +1,129 @@
+The round's tests and packs on the base, dafdd5ff (2026-11-13). Each must fail there; the one
+that passes pins an invariant (Runed Halo's bytes and stamp).
+
+1. MTG_bot/core/test_executor_chosen_quality.py, copied into a `git archive` of dafdd5ff (base_tests.py: pytest -q --tb=line there)
+
+    FFFFFFFFFFFFF.FFFFFF                                                     [100%]
+    =================================== FAILURES ===================================
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "role 'quality' must be one of"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:101: AssertionError: Regex pattern did not match.
+    E   AssertionError: Regex pattern did not match.
+          Expected regex: "does not take roles \\['quality'\\]"
+          Actual message: "AtomArgs: unknown role 'quality'"
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:120: AssertionError: Regex pattern did not match.
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    E   Failed: DID NOT RAISE ValueError
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:198: Failed: DID NOT RAISE ValueError
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    E   KeyError: (Handle(namespace='card', index=0), 'COLOR')
+    ----------------------------- Captured stderr call -----------------------------
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:223: KeyError: (Handle(namespace='card', index=0), 'COLOR')
+    E   AttributeError: 'Executor' object has no attribute 'creature_type_pool'
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:237: AttributeError: 'Executor' object has no attribute 'creature_type_pool'
+    E   NotImplementedError: executor: NAME_CHOSEN needs a CHOOSE_NAME record for the source card:0 (no name chosen yet)
+    <dafdd5ff>/MTG_bot/core/executor/quantity.py:942: NotImplementedError: executor: NAME_CHOSEN needs a CHOOSE_NAME record for the source card:0 (no name chosen yet)
+    E   ValueError: FAtom: NAME_CHOSEN does not take slot 'string_value'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:1443: ValueError: FAtom: NAME_CHOSEN does not take slot 'string_value'
+    E   AssertionError: assert {} == {(Handle(name...'COLOR'): 'G'}
+          Right contains 1 more item:
+          {(Handle(namespace='card', index=0), 'COLOR'): 'G'}
+          Use -v to get more diff
+    <dafdd5ff>/MTG_bot/core/test_executor_chosen_quality.py:285: AssertionError: assert {} == {(Handle(name...'COLOR'): 'G'}
+    E   ValueError: FAtom: NAME_CHOSEN does not take slot 'string_value'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:1443: ValueError: FAtom: NAME_CHOSEN does not take slot 'string_value'
+    =========================== short test summary info ============================
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[NAME]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[color]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[LAND_TYPE]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[CARD_TYPE]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[W]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_outside_the_vocabulary_is_refused[]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_belongs_to_choose_name_alone
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_read_needs_a_choice_of_its_quality_on_its_own_object
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_read_outside_the_card_that_chose_is_refused
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_quality_is_chosen_only_as_a_permanent_enters
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_choice_nothing_reads_is_refused[None]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_choice_nothing_reads_is_refused[COLOR]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_choice_nothing_reads_is_refused[CREATURE_TYPE]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_colour_is_one_of_the_five_and_the_cast_trigger_reads_it
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_creature_type_is_one_of_the_format_pools
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_every_choice_is_made_before_the_entering_counters_are_counted[None-Elf One-1]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_every_choice_is_made_before_the_entering_counters_are_counted[CREATURE_TYPE-Elf-2]
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_the_choice_leaves_with_the_permanent_and_a_return_chooses_again
+    FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_read_of_what_its_source_did_not_choose_raises
+    19 failed, 1 passed in 2.83s
+
+2. MTG_bot/core/compiler/test_templates_b17.py, the same way (the module imports templates_b17, which the base has not)
+
+    ==================================== ERRORS ====================================
+    _________ ERROR collecting MTG_bot/core/compiler/test_templates_b17.py _________
+    ImportError while importing test module '<dafdd5ff>/MTG_bot/core/compiler/test_templates_b17.py'.
+    Hint: make sure your test modules/packages have valid Python names.
+    Traceback:
+    /usr/lib/python3.12/importlib/__init__.py:90: in import_module
+        return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    MTG_bot/core/compiler/test_templates_b17.py:41: in <module>
+        from MTG_bot.core.compiler import frames, templates_b17
+    E   ImportError: cannot import name 'templates_b17' from 'MTG_bot.core.compiler' (<dafdd5ff>/MTG_bot/core/compiler/__init__.py)
+    =========================== short test summary info ============================
+    ERROR MTG_bot/core/compiler/test_templates_b17.py
+    !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+    1 error in 0.14s
+
+3. tools/selfplay/test_selfplay.py's two new tests, the same way
+
+    FF                                                                       [100%]
+    =================================== FAILURES ===================================
+    E   AssertionError: assert ('arrange' == 'quality'
+          - quality
+          + arrange)
+    <dafdd5ff>/tools/selfplay/test_selfplay.py:933: AssertionError: assert ('arrange' == 'quality'
+    E   ValueError: AtomArgs: unknown role 'quality'
+    <dafdd5ff>/MTG_bot/core/ability_tree.py:2714: ValueError: AtomArgs: unknown role 'quality'
+    =========================== short test summary info ============================
+    FAILED tools/selfplay/test_selfplay.py::test_a_chosen_quality_and_its_menu_reach_the_encoding
+    FAILED tools/selfplay/test_selfplay.py::test_heuristic_chooses_the_quality_its_cards_share
+    2 failed in 2.03s
+
+4. the three new packs on the base's mapped supply (compile_supply('all', set, require_verified=False), as MTG_bot/core/test_scenario_packs.py's mapped lane plays them)
+
+    FAIL diamond_knight_counter_for_each_spell_of_the_chosen_color.json
+         counters[knight]: expected {'PLUS_1_PLUS_1': 2}, got {}
+         power[knight]: expected 3, got 1
+         toughness[knight]: expected 3, got 1
+    FAIL icon_of_ancestry_anthem_and_reveal_of_the_chosen_type.json
+         step {'op': 'activate', 'key': 'icon', 'idx': 2, 'seat': 0, 'decisions': ['fire']}: ValueError: ability_playable: card:0 has no ability idx 2
+         expect lanes this runner never checks: ['hand', 'power', 'tapped', 'toughness', 'zone']
+    FAIL diamond_mare_gains_for_each_spell_of_the_chosen_color.json
+         life[0]: expected 21, got 20

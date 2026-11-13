@@ -1,0 +1,101 @@
+M20 | Diamond Knight | whole
+    read B17-etb-choose-quality: As this creature enters, choose a color.
+    read B17-cast-chosen-counter: Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.
+M20 | Icon of Ancestry | whole
+    read B17-etb-choose-quality: As this artifact enters, choose a creature type.
+    read B17-chosen-anthem: Creatures you control of the chosen type get +1/+1.
+    read B17-reveal-chosen-type: You may reveal a creature card of the chosen type from among them and put it into your hand.
+KHM | Alrund, God of the Cosmos // Hakka, Whispering Raven | 4 unparsed
+    unread: Put all cards of the chosen type revealed this way into your hand and the rest on the bottom of your library in any order.
+KHM | Bloodline Pretender | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this creature enters, choose a creature type.
+    unread: Whenever another creature you control of the chosen type enters, put a +1/+1 counter on this creature.
+KHM | Crippling Fear | 2 unparsed
+    unread: Creatures that aren't of the chosen type get -3/-3 until end of turn.
+KHM | Kolvori, God of Kinship // The Ringhart Crest | 6 unparsed
+    unread: As The Ringhart Crest enters, choose a creature type.
+    unread: Spend this mana only to cast a creature spell of the chosen type or a legendary creature spell.
+KHM | Rally the Ranks | whole
+    read B17-etb-choose-quality: As this enchantment enters, choose a creature type.
+    read B17-chosen-anthem: Creatures you control of the chosen type get +1/+1.
+KHM | Realmwalker | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this creature enters, choose a creature type.
+    unread: You may cast creature spells of the chosen type from the top of your library.
+KHM | Reflections of Littjara | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this enchantment enters, choose a creature type.
+    unread: Whenever you cast a spell of the chosen type, copy that spell.
+KHM | Shimmerdrift Vale | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a COLOR that nothing on its object re
+    read B17-etb-choose-quality: As this land enters, choose a color.
+    unread: {T}: Add one mana of the chosen color.
+10E | Story Circle | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a COLOR that nothing on its object re
+    read B17-etb-choose-quality: As this enchantment enters, choose a color.
+    unread: {W}: The next time a source of your choice of the chosen color would deal damage to you this turn, prevent that damage.
+10E | Voice of All | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a COLOR that nothing on its object re
+    read B17-etb-choose-quality: As this creature enters, choose a color.
+M12 | Adaptive Automaton | 1 unparsed
+    read B17-etb-choose-quality: As this creature enters, choose a creature type.
+    read B17-chosen-anthem: Other creatures you control of the chosen type get +1/+1.
+M14 | Door of Destinies | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this artifact enters, choose a creature type.
+    unread: Whenever you cast a spell of the chosen type, put a charge counter on this artifact.
+    unread: Creatures you control of the chosen type get +1/+1 for each charge counter on this artifact.
+M15 | Obelisk of Urd | 1 unparsed
+    read B17-etb-choose-quality: As this artifact enters, choose a creature type.
+    read B17-chosen-anthem: Creatures you control of the chosen type get +2/+2.
+ORI | Prism Ring | whole
+    read B17-etb-choose-quality: As this artifact enters, choose a color.
+    read B13-cast-chosen+B4-gain-life-n: Whenever you cast a spell of the chosen color, you gain 1 life.
+M19 | Diamond Mare | whole
+    read B17-etb-choose-quality: As this creature enters, choose a color.
+    read B13-cast-chosen+B4-gain-life-n: Whenever you cast a spell of the chosen color, you gain 1 life.
+FDN | Adaptive Automaton | 1 unparsed
+    read B17-etb-choose-quality: As this creature enters, choose a creature type.
+    read B17-chosen-anthem: Other creatures you control of the chosen type get +1/+1.
+FDN | Banner of Kinship | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this artifact enters, choose a creature type.
+    unread: This artifact enters with a fellowship counter on it for each creature you control of the chosen type.
+    unread: Creatures you control of the chosen type get +1/+1 for each fellowship counter on this artifact.
+FDN | Diamond Mare | whole
+    read B17-etb-choose-quality: As this creature enters, choose a color.
+    read B13-cast-chosen+B4-gain-life-n: Whenever you cast a spell of the chosen color, you gain 1 life.
+FDN | Heraldic Banner | 1 unparsed
+    read B17-etb-choose-quality: As this artifact enters, choose a color.
+    read B17-chosen-anthem: Creatures you control of the chosen color get +1/+0.
+    unread: {T}: Add one mana of the chosen color.
+FDN | Secluded Courtyard | refused: StateCorruptionError: StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+    read B17-etb-choose-quality: As this land enters, choose a creature type.
+    unread: Spend this mana only to cast a creature spell of the chosen type or activate an ability of a creature source of the chosen type.
+FDN | Uncharted Haven | 2 unparsed
+    unread: As it enters, choose a color.
+    unread: {T}: Add one mana of the chosen color.
+ELD | Heraldic Banner | 1 unparsed
+    read B17-etb-choose-quality: As this artifact enters, choose a color.
+    read B17-chosen-anthem: Creatures you control of the chosen color get +1/+0.
+    unread: {T}: Add one mana of the chosen color.
+IKO | Umori, the Collector | 3 unparsed
+    unread: Spells you cast of the chosen type cost {1} less to cast.
+
+'As ~ enters, choose a ...' printings: {'color': 10, 'creature type': 12}; distinct cards: {'color': 8, 'creature type': 11}
+now compiling whole (6): ['M20 Diamond Knight', 'M20 Icon of Ancestry', 'KHM Rally the Ranks', 'ORI Prism Ring', 'M19 Diamond Mare', 'FDN Diamond Mare']
+
+other choices of a quality (a name, or at resolution):
+   M21 | Necromentia | Choose a card name other than a basic land card name.
+   M21 | Runed Halo | As this enchantment enters, choose a card name.
+   M20 | Diviner's Lockbox | {1}, {T}: Choose a card name, then reveal the top card of your library.
+   KHM | Haunting Voyage | Choose a creature type.
+   10E | Pithing Needle | As this artifact enters, choose a card name.
+   M10 | Pithing Needle | As this artifact enters, choose a card name.
+   M14 | Brave the Elements | Choose a color.
+   M15 | Phyrexian Revoker | As this creature enters, choose a nonland card name.
+   M15 | Stain the Mind | Choose a nonland card name.
+   ORI | Infinite Obliteration | Choose a creature card name.
+   M19 | Alpine Moon | As this enchantment enters, choose a nonbasic land card name.
+   WAR | Tamiyo, Collector of Tales | [+1]: Choose a nonland card name, then reveal the top four cards of your library.
+   FDN | Sorcerous Spyglass | As this artifact enters, look at an opponent's hand, then choose any card name.
+   ELD | Sorcerous Spyglass | As this artifact enters, look at an opponent's hand, then choose any card name.
+   THB | Medomai's Prophecy | II — Choose a card name.
+   THB | Nyx Lotus | {T}: Choose a color.
+
+M21 verified pool: 73 creature types in the menu, ['Saproling'] from tokens alone
+M20 verified pool: 69 creature types in the menu, [] from tokens alone
+FDN verified pool: 47 creature types in the menu, ['Dog'] from tokens alone

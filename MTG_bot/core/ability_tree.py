@@ -116,6 +116,10 @@ _MOVE_ARRANGE = ("RANDOM",)
 # FAtomPred.STACK_KIND_EQ — the three kinds of stack object (CR 405.1: spells,
 # activated abilities, triggered abilities).
 _STACK_KINDS = ("ACTIVATED", "SPELL", "TRIGGERED")
+# CHOSEN_QUALITIES: what a Verb.CHOOSE_NAME chooses besides a card name (its "quality" role) and
+# what FAtomPred.NAME_CHOSEN reads back (its string_value). Absent in both means a card name, so
+# there is no "NAME" token: one meaning, one encoding.
+CHOSEN_QUALITIES = ("COLOR", "CREATURE_TYPE")
 
 
 # ---- Closed vocabularies (enums) ----
@@ -182,7 +186,10 @@ class Verb(Enum):
     # referent="result"); the choice is recorded as the ability's result
     # for later anaphora.
     CHOOSE = "CHOOSE"
-    CHOOSE_NAME = "CHOOSE_NAME"  # "choose a name" (Runed Halo, Necromentia); read back by FAtomPred.NAME_CHOSEN
+    # CHOOSE_NAME: "choose a card name" (Runed Halo, Necromentia), or with its `quality` role a
+    # colour or a creature type as a permanent enters (Diamond Knight, Icon of Ancestry); read
+    # back by FAtomPred.NAME_CHOSEN of the same quality (CR 607.2d linked abilities).
+    CHOOSE_NAME = "CHOOSE_NAME"
     FIGHT = (
         "FIGHT"  # "this creature fights another target creature" (Brash
         # Taunter), "it fights up to one target creature you don't control"
@@ -520,9 +527,10 @@ class FAtomPred(Enum):
         # required referent slot from _QPROP_STR_REFERENTS, e.g. "source")
     )
     NAME_CHOSEN = (
-        "NAME_CHOSEN"  # the object's name is the one picked by
-        # Verb.CHOOSE_NAME ("cards with that name" — Runed Halo). No slots
-        # (precedent: IS_TAPPED).
+        "NAME_CHOSEN"  # the object has what the source's Verb.CHOOSE_NAME chose: its name
+        # ("cards with that name", Runed Halo), or with string_value COLOR or CREATURE_TYPE
+        # (CHOSEN_QUALITIES) that colour ("a spell of the chosen color", Diamond Knight) or
+        # creature type ("creatures you control of the chosen type", Icon of Ancestry).
     )
     IS_EXILED_WITH_SOURCE = (
         "IS_EXILED_WITH_SOURCE"  # the card is in exile AND was exiled by
@@ -2756,6 +2764,11 @@ class AtomArgs:
                     f"AtomArgs: role 'arrange' must be one of {_MOVE_ARRANGE} (absent: the owner "
                     f"arranges the cards, CR 401.4), got {value!r}"
                 )
+            if role == "quality" and value not in CHOSEN_QUALITIES:
+                raise ValueError(
+                    f"AtomArgs: role 'quality' must be one of {CHOSEN_QUALITIES} (absent: a card "
+                    f"name), got {value!r}"
+                )
             if role == "event" and getattr(value, "ordinal", None) is not None:
                 # PREVENT_EFFECT's event: no prevention lane counts events (gate round 8, m1)
                 raise ValueError(
@@ -2877,6 +2890,12 @@ class Atom:
                     "Atom: GET_EMBLEM's controller (who gets the emblem) must be one of "
                     f"{sorted(r.name for r in EMBLEM_RECIPIENTS)}, got {who!r}"
                 )
+        # A name filter judges card names: beside a colour or a creature type it would judge
+        # nothing, a form with no meaning.
+        if self.verb is Verb.CHOOSE_NAME and "quality" in roles and "name_filter" in roles:
+            raise ValueError(
+                "Atom: CHOOSE_NAME's name_filter narrows card names; a quality choice takes none"
+            )
         # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3454,10 +3473,12 @@ class EtBState:
     tapped"), `initial_counters` ("enters with 3 +1/+1 counters",
     "this Equipment enters with a soul counter") and/or `effect`, what is
     done as it enters ("As this enchantment enters, choose a card name",
-    Runed Halo). An Ability node on the card record. CR 614.1c: "enters
+    Runed Halo; "choose a color", Diamond Knight: a CHOOSE_NAME, its
+    `quality` naming a colour or a creature type). An Ability node on the
+    card record. CR 614.1c: "enters
     with" and "As [this permanent] enters" are replacement effects that
     modify how the permanent enters, not triggered abilities: nothing goes
-    on the stack, and a choice they require is made as the permanent
+    on the stack, and a choice they require is made before the permanent
     enters (CR 614.12a), so no ability of the permanent ever sees it
     unmade. Each counter entry is a (CounterKind, Quantity) pair;
     `initial_counters` is a set — sorted at construction (the kind keys
@@ -3663,6 +3684,87 @@ def _reflexive_misplaced(
     )
 
 
+def chosen_quality_fault(*nodes: Any) -> str | None:
+    """Why the choices and chosen-value reads under ``nodes`` (one object's keywords and
+    abilities) have no meaning, or None. CR 607.2d: "choose a [value]" and "the chosen [value]"
+    printed on one object are linked abilities, and the second refers only to a choice made as a
+    result of the first. So:
+
+    - every FAtomPred.NAME_CHOSEN of a quality reads a Verb.CHOOSE_NAME of that quality on the
+      same object, and an object holds at most one CHOOSE_NAME per quality (two would leave the
+      read ambiguous; "the last chosen" waits for its card);
+    - every CHOOSE_NAME is read on its object: a choice nothing reads has no consequence, a
+      phantom ask (AGENTS §10), so a card whose reading sentence did not compile is refused (a
+      shape gap) rather than dealt with a choice that does nothing;
+    - a token's, an emblem's and the back face's abilities are another object's, and so is an
+      ability a GRANT_ABILITY gives (its source is the object it is granted to, which chose
+      nothing: CR 607.5 links only a pair granted together). The exception is a PROTECTION
+      quality, which the engine judges in the coordinates of the ability that gives the
+      protection (``legality.protected_from``, Runed Halo); any other keyword's parameters are
+      judged elsewhere (hexproof's in the targeting source's);
+    - a colour or a creature type (CHOOSE_NAME's ``quality``) is chosen only as a permanent
+      enters, as an EtBState's effect (CR 614.12a), where it lasts as long as the permanent. A
+      colour chosen and read at once by a resolving effect is the menu of five
+      (``Choose``, Feat of Resistance); a creature type chosen that way waits for its card."""
+    chosen: list[object] = []  # the quality of each CHOOSE_NAME (None: a card name)
+    read: set[object] = set()  # the quality each NAME_CHOSEN reads
+    faults: list[str] = []
+
+    def visit(node: Any, as_enters: bool = False) -> None:
+        if isinstance(node, tuple):
+            for item in node:
+                visit(item)
+        elif isinstance(node, (BackFace, TokenSpec, EmblemSpec)):
+            faults.append(chosen_quality_fault(getattr(node, "keywords", ()), node.abilities) or "")
+        elif isinstance(node, EtBState):
+            visit((node.condition, node.initial_counters))
+            visit(node.effect, as_enters=True)
+        elif isinstance(node, Atom):
+            if node.verb is Verb.CHOOSE_NAME:
+                quality = node.args.get("quality")
+                if quality is not None and not as_enters:
+                    faults.append(
+                        f"CHOOSE_NAME of a {quality} stands only as the effect of an EtBState "
+                        "(\"As this permanent enters\", CR 614.12a)"
+                    )
+                chosen.append(quality)
+            for role, value in node.args.pairs:
+                protection = isinstance(value, KeywordAbility) and value.keyword is Keyword.PROTECTION
+                if role == "ability" and not protection:
+                    faults.append(chosen_quality_fault(value) or "")  # the grantee's ability
+                else:
+                    visit(value)
+        elif isinstance(node, KeywordAbility) and node.keyword is not Keyword.PROTECTION:
+            faults.append(chosen_quality_fault(node.params) or "")
+        elif dataclasses.is_dataclass(node) and not isinstance(node, type):
+            if isinstance(node, FAtom) and node.pred is FAtomPred.NAME_CHOSEN:
+                read.add(node.string_value)
+            for f in dataclasses.fields(node):
+                visit(getattr(node, f.name))
+
+    visit(nodes)
+
+    def what(quality: object) -> str:
+        return str(quality or "card name")
+
+    missing = sorted(what(q) for q in read if q not in chosen)
+    if missing:
+        faults.append(
+            f"NAME_CHOSEN reads a chosen {', '.join(missing)} that no CHOOSE_NAME of the same "
+            "object chooses (CR 607.2d: linked abilities are printed on one object)"
+        )
+    unread = sorted({what(q) for q in chosen if q not in read})
+    if unread:
+        faults.append(
+            f"a CHOOSE_NAME of a {', '.join(unread)} that nothing on its object reads: a choice "
+            "with no consequence (a phantom ask, AGENTS §10)"
+        )
+    twice = sorted({what(q) for q in chosen if chosen.count(q) > 1})
+    if twice:
+        faults.append(f"one object chooses a {', '.join(twice)} twice: a read would be ambiguous")
+    return "; ".join(f for f in faults if f) or None
+
+
 @dataclass(frozen=True)
 class CardRecord:
     """The root node: one card (or token) as a typed ability tree.
@@ -3767,6 +3869,9 @@ class CardRecord:
                 "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
                 "Repeat between"
             )
+        fault = chosen_quality_fault(self.keywords, self.abilities)
+        if fault is not None:
+            raise ValueError(f"CardRecord: {fault}")
         if not isinstance(self.is_token, bool):
             raise ValueError(
                 f"CardRecord: is_token must be a bool, got {self.is_token!r}"
@@ -4014,7 +4119,8 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"referent"}),
         frozenset({"referent"}),
     ),
-    FAtomPred.NAME_CHOSEN: (frozenset(), frozenset()),
+    # NAME_CHOSEN: string_value = the chosen quality (CHOSEN_QUALITIES); absent, the name.
+    FAtomPred.NAME_CHOSEN: (frozenset(), frozenset({"string_value"})),
     FAtomPred.IS_EXILED_WITH_SOURCE: (frozenset(), frozenset()),
     # CONTROLLER_COUNT_GT: both filters are REQUIRED (the comparison has
     # no one-sided reading).
@@ -4056,6 +4162,7 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
 # open card data (type, subtype and card names).
 _FATOM_STRING_VOCAB: dict[FAtomPred, tuple[str, ...]] = {
     FAtomPred.STACK_KIND_EQ: _STACK_KINDS,
+    FAtomPred.NAME_CHOSEN: CHOSEN_QUALITIES,
 }
 
 
@@ -4096,6 +4203,9 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # name", Necromentia); Filter-valued like GRANT_ABILITY's ability /
     # PREVENT_EFFECT's condition roles.
     "name_filter": _F_CLASSES,
+    # quality: what a CHOOSE_NAME chooses instead of a card name (CHOSEN_QUALITIES, validated in
+    # AtomArgs.__post_init__); absent, a card name.
+    "quality": (str,),
     # dealer / recipient: DEAL_DAMAGE's optional damage-surface roles —
     # "you" as recipient ("damage to you", Nine Lives) or a player-identity
     # Filter naming a side. Widened like "controller": a referent, a
@@ -4288,8 +4398,9 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # CHOOSE_NAME: "choose a name" (Runed Halo — no filter; Necromentia —
     # "a nonbasic card name", name_filter). The pick is read back by
     # FAtomPred.NAME_CHOSEN; the optional filter only narrows which names
-    # are legal picks.
-    Verb.CHOOSE_NAME: {"name_filter": False},
+    # are legal picks. quality: a colour or a creature type instead of a name,
+    # only as an EtBState's effect (chosen_quality_fault).
+    Verb.CHOOSE_NAME: {"name_filter": False, "quality": False},
     # FIGHT: the attacker is the source/IT referent, never a role.
     Verb.FIGHT: {"target": True},
     # LOSE_ABILITY mirrors GRANT_ABILITY's roles exactly.

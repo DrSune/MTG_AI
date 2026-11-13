@@ -379,8 +379,10 @@ def test_verb_role_tables_r7() -> None:
         "count": False,
         "duration": False,
     }
+    # quality: a colour or a creature type chosen as a permanent enters (ontology round R9)
     assert at._VERB_ROLES[at.Verb.CHOOSE_NAME] == {
         "name_filter": False,
+        "quality": False,
     }
     assert at._VERB_ROLES[at.Verb.FIGHT] == {"target": True}
     # LOSE_ABILITY: exact mirror of GRANT_ABILITY
@@ -413,10 +415,12 @@ def test_fatom_is_attached_rule_and_serialization() -> None:
         frozenset({"referent"}),
         frozenset({"referent"}),
     )
+    # the chosen quality, closed vocabulary (ontology round R9); absent, the card name
     assert at._FATOM_RULES[at.FAtomPred.NAME_CHOSEN] == (
         frozenset(),
-        frozenset(),
+        frozenset({"string_value"}),
     )
+    assert at._FATOM_STRING_VOCAB[at.FAtomPred.NAME_CHOSEN] == ("COLOR", "CREATURE_TYPE")
     d = at.to_dict(_fatom_is_attached())
     # the referent slot serializes as a PLAIN STRING (data, not a node)
     assert d["referent"] == "source"

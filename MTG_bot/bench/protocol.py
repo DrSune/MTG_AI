@@ -14,7 +14,8 @@ answered by the wrong player in silence.
 the engine offered it to them as a choice (``SeatLens.describe``). A ``name:`` ask lists the
 format's card pool in a dealt game (``executor.name_pool``), public
 information; it is flagged ``leaky`` only in a rig with no format, where the engine still lists
-the world's cards, hidden zones included (``verbs._v_choose_name``).
+the world's cards, hidden zones included (``verbs._v_choose_name``). A ``quality:`` ask's creature
+types are the same way (``executor.creature_type_pool``); its colours are always the five.
 """
 
 from __future__ import annotations
@@ -78,8 +79,11 @@ SEAT_IN_TAG = frozenset(
      "replace", "mulligan", "mulligan_bottom", "arrange"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
+#: ``quality``: a colour or a creature type chosen as a permanent enters (CR 614.12a),
+#: ``quality:<permanent>:<COLOR|CREATURE_TYPE>``.
 OBJECT_IN_TAG = frozenset(
-    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name", "enchant"}
+    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name",
+     "enchant", "quality"}
 )
 SITE_KINDS = SEAT_IN_TAG | OBJECT_IN_TAG
 REFUSE_TOKENS = ("PASS", "NONE", "DECLINE", "skip", "keep")
@@ -199,6 +203,8 @@ def engine_ask(
             return "attack the defending player"
         if kind == "mana" and token in _COLORS:
             return f"{_COLORS[token]} mana"
+        if kind == "quality" and token in _COLORS:
+            return _COLORS[token]
         if kind == "x" and token.isdigit():
             return f"X = {token}"
         if kind == "choose" and token.isdigit() and subject is not None:
@@ -226,6 +232,10 @@ def engine_ask(
         "enchant": f"{about} enters the battlefield: choose what it enchants.",
         "tap": f"{about}: choose what to tap.",
         "name": "Choose a card name.",
+        "quality": (
+            f"{about} enters the battlefield: choose a "
+            f"{'color' if what.endswith(':COLOR') else 'creature type'}."
+        ),
         "order": f"{about}: choose the damage assignment order.",
         "trigger": (
             "Several of your triggered abilities go on the stack at once (CR 603.3b): choose the "
@@ -256,7 +266,8 @@ def engine_ask(
         prompt=prompt,
         options=tuple(Option(t, label(t)) for t in vocab),
         refuse=refuse,
-        leaky=kind == "name" and not executor.name_pool,
+        leaky=(kind == "name" and not executor.name_pool)
+        or (what.endswith(":CREATURE_TYPE") and not executor.creature_type_pool),
     )
 
 

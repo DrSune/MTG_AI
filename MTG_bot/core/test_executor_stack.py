@@ -1116,8 +1116,11 @@ class TestChooseVerb(StackCase):
 class TestChooseName(StackCase):
     def halo(self):
         halo = self.world.add_card(card_id("Halo", "1", "1"), self.p0, ZONE_BATTLEFIELD)
+        # the choice and a read of it (a choice nothing reads is refused: CR 607.2d, R9)
+        named = Selector(QConst(1), SelectorMode.ALL, FAtom(FAtomPred.NAME_CHOSEN), zones=(BF_ANY,))
         rec = record_of(
-            [ActivatedAbility(cost=Cost((CostTap(),)), effect=atom(Verb.CHOOSE_NAME))],
+            [ActivatedAbility(cost=Cost((CostTap(),)), effect=atom(Verb.CHOOSE_NAME)),
+             ActivatedAbility(cost=Cost((CostTap(),)), effect=atom(Verb.DESTROY, target=named))],
             name="Halo",
             oid=self.world.cards[halo].identity.oracle_id,
         )
@@ -1137,7 +1140,7 @@ class TestChooseName(StackCase):
             controller=self.p0,
             decisions=("Narnam",),
         )
-        self.assertEqual(self.ex.name_choices[halo], "Narnam")
+        self.assertEqual(self.ex.name_choices[(halo, None)], "Narnam")
         ctx = ctx_for(self.ex, source=halo, controller=self.p0)
         self.assertTrue(eval_filter(FAtom(FAtomPred.NAME_CHOSEN), chosen, ctx))
         other = self.world.add_card(

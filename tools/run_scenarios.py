@@ -261,6 +261,7 @@ sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    EtBState,
     FAnd,
     Keyword,
     QConst,
@@ -464,6 +465,7 @@ class ScenarioRunner:
         # installs an answerer; a caller may pass one for setup.
         self.ex.decisions.provider = setup_provider
         try:
+            self._as_entered(pack["cards"])
             self.ex.begin_turn(self.p0)
         finally:
             self.ex.decisions.provider = None
@@ -483,6 +485,27 @@ class ScenarioRunner:
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
         if len(self.seats) == 2:
             self._fill_libraries()
+
+    def _as_entered(self, cards: list[dict[str, Any]]) -> None:
+        """A permanent is on the battlefield only by having entered it, so each setup permanent has
+        made the choice its "As this enters" requires (CR 614.1c, 614.12a: Runed Halo's card name,
+        Icon of Ancestry's creature type) before anything reads it, answered by the setup answerer
+        (the card probe's first word). With none, the pack puts the card in hand and enters it,
+        its choice among the step's decisions."""
+        for card in cards:
+            handle = self.handles[card["key"]]
+            if self.world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+                continue
+            record = self.ex.binder.records.get(self.world.cards[handle].identity.oracle_id)
+            for node in record.abilities if record is not None else ():
+                if not (isinstance(node, EtBState) and node.effect is not None):
+                    continue
+                if self.ex.decisions.provider is None:
+                    raise PackError(
+                        f"card {card['key']!r} chooses as it enters: put it in hand and 'enter' "
+                        "it, its choice among the step's decisions"
+                    )
+                self.ex.run_as_enters(handle, node.effect)
 
     def _fill_libraries(self) -> None:
         """Six filler cards per library, in before the first draw: seat 1's in turn 2 of a

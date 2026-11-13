@@ -117,7 +117,10 @@ class PolicyValueNet(nn.Module):
         ir = self.card_table_emb()
         x_card = (self.name_emb(name_idx) + ir[card_idx] + self.zone_emb(cards_i[..., 1])
                   + self.ctrl_emb(cards_i[..., 2]) + self.owner_emb(cards_i[..., 3])
-                  + self.card_f(cards_f))
+                  + self.card_f(cards_f)
+                  # a permanent's chosen colour or creature type by its component token (0, the
+                  # padding row, for none: an older network computes what it computed before)
+                  + self.ir_emb(cards_i[..., FT.C_CHOSEN]))
         x_play = self.player_f(b["players_f"]) + self.player_role.weight[None]
         ent = torch.cat([x_play, x_card], dim=1)  # [B, 2+E, d]
         zero = ent.new_zeros(bsz, 1, self.d)
@@ -130,7 +133,8 @@ class PolicyValueNet(nn.Module):
         opts_i, opts_f = b["opts_i"], b["opts_f"]
         x_opt = (self.opt_type(opts_i[..., 0]) + self.opt_ab(opts_i[..., 3].clamp(0, 23))
                  + self.opt_f(opts_f) + self.opt_ref(_gather(ent_ext, opts_i[..., 1]))
-                 + self.opt_ref2(_gather(ent_ext, opts_i[..., 2])))
+                 + self.opt_ref2(_gather(ent_ext, opts_i[..., 2]))
+                 + self.ir_emb(opts_i[..., FT.O_VALUE]))  # a quality ask's value, as above
         x_glob = (self.glob_f(b["glob_f"]) + self.ask_emb(b["ask_i"][:, 0]))[:, None]
         seg = self.segment.weight
         x = torch.cat([x_glob + seg[0], x_play + seg[1], x_card + seg[2], x_opt + seg[3]], dim=1)
@@ -194,7 +198,7 @@ def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dic
     cards_i = np.zeros((bsz, e, FT.CI), np.int64)
     cards_f = np.zeros((bsz, e, FT.CF), np.float32)
     card_mask = np.zeros((bsz, e), bool)
-    opts_i = np.zeros((bsz, k, 4), np.int64)
+    opts_i = np.zeros((bsz, k, FT.OI), np.int64)
     opts_f = np.zeros((bsz, k, 2), np.float32)
     opt_mask = np.zeros((bsz, k), bool)
     for i, o in enumerate(obs):
