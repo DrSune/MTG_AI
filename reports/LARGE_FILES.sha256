@@ -46,3 +46,11 @@ e7fad5f65aef9cd024aa00730a25b733686f6831080863249d21d7f17a771678  runs/v0_probes
 d71e2b2598456e65fba34ff1825fb68c19385902f0e2c93c01cd64a64472cc94  runs/selfplay/r26_outcome_ppo/u1000.pt
 3a06ddf35b823ff361bdf1d70a2488f9b9b283ccffdc6ea77e0fa5a7efae5376  runs/selfplay/r26_outcome_ppo/v1.pt
 a69e7fda0f8c4418be13319481af8bef7000b23702becad4799b7ca691d5f304  runs/selfplay/r26_outcome_ppo/v2.pt
+# The held-out pool L's other members and the ceiling window's critic (PLAN_CEILING §7.2, §14.4;
+#   reports/ceiling_window/queue.sh checks every member and the critic against these pins before
+#   it plays). r26's v0 is r25's v0 (above, the same bytes) and holds r23's network
+#   (r23_mulligan/gen.pt, the same weights); r27's v1 holds r28's v0 (the same weights); r26's u1000,
+#   v1 and v2 are pinned above. critic_r27.json is 193's v0 critic (content sha256 6b8014ae…).
+d2408dff336dbb62c993adb68eed371f911d9b2a2d15431aa7767f58c7a8609b  runs/selfplay/r26_outcome_ppo/v0.pt
+ceb19ed0a7d0a41093176c650b796c0283f5c4780bd7f30f1200c19202ad6c2b  runs/selfplay/r27_priority_ppo/v1.pt
+4e2e18cea9f16dbc95d946098f3cd006bcb4d4f4594fbd3757ab12b78b4850a6  runs/window2/critic_r27.json
