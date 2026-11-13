@@ -1,7 +1,7 @@
 == pytest MTG_bot
-5762 passed, 39 deselected, 71 subtests passed in 79.87s (0:01:19)
+5767 passed, 39 deselected, 71 subtests passed in 79.50s (0:01:19)
 == pytest tools
-271 passed in 84.89s (0:01:24)
+271 passed in 85.32s (0:01:25)
 == scenario packs
 764/764 packs passed
 == ruff MTG_bot/bench
