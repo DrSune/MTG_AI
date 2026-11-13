@@ -15,7 +15,7 @@
 # file, with the main checkout's .venv linked in:
 #   git worktree add --detach /home/sune/Desktop/MTG_AI-cw <commit>
 #   ln -s /home/sune/Desktop/MTG_AI/.venv /home/sune/Desktop/MTG_AI-cw/.venv
-#   systemctl --user stop mtg-r28
+#   systemctl --user stop mtg-r28  # right after a save (state.pkl's mtime): no update is lost
 #   mkdir -p /home/sune/Desktop/MTG_AI/runs/ceiling_window
 #   cp /home/sune/Desktop/MTG_AI/runs/selfplay/r28_stratified_ppo/last.pt \
 #     /home/sune/Desktop/MTG_AI/runs/ceiling_window/r28_latest.pt

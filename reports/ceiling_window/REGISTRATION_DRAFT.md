@@ -140,8 +140,8 @@ difference between shapes (`score.py`).
 | S4 | (b) drafted minus coherent | −0.04 to +0.005 | The lower bound above +0.01 |
 
 **The agent's own expectation** (so the reviewer is scored too): S1 near 0 (−0.01 to +0.015).
-The four ordering lines read no value (202 §2), and horizon 1 cannot see a package's payoff beyond
-the next turn (§5).
+None of the five package lines measured reads value (202 §2-§3), and horizon 1 cannot see a
+package's payoff beyond the next turn (§5).
 
 ## 3. What each outcome means for r29
 
@@ -188,9 +188,10 @@ pilot that plays synergies (§14.4).
      concentrate them in two payoffs (Feline Sovereign, Hooded Blightfang);
    - the pool moves as cards are verified: **the coordinator re-runs that command at the window's
      pin** and puts its lines in the note;
-   - `--refresh-table` rebuilds 13 of the table's 613 rows and adds 12 component tokens at zero
-     (`@once_per_event`, `role:arrange`, `EmblemSpec`, `PhasingEvent`, `Verb.ATTACK_POLICY`, ...;
-     the second smoke's log, §8);
+   - `--refresh-table` rebuilds 13 of the 613 rows of NET's table (14 of r26's networks') and
+     adds 12 component tokens at zero (`@once_per_event`, `role:arrange`, `EmblemSpec`,
+     `PhasingEvent`, `Verb.ATTACK_POLICY`, ...; the second smoke's logs, §8). Every init's M21
+     rows end the same, and an opponent reads the init's table;
    - the arrange ask (CR 401.4: cards put into a library together, a scry's groups) is a new ask
      kind: the network reads it as its "other" kind (`model.load`) and its end column through
      zero weights.
@@ -237,20 +238,24 @@ pilot that plays synergies (§14.4).
   once, which cancels deck and seat asymmetry in expectation, not its variance.
 - **The CPU smoke cannot test** bf16 inference or the GPU's timing: the CPU runs fp32.
 
-## 8. The CPU smoke (2026-11-13 02:41-03:34, beside r28)
+## 8. The CPU smoke (2026-11-13, beside r28, twice)
 
 The queue itself with `SMOKE=1`: every job's own flags with 2 deals and `--device cpu --workers 2
 --slots 2 --groups 1`, `CUDA_VISIBLE_DEVICES=` empty, `OMP_NUM_THREADS=2`, `nice -n 19`, under
-`systemd-run --user --scope -p MemoryMax=8G -p MemorySwapMax=0`, from this branch at 2cad4e83,
-with `runs/r28_looks/r28_u100.pt` (update 100, sha256 edd25827…) standing in for NET.
-- **All 42 jobs exited 0** in 52 minutes: 252 games, none voided or leaky.
-- Every job dealt its shape (`coherent`, `package`, `drafted:8:6b8014ae`) on its seeds
-  (1,100,000-1,100,001, 1,110,000-1,110,001, 1,120,000-1,120,001) against the opponents listed
-  in §1, the heuristic against random included (`--eval-seat heuristic`).
-- The nine searched jobs: 358 searched decisions, 1,969 simulations, 0 simulation errors; the
-  three (a) jobs recorded 44, 35 and 30 targets.
-- The start checks passed: the commit, NET's hash, every member's and the critic's pin.
-  `--refresh-table` rebuilt 12 rows and added 10 tokens; package mode kept 19 of M21's packages.
+`systemd-run --user --scope -p MemoryMax=8G -p MemorySwapMax=0`, with `runs/r28_looks/r28_u100.pt`
+(update 100, sha256 edd25827…) standing in for NET. First from this branch at 2cad4e83
+(02:41-03:34), then at its merge of main d5600c24, d7375884 (03:37-04:23).
+- **All 42 jobs exited 0 both times**: 252 games each, none voided or leaky.
+- Every job dealt its shape (`coherent`, `package`, `drafted:8:6b8014ae`: 84 games each) on its
+  seeds (1,100,000-1,100,001, 1,110,000-1,110,001, 1,120,000-1,120,001) against the opponents
+  listed in §1, the heuristic against random included (`--eval-seat heuristic`).
+- The nine searched jobs: 358 and 348 searched decisions, 1,969 and 1,909 simulations, 0
+  simulation errors; the three (a) jobs recorded 109 and 100 targets.
+- The start checks passed: the commit, NET's hash, every member's and the critic's pin. At the
+  merge, package mode kept 19 packages of M21's 271 verified cards (19 of 275 at 2cad4e83).
+- Fixed after the first smoke: its resume note was a plain line in `queue.log`, which is JSON
+  lines (the second smoke's log is JSON throughout), and `score.py` warned on deal scores that do
+  not vary.
 - `score.py` read every job (L's fit over 8 members and 17 pairings, NET rated on L; at 2 deals
   the numbers are noise). Before that, it was checked on rows with known answers (a synthetic set:
   the spreads, the paired differences and their correlation, Bradley-Terry ratings recovered
