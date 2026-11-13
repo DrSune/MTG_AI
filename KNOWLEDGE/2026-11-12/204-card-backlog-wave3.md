@@ -119,3 +119,44 @@ Drogskol Reaver.
 
 **Verified pools (deckable), 2026-11-13 04:15:** M21 275, M20 273, FDN 183. When the owner asked
 (2026-11-12 evening) they were M21 270, M20 257, FDN 175.
+
+## 5. Gate rounds 9 and 10, verification wave 1e (2026-11-13 04:15-08:25)
+
+**Gate round 9: a quality chosen as a permanent enters.** Verdict GO, merged c164cd34.
+- **The IR:** CHOOSE_NAME takes an optional closed `quality` (COLOR, CREATURE_TYPE).
+  NAME_CHOSEN reads it back, refused on any object but its own (CR 607.2d).
+- **The engine:**
+  - the choice is made before any gate or entering counter (CR 614.12a);
+  - it is kept in last-known information when the source leaves;
+  - the creature-type menu is the format pool's, plus the granted types. That menu is a
+    scaffold in BACKLOG.
+- **The network** sees the chosen value and the menu's values. Both are masked at 0, so old
+  checkpoints compute bitwise what they did.
+- **Fixed with it:** `simulator.load` now grows an old simulator. Gate B's `--search-sim
+  runs/window1/sim.pt` would not have loaded on current main.
+- **The rename is deferred** (ledger F12), and `string_value` is NAME_CHOSEN's quality slot for
+  good.
+
+**Gate round 10: gathered "one or more" zone-change events.** Verdict FIX-THEN-GO, merged
+be9e1981.
+- **The change:** `once_per_event` on a ZoneChangeEvent, and one atom boundary is one event. The
+  `gathered` register replaces `declare_attackers`.
+- **The MAJOR finding, fixed:** a plural read of a gathered leave event crashed when tokens left.
+- **Also fixed on the way:** "exile them" moved only the first object.
+- **The 20 verified trees' new "each occurrence" G3 mutant:** their stamps stand, and a
+  re-verification needs a pack that moves two objects at once.
+
+**DESTROY spares an indestructible permanent** (8db1834f; CR 702.12b). Before, every destroy
+effect killed indestructible permanents. It was found while building round 10.
+
+**Verification wave 1e.** Blind (Sonnet); all 4 plants were caught:
+- Meteor Golem's and Sleep Paralysis's enters triggers ran under the wrong controller;
+- Dauntless Veteran pumped the opponent's creatures;
+- Cathar Commando's sacrifice was missing.
+
+Verified: M20 Diamond Knight, Icon of Ancestry, Woodland Champion and Angelic Guardian, and FDN
+Diamond Mare. Angelic Guardian's one trigger per declaration is pinned by Tale's End countering
+it while two attackers wait.
+
+**Verified pools, 2026-11-13 08:23:** M21 275, M20 277, FDN 184. When the owner asked they were
+270, 257 and 175.
