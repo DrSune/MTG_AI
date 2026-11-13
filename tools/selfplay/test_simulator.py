@@ -46,8 +46,9 @@ def _game(seed: int, agents: list, turn_cap: int = 60):
 
 
 def test_capture_changes_no_game_and_keeps_the_truth_apart(table) -> None:
-    # A deal whose game gives each seat more than 20 captured decisions; the deal follows the
-    # verified pool (seed 21 stopped doing so when the pool lost Liliana, Waker of the Dead).
+    # Seed 22: the verified M21 pool of 2026-11-12 (nine cards out after the trigger-timing fixes,
+    # to come back when re-verified) deals seed 21 a 14-decision game. When the pool changes
+    # again, pick the next seed whose game has more than 20 decisions a seat.
     plain = _game(22, [HeuristicAgent(), HeuristicAgent()])
     seats = [Capture(HeuristicAgent(), s, table, 1.0, 22) for s in (0, 1)]
     captured = _game(22, seats)

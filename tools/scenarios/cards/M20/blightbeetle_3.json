@@ -1,0 +1,66 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb1",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bb2",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gs",
+   "name": "GS",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "G"
+   ]
+  },
+  {
+   "key": "rs",
+   "name": "RS",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "R"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "gs",
+   "target": "bb1",
+   "amount": 5
+  },
+  {
+   "op": "deal_damage",
+   "source": "rs",
+   "target": "bb2",
+   "amount": 5
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb1": "battlefield",
+   "bb2": "graveyard"
+  }
+ },
+ "notes": "Printed: 'Protection from green (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything green.)' A green source deals 5 damage to one Blightbeetle: prevented, it survives undamaged. A red source deals 5 to the other: it dies."
+}

@@ -1,0 +1,6 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"sg","real":"Searslicer Goblin","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":false,"sg":false}},{"op":"to_step","step":"END_TURN"}],
+ "expect":{"tokens":{},"life":{"1":20}},
+ "notes":"Raid: you did not attack this turn, so no token at your end step."}

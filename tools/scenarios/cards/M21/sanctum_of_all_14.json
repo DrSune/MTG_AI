@@ -1,0 +1,66 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "real": "Sanctum of Fruitful Harvest",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "0",
+    "l1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l1": "battlefield",
+   "l2": "library",
+   "g1": "graveyard",
+   "g2": "graveyard",
+   "sa": "battlefield"
+  }
+ },
+ "notes": "At your upkeep you may search for A Shrine card (exactly one) and put it onto the battlefield. Library and graveyard, two Shrines in each: exactly one enters in total."
+}

@@ -1,0 +1,62 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "rb",
+   "real": "Rabid Bite",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "my",
+   "name": "Mine",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ot",
+   "name": "Other",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Rabid Bite",
+   "key": "rb",
+   "targets": [
+    "my",
+    "bb"
+   ],
+   "expect_raise": "illegal target"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "battlefield"
+  }
+ },
+ "notes": "Printed: 'Protection from green (This creature can't be ... targeted ... by anything green.)' Rabid Bite is a green spell: it cannot target the opposing Blightbeetle."
+}

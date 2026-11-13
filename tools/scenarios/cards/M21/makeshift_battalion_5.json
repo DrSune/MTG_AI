@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"mb","real":"Makeshift Battalion","zone":"battlefield","controller":0},
+  {"key":"b1","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"b2","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"mb":false,"b1":true,"b2":true}}],
+ "expect":{"counters":{"mb":{}},"life":{"1":16}},
+ "notes":"Battalion needs THIS creature attacking: if the Battalion stays home while two others attack, no counter."}

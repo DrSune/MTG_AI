@@ -1,0 +1,67 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bc",
+   "real": "Brineborn Cutthroat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "v",
+   "name": "Victim",
+   "power": 1,
+   "toughness": 5,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {},
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "sh",
+   "controller": 1,
+   "targets": [
+    "v"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sh": "graveyard"
+  },
+  "counters": {
+   "bc": {}
+  },
+  "power": {
+   "bc": 2
+  },
+  "damage": {
+   "v": 2
+  }
+ },
+ "notes": "Printed: 'Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.' The OPPONENT casts a spell during its own turn: 'you' is the Cutthroat's controller, so no counter."
+}

@@ -1,0 +1,50 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sa": "battlefield",
+   "lib": "library",
+   "gy": "graveyard"
+  }
+ },
+ "notes": "The upkeep search is a may: declining leaves both Shrines where they are."
+}

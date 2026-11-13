@@ -708,8 +708,17 @@ class TestB2aTriggerEvents(unittest.TestCase):
         event = ability.event
         assert isinstance(event, CounterPlacedEvent)
         self.assertIs(event.counter_kind, CounterKind.PAGE)
-        assert isinstance(event.filter, FAtom)
-        self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
+        # The source, with four or more page counters: the threshold is part of the trigger
+        # event (a state trigger, CR 603.8), never re-read as the ability resolves.
+        self.assertEqual(
+            event.filter,
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.IS_SOURCE),
+                    FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PAGE, count=QConst(4)),
+                )
+            ),
+        )
 
     def test_nine_lives_is_counter_placed_incarnation(self) -> None:
         ability = _ability(
@@ -1238,11 +1247,8 @@ class TestB2aEffectStructure(unittest.TestCase):
                 "When there are four or more page counters on this artifact, exile it.",
             )
         )
-        condition = ability.condition
-        assert isinstance(condition, FAtom)
-        self.assertIs(condition.pred, FAtomPred.HAS_COUNTER)
-        self.assertIs(condition.counter_kind, CounterKind.PAGE)
-        self.assertEqual(condition.count, QConst(4))
+        # No intervening "if" (CR 603.4): the four counters are the event's (the test above).
+        self.assertIsNone(ability.condition)
         atom = _atom(ability)
         # Exile is a MOVE_ZONE atom.
         self.assertIs(atom.verb, Verb.MOVE_ZONE)

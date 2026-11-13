@@ -177,7 +177,9 @@ def classify_branch(node):
         menu, cnt = f"ref:{ref}", "-"
         kids = (type(node.effect).__name__,)
     elif cls == "DelayedTrigger":
-        menu, cnt = f"event:{type(node.event).__name__}", "-"
+        # a reflexive trigger (CR 603.12) has no event of its own
+        menu = "reflexive" if node.event is None else f"event:{type(node.event).__name__}"
+        cnt = "-"
         kids = (
             f"effect:{type(node.effect).__name__}",
             f"pred:{type(node.condition).__name__ if node.condition else 'None'}",

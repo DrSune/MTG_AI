@@ -3014,31 +3014,56 @@ def _check_once_per_event(owner: str, event: object, value: object) -> None:
 
 @dataclass(frozen=True)
 class DelayedTrigger:
-    """A trigger created *inside* another effect, live only for `duration`.
-    Subira Toralf's "When a creature you
-    control enters this turn, ..." is an Atom effect that registers this
-    node; the node itself is never a standalone Ability — the duration is
-    REQUIRED because a delayed trigger without a lifetime window is just a
-    TriggeredAbility. `condition` optionally gates the fired event, same
-    convention as TriggeredAbility.condition, and `once_per_event` is
-    TriggeredAbility.once_per_event (Basri Ket's "whenever one or more
-    nontoken creatures attack this turn")."""
+    """A trigger created *inside* another effect (CR 603.7): it triggers and resolves later, as
+    an ability of its own, choosing its own targets as it goes on the stack (CR 603.3d).
 
-    duration: Duration
-    event: EventSpec
+    Delayed (`duration` and `event` set): live for `duration`, it triggers on `event`. Subira
+    Toralf's "When a creature you control enters this turn, ..." is an Atom effect that registers
+    this node; the node itself is never a standalone Ability. `condition` optionally gates the
+    fired event, same convention as TriggeredAbility.condition, and `once_per_event` is
+    TriggeredAbility.once_per_event (Basri Ket's "whenever one or more nontoken creatures attack
+    this turn").
+
+    Reflexive (`duration` and `event` both absent, CR 603.12): "You may sacrifice a Vampire. When
+    you do, Sorin deals 3 damage to any target and you gain 3 life." It has no lifetime and no
+    event of its own: it is checked once, as the resolution reaches it, and triggers on an action
+    that resolution performed. That action is the step before the Conditional(MAY_DONE) it is the
+    ``then_effect`` of ("when you do", gated as "if you do" is, CR 118.12), in the effect of a
+    spell, activated, triggered or delayed ability, the only place it may stand
+    (:func:`_reflexive_misplaced`). Its `condition` and `once_per_event` are absent: nothing is
+    re-checked and nothing gathered.
+
+    ``duration=None`` means only this: no event either. A one-shot delayed trigger ("the next
+    time ...", CR 603.7b; none is built) needs a Duration value of its own, never
+    ``duration=None`` beside an event, which is refused."""
+
+    duration: Duration | None
+    event: EventSpec | None
     condition: Filter | None
     effect: Effect
     once_per_event: bool | None = None
 
     def __post_init__(self) -> None:
-        if not _is_duration(self.duration):
+        if (self.duration is None) != (self.event is None):
             raise ValueError(
-                f"DelayedTrigger: duration must be a Duration, got {type(self.duration).__name__}"
+                "DelayedTrigger: duration and event are both set (a delayed trigger) or both "
+                "absent (a reflexive trigger, CR 603.12)"
             )
-        if not _is_event(self.event):
-            raise ValueError(
-                f"DelayedTrigger: event must be an EventSpec, got {type(self.event).__name__}"
-            )
+        if self.event is None:
+            if self.condition is not None or self.once_per_event is not None:
+                raise ValueError(
+                    "DelayedTrigger: a reflexive trigger (CR 603.12) carries no condition and no "
+                    "once_per_event: its gate is the Conditional it stands in"
+                )
+        else:
+            if not _is_duration(self.duration):
+                raise ValueError(
+                    f"DelayedTrigger: duration must be a Duration, got {type(self.duration).__name__}"
+                )
+            if not _is_event(self.event):
+                raise ValueError(
+                    f"DelayedTrigger: event must be an EventSpec, got {type(self.event).__name__}"
+                )
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"DelayedTrigger: condition must be a Filter, got {type(self.condition).__name__}"
@@ -3048,6 +3073,11 @@ class DelayedTrigger:
             raise ValueError(
                 f"DelayedTrigger: effect must be an Effect, got {type(self.effect).__name__}"
             )
+
+    @property
+    def reflexive(self) -> bool:
+        """CR 603.12: no event of its own; it triggers as the resolution reaches it."""
+        return self.event is None
 
 
 Effect = (
@@ -3499,6 +3529,56 @@ def _is_result_misplaced(node: Any, allowed: bool) -> bool:
     )
 
 
+def _reflexive_misplaced(
+    node: Any, host: Any = None, gate: bool = False, rotated: bool = False, barred: bool = False
+) -> bool:
+    """Is a reflexive DelayedTrigger (CR 603.12) reachable from ``node`` anywhere but where it
+    means one thing: "<step>. When you do, Y"?
+
+    - ``gate``: it is the ``then_effect`` of ``Conditional(MAY_DONE)`` (exactly that predicate:
+      "when you don't" waits for a card) standing after the step it is about in a Seq. A gate
+      with no step before it would read an older may-offer, and any other predicate is not
+      "when you do".
+    - ``host``: the nearest ability around it resolves (a spell, an activated, triggered,
+      delayed or reflexive ability; granted and token ones included). A static, replacement,
+      "as ~ enters" or keyword ability never resolves, and neither does an effect an atom holds
+      as a value (REPLACE's ``instead``).
+    - ``rotated``: no EachPlayer or Repeat between the host and it. EachPlayer runs its effect
+      under each player as controller, but the reflexive trigger's controller is the resolving
+      ability's (CR 603.7e); the engine runs no Repeat.
+    - ``barred``: not in an emblem, until an emblem with a reflexive trigger brings its tests
+      (none in the 19 sets)."""
+    if isinstance(node, tuple):
+        return any(_reflexive_misplaced(item, host, False, rotated, barred) for item in node)
+    if not dataclasses.is_dataclass(node) or isinstance(node, type):
+        return False
+    if isinstance(node, DelayedTrigger) and node.reflexive and not (
+        gate and not rotated and not barred and isinstance(host, _REFLEXIVE_HOSTS)
+    ):
+        return True
+    if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+        host, rotated = node, False
+    elif isinstance(node, EmblemSpec):
+        barred = True  # the abilities of the emblem a GET_EMBLEM makes
+    elif isinstance(node, Atom):
+        host = node  # a value of a role is no ability's effect (an ability in it resets this)
+    elif isinstance(node, (EachPlayer, Repeat)):
+        rotated = True
+    if isinstance(node, Seq):
+        for i, step in enumerate(node.steps):
+            if i and isinstance(step, Conditional) and step.pred == FAtom(pred=FAtomPred.MAY_DONE):
+                parts = ((step.then_effect, True), (step.else_effect, False))
+            else:
+                parts = ((step, False),)
+            if any(_reflexive_misplaced(part, host, g, rotated, barred) for part, g in parts):
+                return True
+        return False
+    return any(
+        _reflexive_misplaced(getattr(node, f.name), host, False, rotated, barred)
+        for f in dataclasses.fields(node)
+    )
+
+
 @dataclass(frozen=True)
 class CardRecord:
     """The root node: one card (or token) as a typed ability tree.
@@ -3596,6 +3676,13 @@ class CardRecord:
                 "take a referent Selector (elsewhere it is Selector(referent='result'), or "
                 "there is no result register to read)"
             )
+        if _reflexive_misplaced(self.abilities, barred="Emblem" in self.types):
+            raise ValueError(
+                "CardRecord: a reflexive DelayedTrigger (CR 603.12) stands only as the "
+                "then_effect of Conditional(MAY_DONE) after the step it is about, in the effect "
+                "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
+                "Repeat between"
+            )
         if not isinstance(self.is_token, bool):
             raise ValueError(
                 f"CardRecord: is_token must be a bool, got {self.is_token!r}"
@@ -3640,6 +3727,8 @@ _E_CLASSES = (
     Atom,
     DelayedTrigger,
 )
+#: The abilities that resolve, so may create a reflexive trigger (CR 603.12).
+_REFLEXIVE_HOSTS: tuple[type, ...] = (SpellAbility, ActivatedAbility, TriggeredAbility, DelayedTrigger)
 _A_CLASSES = (
     StaticAbility,
     TriggeredAbility,
@@ -4456,8 +4545,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "Repeat": (("count", "quantity"), ("inner", "effect")),
     "EachPlayer": (("ref", "controller_ref_or_selector"), ("effect", "effect")),
     "DelayedTrigger": (
-        ("duration", "duration"),
-        ("event", "event"),
+        ("duration", "opt:duration"),
+        ("event", "opt:event"),
         ("condition", "opt:filter"),
         ("effect", "effect"),
         ("once_per_event", "opt:bool"),
@@ -4708,7 +4797,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "StaticAbility": frozenset({"condition"}),
     "ActivatedAbility": frozenset({"condition", "timing"}),
     "TriggeredAbility": frozenset({"once_per_event"}),
-    "DelayedTrigger": frozenset({"once_per_event"}),
+    # A reflexive trigger (CR 603.12) has neither: the delayed triggers keep their bytes.
+    "DelayedTrigger": frozenset({"duration", "event", "once_per_event"}),
 }
 
 
@@ -5005,10 +5095,12 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
 # ---- Ability classification (one CR 605.1a classifier) ----
 
 #: Nodes whose subtree belongs to ANOTHER ability: a granted ability, a
-#: keyword, a token's own abilities, and a delayed trigger (created when the
-#: ability resolves, it triggers and resolves later as its own ability, CR
-#: 603.7). CR 605.1a judges the activated ability itself, so none of its
-#: criteria look inside them.
+#: keyword, a token's own abilities, and a delayed or reflexive trigger
+#: (created when the ability resolves, it triggers and resolves later as its
+#: own ability, CR 603.7, 603.12). CR 605.1a judges the activated ability
+#: itself, so none of its criteria look inside them, and an ability designates
+#: only its own targets (CR 601.2c, 602.2b, 603.3d): the other ability chooses
+#: its own when it is activated or put on the stack.
 _FOREIGN_ABILITY_NODES: tuple[type, ...] = (*_A_CLASSES, TokenSpec, DelayedTrigger)
 
 #: Verbs that always take cards from a library (CR 121.1 draw, 701.17a mill).
@@ -5037,9 +5129,10 @@ def is_loyalty_ability(ability: object) -> bool:
     )
 
 
-def _own_nodes(effect: Any) -> list[Any]:
+def own_nodes(effect: Any) -> list[Any]:
     """The nodes of ``effect`` that belong to this ability (foreign ability
-    subtrees are neither descended nor returned)."""
+    subtrees are neither descended nor returned): what the CR 605.1a classifier
+    and every designation walker read."""
     return [
         node
         for node in walk(effect, skip=_FOREIGN_ABILITY_NODES)
@@ -5137,7 +5230,7 @@ def is_mana_ability(ability: object) -> bool:
         return False
     if is_loyalty_ability(ability) or _cost_moves_library_card(ability.cost):
         return False
-    nodes = _own_nodes(ability.effect)
+    nodes = own_nodes(ability.effect)
     if not any(isinstance(node, Atom) and node.verb is Verb.ADD_MANA for node in nodes):
         return False
     if _requires_target(nodes):

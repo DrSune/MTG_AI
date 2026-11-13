@@ -200,29 +200,37 @@
  },
  "verified": {
   "tree_sha": "db20c908a6fe6a0bd7d7ca87e2b89ad7df81d5fa1b612ffb8b413b2137ee3ad2",
-  "probe_sha": "cf7e92f84953f96bda7d3a7694978fdc61f1f15c5a7f344b339a9a5d12429f2b",
+  "probe_sha": "1fbd204c878e22fde5300d4bd06823cf4b60559d79919d63eb49277364e9bee3",
   "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1-B",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
   "clauses": [
    {
-    "clause": "Look at the top three cards of your library; put one into your hand",
+    "clause": "Look at the top three cards of your library",
     "status": "OK",
-    "evidence": "ask one_of offers exactly Library 3#1, 4#1, 5#1 (top three); chosen card moves library->hand; all three answers played; library 6->5",
+    "evidence": "cast: one_of offers the three top cards",
     "issue": ""
    },
    {
-    "clause": "the rest on the bottom in any order",
-    "status": "NOT_EXERCISED",
-    "evidence": "REST cards 'targeted' but no position shown in the trace; pack B07_1 (passes) checks the exact library order; fixed order OK per B-81",
+    "clause": "Put one of them into your hand",
+    "status": "OK",
+    "evidence": "cast variants: the picked card moves library -> hand",
+    "issue": ""
+   },
+   {
+    "clause": "and the rest on the bottom of your library in any order",
+    "status": "OK",
+    "evidence": "cast: ask arrange over the other two cards in every variant. Resulting library order pinned by B02_1/B02_2 (first named = upper, last named = bottom)",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M20/anticipate_2.json",
+   "tools/scenarios/cards/M20/anticipate_3.json",
    "tools/scenarios/cards/M20/anticipate_1.json"
   ],
   "mutation": {
-   "mutants": 12,
-   "killed": 12,
+   "mutants": 13,
+   "killed": 13,
    "score": 1.0,
    "survived": []
   }

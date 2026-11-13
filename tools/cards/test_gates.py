@@ -778,38 +778,65 @@ def test_target_to_all_on_twins_in_a_trigger_is_dead() -> None:
             assert _game(pack, mutant) == real, target
 
 
-KRAKEN = "1/0/effect/inner/steps/1/inner/options/{}/args/target"
+KRAKEN = "1/0/effect/steps/1/then_effect/effect/inner/options/{}/args/target"
 
 
-def test_target_to_all_on_twins_in_a_trigger_choice_stays_live() -> None:
-    """The near shape: Tolarian Kraken's "you may tap or untap target creature" puts the twins in
-    the two options of a Choose, so the card's slot is required (every option carries it) and
-    each mutant's is not (binding._required_target_keys). With no legal target (the Kraken alone,
-    with protection from blue from Feat of Resistance) the card's trigger is removed as it goes
-    on the stack (CR 603.3d) and the mutant's waits there. (CR 603.12 would put the draw trigger
-    on the stack too; the reflexive trigger is the BACKLOG item "Reflexive triggers choose their
-    targets too early".)"""
+def test_target_to_all_on_twins_in_a_reflexive_trigger_choice_stays_live() -> None:
+    """The near shape: Tolarian Kraken's "When you do, you may tap or untap target creature" is a
+    reflexive trigger (CR 603.12) whose Choose holds the twins, so its slot is required (every
+    option carries it) and each mutant's is not (binding._required_target_keys). The draw trigger
+    designates nothing. With no legal target (the Kraken alone, with protection from blue from
+    Feat of Resistance) the {1} is paid, and then the card's reflexive trigger is removed as it
+    goes on the stack (CR 603.3d) while each mutant's waits there."""
     kraken = _card("Tolarian Kraken")
     assert gates._twin_targets(kraken.abilities[0], (1, 0)) == set()
+    reflexive = _at(kraken, "1/0/effect/steps/1/then_effect")
+    assert reflexive.reflexive
+    assert not _required_target_keys(kraken.abilities[0].effect)  # the draw trigger's own: none
     sel = _at(kraken, KRAKEN.format(0))
-    assert repr(sel) in _required_target_keys(kraken.abilities[0].effect)
+    assert repr(sel) in _required_target_keys(reflexive.effect)
     for option in (0, 1):
         assert ("target->all", KRAKEN.format(option)) in _where(kraken)
-        assert repr(sel) not in _required_target_keys(_everyone(kraken, KRAKEN.format(option)).abilities[0].effect)
+        mutant = _everyone(kraken, KRAKEN.format(option))
+        assert repr(sel) not in _required_target_keys(_at(mutant, "1/0/effect/steps/1/then_effect").effect)
     pack = _pack([{"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
                   {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
                   {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}],
                  [{"op": "cast", "key": "feat", "targets": ["k"], "decisions": ["1"]},
                   {"op": "cast", "key": "ct", "hold": True}, {"op": "resolve"},
-                  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": True}],
+                  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": True},
+                  {"op": "resolve", "hold": True, "decisions": ["fire"]}],
                  {"0": {"W": 1, "R": 1, "C": 1}})
 
     def stack(r: ScenarioRunner) -> tuple:
         return tuple(frame.spell_kind for frame in r.ex.stack.frames)
 
-    assert _game(pack, inspect=stack)[4] == ()
+    real = _game(pack, inspect=stack)
+    assert real[4] == () and not real[1]["player:0"][2]  # the {1} was paid; nothing waits
     for option in (0, 1):
         assert _game(pack, _everyone(kraken, KRAKEN.format(option)), inspect=stack)[4] == ("TRIGGERED",)
+
+
+def test_a_reflexive_trigger_written_inline_is_a_critical_mutant_a_pack_kills() -> None:
+    """G3's operator for "When you do" written as "If you do" (Sorin, Imperious Bloodlord's
+    first mapping): the reflexive trigger's effect inline, its targets chosen with the
+    ability's own. Critical; on the Kraken, the no-legal-target game tells it from the card:
+    the card offers the {1}, the mutant's draw trigger is removed before it can."""
+    kraken = _card("Tolarian Kraken")
+    where = "1/0/effect/steps/1/then_effect"
+    op = "trigger timing: when you do -> if you do"
+    assert (op, where) in _where(kraken) and gates.is_critical(op)
+    mutant = _mutant(kraken, where, _at(kraken, where).effect)
+    pack = _pack([{"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
+                  {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+                  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}],
+                 [{"op": "cast", "key": "feat", "targets": ["k"], "decisions": ["1"]},
+                  {"op": "cast", "key": "ct", "hold": True}, {"op": "resolve"},
+                  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": True},
+                  {"op": "pass", "decisions": ["fire"]}],
+                 {"0": {"W": 1, "R": 1, "C": 1}})
+    real, inline = _game(pack), _game(pack, mutant)
+    assert real[1]["player:0"][2] == () and inline[1]["player:0"][2] == (("C", 1),)  # paid / never offered
 
 
 def test_trigger_scope_of_an_end_step_raid_is_dead() -> None:

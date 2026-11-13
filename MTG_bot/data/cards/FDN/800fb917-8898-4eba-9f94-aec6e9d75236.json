@@ -5,46 +5,51 @@
  "name": "Mazemind Tome",
  "text_sha": "74e90dad2d2fd368d022fad4a99d70d6f3a91a10035e0b0cef725f0015e88670",
  "verified": {
-  "tree_sha": "0a607a5d244bee7986db0e7a175d19b69f944f53f06d9df8cd1b20ec2409a99b",
-  "probe_sha": "2b2de9989dafcfa23c7e2cce90dc7761ae8c8218711fd698d8737f250c6de9bc",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-fdn1",
+  "tree_sha": "c823b769eb9da5163041312660c221a182d44ee9a335a959456cbc1241ce063d",
+  "probe_sha": "de603a9ea54fdf7e1834db67ad5bf2d1886c4c761c5935a407025a0bcf684615",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
-    "clause": "{T}, Put a page counter on this artifact: Scry 1.",
-    "status": "NOT_EXERCISED",
-    "evidence": "[activate [0] from battlefield] and [... | ask 1 -> bottom]: card becomes tapped, card gets 1 PAGE counter, ask scry: [top, bottom] (costs and the one-card scry ask are shown; the bottom move is not visible in a trace). Pack mazemind_tome_1: answering 'bottom' moves exactly Library 5 to the bottom, Tome tapped with PAGE 1, stays on the battlefield, no life gained.",
-    "issue": ""
-   },
-   {
-    "clause": "{2}, {T}, Put a page counter on this artifact: Draw a card.",
+    "clause": "{T}, put a page counter: Scry 1",
     "status": "OK",
-    "evidence": "[activate [1] from battlefield]: card becomes tapped, card gets 1 PAGE counter, you draws you:Library 5#1 (hand 5 -> 6), you: mana W-2. Pack mazemind_tome_3 also pins the {2} (C:2 pays, pool empty).",
+    "evidence": "[activate [0]]: scry ask [top, bottom]",
     "issue": ""
    },
    {
-    "clause": "When there are four or more page counters on this artifact, exile it. If you do, you gain 4 life.",
+    "clause": "{2},{T}, put a page counter: Draw a card",
+    "status": "OK",
+    "evidence": "[activate [1]]",
+    "issue": ""
+   },
+   {
+    "clause": "When four or more page counters, exile it; if you do, gain 4 life",
     "status": "NOT_EXERCISED",
-    "evidence": "No variant reaches four counters (each shows PAGE 1). Packs: mazemind_tome_2 (3 counters + the scry cost's 4th: Tome exiled, life 20 -> 24), mazemind_tome_3 (2 + 1 = 3 counters: Tome stays, life 20), mazemind_tome_4 (the draw ability's 4th counter: card drawn, Tome exiled, life 24).",
+    "evidence": "packs A07_1, A07_2, A07_3",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/FDN/mazemind_tome_5.json",
+   "tools/scenarios/cards/FDN/mazemind_tome_6.json",
+   "tools/scenarios/cards/FDN/mazemind_tome_7.json",
+   "tools/scenarios/cards/FDN/mazemind_tome_8.json",
    "tools/scenarios/cards/FDN/mazemind_tome_1.json",
    "tools/scenarios/cards/FDN/mazemind_tome_2.json",
    "tools/scenarios/cards/FDN/mazemind_tome_3.json",
    "tools/scenarios/cards/FDN/mazemind_tome_4.json"
   ],
   "mutation": {
-   "mutants": 27,
-   "killed": 16,
-   "score": 0.5925925925925926,
+   "mutants": 29,
+   "killed": 17,
+   "score": 0.5862068965517241,
    "survived": [
     "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
     "controller YOU->OPPONENT at 1/0/effect/args/controller",
     "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
-    "amount+1 at 1/2/condition/count",
-    "amount-1 at 1/2/condition/count",
+    "widen filter (drop part 0) at 1/2/event/filter",
+    "amount+1 at 1/2/event/filter/children/1/count",
+    "amount-1 at 1/2/event/filter/children/1/count",
     "drop step 0 at 1/2/effect",
     "drop step 1 at 1/2/effect",
     "zone EXILE->GRAVEYARD at 1/2/effect/steps/0/args/destination",

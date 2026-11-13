@@ -5,37 +5,42 @@
  "name": "Garruk's Harbinger",
  "text_sha": "2f2b10f036677bd9a66c3a1e725bf9ae55c224039c745fb06c3e3a3bd863767d",
  "verified": {
-  "tree_sha": "42fed91ace777ca6c6099f242a810e0bd044defd209ae26ed96cc3cec0878193",
-  "probe_sha": "f31e17e38a95ca28887aa85975a87cec208178ed01efa3346abefc416411c8ab",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4L",
+  "tree_sha": "afab16062ade358b3eebf7d8b66bf27f7c4473f6ff5a2d7d4d09e33e1dba3656",
+  "probe_sha": "2a12fec4ad3e9bef70df06818cc72486e79741ccbb20a9e144e2e2d0733d6293",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
     "clause": "Hexproof from black",
     "status": "NOT_EXERCISED",
-    "evidence": "Tree: a single KeywordAbility(HEXPROOF, params=(COLOR_HAS B,)) (no bare HEXPROOF beside it). The probe shows only 'keywords +HEXPROOF'. Packs: garruks_harbinger_hexproof_from_black_only.json (opponent's black Eliminate refused, opponent's red Shock allowed) PASS; garruks_harbinger_own_black_spell.json (own black Eliminate allowed) PASS.",
+    "evidence": "keyword with black param in tree; packs A02_3 (black spell cannot target) and A02_4 (red spell can) pass",
     "issue": ""
    },
    {
-    "clause": "Whenever this creature deals combat damage to a player or planeswalker, look at that many cards from the top of your library.",
+    "clause": "Whenever deals combat damage to a player or planeswalker, look at that many cards",
     "status": "OK",
-    "evidence": "[stimulus: this creature attacks alone, unblocked]: trigger [0]; opp dealt 4 combat; 4 library cards (Library 5..2) handled. [stimulus: attacks and opp_giant blocks it]: 4 combat damage to the blocker, no trigger. Planeswalker half: pack garruks_harbinger_damage_to_planeswalker.json (4 to Basri Ket, trigger fires, a card goes to hand) PASS.",
+    "evidence": "[attacks alone, unblocked]: 4 damage, 4 cards offered; pack A02_5 covers planeswalker damage",
     "issue": ""
    },
    {
-    "clause": "You may reveal a creature card or Garruk planeswalker card from among them and put it into your hand.",
-    "status": "NOT_EXERCISED",
-    "evidence": "The probe's combat stimulus answers the may from an empty map (declined), so nothing went to hand. Packs: garruks_harbinger_reveal_garruk_only.json (only Garruk, Unleashed is taken; Basri Ket, an artifact and an instant stay) PASS; garruks_harbinger_no_legal_reveal.json (no creature or Garruk card among the four: nothing taken) PASS.",
-    "issue": ""
-   },
-   {
-    "clause": "Put the rest on the bottom of your library in a random order.",
+    "clause": "You may reveal a creature or Garruk planeswalker card among them and put it into your hand",
     "status": "OK",
-    "evidence": "Unblocked variant: the four looked-at cards are designated by REST and go to the bottom; pack garruks_harbinger_no_legal_reveal.json shows all four under the six fillers.",
-    "issue": "LOSSY, compiler-documented (templates_b5b._build_rest_bottom_random): 'in a random order' is not in the tree, and the engine puts the rest on the bottom in handle order (verbs.py bottom_dest loop), so the order is deterministic, not random. Only the order of known cards is affected, and no M21 card reads the bottom of a library, so no reachable advantage. Flagged, not failed. The packet tree matches the compiler's canonical parse of all four sentences."
+    "evidence": "ask may [fire, skip], ask one_of; packs A02_1 (take), A02_2 (decline)",
+    "issue": ""
+   },
+   {
+    "clause": "Put the rest on the bottom in a random order",
+    "status": "OK",
+    "evidence": "arrange RANDOM, no order ask is made; packs A02_1/A02_2 show the rest at the bottom",
+    "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M21/garruk's_harbinger_6.json",
+   "tools/scenarios/cards/M21/garruk's_harbinger_7.json",
+   "tools/scenarios/cards/M21/garruk's_harbinger_8.json",
+   "tools/scenarios/cards/M21/garruk's_harbinger_9.json",
+   "tools/scenarios/cards/M21/garruk's_harbinger_10.json",
    "tools/scenarios/cards/M21/garruk's_harbinger_1.json",
    "tools/scenarios/cards/M21/garruk's_harbinger_2.json",
    "tools/scenarios/cards/M21/garruk's_harbinger_3.json",
@@ -43,18 +48,13 @@
    "tools/scenarios/cards/M21/garruk's_harbinger_5.json"
   ],
   "mutation": {
-   "mutants": 15,
-   "killed": 7,
-   "score": 0.4666666666666667,
+   "mutants": 16,
+   "killed": 13,
+   "score": 0.8125,
    "survived": [
-    "drop step 1 at 1/0/effect",
     "drop step 0 at 1/0/effect/steps/1/inner",
-    "drop step 1 at 1/0/effect/steps/1/inner",
-    "amount+1 at 1/0/effect/steps/1/inner/steps/1/args/cards/count",
     "widen filter (drop part 0) at 1/0/effect/steps/1/inner/steps/1/args/cards/filter/children/0",
-    "widen filter (drop part 1) at 1/0/effect/steps/1/inner/steps/1/args/cards/filter/children/0",
-    "controller YOU->OPPONENT at 1/0/effect/steps/1/inner/steps/1/args/cards/zones/0/controller",
-    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/inner/steps/1/args/destination"
+    "widen filter (drop part 1) at 1/0/effect/steps/1/inner/steps/1/args/cards/filter/children/0"
    ]
   }
  }

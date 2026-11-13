@@ -122,5 +122,26 @@
  },
  "probe": {
   "sha": "0b480785d3ca3cf17a859c68d5e3dc9180b0c97ade3feae2807cbba26c8cabe0"
+ },
+ "verified": {
+  "tree_sha": "745e19d241a70b3df304509607fdcaad961898efb8610f4c72f4f3d87f25fa6d",
+  "probe_sha": "43c4593b3b69684d6469844cdc7751cf2c050df196839fc61186ed3675d854c1",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
+  "clauses": [
+   {
+    "clause": "{2}{B}: Return this card from your graveyard to your hand",
+    "status": "OK",
+    "evidence": "not activatable from battlefield; from graveyard: mana B-1 C-2, card graveyard -> hand",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

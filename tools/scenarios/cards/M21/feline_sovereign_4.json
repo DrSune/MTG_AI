@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"fs","real":"Feline Sovereign","zone":"battlefield","controller":0},
+  {"key":"c1","name":"Rel","type":"Artifact","zone":"battlefield","controller":1},
+  {"key":"c2","name":"Ench","type":"Enchantment","zone":"battlefield","controller":1}],
+ "steps":[{"op":"combat","seat":0,"attack":{"fs":true},"decisions":["NONE"]}],
+ "expect":{"life":{"1":18},"zone":{"c1":"battlefield","c2":"battlefield"}},
+ "notes":"Destroy UP TO one target: choosing no target destroys nothing."}

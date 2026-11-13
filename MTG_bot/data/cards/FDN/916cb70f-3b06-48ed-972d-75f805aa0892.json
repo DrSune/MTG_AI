@@ -21,8 +21,22 @@
     "event": {
      "tag": "CastSpellEvent",
      "filter": {
-      "tag": "FAnd",
-      "children": []
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TURN_OF"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "OPPONENT"
+      },
+      "inner_filter": null
      },
      "actor": {
       "tag": "FAtom",
@@ -43,24 +57,7 @@
       "inner_filter": null
      }
     },
-    "condition": {
-     "tag": "FAtom",
-     "pred": {
-      "tag": "FAtomPred",
-      "name": "TURN_OF"
-     },
-     "string_value": null,
-     "color": null,
-     "colors": [],
-     "count": null,
-     "counter_kind": null,
-     "keyword": null,
-     "who": {
-      "tag": "ControllerRef",
-      "name": "OPPONENT"
-     },
-     "inner_filter": null
-    },
+    "condition": null,
     "effect": {
      "tag": "Atom",
      "verb": {
@@ -142,7 +139,7 @@
  "mapping": {
   "author": "claude-mapper-B",
   "date": "2026-10-29",
-  "draft_py": "# Brineborn Cutthroat: \"Flash\" (compiled) +\n#   \"Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.\"\ntrig = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAnd(children=()),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.OPPONENT),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [trig, *compiled]\n",
+  "draft_py": "# Brineborn Cutthroat: \"Flash\" (compiled) +\n#   \"Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.\"\ntrig = TriggeredAbility(\n    # \"during an opponent's turn\" is part of the trigger event (no intervening \"if\", CR 603.4)\n    event=CastSpellEvent(\n        filter=FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.OPPONENT),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [trig, *compiled]\n",
   "clauses": [
    {
     "clause": "Flash",
@@ -154,27 +151,27 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "2026-11-12 (trigger lane): 'during an opponent's turn' is part of the trigger event, so it is the CastSpellEvent's filter, not the condition: the condition is only an intervening 'if' (CR 603.4), read again as the ability resolves. Plays the same (the turn cannot change while the trigger waits). The record's ir and draft changed with it; its verified stamp (if any) no longer matches, so it is verified again before it is dealt."
  },
  "probe": {
   "sha": "d8b9bfb0f8b3b798708a79d8e5d3b1068356caf8a6daf54d8babd405c70d143e"
  },
  "verified": {
-  "tree_sha": "28ebf210cec85af84a26db00cde14ca4e827e9f8815f9a8413b3f2252b5239e7",
-  "probe_sha": "1a561e6b8a4c358252e7a9fb301e7412cc81da600869eb2c661ca051a8ca8cb4",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m1",
+  "tree_sha": "32523a9befe222a005917739b028364244535fdddeae054fde48e732faeea3cc",
+  "probe_sha": "a76dc6bfbd803ef6727ed0a707ab2ea9451082dc636046bb0caf27830e34b3bd",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
     "clause": "Flash",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: keywords +FLASH, but every cast is in your own main phase and the opponent's-turn stimulus puts the card in with MOVE_ZONE, not a cast. Pack brineborn_cutthroat_opp_turn_cast.json PASS: cast on the opponent's turn succeeds (control run: non-flash Pirate's Cutlass and Raise the Past are refused there, so the window is enforced).",
+    "status": "OK",
+    "evidence": "[cast] keywords +FLASH; entry on opponent's turn works",
     "issue": ""
    },
    {
-    "clause": "Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: [you cast an instant or sorcery (Crash Through)] and [you cast a creature (Aegis Turtle)] on YOUR turn queue trigger [0] but no counter is placed (condition TURN_OF OPPONENT false) - the negative case is right. Positive case never happens on the board. Packs: brineborn_cutthroat_opp_turn_cast.json PASS (on the opponent's turn you cast Goblin Firebomb: exactly one counter, 2/1 -> 3/2); brineborn_cutthroat_opponent_casts.json PASS (two spells the opponent casts on its own turn give neither copy a counter).",
+    "clause": "Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature",
+    "status": "OK",
+    "evidence": "[on the opponent's turn, you cast an instant (Opt)]: trigger, counter, 2/1 -> 3/2; own-turn cast (Crash Through): no trigger. Pack A01_1: the opponent casting on their turn gives no counter.",
     "issue": ""
    }
   ],
@@ -184,11 +181,9 @@
   ],
   "mutation": {
    "mutants": 4,
-   "killed": 3,
-   "score": 0.75,
-   "survived": [
-    "amount+1 at 1/0/effect/args/count"
-   ]
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
   }
  }
 }

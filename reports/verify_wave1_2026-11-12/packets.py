@@ -1,7 +1,10 @@
 """Blind G2 packets for the card backlog's first verification wave (PLAN_CARD_ONBOARDING,
 docs/MAPPER_GUIDE.md "Verifier workflow").
 
-    PYTHONPATH=. .venv/bin/python reports/verify_wave1_2026-11-12/packets.py OUT KEYS SEED
+    PYTHONPATH=. .venv/bin/python reports/verify_wave1_2026-11-12/packets.py OUT KEYS SEED [BATCHES.json]
+
+BATCHES.json ({batch: {set: [card, ...]}}, plants drawn from the first set of each batch)
+replaces wave 1's list below, for a later wave.
 
 Writes one packet per card under review, and per batch two planted packets: G3 mutants of cards that
 are already verified and appear nowhere else in the batch (so a plant cannot be found by diffing
@@ -30,6 +33,9 @@ BATCHES = {
                   "Sanitarium Skeleton", "Sorin, Imperious Bloodlord", "Tale's End"]},
 }
 PLANT_SET = {"A": "M21", "B": "M20"}
+if len(sys.argv) > 4:  # a later wave's batches; each batch's plants come from its first set
+    BATCHES = json.loads(Path(sys.argv[4]).read_text())
+    PLANT_SET = {b: next(iter(sets)) for b, sets in BATCHES.items()}
 TOOL = [sys.executable, "tools/cards/cardtool.py"]
 rng = np.random.default_rng(seed)
 key: dict = {}

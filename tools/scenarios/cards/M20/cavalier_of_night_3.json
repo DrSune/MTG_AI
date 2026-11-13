@@ -1,0 +1,74 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cn",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Smasher",
+   "power": 9,
+   "toughness": 9,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g3",
+   "name": "G3",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "g4",
+   "name": "G4",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "cmc": 4,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "art",
+   "name": "ART",
+   "power": 2,
+   "toughness": 2,
+   "type": "Artifact",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "cn",
+   "amount": 5,
+   "decisions": [
+    "g3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cn": "graveyard",
+   "g3": "battlefield",
+   "g4": "graveyard",
+   "art": "graveyard"
+  }
+ },
+ "notes": "Printed: 'When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.' A mana value 3 creature card returns (3 or less includes 3); the mana value 4 creature card and the artifact card stay."
+}

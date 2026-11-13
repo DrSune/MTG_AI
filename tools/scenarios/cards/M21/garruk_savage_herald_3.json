@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"g","real":"Garruk, Savage Herald","zone":"battlefield","controller":0},
+  {"key":"giant","name":"Giant","power":4,"toughness":4,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"wall","name":"Wall","power":0,"toughness":5,"type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[{"op":"loyalty","key":"g","set":7},{"op":"activate","key":"g","idx":2,"seat":0},
+  {"op":"combat","seat":0,"attack":{"giant":true},"block":{"wall":"giant"},"policy":{"giant":"UNBLOCKED"}}],
+ "expect":{"zone":{"g":"graveyard"},"life":{"1":16},"damage":{}},
+ "notes":"[-7]: until end of turn creatures you control gain 'you may have this creature assign its combat damage as though it weren't blocked'. The blocked Giant chooses to assign all 4 to the opponent: 20 -> 16, the Wall takes none."}

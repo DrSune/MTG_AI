@@ -1,0 +1,57 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Blightbeetle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gs",
+   "name": "GS",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "G"
+   ]
+  },
+  {
+   "key": "rs",
+   "name": "RS",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "R"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bb": true
+   }
+  }
+ ],
+ "expect": {
+  "not_asked_to_block": [
+   "gs"
+  ],
+  "block_asks": {
+   "rs": "<bb>,NONE"
+  }
+ },
+ "notes": "Printed: 'Protection from green ... This creature can't be blocked ... by anything green.' Blightbeetle attacks into a green Bear and a red Bear: only the red Bear may be asked to block it; the green Bear is never offered the block."
+}

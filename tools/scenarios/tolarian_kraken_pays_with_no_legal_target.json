@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
+  {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "feat", "targets": ["k"], "decisions": ["1"]},
+  {"op": "cast", "key": "ct", "hold": true},
+  {"op": "resolve"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": true},
+  {"op": "resolve", "expect_raise": "needs a decision from ('fire', 'skip')"}
+ ],
+ "expect": {
+  "zone": {"k": "battlefield", "feat": "graveyard", "ct": "graveyard"},
+  "counters": {"k": {"PLUS_1_PLUS_1": 1}},
+  "hand": {"0": 1}
+ },
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' The Kraken is the only creature, with protection from blue (Feat of Resistance, blue). Crash Through draws a card. The draw trigger designates nothing (the target is the reflexive trigger's, chosen as it goes on the stack after the payment, CR 603.12), so it goes on the stack and, as it resolves, offers the {1}: the last step pins that ask. Before 2026-11-12 the draw trigger chose the target itself as it went on the stack and, with none legal, was removed (CR 603.3d): the {1} was never offered. The paid path (the reflexive trigger then removed for want of a target) is test_executor_trigger_timing.py."
+}

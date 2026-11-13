@@ -47,7 +47,7 @@ deterministic by ``TestMayAndDeterminism`` (test_executor_binding.py).
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
@@ -104,6 +104,7 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     count_semantics,
+    own_nodes,
     walk,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
@@ -121,6 +122,7 @@ from MTG_bot.core.executor.events import (
     KIND_DECLARE_BLOCKERS,
     KIND_LIFE_GAINED,
     KIND_LIFE_LOST,
+    KIND_REFLEXIVE,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -284,16 +286,30 @@ def _compile_bridge(compiled: object) -> CardRecord:
     return record
 
 
+class _Carried(NamedTuple):
+    """What a reflexive trigger (CR 603.12) reads of the resolution that created it, as it was
+    then: its bindings minus its own designation ("the sacrificed creature"), its X, and its
+    event register ("that creature")."""
+
+    bindings: dict
+    x_value: int | None
+    event: object
+    event_amount: int | None
+
+
 @dataclass
 class _Firing:
     """One queued trigger instance's execution payload, keyed by the
-    instance's (tick-unique) clock."""
+    instance's (tick-unique) clock. ``carried``: a reflexive trigger's
+    creating resolution (every other firing builds its context from its
+    event)."""
 
     source: Handle
     controller: Handle
     node: _AnyTrigger
     event: GameEvent
     seq: int
+    carried: _Carried | None = None
 
 
 @dataclass
@@ -794,6 +810,7 @@ class TriggerBinder:
         event: GameEvent,
         additional: bool = False,
         delayed: bool = False,
+        carried: _Carried | None = None,
     ) -> None:
         if source in self.quarantined:
             # Tripwire guard: a flagged loop source never queues
@@ -869,6 +886,7 @@ class TriggerBinder:
             node=node,
             event=event,
             seq=self._seq,
+            carried=carried,
         )
         self.firings[instance.clock] = payload
         if not additional:
@@ -1493,6 +1511,18 @@ class TriggerBinder:
             for handle in (event.subject, event.cause):
                 if isinstance(handle, Handle):
                     out.add(handle)
+        # What a reflexive trigger read of its creating resolution ("the sacrificed creature"),
+        # waiting or on the stack.
+        carried = [p.carried.bindings for p in self.firings.values() if p.carried is not None]
+        carried += [
+            o.ctx.bindings
+            for o in self.executor.stack.frames
+            if o.spell_kind == "TRIGGERED" and o.event.kind == KIND_REFLEXIVE
+        ]
+        for bindings in carried:
+            for value in bindings.values():
+                out.update(h for h in (value if isinstance(value, list) else [value])
+                           if isinstance(h, Handle))
         return frozenset(out)
 
     def cease_triggered_before(self, mark: int) -> int:
@@ -1534,6 +1564,11 @@ class TriggerBinder:
 
         event = payload.event
         ctx = self._ctx(payload.source, payload.controller, event)
+        if payload.carried is not None:
+            # CR 603.12: a reflexive trigger reads the resolution that created it.
+            ctx.bindings.update(payload.carried.bindings)
+            ctx.x_value = payload.carried.x_value
+            ctx.event, ctx.event_amount = payload.carried.event, payload.carried.event_amount
         # Basri Ket's -2: a DECLARE_ATTACKERS firing records the attackers of
         # its declaration group into a dedicated ``declare_attackers`` register.
         # The granted "whenever … attacks, create a token" continuation
@@ -1708,7 +1743,7 @@ class TriggerBinder:
             isinstance(value, Selector)
             and value.mode is SelectorMode.TARGET
             and value.referent is None
-            for inner in walk(choose)
+            for inner in own_nodes(choose)
             if isinstance(inner, Atom)
             for _role, value in inner.args.pairs
         )
@@ -1737,7 +1772,7 @@ class TriggerBinder:
         )
 
         def fillable(effect: object) -> bool:
-            for inner in walk(effect):
+            for inner in own_nodes(effect):
                 if not isinstance(inner, Atom):
                     continue
                 for _role, value in inner.args.pairs:
@@ -1775,20 +1810,16 @@ class TriggerBinder:
         effect = next(effect for token, _idxs, effect in legal if token == pick)
         if effect is None:
             return None  # the empty set of an "up to" choice: nothing happens
-        return TriggeredAbility(
-            event=node.event,
-            condition=node.condition,
-            effect=effect,
-            once_per_event=node.once_per_event,
-        )
+        return replace(node, effect=effect)
 
     @staticmethod
     def _designated_player_refs(effect: object) -> set[ControllerRef]:
         """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a trigger's effect
         reads: a role value naming one, a zone it controls, or a filter reading the bound
-        player (the scan :meth:`_designate` makes)."""
+        player (the scan :meth:`_designate` makes). Only its own nodes: a delayed, reflexive
+        or granted ability designates for itself."""
         refs: set[ControllerRef] = set()
-        for inner in walk(effect):
+        for inner in own_nodes(effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
@@ -1820,11 +1851,13 @@ class TriggerBinder:
         """The designations a trigger's effect makes: its distinct TARGET-mode,
         referent-free Selectors; whether it reads a designated player
         (:meth:`_designated_player_refs`); and whether that read is "target
-        opponent" only."""
+        opponent" only. Only its own nodes (``own_nodes``): a delayed or reflexive
+        trigger it creates chooses its targets when it goes on the stack itself (CR
+        603.7c, 603.12), and a granted ability when it is activated or triggers."""
         refs = cls._designated_player_refs(node.effect)
         selectors: list[Selector] = []
         seen: set[str] = set()
-        for inner in walk(node.effect):
+        for inner in own_nodes(node.effect):
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
@@ -2102,6 +2135,33 @@ class TriggerBinder:
         )
 
     # ------------------------------------------------------------ delayed
+
+    def fire_reflexive(self, node: DelayedTrigger, ctx: ExecCtx) -> None:
+        """CR 603.12: a reflexive triggered ability ("When you do, ...") triggers as the
+        resolution that creates it reaches it: the Conditional around it found the action it
+        triggers on done earlier in that resolution. Like any triggered ability it then waits,
+        and goes on the stack the next time a player would receive priority (CR 603.3), its
+        targets chosen then (603.3d: with no legal one it is removed). Its source and controller
+        are the resolving spell's or ability's (CR 603.7d-e). It reads that resolution's bindings,
+        X and event register, but not its designation: it chooses its own targets, and cannot
+        read the creating ability's (IKO Back for More, BACKLOG). A bound object that has left is
+        read where it is now: "the sacrificed creature's power" would read the card in the
+        graveyard, not its last known information (CR 608.2h; BACKLOG, no such card compiles).
+        Its event names no object (``REFLEXIVE``); the journal never holds one."""
+        carried = _Carried(
+            {k: list(v) if isinstance(v, list) else v for k, v in ctx.bindings.items() if k != "target"},
+            ctx.x_value,
+            ctx.event,
+            ctx.event_amount,
+        )
+        event = GameEvent(
+            clock=self.executor.journal.clock,
+            kind=KIND_REFLEXIVE,
+            subject=None,
+            cause=ctx.source,
+            cause_verb="REFLEXIVE",
+        )
+        self._queue(ctx.source, ctx.controller, node, event, delayed=True, carried=carried)
 
     def schedule_delayed(
         self, node: DelayedTrigger, source: Handle, controller: Handle

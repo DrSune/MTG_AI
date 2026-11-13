@@ -385,8 +385,8 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     population, player side, graveyard sweep, a player designation into a card population):
     an exact count >= 1, battlefield or stack zones (a counterspell's COUNTER_SPELL reads its
     target through role_handles too), no referent in it, and no "any target" player widening
-    (query._player_widening_applies). Twins under a nested ability, token or delayed trigger
-    are designated by that object, not by this one, so they stay out.
+    (query._player_widening_applies). Twins under a nested ability, token, or delayed or
+    reflexive trigger are designated by that object, not by this one, so they stay out.
     - A spell: the cast lane walks every TARGET selector of its effect, those in a Choose made
       as the effect resolves included (query.spell_target_slots), and refuses a cast whose slot
       is not designated (stack._validate_spell_targets), so the designation binds whatever
@@ -400,8 +400,9 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
       Conditional, OptionalEffect, Repeat and EachPlayer, the intersection over a Choose's
       options), so with no Choose above a twin every mutant's slot is required, and the
       mutant designates, is removed and resolves exactly as the card. Twins in the options of
-      a Choose (Tolarian Kraken's "tap or untap target creature") stay out: the mutant's slot
-      is no longer required, so with no legal target its trigger still goes on the stack.
+      a Choose (Tolarian Kraken's reflexive "tap or untap target creature") stay out: the
+      mutant's slot is no longer required, so with no legal target its trigger still goes on
+      the stack.
     - Activated abilities stay out: ``activate`` validates no targets."""
     if isinstance(ability, SpellAbility):
         if isinstance(ability.effect, Choose):
@@ -658,6 +659,10 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 cands.append(("trigger scope: each turn -> your turn only", dataclasses.replace(node, actor=_ACTOR_YOU)))
             elif path not in scope_fixed:
                 cands.append(("trigger scope: your turn -> each turn", dataclasses.replace(node, actor=None)))
+        elif isinstance(node, DelayedTrigger) and node.reflexive:
+            # "When you do" written as "If you do": the effect in this resolution, its targets
+            # chosen with the ability's own (Sorin, Imperious Bloodlord's first mapping, CR 603.12).
+            cands.append(("trigger timing: when you do -> if you do", node.effect))
         elif isinstance(node, (TriggeredAbility, DelayedTrigger)) and node.once_per_event:
             cands.append(("trigger count: once per event -> each occurrence",
                           dataclasses.replace(node, once_per_event=None)))
@@ -761,4 +766,5 @@ def is_critical(op: str) -> bool:
     """Survivors of these operators block verification (gate G3): they are the abusable faults."""
     return op.startswith(("amount", "until-end", "permanent->", "controller", "zone", "drop cost",
                           "target->all", "optional", "trigger scope", "trigger count", "each occurrence",
-                          "library order"))
+                          "library order", "trigger timing"))
+

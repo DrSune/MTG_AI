@@ -352,5 +352,47 @@
  },
  "probe": {
   "sha": "bd31ce383d543a2e08d5c2135b2a0b2e0ac8121886f3c2f0a02baee924fc0a4c"
+ },
+ "verified": {
+  "tree_sha": "0486b31ea9f7d58555d4508938820a530d2ac2fa440f5b21a29199a98a526cc1",
+  "probe_sha": "4a6cacfcf69322f7faaa57676fc18bf36b8671054d3d59f14d80bb1c16e11bdd",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords FLYING; unblocked attack deals 5; opp_giant (no reach) did not block",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, draw three cards, then put two cards from your hand on top of your library in any order",
+    "status": "OK",
+    "evidence": "cast: 3 draws, two discard-style hand picks (excluding the first pick), ask arrange over the two, both hand -> library, library 6->5; also from the opponent-turn entry",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, shuffle it into its owner's library",
+    "status": "OK",
+    "evidence": "lethal damage: card moves graveyard -> library, library 6->7, not on top (scried cards are other cards)",
+    "issue": ""
+   },
+   {
+    "clause": "then scry 2",
+    "status": "OK",
+    "evidence": "lethal damage: two scry asks (top/bottom) then an arrange of the two kept on top. The bottom-group arrange is not in the trace: packs B03_1/B03_2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/cavalier_of_gales_1.json",
+   "tools/scenarios/cards/M20/cavalier_of_gales_2.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 19,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

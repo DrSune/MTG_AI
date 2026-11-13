@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "2",
+    "gy"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gy": "battlefield",
+   "lib": "library"
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Sanctum of Tranquil Light"
+   ]
+  }
+ },
+ "notes": "Searching only the graveyard does not search the library, so it is not shuffled: the library order is exactly as before (Library 5 was drawn in the draw step; top first)."
+}

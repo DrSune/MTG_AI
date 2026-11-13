@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"nl","real":"Nine Lives","zone":"battlefield","controller":0},
+  {"key":"atk","name":"Attacker","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"atk":true}}],
+ "expect":{"life":{"1":18,"0":20},"counters":{"nl":{}},"zone":{"nl":"battlefield"}},
+ "notes":"Only damage to YOU is prevented: you dealing damage to the opponent is not replaced, no counter is added."}

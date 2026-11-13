@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"mb","real":"Makeshift Battalion","zone":"battlefield","controller":0},
+  {"key":"b1","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"b2","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"mb":true,"b1":true,"b2":false}}],
+ "expect":{"counters":{"mb":{}},"life":{"1":15}},
+ "notes":"Only this creature and ONE other attack: no counter."}

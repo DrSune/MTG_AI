@@ -816,11 +816,20 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-def _build_mazemind_tome(m: re.Match[str]) -> SentenceOutcome:
+def _exile_at_counters(kind: CounterKind, n: int) -> SentenceOutcome:
+    """"When there are N or more <kind> counters on this <permanent>, exile it." (Mazemind
+    Tome, Nine Lives): a state trigger (CR 603.8), read as the counters are placed. The
+    threshold is part of the trigger event, so it is in the event's filter: it is not an
+    intervening "if" (CR 603.4) and is not read again as the ability resolves."""
     return _ability(
         CounterPlacedEvent(
-            counter_kind=CounterKind.PAGE,
-            filter=FAtom(pred=FAtomPred.IS_SOURCE),
+            counter_kind=kind,
+            filter=FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.IS_SOURCE),
+                    FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=kind, count=QConst(n)),
+                )
+            ),
         ),
         Atom(
             verb=Verb.MOVE_ZONE,
@@ -831,35 +840,15 @@ def _build_mazemind_tome(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAtom(
-            pred=FAtomPred.HAS_COUNTER,
-            counter_kind=CounterKind.PAGE,
-            count=QConst(4),
-        ),
     )
+
+
+def _build_mazemind_tome(m: re.Match[str]) -> SentenceOutcome:
+    return _exile_at_counters(CounterKind.PAGE, 4)
 
 
 def _build_nine_lives(m: re.Match[str]) -> SentenceOutcome:
-    return _ability(
-        CounterPlacedEvent(
-            counter_kind=CounterKind.INCARNATION,
-            filter=FAtom(pred=FAtomPred.IS_SOURCE),
-        ),
-        Atom(
-            verb=Verb.MOVE_ZONE,
-            args=AtomArgs(
-                pairs=(
-                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
-                    ("target", _self_selector()),
-                )
-            ),
-        ),
-        condition=FAtom(
-            pred=FAtomPred.HAS_COUNTER,
-            counter_kind=CounterKind.INCARNATION,
-            count=QConst(9),
-        ),
-    )
+    return _exile_at_counters(CounterKind.INCARNATION, 9)
 
 
 def _build_setessan_training(m: re.Match[str]) -> SentenceOutcome:

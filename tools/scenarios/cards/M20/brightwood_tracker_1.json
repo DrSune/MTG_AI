@@ -1,0 +1,101 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "bt",
+   "real": "Brightwood Tracker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c5",
+   "name": "C5",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c4",
+   "name": "C4",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "C3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "ld",
+   "name": "Meadow",
+   "type": "Basic Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "C2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "C1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "bt",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "c2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c2": "hand",
+   "ld": "library",
+   "c1": "library",
+   "c3": "library",
+   "c4": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "tapped": {
+   "bt": true
+  }
+ },
+ "notes": "Printed: '{5}{G}, {T}: Look at the top four cards of your library. You may reveal a creature card from among them and put it into your hand. Put the rest on the bottom of your library in a random order.' The library top-first is C1, C2, Meadow (a land), C3, C4, C5: the four looked at are C1, C2, Meadow, C3. The player takes creature C2 into hand (the land is not takeable; C4, the fifth card, is not among the four); the rest go to the bottom in random order with no arrange ask (a further ask would have no word and fail the pack)."
+}

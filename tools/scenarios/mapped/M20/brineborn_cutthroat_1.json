@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "brineborn_cutthroat_flash_cast_then_counter_per_spell_on_opponents_turn",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cut", "real": "Brineborn Cutthroat", "zone": "hand", "controller": 0},
+  {"key": "alarm", "real": "Raise the Alarm", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "cut", "real": "Brineborn Cutthroat", "controller": 0},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "alarm", "real": "Raise the Alarm", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"cut": "battlefield", "alarm": "graveyard"},
+  "tokens": {"Soldier": 2},
+  "counters": {"cut": {"PLUS_1_PLUS_1": 1}},
+  "power": {"cut": 3},
+  "toughness": {"cut": 2},
+  "turn_seats": [0, 1]
+ },
+ "notes": "Printed: 'Flash / Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.' On the opponent's turn you flash the Cutthroat in (its own cast does not trigger it: it was not on the battlefield), then cast Raise the Alarm: exactly one +1/+1 counter, 2/1 -> 3/2."
+}

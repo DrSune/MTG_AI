@@ -1,0 +1,7 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"bb","real":"Battlesong Berserker","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"wall","name":"Wall","power":0,"toughness":5,"type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":true,"bb":false},"decisions":["bear"],"block":{"wall":"bear"}}],
+ "expect":{"blocked":{"bear":[]},"life":{"1":17}},
+ "notes":"Menace: the lone Wall cannot block the targeted Bear, so it is unblocked and deals 3."}

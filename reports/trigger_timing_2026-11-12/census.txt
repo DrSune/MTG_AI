@@ -1,0 +1,82 @@
+## Reflexive sentences: 22 in 21 cards
+M21 | Tolarian Kraken | compiled | B2b-do-tap-or-untap | When you do, you may tap or untap target creature.
+ZNR | Leyline Tyrant | partly-compiled | UNPARSED (triggered) | When you do, it deals that much damage to any target.
+ZNR | Pyroclastic Hellion | partly-compiled | UNPARSED (triggered) | When you do, this creature deals 2 damage to each opponent.
+M20 | Cavalier of Night | mapped | mapped (card record) | When you do, destroy target creature an opponent controls.
+M20 | Sorin, Imperious Bloodlord | mapped | mapped (card record) | When you do, Sorin deals 3 damage to any target and you gain 3 life.
+KHM | Invasion of the Giants | partly-compiled | UNPARSED (triggered) | When you do, this Saga deals 2 damage to target opponent or planeswalker.
+KHM | Kardur's Vicious Return | partly-compiled | UNPARSED (triggered) | When you do, this Saga deals 3 damage to any target.
+KHM | Resplendent Marshal | partly-compiled | UNPARSED (triggered) | When you do, put a +1/+1 counter on each creature you control other than this creature that shares a creature type with the exiled card.
+KHM | Surtland Flinger | partly-compiled | UNPARSED (triggered) | When you do, this creature deals damage equal to the sacrificed creature's power to any target.
+M19 | Isareth the Awakener | partly-compiled | UNPARSED (triggered) | When you do, return target creature card with mana value X from your graveyard to the battlefield with a corpse counter on it.
+M19 | Skyrider Patrol | partly-compiled | UNPARSED (triggered) | When you do, put a +1/+1 counter on another target creature you control, and that creature gains flying until end of turn.
+M19 | Sparktongue Dragon | partly-compiled | UNPARSED (triggered) | When you do, it deals 3 damage to any target.
+M19 | Vivien's Invocation | partly-compiled | UNPARSED (triggered) | When a creature is put onto the battlefield this way, it deals damage equal to its power to target creature an opponent controls.
+FDN | Faebloom Trick | partly-compiled | UNPARSED (triggered) | When you do, tap target creature an opponent controls.
+FDN | Wildborn Preserver | partly-compiled | UNPARSED (triggered) | When you do, put X +1/+1 counters on this creature.
+ELD | Flaxen Intruder // Welcome Home | partly-compiled | UNPARSED (triggered) | When you do, destroy target artifact or enchantment.
+ELD | The Royal Scions | partly-compiled | UNPARSED (triggered) | When you do, The Royal Scions deals damage to any target equal to the number of cards in your hand.
+ELD | Wildborn Preserver | partly-compiled | UNPARSED (triggered) | When you do, put X +1/+1 counters on this creature.
+IKO | Back for More | partly-compiled | UNPARSED (triggered) | When you do, it fights up to one target creature you don't control.
+IKO | Escape Protocol | partly-compiled | UNPARSED (triggered) | When you do, exile target artifact or creature you control, then return it to the battlefield under its owner's control.
+IKO | Narset of the Ancient Way | partly-compiled | UNPARSED (triggered) | When you discard a nonland card this way, Narset deals damage equal to that card's mana value to target creature or planeswalker.
+IKO | Savai Thundermane | partly-compiled | UNPARSED (triggered) | When you do, this creature deals 2 damage to target creature and you gain 2 life.
+
+## Trigger-event qualifiers (no intervening 'if'): 54 sentences
+M21 | Makeshift Battalion | compiled | B5a-battalion | Battalion — Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.
+WAR | Makeshift Battalion | compiled | B5a-battalion | Battalion — Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.
+M21 | Mazemind Tome | compiled | B2a-mazemind-tome | When there are four or more page counters on this artifact, exile it.
+FDN | Mazemind Tome | compiled | B2a-mazemind-tome | When there are four or more page counters on this artifact, exile it.
+M21 | Nine Lives | compiled | B2a-nine-lives | When there are nine or more incarnation counters on this enchantment, exile it.
+ELD | Deathless Knight | partly-compiled | UNPARSED (triggered) | When you gain life for the first time each turn, return this card from your graveyard to your hand.
+FDN | Aurelia, the Warleader | partly-compiled | UNPARSED (triggered) | Whenever Aurelia attacks for the first time each turn, untap all creatures you control.
+DOM | Grunn, the Lonely King | partly-compiled | UNPARSED (triggered) | Whenever Grunn attacks alone, double its power and toughness until end of turn.
+M13 | Nefarox, Overlord of Grixis | partly-compiled | UNPARSED (triggered) | Whenever Nefarox attacks alone, defending player sacrifices a creature of their choice.
+M13 | Odric, Master Tactician | partly-compiled | UNPARSED (triggered) | Whenever Odric and at least three other creatures attack, you choose which creatures block this combat and how those creatures block.
+FDN | Ruby, Daring Tracker | partly-compiled | UNPARSED (triggered) | Whenever Ruby attacks while you control a creature with power 4 or greater, Ruby gets +2/+2 until end of turn.
+M13 | Angelic Benediction | partly-compiled | UNPARSED (triggered) | Whenever a creature you control attacks alone, you may tap target creature.
+FDN | Quilled Greatwurm | partly-compiled | UNPARSED (triggered) | Whenever a creature you control deals combat damage during your turn, put that many +1/+1 counters on it.
+M14 | Witchstalker | partly-compiled | UNPARSED (triggered) | Whenever an opponent casts a blue or black spell during your turn, put a +1/+1 counter on this creature.
+M21 | Mangara, the Diplomat | compiled | B2b-opponent-second-spell-draw | Whenever an opponent casts their second spell each turn, draw a card.
+ORI | Sigil of Valor | partly-compiled | UNPARSED (triggered) | Whenever equipped creature attacks alone, it gets +1/+1 until end of turn for each other creature you control.
+ZNR | Paired Tactician | partly-compiled | UNPARSED (triggered) | Whenever this creature and at least one other Warrior attack, put a +1/+1 counter on this creature.
+FDN | Courageous Goblin | partly-compiled | UNPARSED (triggered) | Whenever this creature attacks while you control a creature with power 4 or greater, this creature gets +1/+0 and gains menace until end of turn.
+THB | Flummoxed Cyclops | partly-compiled | UNPARSED (triggered) | Whenever two or more creatures your opponents control attack, this creature can't block this combat.
+M20 | Leyline of Combustion | needs-atom | UNPARSED (triggered) | Whenever you and/or at least one permanent you control becomes the target of a spell or ability an opponent controls, this enchantment deals 2 damage to that player.
+FDN | Armasaur Guide | partly-compiled | UNPARSED (triggered) | Whenever you attack with three or more creatures, put a +1/+1 counter on target creature you control.
+THB | Gallia of the Endless Dance | partly-compiled | UNPARSED (triggered) | Whenever you attack with three or more creatures, you may discard a card at random.
+DOM | Warcry Phoenix | partly-compiled | UNPARSED (triggered) | Whenever you attack with three or more creatures, you may pay {2}{R}.
+M21 | Tide Skimmer | compiled | B2b-attack-two-flying-draw | Whenever you attack with two or more creatures with flying, draw a card.
+M15 | Military Intelligence | partly-compiled | UNPARSED (triggered) | Whenever you attack with two or more creatures, draw a card.
+WAR | Gideon, the Oathsworn | partly-compiled | UNPARSED (triggered) | Whenever you attack with two or more non-Gideon creatures, put a +1/+1 counter on each of those creatures.
+M20 | Brineborn Cutthroat | mapped | mapped (card record) | Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.
+FDN | Brineborn Cutthroat | mapped | mapped (card record) | Whenever you cast a spell during an opponent's turn, put a +1/+1 counter on this creature.
+KHM | Clarion Spirit | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, create a 1/1 white Spirit creature token with flying.
+KHM | Firja, Judge of Valor | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, look at the top three cards of your library.
+KHM | Infernal Pet | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, put a +1/+1 counter on this creature and it gains flying until end of turn.
+WAR | Thunder Drake | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, put a +1/+1 counter on this creature.
+KHM | Bloodsky Berserker | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, put two +1/+1 counters on this creature.
+KHM | Doomskar Oracle | partly-compiled | UNPARSED (triggered) | Whenever you cast your second spell each turn, you gain 2 life.
+IKO | Valiant Rescuer | partly-compiled | UNPARSED (triggered) | Whenever you cycle another card for the first time each turn, create a 1/1 white Human Soldier creature token.
+IKO | Rielle, the Everwise | partly-compiled | UNPARSED (triggered) | Whenever you discard one or more cards for the first time each turn, draw that many cards.
+ELD | Mantle of Tides | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, attach this Equipment to target creature you control.
+FDN | Mischievous Mystic | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.
+ELD | Improbable Alliance | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.
+M21 | Jolrael, Mwonvuli Recluse | verified | B2b-jolrael-cat-token | Whenever you draw your second card each turn, create a 2/2 green Cat creature token.
+FDN | Homunculus Horde | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, create a token that's a copy of this creature.
+ELD | Mad Ratter | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, create two 1/1 black Rat creature tokens.
+WAR | Jace, Arcane Strategist | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, put a +1/+1 counter on target creature you control.
+FDN | Erudite Wizard | verified | mapped (card record) | Whenever you draw your second card each turn, put a +1/+1 counter on this creature.
+ELD | Faerie Vandal | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, put a +1/+1 counter on this creature.
+ELD | Irencrag Pyromancer | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, this creature deals 3 damage to any target.
+M21 | Mystic Skyfish | verified | B2b-mystic-skyfish | Whenever you draw your second card each turn, this creature gains flying until end of turn.
+ELD | Bloodhaze Wolverine | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, this creature gets +1/+1 and gains first strike until end of turn.
+ELD | Steelgaze Griffin | partly-compiled | UNPARSED (triggered) | Whenever you draw your second card each turn, this creature gets +2/+0 until end of turn.
+FDN | Cat Collector | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time during each of your turns, create a 1/1 white Cat creature token.
+ZNR | Attended Healer | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, create a 1/1 white Cat creature token.
+ZNR | Cleric of Life's Bond | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, put a +1/+1 counter on this creature.
+FDN | Vanguard Seraph | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, surveil 1.
+M20 | Vengeful Warchief | needs-atom | UNPARSED (triggered) | Whenever you lose life for the first time each turn, put a +1/+1 counter on this creature.
+
+## Trigger-event qualifiers beside an intervening 'if': 0 sentences
+

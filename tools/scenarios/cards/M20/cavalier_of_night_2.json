@@ -1,19 +1,61 @@
 {
  "set": "M20",
- "world": {"life": 20, "seed": 7},
- "notes": "P53ccebd522 G4. Printed: 'When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.' Seat 0's graveyard holds a mana value 3 creature card and a mana value 4 one; seat 1's graveyard holds a mana value 2 creature card. The only legal target is the mana value 3 card (the boundary is inclusive; the dead Cavalier, mana value 5, is not legal): it returns, with no choice asked, and the others stay.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "cav", "real": "Cavalier of Night", "zone": "battlefield", "controller": 0},
-  {"key": "mv3", "name": "Three Drop", "type": "Creature — Zombie", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
-  {"key": "mv4", "name": "Four Drop", "type": "Creature — Zombie", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0},
-  {"key": "omv2", "name": "Opp Two Drop", "type": "Creature — Zombie", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 1},
-  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+  {
+   "key": "cn",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Smasher",
+   "power": 9,
+   "toughness": 9,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g4",
+   "name": "G4",
+   "power": 2,
+   "toughness": 2,
+   "type": "Creature",
+   "cmc": 4,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "art",
+   "name": "ART",
+   "power": 2,
+   "toughness": 2,
+   "type": "Artifact",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "deal_damage", "source": "killer", "target": "cav", "amount": 9, "controller": 1}
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "cn",
+   "amount": 5,
+   "decisions": []
+  }
  ],
  "expect": {
-  "zone": {"cav": "graveyard", "mv3": "battlefield", "mv4": "graveyard", "omv2": "graveyard"},
-  "controller": {"mv3": 0}
- }
+  "zone": {
+   "cn": "graveyard",
+   "g4": "graveyard",
+   "art": "graveyard"
+  }
+ },
+ "notes": "Printed: 'When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.' Only a mana value 4 creature card and a mana value 1 artifact card are in the graveyard: neither is a legal target, so nothing returns."
 }

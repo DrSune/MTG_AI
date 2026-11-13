@@ -1592,18 +1592,22 @@ def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
     """You attack with two or more creatures with flying: draw a card.
 
     DeclareAttackersEvent is per-creature; "you attack with" triggers once per
-    declaration (once_per_event, CR 508.3d), and the set-level "two or more" is
-    the trigger condition.
+    declaration (once_per_event, CR 508.3d). "Two or more" is part of the
+    trigger event, so it is in the event's filter, read once as the attackers
+    are declared; it is not an intervening "if" (CR 603.4), so it is not the
+    condition, which is read again as the ability resolves. The card draws
+    even when attackers leave or lose flying meanwhile (its ruling).
     """
-    flying_attackers = FAnd(
-        children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-        )
+    flying = (
+        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+    )
+    two_attacking = _you_control_at_least(
+        FAnd(children=(*flying, FAtom(pred=FAtomPred.IS_ATTACKING))), 2
     )
     return _ability(
-        DeclareAttackersEvent(filter=flying_attackers),
+        DeclareAttackersEvent(filter=FAnd(children=(*flying, two_attacking))),
         Atom(
             verb=Verb.DRAW,
             args=AtomArgs(
@@ -1612,17 +1616,6 @@ def _build_tide_skimmer_two_flying(m: re.Match[str]) -> SentenceOutcome:
                     ("amount", QConst(1)),
                 )
             ),
-        ),
-        condition=_you_control_at_least(
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-                    FAtom(pred=FAtomPred.IS_ATTACKING),
-                )
-            ),
-            2,
         ),
         once_per_event=True,
     )
@@ -2140,16 +2133,17 @@ def _build_blocks_flying_pump(m: re.Match[str]) -> SentenceOutcome:
 def _build_kraken_do_tap_or_untap(m: re.Match[str]) -> SentenceOutcome:
     """Tolarian Kraken: "When you do, you may tap or untap target creature."
     The continuation parses as a standalone EffectOutcome, and the
-    compiler's do-merge (compiler._merge_do_continuation) puts it inside the
-    antecedent ``OptionalEffect`` that pays {1} (``B2b-draw-pay``). The
-    final tree is
-    ``OptionalEffect(Seq(PAY {1}, OptionalEffect(Choose(1, tap|untap))))``.
+    compiler's "When you do" merge (compiler._merge_if_do_continuation) makes
+    it a reflexive trigger gated on the {1} payment (``B2b-draw-pay``), CR
+    603.12. The final tree is ``Seq(OptionalEffect(PAY {1}),
+    Conditional(MAY_DONE, DelayedTrigger(reflexive, OptionalEffect(Choose(1,
+    tap|untap)))))``.
 
     Both decisions stay open: this "you may" keeps its own OptionalEffect
-    under the payment decision, and "tap or untap" is a one-of-two Choose.
+    inside the reflexive trigger, and "tap or untap" is a one-of-two Choose.
     One TARGET creature selector is shared by both options: the target is
-    declared once, before the mode decision, so both atoms denote the same
-    object."""
+    declared once, as the reflexive trigger goes on the stack, so both atoms
+    denote the same object."""
     target = Selector(
         count=QConst(1),
         mode=SelectorMode.TARGET,

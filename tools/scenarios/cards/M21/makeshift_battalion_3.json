@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"mb","real":"Makeshift Battalion","zone":"battlefield","controller":0},
+  {"key":"b1","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0},
+  {"key":"b2","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"mb":true,"b1":true,"b2":true}}],
+ "expect":{"counters":{"mb":{"PLUS_1_PLUS_1":1}},"life":{"1":12}},
+ "notes":"Battalion: this creature and two other creatures attack: one +1/+1 counter (becomes 4/3). Damage 4+2+2 = 8 to the opponent."}

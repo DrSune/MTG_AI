@@ -5,31 +5,42 @@
  "name": "Sanctum of All",
  "text_sha": "87ceef25f7abc5d7cd8c9fb26de53a45601c4f65b4f134f232f4bca8932e507d",
  "verified": {
-  "tree_sha": "07fe48b91d09f702764e01af82ce80523422993716094165c6b336e41baca9e5",
-  "probe_sha": "d14d65b20ce263cbab73e830f02801368d9ce0d8ddafbda197464823f47ea2d4",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w5R",
+  "tree_sha": "980def50f2e88d029e71b4e8167ab832a9a892a98d8e6894dd607b01f51e47e9",
+  "probe_sha": "aa2d09e1fdec34dc2c62a439d9b911f1e97466606827318bc44f0eb47db00b27",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
-    "clause": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
-    "status": "NOT_EXERCISED",
-    "evidence": "trace [stimulus: turns pass ... your next upkeep]: trigger [0] fires once, 'ask may: [fire, skip]' then 'ask choose: [0, 1, 2]' (both / library / graveyard); no Shrine on the probe board, so nothing is found. Tree: TurnPhaseEvent(UPKEEP, actor YOU), OptionalEffect(Choose(...)), SEARCH TYPE_EQ 'Shrine' (type-line word match, quantity.py:818-832, subtypes included) to your BATTLEFIELD. Packs: graveyard option fetches the Shrine under your control (..._from_graveyard_no_shuffle PASS), library option fetches it (..._from_library PASS), skip leaves it (..._skip_does_nothing PASS).",
-    "issue": "engine-limit: the find can never fail when a Shrine is present (CR 701.23b allows failing in the library). Selectors are ONE_OF where today's compiler writes CHOOSE (similar [B2a-sanctum-of-all]); both are exactly-one QConst(1) picks, and BACKLOG 'Weaker than printed' records that every tutor except Alpine Houndmaster still finds when it can. The live tree behaves the same (a fail-to-find pack fails, kept out of the verdict). Weaker, not stronger."
-   },
-   {
-    "clause": "If you search your library this way, shuffle.",
-    "status": "NOT_EXERCISED",
-    "evidence": "tree: SHUFFLE(your library) closes options 0 and 1 only; option 2 (graveyard only) has none, matching the text; a shuffle is not visible in the trace. Packs: graveyard-only fetch and skip keep the library order exactly (PASS); library fetch leaves the shuffled remainder (set asserted with '*', PASS)",
+    "clause": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield",
+    "status": "OK",
+    "evidence": "[turns pass]: ask may, ask choose [0,1,2]; no Shrine on the board, so nothing found; packs A13_3..A13_7 (each zone choice and decline)",
     "issue": ""
    },
    {
-    "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
+    "clause": "If you search your library this way, shuffle",
     "status": "NOT_EXERCISED",
-    "evidence": "no other Shrine on the probe board. Tree [1] AbilityTriggerEvent(FAnd(CONTROLLER_IS YOU, SUBTYPE_EQ Shrine, FNot(IS_SOURCE))), condition CONTROLLER_COUNT_GE 6 Shrines, TRIGGER_ADDITIONAL 1: identical to canonical [B5b-sanctum-all-extra-trigger]. Packs: six Shrines make Sanctum of Stone Fangs (X = 6) trigger twice, 32/8 (PASS); five Shrines plus an opponent's Shrine: once, 25/15 (PASS); Sanctum of All's own upkeep trigger is not doubled (PASS); the opponent's Stone Fangs is not doubled, 19/21 (PASS) All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "evidence": "tree: SHUFFLE after the library options, none after graveyard-only; pack A13_8 shows graveyard-only leaves library order unchanged. The shuffle itself is not observable",
+    "issue": ""
+   },
+   {
+    "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, it triggers an additional time",
+    "status": "NOT_EXERCISED",
+    "evidence": "packs A13_1 (six: doubled, life 32/8, hand 11), A13_2 (five: single)",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M21/sanctum_of_all_12.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_13.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_14.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_15.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_16.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_17.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_18.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_19.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_20.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_21.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_22.json",
    "tools/scenarios/cards/M21/sanctum_of_all_1.json",
    "tools/scenarios/cards/M21/sanctum_of_all_2.json",
    "tools/scenarios/cards/M21/sanctum_of_all_3.json",
@@ -43,13 +54,11 @@
    "tools/scenarios/cards/M21/sanctum_of_all_11.json"
   ],
   "mutation": {
-   "mutants": 30,
-   "killed": 4,
-   "score": 0.13333333333333333,
+   "mutants": 31,
+   "killed": 6,
+   "score": 0.1935483870967742,
    "survived": [
-    "amount+1 at 1/0/effect/inner/count",
     "drop step 0 at 1/0/effect/inner/options/0",
-    "drop step 1 at 1/0/effect/inner/options/0",
     "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
     "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/0/controller",
     "controller YOU->OPPONENT at 1/0/effect/inner/options/0/steps/0/args/cards/zones/1/controller",
@@ -69,9 +78,10 @@
     "widen filter (drop part 0) at 1/1/event/filter",
     "widen filter (drop part 1) at 1/1/event/filter",
     "widen filter (drop part 2) at 1/1/event/filter",
+    "widen filter (drop part 3) at 1/1/event/filter",
     "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
-    "amount+1 at 1/1/condition/count",
-    "amount-1 at 1/1/condition/count",
+    "amount+1 at 1/1/event/filter/children/2/count",
+    "amount-1 at 1/1/event/filter/children/2/count",
     "amount+1 at 1/1/effect/args/count"
    ]
   }

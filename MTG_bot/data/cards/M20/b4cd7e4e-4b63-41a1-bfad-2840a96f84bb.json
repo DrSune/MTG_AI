@@ -168,5 +168,42 @@
  },
  "probe": {
   "sha": "1e98b11ff29d809a7f7263a5449378959a598241e2df9d751b3c5c10dfab4a3b"
+ },
+ "verified": {
+  "tree_sha": "0da552e59cb18d2b6f12210d52442470678fb1f51625f4652670cf05a46d0f85",
+  "probe_sha": "967deca81533ee9fda43fc19647769440758e89554ecd8e9a5175fdbb452e9db",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
+  "clauses": [
+   {
+    "clause": "Protection from green",
+    "status": "NOT_EXERCISED",
+    "evidence": "Keyword PROTECTION(green) present; no green source on the board. Packs B11_3 (damage), B11_4 (block), B11_5 (target)",
+    "issue": ""
+   },
+   {
+    "clause": "Creatures your opponents control can't have +1/+1 counters put on them",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counter placement in the trace. Packs B11_1 (opponent's blocked), B11_2 (own allowed)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/blightbeetle_1.json",
+   "tools/scenarios/cards/M20/blightbeetle_2.json",
+   "tools/scenarios/cards/M20/blightbeetle_3.json",
+   "tools/scenarios/cards/M20/blightbeetle_4.json",
+   "tools/scenarios/cards/M20/blightbeetle_5.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/event/filter",
+    "controller OPPONENT->YOU at 1/0/effect/args/event/filter/children/0/who"
+   ]
+  }
  }
 }

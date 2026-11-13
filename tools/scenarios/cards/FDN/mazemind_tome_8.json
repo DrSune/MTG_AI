@@ -1,0 +1,9 @@
+{"set":"FDN","world":{"life":20,"seed":7,"library_top":true},
+ "cards":[{"key":"mt","real":"Mazemind Tome","zone":"battlefield","controller":0},
+  {"key":"mine","name":"Mine Top","type":"Land","zone":"library","controller":0},
+  {"key":"theirs","name":"Their Top","type":"Land","zone":"library","controller":1}],
+ "steps":[{"op":"activate","key":"mt","idx":0,"seat":0,"decisions":["bottom"]}],
+ "expect":{"library":{"0":["Library 5","Library 4","Library 3","Library 2","Library 1","Library 0","Mine Top"],
+                      "1":["Their Top","Library 5","Library 4","Library 3","Library 2","Library 1","Library 0"]},
+           "counters":{"mt":{"PAGE":1}}},
+ "notes":"Scry 1 is the Tome controller's: THEIR top card (Mine Top) is put on the bottom of THEIR library; the opponent's library is untouched."}

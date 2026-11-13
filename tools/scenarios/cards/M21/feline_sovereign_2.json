@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+ "cards":[{"key":"fs","real":"Feline Sovereign","zone":"battlefield","controller":0},
+  {"key":"cat","name":"Kitty","power":2,"toughness":2,"type":"Creature — Cat","zone":"battlefield","controller":0},
+  {"key":"dog","name":"Hound","power":2,"toughness":2,"type":"Creature — Dog","zone":"battlefield","controller":1}],
+ "steps":[{"op":"deal_damage","source":"dog","target":"cat","amount":3},{"op":"deal_damage","source":"dog","target":"fs","amount":3}],
+ "expect":{"damage":{},"zone":{"cat":"battlefield","fs":"graveyard"}},
+ "notes":"Other Cats you control have protection from Dogs: a Dog's damage to the other Cat is prevented, but the Sovereign itself (not 'other') has no protection and a Dog's 3 damage kills it (2/3)."}

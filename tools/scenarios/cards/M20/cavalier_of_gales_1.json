@@ -1,0 +1,58 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cg",
+   "real": "Cavalier of Gales",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Smasher",
+   "power": 9,
+   "toughness": 9,
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "cg",
+   "amount": 5,
+   "decisions": [
+    "bottom",
+    "bottom",
+    "card:2",
+    "card:4"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cg": "library"
+  },
+  "graveyard": {
+   "0": []
+  },
+  "library": {
+   "0": [
+    "Library 1",
+    "Library 4",
+    "Cavalier of Gales",
+    "Library 3",
+    "Library 5",
+    "Library 0",
+    "Library 2"
+   ]
+  }
+ },
+ "notes": "Printed: 'When this creature dies, shuffle it into its owner's library, then scry 2. (Look at the top two cards of your library, then put any number of them on the bottom and the rest on top in any order.)' Lethal damage kills it; it is shuffled into its owner's library; scry 2 asks one top/bottom word per card looked at, then orders each group (CR 401.4): sending both to the bottom asks an order for the bottom pair. The first five library cards are the seeded shuffle's order (seed 7); the two cards scried to the bottom end in the order the player named them, the first named above the second."
+}

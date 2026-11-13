@@ -1,0 +1,6 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"mt","real":"Mazemind Tome","zone":"battlefield","controller":0,"counters":{"PAGE":3}}],
+ "mana":{"0":{"C":0}},
+ "steps":[{"op":"activate","key":"mt","idx":0,"seat":0,"decisions":["top"]}],
+ "expect":{"zone":{"mt":"exile"},"life":{"0":24}},
+ "notes":"Scry 1 puts the fourth page counter on: with four page counters it is exiled, and if you do you gain 4 life (24)."}

@@ -1113,8 +1113,13 @@ class Executor:
                 self._run_effect(effect.effect, inner)
                 ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
-            # Scheduled on the binder's journal matcher; expires at end of turn.
-            self.binder.schedule_delayed(effect, ctx.source, ctx.controller)
+            if effect.reflexive:
+                # CR 603.12: it triggers now, on what this resolution did (the Conditional
+                # around it checked); it goes on the stack at the next priority point.
+                self.binder.fire_reflexive(effect, ctx)
+            else:
+                # Scheduled on the binder's journal matcher; expires at end of turn.
+                self.binder.schedule_delayed(effect, ctx.source, ctx.controller)
         else:  # pragma: no cover - apply_effect pre-checks the node type
             raise NotImplementedError(
                 f"executor: effect {type(effect).__name__} not implemented (12e)"
@@ -1158,6 +1163,8 @@ class Executor:
                     self.layers.keywords(event.subject),
                     self.controller_of(event.subject),  # before the control entries end
                     self._op_seq,
+                    # before _remove_from_combat below
+                    self.attacked.get(event.subject) if event.subject in self.attackers else None,
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is

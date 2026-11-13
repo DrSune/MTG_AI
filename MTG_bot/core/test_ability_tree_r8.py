@@ -553,7 +553,7 @@ def _template(tid: str, pattern: str, build: Callable[[re.Match[str]], object]):
 
 def test_r8_prefix_registration() -> None:
     assert "Otherwise" in _CONTINUATION_PREFIXES
-    assert "When you do" in _CONTINUATION_PREFIXES
+    assert "When you do," in _CONTINUATION_PREFIXES  # with its comma: one wording, compiler._DO_GATES
     assert _is_continuation("Otherwise, put it on the bottom of your library.")
     assert _is_continuation("When you do, you may tap target creature.")
 

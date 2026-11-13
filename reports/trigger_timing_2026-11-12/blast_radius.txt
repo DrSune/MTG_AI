@@ -1,0 +1,39 @@
+compiler trees changed (8):
+   FDN Mazemind Tome
+   M21 Makeshift Battalion
+   M21 Mazemind Tome
+   M21 Nine Lives
+   M21 Sanctum of All
+   M21 Tide Skimmer
+   M21 Tolarian Kraken
+   WAR Makeshift Battalion
+trees with records applied changed (12):
+   FDN Brineborn Cutthroat record verified
+   FDN Mazemind Tome compiler verified
+   M20 Brineborn Cutthroat record verified
+   M20 Cavalier of Night record verified
+   M20 Sorin, Imperious Bloodlord record 
+   M21 Makeshift Battalion compiler verified
+   M21 Mazemind Tome compiler verified
+   M21 Nine Lives compiler verified
+   M21 Sanctum of All compiler verified
+   M21 Tide Skimmer compiler verified
+   M21 Tolarian Kraken compiler 
+   WAR Makeshift Battalion compiler 
+verified cards leaving the verified pool (9):
+   FDN Brineborn Cutthroat
+   FDN Mazemind Tome
+   M20 Brineborn Cutthroat
+   M20 Cavalier of Night
+   M21 Makeshift Battalion
+   M21 Mazemind Tome
+   M21 Nine Lives
+   M21 Sanctum of All
+   M21 Tide Skimmer
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (4):
+   M20 Sorin, Vampire Lord ['foreign-designation']
+   M21 Basri Ket ['delayed-trigger']
+   M21 Basri, Devoted Paladin ['delayed-trigger']
+   M21 Subira, Tulzidi Caravanner ['delayed-trigger']
+verified stamps matching, per set (base -> branch): {'FDN': '175->173', 'M20': '257->255', 'M21': '270->265'}

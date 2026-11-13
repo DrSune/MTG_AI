@@ -1,0 +1,114 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dd",
+   "real": "Drawn from Dreams",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a8",
+   "name": "Top8",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a7",
+   "name": "Top7",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a6",
+   "name": "Top6",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a5",
+   "name": "Top5",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a4",
+   "name": "Top4",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a3",
+   "name": "Top3",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "name": "Top2",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Top1",
+   "power": 1,
+   "toughness": 1,
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Drawn from Dreams",
+   "key": "dd",
+   "decisions": [
+    "first-legal",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dd": "graveyard",
+   "a2": "library",
+   "a8": "library"
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Printed: 'Look at the top seven cards of your library. Put two of them into your hand and the rest on the bottom of your library in a random order.' Eight declared cards sit above the filler library (the last declared is the top card), six filler cards lie on top of the declared ones, so the top seven are the six fillers and Top1 and Top2 is the eighth. Two picks go to hand; the rest go to the bottom in random order with no arrange ask (a further ask would have no word and fail the pack); the eighth card is not looked at and stays in the library."
+}

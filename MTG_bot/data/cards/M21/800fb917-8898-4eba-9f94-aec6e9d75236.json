@@ -5,51 +5,50 @@
  "name": "Mazemind Tome",
  "text_sha": "61302c3676b38656179a9139601acbe17de91417cca4253c4c1829b367dd4ecd",
  "verified": {
-  "tree_sha": "0a607a5d244bee7986db0e7a175d19b69f944f53f06d9df8cd1b20ec2409a99b",
-  "probe_sha": "84a401a8bdf588b5117fb06e9625047a011ad556f29da853735be57593468e81",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w5R",
+  "tree_sha": "c823b769eb9da5163041312660c221a182d44ee9a335a959456cbc1241ce063d",
+  "probe_sha": "d94684b1e5797d74904ad12b92df5d94053d3b0c6cbe58adf21151ffcb78d584",
+  "date": "2026-11-12",
+  "reviewer": "claude-sonnet-verifier-wave1b-A",
   "clauses": [
    {
-    "clause": "{T}, Put a page counter on this artifact: Scry 1.",
+    "clause": "{T}, put a page counter: Scry 1",
     "status": "OK",
-    "evidence": "[activate [0] from battlefield] and [| ask 1 -> bottom]: card tapped, counters {} -> {'PAGE': 1}, scry ask [top, bottom] answered both ways, no mana spent; tree [0] CostPutCounter(PAGE, source)+CostTap, SCRY count 1 YOU",
+    "evidence": "[activate [0]]: scry ask [top, bottom], counter, tap",
     "issue": ""
    },
    {
-    "clause": "{2}, {T}, Put a page counter on this artifact: Draw a card.",
+    "clause": "{2},{T}, put a page counter: Draw a card",
     "status": "OK",
-    "evidence": "[activate [1] from battlefield]: mana W-2, tapped, PAGE 1, you draws Library 5#1 (hand 5 -> 6); tree [1] CostManaGeneric 2 + page + tap, DRAW 1 YOU",
+    "evidence": "[activate [1]]: mana 2, counter, draw",
     "issue": ""
    },
    {
-    "clause": "When there are four or more page counters on this artifact, exile it.",
+    "clause": "When four or more page counters, exile it; if you do, gain 4 life",
     "status": "NOT_EXERCISED",
-    "evidence": "trace only reaches 1 page counter (trigger [2] matches, condition false, no exile: correct below threshold). Tree [2] CounterPlacedEvent(PAGE, IS_SOURCE) + HAS_COUNTER count 4 (executor quantity.py:1036-1070 reads counters >= threshold) + MOVE_ZONE source to EXILE(OWNER), identical to the compiler's canonical [B2a-mazemind-tome]. Packs: 3 counters + scry activation -> exiled; 2 counters + activation -> stays with PAGE 3. Both PASS.",
-    "issue": ""
-   },
-   {
-    "clause": "If you do, you gain 4 life.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Conditional(MAY_DONE, GAIN_LIFE 4 YOU) after the exile; pack mazemind_tome_fourth_page_exiles_gain4 expects life 24/20 after the 4th counter: PASS; the 3-counter pack expects 20/20: PASS All packs cited here also PASS when run on this packet's own tree (runpack --card <card> --draft <the packet's tree>).",
+    "evidence": "packs A06_1, A06_2, A06_3",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M21/mazemind_tome_4.json",
+   "tools/scenarios/cards/M21/mazemind_tome_5.json",
+   "tools/scenarios/cards/M21/mazemind_tome_6.json",
+   "tools/scenarios/cards/M21/mazemind_tome_7.json",
    "tools/scenarios/cards/M21/mazemind_tome_1.json",
    "tools/scenarios/cards/M21/mazemind_tome_2.json",
    "tools/scenarios/cards/M21/mazemind_tome_3.json"
   ],
   "mutation": {
-   "mutants": 27,
-   "killed": 16,
-   "score": 0.5925925925925926,
+   "mutants": 29,
+   "killed": 17,
+   "score": 0.5862068965517241,
    "survived": [
     "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
     "controller YOU->OPPONENT at 1/0/effect/args/controller",
     "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
-    "amount+1 at 1/2/condition/count",
-    "amount-1 at 1/2/condition/count",
+    "widen filter (drop part 0) at 1/2/event/filter",
+    "amount+1 at 1/2/event/filter/children/1/count",
+    "amount-1 at 1/2/event/filter/children/1/count",
     "drop step 0 at 1/2/effect",
     "drop step 1 at 1/2/effect",
     "zone EXILE->GRAVEYARD at 1/2/effect/steps/0/args/destination",

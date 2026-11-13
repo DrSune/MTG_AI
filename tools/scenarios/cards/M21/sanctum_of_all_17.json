@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sa",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lib",
+   "real": "Sanctum of Tranquil Light",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Sanctum of Shattered Heights",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "sa"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "0",
+    "gy"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lib": "library",
+   "gy": "battlefield",
+   "sa": "battlefield"
+  }
+ },
+ "notes": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. Search library and graveyard: take the graveyard Shrine; the library Shrine stays."
+}

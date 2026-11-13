@@ -1,0 +1,6 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "cards":[{"key":"sg","real":"Searslicer Goblin","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":2,"toughness":2,"type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[{"op":"combat","seat":0,"attack":{"bear":true,"sg":false}},{"op":"to_step","step":"END_TURN"}],
+ "expect":{"tokens":{"Goblin":1},"battlefield_pt":{"Goblin":[1,1]}},
+ "notes":"Raid: the created Goblin token is exactly 1/1 (one token, power 1, toughness 1)."}
