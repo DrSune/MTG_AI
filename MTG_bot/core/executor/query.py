@@ -1316,6 +1316,24 @@ def role_target_selectors(value: object) -> list[Selector]:
     return []
 
 
+def designates(effect: object) -> bool:
+    """Does an ability's own effect make a designation: the slot walkers' test
+    (:func:`spell_target_slots`, :func:`activation_target_slots`) without their candidates? The
+    resolution lanes bind a designation that chose nothing ("up to one", CR 115.6) as the empty
+    designation, so "its controller" finds no object (``verbs._actor_absent``); with no
+    designation at all a referent read stays the loud refusal of a template fold that never
+    compiled the target (``selectors.ReferentAbsentBindingError``)."""
+    for inner in own_nodes(effect):
+        if _rotation_player_refs(inner):
+            return True
+        if isinstance(inner, Atom) and any(
+            role_target_selectors(value) or _designated_player_refs(value)
+            for _role, value in inner.args.pairs
+        ):
+            return True
+    return False
+
+
 def _spell_slot(
     executor: Executor,
     inner: Atom,

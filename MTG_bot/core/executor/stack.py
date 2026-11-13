@@ -858,7 +858,7 @@ def resolve_top(executor: Executor) -> str:
 
 def _resolve_spell(executor: Executor, frame: StackObject) -> str:
     """:func:`resolve_top` for a spell."""
-    from MTG_bot.core.executor.query import is_aura_spell, spell_target_slots
+    from MTG_bot.core.executor.query import designates, is_aura_spell, spell_target_slots
 
     world = executor.world
     handle, seat, node, x = frame.handle, frame.controller, frame.node, frame.x_value
@@ -894,7 +894,9 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
             slot_designations = kept
     bindings: dict[str, Binding] = {}
     chosen = sorted(targets)
-    if chosen:
+    declared = frame.target_node if isinstance(frame.target_node, SpellAbility) else node
+    if chosen or designates(declared.effect):
+        # An "up to" designation that chose nothing is the empty designation (CR 115.6).
         bindings["target"] = chosen
     ctx = executor._cast_ctx(handle, seat, bindings, frame.decisions, x)
     # A multi-TARGET spell threads its per-slot designation map and the

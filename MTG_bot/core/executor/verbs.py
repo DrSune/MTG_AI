@@ -1287,8 +1287,9 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         # the Scene). The role resolves through the same role_players lane
         # LOSE_LIFE uses for its controller-of-the-referent reads (a
         # referent-target selector folds a card binding to its controller).
-        # No role = the ability's controller. A resolution that names ZERO or
-        # MULTIPLE players is flagged, never guessed — the printed clause has
+        # No role = the ability's controller. One that names no player never
+        # gets here (run_atom: the instruction does nothing, CR 608.2b); one that
+        # names several is flagged, never guessed: the printed clause has
         # exactly one antecedent.
         resolved = sorted(role_players(ctx, atom, "controller"))
         if len(resolved) != 1:
@@ -2636,8 +2637,21 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
 }
 
 
+def _actor_absent(ctx: ExecCtx, atom: Atom) -> bool:
+    """CR 608.2b: an instruction whose acting player is named through an antecedent ("Its
+    controller creates a 3/3 Golem", Cavalier of Dawn; "Its controller mills two cards", Zulaport
+    Duelist: a referent Selector in the ``controller`` role) needs information about that object.
+    With no object there (an "up to one" target designated none, CR 115.6, or the antecedent
+    left nothing), that part of the effect does not happen. A referent with no register at all
+    still raises (selectors.resolve_selector: a template fold that never compiled the
+    antecedent)."""
+    actor = atom.args.get("controller")
+    return isinstance(actor, Selector) and actor.referent is not None and not role_players(ctx, atom)
+
+
 def run_atom(atom: Atom, ctx: ExecCtx) -> None:
-    """Dispatch one Atom to its handler; unsupported verbs RAISE."""
+    """Dispatch one Atom to its handler; unsupported verbs RAISE. An atom whose acting player
+    is an absent antecedent does nothing (:func:`_actor_absent`)."""
     handler = HANDLERS.get(atom.verb)
     if handler is None:
         raise NotImplementedError(f"executor: verb {atom.verb.name} not implemented")
@@ -2647,7 +2661,8 @@ def run_atom(atom: Atom, ctx: ExecCtx) -> None:
     # other atom keeps the old ctx.source subject and a stale library
     # window can never leak forward. A look verb keeps/refreshes it.
     before = ctx.bindings.get("result")
-    handler(ctx, atom)
+    if not _actor_absent(ctx, atom):
+        handler(ctx, atom)
     if atom.verb not in (Verb.LOOK_AT, Verb.REVEAL):
         ctx.look_window = ()
     # The same one-sentence width for "it" = the result register: fresh only

@@ -2027,12 +2027,14 @@ def resolve_activated(executor: Executor, obj) -> str:
     NO_LEGAL_TARGETS row). Otherwise its effect runs from its source, in its
     controller's coordinates, with the targets bound and every X the announced X
     (CR 107.3a). Returns "resolved"; the caller settles afterwards."""
-    from MTG_bot.core.executor.query import activation_target_slots
+    from MTG_bot.core.executor.query import activation_target_slots, designates
     from MTG_bot.core.executor.stack import recheck_targets
 
     ability, source, seat = obj.node, obj.source, obj.controller
     bindings: dict[str, Binding] = {}
     slot_designations = obj.slot_designations or None
+    if not obj.declared_targets and designates(ability.effect):
+        bindings["target"] = []  # an "up to" designation that chose nothing (CR 115.6)
     if obj.declared_targets:
         # CR 608.2b: the targets are checked again as the ability resolves, after its
         # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).
