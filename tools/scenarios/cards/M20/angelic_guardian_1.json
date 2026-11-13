@@ -1,0 +1,14 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Printed: 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.' Guardian and Bear attack, Homebody stays home. 10 damage to each this turn: attackers survive, Homebody dies. After the turn ends the grant is gone: 10 damage to the Bear on the next turn kills it.",
+ "cards":[
+  {"key":"guardian","real":"Angelic Guardian","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","type":"Creature — Bear","power":"2","toughness":"2","zone":"battlefield","controller":0},
+  {"key":"home","name":"Homebody","type":"Creature — Bear","power":"2","toughness":"2","zone":"battlefield","controller":0},
+  {"key":"giant","name":"Opp Giant","type":"Creature — Giant","power":"4","toughness":"4","zone":"battlefield","controller":1}],
+ "steps":[{"op":"combat","seat":0,"attack":{"guardian":true,"bear":true}},
+          {"op":"deal_damage","source":"giant","target":"guardian","amount":10},
+          {"op":"deal_damage","source":"giant","target":"bear","amount":10},
+          {"op":"deal_damage","source":"giant","target":"home","amount":10},
+          {"op":"end_turn"},
+          {"op":"deal_damage","source":"giant","target":"bear","amount":10}],
+ "expect":{"zone":{"guardian":"battlefield","bear":"graveyard","home":"graveyard"}}}

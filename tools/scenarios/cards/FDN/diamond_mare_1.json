@@ -1,0 +1,104 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'As this creature enters, choose a color. Whenever you cast a spell of the chosen color, you gain 1 life.' Chosen W: my Stroke of Midnight (white) gains me 1 life; my Llanowar Elves (green) none; the opponent's Stroke of Midnight (white, not cast by me) none. Seat 0 ends at 21, seat 1 at 20.",
+ "cards": [
+  {
+   "key": "mare",
+   "real": "Diamond Mare",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "stroke",
+   "real": "Stroke of Midnight",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elves",
+   "real": "Llanowar Elves",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ostroke",
+   "real": "Stroke of Midnight",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "C": 2,
+   "G": 1
+  },
+  "1": {
+   "W": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "mare",
+   "decisions": [
+    "W"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Stroke of Midnight",
+   "key": "stroke",
+   "targets": [
+    "ogiant"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Llanowar Elves",
+   "key": "elves"
+  },
+  {
+   "op": "cast",
+   "real": "Stroke of Midnight",
+   "key": "ostroke",
+   "controller": 1,
+   "targets": [
+    "mybear"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 20
+  },
+  "zone": {
+   "ogiant": "graveyard",
+   "mybear": "graveyard"
+  }
+ }
+}

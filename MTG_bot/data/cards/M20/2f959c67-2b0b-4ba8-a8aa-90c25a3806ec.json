@@ -151,5 +151,39 @@
  },
  "probe": {
   "sha": "49a196dd6cc72633f7419523a8dd0ef7f16c1239dbf5bdfb58b6c0cd0d26c9d7"
+ },
+ "verified": {
+  "tree_sha": "d05cbeaad8f2ca0d17946b2e85605483dd2d08c59b5a1f88ae11fd2d52ab8f44",
+  "probe_sha": "49a196dd6cc72633f7419523a8dd0ef7f16c1239dbf5bdfb58b6c0cd0d26c9d7",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1e",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] keywords +FLYING; unblocked by opp_giant when attacking",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever one or more creatures you control attack, they gain indestructible until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "single attacker per stimulus only: 'they' for several attackers, a non-attacker not gaining it, and the end-of-turn expiry are not pinned (the planted-style fault would be a single-target grant); opp attack gives none. Pack A05_1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/angelic_guardian_1.json",
+   "tools/scenarios/cards/M20/angelic_guardian_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 3,
+   "score": 0.5,
+   "survived": [
+    "trigger count: once per event -> each occurrence at 1/0",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  }
  }
 }

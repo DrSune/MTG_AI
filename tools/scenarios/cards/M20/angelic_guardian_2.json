@@ -1,0 +1,91 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.' Guardian and Bear attack: ONE trigger for the declaration. The opponent counters it with Tale's End while it waits on the stack (declare attackers): no attacker gains indestructible, so 10 damage kills both. A second, uncounterable trigger per attacker would leave one of them indestructible.",
+ "cards": [
+  {
+   "key": "guardian",
+   "real": "Angelic Guardian",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "tale",
+   "real": "Tale's End",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "guardian": true,
+    "bear": true
+   },
+   "respond_to_triggers": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "mana",
+      "seat": 1,
+      "add": {
+       "U": 1,
+       "C": 1
+      },
+      "hold": true
+     },
+     {
+      "op": "cast",
+      "real": "Tale's End",
+      "key": "tale",
+      "controller": 1,
+      "targets": [
+       "ability:guardian"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "op": "deal_damage",
+   "source": "giant",
+   "target": "guardian",
+   "amount": 10
+  },
+  {
+   "op": "deal_damage",
+   "source": "giant",
+   "target": "bear",
+   "amount": 10
+  }
+ ],
+ "expect": {
+  "zone": {
+   "guardian": "graveyard",
+   "bear": "graveyard",
+   "tale": "graveyard"
+  }
+ }
+}

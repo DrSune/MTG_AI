@@ -1,0 +1,10 @@
+{"set":"FDN","world":{"life":20,"seed":7},
+ "notes":"Printed: 'Whenever YOU cast a spell of the chosen color, you gain 1 life.' Chosen W. Only the opponent casts a white spell (Stroke of Midnight on my Bear); I cast none: I gain nothing (20), the opponent stays at 20.",
+ "cards":[
+  {"key":"mare","real":"Diamond Mare","zone":"hand","controller":0},
+  {"key":"mybear","name":"My Bear","type":"Creature — Bear","power":"2","toughness":"2","zone":"battlefield","controller":0},
+  {"key":"ostroke","real":"Stroke of Midnight","zone":"hand","controller":1}],
+ "mana":{"1":{"W":1,"C":2}},
+ "steps":[{"op":"enter","key":"mare","decisions":["W"]},
+  {"op":"cast","real":"Stroke of Midnight","key":"ostroke","controller":1,"targets":["mybear"]}],
+ "expect":{"life":{"0":20,"1":20},"zone":{"mybear":"graveyard","mare":"battlefield"}}}

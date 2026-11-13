@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9a440122-a015-4af2-b270-37f019884458",
+ "name": "Diamond Mare",
+ "text_sha": "c72c1d26c1c3cbe3e073e5e60c982f092de50b745a3ec8d1e73a816a7ad7c574",
+ "verified": {
+  "tree_sha": "27df115b245d4e68c2ce8c208d499653808352b4a77a8d58ea99e5dc33431cb2",
+  "probe_sha": "50958e54acb4d87e2c342ea81e5b84a1776b02684684a00a0d88ccfeadb43c96",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1e",
+  "clauses": [
+   {
+    "clause": "As this creature enters, choose a color.",
+    "status": "OK",
+    "evidence": "[cast ask quality: W,U,B,R,G] before entering",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell of the chosen color, you gain 1 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "chosen W; the stimulus spells are red (Crash Through), blue (Opt) and a blue creature, so no matching-colour spell is ever cast. Pack B02_1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/diamond_mare_1.json",
+   "tools/scenarios/cards/FDN/diamond_mare_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/event/actor/who",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}
