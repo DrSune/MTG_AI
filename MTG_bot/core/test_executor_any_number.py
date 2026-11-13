@@ -162,6 +162,18 @@ class TestAnyNumberIsAsked(AnyNumberCase):
         self.assertEqual((self.zone(in_hand), self.zone(in_library)), (ZONE_HAND, ZONE_EXILE))
         self.assertEqual(self.asks[0][2], self.p0)
 
+    def test_a_search_for_an_exact_count_of_another_players_hidden_zone_asks_the_searcher(self) -> None:
+        # "Search target opponent's library for two cards named Bolt": which two is the searcher's
+        # choice too (CR 701.23a), as for "any number" and "up to N".
+        named = FAtom(FAtomPred.NAME_EQ, string_value="Bolt")
+        bolts = [self.world.add_card(card_id("Bolt"), self.p1, ZONE_LIBRARY) for _ in range(3)]
+        two = Selector(QConst(2), SelectorMode.CHOOSE, named, zones=(Zone(ZoneKind.LIBRARY, ControllerRef.OPPONENT),))
+        self.answer(str(bolts[2]), str(bolts[0]))
+        self.ex.execute(atom(Verb.SEARCH, cards=two, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                        source=self.source, controller=self.p0)
+        self.assertEqual([self.zone(c) for c in bolts], [ZONE_EXILE, ZONE_LIBRARY, ZONE_EXILE])
+        self.assertEqual([seat for _, _, seat in self.asks], [self.p0, self.p0])
+
     def test_a_population_read_still_takes_all(self) -> None:
         # A count or a query reads the whole menu: no ask.
         cards = [self.world.add_card(card_id(f"C{i}", "1", "1"), self.p0, ZONE_BATTLEFIELD) for i in range(2)]

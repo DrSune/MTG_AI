@@ -62,6 +62,21 @@ def test_an_arrange_ask_is_routed_to_its_owner_and_told_its_end() -> None:
     assert isinstance(ask, Ask) and "the one that goes highest" in ask.prompt and "bottom" in ask.prompt
 
 
+def test_none_is_no_block_only_in_a_block_ask() -> None:
+    # "up to N" and "any number" picks stop with NONE (Cavalier of Flame's discard, Battalion
+    # Foot Soldier's search): that word is "no block" only when a creature is asked to block.
+    from MTG_bot.bench.protocol import engine_ask
+
+    game, _supply = _game(3)
+    labels = {
+        site: {o.token: o.label for o in engine_ask(_lenses()[0], game.executor, ("NONE",), site, 0).options}
+        for site in ("block:card:1:x", "choose:card:1:1of2:x", "discard:player:0:card:1:x")
+    }
+    assert labels["block:card:1:x"]["NONE"] == "no block"
+    assert labels["choose:card:1:1of2:x"]["NONE"] == "none: stop choosing"
+    assert labels["discard:player:0:card:1:x"]["NONE"] == "none: stop choosing"
+
+
 def test_a_raw_policy_behind_the_router_reproduces_play_game() -> None:
     # The router consumes no randomness and adds no engine calls, so the engine's own random
     # policy routed through it plays the identical game.

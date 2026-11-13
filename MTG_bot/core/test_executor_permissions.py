@@ -664,6 +664,27 @@ class TestEmblems(PermCase):
         self.assertEqual(activation_target_slots(self.ex, grant, source=pw, seat=self.p0), [])
         self.assertIn(foe, self.world.cards)
 
+    def test_an_emblems_choice_is_asked_of_its_owner(self):
+        # CR 114.2, 114.4: an emblem's ability is its owner's, so a choice in it is the owner's,
+        # asked as a card's is (before, a non-card source took the first candidate silently).
+        pw = self.source_card()
+        self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
+        emblem = next(iter(self.ex.emblems))
+        first, second = self.place("Ally", self.p0), self.place("Other", self.p0)
+        asks = []
+
+        def provider(vocab, what):
+            asks.append((what, self.ex.decisions.asking_seat))
+            return str(second)
+
+        self.ex.decisions.provider = provider
+        creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        one = Selector(QConst(1), SelectorMode.CHOOSE, creature, zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),))
+        self.ex.execute(atom(Verb.TAP, target=one), source=emblem, controller=self.p0)
+        self.assertEqual([seat for _, seat in asks], [self.p0])
+        self.assertTrue(asks[0][0].startswith(f"choose:{emblem}:"), asks)
+        self.assertEqual((self.world.cards[first].tapped, self.world.cards[second].tapped), (False, True))
+
     def test_binder_dump_has_emblems_row(self):
         pw = self.source_card()
         self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)

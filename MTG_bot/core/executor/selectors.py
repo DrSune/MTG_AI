@@ -459,18 +459,21 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx, *, search: bool = False) -
     A CHOOSE the effect runtime resolves is asked of the deciding player when
     this allows it; any other CHOOSE keeps the silent deterministic slice.
 
-    The rules of ``tools.audit.r3_lane_ledger.lift_verdict``, on live IR
-    (the ledger's lanes are pinned by :mod:`MTG_bot.core.test_ontology_r3`):
-    a referent selector, or a menu that names the source itself, never
-    asks; only a plain QConst count asks (the "up to N" and "any number" lanes
-    pass theirs as the QConst of their ceiling; every other shape keeps the
-    silent slice); every menu zone must be public or controller-owned:
+    The rules began as R3's ``tools.audit.r3_lane_ledger.lift_verdict``
+    (2026-10-20; that ledger records the lanes as R3 left them, and the lanes
+    are pinned by :mod:`MTG_bot.core.test_ontology_r3`). Since then the "up to
+    N" and "any number" lanes ask too, and a search asks over the hidden zones
+    it searches. A referent selector, or a menu that names the source itself,
+    never asks; only a plain QConst count asks (the "up to N" and "any number"
+    lanes pass theirs as the QConst of their ceiling; every other shape keeps
+    the silent slice); every menu zone must be public or controller-owned:
     positional zones keep their fixed lanes, a hidden-side (hand/library) zone
     owned by anyone but YOU never asks unless the effect searches it (``search``:
     the searcher looks at every card in a searched zone, hidden or not, CR
     701.23a; Necromentia), a PLAYER zone never asks (whose choice it is is not
     encoded), and a multi-zone menu with an ANY controller (a merged multi-seat
-    menu) never asks.
+    menu) never asks. The source is a card in the world or an emblem: an
+    emblem's ability is its owner's, who decides its choices (CR 114.2, 114.4).
 
     The ledger's fourth rule, "the chooser must be the card's controller",
     does not apply: the ask names the player who decides
@@ -502,6 +505,8 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx, *, search: bool = False) -
         return False  # a merged multi-seat menu
     src = ctx.source
     # A synthetic player-handle source (unit-world idiom) keeps the silent slice.
+    if src.namespace == "emblem":
+        return ctx.executor is not None and src in ctx.executor.emblems
     return src.namespace == "card" and src in ctx.world.cards
 
 
@@ -762,7 +767,7 @@ def resolve_selector(
             ask_choose
             and ok is None
             and 0 < k < len(ordered)
-            and _choose_lift_allowed(sel, ctx)
+            and _choose_lift_allowed(sel, ctx, search=search)
         ):
             # WHICH k of the menu is the decider's decision, not an accident
             # of Handle order: the same sequential shrinking-menu ask as the

@@ -205,6 +205,8 @@ def engine_ask(
             modes = _bullets(lens.text(executor_text(lens, executor, subject)))
             if len(modes) == len(vocab):
                 return f"mode: {modes[int(token)]}"
+        if token == "NONE" and kind != "block":
+            return "none: stop choosing"  # the stop of "up to N" and "any number" picks
         return _WORDS.get(token, f"choice {token}" if token.isdigit() else token)
 
     prompts = {
