@@ -796,6 +796,38 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **Card backlog wave 3: the plan** (2026-11-13; a read-only census of M20's 55 castable-unverified
+  cards, by package and by reach in the other 18 sets).
+  - **The order:**
+    1. **Life-total family** (gated round 7): `LIFE_TOTAL_GE`, ordinals on the life events, and
+       Angel of Vitality's replacement amount. Covers Twinblade Paladin, Angel of Vitality and
+       Vengeful Warchief, plus FDN's twins. Agent running.
+    2. **A chosen colour or creature type**, on round 4's `EtBState.effect`. Covers Diamond Knight
+       and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away.
+    3. **Gathered zone-change events** (`once_per_event` on ZoneChangeEvent, `event` as the
+       gathered set). Covers Woodland Champion and Angelic Guardian, and makes a new kept green-
+       white token package.
+  - **Ungated, beside them:**
+    - player hexproof;
+    - Cavalier of Dawn (no token without a target);
+    - Drakuseth (per-slot trigger designation);
+    - Vivien, Nature's Avenger (a stale note);
+    - two encoding rulings: "its controller" damage (Chandra's Outrage vs the verified Chandra,
+      Flame's Fury) and discard as a zone change (Glint-Horn Buccaneer vs the verified Bag of
+      Holding). Agent running.
+  - **Re-verify:** Octoprophet (its 2026-11-06 blocker, scry order, is fixed by `arrange`).
+  - **Later:**
+    - the cost twins: exile and remove-counter costs. Widest reach, 16 cards in other sets;
+      waits on the F3 ruling;
+    - entering with counters, and "that targets you";
+    - R5-2 (PERMIT_CAST, the permission lane), its own lane. It covers M21's Furious Rise,
+      Conspicuous Snoop and Radha, and M20's Golos and Mystic Forge;
+    - the Leylines' opening-hand action, last: every Leyline needs a second piece.
+  - **Side findings:**
+    - A second copy of the same emblem does nothing (`Executor.get_emblem`), likely wrong under
+      CR 114. Handed to wave 2C's emblem work.
+    - packages.py does not read a life-gain replacement as a life consumer, reads chosen-quality
+      filters as unknown, and never puts a card of 3+ colours in a pair deck.
 - **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
   verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
   - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
