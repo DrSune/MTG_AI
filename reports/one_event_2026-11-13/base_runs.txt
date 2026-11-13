@@ -22,18 +22,23 @@ FAILED test_which_triggers_look_back[node4-row4-False]
 FAILED test_which_triggers_look_back[node5-row5-True]
 FAILED test_which_triggers_look_back[node6-row6-False]
 FAILED test_which_triggers_look_back[node7-row7-False]
+FAILED test_which_triggers_look_back[node8-row8-False]
 FAILED test_a_dies_trigger_that_moves_its_card_functions_on_the_battlefield
 FAILED test_garruks_uprising_sees_an_anthems_bonus_on_a_creature_that_enters
+FAILED TestTheLayersAfterTheEvent::test_a_counter_that_turns_on_a_keyword_is_seen_by_the_triggers_of_its_event
 FAILED TestTheLayersAfterTheEvent::test_a_keyword_trigger_lost_in_the_same_drain_does_not_trigger
+FAILED TestTheLayersAfterTheEvent::test_a_trigger_from_anywhere_reads_the_card_in_its_new_zone
 FAILED TestTheLayersAfterTheEvent::test_creatures_that_enter_have_the_triggered_ability_a_static_grants_them
+FAILED test_an_anthem_entering_in_a_later_instruction_counts_for_what_enters_with_it
 FAILED test_marauding_raptor_does_not_hit_the_new_object_a_flickered_creature_became
 FAILED test_bag_of_holding_does_not_exile_a_discarded_card_that_left_the_graveyard
 FAILED test_terror_of_the_peaks_reads_a_creature_that_left_as_it_last_existed
+FAILED TestWhatOneEventIs::test_a_nested_event_does_not_run_the_returns_of_the_event_around_it
 FAILED TestWhatOneEventIs::test_a_return_waits_for_the_end_of_the_event_that_ended_it
 FAILED TestWhatOneEventIs::test_each_player_sacrificing_is_one_event
 FAILED test_entries_replaced_in_one_instruction_are_one_event
 FAILED test_a_death_replaced_in_a_state_based_check_is_part_of_its_event
-26 failed, 5 passed in 2.80s
+31 failed, 5 passed in 2.90s
 
 
 $ simultaneous_movers.py <base>
@@ -56,4 +61,4 @@ bears: ['graveyard', 'graveyard']
 gains (the rules, CR 101.4: [2]): [2]
 
 $ pytest MTG_bot/core/test_executor_one_event.py (branch)
-31 passed in 2.74s
+36 passed in 2.66s

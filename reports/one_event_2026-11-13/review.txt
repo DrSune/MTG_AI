@@ -1,0 +1,62 @@
+Fresh-eyes review of the one-event engine diff (891113a2..557d8a91), one separate reviewer, unanchored
+(it saw the BACKLOG entries as they stood on the base, the code and the tests, not the reasoning).
+Verdict: no FATAL, no MAJOR; two MINOR, five NIT. All fixed or recorded in dea23062 and b1c313d5.
+
+MINOR 1, performance (binding.on_events). The layers were marked stale for every event, so each
+single-row event of a drain (an attacker's TAP and DECLARE rows, a CAST, a TARGETING row) recomputed
+the whole layer registry at its first filter read. Within one drain the world does not move; only an
+event's lifecycle (sources attached and detached) changes the registry.
+  Reviewer's bench (4 players x 25 creatures, 12 statics, 40 single-row events): base 193 ms, the
+  reviewed head 360 ms.
+  Fix: the layers go stale as a drain begins (the rows journalled since moved the world) and after
+  an event's moves; a recompute clears it; only the phase that does not look back recomputes.
+  After: 40 single-row events 216 ms (base 204 ms in the same run); a wrath of 60 creatures does more
+  work than the base (1,500 triggers queued against 855: each dying creature's "whenever a creature
+  you control dies" now sees every simultaneous death, the fault-1 correction).
+  Tests: test_a_counter_that_turns_on_a_keyword_is_seen_by_the_triggers_of_its_event (stale at a
+  drain's start, nothing moved), test_an_anthem_entering_in_a_later_instruction_counts_for_what_
+  enters_with_it (stale after a later event's moves); both fail on the base and kill their mutants.
+
+MINOR 2, CR 603.6c, 603.10 (latent). The last-known-information reads of a departed object's types
+and keywords applied whenever the context's event was the object's own departure row, so a trigger
+that does not look back ("whenever a creature card with flying is put into your graveyard from
+anywhere") read the keywords the permanent had on the battlefield, not the card in the graveyard.
+  Reviewer's repro (review/scen.py): a static grants flying; destroy a creature with no printed
+  flying. The rules give no trigger; the reviewed head triggered, the base triggered unless the
+  layers had been brought up to date first.
+  Fix: the binder marks the matching context of the phase that does not look back
+  (ExecCtx.after_event); quantity.departed_lki and last_known give no last known information there.
+  Test: test_a_trigger_from_anywhere_reads_the_card_in_its_new_zone (fails on the base).
+
+NIT 3, queue order (binding.on_events). An event's look-back triggers are queued before its other
+triggers, which flips the order of the trigger-order ask when one row matches both kinds for one
+player. Legal (CR 603.3b: the controller orders them); no verified card has both kinds on one event
+(the 600 replays show no game where it matters). Recorded in on_events' docstring.
+
+NIT 4, a shared EachPlayer batch is split by any row journalled outside it between two players'
+boundaries (the choice rows a ONE_OF or REST partition journals, not only a draw). Reach: Yarok's
+Fenlurker in a game of three or more, where nothing watches it; gathered counts stay right. BACKLOG
+entry reworded.
+
+NIT 5, deferred returns were one list: a nested boundary's shared event ending inside an outer one
+ran the outer event's returns early. Fix: kept per depth (Executor._returns_due). Test:
+test_a_nested_event_does_not_run_the_returns_of_the_event_around_it.
+
+NIT 6, CR 603.6a: a zone change into the battlefield from a graveyard was classed as looking back;
+an enters ability is checked after the event. Fix in binding.looks_back; a classifier case added.
+
+NIT 7, the module docstring named four controls where five tests pass on the base: the fifth
+(a return after a skipped step) was labelled a control in b463cc24, after the reviewed commit.
+
+The reviewer also reported a worktree file mutated mid-run: the mutant script (mutants.py) rewrites
+one engine file at a time and restores it from HEAD; the tree was clean after the run.
+
+Checked and found sound by the reviewer: 180 seeded verified games (identical journals but FDN game
+12, the Spinner of Souls correction); 160 castable-pool and 300 all-pool games across 10 sets,
+identical journals, no crashes; a soak forcing every trigger's event objects to count as gone (1,891
+objects over 480 games, no crash from the CR 400.7 cut); the rules readings (603.10a and 603.6c,
+newcomers left out of the look-back phase, a departed source's controller, 113.6m and the "another"
+polarity, _gone against 400.7's exceptions, 608.2h reads, 610.3 deferral and its finally, what one
+event is: 101.4, 614.6, 704.3, draws); the grants_triggers flag covering every way a triggered
+ability is granted; forks deep-copying the new state; Malefic Scythe's attachment read in the
+look-back phase; a departed static's grant kept until the binder detaches it.

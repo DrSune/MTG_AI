@@ -28,7 +28,7 @@ verified cards whose trees read a path this change touched.
 every third deck coherent, the rest stress; verified pools; the same decks on both, no tree
 changes), replay_compare.py <base.json> <branch.json>:
 
-## first build (a layers recompute per drained event)
+## first build, 2fe5958f (a layers recompute per drained event)
 M21: games 200; identical digests 198; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 84.0 / 97.0 (+15.5%)
   game 60: digest DIFFERS, journal same; outcome win -> win, turns 28 -> 28, rows 730 -> 730, crash None -> None
   game 143: digest DIFFERS, journal same; outcome win -> win, turns 31 -> 31, rows 529 -> 529, crash None -> None
@@ -37,7 +37,7 @@ FDN: games 200; identical digests 199; identical journals 199; crashes 0 (base) 
   game 12: digest DIFFERS, journal DIFFERS; outcome win -> win, turns 21 -> 21, rows 691 -> 693, crash None -> None
 differing games: M21:60 M21:143 FDN:12
 
-## final (the layers brought up to date at the first read that needs them)
+## lazy recompute, the engine of 0178a8cd (before the fresh-eyes review's fixes)
 M21: games 200; identical digests 198; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 83.6 / 83.5 (-0.2%)
   game 60: digest DIFFERS, journal same; outcome win -> win, turns 28 -> 28, rows 730 -> 730, crash None -> None
   game 143: digest DIFFERS, journal same; outcome win -> win, turns 31 -> 31, rows 529 -> 529, crash None -> None
@@ -46,8 +46,20 @@ FDN: games 200; identical digests 199; identical journals 199; crashes 0 (base) 
   game 12: digest DIFFERS, journal DIFFERS; outcome win -> win, turns 21 -> 21, rows 691 -> 693, crash None -> None
 differing games: M21:60 M21:143 FDN:12
 
-The same three games differ in both builds; engine time fell from +15-23% to within noise of the
-base once the recompute became lazy and the granted-trigger scan stopped walking every card.
+## final, b1c313d5 (the review's fixes: stale only as a drain begins and after an event's moves; a
+## trigger that does not look back reads the departed card in its new zone)
+M21: games 200; identical digests 198; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 83.7 / 81.3 (-2.9%)
+  game 60: digest DIFFERS, journal same; outcome win -> win, turns 28 -> 28, rows 730 -> 730, crash None -> None
+  game 143: digest DIFFERS, journal same; outcome win -> win, turns 31 -> 31, rows 529 -> 529, crash None -> None
+M20: games 200; identical digests 200; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 70.7 / 69.5 (-1.7%)
+FDN: games 200; identical digests 199; identical journals 199; crashes 0 (base) / 0 (branch); engine seconds 85.7 / 84.6 (-1.2%)
+  game 12: digest DIFFERS, journal DIFFERS; outcome win -> win, turns 21 -> 21, rows 691 -> 693, crash None -> None
+differing games: M21:60 M21:143 FDN:12
+
+The same three games differ in every build, with the same first differences; engine time fell from
++15-23% to within a few percent below the base once the recompute became lazy and the granted-trigger
+scan stopped walking every card. The review's 4-player bench (40 single-row events): base 204 ms,
+final 216 ms (the reviewed head 360 ms).
 
 Each differing game, its first differing event and why the branch is right (differing_games.txt:
 first_diff.py and queued.py on both checkouts):
@@ -74,4 +86,6 @@ first_diff.py and queued.py on both checkouts):
   token existed, so even its printed flying was missing; the branch triggers (@451) and the
   Watcher gets +1/+1 until end of turn.
 
-4. Engine mutants (mutants.py <worktree>, mutants.txt): 21 of 21 killed by the test modules.
+4. Engine mutants (mutants.py <worktree>, mutants.txt): 27 of 27 killed by the test modules.
+
+5. The fresh-eyes review and its fixes: review.txt.
