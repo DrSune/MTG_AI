@@ -1,16 +1,40 @@
 Round R10's tests and packs on the base, 30fabc4a (a git archive; MTG_bot/core/test_executor_one_or_more.py
-and the four tools/scenarios/mapped/M20 packs copied in), 2026-11-13:
+and the round's tools/scenarios/mapped/M20 packs copied in), 2026-11-13:
 
     pytest MTG_bot/core/test_executor_one_or_more.py MTG_bot/core/test_scenario_packs.py \
       -k "one_or_more or mapped/M20/woodland or mapped/M20/angelic" -rA --tb=line
 
-Final module (43 tests, after the fresh-eyes review's fixes): 40 of 43 unit tests and 4 of 4 packs
-fail on 30fabc4a ("44 failed, 3 passed"). The 3 that pass are true on both: the 2 controls (a
-flagged SacrificeEvent is refused at bind; "that many" with no antecedent raises) and Basri Ket's
-pin (its -2 counts an attacker that died before the trigger resolved: 1 Soldier on the base, while
-8b8c35b9 raised there).
+Final module (55 tests, after gate round 10's fixes) and the five M20 packs (the four below and
+angelic_guardian_attackers_survive_a_wrath): 51 of 55 unit tests and 5 of 5 packs fail on 30fabc4a
+("56 failed, 4 passed"). The 4 that pass are true on both: the 2 controls (a flagged
+SacrificeEvent is refused at bind; "that many" with no antecedent raises), Basri Ket's pin (its -2
+counts an attacker that died before the trigger resolved: 1 Soldier on the base, while 8b8c35b9
+raised there) and Battlesong Berserker's pin (its target chosen among the attackers it gathered:
+the fixes' first version raised there, in 7 of 100 FDN replays, before any commit).
 
-The same module on an archive of de082e81 (the branch before the review's fixes): 19 of 43 fail,
+Gate round 10 (FIX-THEN-GO on 88b7f7e8): the module on an archive of de676db0 (88b7f7e8 with main
+8db1834f merged, before the gate's fixes) fails 8 of 55 ("8 failed, 52 passed" with the packs),
+one test or more per fix:
+- MAJOR-1: test_the_greatest_power_among_tokens_that_left_at_once (KeyError: Handle(card, 6), the
+  gate's crash), test_the_total_power_of_the_creatures_among_tokens_that_left_at_once (a token
+  moved out of the graveyard, CR 111.8), test_creature_cards_that_died_at_once_are_read_as_they_
+  last_existed ([2] == [3]: the graveyard card, not its last known information),
+  test_a_count_among_them_reads_every_object_gathered and
+  test_a_count_of_some_of_them_is_a_filtered_referent_count (the filtered referent count refused),
+  test_they_are_not_found_in_a_hidden_zone (exiled from the hand);
+- MINOR-3: test_one_or_more_creatures_dying_is_not_a_zone_change (DID NOT RAISE);
+- MINOR-6: test_a_zone_change_without_a_batch_fails_loudly (ValueError not raised).
+The three MINOR-4 tests pass there: they pin what 88b7f7e8 already did (a batch gathers only the
+rows its trigger matches; two 0/0 tokens are counted; "they" leaves out an object that changed
+zones). The wrath pack passes on de676db0 too: main's DESTROY fix made it possible (MINOR-5).
+"MOVE_ZONE takes the first of 'them'" (fixed beside MAJOR-1) fails the creature-card test at its
+exile check once the last-known read is fixed; mutants.txt has each fix undone alone (19 of 19
+killed).
+
+The module of the review's fixes (43 tests, 88b7f7e8) on the base: 40 of 43 and 4 of 4 packs
+failed, the same 3 passed.
+
+The same 43-test module on an archive of de082e81 (the branch before the review's fixes): 19 of 43 fail,
 every review-driven test: the singular-read refusals (12 parametrized reads of the register,
 "attached to it", the token's power / "until it leaves" / "it deals" / a subject-testing condition,
 a FIRST over a referent Selector), the run-time nets, Woodland Champion with all its tokens gone

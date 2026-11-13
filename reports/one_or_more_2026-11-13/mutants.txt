@@ -1,30 +1,96 @@
-mutant: no 400.7 refresh of 'they' at resolution (MTG_bot/core/executor/binding.py)
-  1 failed, 42 passed in 2.34s
+mutant: no refresh of 'they' at resolution (MTG_bot/core/executor/binding.py)
+  5 failed, 50 passed in 3.03s
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
+  killed by TestTheGatheredObjectsAtResolution::test_they_leave_out_a_gathered_object_that_changed_zones_since
   killed by test_angelic_guardian_an_attacker_that_changed_zones_is_a_new_object
 
+mutant: no CR 400.7 check of 'they' (an object moved since stays) (MTG_bot/core/executor/binding.py)
+  2 failed, 53 passed in 3.65s
+  killed by TestTheGatheredObjectsAtResolution::test_they_leave_out_a_gathered_object_that_changed_zones_since
+  killed by test_angelic_guardian_an_attacker_that_changed_zones_is_a_new_object
+
+mutant: 'they' found in a hidden zone the event moved them to (MTG_bot/core/executor/binding.py)
+  1 failed, 54 passed in 3.60s
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
+
+mutant: a token off the battlefield stays among 'they' (CR 111.8) (MTG_bot/core/executor/binding.py)
+  2 failed, 53 passed in 3.71s
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+
+mutant: the pending references leave out the gathered objects (MTG_bot/core/executor/binding.py)
+  2 failed, 53 passed in 3.75s
+  killed by TestTheGatheredObjectsAtResolution::test_a_count_among_them_reads_every_object_gathered
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+
+mutant: 'among them' and a count of them read 'they', not every object gathered (MTG_bot/core/executor/quantity.py)
+  3 failed, 52 passed in 3.60s
+  killed by TestTheGatheredObjectsAtResolution::test_a_count_among_them_reads_every_object_gathered
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+
+mutant: 'among them' reads the live objects, not their last known information (MTG_bot/core/executor/quantity.py)
+  3 failed, 52 passed in 3.63s
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+
+mutant: the last known information of the first row's object only (MTG_bot/core/executor/quantity.py)
+  3 failed, 52 passed in 3.27s
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+
+mutant: a gathered row looked up from a query, which has no event (MTG_bot/core/executor/quantity.py)
+  1 failed, 54 passed in 3.23s
+  killed by test_battlesong_berserker_targets_one_of_the_attackers_it_gathered
+
+mutant: MOVE_ZONE takes the first of 'them' (MTG_bot/core/executor/verbs.py)
+  1 failed, 54 passed in 3.32s
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
+
+mutant: a zone change journalled without a batch (MTG_bot/core/executor/events.py)
+  1 failed, 54 passed in 3.15s
+  killed by TestOneEvent::test_a_zone_change_without_a_batch_fails_loudly
+
 mutant: the event referent sliced to one object again (MTG_bot/core/executor/selectors.py)
-  2 failed, 41 passed in 2.33s
+  3 failed, 52 passed in 2.92s
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
   killed by test_angelic_guardian_not_a_creature_put_onto_the_battlefield_attacking
   killed by test_angelic_guardian_they_are_the_declared_attackers
 
 mutant: 'that many' reads the event register (still-there objects) (MTG_bot/core/executor/quantity.py)
-  5 failed, 38 passed in 2.32s
+  8 failed, 47 passed in 2.98s
+  killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
+  killed by TestOneEvent::test_two_tokens_that_die_in_the_check_after_entering_are_still_counted
   killed by TestTheBinderGathersOnlyWhatItGroups::test_that_many_with_no_antecedent_still_raises
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
   killed by test_basri_ket_counts_an_attacker_that_died_before_its_trigger_resolved
   killed by test_woodland_champion_counts_a_token_that_left_before_resolution
   killed by test_woodland_champion_counts_its_tokens_when_all_of_them_left[1-1]
   killed by test_woodland_champion_counts_its_tokens_when_all_of_them_left[3-3]
 
 mutant: a draw of two is one batch (MTG_bot/core/executor/events.py)
-  1 failed, 42 passed in 2.28s
+  1 failed, 54 passed in 2.97s
   killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
 
 mutant: no dedup per event (each row queues) (MTG_bot/core/executor/binding.py)
-  9 failed, 34 passed in 2.30s
+  18 failed, 37 passed in 3.03s
+  killed by TestOneEvent::test_a_batch_gathers_only_the_rows_its_trigger_matches
   killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
   killed by TestOneEvent::test_a_read_of_one_of_several_gathered_objects_raises_at_run_time
   killed by TestOneEvent::test_one_state_based_action_check_is_one_event
   killed by TestOneEvent::test_two_instructions_of_one_resolution_are_two_events
+  killed by TestOneEvent::test_two_tokens_that_die_in_the_check_after_entering_are_still_counted
+  killed by TestTheGatheredObjectsAtResolution::test_a_count_among_them_reads_every_object_gathered
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
+  killed by TestTheGatheredObjectsAtResolution::test_they_leave_out_a_gathered_object_that_changed_zones_since
+  killed by test_battlesong_berserker_targets_one_of_the_attackers_it_gathered
   killed by test_desecrated_tomb_one_bat_per_event
   killed by test_woodland_champion_counts_a_token_that_left_before_resolution
   killed by test_woodland_champion_counts_its_tokens_when_all_of_them_left[3-3]
@@ -32,11 +98,18 @@ mutant: no dedup per event (each row queues) (MTG_bot/core/executor/binding.py)
   killed by test_woodland_champion_two_token_effects_two_triggers
 
 mutant: gathered set = the first row's object only (MTG_bot/core/executor/binding.py)
-  10 failed, 33 passed in 2.23s
+  17 failed, 38 passed in 2.98s
+  killed by TestOneEvent::test_a_batch_gathers_only_the_rows_its_trigger_matches
   killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
   killed by TestOneEvent::test_a_read_of_one_of_several_gathered_objects_raises_at_run_time
   killed by TestOneEvent::test_one_state_based_action_check_is_one_event
   killed by TestOneEvent::test_two_instructions_of_one_resolution_are_two_events
+  killed by TestOneEvent::test_two_tokens_that_die_in_the_check_after_entering_are_still_counted
+  killed by TestTheGatheredObjectsAtResolution::test_a_count_among_them_reads_every_object_gathered
+  killed by TestTheGatheredObjectsAtResolution::test_creature_cards_that_died_at_once_are_read_as_they_last_existed
+  killed by TestTheGatheredObjectsAtResolution::test_the_greatest_power_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_the_total_power_of_the_creatures_among_tokens_that_left_at_once
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
   killed by test_angelic_guardian_not_a_creature_put_onto_the_battlefield_attacking
   killed by test_angelic_guardian_they_are_the_declared_attackers
   killed by test_woodland_champion_counts_a_token_that_left_before_resolution
@@ -45,10 +118,13 @@ mutant: gathered set = the first row's object only (MTG_bot/core/executor/bindin
   killed by test_woodland_champion_two_token_effects_two_triggers
 
 mutant: 'that many' looks up an object first (the review's FATAL) (MTG_bot/core/executor/quantity.py)
-  9 failed, 34 passed in 2.34s
+  12 failed, 43 passed in 3.02s
+  killed by TestOneEvent::test_a_batch_gathers_only_the_rows_its_trigger_matches
   killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
   killed by TestOneEvent::test_one_state_based_action_check_is_one_event
   killed by TestOneEvent::test_two_instructions_of_one_resolution_are_two_events
+  killed by TestOneEvent::test_two_tokens_that_die_in_the_check_after_entering_are_still_counted
+  killed by TestTheGatheredObjectsAtResolution::test_they_are_not_found_in_a_hidden_zone
   killed by test_basri_ket_counts_an_attacker_that_died_before_its_trigger_resolved
   killed by test_woodland_champion_counts_a_token_that_left_before_resolution
   killed by test_woodland_champion_counts_its_tokens_when_all_of_them_left[1-1]
@@ -57,9 +133,9 @@ mutant: 'that many' looks up an object first (the review's FATAL) (MTG_bot/core/
   killed by test_woodland_champion_two_token_effects_two_triggers
 
 mutant: no net for a singular read of several gathered objects (MTG_bot/core/executor/quantity.py)
-  1 failed, 42 passed in 2.33s
+  1 failed, 54 passed in 3.66s
   killed by TestOneEvent::test_a_read_of_one_of_several_gathered_objects_raises_at_run_time
 
 mutant: a bare Conditional judged on the source under a gathered event (MTG_bot/core/executor/__init__.py)
-  1 failed, 42 passed in 2.37s
+  1 failed, 54 passed in 3.67s
   killed by TestOneEvent::test_a_read_of_one_of_several_gathered_objects_raises_at_run_time

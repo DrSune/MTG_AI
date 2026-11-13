@@ -145,8 +145,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
 | 2026-11-13, gate round 7 | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it, CR 114.2: YOU, ALL_OPPONENTS or TARGET_OPPONENT only, `ability_tree.EMBLEM_RECIPIENTS`; never under EachPlayer) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
 | 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
-| 2026-11-13, gate round 10 (pending, §13) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
-| 2026-11-13, gate round 10 (pending, §13) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
+| 2026-11-13, gate round 10 (§14) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
+| 2026-11-13, gate round 10 (§14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 
 ## 6. Identity + conformance
 
@@ -575,49 +575,98 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     row; play differs in 3 games, where M21 Vito, Thorn of the Dusk Rose and FDN Ajani's Pridemate
     and Marauding Blight-Priest trigger once instead of once per recipient. Same winners, 0
     crashes.
-- R10 round 10 (DRAFT for the gate, 2026-11-13; one or more objects moved at once, §13; branch
-  `worktree-agent-ac4c978225fb5b805` on 30fabc4a; round 9, a chosen quality, is a parallel
-  branch): **pending**.
-  - **The change, no new node, field or verb.** `once_per_event` on a ZoneChangeEvent gathers the
-    objects one atom boundary moves (CR 603.2c; `GameEvent.batch`, outside the dump; a drawn card
-    its own, CR 121.2); `gathers_occurrences` admits it where the subject is not the source or
-    what it is attached to, and refuses the flag there as it does for attacks. On a flagged
-    declaration or zone change (`gathers_objects`) the event register holds every object
-    gathered: Selector(referent="event") is all of them ("they", the ones changed zones since
-    left out, CR 400.7), QProp("event", THAT_MANY_COUNT) their number through a `gathered`
-    register that replaces round 4's `declare_attackers` (those that left included: Woodland
-    Champion's and Basri Ket's rulings). A gathered combat damage event keeps its one subject.
-    The IR refuses a singular read of a gathered register (a QProp of "event" other than
-    THAT_MANY_COUNT, "attached to it", "until it leaves", the event in a role read as one object,
-    in the effect, a token's power, a reflexive trigger or the condition; an intervening "if"
-    testing its subject), and anywhere a FIRST or a QCount over a referent Selector; the
-    executor raises on the reads it cannot see.
-    Templates: B2b-tokens-enter-that-many-counters (Woodland Champion),
+- R10 round 10 (adversarial, 2026-11-13; one reviewer on 88b7f7e8, one or more objects moved at
+  once, §14, branch `worktree-agent-ac4c978225fb5b805`): **FIX-THEN-GO**, nothing FATAL. Upheld in
+  the reviewer's own runs: the CR reading (one atom boundary is one event for a wrath, one
+  effect's tokens and a state-based sweep; two instructions are two events; "that many" counts
+  the departed objects, Woodland Champion's and Basri Ket's rulings), `gathered` replacing
+  `declare_attackers` with no change in play (Basri Ket, Feline Sovereign and Ancestor Dragon
+  identical; 90 seeded games identical), not refusing the flag where nothing reads the set
+  (Desecrated Tomb), the blast radius (3 trees, 0 verified in or out) and a clean merge with main.
+  - **The change** (kept by the gate). `once_per_event` on a ZoneChangeEvent gathers the objects
+    one atom boundary moves (CR 603.2c; `GameEvent.batch`, outside the dump; a drawn card its
+    own, CR 121.2); `gathers_occurrences` admits it where the subject is not the source or what
+    it is attached to. On a flagged declaration or zone change (`gathers_objects`) the event
+    register holds every object gathered: "they" is Selector(referent="event"), "that many"
+    QProp("event", THAT_MANY_COUNT) through a `gathered` register that replaces round 4's
+    `declare_attackers`, "among them" an aggregate or a filtered count over the referent. No new
+    node, field or verb. Templates: B2b-tokens-enter-that-many-counters (Woodland Champion),
     B2b-attackers-gain-keyword-eot (Angelic Guardian), the frame B13-one-or-more-leave-graveyard
     (Desecrated Tomb); none for Elvish Warmaster, whose head without its once-each-turn limit
-    loops.
-  - **Rejected** (§13): a new flag, field or node; a new referent or an ALL-mode referent for
-    "they"; QCount of the referent for "that many"; the batch in the row's `data`; one event per
-    op; gathering at `_put`; "that many" reading the `event` register; gathering a dies or a
-    sacrifice event; every referent naming every bound object.
-  - **Blast radius** (by script): 3 trees changed, all unverified, all now whole; 0 verified cards
-    out or in; 300/300 identical replay digests and journal dumps, 0 crashes; G3's critical
-    occurrence mutant on 20 more verified trees (stamps stand; re-verification needs a pack).
-  - **Pre-gate review** (one fresh-eyes reviewer on 8b8c35b9, fixed on the branch): FATAL, "that
-    many" looked up an object first, so with every gathered object gone it raised (M21 Basri
-    Ket's -2, verified, crashed when its one attacker died in response: 1 Soldier on 30fabc4a);
-    `_REGISTER_FIELDS` reads no object. MAJOR, more single-object reads of a gathered register
-    were accepted (a FIRST over a referent Selector, a token's power, a subject-testing
-    condition, "until it leaves", "it deals", a bare Conditional; the fix's sweep of verbs.py
-    added FIGHT's foe): refused, or a run-time net.
-    MINOR, "one or more creatures die" as a zone change gathers while CreatureDiesEvent is
-    refused: divergence D24. MINOR, the Elvish Warmaster frame (already dropped). 19 of the 43
-    tests of the module fail on de082e81.
-  - **Found, logged, not fixed here** (BACKLOG): DESTROY destroys an indestructible permanent (CR
-    702.12b); permanents moving in one atom see each other's moves only in row order (CR 603.6a,
-    603.10a); a per-object trigger's "it" follows an object that changed zones (CR 400.7); a
-    referent over a several-object `result` or `target` register takes the first.
-- BINDING STATE: rounds 1–8 complete; further ontology changes require a NEW gated round (any
+    loops. Rejected (§14): a new flag, field, node or referent; QCount of the referent for "that
+    many"; the batch in the row's `data`; one event per op; gathering at `_put`; "that many"
+    reading `event`; gathering a dies or a sacrifice event; every referent naming every bound
+    object.
+  - **Pre-gate review** (one fresh-eyes reviewer on 8b8c35b9, fixed in 88b7f7e8): FATAL, "that
+    many" looked up an object first (M21 Basri Ket's -2, verified, crashed when its one attacker
+    died in response); MAJOR, single-object reads of a gathered register were accepted (a FIRST
+    over a referent Selector, a token's power, a subject-testing condition, "until it leaves",
+    "it deals", FIGHT's foe, a bare Conditional): refused, or a run-time net; MINOR, D24; MINOR,
+    the Warmaster frame (dropped).
+  - **MAJOR, fixed:**
+    - M1. A flagged leave trigger reading "the greatest power among them"
+      (QProp(Selector(referent="event"), POWER, MAX or SUM), a form the IR keeps) crashed with
+      KeyError when two tokens left in one atom: `pending_references` kept only the queuing
+      row's object, so `_cease_tokens` removed the other while "they" still named it; and a
+      departed creature card was read in its graveyard, without the counters it died with, not
+      by its last known information (CR 608.2h). Fix: the pending references hold every gathered
+      object; "they" are those the effect can act on (not one that changed zones since, CR
+      400.7; not one moved into a hand or a library, the rule's exception reaching public zones
+      only; not a token off the battlefield, CR 111.7, 111.8); "among them" and a filtered count
+      of them read every object gathered (`quantity.read_population`), each by its last known
+      information once it left (`departed_lki` finds its own departure row). Found beside it:
+      MOVE_ZONE's own count clamp moved the first of "them" only (`verbs._v_move_zone`), fixed.
+      Tests failing on de676db0 (88b7f7e8 with main merged): the two tokens with MAX (the
+      KeyError) and with a filtered SUM, the two creature cards ([2] where the rules give 3, then
+      one exiled of two), "they" not found in a hand, a count among them. The fix's first version
+      also looked a gathered row up from a query, which has no event, and crashed 7 of 100 FDN
+      replays (Battlesong Berserker's target among its attackers): caught by the replays before
+      a commit, guarded, and pinned by a test on the real card.
+  - **MINOR, fixed:**
+    - m1. One instruction run once per player through EachPlayer is several events (CR 101.4
+      makes it one): recorded in §14's limits and the BACKLOG with its fix (one batch for the
+      sub-executions of one EachPlayer); `eachplayer_split.py` gains 1 twice where the rules
+      give 2.
+    - m2. A gathered holder leaving with its objects is all or nothing by handle order: added to
+      the BACKLOG's row-order entry; `holder_leaves_with_them.py` gains nothing where CR 603.10a
+      gives 3.
+    - m3 (D24). `_check_once_per_event` refuses the flag on a zone change from the battlefield to
+      a graveyard whose subject requires a creature, CreatureDiesEvent's meaning; 0 trees change.
+      `test_one_or_more_creatures_dying_is_not_a_zone_change` (fails on de676db0).
+    - m4. Tests pinning what 88b7f7e8 did: the CR 400.7 check of "they" on a zone change (it
+      kills the mutant that drops the check, which only the declaration's pack did), a batch of
+      matching and non-matching rows, two 0/0 tokens dying in the check after they enter
+      ("that many" 2: the gather is not at `_put`).
+    - m5. DESTROY against indestructible, fixed on main 8db1834f: the BACKLOG entry is closed,
+      NUMBERS updated, and the pack `angelic_guardian_attackers_survive_a_wrath` (Planar
+      Cleansing after the Guardian's trigger) added.
+    - m6. A ZONE_CHANGE row without a batch raises in the journal (`EventJournal._emit`), and so
+      does gathering one (`_occurrences`). `test_a_zone_change_without_a_batch_fails_loudly`
+      (fails on de676db0).
+    - G3 (merge condition 5). No dead-role or equivalence rule absorbs "each occurrence <-> once
+      per event" on a zone-change trigger: the 20 verified stamps predate the mutant, a
+      re-verification needs a pack moving two objects at once, and the probe stimulus stays a
+      BACKLOG item (§14).
+    - Nits. The census adds IKO Rielle, the Everwise (5 sentences, not 4). The flag on an
+      IS_RESULT, IS_ANY_TARGET or referent FAtom subject stays: each can name several objects
+      (§14). The QCount refusal is narrowed to an unfiltered referent count, so "for each
+      creature card exiled this way" keeps its one encoding, a filtered referent count (IS_RESULT
+      in a selector's filter is refused as the referent's second form); MAPPER_GUIDE names it.
+    - The section is §14 (round 9 is §13).
+  - **Blast radius of the fixes** (de676db0 against them, by script, 19 sets, every record
+    applied): 0 trees changed, 0 verified cards in or out (M21 275, M20 273, FDN 183); 300
+    seeded heuristic games (M21, M20, FDN) with identical replay digests and journal dumps, 0
+    crashes; the soak (500 games dealing the round's trees) line for line the same, 0 crashes;
+    G3 occurrence mutants 8 -> 28 as before; 19 of 19 engine mutants killed. Against
+    30fabc4a: the same 3 trees as the round.
+  - **Found, logged, not fixed here** (BACKLOG): permanents moving in one atom see each other's
+    moves only in row order (CR 603.6a, 603.10a), a holder leaving with them included; one
+    EachPlayer instruction is several events (CR 101.4); a per-object trigger's "it" follows an
+    object that changed zones (CR 400.7); a referent over a several-object `result` or `target`
+    register takes the first. Closed on main: DESTROY against an indestructible permanent
+    (8db1834f).
+- BINDING STATE: rounds 1–8 and 10 complete (round 9 merges from its own branch); further
+  ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
@@ -1068,7 +1117,7 @@ change; gate round 8 asked for it in its own commit).**
   games): 0 crashes, 0 detector hits; each family card in those pools was cast in 2 to 33 games
   (not M14 Archangel of Thune, M14 deals no deck, nor FDN Cat Collector, still partly compiled).
 
-## 13. Round R10 — one or more objects moved at once (2026-11-13; draft for gate round 10)
+## 14. Round R10 — one or more objects moved at once (2026-11-13; gate round 10 FIX-THEN-GO, fixed)
 
 The card backlog's wave 3, its third package (BACKLOG, "Card backlog wave 3: the plan"): M20
 Woodland Champion ("Whenever one or more tokens you control enter, put that many +1/+1 counters
@@ -1081,29 +1130,45 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
 - `TriggeredAbility.once_per_event` (and DelayedTrigger's) on a ZoneChangeEvent: one trigger for
   the objects one event moves (CR 603.2c: "it can trigger repeatedly if one event contains
   multiple occurrences"; the flag reads "one or more"). `ability_tree.gathers_occurrences`
-  (ability_tree.py:3072) now answers True for a ZoneChangeEvent whose subject is absent or is not
-  the source or what it is attached to, and `_check_once_per_event` (:3112) refuses the flag on a
+  (ability_tree.py:3077) now answers True for a ZoneChangeEvent whose subject is absent or is not
+  the source or what it is attached to, and `_check_once_per_event` (:3117) refuses the flag on a
   zone change of one object as it does on an attack or a damage event: flagged, "when this
   creature enters" would be a second byte form of the unflagged trigger.
 - **One event** is one atom boundary: `GameEvent.batch` (executor/events.py:222), stamped by
-  `EventJournal.record_atom` (:551) on every row it journals, the clock of the boundary's first
-  row. A drawn card is its own (:568, CR 121.2). The field is outside `dump()`: replays and forks
+  `EventJournal.record_atom` (:555) on every row it journals, the clock of the boundary's first
+  row. A drawn card is its own (:572, CR 121.2). The field is outside `dump()`: replays and forks
   re-derive it, and no fingerprint, game log or journal dump changes.
-- **The binder** (executor/binding.py): `_queue` (:838) queues one instance per ability per
+- **The binder** (executor/binding.py): `_queue` (:811) queues one instance per ability per
   declaration or batch (the declare-group dedup, generalised), and the instance holds every object
   of the event its spec matches (`_occurrences`, :920), each judged by its own row, so a departed
   one by its last known information (CR 603.10a). `_check_trigger` binds a flagged ZoneChangeEvent;
   every other kind but an attack and combat damage is still refused.
 - **The gathered register.** On a flagged declaration or zone change
-  (`ability_tree.gathers_objects`, :3102) `_put` (:1639) binds the `event` register to all of
+  (`ability_tree.gathers_objects`, :3107) `_put` (:1648) binds the `event` register to all of
   them, and a `gathered` register to the same list, which replaces round 4's `declare_attackers`.
   - "They" is `Selector(referent="event")`, the one C2 referent form, now denoting every object
     the register binds (executor/selectors.py:705: a referent is bound, never chosen, so no count
-    slices it). At resolution `resolve` (binding.py:1736) leaves out an object that has changed
-    zones since its row: a new object (CR 400.7). An attacker removed from combat is still one of
-    them.
+    slices it; nor does MOVE_ZONE's count clamp, verbs.py:359, which made "exile them" move the
+    first only until gate round 10). At resolution `resolve` (binding.py:1745) keeps those the
+    effect can act on: not one that has changed zones since its row (a new object, CR 400.7);
+    not one the event moved into a hand or a library (CR 400.7's exception for an ability that
+    triggers on the move finds the new object only in a public zone); not a token off the
+    battlefield (CR 111.7, 111.8: it can't be moved and ceases to exist). An attacker removed from
+    combat is still one of them.
+  - "Among them" (an aggregate QProp over `Selector(referent="event")`: "the greatest power among
+    them", MAX; SUM) reads every object gathered, those no longer among "they" included, each by
+    its last known information once it left (CR 608.2h; `quantity.read_population`, :674; a
+    gathered object's own departure row answers in `departed_lki`, :506, on the zone change's own
+    resolution only: a query, which carries the bindings but no event, reads the live object). The
+    departed tokens stay in the world until the trigger resolves, as the first row's always did
+    (`TriggerBinder.pending_references`, binding.py:1561). Gate round 10's MAJOR-1: 88b7f7e8 kept
+    only the first row's token, and the read of the other raised KeyError; a creature card was
+    read in the graveyard, without the counters it died with. The fix's first version looked the
+    row up from a query too and crashed 7 of 100 FDN replays (Battlesong Berserker choosing its
+    target among the attackers it gathered); the replays caught it before a commit, and
+    `test_battlesong_berserker_targets_one_of_the_attackers_it_gathered` pins it.
   - "That many" is `QProp("event", THAT_MANY_COUNT)`: the `result` register first (Kinetic
-    Augur's precedence), else `gathered` (executor/quantity.py:661), every object gathered, those
+    Augur's precedence), else `gathered` (executor/quantity.py:664), every object gathered, those
     that left included (Woodland Champion's ruling; Basri Ket's: "attacking nontoken creatures
     that leave combat before the triggered ability resolves are counted"). A single event writes no
     `gathered`, so "that many" with no antecedent still raises.
@@ -1111,29 +1176,40 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     Sovereign's "that player", unchanged.
 - **The IR refuses** (gate rounds 4-8's classes, met at construction):
   - the flag on a zone change of one object (above);
+  - the flag on a creature put into a graveyard from the battlefield (`_check_once_per_event`):
+    "one or more creatures die" is CreatureDiesEvent's (CR 700.4), the binder's to gather when a
+    card needs it (gate round 10's MINOR-3, divergence D24; no tree changes);
   - a read of one object of a gathered register, which would take the first in handle order
-    (`_check_gathered_reads`, ability_tree.py:3184; `_reads_one_event_object`, :3160): a QProp of
+    (`_check_gathered_reads`, ability_tree.py:3206; `_reads_one_event_object`, :3182): a QProp of
     "event" other than THAT_MANY_COUNT ("its power"), an FAtom referent "event" ("attached to
     it"), a DurationUntilLeaves of "event" ("until it leaves"), the event referent in a role a verb
-    reads as one object (`_ONE_OBJECT_ROLES`, :3157: DEAL_DAMAGE's dealer, "it deals"; FIGHT's
+    reads as one object (`_ONE_OBJECT_ROLES`, :3179: DEAL_DAMAGE's dealer, "it deals"; FIGHT's
     foe; verbs.py takes the first of several), in the effect, a token's power and toughness
     (resolved as the token is made), a reflexive trigger in it (it reads the same register) and
     the condition; and an
     intervening "if" that tests its subject (CR 603.4: judged on the event's one object, and a
     gathered event has none): a condition may hold only `ability_tree.SUBJECT_FREE` predicates
-    (:3135, the R6-2 list, now in the IR; tools/audit imports it);
-  - a FIRST over a referent Selector (QProp.__post_init__, :875): "its power" is the string
+    (:3157, the R6-2 list, now in the IR; tools/audit imports it);
+  - a FIRST over a referent Selector (QProp.__post_init__, :873): "its power" is the string
     referent's, the one encoding ("the greatest power among them", MAX, stands);
-  - a QCount over a referent Selector (QCount.__post_init__, :788): "the number of them" has one
-    encoding, THAT_MANY_COUNT, and the count of the Selector would differ from it once an object
-    leaves. No tree of the 19 sets had either form.
+  - a QCount over a referent Selector with no filter (QCount.__post_init__, :791): "the number
+    of them" has one encoding, THAT_MANY_COUNT, and the count of the Selector would differ from it
+    once an object leaves. With a filter it is the one encoding of "for each creature card exiled
+    this way" (some of them; IS_RESULT in a selector's filter is refused as the referent's second
+    form), and over a gathered event it counts every object gathered, as "among them" reads them
+    (`quantity.read_population`). The first version refused it whole, which removed that encoding
+    from 8 unparsed sentences (gate round 10's nit); "source" and "controller" stay refused, one
+    object each. No tree of the 19 sets had either form.
 - **Executor nets** for what the IR cannot see: a singular referent read of an event register
-  that holds several objects raises (quantity.py:478), and so does a bare Conditional after a
-  sentence that names no object (executor/__init__.py:314; it was judged on the trigger's source).
+  that holds several objects raises (quantity.py:470), and so does a bare Conditional after a
+  sentence that names no object (executor/__init__.py:310; it was judged on the trigger's source).
   "That much", "this way" and "that many" read registers, not an object: `_REGISTER_FIELDS`
-  (quantity.py:616) skips the object lookup, so a gathered event whose objects have all left
+  (quantity.py:619) skips the object lookup, so a gathered event whose objects have all left
   still counts them (8b8c35b9 raised there and crashed M21 Basri Ket's -2 when its one attacker
-  died in response; the round's fresh-eyes review found it).
+  died in response; the round's fresh-eyes review found it). A zone change journalled without a
+  batch raises (events.py `_emit`), and so does gathering one (`TriggerBinder._occurrences`):
+  batch 0 would gather every such row of the game (gate round 10's MINOR-6; the one emit site
+  stamps a batch today).
 - **Compiler** (no new verb): B2b-tokens-enter-that-many-counters (templates_b2b.py:2227) and
   B2b-attackers-gain-keyword-eot (:2262, any bare keyword of B11's table: the grant of B5b's
   "it gains <keyword> until end of turn" over the event referent); the frame
@@ -1158,15 +1234,32 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
 - A wrath is one event; the dies triggers it causes each resolve on their own, and the tokens each
   creates are an event apiece (one "one or more tokens enter" trigger per resolution).
 - A draw is one card at a time (CR 121.2): "draw two cards" is two events.
-- Limits, logged in the BACKLOG, none printed or compiled in the 19 sets: a permanent moving in the
-  same atom as others sees their moves only in journal row order (CR 603.6a "including the
-  newcomers", 603.10a; per-object triggers too, `simultaneous_movers.py`); a dies-window
-  replacement's exile is its own boundary; "one or more creatures die" has a second, latent
-  encoding (divergence D24).
+- Limits, logged in the BACKLOG, none printed or compiled in the 19 sets:
+  - a permanent moving in the same atom as others sees their moves only in journal row order (CR
+    603.6a "including the newcomers", 603.10a; per-object triggers too,
+    `simultaneous_movers.py`); a gathered holder that leaves with its objects is all or nothing
+    by handle order (a DESTROY of the Watchdog holding "one or more other creatures leave" and
+    three creatures gives no trigger where CR 603.10a gives one, counting 3: gate round 10's
+    MINOR-2);
+  - one instruction run once per player through EachPlayer is several events (gate round 10's
+    MINOR-1: `EachPlayer(ANY, SACRIFICE a creature)` against a flagged "one or more other
+    creatures leave" gains 1 twice where CR 101.4 makes it one event, 2): every EachPlayer
+    zone-change tree, one iteration with two players, several in Commander. The fix: one batch
+    for the sub-executions of one EachPlayer;
+  - a dies-window replacement's exile is its own boundary;
+  - "one or more creatures die" waits for the binder to gather CreatureDiesEvent; its zone-change
+    form is refused (divergence D24).
+- The flag stands on a subject that names objects through `IS_RESULT`, `IS_ANY_TARGET` or a
+  referent FAtom (no tree has one; gate round 10's nit). Each can name several objects (the
+  objects an instruction acted on, an ability's several targets, the Auras attached to a
+  creature), so gathering them changes the play and is not a second encoding; refusing them
+  would refuse a valid "when one or more of them".
 
 **A gathered object that has since left** (CR 400.7). It is gathered as the event occurs. "That
-many" counts it; "they" does not touch it, nor the new object it became if it came back (pack
-`angelic_guardian_bounced_attacker_is_a_new_object`).
+many" counts it, "among them" reads it as it last existed (CR 608.2h); "they" does not touch it,
+nor the new object it became if it came back (pack
+`angelic_guardian_bounced_attacker_is_a_new_object`; for a zone change,
+`test_they_leave_out_a_gathered_object_that_changed_zones_since`).
 
 **What the network sees.** The card's tokens carry the flag (`@once_per_event bool:True`),
 THAT_MANY_COUNT and the event referent. A trigger on the stack is its source's entity with its
@@ -1197,16 +1290,19 @@ turn is sick). BACKLOG, "What the network sees" (features.py is another lane's).
   "that many" with no antecedent would read 1 instead of raising, and after the CR 400.7 check it
   would miss Woodland Champion's departed tokens.
 - Gathering CreatureDiesEvent ("one or more creatures die") or a sacrifice: no card of the 19 sets
-  prints one; the binder still refuses the flag there.
+  prints one; the binder still refuses the flag there, and the IR the zone-change form of a death.
 - Every referent naming every bound object (`result`, `target` too): it would change verified
   play (See the Truth's "each of those cards", BACKLOG) and needs its own audit.
 
-**Census** (`census.py`, 19 sets): **4** zone-change "one or more" sentences on 4 cards, all
+**Census** (`census.py`, 19 sets): **5** zone-change "one or more" sentences on 5 cards, all
 blocked on the base (Woodland Champion a needs-atom record; Elvish Warmaster, Desecrated Tomb,
-Devourer of Memory unparsed), none in M21 or FDN; the 17 / 13 of the wave plan's sketch do not
-reproduce (it may have counted every "one or more" trigger). Angelic Guardian is the attack class's
-(11 sentences, 8 blocked). After: Woodland Champion, Angelic Guardian and Desecrated Tomb compile
-whole; Elvish Warmaster stays unparsed (above); Devourer of Memory's clause has no template.
+Devourer of Memory and IKO Rielle, the Everwise unparsed), none in M21 or FDN; the first census
+missed Rielle's verb-first "whenever you discard one or more cards" (gate round 10's nit). The
+17 / 13 of the wave plan's sketch do not reproduce (it may have counted every "one or more"
+trigger). Angelic Guardian is the attack class's (11 sentences, 8 blocked). After: Woodland
+Champion, Angelic Guardian and Desecrated Tomb compile whole; Elvish Warmaster stays unparsed
+(above); Devourer of Memory's clause has no template; Rielle's "for the first time each turn"
+has no component.
 
 **Blast radius** (by script over the 19 sets, 30fabc4a against the branch,
 `reports/one_or_more_2026-11-13/blast_radius.txt`):
@@ -1228,11 +1324,17 @@ whole; Elvish Warmaster stays unparsed (above); Devourer of Memory's clause has 
   Impassioned Orator, Marauding Raptor, Omnath, Locus of the Roil, Risen Reef, Sage's Row
   Denizen, Starfield Mystic, Waterkin Shaman; FDN Adventuring Gear, Garruk's Uprising, Impact
   Tremors, Spitfire Lagac, Tatyova) gain the critical "each occurrence -> once per event" mutant.
-  Their stamps stand (the tree sha is unchanged); a re-verification must kill it with a pack
-  moving two objects at once (the probe has no such stimulus: BACKLOG). Terror of the Peaks' is
+  Their stamps stand (the tree sha is unchanged) and predate the mutant; a re-verification must
+  kill it with a pack moving two objects at once (the probe has no such stimulus: BACKLOG). No
+  dead-role or equivalence rule in `gates.mutants` absorbs it: one event of two objects triggers
+  once or twice, a real difference (gate round 10's merge condition 5). Terror of the Peaks' is
   stillborn.
 - Random-play soaks dealing the new trees (M20 compiled with the unverified records 200 games, M19
   compiled 200, KHM castable 100): 0 crashes; Woodland Champion cast in 12 games, Angelic Guardian
   in 4, Desecrated Tomb in 46; 11 gathered firings (the Guardian's with 1, 2, 3 and 6 attackers).
   2 detector hits, both in other cards' paths (`soak_coverage.txt`).
 - Ontology conformance (M21, ZNR): PASS, errors 0, warns 7, V4′ new CHOOSE emissions 0, on both.
+- Gate round 10's fixes (de676db0, 88b7f7e8 with main merged, against them): 0 trees changed, 0
+  verified cards in or out; the 300 seeded games identical (digests and journal dumps), 0
+  crashes; the soak line for line the same; 19 of 19 engine mutants killed (`mutants.txt`). The
+  fixes' first version crashed 7 of 100 FDN games (above); `blast_radius.txt` keeps both runs.

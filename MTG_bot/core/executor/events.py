@@ -378,6 +378,10 @@ class EventJournal:
         data: tuple[object, ...] = (),
         batch: int = 0,
     ) -> GameEvent:
+        if kind == KIND_ZONE_CHANGE and batch == 0:
+            # A zone change is an occurrence of its atom boundary's event (CR 603.2c): a row
+            # without one would be gathered with every other such row of the game.
+            raise ValueError("journal: a ZONE_CHANGE row is journalled by its atom boundary")
         self._clock += 1
         event = GameEvent(self._clock, kind, subject, cause, cause_verb, data, batch)
         self.events.append(event)

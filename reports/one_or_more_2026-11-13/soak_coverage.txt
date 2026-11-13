@@ -17,3 +17,5 @@ The first draft (8b8c35b9) also had a frame for Elvish Warmaster's head: in the 
 castable games it fired 201 times, each 'x1' (its own Elf Warrior token re-triggering it, a loop
 stopped by the tripwire; the printed "This ability triggers only once each turn" did not compile).
 The frame was dropped (de082e81).
+
+Rerun after gate round 10's fixes (2026-11-13): the three lines above, word for word.

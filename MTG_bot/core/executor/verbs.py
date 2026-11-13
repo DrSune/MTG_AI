@@ -354,7 +354,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             )
             if h.namespace == "card"
         ]
-        cards = pool if partition else (pool[:n] if n else pool)
+        # The event register is bound, never chosen (selectors.resolve_selector): "exile them"
+        # after a gathered event moves every object it names, not the first.
+        cards = pool if partition or sel.referent == "event" else (pool[:n] if n else pool)
     # A bottom-put (_bottom_put): move_card appends (top for a library / end of
     # order) and no-ops on a same-zone move, so the bottom-put is completed
     # here: each card is re-inserted at index 0, the highest of the run first,

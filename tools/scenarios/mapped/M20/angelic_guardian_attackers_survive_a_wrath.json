@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever one or more creatures you control attack, they gain indestructible until end of turn.' The Guardian and a Bear attack, a second Bear stays home; after combat seat 0 casts Planar Cleansing ('Destroy all nonland permanents'). 'They' are the two attackers (CR 603.2c), indestructible until end of turn, and DESTROY spares an indestructible permanent (CR 702.12b; main 8db1834f): the attackers stay, the Bear that stayed home and the opponent's Giant are destroyed. Seat 1 takes 5 + 2. Before 8db1834f DESTROY ignored the keyword (gate round 10's MINOR-5 made this pack possible); on the base (30fabc4a) the sentence did not compile either (a needs-atom record).",
+ "cards": [
+  {"key": "guardian", "real": "Angelic Guardian", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "homebody", "name": "Homebody", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "wrath", "real": "Planar Cleansing", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"guardian": true, "bear": true}},
+  {"op": "mana", "seat": 0, "add": {"W": 3, "C": 3}},
+  {"op": "cast", "key": "wrath", "controller": 0}
+ ],
+ "expect": {
+  "life": {"1": 13},
+  "zone": {"guardian": "battlefield", "bear": "battlefield", "homebody": "graveyard", "giant": "graveyard", "wrath": "graveyard"}
+ }
+}

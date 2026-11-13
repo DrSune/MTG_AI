@@ -1,8 +1,9 @@
-## zone changes: 4 sentences on 4 cards, 4 blocked (unparsed, or a needs-atom record)
+## zone changes: 5 sentences on 5 cards, 5 blocked (unparsed, or a needs-atom record)
 M20 | Woodland Champion | needs-atom | UNPARSED (triggered) | Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature.
 KHM | Elvish Warmaster | partly-compiled | UNPARSED (triggered) | Whenever one or more other Elves you control enter, create a 1/1 green Elf Warrior creature token.
 M19 | Desecrated Tomb | partly-compiled | UNPARSED (triggered) | Whenever one or more creature cards leave your graveyard, create a 1/1 black Bat creature token with flying.
 THB | Devourer of Memory | partly-compiled | UNPARSED (triggered) | Whenever one or more cards are put into your graveyard from your library, this creature gets +1/+1 until end of turn and can't be blocked this turn.
+IKO | Rielle, the Everwise | partly-compiled | UNPARSED (triggered) | Whenever you discard one or more cards for the first time each turn, draw that many cards.
 
 ## attack and combat damage (round 4): 11 sentences on 11 cards, 8 blocked (unparsed, or a needs-atom record)
 M21 | Basri Ket | verified | B5c-loyalty-soldier-attack-tokens | [−2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.

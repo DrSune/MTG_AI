@@ -59,7 +59,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations import DurationLedger
-from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, GameEvent
+from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, KIND_ZONE_CHANGE, GameEvent
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -363,14 +363,10 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
             return min(left, right)
         raise NotImplementedError(f"executor: QBin op {quantity.op.name}")
     if isinstance(quantity, QCount):
-        from MTG_bot.core.executor.selectors import (
-            resolve_selector,
-        )  # cycle-free at call time
-
         deaths = _died_this_turn_census(quantity.selector, ctx)
         if deaths is not None:
             return deaths
-        return len(resolve_selector(quantity.selector, ctx))
+        return len(read_population(quantity.selector, ctx))
     if isinstance(quantity, QDistinctColorCount):
         from MTG_bot.core.executor.selectors import resolve_selector
 
@@ -511,8 +507,21 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     """CR 603.10a: a leaves-the-battlefield trigger "looks back in time". When the
     firing event is the departure of ``handle`` from the battlefield (its dies row
     or zone change) and the object is gone, its last known information answers for
-    it (Executor.departed_lki). Otherwise None: the caller reads the live object."""
-    return departure_lki(handle, ctx.event, ctx.executor)
+    it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
+    each object it gathered, each in its own row. Otherwise None: the caller reads the
+    live object (a query's context, which carries the bindings but no event, included)."""
+    found = departure_lki(handle, ctx.event, ctx.executor)
+    ex, event = ctx.executor, ctx.event
+    if (
+        found is None
+        and ex is not None
+        and isinstance(event, GameEvent)
+        and event.kind == KIND_ZONE_CHANGE
+        and handle in (ctx.binding_handles("gathered") or ())
+    ):
+        row = next((e for e in ex.binder._occurrences(event) if e.subject == handle), None)
+        found = departure_lki(handle, row, ex)
+    return found
 
 
 def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKnown | None:
@@ -668,11 +677,21 @@ def _register_value(field: QPropField, ctx: ExecCtx) -> int:
     raise NotImplementedError(f"executor: QProp field {field.name} reads no register")
 
 
-def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
-    from MTG_bot.core.executor.selectors import (  # cycle-free at call time
-        resolve_selector,
-    )
+def read_population(sel: Selector, ctx: ExecCtx) -> list[Handle]:
+    """The objects a read of ``sel`` (a count, "the greatest power among them") is about. A
+    gathered event's, Selector(referent="event") over a register of several, are every object it
+    gathered, those no longer among the "they" the effect acts on included (binding.resolve): CR
+    608.2h reads one that has left by its last known information. Any other Selector's are those
+    it resolves to."""
+    from MTG_bot.core.executor.selectors import resolve_selector  # cycle-free at call time
 
+    gathered = ctx.binding_handles("gathered") if sel.referent == "event" else None
+    if gathered is None:
+        return resolve_selector(sel, ctx)
+    return [h for h in gathered if eval_filter(sel.filter, h, ctx)]
+
+
+def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
     if isinstance(prop.referent, str):
         if prop.field in _REGISTER_FIELDS:
             return _register_value(prop.field, ctx)
@@ -687,10 +706,19 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
     # _prop_value (never a zero). An all-undefined population falls to the
     # empty-set 0 below.
     aggregate_pt = prop.field in (QPropField.POWER, QPropField.TOUGHNESS)
+    referent = prop.referent.referent
     values = []
-    for handle in resolve_selector(prop.referent, ctx):
+    for handle in read_population(prop.referent, ctx):
         if aggregate_pt:
-            power, toughness = ctx.effective_pt(handle)
+            # Objects a referent names are read as "its power" is (_prop_value): through their
+            # last known information once they left. A zone's population (Carrion Grub's
+            # graveyard) is read as it is now (CR 400.7).
+            lki = None
+            if referent is not None and handle.namespace == "card":
+                lki = last_known(handle, ctx)
+            power, toughness = (
+                (lki.power, lki.toughness) if lki is not None else ctx.effective_pt(handle)
+            )
             value = power if prop.field is QPropField.POWER else toughness
             if value is None:
                 continue

@@ -139,7 +139,7 @@ from MTG_bot.core.executor.selectors import (
     players_for_ref,
 )
 from MTG_bot.core.identity import Handle
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, ZONE_LIBRARY, GameWorld
 
 if TYPE_CHECKING:  # pragma: no cover - typing only, dodges the import cycle
     from MTG_bot.core.executor import Executor
@@ -929,6 +929,11 @@ class TriggerBinder:
                 for e in journal.turn_window()
                 if e.kind == KIND_DECLARE_ATTACKERS and e.declare_group == event.declare_group
             ]
+        if event.kind != KIND_ZONE_CHANGE or event.batch == 0:
+            # Batch 0 would gather every zone change journalled outside an atom boundary.
+            raise ValueError(
+                f"executor: no event to gather for a {event.kind} row of batch {event.batch}"
+            )
         rows = []
         for e in reversed(journal.events):
             if e.clock < event.batch:  # a batch's rows begin at its own clock
@@ -1555,21 +1560,25 @@ class TriggerBinder:
 
     def pending_references(self) -> frozenset[Handle]:
         """The objects the waiting triggers (queued, or on the stack) still
-        name: their source and their event's subject and cause. A token that left the battlefield stays in the
+        name: their source, their event's subject and cause, and every object a gathered
+        event names (CR 603.2c). A token that left the battlefield stays in the
         world (as its own last-known information) until the triggers its leaving
         caused have resolved; see ``Executor._cease_tokens``."""
         out: set[Handle] = set()
-        waiting = [(p.source, p.event) for p in self.firings.values()]
+        waiting = [(p.source, p.event, p.gathered) for p in self.firings.values()]
         waiting += [
-            (o.source, o.event)
+            (o.source, o.event, o.ctx.binding_handles("gathered"))
             for o in self.executor.stack.frames
             if o.spell_kind == "TRIGGERED"
         ]
-        for source, event in waiting:
+        for source, event, gathered in waiting:
             out.add(source)
             for handle in (event.subject, event.cause):
                 if isinstance(handle, Handle):
                     out.add(handle)
+            # Two tokens that left in one event are read as they last existed ("the greatest
+            # power among them"), not only the one whose row queued the trigger.
+            out.update(gathered or ())
         # What a reflexive trigger read of its creating resolution ("the sacrificed creature"),
         # waiting or on the stack.
         carried = [p.carried.bindings for p in self.firings.values() if p.carried is not None]
@@ -1735,16 +1744,32 @@ class TriggerBinder:
             return "removed"
         gathered = obj.ctx.binding_handles("gathered")
         if gathered is not None:
-            # CR 400.7: "they" are the objects the event gathered; one that has changed zones
-            # since is a new object, which the effect does not touch. "That many" still counts
-            # it (the ``gathered`` register). A reflexive trigger's ctx.event is its creator's.
+            # CR 400.7: "they", as the effect acts on them, are the objects the event gathered.
+            # One that has changed zones since is a new object, which the effect does not
+            # touch; one the event moved is found where it went only if that zone is public
+            # (the rule's exception for an ability that triggers on the move); a token off the
+            # battlefield no longer exists (CR 111.7, 111.8: it can't be moved, and is kept only
+            # as the last known information read below). "That many" still counts every one
+            # (the ``gathered`` register), and "among them" reads every one
+            # (quantity._resolve_prop, CR 608.2h). A reflexive trigger's ctx.event is its
+            # creator's.
             from MTG_bot.core.executor.returns import moved_since
 
             event = obj.ctx.event
             assert isinstance(event, GameEvent)
-            since = max(e.clock for e in self._occurrences(event))
+            rows = self._occurrences(event)
+            since = max(e.clock for e in rows)
+            hidden = {e.subject for e in rows if e.kind == KIND_ZONE_CHANGE
+                      and e.zone_move[1] in (ZONE_HAND, ZONE_LIBRARY)}
+            cards = self.world.cards
             obj.ctx.bindings["event"] = [
-                h for h in gathered if not moved_since(self.executor.journal, h, since)
+                h
+                for h in gathered
+                if h in cards
+                and h not in hidden
+                and not (cards[h].identity.is_token
+                         and self.world.zone_of(h).kind != ZONE_BATTLEFIELD)
+                and not moved_since(self.executor.journal, h, since)
             ]
         kept: list[Handle] | None = None
         if obj.slot_designations and obj.declared_targets:

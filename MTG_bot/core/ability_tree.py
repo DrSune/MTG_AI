@@ -773,8 +773,10 @@ class QUnbounded:
 class QCount:
     """The number of objects a selector matches (Tarmogoyf-class P/T,
     Frantic Inventory's draw count, Gadrak's "for each nontoken creature
-    that died this turn"). Never over a referent Selector: the number of
-    objects an earlier instruction acted on or a gathered event names is
+    that died this turn"). Over a referent Selector only with a filter, the
+    number of some of them ("for each creature card exiled this way", the
+    result register's creature cards): all of them, the number of objects an
+    earlier instruction acted on or a gathered event names, is
     QProp("event", THAT_MANY_COUNT) ("that many"), the one encoding; "source"
     and "controller" name one object."""
 
@@ -785,11 +787,14 @@ class QCount:
             raise ValueError(
                 f"QCount: selector must be a Selector, got {type(self.selector).__name__}"
             )
-        if self.selector.referent is not None:
+        referent, filter_ = self.selector.referent, self.selector.filter
+        if referent is not None and isinstance(filter_, FAnd) and not filter_.children:
             raise ValueError(
                 "QCount: a referent Selector's number is QProp('event', THAT_MANY_COUNT), "
-                f"not a count of Selector(referent={self.selector.referent!r})"
+                f"not a count of Selector(referent={referent!r})"
             )
+        if referent in ("source", "controller"):
+            raise ValueError(f"QCount: Selector(referent={referent!r}) names one object")
 
 
 @dataclass(frozen=True)
@@ -3126,6 +3131,23 @@ def _check_once_per_event(owner: str, event: object, value: object) -> None:
             f"{owner}: once_per_event needs an event that gathers occurrences; this "
             f"{type(event).__name__} has a self or attached subject, damage that is not only "
             "combat damage, or no dealer named"
+        )
+    if (
+        isinstance(event, ZoneChangeEvent)
+        and event.from_zone.kind is ZoneKind.BATTLEFIELD
+        and event.to_zone.kind is ZoneKind.GRAVEYARD
+        and event.subject is not None
+        and any(
+            isinstance(p, FAtom) and p.pred is FAtomPred.TYPE_EQ and p.string_value == "Creature"
+            for p in (event.subject.children if isinstance(event.subject, FAnd) else (event.subject,))
+        )
+    ):
+        # "One or more creatures die" is CreatureDiesEvent's (its was-snapshot, CR 700.4): a
+        # creature's move from the battlefield to a graveyard would be its second encoding
+        # (divergence D24). The binder does not gather a dies event yet.
+        raise ValueError(
+            f"{owner}: once_per_event on a creature put into a graveyard from the battlefield: "
+            "that is a CreatureDiesEvent"
         )
 
 

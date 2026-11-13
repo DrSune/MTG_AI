@@ -26,9 +26,13 @@ from cardtool import _state
 from MTG_bot.core.compiler.coverage import build_full_registry
 
 CLASSES = {
+    # The object first ("one or more tokens ... enter"), or the verb first ("you discard one or
+    # more cards", IKO Rielle, the Everwise: a discard is a zone change, CR 701.8a; gate round
+    # 10's census check found the first version missed it).
     "zone changes": re.compile(
-        r"\b(?:when|whenever)\b[^.]*?\bone or more\b[^.,]*?\b(?:enter|enters|die|dies|leave|leaves|"
-        r"are put into|is put into)\b", re.IGNORECASE),
+        r"\b(?:when|whenever)\b[^.]*?(?:\bone or more\b[^.,]*?\b(?:enter|enters|die|dies|leave|"
+        r"leaves|are put into|is put into)\b|\b(?:discard|discards|sacrifice|sacrifices|mill|mills|"
+        r"exile|exiles)\s+one or more\b)", re.IGNORECASE),
     "attack and combat damage (round 4)": re.compile(
         r"\b(?:when|whenever)\b[^.]*?\bone or more\b[^.,]*?\b(?:attack|attacks|deal combat damage)\b",
         re.IGNORECASE),

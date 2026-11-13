@@ -146,15 +146,27 @@ $PY tools/cards/cardtool.py --help
   - On a flagged declaration or zone change the event register holds every object the event
     gathered (`ability_tree.gathers_objects`). "They" and "those creatures" are
     `Selector(referent='event')`, the same referent form as "it" (Angelic Guardian: `parse` it);
-    an object that has changed zones since is a new object (CR 400.7) and is left out. "That
-    many" is `QProp('event', THAT_MANY_COUNT)`: every object gathered, those that left since
-    included (Woodland Champion's ruling). There is no "it" among several objects: under the flag
-    the IR refuses another QProp of 'event' ("its power"), "attached to it", "until it leaves",
-    "it deals", and an intervening "if" that tests the object (the condition may only count or
-    read the turn: `ability_tree.SUBJECT_FREE`). Anywhere, "its power" is
-    `QProp('event', POWER)`, never a FIRST over `Selector(referent='event')`, and "that many" is
-    THAT_MANY_COUNT, never a QCount of a referent Selector. A gathered combat damage event keeps
-    its one subject, the player (Feline Sovereign's "that player").
+    the engine acts on those still there (not one that changed zones since, CR 400.7, nor one
+    moved into a hand or a library, nor a token off the battlefield). "That many" is
+    `QProp('event', THAT_MANY_COUNT)`: every object gathered, those that left since included
+    (Woodland Champion's ruling). "The greatest power among them" is
+    `QProp(Selector(referent='event'), POWER, MAX)` (SUM for "their total power"): every object
+    gathered, read as it last existed once it left (CR 608.2h). There is no "it" among several
+    objects: under the flag the IR refuses another QProp of 'event' ("its power"), "attached to
+    it", "until it leaves", "it deals", and an intervening "if" that tests the object (the
+    condition may only count or read the turn: `ability_tree.SUBJECT_FREE`). Anywhere, "its
+    power" is `QProp('event', POWER)`, never a FIRST over `Selector(referent='event')`, and "that
+    many" is THAT_MANY_COUNT, never a QCount of a referent Selector. A gathered combat damage
+    event keeps its one subject, the player (Feline Sovereign's "that player").
+  - "For each creature card exiled this way" counts some of the objects an instruction acted on:
+    `QCount(Selector(referent='result', filter=TYPE_EQ 'Creature'))`, a referent count with a
+    filter (over a gathered event's `event`, every object gathered: CR 608.2h). The IR refuses
+    the two other spellings: an unfiltered referent count (THAT_MANY_COUNT's "that many") and
+    `IS_RESULT` in a selector's filter (the referent's second form).
+  - "One or more creatures die" (or "are put into a graveyard from the battlefield") is a
+    `CreatureDiesEvent`: the IR refuses the flag on the zone change from the battlefield to a
+    graveyard over creatures, its second encoding (divergence D24), and the binder does not
+    gather a dies event yet (below).
   - The IR refuses the flag where it changes nothing (`ability_tree.gathers_occurrences`): on
     "this creature" or "equipped creature" (one attacker, dealer or moved object per event), on
     damage that is not only combat damage (`combat` False or None), and with no dealer named.

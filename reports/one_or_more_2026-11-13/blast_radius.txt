@@ -96,3 +96,33 @@ verified trees with an occurrence mutant: 8 (base) -> 28 (branch)
 
 Ontology conformance (tools/audit/ontology_conformance.py, M21 and ZNR): PASS, errors 0, warns 7,
 V4' CHOOSE new_emissions 0, on both checkouts.
+
+Gate round 10's fixes (FIX-THEN-GO on 88b7f7e8), 2026-11-13: de676db0 (88b7f7e8 with main
+8db1834f merged, a git archive) against the fixed branch, the same scripts:
+
+compiler trees changed (0):
+trees with records applied changed (0):
+compiler: fewer unparsed sentences (0):
+compiler: newly compiling whole (0): []
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+verified stamps matching, per set (base -> branch): {'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}
+
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 5 (21 queues); crashes 0 (base) / 0 (branch)
+M20: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 0 (0 queues); crashes 0 (base) / 0 (branch)
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 12 (63 queues); crashes 0 (base) / 0 (branch)
+
+The fixes' first version (the gathered-row lookup unguarded in a query) against de676db0:
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 93; identical journals 93; games queueing a flagged trigger 12 (20 queues); crashes 0 (base) / 7 (branch)
+(7 games crashed with AttributeError when Battlesong Berserker chose its target among its
+attackers; guarded before any commit, pinned by
+test_battlesong_berserker_targets_one_of_the_attackers_it_gathered.)
+
+G3 on the fixed branch against 30fabc4a:
+verified trees with an occurrence mutant: 8 (base) -> 28 (branch)
+
+30fabc4a against the fixed branch, compiler trees:
+compiler trees changed (3):
+   M19 Desecrated Tomb
+   M20 Angelic Guardian
+   M20 Woodland Champion

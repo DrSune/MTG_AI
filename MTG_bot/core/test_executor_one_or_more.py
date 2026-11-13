@@ -1,19 +1,22 @@
-"""One or more objects moved at once (2026-11-13, ontology round R10, gate round 10): a
-zone-change trigger that gathers the objects one event moves (CR 603.2c), and "they" for the
-attackers a declaration gathers.
+"""One or more objects moved at once (2026-11-13, ontology round R10, DESIGN_ATOM_ONTOLOGY §14;
+gate round 10 FIX-THEN-GO, fixed): a zone-change trigger that gathers the objects one event moves
+(CR 603.2c), and "they" for the attackers a declaration gathers.
 
 - ``TriggeredAbility.once_per_event`` on a ZoneChangeEvent whose subject is not the source or what
   it is attached to: one trigger for the objects one atom boundary moves (the tokens one effect
   creates, the cards one instruction or one state-based-action check moves; a draw is one card at
   a time, CR 121.2), ``GameEvent.batch``.
 - Under the flag, on a declaration or a zone change, the event register holds every object the
-  event gathered: Selector(referent="event") is all of them ("they", Angelic Guardian, the ones
-  that changed zones since excluded, CR 400.7) and QProp("event", THAT_MANY_COUNT) their number
-  ("that many", Woodland Champion, the ones that left included: its ruling). A gathered combat
-  damage event keeps its one subject (Feline Sovereign).
-- The IR refuses the flag on a zone change of one object (a second encoding), a read of one
-  object of a gathered register ("its power"), and a count of a referent Selector (a second
-  encoding of THAT_MANY_COUNT).
+  event gathered. Selector(referent="event") is "they" (Angelic Guardian): those the effect can
+  still act on, not one that changed zones since (CR 400.7), was moved into a hidden zone or is a
+  token off the battlefield (CR 111.8). QProp("event", THAT_MANY_COUNT) is their number ("that
+  many", Woodland Champion, the ones that left included: its ruling), and "among them" (an
+  aggregate or a filtered count over the referent) reads every one, by its last known
+  information once it left (CR 608.2h). A gathered combat damage event keeps its one subject
+  (Feline Sovereign).
+- The IR refuses the flag on a zone change of one object and on a creature's death written as a
+  zone change (second encodings), a read of one object of a gathered register ("its power"), and
+  an unfiltered count of a referent Selector (a second encoding of THAT_MANY_COUNT).
 
 Every test here fails on the base, 30fabc4a, except the controls named in
 ``reports/one_or_more_2026-11-13/base_runs.txt``, which pin what the base already did right.
@@ -47,9 +50,14 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.executor.decisions import in_trigger_order
-from MTG_bot.core.executor.events import KIND_COUNTER_PLACED, KIND_LIFE_GAINED, KIND_ZONE_CHANGE
+from MTG_bot.core.executor.events import (
+    KIND_COUNTER_PLACED,
+    KIND_LIFE_GAINED,
+    KIND_ZONE_CHANGE,
+    GameEvent,
+)
 from MTG_bot.core.executor.games import get_supply
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
 from MTG_bot.core.test_executor_binding import BindingCase, atom, card_id, record_of, referent_sel
 from tools.run_scenarios import ScenarioRunner
 
@@ -251,6 +259,36 @@ def test_a_count_of_a_referent_selector_is_refused(referent) -> None:
         at.QCount(referent_sel(referent))
 
 
+def test_a_count_of_some_of_them_is_a_filtered_referent_count() -> None:
+    """Gate round 10's nit: "for each creature card exiled this way" counts some of the objects
+    an instruction acted on, which THAT_MANY_COUNT cannot (it has no filter), and IS_RESULT in a
+    selector's filter is refused as a second form of the referent: its one encoding is a QCount
+    over the referent Selector with the filter. "Source" and "controller" name one object."""
+    for referent in ("event", "result", "target"):
+        at.QCount(referent_sel(referent, CREATURE))
+    for referent in ("source", "controller"):
+        with pytest.raises(ValueError, match="names one object"):
+            at.QCount(referent_sel(referent, CREATURE))
+
+
+def test_one_or_more_creatures_dying_is_not_a_zone_change() -> None:
+    """Gate round 10, MINOR-3 (divergence D24): "one or more creatures die" is CreatureDiesEvent's
+    (CR 700.4); flagged, a creature's move from the battlefield to a graveyard would be its
+    second encoding. Without a creature in the subject, or to another zone, the zone change is
+    the one form and stands."""
+    dies = Zone(ZoneKind.BATTLEFIELD, YOU), Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+    for subject in (CREATURE, FAnd((CREATURE, YOU_ARE)), FAnd((CREATURE, FNot(SELF)))):
+        with pytest.raises(ValueError, match="that is a CreatureDiesEvent"):
+            TriggeredAbility(ZoneChangeEvent(*dies, subject=subject), None, _gain(THAT_MANY),
+                             once_per_event=True)
+        TriggeredAbility(ZoneChangeEvent(*dies, subject=subject), None, _gain(QConst(1)))
+    artifact = FAtom(FAtomPred.TYPE_EQ, string_value="Artifact")
+    for event in (ZoneChangeEvent(*dies, subject=artifact),
+                  ZoneChangeEvent(*dies, subject=at.FOr((CREATURE, artifact))),
+                  ZoneChangeEvent(Zone(ZoneKind.BATTLEFIELD, YOU), ANY, subject=CREATURE)):
+        TriggeredAbility(event, None, _gain(THAT_MANY), once_per_event=True)
+
+
 class TestTheBinderGathersOnlyWhatItGroups(BindingCase):
     def test_a_flag_on_a_sacrifice_is_refused_at_bind(self) -> None:
         """A sacrifice is a ZONE_CHANGE row too, but SacrificeEvent is not grouped: flagged, it
@@ -349,6 +387,157 @@ class TestOneEvent(BindingCase):
         assert len(rows) == 2 and all(len(row) == 6 for row in self.ex.journal.dump())
         assert rows[0].batch == rows[1].batch == rows[0].clock
 
+    def test_a_zone_change_without_a_batch_fails_loudly(self) -> None:
+        """Gate round 10, MINOR-6: batch 0 is "outside an atom boundary"; a zone change there
+        would be gathered with every other such row of the game. The journal refuses the row,
+        and the binder refuses to gather a batch-0 zone change."""
+        with self.assertRaisesRegex(ValueError, "journalled by its atom boundary"):
+            self.ex.journal.emit(KIND_ZONE_CHANGE, self.libs[0], None, "TEST",
+                                 ("LIBRARY", "HAND", self.p0, self.p0))
+        loose = GameEvent(clock=1, kind=KIND_ZONE_CHANGE, subject=self.libs[0], cause=None,
+                          cause_verb="TEST", data=("LIBRARY", "HAND", self.p0, self.p0))
+        with self.assertRaisesRegex(ValueError, "no event to gather"):
+            self.ex.binder._occurrences(loose)
+
+    def test_a_batch_gathers_only_the_rows_its_trigger_matches(self) -> None:
+        """Gate round 10, MINOR-4: one instruction puts two creatures and an artifact onto the
+        battlefield; "one or more creatures you control enter" counts the two."""
+        self._gathering(_enters(FAnd((CREATURE, FNot(SELF)))))
+        moved = [self.world.add_card(card_id(n, "2", "2"), self.p0, ZONE_HAND) for n in ("A", "B")]
+        moved.append(self.world.add_card(card_id("Rock", type_line="Artifact"), self.p0, ZONE_HAND))
+        self.ex.execute(_move(Zone(ZoneKind.BATTLEFIELD, YOU)), source=self.watch,
+                        controller=self.p0, bindings={"cards": moved})
+        assert all(self.world.zone_of(h).kind == ZONE_BATTLEFIELD for h in moved)
+        assert self.gains() == [2]
+
+    def test_two_tokens_that_die_in_the_check_after_entering_are_still_counted(self) -> None:
+        """Gate round 10, MINOR-4: two 0/0 tokens die in the state-based check right after they
+        enter, before the trigger goes on the stack. It gathered them as the event occurred
+        (CR 603.10, each row judged as it happened), so "that many" is 2; gathering when the
+        trigger is put on the stack would find no token you control."""
+        self._gathering(_enters(FAnd((FAtom(FAtomPred.IS_TOKEN), YOU_ARE))))
+        spec = TokenSpec(name="Spark", type_line="Creature — Elemental", types=("Creature",),
+                         subtypes=("Elemental",), power=QConst(0), toughness=QConst(0),
+                         keywords=(), abilities=(), colors=("R",))
+        self.ex.execute(Atom(Verb.CREATE_TOKEN, AtomArgs(pairs=(("count", QConst(2)),
+                                                                ("tokens", spec)))),
+                        source=self.watch, controller=self.p0)
+        assert not any(c.identity.name == "Spark" for c in self.world.cards.values())
+        assert self.gains() == [2]
+
+
+class TestTheGatheredObjectsAtResolution(BindingCase):
+    """What "they" and "among them" are when a gathered trigger resolves (gate round 10). The
+    trigger is held while the objects move, and resolves in the next op: nothing of the op the
+    objects moved in answers for them there."""
+
+    LEAVE = ZoneChangeEvent(Zone(ZoneKind.BATTLEFIELD, YOU), ANY,
+                            subject=FAnd((CREATURE, FNot(SELF))))
+    EXILE_THEM = atom(Verb.MOVE_ZONE, cards=referent_sel("event"),
+                      destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+
+    def _watch(self, event, effect) -> None:
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [
+            TriggeredAbility(event, None, effect, once_per_event=True)]))
+
+    def _held(self, objects, destination) -> None:
+        """One instruction moves ``objects``; the trigger waits."""
+        self.ex.binder.hold = True
+        try:
+            self.ex.execute(_move(destination), source=self.watch, controller=self.p0,
+                            bindings={"cards": objects})
+        finally:
+            self.ex.binder.hold = False
+
+    def _next_op(self) -> None:
+        self.ex.execute(_gain(QConst(1)), source=self.watch, controller=self.p1)
+
+    def gains(self) -> list[int]:
+        return [e.data[0] for e in self.ex.journal.events
+                if e.kind == KIND_LIFE_GAINED and e.subject == self.p0]
+
+    def _among_them(self, agg, filter_=at.FAnd(())) -> at.Seq:
+        among = QProp(referent=referent_sel("event", filter_), field=QPropField.POWER, agg=agg)
+        return at.Seq((_gain(among), self.EXILE_THEM))
+
+    def _tokens_leave(self, effect) -> list:
+        """Gate round 10, MAJOR-1: two tokens leave in one instruction, one with two +1/+1
+        counters. 88b7f7e8 let the second cease to exist before the trigger resolved (only the
+        first row's object was kept for it): "the greatest power among them" raised KeyError
+        reading it, and "among the creatures among them" skipped it. Every token is read by its
+        last known information (CR 608.2h), and "exile them" moves none: a token that has left
+        the battlefield can't change zones (CR 111.8) and ceases to exist (CR 111.7)."""
+        self._watch(self.LEAVE, effect)
+        self.ex.execute(_soldiers(2), source=self.watch, controller=self.p0)
+        tokens = sorted(h for h, c in self.world.cards.items() if c.identity.name == "Soldier")
+        self.world.cards[tokens[1]].counters["PLUS_1_PLUS_1"] = 2
+        self._held(tokens, Zone(ZoneKind.GRAVEYARD, ControllerRef.OWNER))
+        self._next_op()
+        assert not [e for e in self.ex.journal.events if e.kind == KIND_ZONE_CHANGE
+                    and e.subject in tokens and e.zone_move[0] == ZONE_GRAVEYARD]
+        assert not any(t in self.world.cards for t in tokens)
+        return self.gains()
+
+    def test_the_greatest_power_among_tokens_that_left_at_once(self) -> None:
+        assert self._tokens_leave(self._among_them(at.QAgg.MAX)) == [3]
+
+    def test_the_total_power_of_the_creatures_among_tokens_that_left_at_once(self) -> None:
+        assert self._tokens_leave(self._among_them(at.QAgg.SUM, CREATURE)) == [4]
+
+    def test_creature_cards_that_died_at_once_are_read_as_they_last_existed(self) -> None:
+        """Gate round 10, MAJOR-1: two creature cards die in one instruction, one a 3/3 with a
+        +1/+1 counter. The aggregate read their cards in the graveyard, where the counter is gone
+        (CR 122.2), and gained 2; "the greatest power among them" is 3 (CR 608.2h). "Exile them"
+        finds both in the graveyard they went to (CR 400.7: an ability that triggers on the move
+        finds the new object in the public zone it moved to)."""
+        bears = [self.world.add_card(card_id(f"Bear{i}", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+                 for i in range(2)]
+        self.world.cards[bears[1]].counters["PLUS_1_PLUS_1"] = 1
+        self._watch(self.LEAVE, self._among_them(at.QAgg.MAX))
+        self._held(bears, Zone(ZoneKind.GRAVEYARD, ControllerRef.OWNER))
+        self._next_op()
+        assert self.gains() == [3]
+        assert all(self.world.zone_of(b).kind == ZONE_EXILE for b in bears)
+
+    def test_a_count_among_them_reads_every_object_gathered(self) -> None:
+        """"For each token among them": a QCount over the event referent with a filter, the one
+        encoding of "for each <kind> ... this way" (gate round 10's nit). Two tokens and a Bear
+        leave at once; the tokens are not among "they" any more, but the count is about every
+        object the event gathered (CR 608.2h)."""
+        self._watch(self.LEAVE, _gain(at.QCount(referent_sel("event", FAtom(FAtomPred.IS_TOKEN)))))
+        self.ex.execute(_soldiers(2), source=self.watch, controller=self.p0)
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        tokens = sorted(h for h, c in self.world.cards.items() if c.identity.name == "Soldier")
+        self._held([*tokens, bear], Zone(ZoneKind.GRAVEYARD, ControllerRef.OWNER))
+        self._next_op()
+        assert self.gains() == [2]
+
+    def test_they_are_not_found_in_a_hidden_zone(self) -> None:
+        """An ability that triggers on a move finds the new object where it went only if that
+        zone is public (CR 400.7's exception). Two creatures returned to their owner's hand at
+        once are counted ("that many"), and "exile them" does not take them from the hand."""
+        self._watch(self.LEAVE, at.Seq((_gain(THAT_MANY), self.EXILE_THEM)))
+        bears = [self.world.add_card(card_id(f"Bear{i}", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+                 for i in range(2)]
+        self._held(bears, Zone(ZoneKind.HAND, ControllerRef.OWNER))
+        self._next_op()
+        assert self.gains() == [2]
+        assert all(self.world.zone_of(b).kind == ZONE_HAND for b in bears)
+
+    def test_they_leave_out_a_gathered_object_that_changed_zones_since(self) -> None:
+        """Gate round 10, MINOR-4: the CR 400.7 check of "they" on a zone-change event (the
+        declaration's is Angelic Guardian's pack). Two creatures enter at once; one is returned
+        to its owner's hand before the trigger resolves: "exile them" exiles the other, and the
+        card in hand is a new object it does not touch."""
+        self._watch(_enters(FAnd((CREATURE, FNot(SELF)))), self.EXILE_THEM)
+        bears = [self.world.add_card(card_id(f"Bear{i}", "2", "2"), self.p0, ZONE_HAND)
+                 for i in range(2)]
+        self._held(bears, Zone(ZoneKind.BATTLEFIELD, YOU))
+        self.ex.execute(_move(Zone(ZoneKind.HAND, ControllerRef.OWNER)), source=self.watch,
+                        controller=self.p0, bindings={"cards": bears[1:]})
+        assert self.world.zone_of(bears[0]).kind == ZONE_EXILE
+        assert self.world.zone_of(bears[1]).kind == ZONE_HAND
+
 
 # --------------------------------------------------------------------- Woodland Champion
 
@@ -423,6 +612,21 @@ def test_basri_ket_counts_an_attacker_that_died_before_its_trigger_resolved() ->
                 "respond_to_triggers": {"DECLARE_ATTACKERS": [
                     {"op": "move", "key": "bear", "to": "graveyard"}]}})
     assert sum(1 for c in r.world.cards.values() if c.identity.name == "Soldier") == 1
+
+
+def test_battlesong_berserker_targets_one_of_the_attackers_it_gathered() -> None:
+    """FDN Battlesong Berserker (verified): "Whenever you attack, target creature you control gets
+    +1/+0 and gains menace until end of turn." Its target is chosen as it goes on the stack, by a
+    query that carries the gathered attackers but no event, and asks "a creature you control" of
+    each; the last-known lookup of a gathered object's own row must not run there (the gate
+    round 10 fixes' first version raised AttributeError in 7 of 100 FDN replays)."""
+    r = _runner("FDN", [_real("berserker", "Battlesong Berserker"), _creature("bear")])
+    r.run_step({"op": "combat", "seat": 0, "attack": {"berserker": True, "bear": True}})
+    r.ex.layers.recompute()
+    menace = [k for k in ("berserker", "bear")
+              if r.ex.layers.keyword_of(r.handles[k], Keyword.MENACE)]
+    assert len(menace) == 1
+    assert r.world.players[r.world.player_order[1]].life == 20 - 3 - 2 - 1
 
 
 # ---------------------------------------------------------------------- Angelic Guardian

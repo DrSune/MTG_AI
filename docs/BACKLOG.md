@@ -84,11 +84,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature put onto the battlefield attacking gets no DECLARE_ATTACKERS row (CR 508.4).
   - The binder groups an event's occurrences only for a declaration (its DECLARE_ATTACKERS rows
     share a group), a zone change (the rows of one atom boundary share a `GameEvent.batch`;
-    ontology round R10, gate round 10 pending: M20 Woodland Champion, M19 Desecrated Tomb) and a
+    ontology round R10, gate round 10: M20 Woodland Champion, M19 Desecrated Tomb) and a
     combat damage step (its DAMAGE rows to one recipient,
     gathering the dealers `source` names). A once-per-event trigger on any other event kind
     ("one or more creatures die", a sacrifice) refuses to bind (`binding._check_trigger`; a
-    granted one, never bound, is refused when it triggers). None is printed in the 19 sets.
+    granted one, never bound, is refused when it triggers), and the IR refuses the flag on a
+    creature's move from the battlefield to a graveyard, a death's second encoding (D24). None is
+    printed in the 19 sets.
   - Within those two kinds the grouping is fixed, and the IR cannot yet say otherwise: "attacks a
     planeswalker you control with one or more creatures" (WAR Oath of Kaya) and "you attack a
     player with one or more" (ZNR Akiri) need one trigger per attacked object, and "one or more
@@ -207,7 +209,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   matches only the rows on its side of its own row. Affects per-object triggers ("whenever another
   creature you control dies" on two creatures killed by one wrath: each should trigger for the
   other) and the gathered ones (a "one or more other Elves enter" holder entering with them in
-  one atom; the gather reads the whole batch, but only once the holder is attached).
+  one atom; the gather reads the whole batch, but only once the holder is attached). A gathered
+  holder that leaves with its objects is all or nothing by handle order (gate round 10's MINOR-2):
+  a DESTROY of a Watchdog holding "whenever one or more other creatures you control leave the
+  battlefield" and three creatures gives no trigger when the Watchdog's row comes first, where CR
+  603.10a gives one trigger counting 3 (`reports/one_or_more_2026-11-13/holder_leaves_with_them.py
+  <checkout>`: gains [] where the rules give [3]).
   `reports/one_or_more_2026-11-13/simultaneous_movers.py <checkout>`: two such creatures dying to
   one DESTROY, or entering in one move, gain 1 life where the rules give 2, on 30fabc4a and on the
   round-10 branch. The fix: attach every
@@ -227,6 +234,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   of the Peaks' "that creature's power", CR 608.2h). Its reach: the verified trees with an event
   referent Selector, 15 in M21, M20 and FDN (`tree_dump.py`'s event-selector fact; some are
   replacement actions, whose `event` the drain binds).
+- **One instruction run once per player through EachPlayer is several events** (2026-11-13, gate
+  round 10's MINOR-1). `Executor` runs an EachPlayer body as one sub-execution per player
+  (executor/__init__.py, the EachPlayer branch of `_run_effect`), each its own atom boundary, so
+  "each player sacrifices a creature" moves its creatures in one batch per player. CR 101.4: the
+  players choose in APNAP order, then the actions happen at the same time, one event. Against a
+  flagged "whenever one or more other creatures leave the battlefield, you gain that much life" it
+  gains 1 twice where the rules give one trigger counting 2
+  (`reports/one_or_more_2026-11-13/eachplayer_split.py <checkout>`). Every EachPlayer zone-change tree is one
+  iteration with two players (several in Commander); none is beside a gathered trigger in the 19
+  sets' verified pools. The fix: one batch for the sub-executions of one EachPlayer (the journal
+  rows of its players' atoms share the first one's batch), with its own blast radius (every
+  per-object trigger on those moves sees the same rows; only gathered triggers count them
+  differently).
 - **A replaced death is its own event** (2026-11-13, round R10). A dies-window replacement's exile
   (Scorching Dragonfire) runs as its own atom after the state-based check
   (`Executor._state_checks`), so a gathered "one or more creatures are put into exile"
@@ -314,24 +334,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Effects, zones and replacements
 
-- **DESTROY destroys an indestructible permanent** (2026-11-13, found building ontology round R10;
-  open, not fixed in that branch). CR 702.12b: "A permanent with indestructible can't be
-  destroyed." `verbs._to_graveyard`, the DESTROY verb, moves every target to its graveyard and
-  never reads the keyword; only the state-based check for lethal damage does
-  (`Executor._lethal_creatures`). Experiment: a creature granted indestructible, then DESTROY:
-  it is in the graveyard, on 30fabc4a and on the round-10 branch
-  (`reports/one_or_more_2026-11-13/destroy_indestructible.py <checkout>`). Stronger than printed for every
-  removal spell against Heroic Intervention, Basri Ket's +1, Selfless Savior, Seasoned Hallowblade,
-  Vivien Reid's emblem and Angelic Guardian; packs dodge it (Heroic Intervention's verified pack
-  rides hexproof). The fix: DESTROY skips an indestructible permanent (a sacrifice is no destroy,
-  CR 701.21a, and still moves it); its blast radius is verified play.
 - **A referent Selector over a register that binds several objects takes the first** (2026-11-13,
   round R10). The referent form is CHOOSE/QConst(1) (convention C2), and `resolve_selector`'s
   CHOOSE fold slices it to one handle, whatever its register holds: a GRANT_ABILITY, MOVE_ZONE,
   DESTROY, PUT_COUNTER or TAP over `Selector(referent='result')` bound to two objects acts on one.
   See the Truth's "put each of those cards into your hand" is one case (above). Round R10 makes
-  the `event` referent name every object bound (a gathered event's); `result` and `target` keep
-  the slice until their plural reads are audited, card by card.
+  the `event` referent name every object bound (a gathered event's), in `resolve_selector` and in
+  MOVE_ZONE's own count clamp (`verbs._v_move_zone`, which still moved the first of "them" until
+  gate round 10's fixes); `result` and `target` keep the slice until their plural reads are
+  audited, card by card.
 - **The life-gain replacement lane applies records in record order and never asks** (2026-11-13):
   `ReplacementRegistry.replacement_for_life_gained` returns the first live record, where CR 616.1
   lets the gaining player choose the order (the damage lane asks, `_choose`). Two Angels of
@@ -1012,7 +1023,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   enter", once_per_event) waits with it, since alone it loops on its own Elf Warrior token. THB
   Devourer of Memory's head would take a frame like Desecrated Tomb's (LIBRARY -> GRAVEYARD, a
   mill being one event), but its clause, "this creature gets +1/+1 until end of turn and can't be
-  blocked this turn", has no template, so no frame is added for it yet.
+  blocked this turn", has no template, so no frame is added for it yet. IKO Rielle, the Everwise's
+  "whenever you discard one or more cards for the first time each turn, draw that many cards"
+  needs the once-each-turn limit too (the first census missed its verb-first wording).
 - **Card backlog wave 3: the plan** (2026-11-13; a read-only census of M20's 55 castable-unverified
   cards, by package and by reach in the other 18 sets).
   - **The order:**
@@ -1024,10 +1037,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
        and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away.
     3. **Gathered zone-change events** (`once_per_event` on ZoneChangeEvent, `event` as the
        gathered set). Covers Woodland Champion and Angelic Guardian, and makes a new kept green-
-       white token package. Built (ontology round R10, DESIGN_ATOM_ONTOLOGY §13, gate round 10
-       pending); the two M20 records are re-mapped to the compiler's trees, not verified. The
-       census found 4 zone-change "one or more" sentences in the 19 sets, not 17, and none in FDN
-       (NUMBERS.md 2026-11-13, round 10).
+       white token package. Built (ontology round R10, DESIGN_ATOM_ONTOLOGY §14, gate round 10
+       FIX-THEN-GO, fixed); the two M20 records are re-mapped to the compiler's trees, not
+       verified. The census found 5 zone-change "one or more" sentences in the 19 sets, not 17,
+       and none in FDN (NUMBERS.md 2026-11-13, round 10).
   - **Ungated, beside them:**
     - player hexproof;
     - Cavalier of Dawn (no token without a target);
@@ -1225,7 +1238,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   every per-object zone-change trigger over another object: 20 more verified trees (8 -> 28,
   `reports/one_or_more_2026-11-13/g3_occurrence.py`; Garruk's Uprising, Thieves' Guild Enforcer,
   Watcher of the Spheres, Bishop of Wings, Marauding Raptor, Omnath, Tatyova, ...). Their stamps
-  stand (their trees did not change), but no probe stimulus enters or kills two objects in one
+  stand (their trees did not change) and predate the mutant (gate round 10's merge condition 5):
+  no dead-role or equivalence rule in `gates.mutants` absorbs it, since one event of two objects
+  triggers once or twice, and no probe stimulus enters or kills two objects in one
   instruction, so a re-verification needs a pack that does (Raise the Alarm's two Soldiers, a
   wrath). A probe stimulus "two creatures enter under your control at once" (and "two of your
   creatures die at once") would kill it for every card; it changes every probe sha, so it waits for
