@@ -78,7 +78,9 @@ def spread(runs: list[Path]) -> tuple[dict, dict]:
 
 
 def paired(base: dict[int, float], other: dict[int, float], reps: int = 10000) -> str:
-    """other minus base over the seeds both hold, with a bootstrap 95% interval over the seeds."""
+    """other minus base over the seeds both hold, with a bootstrap 95% interval over the seeds;
+    then the same difference unpaired, over every deal of each (the better estimate when the deal
+    scores do not correlate and one shape has more deals)."""
     seeds = sorted(set(base) & set(other))
     if len(seeds) < 2:
         return f"{len(seeds)} shared seeds"
@@ -88,8 +90,12 @@ def paired(base: dict[int, float], other: dict[int, float], reps: int = 10000) -
                            for _ in range(reps // 1000)])
     lo, hi = np.quantile(boot, [0.025, 0.975])
     corr = np.corrcoef([base[s] for s in seeds], [other[s] for s in seeds])[0, 1]
+    (mb, sb), (mo, so) = mean_se(list(base.values())), mean_se(list(other.values()))
+    su = math.sqrt(sb ** 2 + so ** 2)
     return (f"{d.mean():+.4f} [{lo:+.4f}, {hi:+.4f}] (SE {d.std(ddof=1) / math.sqrt(len(d)):.4f}) "
-            f"over {len(seeds)} shared seeds, deal-score correlation {corr:+.2f}")
+            f"over {len(seeds)} shared seeds, deal-score correlation {corr:+.2f}; unpaired "
+            f"{mo - mb:+.4f} [{mo - mb - 1.96 * su:+.4f}, {mo - mb + 1.96 * su:+.4f}] "
+            f"({len(base)} and {len(other)} deals)")
 
 
 def part1(out: Path) -> None:
@@ -118,14 +124,15 @@ def part1(out: Path) -> None:
             n = len(fell)
             turns = [x["turns"] for g in r["valid"].values() for x in g.values()]
             st = last_eval(r["run"]).get("search", {})
-            per_game = (lambda key: st.get(key, 0) / (2 * n)) if st else (lambda key: math.nan)
-            changed = st.get("changed", 0) / max(st.get("searched", 0), 1) if st else math.nan
+            searched, changed, clear = ((st.get("searched", 0) / (2 * n),
+                                         st.get("changed", 0) / max(st.get("searched", 0), 1),
+                                         st.get("clear", 0) / (2 * n)) if st else (math.nan,) * 3)
             print(f"{sh:<9} {n:>5} {m:>7.4f} {se:>7.4f} [{m - 1.96 * se:.4f}, {m + 1.96 * se:.4f}] "
                   f"{elo(m):>+6.1f} {sum(f == [1.0, 1.0] for f in fell) / n:>6.3f} "
                   f"{sum(f == [0.0, 0.0] for f in fell) / n:>6.3f} "
                   f"{sum(f not in ([1.0, 1.0], [0.0, 0.0]) for f in fell) / n:>6.3f} "
                   f"{sum(turns) / len(turns):>6.1f} {len(r['all']) - n:>7} "
-                  f"{per_game('searched'):>6.2f} {changed:>6.3f} {per_game('clear'):>7.3f}")
+                  f"{searched:>6.2f} {changed:>6.3f} {clear:>7.3f}")
         for sh in SHAPES[1:]:
             if sh in scores and "coherent" in scores:
                 print(f"  {sh} - coherent: {paired(scores['coherent'], scores[sh])}")
@@ -180,7 +187,8 @@ def part2(out: Path) -> dict[str, float]:
           f"{max(pool[m] for m in nets) - min(pool[m] for m in nets):>7.1f} " + " ".join(
               f"{max(f[m] for m in nets if m in f) - min(f[m] for m in nets if m in f):>9.1f}"
               for f in by_shape.values()))
-    print("\npairings: the first member's score over deals (+- SE, deals)")
+    print("\npairings: the first member's score over deals (+- SE, deals); the all-shape fit's "
+          "expected score and the observed one's distance from it in SEs")
     for (a, b), per in sorted(pairs.items(), key=lambda kv: (pool[kv[0][0]], pool[kv[0][1]])):
         cells = []
         for sh in (*SHAPES, "all"):
@@ -188,7 +196,9 @@ def part2(out: Path) -> dict[str, float]:
             if xs:
                 m, se = mean_se(xs)
                 cells.append(f"{sh} {m:.3f} +- {se:.3f} ({len(xs)})")
-        print(f"  {label[a]} vs {label[b]}: " + "; ".join(cells))
+        expected = 1 / (1 + 10 ** ((pool[b] - pool[a]) / 400))
+        print(f"  {label[a]} vs {label[b]}: " + "; ".join(cells)
+              + f"; fit {expected:.3f}, z {(m - expected) / se if se > 0 else math.nan:+.1f}")
     return pool
 
 
