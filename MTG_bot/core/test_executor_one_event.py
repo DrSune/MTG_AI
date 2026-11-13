@@ -507,8 +507,9 @@ class TestWhatOneEventIs(_Case):
         assert self.gains(self.p0) == [1] and self.gains(self.p1) == [1]
 
     def test_a_return_still_comes_when_a_step_of_the_event_is_skipped(self) -> None:
-        """The guarded effect lane skips a step whose anaphora has no antecedent and goes on; the
-        sacrifice before it in the same EachPlayer still ended the "until", so the card returns."""
+        """Control. The guarded effect lane skips a step whose anaphora has no antecedent and goes
+        on; the sacrifice before it in the same EachPlayer still ended the "until", so the card
+        returns, once the event is over."""
         [anchor] = self.creatures(1, [])
         exiled = self.world.add_card(card_id("Exiled", "1", "1"), self.p0, ZONE_GRAVEYARD)
         until = atom(Verb.MOVE_ZONE, cards=EVERY, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
