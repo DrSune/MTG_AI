@@ -70,7 +70,7 @@ print("other choices of a quality (a name, or at resolution):")
 for row in others:
     print("  ", row)
 print()
-# the creature-type menus of the trained pools (Supply.creature_types: cards and creature tokens)
+# the creature-type menus of the trained pools (Supply.creature_types: cards, creature tokens, type grants)
 from MTG_bot.core.executor.games import get_supply  # noqa: E402 - the slow part last
 
 for code in ("M21", "M20", "FDN"):
@@ -78,4 +78,4 @@ for code in ("M21", "M20", "FDN"):
     cards = {t for oid in supply.deckable for t in supply.metas[oid].type_line.partition("—")[2].split()
              if "Creature" in supply.metas[oid].type_line.partition("—")[0]}
     print(f"{code} verified pool: {len(supply.creature_types)} creature types in the menu, "
-          f"{sorted(set(supply.creature_types) - cards)} from tokens alone")
+          f"{sorted(set(supply.creature_types) - cards)} from tokens or type grants alone")

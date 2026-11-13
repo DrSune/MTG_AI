@@ -196,7 +196,7 @@ def _gather(ent_ext: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:
                         .expand(-1, -1, d))
 
 
-def _widened(a: np.ndarray, width: int) -> np.ndarray:
+def widened(a: np.ndarray, width: int) -> np.ndarray:
     """``a`` with zero columns appended up to ``width``. Columns are only ever appended
     (C_CHOSEN, O_VALUE on 2026-11-13), and 0 is none, so an encoding recorded before one existed
     (a ceiling window's --search-record shards, a simulator's views) reads exactly."""
@@ -220,11 +220,11 @@ def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dic
     opt_mask = np.zeros((bsz, k), bool)
     for i, o in enumerate(obs):
         n = o["cards_i"].shape[0]
-        cards_i[i, :n] = _widened(o["cards_i"], FT.CI)
+        cards_i[i, :n] = widened(o["cards_i"], FT.CI)
         cards_f[i, :n] = o["cards_f"]
         card_mask[i, :n] = True
         m = o["opts_i"].shape[0]
-        opts_i[i, :m] = _widened(o["opts_i"], FT.OI)
+        opts_i[i, :m] = widened(o["opts_i"], FT.OI)
         opts_f[i, :m] = o["opts_f"]
         opt_mask[i, :m] = True
     out = {
@@ -296,13 +296,13 @@ def collate_packed(p: Packed, idx: np.ndarray, device: torch.device | str) -> di
     c_rows, c_mask = _rows(p.c_off, idx)
     o_rows, o_mask = _rows(p.o_off, idx)
     out = {
-        "cards_i": _widened(p.cards_i[c_rows].astype(np.int64), FT.CI) * c_mask[..., None],
+        "cards_i": widened(p.cards_i[c_rows].astype(np.int64), FT.CI) * c_mask[..., None],
         "cards_f": p.cards_f[c_rows].astype(np.float32) * c_mask[..., None],
         "card_mask": c_mask,
         "players_f": p.players_f[idx].astype(np.float32),
         "glob_f": p.glob_f[idx].astype(np.float32),
         "ask_i": p.ask_i[idx].astype(np.int64),
-        "opts_i": _widened(p.opts_i[o_rows].astype(np.int64), FT.OI) * o_mask[..., None],
+        "opts_i": widened(p.opts_i[o_rows].astype(np.int64), FT.OI) * o_mask[..., None],
         "opts_f": p.opts_f[o_rows].astype(np.float32) * o_mask[..., None],
         "opt_mask": o_mask,
     }
@@ -404,32 +404,39 @@ def save(path: str, model: PolicyValueNet, table: FT.CardTable, extra: dict | No
     atomic_write(path, lambda tmp: torch.save(ck, tmp))
 
 
+def upgraded(state: dict, model: nn.Module, prefix: str = "") -> dict:
+    """A checkpoint's ``state`` (a PolicyValueNet's, under ``prefix`` inside ``model``: the
+    simulator's ``view.``) in this code's shapes, the old network computing what it computed
+    before."""
+    state = dict(state)
+    # ask kinds and option types appended since this checkpoint start as what they were encoded
+    # as before: the ASK_GROWN_FROM kind or "other"
+    for key, names, index, grown_from in (
+            ("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX, FT.ASK_GROWN_FROM),
+            ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX, {})):
+        w = state[prefix + key]
+        grown = [w[index[grown_from.get(k, "other")]] for k in names[w.shape[0]:]]
+        if grown:
+            state[prefix + key] = torch.cat([w, torch.stack(grown)])
+    # feature columns appended since this checkpoint (features.F_TARGETED, P_TARGETED, G_SLOT, G_TOP)
+    # get zero weights: the old network reads them as absent and computes what it computed before
+    for key, width in (("card_f.weight", FT.CF), ("player_f.weight", FT.PF),
+                       ("glob_f.weight", FT.GF)):
+        w = state[prefix + key]
+        if w.shape[1] < width:
+            state[prefix + key] = torch.cat([w, w.new_zeros(w.shape[0], width - w.shape[1])], dim=1)
+    # pointer layers added since this checkpoint (features.C_SOURCE, C_TARGET) start at zero too
+    for key, w in model.state_dict().items():
+        if key.startswith(prefix) and key not in state and key.endswith("_ptr.weight"):
+            state[key] = torch.zeros_like(w)
+    return state
+
+
 def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet, FT.CardTable, dict]:
     ck = torch.load(path, map_location="cpu", weights_only=False)
     table = FT.CardTable.from_json(ck["table"])
     cfg = dict(ck["config"])
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
     model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
-    state = ck["state"]
-    # ask kinds and option types appended since this checkpoint start as what they were encoded
-    # as before: the ASK_GROWN_FROM kind or "other"
-    for key, names, index, grown_from in (
-            ("ask_emb.weight", FT.ASK_KINDS, FT.ASK_INDEX, FT.ASK_GROWN_FROM),
-            ("opt_type.weight", FT.OPTION_TYPES, FT.OPT_INDEX, {})):
-        w = state[key]
-        grown = [w[index[grown_from.get(k, "other")]] for k in names[w.shape[0]:]]
-        if grown:
-            state[key] = torch.cat([w, torch.stack(grown)])
-    # feature columns appended since this checkpoint (features.F_TARGETED, P_TARGETED, G_SLOT, G_TOP)
-    # get zero weights: the old network reads them as absent and computes what it computed before
-    for key, width in (("card_f.weight", FT.CF), ("player_f.weight", FT.PF),
-                       ("glob_f.weight", FT.GF)):
-        w = state[key]
-        if w.shape[1] < width:
-            state[key] = torch.cat([w, w.new_zeros(w.shape[0], width - w.shape[1])], dim=1)
-    # pointer layers added since this checkpoint (features.C_SOURCE, C_TARGET) start at zero too
-    for key, w in model.state_dict().items():
-        if key not in state and key.endswith("_ptr.weight"):
-            state[key] = torch.zeros_like(w)
-    model.load_state_dict(state)
+    model.load_state_dict(upgraded(ck["state"], model))
     return model.to(device).eval(), table, ck.get("extra", {})

@@ -105,3 +105,13 @@ each game's hits and casts):
   Diamond Mare was cast in none of them, and the same classes come up on the base, dafdd5ff, whose
   FDN compiled pool has no Diamond Mare: seeds 6, 30, 55, 62, 93, 143 of the same 200 (D3 phantom
   placements, D5 mismatches on Spectral Sailor, Hungry Ghoul, Bigfin Bouncer). Pre-existing.
+
+After gate round 9 (GO) and the merge with main 8db1834f, the same commands with the base a
+`git archive` of 8db1834f and the branch the merged tree with the gate's conditions applied:
+tree_diff gives the same 20 trees and the same 9 still-verified cards on a touched path, stamps
+{'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}, 0 in or out; the gate's fixes (m2's
+granted creature types, m6's one EtBState form, m7's simulator load, n1) change no tree.
+replay_compare.py:
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+M20: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)

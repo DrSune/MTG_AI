@@ -104,7 +104,7 @@ from MTG_bot.core.executor.legality import (
     TURN_ENDED,
 )
 from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
-from MTG_bot.core.executor.quantity import creature_types
+from MTG_bot.core.executor.quantity import creature_types, granted_creature_types
 from MTG_bot.core.executor.query import (
     TargetSlot,
     cast_mode_options,
@@ -375,13 +375,13 @@ def compile_supply(
         deckable = tuple(sorted(playable_engine))
     if not deckable:
         raise ValueError(f"pool_mode {mode!r} has no deckable cards")
-    creature_type_pool = {t for oid in deckable for t in creature_types(metas[oid].type_line)} | {
-        t
-        for oid in deckable
-        for node in walk(pool.results[oid].card)
-        if isinstance(node, TokenSpec) and "Creature" in node.types
-        for t in node.subtypes
-    }
+    creature_type_pool = {t for oid in deckable for t in creature_types(metas[oid].type_line)}
+    for oid in deckable:
+        for node in walk(pool.results[oid].card):
+            if isinstance(node, TokenSpec) and "Creature" in node.types:
+                creature_type_pool.update(node.subtypes)
+            elif isinstance(node, Atom) and node.verb is Verb.GRANT_TYPE:
+                creature_type_pool.update(granted_creature_types(node.args.get("types") or ()))
     return Supply(
         mode=mode,
         pool=pool,

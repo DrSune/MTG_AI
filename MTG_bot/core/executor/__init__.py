@@ -1346,7 +1346,7 @@ class Executor:
         # enters, so before anything of its entering state reads it, in whatever order the
         # abilities print: the gates and the counters it enters with (Banner of Kinship counts
         # the creatures of the chosen type). No choice stands under a gate
-        # (ability_tree.chosen_quality_fault).
+        # (an EtBState effect stands in its own node, ability_tree.EtBState).
         for node in etb:
             if node.effect is not None:
                 self.run_as_enters(card, node.effect)

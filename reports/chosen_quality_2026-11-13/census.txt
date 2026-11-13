@@ -96,6 +96,6 @@ other choices of a quality (a name, or at resolution):
    THB | Medomai's Prophecy | II — Choose a card name.
    THB | Nyx Lotus | {T}: Choose a color.
 
-M21 verified pool: 73 creature types in the menu, ['Saproling'] from tokens alone
-M20 verified pool: 69 creature types in the menu, [] from tokens alone
-FDN verified pool: 47 creature types in the menu, ['Dog'] from tokens alone
+M21 verified pool: 74 creature types in the menu, ['Saproling', 'Sphinx'] from tokens or type grants alone
+M20 verified pool: 69 creature types in the menu, [] from tokens or type grants alone
+FDN verified pool: 47 creature types in the menu, ['Dog'] from tokens or type grants alone

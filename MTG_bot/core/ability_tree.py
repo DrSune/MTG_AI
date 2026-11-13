@@ -3484,7 +3484,12 @@ class EtBState:
     `initial_counters` is a set — sorted at construction (the kind keys
     the counter map, so wording order carries no semantics). A
     no-op state (untapped, no counters, no effect) is rejected — a no-op
-    is not a node in the tree (Seq's rule)."""
+    is not a node in the tree (Seq's rule). An `effect` stands in a node of
+    its own, with no tapped flag, counters or gate beside it: "This land
+    enters tapped. As it enters, choose a color." (KHM Shimmerdrift Vale,
+    FDN Uncharted Haven) is two nodes, never one combined (one form per
+    meaning; the executor makes every effect's choice before it reads any
+    entered state, so the split changes nothing it does)."""
 
     tapped: bool = False
     initial_counters: tuple[tuple[CounterKind, Quantity], ...] = ()
@@ -3527,6 +3532,13 @@ class EtBState:
         if not self.tapped and not self.initial_counters and self.effect is None:
             raise ValueError(
                 "EtBState: a no-op state is not a node (tapped, counters or an effect required)"
+            )
+        if self.effect is not None and (
+            self.tapped or self.initial_counters or self.condition is not None
+        ):
+            raise ValueError(
+                "EtBState: an \"As this enters\" effect stands in its own node; the tapped "
+                "flag, the counters and their gate are another EtBState (one form per meaning)"
             )
         # The counters are a dict keyed by kind, so the (kind, quantity)
         # entries are a SET — sort at construction.
@@ -3706,10 +3718,11 @@ def chosen_quality_fault(*nodes: Any) -> str | None:
       enters, as an EtBState's effect (CR 614.12a), where it lasts as long as the permanent. A
       colour chosen and read at once by a resolving effect is the menu of five
       (``Choose``, Feat of Resistance); a creature type chosen that way waits for its card;
-    - every CHOOSE_NAME is made whenever its reads can be asked: never under an EtBState's
-      condition (skipped when it fails), never in a static ability (which runs no choice; the
-      class of a GET_EMBLEM there, BACKLOG). The executor makes every "As this enters" choice
-      before it judges any EtBState condition, so a condition may read it."""
+    - every CHOOSE_NAME is made whenever its reads can be asked: never in a static ability
+      (which runs no choice; the class of a GET_EMBLEM there, BACKLOG). Never under an EtBState's
+      condition either, which EtBState itself refuses (an effect stands in its own node). The
+      executor makes every "As this enters" choice before it judges any EtBState condition, so a
+      condition may read it."""
     chosen: list[object] = []  # the quality of each CHOOSE_NAME (None: a card name)
     read: set[object] = set()  # the quality each NAME_CHOSEN reads
     faults: list[str] = []
@@ -3721,13 +3734,6 @@ def chosen_quality_fault(*nodes: Any) -> str | None:
         elif isinstance(node, (BackFace, TokenSpec, EmblemSpec)):
             faults.append(chosen_quality_fault(getattr(node, "keywords", ()), node.abilities) or "")
         elif isinstance(node, EtBState):
-            if node.condition is not None and any(
-                isinstance(n, Atom) and n.verb is Verb.CHOOSE_NAME for n in walk(node.effect)
-            ):
-                faults.append(
-                    "a CHOOSE_NAME under an EtBState's condition: when the condition fails the "
-                    "choice is not made and its reads have no answer"
-                )
             visit((node.condition, node.initial_counters))
             visit(node.effect, as_enters=True)
         elif isinstance(node, Atom):

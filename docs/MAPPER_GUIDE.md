@@ -171,10 +171,12 @@ $PY tools/cards/cardtool.py --help
   own effect (a colour chosen and read at once by a spell is `Choose` over the five, Feat of
   Resistance's "the color of your choice"), a read with no choice of its quality on the same card
   (names included), a choice nothing on the card reads (map its reader too, or record
-  needs-atom), a choice under an EtBState's `condition` or in a static ability (it could go
-  unmade while its reads are asked), and a read inside a token's, an emblem's or a granted
-  ability, which belongs to another object (a granted PROTECTION quality excepted). An EtBState
-  gate may read the choice: every choice is made first. "The chosen type" is a creature type: a
+  needs-atom), a choice in a static ability (it never runs), and a read inside a token's, an
+  emblem's or a granted ability, which belongs to another object (a granted PROTECTION quality
+  excepted). An EtBState with an `effect` holds nothing else: "This land enters tapped. As it
+  enters, choose a color." is `EtBState(tapped=True)` and `EtBState(effect=...)`, two nodes; a
+  gate (`condition`) or counters beside the effect are refused. An EtBState gate may read the
+  choice: every choice is made first. "The chosen type" is a creature type: a
   card that chose a card type or a basic land type is a needs-atom, and so are mana of the chosen
   colour, "is the chosen type" and a spend restriction to it (BACKLOG).
 - **Carriers.**

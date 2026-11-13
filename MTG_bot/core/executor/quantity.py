@@ -735,6 +735,13 @@ _OTHER_SUBTYPES = {
 }
 
 
+#: The card types and supertypes (CR 205.2a, 205.4a): the words of a type line that are no subtype.
+_TYPE_LINE_KINDS = frozenset({
+    "Artifact", "Battle", "Conspiracy", "Creature", "Dungeon", "Enchantment", "Instant", "Kindred",
+    "Land", "Phenomenon", "Plane", "Planeswalker", "Scheme", "Sorcery", "Tribal", "Vanguard",
+    "Basic", "Legendary", "Ongoing", "Snow", "World"})
+
+
 def creature_types(type_line: str) -> list[str]:
     """The creature types a printed type line gives: the subtypes of each face that is a creature
     or kindred card, less those of its other card types (CR 205.3d: each subtype is one of its
@@ -747,6 +754,14 @@ def creature_types(type_line: str) -> list[str]:
             other = frozenset().union(*(_OTHER_SUBTYPES.get(kind, ()) for kind in kinds))
             out.extend(s for s in subtypes.split() if s not in other)
     return out
+
+
+def granted_creature_types(words: tuple[str, ...]) -> list[str]:
+    """The creature types among a GRANT_TYPE's words (M21 Riddleform's "3/3 Sphinx creature",
+    Dub's "is a Knight"): every word that is no card type or supertype and no artifact,
+    enchantment or land type (CR 205.3g-i)."""
+    other = frozenset().union(*_OTHER_SUBTYPES.values())
+    return [w for w in words if w not in _TYPE_LINE_KINDS and w not in other]
 
 
 def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
@@ -976,7 +991,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         ex = ctx.executor
         quality = atom.string_value
         chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
-        if chosen is None and ex is not None:
+        if chosen is None and ex is not None and ctx.source is not None:
             snap = last_known(ctx.source, ctx)
             if snap is not None:
                 chosen = dict(snap.choices).get(quality)

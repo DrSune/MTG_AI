@@ -25,6 +25,8 @@ card type's subtype) fail on the round's first commit, 92aca048, too (``review_r
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from MTG_bot.core import ability_tree as at
@@ -52,7 +54,11 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler import card_records
 from MTG_bot.core.executor.games import _setup_game, get_supply
 from MTG_bot.core.executor.legality import ctx_for
-from MTG_bot.core.executor.quantity import creature_types, eval_filter
+from MTG_bot.core.executor.quantity import (
+    creature_types,
+    eval_filter,
+    granted_creature_types,
+)
 from MTG_bot.core.test_executor_binding import record_of
 from tools.run_scenarios import ScenarioRunner
 
@@ -197,13 +203,40 @@ def test_a_choice_is_made_wherever_its_reads_can_be_asked(quality) -> None:
     ability (which runs no choice): either would leave the reads with no answer, raised when
     asked. Both built on 92aca048."""
     gate = FAtom(FAtomPred.IS_TOKEN)
-    with pytest.raises(ValueError, match="under an EtBState's condition"):
-        record_of([EtBState(condition=gate, effect=_choose(quality)), _anthem(quality)])
+    with pytest.raises(ValueError, match="stands in its own node"):
+        EtBState(condition=gate, effect=_choose(quality))
     with pytest.raises(ValueError, match="in a static ability's effect"):
         record_of([StaticAbility(effect=_choose(quality)), _anthem(quality)])
     # a gate may read the choice: the executor makes it before judging any gate
     assert record_of([EtBState(effect=_choose(quality)),
                       EtBState(tapped=True, condition=_chosen(quality))])
+
+
+def test_an_as_enters_effect_stands_in_its_own_node() -> None:
+    """"This land enters tapped. As it enters, choose a color." (KHM Shimmerdrift Vale, FDN
+    Uncharted Haven) is two EtBState nodes; the one combined node meaning the same is refused
+    (one form per meaning), and so are counters beside a choice. Built on 469018ed."""
+    with pytest.raises(ValueError, match="stands in its own node"):
+        EtBState(tapped=True, effect=_choose("COLOR"))
+    with pytest.raises(ValueError, match="stands in its own node"):
+        EtBState(initial_counters=((CounterKind.CHARGE, QConst(1)),), effect=_choose("COLOR"))
+    assert record_of([EtBState(tapped=True), EtBState(effect=_choose("COLOR")), _anthem("COLOR")])
+
+
+def test_a_read_in_a_printed_keyword_or_a_back_face_is_another_objects() -> None:
+    """Card level, beside the granted cases: a printed keyword's parameters other than
+    protection's are judged elsewhere (hexproof's in the targeting source's coordinates), and a
+    back face is another object, so neither reads the front's choice (CR 607.2d). A printed
+    protection's quality is the card's own."""
+    card = record_of([EtBState(effect=_choose("COLOR")), _anthem("COLOR")])
+    hexproof = KeywordAbility(keyword=Keyword.HEXPROOF, params=(_chosen("COLOR"),))
+    with pytest.raises(ValueError, match="that no CHOOSE_NAME of the same object chooses"):
+        dataclasses.replace(card, keywords=(hexproof,))
+    back = at.BackFace(face_name="Back", abilities=(_anthem("COLOR"),))
+    with pytest.raises(ValueError, match="that no CHOOSE_NAME of the same object chooses"):
+        dataclasses.replace(card, abilities=(*card.abilities, back))
+    protection = KeywordAbility(keyword=Keyword.PROTECTION, params=(_chosen("COLOR"),))
+    assert dataclasses.replace(card, keywords=(protection,))
 
 
 @pytest.mark.parametrize("quality", [None, "COLOR", "CREATURE_TYPE"])
@@ -253,8 +286,10 @@ def test_a_creature_type_is_one_of_the_format_pools() -> None:
     game = _setup_game(5, supply, (supply.deckable[:40], supply.deckable[40:80]))
     pool = game.executor.creature_type_pool
     assert pool == tuple(sorted(pool)) and "Elf" in pool
-    # a creature token's type no card has (M21 Saproling: Fungal Rebirth, Sporeweb Weaver)
-    assert "Saproling" in pool
+    # a creature token's type no card has (M21 Saproling: Fungal Rebirth, Sporeweb Weaver), and
+    # one a card grants (Riddleform becomes "a 3/3 Sphinx creature"; red on 469018ed)
+    assert "Saproling" in pool and "Sphinx" in pool
+    assert granted_creature_types(("Creature", "Sphinx", "Equipment", "Legendary")) == ["Sphinx"]
     assert not {"Creature", "Legendary", "Aura", "Equipment", "Forest", "—"} & set(pool)
     source = game.executor.world.player_order[0]
     offered: list[tuple[str, ...]] = []
@@ -371,3 +406,58 @@ def test_a_read_of_what_its_source_did_not_choose_raises() -> None:
     assert eval_filter(_chosen(None), halo, ctx)  # the Halo named itself
     with pytest.raises(NotImplementedError, match="NAME_CHOSEN of a COLOR needs a CHOOSE_NAME"):
         eval_filter(_chosen("COLOR"), runner.handles["bear"], ctx)
+    # a read with no source at all is the same unanswered question (an AttributeError on 469018ed)
+    with pytest.raises(NotImplementedError, match="NAME_CHOSEN of a card name needs a CHOOSE_NAME"):
+        eval_filter(_chosen(None), halo, ctx_for(runner.ex, source=None, controller=runner.p0))
+
+
+def test_a_granted_protection_reads_its_granters_choice_after_it_left() -> None:
+    """A protection quality is judged in the coordinates of the ability that gives it
+    (legality.protected_from): "protection from the chosen color", granted until end of turn by
+    a permanent that chose red, protects from red sources and not blue ones, and still does after
+    the granter left, from its last known choice (CR 608.2h)."""
+    from MTG_bot.core.ability_tree import DurationEot
+    from MTG_bot.core.executor.legality import protected_from
+
+    runner = _runner("FDN", [
+        _card("mare", "Diamond Mare", zone="hand"),
+        _card("bear", "Bear", type="Creature", power=2, toughness=2),
+        _card("red", "Red Thing", type="Creature", colors=["R"], power=1, toughness=1),
+        _card("blue", "Blue Thing", type="Creature", colors=["U"], power=1, toughness=1),
+    ])
+    mare, bear = runner.handles["mare"], runner.handles["bear"]
+    red, blue = runner.handles["red"], runner.handles["blue"]
+    runner.run_step({"op": "enter", "key": "mare", "decisions": ["R"]})
+    one = Selector(QConst(1), SelectorMode.TARGET, FAnd(()), zones=(BF,))
+    protection = KeywordAbility(keyword=Keyword.PROTECTION, params=(_chosen("COLOR"),))
+    runner.ex.execute(_atom(Verb.GRANT_ABILITY, target=one, ability=protection,
+                            duration=DurationEot()),
+                      source=mare, controller=runner.p0, bindings={"target": [bear]})
+    assert protected_from(runner.ex, bear, red) and not protected_from(runner.ex, bear, blue)
+    runner.run_step({"op": "move", "key": "mare", "to": "graveyard"})
+    assert protected_from(runner.ex, bear, red) and not protected_from(runner.ex, bear, blue)
+
+
+def test_a_creature_type_read_sees_a_granted_type() -> None:
+    """NAME_CHOSEN of a creature type reads SUBTYPE_EQ's live words: an Orc that became an Elf
+    until end of turn (GRANT_TYPE's overlay, Dub's "is a Knight in addition to its other
+    types") is of the chosen type Elf."""
+    from MTG_bot.core.ability_tree import DurationEot
+
+    runner = _runner("M21", [_card("totem", "Totem", zone="hand", type="Artifact"),
+                             _card("orc", "Orc", type="Creature — Orc", power=1, toughness=1),
+                             _card("elf", "Elf", type="Creature — Elf", power=1, toughness=1)])
+    totem, orc = runner.handles["totem"], runner.handles["orc"]
+    oid = runner.world.cards[totem].identity.oracle_id
+    runner.ex.binder.records[oid] = at.CardRecord(
+        oracle_id=oid, name="Totem", type_line="Artifact", types=("Artifact",), subtypes=(),
+        supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=3,
+        power=None, toughness=None, loyalty=None, keywords=(),
+        abilities=(EtBState(effect=_choose("CREATURE_TYPE")), _anthem("CREATURE_TYPE")),
+        is_token=False)
+    runner.run_step({"op": "enter", "key": "totem", "decisions": ["Elf"]})
+    assert not eval_filter(_chosen("CREATURE_TYPE"), orc, ctx_for(runner.ex, totem, runner.p0))
+    one = Selector(QConst(1), SelectorMode.TARGET, FAnd(()), zones=(BF,))
+    runner.ex.execute(_atom(Verb.GRANT_TYPE, target=one, types=("Elf",), duration=DurationEot()),
+                      source=totem, controller=runner.p0, bindings={"target": [orc]})
+    assert eval_filter(_chosen("CREATURE_TYPE"), orc, ctx_for(runner.ex, totem, runner.p0))
