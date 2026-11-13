@@ -1,0 +1,9 @@
+{"set":"FDN","world":{"life":20,"seed":7,"library_top":true},
+"notes":"Spinner of Souls triggers only for a NONTOKEN creature: when a token you control dies, nothing is revealed or drawn: hand stays 0 and the top card stays on top.",
+"cards":[{"key":"sp","real":"Spinner of Souls","zone":"battlefield","controller":0},
+{"key":"tok","name":"Spirit","type":"Creature","power":1,"toughness":1,"token":true,"zone":"battlefield","controller":0},
+{"key":"foe","name":"Foe","type":"Creature","power":5,"toughness":5,"zone":"battlefield","controller":1},
+{"key":"gob","name":"Gob","type":"Creature","power":1,"toughness":1,"zone":"library","controller":0}],
+"steps":[{"op":"deal_damage","source":"foe","target":"tok","amount":5,"decisions":["fire"]}],
+"expect":{"zone":{"tok":"ceased","gob":"library"},"hand":{"0":0},
+"library":{"0":["Gob","Library 5","Library 4","Library 3","Library 2","Library 1","Library 0"]}}}

@@ -1,0 +1,9 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana -7 emblem: put TARGET creature card from a graveyard onto the battlefield. Two creature cards, one in each graveyard: only the targeted one (the opponent's Beta) returns; Alpha stays in seat 0's graveyard.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"alpha","name":"Alpha","type":"Creature","power":2,"toughness":2,"zone":"graveyard","controller":0},
+{"key":"beta","name":"Beta","type":"Creature","power":3,"toughness":3,"zone":"graveyard","controller":1}],
+"steps":[{"op":"loyalty","key":"lil","set":7},
+{"op":"activate","key":"lil","idx":2,"seat":0},
+{"op":"combat","seat":0,"attack":{"beta":true},"decisions":["beta"]}],
+"expect":{"zone":{"beta":"battlefield","alpha":"graveyard"},"controller":{"beta":0},"life":{"1":17}}}

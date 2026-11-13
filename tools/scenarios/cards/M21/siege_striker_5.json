@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Siege Striker: +1/+1 per tapped creature lasts until end of turn only. Tap two (3/3 during combat: life 20-6=14); after the turn ends it is back to its printed 1/1.",
+"cards":[{"key":"s","real":"Siege Striker","zone":"battlefield","controller":0},
+{"key":"a","name":"Aaa","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"b","name":"Bbb","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0}],
+"steps":[{"op":"combat","seat":0,"attack":{"s":true,"a":false,"b":false},"decisions":["a","b"]},
+{"op":"end_turn"},{"op":"advance_turn"}],
+"expect":{"life":{"1":14},"power":{"s":1},"toughness":{"s":1}}}

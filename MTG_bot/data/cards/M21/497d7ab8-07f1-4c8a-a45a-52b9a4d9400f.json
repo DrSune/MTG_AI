@@ -5,42 +5,60 @@
  "name": "Basri Ket",
  "text_sha": "96f0890587b9cb8234b3df29d05ef91d4686a1853b3d9d6faa5057dfcb434157",
  "verified": {
-  "tree_sha": "1596109a478665bbeaafeff3f2d06668d0d6af67d273e64a6ef21aa5ee704fb6",
+  "tree_sha": "bb0318870915e14f90bbdea276e354087a74512be5fe731c05ae82a3b5b77e07",
   "probe_sha": "8601f91bd7fc5ac4d95806d93dab8eab5b7c5b2aa94ea3ce761cb4d7a6682991",
-  "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-A",
   "clauses": [
    {
-    "clause": "+1 up to one target creature: +1/+1 counter, indestructible EOT",
+    "clause": "+1: put a +1/+1 counter on up to one target creature",
     "status": "OK",
-    "evidence": "six targets plus no-target; counter and INDESTRUCTIBLE; loyalty 3->4",
+    "evidence": "activate [0] targets=...: 0..1 slot, counter on you_bear/opp_* ; no-target variant fires with nothing",
     "issue": ""
    },
    {
-    "clause": "-2 delayed: nontoken attackers create that many Soldiers tapped attacking",
-    "status": "NOT_EXERCISED",
-    "evidence": "activation only; pack A10_1",
+    "clause": "It gains indestructible until end of turn",
+    "status": "OK",
+    "evidence": "activate [0]: keywords +INDESTRUCTIBLE, removed 'after the turn ends'",
     "issue": ""
    },
    {
-    "clause": "-6 emblem",
+    "clause": "-2: whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldiers tapped and attacking",
     "status": "NOT_EXERCISED",
-    "evidence": "not activatable at loyalty 3; pack A10_2",
+    "evidence": "probe only activated [1] (loyalty 3->1); no attack followed. Tree: delayed DeclareAttackers nontoken, THAT_MANY, enters_tapped+attacking, EOT. Pack A00_1",
+    "issue": ""
+   },
+   {
+    "clause": "-6: emblem with beginning-of-combat Soldier then +1/+1 counter on each creature you control",
+    "status": "NOT_EXERCISED",
+    "evidence": "[2] not activatable (loyalty 3<6). Tree: EmblemSpec on GET_EMBLEM controller YOU, token then counters on all your creatures. Pack A00_2",
     "issue": ""
    }
   ],
   "packs": [
+   "tools/scenarios/cards/M21/basri_ket_7.json",
+   "tools/scenarios/cards/M21/basri_ket_8.json",
+   "tools/scenarios/cards/M21/basri_ket_9.json",
    "tools/scenarios/cards/M21/basri_ket_5.json",
    "tools/scenarios/cards/M21/basri_ket_6.json"
   ],
   "mutation": {
-   "mutants": 12,
+   "mutants": 21,
    "killed": 9,
-   "score": 0.75,
+   "score": 0.42857142857142855,
    "survived": [
     "trigger count: once per event -> each occurrence at 1/1/effect",
     "widen filter (drop part 0) at 1/1/effect/event/filter",
-    "widen filter (drop part 1) at 1/1/effect/event/filter"
+    "widen filter (drop part 1) at 1/1/effect/event/filter",
+    "trigger scope: your turn -> each turn at 1/2/effect/args/emblem/abilities/0/event",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/event/actor/who",
+    "drop step 0 at 1/2/effect/args/emblem/abilities/0/effect",
+    "drop step 1 at 1/2/effect/args/emblem/abilities/0/effect",
+    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/count",
+    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/count",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter/children/0/who"
    ]
   }
  }

@@ -316,5 +316,49 @@
  },
  "probe": {
   "sha": "ded54f37506a1e3f7075ae6d924f5a0d4cf92468a150ae1fba3b955aaffcc41f"
+ },
+ "verified": {
+  "tree_sha": "40438855b85b89a48aa3c75347ef59880e66d500a4ccd7280629ee1e392918eb",
+  "probe_sha": "ded54f37506a1e3f7075ae6d924f5a0d4cf92468a150ae1fba3b955aaffcc41f",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-A",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "OK",
+    "evidence": "keywords +REACH",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another nontoken creature you control dies, you may reveal cards until you reveal a creature card",
+    "status": "OK",
+    "evidence": "your creature (you_bear) dies -> trigger [0]; ask may [fire, skip]; source dying and opponent's creature dying -> none; token exclusion pinned by pack A05_2",
+    "issue": ""
+   },
+   {
+    "clause": "Put that card into your hand and the rest on the bottom of your library in a random order",
+    "status": "OK",
+    "evidence": "you:Library 5#1 library -> hand; no order ask (random); the rest bottom pinned by pack A05_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/spinner_of_souls_1.json",
+   "tools/scenarios/cards/FDN/spinner_of_souls_2.json",
+   "tools/scenarios/cards/FDN/spinner_of_souls_3.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 11,
+   "score": 0.6470588235294118,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 3) at 1/0/event/filter",
+    "drop step 1 at 1/0/effect/inner/steps/1",
+    "library order: random -> the owner's at 1/0/effect/inner/steps/1/steps/1",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/1/steps/1/args/cards/zones/0/controller",
+    "zone LIBRARY->GRAVEYARD at 1/0/effect/inner/steps/1/steps/1/args/destination"
+   ]
+  }
  }
 }

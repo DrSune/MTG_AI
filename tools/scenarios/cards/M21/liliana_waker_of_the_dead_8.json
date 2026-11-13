@@ -1,0 +1,10 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana -3 printed: target creature gets -X/-X until EOT, X = the number of cards in YOUR graveyard. Three cards in seat 0's graveyard (an opponent's graveyard card does not count): a 4/4 becomes 1/1 and survives; X is not fixed at 2.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"g1","name":"G One","type":"Creature","power":1,"toughness":1,"zone":"graveyard","controller":0},
+{"key":"g2","name":"G Two","type":"Creature","power":1,"toughness":1,"zone":"graveyard","controller":0},
+{"key":"g3","name":"G Three","type":"Creature","power":1,"toughness":1,"zone":"graveyard","controller":0},
+{"key":"og","name":"Opp Grave","type":"Creature","power":1,"toughness":1,"zone":"graveyard","controller":1},
+{"key":"foe","name":"Foe","type":"Creature","power":4,"toughness":4,"zone":"battlefield","controller":1}],
+"steps":[{"op":"activate","key":"lil","idx":1,"seat":0,"targets":["foe"]}],
+"expect":{"power":{"foe":1},"toughness":{"foe":1},"zone":{"foe":"battlefield"},"counters":{"lil":{"LOYALTY":1}}}}

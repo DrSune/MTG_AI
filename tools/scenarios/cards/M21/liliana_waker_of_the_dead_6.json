@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana, Waker of the Dead +1 printed: each player discards a card; each opponent who can't loses 3 life. Seat 1 has an empty hand: it cannot discard, loses 3 (17); seat 0 discards its one card.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"h","name":"Mine","type":"Creature","power":1,"toughness":1,"zone":"hand","controller":0}],
+"steps":[{"op":"activate","key":"lil","idx":0,"seat":0,"decisions":["first-legal","first-legal"]}],
+"expect":{"life":{"1":17,"0":20},"zone":{"h":"graveyard"},"counters":{"lil":{"LOYALTY":5}}}}

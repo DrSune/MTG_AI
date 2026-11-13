@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana -7 printed: emblem: at the beginning of combat on your turn, put target creature card from A graveyard (the opponent's too) onto the battlefield under your control; it gains haste. The opponent's 3/3 in seat 1's graveyard returns under seat 0's control, has haste, and attacks the same turn: 20-3=17.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"gc","name":"Grave Beast","type":"Creature","power":3,"toughness":3,"zone":"graveyard","controller":1}],
+"steps":[{"op":"loyalty","key":"lil","set":7},
+{"op":"activate","key":"lil","idx":2,"seat":0},
+{"op":"combat","seat":0,"attack":{"gc":true}}],
+"expect":{"zone":{"gc":"battlefield","lil":"graveyard"},"controller":{"gc":0},"battlefield_keywords":{"Grave Beast":["HASTE"]},"attackers":{"gc":true},"life":{"1":17}}}

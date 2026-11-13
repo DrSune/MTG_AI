@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Basri Ket -2 printed: whenever one or more nontoken creatures attack this turn, create THAT MANY 1/1 white Soldier tokens tapped and attacking. Two nontoken 2/2 attack: 2 Soldiers; damage 2+2+1+1=6.",
+"cards":[{"key":"basri","real":"Basri Ket","zone":"battlefield","controller":0},
+{"key":"b1","name":"Bear One","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"b2","name":"Bear Two","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0}],
+"steps":[{"op":"activate","key":"basri","idx":1,"seat":0},
+{"op":"combat","seat":0,"attack":{"b1":true,"b2":true}}],
+"expect":{"tokens":{"Soldier":2},"life":{"1":14},"counters":{"basri":{"LOYALTY":1}}}}

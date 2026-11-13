@@ -1,0 +1,112 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Spinner of Souls: the rest go to the bottom IN A RANDOM ORDER: shuffled by the game, nobody is asked to arrange them. Library top-first: Zap One..Zap Four (instants), Gob (creature), Fifth. Gob to hand; the four instants go to the bottom in the seeded shuffle's order, which is NOT the revealed order (a random order asks no one, so no arrange ask can reorder them). With seed 7 that shuffle leaves Four, One, Two, Three (seeds 1 would leave the revealed order, so 7 is chosen); an owner-arranged bottom would be the revealed/first-legal order One, Two, Three, Four.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Spinner of Souls",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ally",
+   "name": "Ally",
+   "type": "Creature",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": 5,
+   "toughness": 5,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "fifth",
+   "name": "Fifth",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "name": "Gob",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z4",
+   "name": "Zap Four",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z3",
+   "name": "Zap Three",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z2",
+   "name": "Zap Two",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "z1",
+   "name": "Zap One",
+   "type": "Instant",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "foe",
+   "target": "ally",
+   "amount": 5,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gob": "hand"
+  },
+  "library": {
+   "0": [
+    "Fifth",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Zap Four",
+    "Zap One",
+    "Zap Two",
+    "Zap Three"
+   ]
+  }
+ }
+}

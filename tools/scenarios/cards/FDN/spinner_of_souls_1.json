@@ -1,0 +1,12 @@
+{"set":"FDN","world":{"life":20,"seed":7,"library_top":true},
+"notes":"Spinner of Souls printed: whenever another nontoken creature you control dies, you may reveal cards from the top until you reveal a creature card; put that card into your hand and the rest on the bottom in random order. Library top-first: Zap One, Zap Two (instants), Gob (creature), Fifth (creature), then filler. Gob to hand, Fifth stays on top, instants go to the bottom. (cards list is bottom-first for library_top.)",
+"cards":[{"key":"sp","real":"Spinner of Souls","zone":"battlefield","controller":0},
+{"key":"ally","name":"Ally","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"foe","name":"Foe","type":"Creature","power":5,"toughness":5,"zone":"battlefield","controller":1},
+{"key":"fifth","name":"Fifth","type":"Creature","power":1,"toughness":1,"zone":"library","controller":0},
+{"key":"gob","name":"Gob","type":"Creature","power":1,"toughness":1,"zone":"library","controller":0},
+{"key":"z2","name":"Zap Two","type":"Instant","zone":"library","controller":0},
+{"key":"z1","name":"Zap One","type":"Instant","zone":"library","controller":0}],
+"steps":[{"op":"deal_damage","source":"foe","target":"ally","amount":5,"decisions":["fire"]}],
+"expect":{"zone":{"ally":"graveyard","gob":"hand","z1":"library","z2":"library","fifth":"library"},"hand":{"0":1},
+"library":{"0":["Fifth","Library 5","Library 4","Library 3","Library 2","Library 1","Library 0","*","*"]}}}

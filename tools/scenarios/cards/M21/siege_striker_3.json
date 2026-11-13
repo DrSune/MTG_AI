@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Siege Striker printed: whenever it attacks, you MAY tap ANY NUMBER of untapped creatures you control; it gets +1/+1 until EOT for each tapped this way. Pick a, then stop: a tapped, b untapped, Striker 2/2 double strike unblocked deals 2+2=4.",
+"cards":[{"key":"s","real":"Siege Striker","zone":"battlefield","controller":0},
+{"key":"a","name":"Aaa","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"b","name":"Bbb","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0}],
+"steps":[{"op":"combat","seat":0,"attack":{"s":true,"a":false,"b":false},"decisions":["a","NONE"]}],
+"expect":{"life":{"1":16},"tapped":{"a":true,"b":false}}}

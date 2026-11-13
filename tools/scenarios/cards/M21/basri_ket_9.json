@@ -1,0 +1,91 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri Ket -6 emblem: at the beginning of combat ON YOUR TURN only. Seat 0 gets the emblem, then the opponent's turn has a combat: nothing happens (no Soldier, no counter). Then on seat 0's next turn combat: exactly one Soldier and one counter: Wolf 3/3, Soldier 2/2, one token only.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Soldier": 1
+  },
+  "battlefield_pt": {
+   "Wolf": [
+    3,
+    3
+   ],
+   "Soldier": [
+    2,
+    2
+   ],
+   "Foe": [
+    1,
+    1
+   ]
+  },
+  "counters": {
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ }
+}

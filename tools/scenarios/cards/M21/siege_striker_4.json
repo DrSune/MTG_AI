@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Siege Striker: tap any number includes zero: stop at once. Nothing tapped, Striker stays 1/1 double strike: 1+1=2 damage.",
+"cards":[{"key":"s","real":"Siege Striker","zone":"battlefield","controller":0},
+{"key":"a","name":"Aaa","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0}],
+"steps":[{"op":"combat","seat":0,"attack":{"s":true,"a":false},"decisions":["NONE"]}],
+"expect":{"life":{"1":18},"tapped":{"a":false}}}

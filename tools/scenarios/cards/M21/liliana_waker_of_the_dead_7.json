@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana +1: an opponent who CAN discard does so and loses no life. Seat 1 holds one card, discards it, stays at 20.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"h","name":"Mine","type":"Creature","power":1,"toughness":1,"zone":"hand","controller":0},
+{"key":"oh","name":"Theirs","type":"Creature","power":1,"toughness":1,"zone":"hand","controller":1}],
+"steps":[{"op":"activate","key":"lil","idx":0,"seat":0,"decisions":["first-legal","first-legal"]}],
+"expect":{"life":{"1":20,"0":20},"zone":{"h":"graveyard","oh":"graveyard"}}}

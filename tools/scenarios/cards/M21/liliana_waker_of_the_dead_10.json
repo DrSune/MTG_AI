@@ -1,0 +1,10 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Liliana -7 emblem: at the beginning of combat on YOUR turn only. After the emblem, the opponent's turn combat does not return the graveyard creature (stays in the graveyard); on seat 0's own next turn combat it returns under seat 0's control.",
+"cards":[{"key":"lil","real":"Liliana, Waker of the Dead","zone":"battlefield","controller":0},
+{"key":"gc","name":"Grave Beast","type":"Creature","power":3,"toughness":3,"zone":"graveyard","controller":1},
+{"key":"foe","name":"Foe","type":"Creature","power":1,"toughness":1,"zone":"battlefield","controller":1}],
+"steps":[{"op":"loyalty","key":"lil","set":7},
+{"op":"activate","key":"lil","idx":2,"seat":0},
+{"op":"end_turn"},{"op":"advance_turn"},
+{"op":"combat","seat":1,"attack":{"foe":false}}],
+"expect":{"zone":{"gc":"graveyard"}}}
