@@ -263,3 +263,84 @@ The queue itself with `SMOKE=1`: every job's own flags with 2 deals and `--devic
   anything runs), when the GPU is in use or the checkout is dirty, and the stop at `b_coherent`
   (0 in SMOKE mode; its comparison tested by hand: 0.50 and a missing score stop, 0.65 and 0.75 go
   on).
+
+## 9. Results (2026-11-13 04:52-08:08; appended after the window, §1-§8 unedited)
+
+**The window ran as registered.**
+- From the worktree pinned at c9a764d5, with r28 paused at update 195 (04:51:57).
+- NET was r28's `last.pt` at update 195 (sha256 33b4e424…).
+- Every job exited 0, with 0 dropped deals.
+- The watcher `mtg-ceiling-resume` restarted r28 when the window ended.
+- Score: `env PYTHONPATH=. .venv/bin/python reports/ceiling_window/score.py runs/ceiling_window` (copied to `reports/ceiling_window/score.txt`).
+
+**The sanity rules (§4) all pass.**
+- (b) coherent: 0.7588 [0.747, 0.771] (predicted 0.72-0.82; the stop was at 0.65).
+- (a) coherent: 0.5655 [0.555, 0.576]. Its lower bound is above 0.50 (predicted 0.52-0.58).
+- 0 voids in any job.
+- L's fit: every pairing is within |z| ≤ 2.0 of the all-shape fit, so it is frozen as fitted.
+
+**Part 1, the skill spread:**
+
+| Shape | (a) searched vs raw | (b) vs the heuristic |
+|---|---|---|
+| coherent | 0.5655 [0.5550, 0.5760], +45.8 Elo | 0.7588 [0.7470, 0.7705] |
+| package | 0.5697 [0.5595, 0.5798], +48.7 Elo | 0.7230 [0.7111, 0.7349] |
+| drafted | 0.5527 [0.5411, 0.5644], +36.8 Elo | 0.6974 [0.6857, 0.7091] |
+
+| # | Read (paired by seed, bootstrap 95%) | Registered | Verdict |
+|---|---|---|---|
+| S1 | (a) package − coherent: +0.0042 [−0.0105, +0.0188] | +0.02 or more, lower bound above 0 | **Falsified**: the upper bound is below +0.02 |
+| S2 | (a) drafted − coherent: −0.0140 [−0.0310, +0.0027] | −0.025 to +0.005 | **Met** |
+| S3 | (b) package − coherent: −0.0357 [−0.0527, −0.0192] | +0.01 or more | **Falsified**, in the other direction: the upper bound is below 0 |
+| S4 | (b) drafted − coherent: −0.0614 [−0.0780, −0.0451] | −0.04 to +0.005 | **Missed low** (the falsifier, lower bound above +0.01, is not met) |
+
+- The agent's own expectation, "S1 near 0 (−0.01 to +0.015)", was right: +0.0042.
+- The searched decisions per game, the moves the search changed and the clear corrections per
+  game are about equal for coherent and package decks: 14.5 / 0.128 / 0.87 and 13.1 / 0.130 /
+  0.77.
+
+**Part 2, L frozen** (`rate.py fit`; `reports/ceiling_window/pool_L.json`).
+
+| Member | Elo |
+|---|---|
+| random | 0 (the anchor) |
+| heuristic | 416.7 |
+| r26 v0 | 494.4 |
+| r26 v1 | 518.6 |
+| r26 v2 | 532.0 |
+| u1000 | 549.6 |
+| r27 v1 | 575.4 |
+| u1000 + search at n = 4 | 579.2 |
+
+- The ladder runs as §6 expected.
+- The networks' Elo range per shape is coherent 77.4, package 76.7 and drafted 110.6. So it is
+  not wider on package decks, which the owner's hypothesis predicted (exploratory).
+- u1000's own search headroom (u1000+s4 against u1000): coherent 0.542, package 0.527, drafted
+  0.558. A second network shows no package advantage either.
+
+**Part 3:** NET on L is 588.6 [583.3, 593.2]: +13 Elo over r27 v1, and +39 over u1000.
+
+## 10. What it means, by §3's registered table
+
+**S1's interval holds 0, and its upper bound is below +0.02.**
+- Package decks hold no material extra headroom at the search's horizon.
+- So r29 is not the package A/B, and package decks stay out of training.
+- The levers of §14.4 for a stall come first:
+  - training both seats of learner-against-learner games, about twice the on-policy decisions
+    per game;
+  - the own-decklist columns, asked again on package decks (200 §1).
+- A specialist still needs a line class with measured value. 202 found none: five lines, all
+  with no signal or a negative one.
+
+**S3 runs the other way.**
+- NET, trained only on coherent decks, plays package and drafted decks worse against the
+  heuristic: −0.036 and −0.061.
+- That is a familiarity gap, which training on those shapes would close. It is not the extra
+  ceiling §14.1 looked for (§5, confound 3).
+- It says the network does not generalise across deck shapes. That matters for D14 (niche
+  decks) and for King goal 1b (unseen cards).
+
+**What the null S1 does not say** (§5, confound 2): the search sees one turn, in uniform worlds.
+A package's value beyond the next turn is outside this instrument.
+
+**r28 resumed** from its save at 195 when the window ended.

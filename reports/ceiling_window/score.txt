@@ -1,0 +1,52 @@
+== 1. The skill spread per deal shape (PLAN_CEILING §14.1)
+NET /home/sune/Desktop/MTG_AI/runs/ceiling_window/r28_latest.pt, sha256 33b4e424f2a259a2; code c9a764d51a2f6f90e15545b3c1af0a3f57dff418
+
+(a) NET searched at n = 4 against NET raw
+shape     deals   score      SE               95%    Elo  won 2 lost 2  split  turns dropped srch/g    chg clear/g
+coherent   1500  0.5655  0.0054 [0.5550, 0.5760]  +45.8  0.161  0.030  0.809   19.7       0  14.45  0.128   0.873
+package    1500  0.5697  0.0052 [0.5595, 0.5798]  +48.7  0.160  0.021  0.819   18.7       0  13.05  0.130   0.771
+drafted    1000  0.5527  0.0060 [0.5411, 0.5644]  +36.8  0.128  0.024  0.848   18.4       0  12.11  0.115   0.610
+  package - coherent: +0.0042 [-0.0105, +0.0188] (SE 0.0075) over 1500 shared seeds, deal-score correlation +0.00; unpaired +0.0042 [-0.0105, +0.0188] (1500 and 1500 deals)
+  drafted - coherent: -0.0140 [-0.0310, +0.0027] (SE 0.0087) over 1000 shared seeds, deal-score correlation +0.02; unpaired -0.0128 [-0.0285, +0.0030] (1500 and 1000 deals)
+
+(b) NET raw against the heuristic
+shape     deals   score      SE               95%    Elo  won 2 lost 2  split  turns dropped srch/g    chg clear/g
+coherent   2000  0.7588  0.0060 [0.7470, 0.7705] +199.1  0.535  0.019  0.446   18.2       0    nan    nan     nan
+package    2000  0.7230  0.0061 [0.7111, 0.7349] +166.7  0.469  0.024  0.507   17.4       0    nan    nan     nan
+drafted    2000  0.6974  0.0060 [0.6857, 0.7091] +145.0  0.417  0.022  0.560   17.1       0    nan    nan     nan
+  package - coherent: -0.0357 [-0.0527, -0.0192] (SE 0.0085) over 2000 shared seeds, deal-score correlation -0.00; unpaired -0.0358 [-0.0525, -0.0190] (2000 and 2000 deals)
+  drafted - coherent: -0.0614 [-0.0780, -0.0451] (SE 0.0084) over 2000 shared seeds, deal-score correlation +0.01; unpaired -0.0614 [-0.0780, -0.0448] (2000 and 2000 deals)
+
+== 2. The held-out pool L (PLAN_CEILING §7.2): Bradley-Terry ratings, random = 0
+member                                 all  coherent   package   drafted
+random                                 0.0       0.0       0.0       0.0
+heuristic                            416.7     433.0     414.8     400.0
+r26_outcome_ppo/v0.pt                494.4     523.4     490.1     467.4
+r26_outcome_ppo/v1.pt                518.6     546.1     513.1     494.1
+r26_outcome_ppo/v2.pt                532.0     563.2     521.8     508.5
+r26_outcome_ppo/u1000.pt             549.6     563.3     538.7     544.0
+r27_priority_ppo/v1.pt               575.4     600.8     566.8     555.8
+r26_outcome_ppo/u1000.pt+s4          579.2     595.0     561.8     578.0
+networks: Elo range (exploratory)     84.8      77.4      76.7     110.6
+
+pairings: the first member's score over deals (+- SE, deals); the all-shape fit's expected score and the observed one's distance from it in SEs
+  heuristic vs random: coherent 0.927 +- 0.010 (300); package 0.915 +- 0.011 (300); drafted 0.903 +- 0.012 (300); all 0.915 +- 0.006 (900); fit 0.917, z -0.3
+  r26_outcome_ppo/v0.pt vs random: coherent 0.953 +- 0.008 (300); package 0.943 +- 0.009 (300); drafted 0.937 +- 0.010 (300); all 0.944 +- 0.005 (900); fit 0.945, z -0.1
+  r26_outcome_ppo/v0.pt vs heuristic: coherent 0.643 +- 0.017 (300); package 0.618 +- 0.017 (300); drafted 0.612 +- 0.016 (300); all 0.624 +- 0.010 (900); fit 0.610, z +1.5
+  r26_outcome_ppo/v0.pt vs r26_outcome_ppo/v1.pt: coherent 0.453 +- 0.013 (300); package 0.464 +- 0.012 (300); drafted 0.444 +- 0.013 (300); all 0.454 +- 0.007 (900); fit 0.465, z -1.5
+  r26_outcome_ppo/v0.pt vs r26_outcome_ppo/v2.pt: coherent 0.442 +- 0.015 (300); package 0.447 +- 0.013 (300); drafted 0.443 +- 0.013 (300); all 0.444 +- 0.008 (900); fit 0.446, z -0.3
+  r26_outcome_ppo/v1.pt vs random: coherent 0.951 +- 0.009 (300); package 0.947 +- 0.009 (300); drafted 0.943 +- 0.009 (300); all 0.947 +- 0.005 (900); fit 0.952, z -1.0
+  r26_outcome_ppo/v1.pt vs heuristic: coherent 0.645 +- 0.016 (300); package 0.642 +- 0.016 (300); drafted 0.618 +- 0.016 (300); all 0.635 +- 0.009 (900); fit 0.643, z -0.8
+  r26_outcome_ppo/v1.pt vs r26_outcome_ppo/v2.pt: coherent 0.482 +- 0.014 (300); package 0.485 +- 0.013 (300); drafted 0.479 +- 0.011 (300); all 0.482 +- 0.007 (900); fit 0.481, z +0.2
+  r26_outcome_ppo/v2.pt vs heuristic: coherent 0.689 +- 0.016 (300); package 0.650 +- 0.016 (300); drafted 0.641 +- 0.016 (300); all 0.660 +- 0.009 (900); fit 0.660, z -0.0
+  r26_outcome_ppo/v2.pt vs r27_priority_ppo/v1.pt: coherent 0.442 +- 0.016 (300); package 0.431 +- 0.015 (300); drafted 0.440 +- 0.014 (300); all 0.438 +- 0.009 (900); fit 0.438, z -0.0
+  r26_outcome_ppo/u1000.pt vs random: coherent 0.970 +- 0.007 (300); package 0.965 +- 0.007 (300); drafted 0.968 +- 0.007 (300); all 0.968 +- 0.004 (900); fit 0.959, z +2.0
+  r26_outcome_ppo/u1000.pt vs heuristic: coherent 0.688 +- 0.016 (300); package 0.655 +- 0.017 (300); drafted 0.702 +- 0.015 (300); all 0.682 +- 0.009 (900); fit 0.682, z -0.1
+  r26_outcome_ppo/u1000.pt vs r26_outcome_ppo/v2.pt: coherent 0.500 +- 0.014 (300); package 0.530 +- 0.015 (300); drafted 0.546 +- 0.014 (300); all 0.525 +- 0.008 (900); fit 0.525, z -0.0
+  r26_outcome_ppo/u1000.pt vs r27_priority_ppo/v1.pt: coherent 0.427 +- 0.014 (300); package 0.457 +- 0.013 (300); drafted 0.483 +- 0.013 (300); all 0.456 +- 0.008 (900); fit 0.463, z -1.0
+  r26_outcome_ppo/u1000.pt vs r26_outcome_ppo/u1000.pt+s4: coherent 0.458 +- 0.011 (300); package 0.473 +- 0.010 (300); drafted 0.442 +- 0.011 (300); all 0.458 +- 0.006 (900); fit 0.458, z +0.0
+  r27_priority_ppo/v1.pt vs heuristic: coherent 0.705 +- 0.016 (300); package 0.705 +- 0.016 (300); drafted 0.709 +- 0.015 (300); all 0.706 +- 0.009 (900); fit 0.714, z -0.8
+  r26_outcome_ppo/u1000.pt+s4 vs r27_priority_ppo/v1.pt: coherent 0.497 +- 0.017 (200); package 0.502 +- 0.015 (200); drafted 0.517 +- 0.015 (200); all 0.506 +- 0.009 (600); fit 0.505, z +0.0
+
+== 3. NET on L (rate.py rate against the all-shape fit; exploratory)
+{"player": "/home/sune/Desktop/MTG_AI/runs/ceiling_window/r28_latest.pt+precision=bf16", "elo": 588.6, "ci95": [583.3, 593.2], "deals": 7800, "opponents": ["/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/u1000.pt+precision=bf16", "/home/sune/Desktop/MTG_AI/runs/selfplay/r27_priority_ppo/v1.pt+precision=bf16", "heuristic"]}

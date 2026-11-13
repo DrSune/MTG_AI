@@ -1,0 +1,10 @@
+{
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/u1000.pt+precision=bf16": 549.6,
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/u1000.pt+root=gumbel+m=16+n=4+horizon=1+continuation=greedy+kinds=act+skip_p=0.97+blocks=False+worlds=uniform+precision=bf16": 579.2,
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/v0.pt+precision=bf16": 494.4,
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/v1.pt+precision=bf16": 518.6,
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r26_outcome_ppo/v2.pt+precision=bf16": 532.0,
+ "/home/sune/Desktop/MTG_AI/runs/selfplay/r27_priority_ppo/v1.pt+precision=bf16": 575.4,
+ "heuristic": 416.7,
+ "random": 0.0
+}
