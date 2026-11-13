@@ -506,6 +506,23 @@ class TestWhatOneEventIs(_Case):
             (anchor, ZONE_GRAVEYARD), (other, ZONE_GRAVEYARD), (exiled, ZONE_GRAVEYARD)]
         assert self.gains(self.p0) == [1] and self.gains(self.p1) == [1]
 
+    def test_a_return_still_comes_when_a_step_of_the_event_is_skipped(self) -> None:
+        """The guarded effect lane skips a step whose anaphora has no antecedent and goes on; the
+        sacrifice before it in the same EachPlayer still ended the "until", so the card returns."""
+        [anchor] = self.creatures(1, [])
+        exiled = self.world.add_card(card_id("Exiled", "1", "1"), self.p0, ZONE_GRAVEYARD)
+        until = atom(Verb.MOVE_ZONE, cards=EVERY, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                     duration=at.DurationUntilLeaves("source"))
+        self.ex.execute(until, source=anchor, controller=self.p0, bindings={"cards": [exiled]})
+        dangling = atom(Verb.DESTROY, target=at.Selector(QConst(1), at.SelectorMode.CHOOSE, FAnd(()),
+                                                         zones=(ANY,), referent="event"))
+        body = at.Seq((atom(Verb.SACRIFICE, target=self.a_bear()), dangling))
+        ctx = self.ex._ctx(source=self.watch, controller=self.p0, bindings=None, decisions=())
+        self.ex._run_guarded_effect(at.EachPlayer(ControllerRef.YOU, body), ctx, "test")
+        assert self.world.zone_of(anchor).kind == ZONE_GRAVEYARD
+        assert self.world.zone_of(exiled).kind == ZONE_GRAVEYARD
+        assert self.ex.unresolved_effects  # the skipped step, recorded
+
 
 def test_entries_replaced_in_one_instruction_are_one_event() -> None:
     """CR 614.6: M21 Containment Priest ("If a nontoken creature would enter and it wasn't cast,

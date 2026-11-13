@@ -1279,12 +1279,16 @@ class Executor:
         """The atom boundaries run inside are one event (``EventJournal.one_event``). An object
         an "until" effect returns because of the event comes back once the whole event is over
         (CR 610.3: the return is a second one-shot effect, created immediately after the
-        event), not between its boundaries."""
-        with self.journal.one_event(after) as opened:
-            yield
-        if opened and self._returns_due:
-            due, self._returns_due = self._returns_due, []
-            self._run_returns(due)
+        event), not between its boundaries; also when a step of the event raised (the guarded
+        effect lane skips it and goes on): the moves that ended them happened."""
+        opened = False
+        try:
+            with self.journal.one_event(after) as opened:
+                yield
+        finally:
+            if opened and self._returns_due:
+                due, self._returns_due = self._returns_due, []
+                self._run_returns(due)
 
     def _run_returns(self, rows: list[ReturnRow]) -> None:
         """CR 610.3: the second one-shot effect of a zone move
