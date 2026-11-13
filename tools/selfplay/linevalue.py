@@ -86,13 +86,14 @@ class Line:
     begins: Callable[[Any, Any], bool] | None = None
 
 
-def plays(ex: Any, options: tuple, ids: frozenset) -> list[int]:
+def plays(ex: Any, options: tuple, ids: frozenset, kinds: tuple = ("cast", "land")) -> list[int]:
     """The options that cast a card from hand, or play it as a land, whose oracle id is in
-    ``ids`` (the router's ``cast:<card>[:k][:x<N>]`` and ``land:<card>`` rows)."""
+    ``ids`` (the router's ``cast:<card>[:k][:x<N>]`` and ``land:<card>`` rows); with "act" in
+    ``kinds`` also those that activate one of its abilities (``act:<card>:<i>``)."""
     out = []
     for i, o in enumerate(options):
         kind, _, rest = o.token.partition(":")
-        h = FT._handle(rest) if kind in ("cast", "land") else None
+        h = FT._handle(rest) if kind in kinds else None
         if h is not None and ex.world.cards[h].identity.oracle_id in ids:
             out.append(i)
     return out
@@ -109,13 +110,18 @@ def cast_line(ids: frozenset, name: str) -> Line:
     return Line(f"cast {name}", lambda ask, obs: plays(obs.executor, ask.options, ids))
 
 
-def order_line(consumers: frozenset, producers: frozenset, name: str) -> Line:
+def order_line(consumers: frozenset, producers: frozenset, name: str,
+               activations: bool = False) -> Line:
+    """``activations``: once a consumer is out, a producer's step may also be activating one of
+    its abilities (a sacrifice outlet), not only casting it."""
+    kinds = ("cast", "land", "act") if activations else ("cast", "land")
+
     def begins(ask: Any, obs: Any) -> bool:
         return not controls(obs.executor, obs.executor.world.player_order[ask.seat], consumers)
 
     def step(ask: Any, obs: Any) -> list[int]:
         if not begins(ask, obs):
-            return plays(obs.executor, ask.options, producers)
+            return plays(obs.executor, ask.options, producers, kinds)
         ex = obs.executor
         return plays(ex, ask.options, consumers) if plays(ex, ask.options, producers) else []
 
@@ -464,6 +470,8 @@ def main(argv: list[str] | None = None) -> dict:
     p.add_argument("--cast", action="append", default=[], help="family (a): a card name or oracle id")
     p.add_argument("--consumer", action="append", default=[], help="family (b): a consumer")
     p.add_argument("--producer", action="append", default=[], help="family (b): a producer")
+    p.add_argument("--activations", action="store_true",
+                   help="an order line's follow-through may activate a producer's abilities")
     p.add_argument("--package", default="", help="deal both decks around the package with this label "
                    "(packages.label, e.g. 'life'); with no --cast/--consumer, its consumers before its producers")
     p.add_argument("--states", type=int, default=30)
@@ -495,10 +503,11 @@ def main(argv: list[str] | None = None) -> dict:
         line = cast_line(_ids(a.cast, supply), " | ".join(a.cast))
     elif pkg is not None and not a.consumer:
         line = order_line(frozenset(pkg.consumers), frozenset(pkg.producers),
-                          f"{a.package}: a consumer before its producers")
+                          f"{a.package}: a consumer before its producers"
+                          + (", then activate them" if a.activations else ""), a.activations)
     else:
         line = order_line(_ids(a.consumer, supply), _ids(a.producer, supply),
-                          f"{' | '.join(a.consumer)} before {' | '.join(a.producer)}")
+                          f"{' | '.join(a.consumer)} before {' | '.join(a.producer)}", a.activations)
     net, table_, extra = M.load(a.ckpt, a.device)
     with torch.no_grad():  # a constant at play time: once, not per decision (half a CPU forward)
         emb = net.card_table_emb()

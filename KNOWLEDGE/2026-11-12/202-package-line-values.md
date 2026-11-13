@@ -91,3 +91,26 @@ tools.selfplay.linevalue runs/r28_looks/r28_u100.pt --package LABEL --set M21 --
 --futures 3 --games 600 --out runs/linevalue_2026-11-12/<label>.json`, with LABEL life, draw,
 counter or 'spell[!Creature]' (the last two under a 4 GiB memory cap). It takes 15-18 s per
 state × future on two CPU threads, about 1.5 hours per line.
+
+## 3. Registered before its data (2026-11-13 02:00): the sacrifice package, with activations
+
+**Why this line.**
+- §2 left untested the one package where the package mode found an exploration barrier: under
+  the heuristic, sacrifice fires in only 6% of its decks, because no rule activates a sacrifice
+  outlet.
+- `linevalue --activations` (this commit) lets an order line's follow-through also activate a
+  producer's abilities, so it can force an outlet.
+
+**The run.** `linevalue.py runs/r28_looks/r28_u100.pt --package sacrifice --activations --set M21
+--states 100 --futures 3 --games 600 --out runs/linevalue_2026-11-12/sacrifice_act.json`. Same
+settings as §1, CPU under a 4 GiB cap. The kill rule is §1's.
+
+| # | Metric | Prediction | Falsifier |
+|---|---|---|---|
+| S1 | A* − B: the consumer cast first, then every producer step forced, activations included | ≥ +0.03, beyond 2 SE: activating outlets with the payoff out is worth something, a barrier in the follow-through | within 2 SE of 0, or below |
+| S2 | Follow-through in B: the share of later producer steps, activations included, the policy takes by itself | below 0.3 (the barrier) | — (descriptive) |
+
+**What follows.**
+- If S1 holds, the sacrifice package is the first line class with measured value. It becomes the
+  first candidate for forcing by frequency and for a specialist (PLAN_CEILING §14.3).
+- If S1 fails, no measured line has value yet. The ceiling read at 400 decides alone.
