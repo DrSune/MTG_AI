@@ -170,6 +170,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **The folded `activate` takes its targets before it asks X** (2026-10-29, the activation X
   lane), so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No
   carrier has both: Ugin's [−X] has no target.
+- **A triggered ability's per-slot designation: what is left** (2026-11-13; the designation itself
+  is `binding.TriggerBinder._designate_slots`, as spells and activations designate).
+  - A target whose legal set reads the player designated beside it ("exile target creature target
+    opponent controls") raises: the slots are made independently, so its population would be
+    empty. Needs the player designated first and the dependent slot made with it bound. No card
+    of the 19 sets prints it; the spell lane has the same limit silently (the spell is uncastable).
+  - The engine's `target:` ask of a multi-slot trigger does not say which slot it fills or what
+    was picked so far: the rig sets `AskContext.slot`, `picked` and `targeted` only for the
+    router's own `pick:` asks of spells and activations (AGENTS §10). A features change, with the
+    network's owner.
+  - The class not yet mapped: M10 Capricious Efreet (also a random pick among the designated),
+    KHM Halvar, God of Battle, M20 Loaming Shaman (also "any number of target cards").
+- **A player's keywords are not in the observation** (2026-11-13). Hexproof and protection on a
+  player (Leyline of Sanctity, Veil of Summer, Runed Halo) change the opponent's target menus,
+  which the engine computes, but `tools/selfplay/features.py` encodes keywords per card only, so
+  the network sees the Leyline on the battlefield, not "you have hexproof" (a resolved Veil leaves
+  no permanent behind). A features change, with the network's owner.
 
 ### Triggers, events and the journal
 
@@ -452,6 +469,49 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **"N damage to that creature's controller": two answers, one of them stale** (2026-11-13,
+  analysis only; a decision for the next gate round).
+  - MAPPER_GUIDE ("has no encoding yet ... Mark such a card needs-atom (M20 Chandra's Outrage)")
+    and Chandra's Outrage's needs-atom note reject a TARGET selector over the PLAYER zone (a slot
+    of its own), a referent Selector in `target` (the creature itself), ALL over Zone(PLAYER,
+    TARGET_PLAYER) (a phantom player slot) and DEAL_DAMAGE `recipient` (raises). None of these is
+    the verified M20 Chandra, Flame's Fury's −2: `DEAL_DAMAGE(target=Selector(ALL, QUnbounded,
+    FAtom(CONTROLLER_IS, who=Selector(referent="target")), zones=(Zone(PLAYER, ANY),)))`.
+  - That form opens no designation (AGENTS §10), never names TARGET_PLAYER (D18), and reuses the
+    canonical "its controller" referent Selector as CONTROLLER_IS's `who`, as filters already read
+    "that creature's controller" (M21 Feline Sovereign, `who=Selector(referent="event")`). By the
+    identity law it is the one encoding for the wording: the guide's line is stale.
+  - One engine fault first: `selectors.controller_matches` reads a referent's current controller
+    (`controller_of`), not the one it last had (CR 608.2h), which `role_players` reads
+    (`last_known_controller`). Probed 2026-11-13: "destroy target artifact; 3 damage to that
+    artifact's controller" on a stolen artifact hits its owner. Exact today for damage dealt while
+    the object is still there (Chandra's two, Searing Barrage, Ravaging Blaze, Synchronized
+    Spellcraft) or on the stack (ELD Bonecrusher Giant's "that spell's controller"); wrong for
+    10E Cryoclasm, ORI Smash to Smithereens and THB Impending Doom.
+  - Then: the guide's line, and the cards: Chandra's Outrage (M20, M11, M12, M14), Bonecrusher
+    Giant (referent "event"), Searing Barrage, Ravaging Blaze, Cryoclasm, Smash to Smithereens,
+    Impending Doom, Synchronized Spellcraft (X).
+- **"Whenever you discard a card" has two encodings in waiting** (2026-11-13, analysis only).
+  - M20 Bag of Holding (verified) triggers on `ZoneChangeEvent(HAND YOU -> GRAVEYARD YOU)`; M20
+    Glint-Horn Buccaneer's needs-atom note asks for a discard event (B-48).
+  - CR 701.8a defines the action as the move, but the two are not the same set. A discard need
+    not end in the graveyard: a replacement redirects it (Leyline of the Void M20/M11 and Dryad
+    Militant FDN exile it; Darksteel Colossus M10/FDN, Progenitus FDN, Nexus of Fate M19 and Legacy
+    Weapon 10E shuffle themselves in; madness, none in the 19 sets, exiles it), and a card's text
+    may put a card from a hand into a graveyard without discarding it (none in the 19 sets).
+  - So Glint-Horn's note is right: one wording, one encoding (identity law), the keyword action's
+    own event as SacrificeEvent is CR 701.21's: a `DiscardEvent(actor, filter)` with B-48's one
+    discard encoding. Type-1: the next ontology round.
+  - Per card: Glint-Horn stays needs-atom (with Leyline of the Void compiled it would deal no
+    damage for a redirected discard: weaker than printed). Bag of Holding keeps its stamp: none of
+    the redirecting cards compiles in the pools, and its effect ("exile that card from your
+    graveyard") cannot see a redirected card anyway; it refolds when the event lands. Fell Specter,
+    Liliana's Caress, Megrim, Rielle, Tinybones and Waste Not wait for the same event.
+- **DOM Shalai, Voice of Plenty: "You, planeswalkers you control, and other creatures you control
+  have hexproof."** (2026-11-13). The player and a filtered set of permanents in one static:
+  `layers._new_static` refuses two populations in one record, and no filter joins "you" with type
+  tests (TYPE_EQ is False on a player). Templates_b16 covers "You have hexproof." and "You and
+  permanents you control ..."; this one needs a decision on its shape.
 - **D19: a MOVE_ZONE into a library with no position means two things** (2026-11-12, ontology
   gate round 5, m5; ATOM_DIVERGENCES D19): "put it on the bottom of your library" (M21 Epitaph
   Golem) and "shuffle it into its owner's library" (M20 Cavalier of Gales: the move, then a
@@ -644,13 +704,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     top card: a noncreature on top put nothing onto the battlefield. Packs
     `transmogrify_reveals_until_a_creature`, `transmogrify_own_creature_reveals_from_your_library`,
     `transmogrify`.
-  - The other 11 "reveal ... until" cards in the 19 sets are unparsed. Their tails move "the
-    rest" (to the bottom in a random order: Vivien, Nature's Avenger, Evolutionary Leap, Spinner
-    of Souls, Jalira, Esika, Lukka; to the graveyard with the match: Consuming Aberration), count
-    several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
-    replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
-    selector reads it yet. "In a random order" is MOVE_ZONE's `arrange` RANDOM (2026-11-12,
-    ontology gate round 5).
+  - 2026-11-13: "Reveal cards from the top of your library until you reveal a creature card. Put
+    that card into your hand and the rest on the bottom of your library in a random order."
+    compiles (templates_b16), and the REST of "the rest" reads the reveal's window and matches
+    (verbs._look writes the partition anchors one_of_window / one_of_picks): M20 Vivien, Nature's
+    Avenger and FDN Spinner of Souls are mapped (records, packs in `tools/scenarios/mapped/`).
+    ORI Evolutionary Leap's tail compiles, its cost frame ("{G}, Sacrifice a creature:") does not.
+  - Still unparsed: "onto the battlefield" tails (M15 Jalira, THB Dreamshaper Shaman, IKO Lukka's
+    "creature card with greater mana value"), Consuming Aberration (the match goes to the
+    graveyard with the rest), Mass Polymorph ("that many"), Abundance (replaces a draw).
 - **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
   D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
   controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
