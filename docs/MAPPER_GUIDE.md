@@ -138,14 +138,29 @@ $PY tools/cards/cardtool.py --help
     damage step for each player they damaged (CR 510.2; Feline Sovereign). The flag gathers the
     dealers `source` names, so it needs one: "this creature is dealt damage" is already one event
     per step and is never flagged.
+  - "Whenever one or more <objects> enter" (or "leave your graveyard") is the
+    `ZoneChangeEvent` with `once_per_event=True`: one trigger for the objects one event moves,
+    the tokens one effect creates or the cards one instruction or one state-based-action check
+    moves (CR 603.2c; a draw is one card at a time, CR 121.2). See `parse` on Woodland Champion's
+    and Desecrated Tomb's sentences.
+  - On a flagged declaration or zone change the event register holds every object the event
+    gathered (`ability_tree.gathers_objects`). "They" and "those creatures" are
+    `Selector(referent='event')`, the same referent form as "it" (Angelic Guardian: `parse` it);
+    an object that has changed zones since is a new object (CR 400.7) and is left out. "That
+    many" is `QProp('event', THAT_MANY_COUNT)`: every object gathered, those that left since
+    included (Woodland Champion's ruling). There is no "it" among several objects: the IR refuses
+    another QProp of 'event' ("its power") under the flag, and a QCount of a referent Selector
+    anywhere (the number is THAT_MANY_COUNT). A gathered combat damage event keeps its one
+    subject, the player (Feline Sovereign's "that player").
   - The IR refuses the flag where it changes nothing (`ability_tree.gathers_occurrences`): on
-    "this creature" or "equipped creature" (one attacker or dealer per event), on damage that is
-    not only combat damage (`combat` False or None), and with no dealer named.
-  - The engine groups only these two events. A `once_per_event` trigger on any other event ("one
-    or more tokens enter") refuses to bind, and these shapes have no encoding yet: one trigger per
-    attacked object ("attacks a planeswalker you control with one or more creatures"), the
-    recipients gathered ("one or more creatures you control are dealt damage"), and "one or more
-    ... deal damage" that may be noncombat. Report them as `needs-atom`.
+    "this creature" or "equipped creature" (one attacker, dealer or moved object per event), on
+    damage that is not only combat damage (`combat` False or None), and with no dealer named.
+  - The engine groups these three events. A `once_per_event` trigger on any other event ("one or
+    more creatures die", a CreatureDiesEvent; a sacrifice) refuses to bind, and these shapes have
+    no encoding yet: one trigger per attacked object ("attacks a planeswalker you control with
+    one or more creatures"), the recipients gathered ("one or more creatures you control are
+    dealt damage"), and "one or more ... deal damage" that may be noncombat. Report them as
+    `needs-atom`.
 - **Cards put into a library together.** "...and the rest on the bottom of your library in any
   order" is a `MOVE_ZONE` with no `arrange` role: the engine asks the owner the order (CR 401.4).
   "...in a random order" adds `'arrange': 'RANDOM'`. See `parse "Put the rest on the bottom of

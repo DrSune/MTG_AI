@@ -1,0 +1,38 @@
+mutant: no 400.7 refresh of 'they' at resolution (MTG_bot/core/executor/binding.py)
+  1 failed, 35 passed in 2.38s
+  killed by test_angelic_guardian_an_attacker_that_changed_zones_is_a_new_object
+
+mutant: the event referent sliced to one object again (MTG_bot/core/executor/selectors.py)
+  2 failed, 34 passed in 2.34s
+  killed by test_angelic_guardian_not_a_creature_put_onto_the_battlefield_attacking
+  killed by test_angelic_guardian_they_are_the_declared_attackers
+
+mutant: 'that many' reads the event register (still-there objects) (MTG_bot/core/executor/quantity.py)
+  2 failed, 34 passed in 2.41s
+  killed by TestTheBinderGathersOnlyWhatItGroups::test_that_many_with_no_antecedent_still_raises
+  killed by test_woodland_champion_counts_a_token_that_left_before_resolution
+
+mutant: a draw of two is one batch (MTG_bot/core/executor/events.py)
+  1 failed, 35 passed in 2.54s
+  killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
+
+mutant: no dedup per event (each row queues) (MTG_bot/core/executor/binding.py)
+  7 failed, 29 passed in 2.36s
+  killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
+  killed by TestOneEvent::test_one_state_based_action_check_is_one_event
+  killed by TestOneEvent::test_two_instructions_of_one_resolution_are_two_events
+  killed by test_desecrated_tomb_one_bat_per_event
+  killed by test_woodland_champion_counts_a_token_that_left_before_resolution
+  killed by test_woodland_champion_three_tokens_at_once_one_trigger_three_counters
+  killed by test_woodland_champion_two_token_effects_two_triggers
+
+mutant: gathered set = the first row's object only (MTG_bot/core/executor/binding.py)
+  8 failed, 28 passed in 2.46s
+  killed by TestOneEvent::test_a_draw_is_one_card_at_a_time
+  killed by TestOneEvent::test_one_state_based_action_check_is_one_event
+  killed by TestOneEvent::test_two_instructions_of_one_resolution_are_two_events
+  killed by test_angelic_guardian_not_a_creature_put_onto_the_battlefield_attacking
+  killed by test_angelic_guardian_they_are_the_declared_attackers
+  killed by test_woodland_champion_counts_a_token_that_left_before_resolution
+  killed by test_woodland_champion_three_tokens_at_once_one_trigger_three_counters
+  killed by test_woodland_champion_two_token_effects_two_triggers

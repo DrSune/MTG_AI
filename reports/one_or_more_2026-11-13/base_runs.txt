@@ -1,0 +1,54 @@
+Round R10's tests and packs on the base, 30fabc4a (a git archive; MTG_bot/core/test_executor_one_or_more.py
+and the four tools/scenarios/mapped/M20 packs copied in), 2026-11-13:
+
+    pytest MTG_bot/core/test_executor_one_or_more.py MTG_bot/core/test_scenario_packs.py \
+      -k "one_or_more or mapped/M20/woodland or mapped/M20/angelic" -rA --tb=line
+
+34 of 36 unit tests and 4 of 4 packs fail. The 2 that pass are the controls, true on both: a flagged
+SacrificeEvent is refused at bind, and "that many" with no antecedent raises.
+
+Why each fails on the base (in order of the test file):
+- the flag on a zone change of one object: accepted (DID NOT RAISE);
+- gathers_occurrences(ZoneChangeEvent ...): False;
+- a singular read of a gathered register, 12 cases: accepted (DID NOT RAISE);
+- a gathered damage event keeps its one subject: no ability_tree.gathers_objects;
+- a QCount of a referent Selector, 5 referents: accepted (DID NOT RAISE);
+- one SBA check / a draw / two instructions: the binder refuses a flagged ZoneChangeEvent
+  ("once-per-event trigger on ZoneChangeEvent has no event grouping");
+- the batch out of the dump: GameEvent has no batch;
+- Woodland Champion (4 tests): no counter (the sentence did not compile: a needs-atom record);
+- Angelic Guardian (3 tests): nothing indestructible, or no trigger waits to respond to;
+- Desecrated Tomb: no Bat (the sentence did not compile);
+- the packs: no counter on the Champion; the Guardian destroyed by lethal damage; no trigger
+  waits at DECLARE_ATTACKERS.
+
+The run:
+
+MTG_bot/core/test_executor_one_or_more.py:125: Failed: DID NOT RAISE ValueError (x3)
+MTG_bot/core/test_executor_one_or_more.py:136: AssertionError: None
+MTG_bot/core/test_executor_one_or_more.py:154: Failed: DID NOT RAISE ValueError (x12)
+MTG_bot/core/test_executor_one_or_more.py:180: AttributeError: module 'MTG_bot.core.ability_tree' has no attribute 'gathers_objects'
+MTG_bot/core/test_executor_one_or_more.py:189: Failed: DID NOT RAISE ValueError (x5)
+MTG_bot/core/executor/binding.py:648: NotImplementedError: executor: Rec once-per-event trigger on ZoneChangeEvent has no event grouping (x3)
+MTG_bot/core/test_executor_one_or_more.py:270: AttributeError: 'GameEvent' object has no attribute 'batch'
+MTG_bot/core/test_executor_one_or_more.py:279: assert [] == [1]
+MTG_bot/core/test_executor_one_or_more.py:285: assert [] == [3]
+MTG_bot/core/test_executor_one_or_more.py:292: assert [] == [1, 2]
+MTG_bot/core/test_executor_one_or_more.py:314: assert [] == [3]
+MTG_bot/core/test_executor_one_or_more.py:324: AssertionError: assert (False)
+MTG_bot/core/test_executor_one_or_more.py:334: AssertionError: assert (False)
+tools/run_scenarios.py:1036: PackError: combat: respond_to_triggers: no triggered ability waits at DECLARE_ATTACKERS (the stack holds [])
+MTG_bot/core/test_executor_one_or_more.py:371: assert 0 == 1
+test_mapped_pack[mapped/M20/angelic_guardian_attackers_are_indestructible]: zone[guardian]: expected battlefield, got graveyard
+test_mapped_pack[mapped/M20/angelic_guardian_bounced_attacker_is_a_new_object]: PackError: combat: respond_to_triggers: no triggered ability waits at DECLARE_ATTACKERS
+test_mapped_pack[mapped/M20/woodland_champion_three_zombies_at_once]: counters[champ]: expected {'PLUS_1_PLUS_1': 3}, got {}
+test_mapped_pack[mapped/M20/woodland_champion_two_tokens_at_once]: counters[champ]: expected {'PLUS_1_PLUS_1': 3}, got {}
+PASSED test_executor_one_or_more.py::TestTheBinderGathersOnlyWhatItGroups::test_a_flag_on_a_sacrifice_is_refused_at_bind
+PASSED test_executor_one_or_more.py::TestTheBinderGathersOnlyWhatItGroups::test_that_many_with_no_antecedent_still_raises
+38 failed, 2 passed, 1936 deselected in 3.50s
+
+The engine pieces, one undone at a time on the branch (mutants.py; mutants.txt): every mutant is
+killed by at least one test of the module: no CR 400.7 check of "they" (1 test), the event referent
+sliced to one again (2), "that many" reading the event register (2: the departed token, and the
+missing-antecedent raise), a draw of two as one batch (1), no dedup per event (7), the gathered set
+the first row's object only (8).

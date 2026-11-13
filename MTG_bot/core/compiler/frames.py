@@ -94,26 +94,6 @@ def _once_per_event(event: Callable[[re.Match[str]], Any]) -> Callable[..., Sent
         event(m), effect, condition, once_per_event=True)
 
 
-#: The plural subtypes a "one or more other <Subtype>s" head reads, and their singular: a closed
-#: table, since a guessed singular that names no subtype would match nothing.
-_PLURAL_SUBTYPES: Final[dict[str, str]] = {"Elves": "Elf"}
-
-
-def _others_enter(m: re.Match[str]) -> ZoneChangeEvent:
-    """"one or more other Elves you control enter": the "another <class> you control enters"
-    shape (Terror of the Peaks) over a tribal noun (SUBTYPE_EQ plus TYPE_EQ Creature)."""
-    return ZoneChangeEvent(
-        from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
-        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
-        subject=FAnd(children=(
-            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=_PLURAL_SUBTYPES[m.group("subs")]),
-            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
-        )),
-    )
-
-
 #: (frame, assembler). Patterns are full matches; the first frame that matches decides. An
 #: assembler takes the frame's match, the clause's effect and the intervening condition (None for
 #: the cost frames, which have none).
@@ -164,14 +144,12 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
             rf"{templates_b9.LIFE_TRIGGER_RE}, (?P<clause>.+)"),
      lambda m, effect, condition: templates_b2a._ability(
          templates_b9.life_event(m), effect, condition)),
-    # "Whenever one or more <objects> <move>, <clause>": once per event (Elvish Warmaster's head,
-    # Desecrated Tomb). A pronoun ("that many", "they") keeps a clause out, as for every frame:
-    # Woodland Champion and Angelic Guardian are B2b templates.
-    (_frame("B13-one-or-more-others-enter",
-            "whenever one or more other <Subtype>s you control enter, <clause>",
-            rf"Whenever one or more other (?P<subs>{'|'.join(_PLURAL_SUBTYPES)}) you control "
-            r"enter, (?P<clause>.+)"),
-     _once_per_event(_others_enter)),
+    # "Whenever one or more creature cards leave your graveyard, <clause>": once per event
+    # (Desecrated Tomb). A pronoun ("that many", "they") keeps a clause out, as for every frame:
+    # Woodland Champion and Angelic Guardian are B2b templates. KHM Elvish Warmaster's "one or
+    # more other Elves you control enter" has no frame: without its "This ability triggers only
+    # once each turn" its Elf Warrior token would trigger it again, a loop the printed card never
+    # makes, in every pool that deals a partly compiled card.
     (_frame("B13-one-or-more-leave-graveyard",
             "whenever one or more creature cards leave your graveyard, <clause>",
             r"Whenever one or more creature cards leave your graveyard, (?P<clause>.+)"),

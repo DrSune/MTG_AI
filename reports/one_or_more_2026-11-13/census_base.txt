@@ -1,0 +1,19 @@
+## zone changes: 4 sentences on 4 cards, 4 blocked (unparsed, or a needs-atom record)
+M20 | Woodland Champion | needs-atom | UNPARSED (triggered) | Whenever one or more tokens you control enter, put that many +1/+1 counters on this creature.
+KHM | Elvish Warmaster | partly-compiled | UNPARSED (triggered) | Whenever one or more other Elves you control enter, create a 1/1 green Elf Warrior creature token.
+M19 | Desecrated Tomb | partly-compiled | UNPARSED (triggered) | Whenever one or more creature cards leave your graveyard, create a 1/1 black Bat creature token with flying.
+THB | Devourer of Memory | partly-compiled | UNPARSED (triggered) | Whenever one or more cards are put into your graveyard from your library, this creature gets +1/+1 until end of turn and can't be blocked this turn.
+
+## attack and combat damage (round 4): 11 sentences on 11 cards, 8 blocked (unparsed, or a needs-atom record)
+M21 | Basri Ket | verified | B5c-loyalty-soldier-attack-tokens | [−2]: Whenever one or more nontoken creatures attack this turn, create that many 1/1 white Soldier creature tokens that are tapped and attacking.
+M21 | Feline Sovereign | verified | B2b-feline-sovereign | Whenever one or more Cats you control deal combat damage to a player, destroy up to one target artifact or enchantment that player controls.
+ZNR | Soaring Thought-Thief | partly-compiled | UNPARSED (triggered) | Whenever one or more Rogues you control attack, each opponent mills two cards.
+M20 | Angelic Guardian | needs-atom | UNPARSED (triggered) | Whenever one or more creatures you control attack, they gain indestructible until end of turn.
+KHM | The Raven's Warning | partly-compiled | UNPARSED (spell-effect) | II — Whenever one or more creatures you control with flying deal combat damage to a player this turn, look at that player's hand and draw a card.
+M14 | Path of Bravery | partly-compiled | UNPARSED (triggered) | Whenever one or more creatures you control attack, you gain life equal to the number of attacking creatures.
+ORI | Thopter Spy Network | partly-compiled | UNPARSED (triggered) | Whenever one or more artifact creatures you control deal combat damage to a player, draw a card.
+DOM | Grand Warlord Radha | partly-compiled | UNPARSED (triggered) | Whenever one or more creatures you control attack, add that much mana in any combination of {R} and/or {G}.
+FDN | Ancestor Dragon | verified | mapped (card record) | Whenever one or more creatures you control attack, you gain 1 life for each attacking creature.
+ELD | Keeper of Fables | partly-compiled | UNPARSED (triggered) | Whenever one or more non-Human creatures you control deal combat damage to a player, draw a card.
+IKO | Quartzwood Crasher | partly-compiled | UNPARSED (triggered) | Whenever one or more creatures you control with trample deal combat damage to a player, create an X/X green Dinosaur Beast creature token with trample, where X is the amount of damage those creatures dealt to that player.
+

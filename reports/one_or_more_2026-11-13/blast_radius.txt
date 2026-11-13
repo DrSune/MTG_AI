@@ -1,0 +1,98 @@
+Blast radius of ontology round R10 (2026-11-13: once_per_event on ZoneChangeEvent, the gathered
+event register), base 30fabc4a (a git archive) -> this branch, by script:
+  tree_dump.py <checkout> <out.json> on each checkout, then tree_diff.py <base> <branch>
+
+compiler trees changed (3):
+   M19 Desecrated Tomb
+   M20 Angelic Guardian
+   M20 Woodland Champion
+trees with records applied changed (3):
+   M19 Desecrated Tomb compiler -> compiler unverified
+   M20 Angelic Guardian needs-atom record -> record unverified
+   M20 Woodland Champion needs-atom record -> record unverified
+compiler: fewer unparsed sentences (3):
+   M19 Desecrated Tomb 1 -> 0
+   M20 Angelic Guardian 1 -> 0
+   M20 Woodland Champion 1 -> 0
+compiler: newly compiling whole (3): [('M19', 'Desecrated Tomb'), ('M20', 'Angelic Guardian'), ('M20', 'Woodland Champion')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (40):
+   FDN Adventuring Gear ['object-zone-trigger']
+   FDN Ancestor Dragon ['gathered-trigger']
+   FDN Battlesong Berserker ['gathered-trigger']
+   FDN Garruk's Uprising ['object-zone-trigger']
+   FDN Impact Tremors ['object-zone-trigger']
+   FDN Obliterating Bolt ['event-selector']
+   FDN Scorching Dragonfire ['event-selector']
+   FDN Spitfire Lagac ['object-zone-trigger']
+   FDN Tatyova, Benthic Druid ['object-zone-trigger']
+   M20 Bag of Holding ['event-selector', 'object-zone-trigger']
+   M20 Bishop of Wings ['object-zone-trigger']
+   M20 Cavalier of Flame ['that-many']
+   M20 Cavalier of Thorns ['event-selector']
+   M20 Corpse Knight ['object-zone-trigger']
+   M20 Dread Presence ['object-zone-trigger']
+   M20 Griffin Protector ['object-zone-trigger']
+   M20 Impassioned Orator ['object-zone-trigger']
+   M20 Marauding Raptor ['event-selector', 'object-zone-trigger']
+   M20 Omnath, Locus of the Roil ['object-zone-trigger']
+   M20 Reduce to Ashes ['event-selector']
+   M20 Risen Reef ['object-zone-trigger']
+   M20 Sage's Row Denizen ['object-zone-trigger']
+   M20 Starfield Mystic ['object-zone-trigger']
+   M20 Waterkin Shaman ['object-zone-trigger']
+   M21 Basri Ket ['gathered-trigger', 'that-many']
+   M21 Basri, Devoted Paladin ['event-selector']
+   M21 Chandra's Incinerator ['event-selector']
+   M21 Conclave Mentor ['event-selector']
+   M21 Containment Priest ['event-selector']
+   M21 Feline Sovereign ['event-selector', 'flagged-damage']
+   M21 Fiery Emancipation ['event-selector']
+   M21 Garruk's Uprising ['object-zone-trigger']
+   M21 Gloom Sower ['event-selector']
+   M21 Hooded Blightfang ['event-selector']
+   M21 Kinetic Augur ['that-many']
+   M21 Scorching Dragonfire ['event-selector']
+   M21 Terror of the Peaks ['object-zone-trigger']
+   M21 Thieves' Guild Enforcer ['object-zone-trigger']
+   M21 Tide Skimmer ['gathered-trigger']
+   M21 Watcher of the Spheres ['object-zone-trigger']
+verified stamps matching, per set (base -> branch): {'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}
+
+(The first draft also compiled KHM Elvish Warmaster's first sentence, a frame dropped since: 4 trees
+then, the same verified pools.)
+
+300 seeded heuristic games (replay.py: seeds 910000-910099 per set, every third coherent, the rest
+stress), verified pools, decks dealt from the cards verified on both checkouts; digest =
+tools/selfplay/preflight._digest, journal = sha256 of the journal dump; replay_compare.py <base> <branch>:
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 5 (21 queues); crashes 0 (base) / 0 (branch)
+M20: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 0 (0 queues); crashes 0 (base) / 0 (branch)
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 12 (63 queues); crashes 0 (base) / 0 (branch)
+
+G3 "occurrence" mutants of the verified trees (g3_occurrence.py on each checkout, then --diff):
+FDN Adventuring Gear: None -> ['each occurrence -> once per event @ 1/0']
+FDN Garruk's Uprising: None -> ['each occurrence -> once per event @ 1/2']
+FDN Impact Tremors: None -> ['each occurrence -> once per event @ 1/0']
+FDN Spitfire Lagac: None -> ['each occurrence -> once per event @ 1/0']
+FDN Tatyova, Benthic Druid: None -> ['each occurrence -> once per event @ 1/0']
+M20 Bag of Holding: None -> ['each occurrence -> once per event @ 1/0']
+M20 Bishop of Wings: None -> ['each occurrence -> once per event @ 1/0']
+M20 Corpse Knight: None -> ['each occurrence -> once per event @ 1/0']
+M20 Dread Presence: None -> ['each occurrence -> once per event @ 1/0']
+M20 Griffin Protector: None -> ['each occurrence -> once per event @ 1/0']
+M20 Impassioned Orator: None -> ['each occurrence -> once per event @ 1/0']
+M20 Marauding Raptor: None -> ['each occurrence -> once per event @ 1/1']
+M20 Omnath, Locus of the Roil: None -> ['each occurrence -> once per event @ 1/1']
+M20 Risen Reef: None -> ['each occurrence -> once per event @ 1/0']
+M20 Sage's Row Denizen: None -> ['each occurrence -> once per event @ 1/0']
+M20 Starfield Mystic: None -> ['each occurrence -> once per event @ 1/1']
+M20 Waterkin Shaman: None -> ['each occurrence -> once per event @ 1/0']
+M21 Garruk's Uprising: None -> ['each occurrence -> once per event @ 1/2']
+M21 Thieves' Guild Enforcer: None -> ['each occurrence -> once per event @ 1/0']
+M21 Watcher of the Spheres: None -> ['each occurrence -> once per event @ 1/1']
+verified trees with an occurrence mutant: 8 (base) -> 28 (branch)
+(Terror of the Peaks' is stillborn: its "that creature's power" reads one object of the event.)
+
+Ontology conformance (tools/audit/ontology_conformance.py, M21 and ZNR): PASS, errors 0, warns 7,
+V4' CHOOSE new_emissions 0, on both checkouts.
