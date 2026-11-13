@@ -1,0 +1,66 @@
+The pre-gate review's fixes (one fresh-eyes reviewer on 92aca048, the round's first commit), run
+against 92aca048: the branch's test files and the new pack copied into a `git archive` of 92aca048
+and run there with the worktree's .venv, CPU only.
+
+pytest MTG_bot/core/test_executor_chosen_quality.py tools/cards/test_gates.py
+       tools/selfplay/test_selfplay.py, on 92aca048:
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_choice_is_made_wherever_its_reads_can_be_asked[None]
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_choice_is_made_wherever_its_reads_can_be_asked[COLOR]
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_creature_type_is_no_other_card_types_subtype
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_gate_on_the_entering_state_reads_the_choice[R-True]
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_gate_on_the_entering_state_reads_the_choice[G-False]
+FAILED MTG_bot/core/test_executor_chosen_quality.py::test_a_source_that_left_answers_from_its_last_known_choice
+FAILED tools/cards/test_gates.py::test_a_widened_chosen_quality_read_drops_its_choice
+FAILED tools/selfplay/test_selfplay.py::test_a_chosen_quality_and_its_menu_reach_the_encoding
+FAILED tools/selfplay/test_selfplay.py::test_no_chosen_value_adds_nothing_to_the_tokens
+FAILED tools/selfplay/test_selfplay.py::test_copies_of_a_card_are_one_move_to_the_audit
+FAILED tools/selfplay/test_selfplay.py::test_manifest_appends_one_entry_per_start
+11 failed, 126 passed
+(The last is no review test: a manifest records the git commit, which an archive has not. It
+passes in a checkout, 92aca048's included.) The reasons, in order: the IR built both choices; the
+menu word list held Food; the gate's read raised (judged before the choice); the source's choice
+was gone (NotImplementedError at the read); the widen mutant was missing (KeyError); the "quality"
+ask grew from "name"; the padding row moved the tokens and old widths did not collate (ValueError:
+could not broadcast (2,7) into (2,8)); the creature-type options were one class ([2] kept of
+[2, 0, 1]).
+
+tools/scenarios/mapped/M20/icon_of_ancestry_reveals_by_its_last_known_choice.json on 92aca048
+(the mapped lane's supply, unverified records applied):
+FAIL: step {'op': 'resolve', 'decisions': ['fire']}: NotImplementedError: executor: NAME_CHOSEN of
+a CREATURE_TYPE needs a CHOOSE_NAME record of the source card:0 (nothing chosen yet, or it chose
+none)
+On the final code: PASS (and in tools/check.sh's pack lane).
+
+Old checkpoints compute what they did (M2): old_net_new.py <checkout> <out.pt>, then
+old_net_base.py <git archive of dafdd5ff> <out.pt>. A random net (d 64, 2 layers) with its padding
+row random as _init leaves it and its two output layers drawn at std 0.5 (built, they are zero,
+which would hide any token change), 64 heuristic decisions of three FDN castable games taken with
+no chosen value on the board and no quality ask open, the base's network on the same weights (its
+ask table one row shorter) and the same batches cut to its widths (7, 4):
+  final code: tokens equal: True | logits equal: True | value equal: True | max |dx|: 0.0
+  92aca048:   tokens equal: False | logits equal: False | value equal: False | max |dx|: 0.0583
+
+G3's live mutants of the choosers (g3_choosers.py <checkout>): base dafdd5ff | 92aca048 | final
+  M21 Runed Halo            1 | 1 | 1
+  M21 Necromentia          13 | 12 | 12  (dropping its choice step leaves reads with no choice:
+                                        refused since 92aca048; the base killed it only by the
+                                        read raising)
+  M20 Icon of Ancestry      7 | 27 | 27  (two reads: a widen of one keeps the choice)
+  M20 Diamond Knight        1 | 3 | 3    (a bare cast-trigger read: no widen, BACKLOG)
+  FDN, M19 Diamond Mare     0 | 3 | 3    (the same)
+  ORI Prism Ring            0 | 3 | 3    (the same)
+  KHM Rally the Ranks       0 | 5 | 6    (+ the widen that drops the read and the choice)
+  M15 Obelisk of Urd        0 | 7 | 8    (the same)
+  ELD, FDN Heraldic Banner  0 | 5 | 6    (the same)
+  M12, FDN Adaptive Automaton 0 | 6 | 7  (the same)
+
+ELD's creature-type menu (Supply.creature_types, the all and castable pools): 54 types, none an
+artifact, enchantment or land type; 55 on 92aca048, Food among them (ELD Gingerbrute, "Artifact
+Creature — Food Golem"). census.py's output (the M21, M20, FDN menus 73, 69, 47) is unchanged.
+
+The blast radius on the final code (the commands of blast_radius.txt): tree_dump on the base and
+the branch, tree_diff: the same 20 trees, 0 verified in or out, stamps 275/270/180; the 9
+still-verified cards on a touched path, FDN Gnarlid Colony and Goblin Boarders also gated
+(entering-gate, their kicker). 300 seeded heuristic games: 300/300 identical digests, 0 crashes.
+soak_coverage.py: line for line the output in soak_coverage.txt (800 games, 0 crashes, the same
+casts and the same detector hits).

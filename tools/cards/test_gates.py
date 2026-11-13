@@ -28,7 +28,10 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     DurationPermanent,
+    EtBState,
     FAnd,
+    FAtom,
+    FAtomPred,
     Keyword,
     OptionalEffect,
     QAtMost,
@@ -654,6 +657,26 @@ def test_a_random_order_keeps_its_zone_mutant() -> None:
     stillborn. Garruk's Harbinger, Drawn from Dreams and Brightwood Tracker kept it before the
     role existed."""
     assert ("zone LIBRARY->GRAVEYARD", "1/0/effect/steps/2/args/destination") in _where(_card("Garruk's Harbinger"))
+
+
+def test_a_widened_chosen_quality_read_drops_its_choice() -> None:
+    """"Creatures you control of the chosen color get +1/+0" widened to every creature you
+    control is a card that chooses nothing: the IR refuses a choice nothing reads
+    (DESIGN_ATOM_ONTOLOGY §13), so the mutant drops the "As this enters" choice with its last read
+    (gates._without_unread_choices), as the zone swap drops arrange; else it would be stillborn
+    and the fault untested. A choice another read still needs stays (Icon of Ancestry's look reads
+    the type its anthem no longer does). Red on 92aca048: FDN Heraldic Banner had no such mutant."""
+    where = "1/1/effect/args/target/filter"
+    for name, code, reads_left in (("Heraldic Banner", "FDN", 0), ("Icon of Ancestry", "M20", 1)):
+        card = _card(name, code)
+        part = next(i for i, c in enumerate(_at(card, where).children)
+                    if isinstance(c, FAtom) and c.pred is FAtomPred.NAME_CHOSEN)
+        mutant = {(op, w): m for op, w, m in gates.mutants(card)}[
+            (f"widen filter (drop part {part})", where)]
+        reads = [n for _p, n in gates._paths((mutant.keywords, mutant.abilities))
+                 if isinstance(n, FAtom) and n.pred is FAtomPred.NAME_CHOSEN]
+        assert len(reads) == reads_left, name
+        assert any(isinstance(a, EtBState) for a in mutant.abilities) is bool(reads_left), name
 
 
 def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() -> None:

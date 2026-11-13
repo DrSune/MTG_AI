@@ -77,6 +77,26 @@ def test_none_is_no_block_only_in_a_block_ask() -> None:
     assert labels["discard:player:0:card:1:x"]["NONE"] == "none: stop choosing"
 
 
+def test_a_quality_ask_says_what_is_chosen_and_names_the_colours() -> None:
+    # A colour or a creature type chosen as a permanent enters (DESIGN_ATOM_ONTOLOGY §13,
+    # verbs._v_choose_name: quality:<permanent>:<COLOR|CREATURE_TYPE>). A dealt game's menus are
+    # the format's, so the ask is leaky only where a rig has no creature-type pool.
+    from MTG_bot.bench.protocol import engine_ask
+
+    game, _supply = _game(3)
+    lens, ex = _lenses()[0], game.executor
+    colour = engine_ask(lens, ex, ("W", "U", "B", "R", "G"), "quality:card:1:COLOR", 0)
+    assert colour.kind == "quality" and colour.prompt.endswith("enters the battlefield: choose a color.")
+    assert [o.label for o in colour.options] == ["white", "blue", "black", "red", "green"]
+    types = engine_ask(lens, ex, ("Elf", "Goblin"), "quality:card:1:CREATURE_TYPE", 0)
+    assert types.prompt.endswith("enters the battlefield: choose a creature type.")
+    assert [o.label for o in types.options] == ["Elf", "Goblin"]
+    assert not colour.leaky and not types.leaky
+    ex.creature_type_pool = ()
+    assert engine_ask(lens, ex, ("Elf",), "quality:card:1:CREATURE_TYPE", 0).leaky
+    assert not engine_ask(lens, ex, ("W", "U"), "quality:card:1:COLOR", 0).leaky
+
+
 def test_a_raw_policy_behind_the_router_reproduces_play_game() -> None:
     # The router consumes no randomness and adds no engine calls, so the engine's own random
     # policy routed through it plays the identical game.

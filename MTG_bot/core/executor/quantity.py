@@ -492,7 +492,8 @@ class LastKnown(NamedTuple):
     its control entries expired: what anything that needs the object as it last existed reads
     (Executor.departed_lki). ``op`` is the public op in which it left; ``attacking`` the player
     or planeswalker it was attacking then, None if it was not attacking (it leaves combat as it
-    leaves the battlefield, CR 506.4)."""
+    leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
+    value) pairs (Executor.name_choices; quality None for a card name)."""
 
     power: int | None
     toughness: int | None
@@ -501,6 +502,7 @@ class LastKnown(NamedTuple):
     controller: Handle
     op: int
     attacking: Handle | None = None
+    choices: tuple[tuple[str | None, str], ...] = ()
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -768,6 +770,52 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+#: The subtypes of the card types a creature face can share its type line with: artifact,
+#: enchantment and land types (CR 205.3g-i, the rules of 2026-11-06).
+_OTHER_SUBTYPES = {
+    "Artifact": frozenset({
+        "Attraction", "Blood", "Bobblehead", "Book", "Clue", "Communicator", "Contraption",
+        "Equipment", "Food", "Fortification", "Gold", "Heartwood", "Incubator", "Infinity", "Junk",
+        "Lander", "Map", "Mutagen", "Powerstone", "Spacecraft", "Stone", "Treasure", "Vehicle",
+        "Vibranium"}),
+    "Enchantment": frozenset({
+        "Aura", "Background", "Cartouche", "Case", "Class", "Curse", "Plan", "Role", "Room", "Rune",
+        "Saga", "Shard", "Shrine"}),
+    "Land": frozenset({
+        "Cave", "Desert", "Forest", "Gate", "Island", "Lair", "Locus", "Mine", "Mountain", "Plains",
+        "Planet", "Power-Plant", "Sphere", "Swamp", "Tower", "Town", "Urza's"}),
+}
+
+
+#: The card types and supertypes (CR 205.2a, 205.4a): the words of a type line that are no subtype.
+_TYPE_LINE_KINDS = frozenset({
+    "Artifact", "Battle", "Conspiracy", "Creature", "Dungeon", "Enchantment", "Instant", "Kindred",
+    "Land", "Phenomenon", "Plane", "Planeswalker", "Scheme", "Sorcery", "Tribal", "Vanguard",
+    "Basic", "Legendary", "Ongoing", "Snow", "World"})
+
+
+def creature_types(type_line: str) -> list[str]:
+    """The creature types a printed type line gives: the subtypes of each face that is a creature
+    or kindred card, less those of its other card types (CR 205.3d: each subtype is one of its
+    own card types'; 205.3m). ELD Gingerbrute, "Artifact Creature — Food Golem", is a Golem."""
+    out: list[str] = []
+    for face in type_line.split("//"):
+        types, _, subtypes = face.partition("—")
+        kinds = set(types.split())
+        if {"Creature", "Kindred", "Tribal"} & kinds:
+            other = frozenset().union(*(_OTHER_SUBTYPES.get(kind, ()) for kind in kinds))
+            out.extend(s for s in subtypes.split() if s not in other)
+    return out
+
+
+def granted_creature_types(words: tuple[str, ...]) -> list[str]:
+    """The creature types among a GRANT_TYPE's words (M21 Riddleform's "3/3 Sphinx creature",
+    Dub's "is a Knight"): every word that is no card type or supertype and no artifact,
+    enchantment or land type (CR 205.3g-i)."""
+    other = frozenset().union(*_OTHER_SUBTYPES.values())
+    return [w for w in words if w not in _TYPE_LINE_KINDS and w not in other]
+
+
 def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
     """Match one handle against a Filter IR node.
 
@@ -985,19 +1033,38 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         threshold = resolve(atom.count, ctx)
         return len(world.cards[handle].identity.colors) >= threshold
     if pred is FAtomPred.NAME_CHOSEN:
-        # Runed Halo: the object's name is the one the SOURCE's CHOOSE_NAME
-        # atom recorded, as the source entered (EtBState.effect, CR 614.1c).
-        # No record is an UNANSWERED question: flagged, never "False" (the
-        # FLIP_WON convention).
+        # The object has what the SOURCE's CHOOSE_NAME of this quality recorded (CR 607.2d: the
+        # read refers only to its own object's choice): Runed Halo's name, Diamond Knight's
+        # colour, Icon of Ancestry's creature type, chosen as the source entered (EtBState.effect,
+        # CR 614.12a). A source that has left the battlefield answers from its last known
+        # information (CR 113.7a, 608.2h): the Icon's {3},{T} ability after a Disenchant in
+        # response, a protection its granter gave before it left. No record is an UNANSWERED
+        # question: flagged, never "False" (the FLIP_WON convention).
         ex = ctx.executor
-        if ex is None or ctx.source not in ex.name_choices:
+        quality = atom.string_value
+        chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
+        if chosen is None and ex is not None and ctx.source is not None:
+            snap = last_known(ctx.source, ctx)
+            if snap is not None:
+                chosen = dict(snap.choices).get(quality)
+        if chosen is None:
             raise NotImplementedError(
-                "executor: NAME_CHOSEN needs a CHOOSE_NAME record for the "
-                f"source {ctx.source} (no name chosen yet)"
+                f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
+                f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
         if handle.namespace != "card":
             return False
-        return world.cards[handle].identity.name == ex.name_choices[ctx.source]
+        identity = world.cards[handle].identity
+        if quality == "COLOR":
+            return chosen in identity.colors  # printed colours: no effect changes a colour
+        if quality == "CREATURE_TYPE":
+            # SUBTYPE_EQ's reading, live types included ("is a Knight in addition"). The pick is a
+            # creature type and no other kind of type shares its word, so the word is enough.
+            words = set(_type_line_tokens(identity.type_line))
+            if ctx.layers is not None:
+                words.update(ctx.layers.type_overlay(handle))
+            return chosen in words
+        return identity.name == chosen
     if pred is FAtomPred.POWER_LE or pred is FAtomPred.PT_LE:
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)

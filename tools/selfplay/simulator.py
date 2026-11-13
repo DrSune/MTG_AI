@@ -77,6 +77,13 @@ def _ragged(lists: list) -> tuple[np.ndarray, np.ndarray]:
     return off, flat.astype(np.int16)
 
 
+#: The views' per-row feature arrays and this code's widths: a shard written before a column was
+#: appended reads it as zero, as ``model.load`` gives an old network zero weights there, so
+#: shards of two widths load together (``Data.load``).
+_VIEW_WIDTHS = {"cards_i": FT.CI, "opts_i": FT.OI, "cards_f": FT.CF, "players_f": FT.PF,
+                "glob_f": FT.GF}
+
+
 class Data:
     """Captured positions as flat arrays: the views (``model.Packed`` without options, the
     opponent's public cards and hidden-zone sizes, turn, seat, set, seed) and the truth (hand,
@@ -97,12 +104,12 @@ class Data:
                      **meta: np.ndarray) -> Data:
         if any((len(t[0]), len(t[1])) != (v["h"], v["l"]) for v, t in zip(views, truth, strict=True)):
             raise ValueError("a label's size differs from the public size of its zone")
-        none = {"opts_i": np.zeros((0, 4), np.int16), "opts_f": np.zeros((0, 2), np.float16)}
+        none = {"opts_i": np.zeros((0, FT.OI), np.int16), "opts_f": np.zeros((0, 2), np.float16)}
         packed = M.pack([{**v, **none} for v in views])
         a = {k: getattr(packed, k) for k in M.Packed.FIELDS}
         # no position has an option (o_off stays 0); one unread row keeps collate_packed's
         # padding index in range
-        a["opts_i"], a["opts_f"] = np.zeros((1, 4), np.int16), np.zeros((1, 2), np.float16)
+        a["opts_i"], a["opts_f"] = np.zeros((1, FT.OI), np.int16), np.zeros((1, 2), np.float16)
         a.update(set=np.array(sets), **{k: np.array([v[k] for v in views])
                                         for k in ("h", "l", "turn", "seat")})
         for name, lists in (("public", [v["public"] for v in views]), ("hand", [t[0] for t in truth]),
@@ -130,7 +137,8 @@ class Data:
                 v, t = dict(np.load(vf)), dict(np.load(vf.with_name("truth" + vf.name[5:])))
                 if not np.array_equal(v["seed"], t.pop("seed")):
                     raise ValueError(f"{vf}: views and truth are not the same positions")
-                parts.append({**v, **t})
+                parts.append({k: M.widened(x, _VIEW_WIDTHS[k]) if k in _VIEW_WIDTHS else x
+                              for k, x in {**v, **t}.items()})
         a = {}
         for k in parts[0]:
             if k.endswith("off"):  # offsets continue across shards
@@ -285,11 +293,13 @@ class Simulator(nn.Module):
 
 
 def load(path: str, device: Any = "cpu") -> tuple[Simulator, FT.CardTable]:
-    """A trained simulator (``train``'s checkpoint), in evaluation mode, and its card table."""
+    """A trained simulator (``train``'s checkpoint), in evaluation mode, and its card table. Its
+    view network grows as ``model.load`` grows a policy network (``model.upgraded``): a
+    checkpoint older than an ask kind or a feature column loads and computes what it did."""
     ck = torch.load(path, map_location="cpu", weights_only=False)
     table = FT.CardTable.from_json(ck["table"])
     net = Simulator(table, **ck["config"]).to(device).eval()
-    net.load_state_dict(ck["state"])
+    net.load_state_dict(M.upgraded(ck["state"], net, prefix="view."))
     return net, table
 
 

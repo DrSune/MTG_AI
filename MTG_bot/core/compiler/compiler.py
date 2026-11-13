@@ -66,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    chosen_quality_fault,
     walk,
 )
 from MTG_bot.core.compiler.ingest import RawCard, split_sentences
@@ -2498,6 +2499,12 @@ def compile_card(
             "compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented)",
             context={"card": raw.identity.name, "type_line": raw.type_line},
         )
+    # The same for a read of a chosen quality that no choice of the card chooses (its "As this
+    # enters, choose ..." sentence unparsed, or another kind of type chosen), and for a choice no
+    # compiled sentence reads, a phantom ask (CR 607.2d, ability_tree.chosen_quality_fault).
+    fault = chosen_quality_fault(keywords, tuple(abilities))
+    if fault is not None:
+        raise StateCorruptionError(f"compile_card: {fault}", context={"card": raw.identity.name})
     card = CardRecord(
         oracle_id=raw.identity.oracle_id,
         name=raw.identity.name,

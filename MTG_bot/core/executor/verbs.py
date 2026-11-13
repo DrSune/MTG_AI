@@ -74,6 +74,7 @@ from MTG_bot.core.executor.events import (
 from MTG_bot.core.executor.quantity import (
     ExecCtx,
     _type_line_tokens,
+    creature_types,
     eval_filter,
     last_known,
     referent_handle,
@@ -2082,10 +2083,18 @@ def _printed_match(filter_: Filter, type_line: str) -> bool:
 def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
     """CHOOSE_NAME (Runed Halo's "As this enchantment enters, choose a card
     name", made as it enters: EtBState.effect): the chosen name is RECORDED
-    (executor.name_choices, keyed by the source that wrote it, until that
-    object leaves the battlefield) and read back by the NAME_CHOSEN filter
-    predicate (quantity._eval_atom), e.g. in the PROTECTION keyword param
-    the static grants.
+    (executor.name_choices, keyed by the source that wrote it and the
+    quality, until that object leaves the battlefield) and read back by the
+    NAME_CHOSEN filter predicate of the same quality (quantity._eval_atom),
+    e.g. in the PROTECTION keyword param the static grants.
+
+    With a ``quality`` (only ever as a permanent enters, CR 614.12a) the pick
+    is a colour, out of the five in WUBRG order (CR 105.1: colourless is no
+    colour), or a creature type, out of the format pool's
+    (``executor.creature_type_pool``: every creature type a card or a token
+    of the pool has, public as the pool is; a rig with no format names the
+    world's, as for names). It is asked as a ``quality:<source>:<QUALITY>``
+    decision.
 
     For a free-text name the pick is a decision token out of the enumerable
     candidate NAMES, narrowed by the optional ``name_filter`` (Necromentia's
@@ -2099,6 +2108,21 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
     player decision, so the decision channel owns it (it raises when no
     lane answers — never hidden randomness for a choice a player makes)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
+    quality = atom.args.get("quality")
+    if quality is not None:
+        if quality == "COLOR":
+            menu = ("W", "U", "B", "R", "G")
+        else:
+            menu = executor.creature_type_pool or tuple(
+                sorted({t for card in ctx.world.cards.values()
+                        for t in creature_types(card.identity.type_line)})
+            )
+        if not menu:
+            raise ValueError("executor: CHOOSE_NAME has no creature type to offer (empty world)")
+        pick = ctx.take_decision(menu, f"quality:{ctx.source}:{quality}")
+        executor.name_choices[(ctx.source, str(quality))] = pick
+        ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
+        return
     name_filter = atom.args.get("name_filter")
     if name_filter is not None:
         assert isinstance(name_filter, Filter)  # role table: name_filter is a Filter
@@ -2121,7 +2145,7 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
         )
     ordered = sorted(candidates)
     pick = ctx.take_decision(tuple(ordered), f"name:{ctx.source}")
-    executor.name_choices[ctx.source] = pick
+    executor.name_choices[(ctx.source, None)] = pick
     ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
 
 

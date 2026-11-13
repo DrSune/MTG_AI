@@ -38,7 +38,6 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     CardRecord,
     Choose,
-    EtBState,
     FAtom,
     FAtomPred,
     Keyword,
@@ -230,23 +229,12 @@ class Probe:
             setup_asks.append(f"{what.split(':', 1)[0]} -> {word}")
             return word
 
+        # On the battlefield, the card has made the choice its "As this enters" requires (Runed
+        # Halo's card name, Icon of Ancestry's creature type) with the default answer, before the
+        # opening turn reads it (ScenarioRunner._as_entered). Only that choice: the board's card
+        # keeps the untapped, counter-free state every other card has there.
         runner = ScenarioRunner(pack, self.supply, setup_provider=setup_provider)
         runner.setup_asks = setup_asks  # type: ignore[attr-defined]
-        as_enters = [
-            a.effect for a in self.card.abilities if isinstance(a, EtBState) and a.effect is not None
-        ]
-        if where == "battlefield" and as_enters:
-            # A permanent is on the battlefield only by having entered it, so the probed card has
-            # made the choice its "As this enters" requires (Runed Halo's card name, CR 614.1c,
-            # 614.12a), with the default answer: no game leaves it unmade for its abilities to read.
-            # Only that choice: the board's card keeps the untapped, counter-free state every other
-            # card has there.
-            runner.ex.decisions.provider = setup_provider
-            try:
-                for effect in as_enters:
-                    runner.ex.run_as_enters(runner.handles["card"], effect)
-            finally:
-                runner.ex.decisions.provider = None
         return runner
 
     def names(self, r: ScenarioRunner) -> Callable[[Any], str]:

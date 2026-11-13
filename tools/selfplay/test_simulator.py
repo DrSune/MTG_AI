@@ -167,3 +167,37 @@ def test_one_training_step_moves_every_trained_parameter(table) -> None:
             and not n.startswith(S.UNUSED)]
     assert not dead
     assert torch.isfinite(loss)
+
+
+def test_an_older_simulator_and_its_view_shards_load(table, tmp_path) -> None:
+    """A simulator checkpoint written before an ask kind or a feature column was appended loads
+    grown as model.load grows a policy network (runs/window1/sim.pt has 30 ask rows and 22
+    global columns, and gate B's queue loads it with --search-sim), and view shards of two widths
+    load together, the missing columns zero. Red on main 8db1834f and on 92aca048: the load
+    raised on the shapes, and Data.load on the two widths."""
+    torch.manual_seed(2)
+    net = S.Simulator(table, d=32, layers=1, heads=4, ff=64)
+    old = net.state_dict()
+    old["view.ask_emb.weight"] = old["view.ask_emb.weight"][:30]
+    old["view.glob_f.weight"] = old["view.glob_f.weight"][:, :FT.GF - 1]
+    torch.save({"config": net.config, "state": old, "table": table.to_json(), "epoch": 0},
+               tmp_path / "sim.pt")
+    loaded, _ = S.load(str(tmp_path / "sim.pt"))
+    asks = loaded.view.ask_emb.weight
+    for kind in FT.ASK_KINDS[30:]:  # never encoded before the checkpoint: grown from "other"
+        assert torch.equal(asks[FT.ASK_INDEX[kind]], asks[FT.ASK_INDEX["other"]]), kind
+    assert not loaded.view.glob_f.weight[:, FT.GF - 1].any()
+    seat = Capture(HeuristicAgent(), 1, table, 0.3, 41)
+    _game(41, [HeuristicAgent(), seat], turn_cap=8)
+    data = S.Data.from_records(seat.views, seat.truth, ["M21"] * len(seat.views), table,
+                               seed=np.arange(len(seat.views)))
+    data.save(tmp_path, 0)
+    S.Data({**data.a, "cards_i": data.a["cards_i"][:, :FT.C_CHOSEN],
+            "glob_f": data.a["glob_f"][:, :FT.GF - 1]}, table).save(tmp_path, 1)
+    both = S.Data.load([str(tmp_path)], table)
+    n = len(data)
+    assert len(both) == 2 * n
+    assert np.array_equal(both.a["cards_i"][: len(data.a["cards_i"])], data.a["cards_i"])
+    assert not both.a["glob_f"][n:, FT.GF - 1].any()
+    hand, lib = loaded.sample_worlds(both.batch(np.arange(len(both)), "cpu"))
+    assert hand.shape[0] == lib.shape[0] == 2 * n

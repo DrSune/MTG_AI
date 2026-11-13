@@ -4,9 +4,181 @@
  "oracle_id": "29ae4471-c28f-4e43-8afb-fee5023e4d08",
  "name": "Diamond Knight",
  "text_sha": "d3d5cae5e0510c261c2147f1c1f3a712adc739f71b1bc08934d89139a9919185",
- "needs_atom": {
-  "missing": "Clauses 'As this creature enters, choose a color.' and 'Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.': no node chooses a colour or reads back a chosen colour. Only card names have the pair (CHOOSE_NAME / NAME_CHOSEN, Runed Halo). Missing: a colour choice made as the permanent enters (CR 614.12) and a filter predicate that tests a spell's colour against the colour chosen for the source (CR 607.2 linked abilities). The rest exists: Vigilance compiles; the trigger is Spellgorger Weird's CastSpellEvent(actor you) + PUT_COUNTER(+1/+1) on the source. Emulating it with five granted triggers from an ETB trigger is a trigger, not 'as enters', and is not the printed ability.",
-  "author": "claude-mapper-m20-0",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": false,
+    "initial_counters": [],
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CHOOSE_NAME"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "quality",
+        {
+         "tag": "String",
+         "value": "COLOR"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "NAME_CHOSEN"
+      },
+      "string_value": "COLOR",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-chosen-quality",
+  "date": "2026-11-13",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "As this creature enters, choose a color.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler builds the whole tree since ontology round R9 (DESIGN_ATOM_ONTOLOGY §13, gate round 9 pending): 'As this creature enters, choose a color.' is the EtBState effect CHOOSE_NAME(quality=COLOR), the choice made before the creature enters (CR 614.12a) and asked as a 'quality' decision over W, U, B, R, G (CR 105.1); the trigger's spell filter is FAtom(NAME_CHOSEN, string_value=COLOR), the colour this Knight chose (CR 607.2d linked abilities), and the counter on the source is Spellgorger Weird's. The probe board chooses white (the default answer), so its white casts trigger; a spell of another colour, a multicoloured one and a colourless one are in tools/scenarios/mapped/M20/diamond_knight_*.json. Closes the needs-atom of 2026-11-05 (claude-mapper-m20-0)."
+ },
+ "probe": {
+  "sha": "0f6b9e34cac503337ef24520b34a631c32016c022feef3c821d2e62de48ba5ae"
  }
 }

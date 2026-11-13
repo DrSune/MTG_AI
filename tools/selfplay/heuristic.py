@@ -32,6 +32,8 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   it survives, else no block.
 * scry/discard/sacrifice/mana/one_of: small land-count and mana-value rules (see the methods).
 * name: the opponent's most expensive card in a public zone (battlefield, graveyard, exile).
+* quality (a colour or a creature type chosen as a permanent enters): the one most of its own cards
+  in hand and in public zones have, the first offered on a tie.
 * mulligan (CR 103.5): keep a hand of five cards or fewer, and a bigger one that holds at least
   two lands and at least two other cards; otherwise mulligan. The card a mulligan puts on the
   bottom: a land while the hand holds more lands than other cards (a copy of the land it holds
@@ -70,6 +72,7 @@ from MTG_bot.core.executor.legality import (
     legal_attackers,
     spell_record,
 )
+from MTG_bot.core.executor.quantity import creature_types
 from MTG_bot.core.executor.query import (
     modal_choose,
     spell_target_slots,
@@ -609,3 +612,13 @@ class HeuristicAgent:
         names = set(tokens)
         best = max((n for n in seen if n in names), key=lambda n: (seen[n], n), default=None)
         return tokens.index(best) if best is not None else None
+
+    def _quality(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        colour = ask.site.endswith(":COLOR")
+        count: Counter = Counter()
+        for kind in (ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE):
+            zone = self.world.players[self.me].zones.get(kind)
+            for h in zone.entries if zone else ():
+                ident = self.world.cards[h].identity
+                count.update(ident.colors if colour else creature_types(ident.type_line))
+        return max(range(len(tokens)), key=lambda i: (count[tokens[i]], -i))

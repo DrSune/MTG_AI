@@ -1,0 +1,117 @@
+Blast radius of ontology round R9, a quality chosen as a permanent enters (2026-11-13), base dafdd5ff
+-> this branch, by script:
+  tree_dump.py <checkout> <out.json> on a `git archive` of dafdd5ff and on the branch, then
+  reports/life_family_2026-11-13/tree_diff.py <base> <branch>
+
+compiler trees changed (20):
+   10E Story Circle
+   10E Voice of All
+   ELD Heraldic Banner
+   FDN Adaptive Automaton
+   FDN Banner of Kinship
+   FDN Diamond Mare
+   FDN Heraldic Banner
+   FDN Secluded Courtyard
+   KHM Bloodline Pretender
+   KHM Rally the Ranks
+   KHM Realmwalker
+   KHM Reflections of Littjara
+   KHM Shimmerdrift Vale
+   M12 Adaptive Automaton
+   M14 Door of Destinies
+   M15 Obelisk of Urd
+   M19 Diamond Mare
+   M20 Diamond Knight
+   M20 Icon of Ancestry
+   ORI Prism Ring
+trees with records applied changed (20):
+   10E Story Circle compiler -> compiler unverified
+   10E Voice of All compiler -> compiler unverified
+   ELD Heraldic Banner compiler -> compiler unverified
+   FDN Adaptive Automaton compiler -> compiler unverified
+   FDN Banner of Kinship compiler -> compiler unverified
+   FDN Diamond Mare compiler -> compiler unverified
+   FDN Heraldic Banner compiler -> compiler unverified
+   FDN Secluded Courtyard compiler -> compiler unverified
+   KHM Bloodline Pretender compiler -> compiler unverified
+   KHM Rally the Ranks compiler -> compiler unverified
+   KHM Realmwalker compiler -> compiler unverified
+   KHM Reflections of Littjara compiler -> compiler unverified
+   KHM Shimmerdrift Vale compiler -> compiler unverified
+   M12 Adaptive Automaton compiler -> compiler unverified
+   M14 Door of Destinies compiler -> compiler unverified
+   M15 Obelisk of Urd compiler -> compiler unverified
+   M19 Diamond Mare compiler -> compiler unverified
+   M20 Diamond Knight needs-atom record -> record unverified
+   M20 Icon of Ancestry needs-atom record -> record unverified
+   ORI Prism Ring compiler -> compiler unverified
+compiler: fewer unparsed sentences (11):
+   ELD Heraldic Banner 3 -> 1
+   FDN Adaptive Automaton 3 -> 1
+   FDN Diamond Mare 2 -> 0
+   FDN Heraldic Banner 3 -> 1
+   KHM Rally the Ranks 2 -> 0
+   M12 Adaptive Automaton 3 -> 1
+   M15 Obelisk of Urd 3 -> 1
+   M19 Diamond Mare 2 -> 0
+   M20 Diamond Knight 2 -> 0
+   M20 Icon of Ancestry 4 -> 0
+   ORI Prism Ring 2 -> 0
+compiler: newly compiling whole (6): [('FDN', 'Diamond Mare'), ('KHM', 'Rally the Ranks'), ('M19', 'Diamond Mare'), ('M20', 'Diamond Knight'), ('M20', 'Icon of Ancestry'), ('ORI', 'Prism Ring')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (9):
+   FDN Gnarlid Colony ['entering-counters', 'entering-gate']
+   FDN Goblin Boarders ['entering-counters', 'entering-gate']
+   FDN Wildwood Scourge ['entering-counters']
+   M20 Squad Captain ['entering-counters']
+   M20 Voracious Hydra ['entering-counters']
+   M21 Malefic Scythe ['entering-counters']
+   M21 Necromentia ['chosen-read']
+   M21 Runed Halo ['as-enters-choice', 'chosen-read']
+   M21 Wildwood Scourge ['entering-counters']
+verified stamps matching, per set (base -> branch): {'FDN': '180->180', 'M20': '270->270', 'M21': '275->275'}
+
+The 9 compiler trees changed without fewer unparsed sentences are refused now (StateCorruptionError,
+a shape gap: "a CHOOSE_NAME of a ... that nothing on its object reads"): 10E Story Circle, Voice of
+All; FDN Banner of Kinship, Secluded Courtyard; KHM Bloodline Pretender, Realmwalker, Reflections of
+Littjara, Shimmerdrift Vale; M14 Door of Destinies. On the base each was partial, its choice
+sentence unparsed, and dealt in the all and castable pools.
+
+300 seeded heuristic games (reports/life_family_2026-11-13/replay.py: seeds 910000-910099 per set,
+every third coherent, the rest stress), verified pools, decks dealt from the cards verified on both
+checkouts; digest = tools/selfplay/preflight._digest; replay_compare.py <base> <branch>, the branch
+run on 92aca048 and again on the final code (after the pre-gate review's fixes, review_runs.txt), the same:
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+M20: deckable 270 (base) / 270 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+FDN: deckable 180 (base) / 180 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+
+Random-play soaks dealing the new trees (soak_coverage.py: tools/cards/soak.play_one, random answers, stress decks, seeds 1..N), on 92aca048 and again on the final code, line for line the same:
+M20 (compiled, unverified records, 200 games, 0 crashes, 2 detector hits): dealt ['Diamond Knight', 'Icon of Ancestry']; games cast in: {'Icon of Ancestry': 16, 'Diamond Knight': 14}
+FDN (compiled, 200 games, 0 crashes, 7 detector hits): dealt ['Diamond Mare']; games cast in: {'Diamond Mare': 28}
+FDN (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Adaptive Automaton', 'Diamond Mare', 'Heraldic Banner']; games cast in: {'Adaptive Automaton': 4, 'Diamond Mare': 5, 'Heraldic Banner': 4}
+KHM (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Rally the Ranks']; games cast in: {'Rally the Ranks': 7}
+ORI (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Prism Ring']; games cast in: {'Prism Ring': 16}
+M19 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Diamond Mare']; games cast in: {'Diamond Mare': 10}
+
+The detector hits, game by game (a scratch rerun of the same seeds through soak.play_one, printing
+each game's hits and casts):
+- M20 compiled, seed 122 (2 hits, D5 counter-invariant assert): Omnath, Locus of the Roil died with
+  a +1/+1 counter, came back (Gravedigger), took one more and died again, 4/4 both times as the
+  rules give; D5 folds the counters of both lives (it does not reset them at the zone change, CR
+  122.2). A detector artifact (BACKLOG). No family card was cast in that game.
+- FDN compiled, seeds 44, 55, 93, 104 (7 hits: D3 phantom placements of Mazemind Tome's page
+  counters and of a +1/+1 counter, D5 recompute mismatches on Hungry Ghoul and Gleaming Barrier).
+  Diamond Mare was cast in none of them, and the same classes come up on the base, dafdd5ff, whose
+  FDN compiled pool has no Diamond Mare: seeds 6, 30, 55, 62, 93, 143 of the same 200 (D3 phantom
+  placements, D5 mismatches on Spectral Sailor, Hungry Ghoul, Bigfin Bouncer). Pre-existing.
+
+After gate round 9 (GO) and the merge with main 8db1834f, the same commands with the base a
+`git archive` of 8db1834f and the branch the merged tree with the gate's conditions applied:
+tree_diff gives the same 20 trees and the same 9 still-verified cards on a touched path, stamps
+{'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}, 0 in or out; the gate's fixes (m2's
+granted creature types, m6's one EtBState form, m7's simulator load, n1) change no tree.
+replay_compare.py:
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+M20: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)

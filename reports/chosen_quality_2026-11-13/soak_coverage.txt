@@ -1,0 +1,18 @@
+M20 (compiled, unverified records, 200 games, 0 crashes, 2 detector hits): dealt ['Diamond Knight', 'Icon of Ancestry']; games cast in: {'Icon of Ancestry': 16, 'Diamond Knight': 14}
+FDN (compiled, 200 games, 0 crashes, 7 detector hits): dealt ['Diamond Mare']; games cast in: {'Diamond Mare': 28}
+FDN (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Adaptive Automaton', 'Diamond Mare', 'Heraldic Banner']; games cast in: {'Adaptive Automaton': 4, 'Diamond Mare': 5, 'Heraldic Banner': 4}
+KHM (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Rally the Ranks']; games cast in: {'Rally the Ranks': 7}
+ORI (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Prism Ring']; games cast in: {'Prism Ring': 16}
+M19 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Diamond Mare']; games cast in: {'Diamond Mare': 10}
+
+The detector hits, game by game (a scratch rerun of the same seeds through soak.play_one, printing
+each game's hits and casts):
+- M20 compiled, seed 122 (2 hits, D5 counter-invariant assert): Omnath, Locus of the Roil died with
+  a +1/+1 counter, came back (Gravedigger), took one more and died again, 4/4 both times as the
+  rules give; D5 folds the counters of both lives (it does not reset them at the zone change, CR
+  122.2). A detector artifact (BACKLOG). No family card was cast in that game.
+- FDN compiled, seeds 44, 55, 93, 104 (7 hits: D3 phantom placements of Mazemind Tome's page
+  counters and of a +1/+1 counter, D5 recompute mismatches on Hungry Ghoul and Gleaming Barrier).
+  Diamond Mare was cast in none of them, and the same classes come up on the base, dafdd5ff, whose
+  FDN compiled pool has no Diamond Mare: seeds 6, 30, 55, 62, 93, 143 of the same 200 (D3 phantom
+  placements, D5 mismatches on Spectral Sailor, Hungry Ghoul, Bigfin Bouncer). Pre-existing.

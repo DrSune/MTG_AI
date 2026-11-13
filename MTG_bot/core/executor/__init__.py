@@ -44,6 +44,7 @@ from contextlib import contextmanager
 from itertools import combinations
 
 from MTG_bot.core.ability_tree import (
+    CHOSEN_QUALITIES,
     Atom,
     AtomArgs,
     CardRecord,
@@ -480,15 +481,19 @@ class Executor:
         # The segment mirror of the world's mana pool: which mana carries a
         # spend restriction (THIS_MANA).
         self.mana_ledger = ManaLedger()
-        # CHOOSE_NAME's write-side (Runed Halo): source permanent -> the
-        # chosen name, read back by the NAME_CHOSEN filter predicate.
-        self.name_choices: dict[Handle, str] = {}
+        # CHOOSE_NAME's write-side: (source, quality) -> what it chose, read back by the
+        # NAME_CHOSEN filter predicate of that quality (CR 607.2d): Runed Halo's card name
+        # (quality None), Diamond Knight's colour, Icon of Ancestry's creature type.
+        self.name_choices: dict[tuple[Handle, str | None], str] = {}
         # CHOOSE_NAME's read-side: the format's card pool,
         # every card a deck builder of this game could have used (name, printed
         # type line), set by games._setup_game. Public information: the names
         # offered never depend on the game's hidden zones. Empty in a rig with
         # no format (unit tests, scenario packs): the world's names then.
         self.name_pool: tuple[tuple[str, str], ...] = ()
+        # Its twin for a creature-type choice: the creature types of the pool's cards and of the
+        # creature tokens they make (sorted), set beside name_pool; empty, the world's.
+        self.creature_type_pool: tuple[str, ...] = ()
         # ----------------------------------------------- emblems + attachments
         # Granted emblems are replayed state that is NOT world cards (an
         # emblem never enters a zone): the synthetic Handle("emblem", n) the
@@ -1181,6 +1186,12 @@ class Executor:
                     self._op_seq,
                     # before _remove_from_combat below
                     self.attacked.get(event.subject) if event.subject in self.attackers else None,
+                    # before the choices are dropped below
+                    tuple(
+                        (quality, self.name_choices[(event.subject, quality)])
+                        for quality in (None, *CHOSEN_QUALITIES)
+                        if (event.subject, quality) in self.name_choices
+                    ),
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1214,9 +1225,10 @@ class Executor:
             self.layers.expire_leaves(anchor)
             self.replacements.expire_leaves(anchor)
             self.etb_x.pop(anchor, None)  # the cast X leaves with it
-            # CR 400.7: so does the name it chose as it entered; a return is a new object that
+            # CR 400.7: so does what it chose as it entered; a return is a new object that
             # chooses again.
-            self.name_choices.pop(anchor, None)
+            for quality in (None, *CHOSEN_QUALITIES):
+                self.name_choices.pop((anchor, quality), None)
             self.damage.pop(anchor, None)  # CR 120.6: marks leave with it
             self.damage_deathtouch.discard(anchor)  # the deathtouch flag too
             # Status leaves with the permanent. CR 110.5d: cards not on the
@@ -1302,10 +1314,11 @@ class Executor:
 
     def run_as_enters(self, card: Handle, effect: Effect) -> None:
         """Run ``card``'s "As this enters" effect (an EtBState ``effect``). CR 614.1c, 614.12a:
-        "As this enchantment enters, choose a card name" is a replacement effect, not a trigger:
-        its controller chooses as it enters, without the stack and before anyone receives
-        priority, so the permanent is never on the battlefield with the choice unmade (Runed
-        Halo's protection reads it). The entry hook (:meth:`_apply_etb_state`) runs it before the
+        "As this enchantment enters, choose a card name" (or "choose a color", "choose a creature
+        type") is a replacement effect, not a trigger: its controller chooses as it enters,
+        without the stack and before anyone receives priority, so the permanent is never on the
+        battlefield with the choice unmade (Runed Halo's protection, Icon of Ancestry's anthem
+        read it). The entry hook (:meth:`_apply_etb_state`) runs every one before the
         entered tapped state and counters; the card probe runs it alone on its board's card,
         which is put on the battlefield without entering.
 
@@ -1324,19 +1337,27 @@ class Executor:
         )
 
     def _apply_etb_state(self, card: Handle) -> None:
-        """Stamp the compiled EtBState node on a permanent the journal
-        just saw ENTER the battlefield: what is done as it enters (its
-        ``effect``, :meth:`run_as_enters`), then the tapped flag
-        and any initial counters (CR 614.1c — part of the entering state, not
+        """Stamp the compiled EtBState nodes on a permanent the journal
+        just saw ENTER the battlefield: what is done as it enters (each
+        ``effect``, :meth:`run_as_enters`), then, where its gate holds, the
+        tapped flag and any initial counters (CR 614.1c — part of the entering state, not
         a trigger, so no TAP event is emitted and nothing is re-journalled;
         the move's own journal row already carries the entry). A card whose
         record is not registered has no declared entered state."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
             return
-        for node in record.abilities:
-            if not isinstance(node, EtBState):
-                continue
+        etb = [node for node in record.abilities if isinstance(node, EtBState)]
+        # CR 614.12a: a choice an "As this enters" effect requires is made before the permanent
+        # enters, so before anything of its entering state reads it, in whatever order the
+        # abilities print: the gates and the counters it enters with (Banner of Kinship counts
+        # the creatures of the chosen type). No choice stands under a gate
+        # (an EtBState effect stands in its own node, ability_tree.EtBState).
+        for node in etb:
+            if node.effect is not None:
+                self.run_as_enters(card, node.effect)
+        nodes: list[EtBState] = []
+        for node in etb:
             if node.condition is not None:
                 # CR 614.1c: gated entering state — "if this
                 # creature entered the battlefield kicked ..." (Cragplate
@@ -1359,8 +1380,8 @@ class Executor:
                 )
                 if not eval_filter(node.condition, card, ctx):
                     continue
-            if node.effect is not None:
-                self.run_as_enters(card, node.effect)
+            nodes.append(node)
+        for node in nodes:
             if node.tapped:
                 self.world.cards[card].tapped = True
             for kind, quantity in node.initial_counters:
@@ -3501,7 +3522,7 @@ class Executor:
         h.update(repr(self.mana_ledger.dump()).encode())
         h.update(
             repr(
-                tuple(sorted((str(s), n) for s, n in self.name_choices.items()))
+                tuple(sorted((str(s), str(q), n) for (s, q), n in self.name_choices.items()))
             ).encode()
         )
         # The emblems table (owner-keyed synthetic handles) and the

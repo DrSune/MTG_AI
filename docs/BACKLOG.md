@@ -20,6 +20,7 @@ are neutral; each one is teaching the agent something.
 
 | Scaffold | Where | Removal condition |
 |---|---|---|
+| **Choice menus cut to the format pool: a chosen card name from the pool's card names (gate round 4, 2026-11-12), a chosen creature type from the creature types the pool's cards, their creature tokens and their type grants have (ontology R9, 2026-11-13)** | `MTG_bot/core/executor/games.py` (`_setup_game`: `executor.name_pool`; `compile_supply`: `Supply.creature_types`, read as `executor.creature_type_pool`); `verbs._v_choose_name` | CR 201.3 and 205.3e/m let a player name any card and choose any creature type. The menus offer only what an object of the pool can have: any other pick names nothing in the game, an equal null pick, and the menu stays near network size (M20 69 and M21 74 creature types still exceed `MAX_OPTIONS`, the observation caps' row). Remove when a choice outside the pool can matter: a symmetric "of the chosen type" card (all creatures of the chosen type get -1/-1, where naming a type no one has is the play), changeling, or a Commander-size pool, where nearly every type and name is in it anyway. |
 | **Drafted decks stay inside the critic's band** (2026-11-12, docs/PLAN_DRAFTER.md §5): a critic swap that would take a deck's mean spell mana value, creature count or most copies of one card outside the coherent decks' 1st-99th percentile is skipped | `tools/selfplay/decks.py` `band_of`, `drafted_decks` | It guards the critic's range, not a rule of the game: the critic is fitted on coherent decks, so outside their range its values are extrapolation. Remove it when the critic is fitted on drafted decks' games too (PLAN_DRAFTER §6's loop) and G2's calibration holds outside the band |
 | **Package decks** (2026-11-12, docs/PLAN_CEILING.md §14.3): a deck holds 8 copies of its package's consumers (4 when its pair holds one) and 8 copies of other producers, the rest filled as a coherent deck; a package is kept only when a colour pair holds a consumer and 8 producer copies (a consumer that produces, and a basic at 12, count); the pair is the one holding the most consumers, then the most producer copies; consumers and producers are drawn uniformly | `tools/selfplay/packages.py` `CONSUMER_COPIES`, `PRODUCER_COPIES`, `derive`, `build` | Chosen so that a player sees a consumer in 93% of games (16 cards of 60 by their ninth turn, an 18-turn game), not measured to be best; they set how much of a deck is the package and which packages exist at all. Remove when decks come from the drafter fitted on a pilot that plays synergies (§14.4 "Later"), or when the Teacher sets a package's density from measured skill headroom (§9.1, §14.1) |
 | **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
@@ -29,7 +30,7 @@ are neutral; each one is teaching the agent something.
 | **10 actions per player per step** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; 10 in each main phase from 2026-11-06, B-74; per player and step since 2026-11-11, when the loop gave priority in every step, DESIGN_PRIORITY §2.6) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`_play_turns`; `Executor.acted` counts); the pack runner's `act` op | A rail, not a rule: CR 117 sets no limit on how often a player who keeps priority acts. It makes a player who never passes pass after its tenth action in a step (a free ability activated forever), recorded as any pass is. Priority did not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
 | **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later step adds the mana at that step, standing in for the lands the player taps there. Since 2026-11-11 a cast step may instead tap real lands with `"tap": true` (the menu's automatic payment, the row above); the op stays as the short form. Remove when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
-| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
+| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics): since 2026-11-13 (ontology R9) a creature-type `quality` ask in the M20 and M21 pools too (69 and 74 types; FDN's 47 fit), Icon of Ancestry's choice, which the heuristic then makes (`HeuristicAgent._quality`: the type most of its own visible cards share). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value; multi-slot rows hidden until 2026-11-06, now one target question per slot; one act window per main phase until 2026-11-11, now a decision at every priority point) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each is a harness simplification. Remove with tool mode (`notes` memory). An LLM seat now pays one call per priority point it can act at, so its clock is measured (DESIGN_PRIORITY §3.6). |
 | **Decision-time search budget: k candidates (3-4), d sampled worlds (2), at most 6 attack or block plans, search skipped where the network's top option >= skip_p, 400 decisions per simulation, leaf = the next own turn's value** (2026-11-03/04) | `tools/selfplay/search.py` (`Searcher`, `plan_attacks`, `plan_blocks`, `MAX_SIM_DECISIONS`) | Compute budgets, not strategy rules, but they decide which moves can ever be found (a move outside the network's top k is never searched). Replace with a budgeted tree search whose breadth follows the visit statistics (PUCT/MCTS) once the engine is fast enough; measure the plan caps by raising them. |
@@ -154,7 +155,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature. The new object should be untouched, while information about the source (its power for
   "deals damage equal to its power") comes from its last known information (CR 608.2h), which
   `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
-  dealt pools.
+  dealt pools. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
+  source that left answers from its last known choice (`LastKnown.choices`), but Icon of
+  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
@@ -366,8 +369,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   encoded.
 - **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
-  verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
+  verb but Runed Halo's CHOOSE_NAME (since ontology R9 of any quality: a card name, a colour, a
+  creature type) raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
+- **Tripwire: colours are the printed ones** (gate round 9, n3). COLOR_HAS and the chosen-colour
+  read (NAME_CHOSEN COLOR, `quantity.py`) read an object's printed colours: the engine carries
+  no colour-setting effect, since none compiles today (Witness Protection, Eaten by Piranhas,
+  Turn to Frog, Frogify, Scuttlemutt are unparsed). The first such card to compile makes both
+  read the colour its layer sets (CR 105.3, 613.1d), with a test of each.
+- **Tripwire: a copy that entered without choosing** (gate round 9, n4). A chosen-quality read
+  with no choice raises (`quantity.py`, NAME_CHOSEN): every entry chooses, and no copy-making
+  sentence compiles in a pool that deals a chooser. When "becomes a copy" or "enters as a copy"
+  lands, a copy that did not choose reads "nothing was chosen" (the rulings: Icon of Ancestry's
+  copy that entered without a choice gives no creature +1/+1), a False, not a raise; change the
+  read with that card's tests.
 - **Cards a controller picks from a look at another player's library or hand raise as they go
   into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
   `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
@@ -603,7 +618,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **A GET_EMBLEM in a static ability's effect is accepted and never runs** (2026-11-13, gate
   round 7, m4): a static ability applies continuously and resolves nothing, so the emblem is
   never made. Refuse it at construction (as a reflexive trigger in a static ability is) when a
-  tree first writes one; none of the 19 sets' does.
+  tree first writes one; none of the 19 sets' does. A CHOOSE_NAME there is refused since gate
+  round 9 (`ability_tree.chosen_quality_fault`: its reads would have no answer); the class's
+  other one-shot verbs are not.
 - **`compile_supply` counts an emblem's verbs as its maker's** (2026-11-13, gate round 7, m8):
   `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
   mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
@@ -1034,7 +1051,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
        Covers Twinblade Paladin, Angel of Vitality and Vengeful Warchief, plus FDN's twins.
        Built (DESIGN_ATOM_ONTOLOGY §12); the three M20 records are mapped, not verified.
     2. **A chosen colour or creature type**, on round 4's `EtBState.effect`. Covers Diamond Knight
-       and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away.
+       and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away. Built
+       (ontology round R9, DESIGN_ATOM_ONTOLOGY §13, gate round 9 pending): the two M20 records are
+       re-mapped to the compiler's tree, not verified; FDN and M19 Diamond Mare, ORI Prism Ring and
+       KHM Rally the Ranks compile whole. The five FDN cards' pieces were not small: "A quality
+       chosen as a permanent enters: the cards one piece away" below.
     3. **Gathered zone-change events** (`once_per_event` on ZoneChangeEvent, `event` as the
        gathered set). Covers Woodland Champion and Angelic Guardian, and makes a new kept green-
        white token package. Built (ontology round R10, DESIGN_ATOM_ONTOLOGY §14, gate round 10
@@ -1062,6 +1083,45 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       CR 114. Handed to wave 2C's emblem work.
     - packages.py does not read a life-gain replacement as a life consumer, reads chosen-quality
       filters as unknown, and never puts a card of 3+ colours in a pair deck.
+- **A quality chosen as a permanent enters: the cards one piece away** (2026-11-13, ontology R9;
+  `reports/chosen_quality_2026-11-13/census.txt`). B17 reads the choice on 20 printings of 17
+  cards; these still need one piece each, none small. Where a reader compiles the tree is partial
+  (Heraldic Banner, Adaptive Automaton, Obelisk of Urd); where none does the card is refused, a
+  shape gap, since a choice nothing reads is a phantom ask (the rest):
+  - mana of the chosen colour, "{T}: Add one mana of the chosen color" (ELD and FDN Heraldic Banner,
+    FDN Uncharted Haven, KHM Shimmerdrift Vale): an ADD_MANA colour read from the choice, which the
+    automatic payment's colour planning (`legality.plan_mana_taps`) would read too;
+  - "This creature is the chosen type in addition to its other types" (M12 and FDN Adaptive
+    Automaton): a GRANT_TYPE of the chosen value;
+  - FDN Banner of Kinship: a fellowship counter kind and an anthem scaled by one kind of counter
+    (QProp COUNTER_COUNT has no kind: Malefic Scythe's LOSSY note); M14 Door of Destinies the same
+    with charge counters, and "put a charge counter on this artifact" as a clause. The choice is
+    already made before the entering counters are counted (§13 R9-1);
+  - a spend restriction to the chosen type (FDN Secluded Courtyard, which also covers activating a
+    creature source's abilities; KHM The Ringhart Crest);
+  - KHM Reflections of Littjara (copying a permanent spell), Bloodline Pretender and Realmwalker
+    (changeling; Realmwalker's look at and cast from the top), 10E Story Circle (a prevention shield
+    for a source of your choice), M15 Obelisk of Urd (convoke);
+  - 10E Voice of All's "This creature has protection from the chosen color": a self grant of
+    PROTECTION or a keyword with the read as its quality. Decide the one encoding with the card;
+  - not read by B17's template: "As it enters, choose a color." (FDN Uncharted Haven: a template
+    sees no context to tell "it" is the card) and "As The Ringhart Crest enters" (a face named in
+    full);
+  - choices at resolution: KHM Crippling Fear and Haunting Voyage (a creature type: no encoding
+    yet, the IR refuses CHOOSE_NAME's quality outside an EtBState), M14 Brave the Elements (a
+    colour: `Choose` over the five, Feat of Resistance's form), THB Nyx Lotus (a colour as a mana
+    ability); a card type (IKO Umori, KHM Alrund) and a basic land type (M10 Convincing Mirage)
+    are qualities the vocabulary does not hold.
+  - The menu of creature types is the format pool's: a symmetric card ("all creatures of the chosen
+    type get -1/-1") would need one type no object has, which no as-enters card of the 19 sets
+    does.
+  - Changeling is not compiled (CR 702.73a: every creature type): the KHM castable pool deals the
+    now whole Rally the Ranks beside 7 partial changelings whose trees do not say so, so its
+    anthem misses them, as every SUBTYPE_EQ read does (gate round 9 review).
+  - G3 widens only an FAnd, so a read that is a whole filter has no "drop the read" mutant: the
+    cast triggers of Diamond Knight, Diamond Mare and Prism Ring ("a spell of the chosen color"),
+    like every single-atom filter. Their packs cast a spell of another colour. An anthem's read
+    has one: its widen drops the choice with it (`gates._without_unread_choices`).
 - **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
   verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
   - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
@@ -1250,6 +1310,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `cardtool runpack` on an unflagged draft: the bounced Bear keeps indestructible, because a
   per-object trigger's "it" follows a handle that changed zones: "Triggers, events and the
   journal" above).
+- **The soak's D5 detector folds a creature's counters across its lives** (2026-11-13, found in
+  ontology R9's soak, `reports/chosen_quality_2026-11-13/soak_coverage.txt`):
+  `tools/audit/detectors.d5_pt_recompute` sums every counter placed on a handle up to a death, but
+  counters leave with the object (CR 122.2). M20 compiled, seed 122: Omnath, Locus of the Roil
+  died with one +1/+1 counter, came back (Gravedigger), took one more and died again, 4/4 both
+  times as the rules give; D5 folded two for the second death and reported two "counter-invariant
+  assert" hits. Reset the fold at each zone change of the handle.
 - **G3 survivors no 2-seat same-set pack can kill** (2026-11-12, verification wave 1's G3 pass;
   evidence in `reports/g3_equivalence_2026-11-12/`). The equivalent classes are now dead-role
   rules in `gates.mutants`, each proven in `tools/cards/test_gates.py`: twin TARGET selectors in a
@@ -1501,6 +1568,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   resolution leave no trace. Whether to answer the trigger (kill the Champion in response) turns
   on it. Candidate: one stack-entity column, the firing's count or amount (zero-filled on load).
   Not changed by round R10: `features.py` is another lane's (chosen quality).
+- **A chosen card name is not observed, and a creature-type choice wider than 64 options is not the
+  network's** (2026-11-13, ontology R9). A permanent's chosen colour or creature type is a card
+  column (`features.C_CHOSEN`, the value's component token) and a `quality` ask's options carry
+  their values (`O_VALUE`), but Runed Halo's card name has no component token, and the `name` ask
+  goes to the fallback agent (`actor.NetAgent.decide`). Icon of Ancestry's menu in the M20 and
+  M21 pools (69 and 74 types) is over `MAX_OPTIONS`, so the heuristic chooses there (the
+  observation caps' scaffold). The bench's seat view (`bench/view.py`) shows no chosen value
+  either. Fix with a name embedding on the chooser and a two-stage or wider ask. Icon of
+  Ancestry's tree is 172 IR tokens, past `CardTable.max_ir`'s 128: its choice and its reads fall
+  in the first 128. `C_CHOSEN` holds one value per permanent (gate round 9, n2): an object that
+  chooses two qualities ("choose a color and a creature type", Riptide Replicator; none in the 19
+  sets, and the IR allows one choice per quality, not one per object) would show only one of
+  them. Widen the column to one per quality, or refuse the pair, with that card.
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
   targets, emblems, or live (not printed) types and colours** (interface audit, /184; since
   2026-11-12 a card's tree shows what its emblem does, but not which emblems a player has). Needs input

@@ -9,14 +9,16 @@ One decision encodes to (shapes; E = card entities, K = options; integers as int
 float16):
 
 * ``cards_i``   [E, CI]  card vocab id, zone, controller, owner, attached-to entity, and for a
-                         stack object: its source's entity (an ability) and its first target
+                         stack object: its source's entity (an ability) and its first target;
+                         the colour or creature type a permanent chose (C_CHOSEN)
 * ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost; on
                          the stack: depth, ability kind and index; targeted by a stack object
 * ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
 * ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot), the
                          step, whether the other player has just passed, an arrange ask's end
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
-* ``opts_i``    [K, 4]   option type, entity ref, second entity ref, ability index
+* ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index, a value
+                         option's component token (a quality ask's colour or creature type)
 * ``opts_f``    [K, 2]   number value, kicked
 
 Entity refs index the entity list ``[me, opponent, cards...]`` plus one (0 = no entity).
@@ -78,6 +80,11 @@ ASK_KINDS = (
     "trigger",
     # the order of cards put into one end of a library at once (CR 401.4, a scry's groups)
     "arrange",
+    # a colour or a creature type chosen as a permanent enters (CR 614.12a): the "name" ask's
+    # CHOOSE_NAME with a quality, its options the values (O_VALUE). It starts as "other", as a
+    # kind never encoded before does: the "name" row never trained (actor.NetAgent.decide gives
+    # every name ask to the fallback)
+    "quality",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
@@ -139,7 +146,15 @@ GF = G_TOP + 1
 # cards_i: vocab id, zone, controller, owner, then entity pointers (+1, 0 = none): the host an
 # aura or equipment is attached to, an ability's source, a stack object's first target
 C_HOST, C_SOURCE, C_TARGET = 4, 5, 6
-CI = C_TARGET + 1
+# The colour or creature type a permanent chose as it entered (CR 614.12a, 607.2d: what its "the
+# chosen color|type" reads), as the component token that names the value (``value_token``; 0 =
+# none or a token the table lacks). model.tokens embeds it with the card's component embedding.
+C_CHOSEN = C_TARGET + 1
+CI = C_CHOSEN + 1
+# opts_i: option type, entity ref, second entity ref, ability index, and the component token of a
+# value option (a quality ask's colour or creature type; 0 for every other option)
+O_VALUE = 4
+OI = O_VALUE + 1
 
 OPTION_TYPES = (
     "pad", "PASS", "TAP_ALL_MANA", "land", "cast", "cast_kicked", "activate", "ATTACK",
@@ -171,6 +186,13 @@ def _bucket(value: Any) -> str:
     except (TypeError, ValueError):
         return "num:?"
     return f"num:{n}" if 0 <= n <= 5 else ("num:6+" if n > 5 else "num:neg")
+
+
+def value_token(quality: str, value: str) -> str:
+    """A chosen quality's value as the component token the trees already name it by: a colour as
+    its value in COLOR_HAS and ADD_MANA ("str:W"), a creature type as the face token of the cards
+    that have it ("sub:Elf")."""
+    return f"str:{value}" if quality == "COLOR" else f"sub:{value}"
 
 
 def card_tokens(rec: Any) -> list[str]:
@@ -239,9 +261,11 @@ class CardTable:
     ir: list[list[int]]
     max_ir: int = 128
     index: dict[str, int] = field(default_factory=dict)
+    ir_index: dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.index = {oid: i for i, oid in enumerate(self.oracle_ids)}
+        self.ir_index = {t: i for i, t in enumerate(self.ir_vocab)}
 
     @classmethod
     def from_records(cls, records: dict[str, Any], max_ir: int = 128) -> CardTable:
@@ -581,6 +605,9 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     ledger = executor.ledger
     layers = executor.layers
     cards = world.cards
+    # what each permanent chose as it entered, by its component token (a card name has none)
+    chosen = {s: table.ir_index.get(value_token(q, v), 0)
+              for (s, q), v in executor.name_choices.items() if q is not None}
     for j, (h, zone, owner) in enumerate(ents):
         card = cards[stack_card.get(h, h)]
         ident = card.identity
@@ -595,6 +622,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         host = attachments.get(h)
         if host is not None and host in ent_index:
             ci[C_HOST] = ent_index[host] + 1
+        ci[C_CHOSEN] = chosen.get(h, 0)  # a choice leaves with its permanent (CR 400.7)
         f = cards_f[j]
         f[F_STACK_TARGETED] = stack_targeted.get(h, 0) / 2.0
         if h in on_stack:
@@ -704,7 +732,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     glob_f[G_TOP] = ctx.end == "TOP"
 
     k = len(parsed)
-    opts_i = np.zeros((k, 4), dtype=np.int32)
+    opts_i = np.zeros((k, OI), dtype=np.int32)
     opts_f = np.zeros((k, 2), dtype=np.float32)
     for i, (typ, h1, h2, ab, num, kicked) in enumerate(parsed):
         opts_i[i, 0] = typ
@@ -715,6 +743,10 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         opts_i[i, 3] = ab + 4
         opts_f[i, 0] = num / 5.0
         opts_f[i, 1] = kicked
+    if ask.kind == "quality":  # quality:<source>:<QUALITY>, each option a value of it
+        quality = ask.site.rsplit(":", 1)[1]
+        for i, option in enumerate(ask.options[:k]):
+            opts_i[i, O_VALUE] = table.ir_index.get(value_token(quality, option.token), 0)
     # compact dtypes: these arrays are pickled to the learner and buffered per decision
     return {
         "cards_i": cards_i.astype(np.int16),

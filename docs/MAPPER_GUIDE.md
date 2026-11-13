@@ -192,6 +192,23 @@ $PY tools/cards/cardtool.py --help
   the `cards` selector), and the compiler is split 14/15 on writing it (divergence D12).
 - **Colours.** "Green or white" is an `FOr` of `COLOR_HAS`, never `COLOR_IN`. `COLOR_IN` is a
   subset test, so a multicoloured spell would fail it (B-54).
+- **A colour or a creature type chosen as the permanent enters** (ontology R9). "As this creature
+  enters, choose a color." is `EtBState(effect=A(Verb.CHOOSE_NAME, {'quality': 'COLOR'}))`
+  (`'CREATURE_TYPE'` for "choose a creature type"); Runed Halo's card name is the same atom with no
+  `quality`. "Of the chosen color|type" is `FAtom(pred=FAtomPred.NAME_CHOSEN, string_value='COLOR'
+  |'CREATURE_TYPE')` where the filter goes: a cast trigger's `filter`, an anthem's selector, a
+  look's pick (`parse` each B17 wording). The IR refuses a quality anywhere but as an EtBState's
+  own effect (a colour chosen and read at once by a spell is `Choose` over the five, Feat of
+  Resistance's "the color of your choice"), a read with no choice of its quality on the same card
+  (names included), a choice nothing on the card reads (map its reader too, or record
+  needs-atom), a choice in a static ability (it never runs), and a read inside a token's, an
+  emblem's or a granted ability, which belongs to another object (a granted PROTECTION quality
+  excepted). An EtBState with an `effect` holds nothing else: "This land enters tapped. As it
+  enters, choose a color." is `EtBState(tapped=True)` and `EtBState(effect=...)`, two nodes; a
+  gate (`condition`) or counters beside the effect are refused. An EtBState gate may read the
+  choice: every choice is made first. "The chosen type" is a creature type: a
+  card that chose a card type or a basic land type is a needs-atom, and so are mana of the chosen
+  colour, "is the chosen type" and a spend restriction to it (BACKLOG).
 - **Carriers.**
   - An Aura's carrier is `SpellAbility(kind=SpellKind.ENCHANTMENT)`.
   - An Equipment's carrier is `SpellAbility(kind=SpellKind.ARTIFACT)`.

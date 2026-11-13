@@ -35,7 +35,7 @@ ability   := Triggered(event, condition?, effect, once_per_event?)  # absent: on
            | Activated(cost, effect, condition?, timing)
            | Static(effect, condition?) | Spell(kind, effect, additional_costs*)
            | Replacement(event, condition?, action) | Keyword
-           | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only, until tested
+           | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only (a card name, or its quality a colour or a creature type: R9), until tested
            | CostModifier | Kicker | BackFace
 effect    := Atom(verb, role→value pairs)                 # ONE operation = ONE Atom (T1)
            | Seq(steps 2+)                               # TIME: printed order (O2)
@@ -121,6 +121,8 @@ constructor set.
 | F9 | the CR 609.4 policy family | MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY (round 4) | fold candidate: before a fourth policy verb (nine "as though it had flash" cards wait), decide one POLICY verb with a scope enum |
 | F10 | CR 110.5 status-change events | TapStateEvent, PhasingEvent (round 4; one card) | one family: fold when a third status event appears |
 | F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
+| F12 | the chosen-quality pair's names | CHOOSE_NAME and NAME_CHOSEN name a card name but carry any chosen quality since R9 (§13): the role `quality` (COLOR, CREATURE_TYPE; absent, a card name) and NAME_CHOSEN's `string_value`, its quality slot for good (FAtom slots mean what their predicate says, `_FATOM_RULES`; within NAME_CHOSEN the slot has the one meaning, the quality read) | **rename deferred** (§13 R9-3, upheld at gate round 9): a quality-neutral pair (CHOOSE_QUALITY / QUALITY_CHOSEN) re-bakes M21 Runed Halo's verified tree and Necromentia's, for a label: the network reads a token as an id, not as English. The rename is a pure relabel (the role and the slot stay). Fold with the next round that re-bakes Runed Halo's tree, or with the third quality (a card type, IKO Umori; a basic land type, M10 Convincing Mirage), re-verifying Runed Halo |
+| F13 | a chosen colour or creature type, by when it is chosen | since R9, "choose a colour" has two forms by context: at resolution, `Choose` over five effects, one per colour (M21 Feat of Resistance and M20 Gods Willing, verified; M12 Stave Off; THB Alseid of Life's Bounty), and as a permanent enters, CHOOSE_NAME(COLOR) read later by NAME_CHOSEN. KHM Crippling Fear and Haunting Voyage choose a creature type at resolution and read it in the same resolution, which needs CHOOSE_NAME(CREATURE_TYPE) outside an EtBState: refused today (§13 R9-1, refusal 5) | **decision at the round that maps Crippling Fear** (Type-1, with F2's choose axis): either lift refusal 5 for a choice read within its own resolution, and fold the colour `Choose` into CHOOSE_NAME(COLOR) + read (one form for "choose a colour"; re-bakes Feat of Resistance's and Gods Willing's verified trees), or keep `Choose` over a fixed menu for colours and give a resolution-time creature type its own encoding. Until then: as a permanent enters, CHOOSE_NAME(quality); at resolution, a colour is `Choose` over five (V4' freeze holds) |
 
 Enum-only STRICT variance clusters (SpellKind×5, Keyword×19, PtDelta-direction) =
 GOOD generalization (§9) — never fusion targets.
@@ -145,8 +147,10 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
 | 2026-11-13, gate round 7 | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it, CR 114.2: YOU, ALL_OPPONENTS or TARGET_OPPONENT only, `ability_tree.EMBLEM_RECIPIENTS`; never under EachPlayer) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
 | 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
-| 2026-11-13, gate round 10 (§14) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
-| 2026-11-13, gate round 10 (§14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
+| 2026-11-13, gate round 9 (GO) | EtBState `effect` CHOOSE_NAME x `quality` (COLOR, CREATURE_TYPE; `ability_tree.CHOSEN_QUALITIES`): "As this permanent enters, choose a color\|creature type" (§13 R9-1); accepted only as an unconditioned EtBState's own effect (`ability_tree.chosen_quality_fault`) | compiler B17-etb-choose-quality: 20 printings of 17 cards (M20 Diamond Knight and Icon of Ancestry by record, the compiler's tree) | 11 trees: 6 whole (M20 Diamond Knight, Icon of Ancestry; FDN and M19 Diamond Mare; ORI Prism Ring; KHM Rally the Ranks), 5 partly; the 9 whose reader does not compile are refused (NUMBERS.md 2026-11-13, `reports/chosen_quality_2026-11-13/census.txt`) |
+| 2026-11-13, gate round 9 (GO) | FAtom NAME_CHOSEN x `string_value` (the same vocabulary): in a CastSpellEvent `filter` (B17-cast-chosen-counter, frame B13-cast-chosen), an anthem's ALL selector (B17-chosen-anthem), a look's ONE_OF pick (B17-reveal-chosen-type); read only on the object that chose it (CR 607.2d) | cast: M20 Diamond Knight, FDN and M19 Diamond Mare, ORI Prism Ring; anthem: M20 Icon of Ancestry, KHM Rally the Ranks, M15 Obelisk of Urd, ELD and FDN Heraldic Banner, M12 and FDN Adaptive Automaton ("Other"); pick: M20 Icon of Ancestry | cast 4 trees, anthem 7, pick 1 (**low-volume**); 17 more "of the chosen" sentences on 15 printings unread: 14 need a piece (BACKLOG), and KHM Crippling Fear's, Alrund's and IKO Umori's choose at resolution or a card type |
+| 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
+| 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 
 ## 6. Identity + conformance
 
@@ -575,6 +579,63 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     row; play differs in 3 games, where M21 Vito, Thorn of the Dusk Rose and FDN Ajani's Pridemate
     and Marauding Blight-Priest trigger once instead of once per recipient. Same winners, 0
     crashes.
+- R9 round 9 (adversarial, 2026-11-13; one reviewer on 469018ed, a quality chosen as a permanent
+  enters, §13, branch `worktree-agent-a22ab085e5a636947`): **GO**, nothing FATAL or MAJOR. Upheld
+  in the reviewer's own runs: the CR reading (614.12a, 607.2d, colourless refused, the last known
+  choice per 113.7a and 608.2h), the fewest components, `string_value` with one meaning within
+  NAME_CHOSEN, the rename deferred (F12), the bitwise claim on r28's checkpoint (260 decisions,
+  fp32 and bf16), the load paths, the ask kind grown from `other`, the blast radius, 210/210
+  replays, and a clean merge with main. The round merges before round 10.
+  - **The change.** `Verb.CHOOSE_NAME` takes an optional closed role `quality` (COLOR,
+    CREATURE_TYPE; absent, a card name), `FAtomPred.NAME_CHOSEN` reads it back in `string_value`
+    (one role, one slot vocabulary, no verb, predicate or field). `chosen_quality_fault` refuses
+    per object (CR 607.2d) a read without its choice, an unread choice, two choices of one
+    quality, a read on another object (a PROTECTION quality judged in the granter's
+    coordinates), a quality chosen outside an EtBState's own effect, and a choice in a static;
+    EtBState keeps an effect in a node of its own. Engine: choices keyed (source, quality), kept
+    in the source's last known information; WUBRG and the pool's creature types; every choice
+    before any gate or entering counter (CR 614.12a). Compiler: B17's four templates and frame
+    B13-cast-chosen. Network: the ask kind `quality` (grown from `other`), C_CHOSEN and O_VALUE
+    masked at 0.
+  - **Rejected:** a verb and a predicate per quality; a NAME value; the policies' `scope` role; a
+    new FAtom field; granted triggers made by an enters trigger; a missing choice read as False;
+    CR 205.3m's whole list as the menu; the rename now (F12).
+  - **Blast radius** (on main 8db1834f and the merged branch): 20 trees changed, all unverified
+    (6 whole, 5 partial, 9 refused); 0 verified in or out (M21 275, M20 273, FDN 183); Runed Halo
+    and Necromentia byte-identical; 300/300 replays identical, 0 crashes; soak 800 games, 0
+    crashes; old networks bitwise exact; `state_fingerprint` bytes differ on states holding a card
+    name's choice (m3). The pre-gate review (3 MAJOR, 3 MINOR) is in §13.
+  - **MINOR, fixed:**
+    - m2. The creature-type menu (CR 205.3e/m: any creature type) missed the types a pool's
+      cards grant: `Supply.creature_types` adds GRANT_TYPE's creature types
+      (`quantity.granted_creature_types`; M21 Riddleform's Sphinx, M21 73 -> 74).
+      `test_a_creature_type_is_one_of_the_format_pools`. Both menus, round 4's `name_pool` too,
+      are registered scaffolds (BACKLOG "Scaffolds to remove").
+    - m3. Declared in §13's blast radius: `state_fingerprint` folds `(s, 'None', n)` for a card
+      name's choice where main folded `(s, n)`.
+    - m4. F12: `string_value` is NAME_CHOSEN's quality slot for good, so the rename is a pure
+      relabel; F12 placed after F11.
+    - m5. Registered as F13: "choose a colour" has two forms by context (a resolution-time
+      `Choose` over five, CHOOSE_NAME(COLOR) as a permanent enters), and KHM Crippling Fear and
+      Haunting Voyage need a resolution-time creature type, which refusal 5 forbids; decided by
+      the round that maps them.
+    - m6. The canonical form of "This land enters tapped. As it enters, choose a color." (KHM
+      Shimmerdrift Vale, FDN Uncharted Haven) is two EtBState nodes: EtBState refuses an effect
+      beside a tapped flag, counters or a gate (it subsumes round 9's pre-gate refusal of a
+      choice under a gate). `test_an_as_enters_effect_stands_in_its_own_node`; 0 trees change.
+    - m7. `simulator.load` did not grow an older checkpoint (runs/window1/sim.pt: 30 ask rows,
+      22 global columns; gate B's queue loads it with `--search-sim`), on main too: it grows
+      the view network as `model.load` does (`model.upgraded`, shared), and `Data.load` widens
+      each view shard to this code's widths. `test_an_older_simulator_and_its_view_shards_load`
+      (red on main 8db1834f and on 92aca048).
+    - m8. Tests added: a granted PROTECTION reading the chosen colour, before and after its
+      granter left; a creature-type read through a GRANT_TYPE overlay; card-level refusals for
+      a printed non-protection keyword's parameter and for a back face; the bench's `quality`
+      prompt, colour labels and leak flag.
+  - **NITs:** n1 fixed (a read with no source raised AttributeError, not NotImplementedError:
+    the last-known fallback needs a source); n2 (C_CHOSEN holds one value per permanent), n3 (a
+    tripwire: colours are the printed ones) and n4 (a tripwire: a copy that entered without
+    choosing reads False, per the rulings, when copies land) in the BACKLOG.
 - R10 round 10 (adversarial, 2026-11-13; one reviewer on 88b7f7e8, one or more objects moved at
   once, §14, branch `worktree-agent-ac4c978225fb5b805`): **FIX-THEN-GO**, nothing FATAL. Upheld in
   the reviewer's own runs: the CR reading (one atom boundary is one event for a wrath, one
@@ -665,8 +726,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     object that changed zones (CR 400.7); a referent over a several-object `result` or `target`
     register takes the first. Closed on main: DESTROY against an indestructible permanent
     (8db1834f).
-- BINDING STATE: rounds 1–8 and 10 complete (round 9 merges from its own branch); further
-  ontology changes require a NEW gated round (any
+- BINDING STATE: rounds 1–10 complete; further ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
@@ -1117,6 +1177,215 @@ change; gate round 8 asked for it in its own commit).**
   games): 0 crashes, 0 detector hits; each family card in those pools was cast in 2 to 33 games
   (not M14 Archangel of Thune, M14 deals no deck, nor FDN Cat Collector, still partly compiled).
 
+## 13. Round R9 — a quality chosen as a permanent enters (2026-11-13; gate round 9 GO)
+
+The card backlog's wave 3, second item: M20 Diamond Knight ("As this creature enters, choose a
+color. Whenever you cast a spell of the chosen color, put a +1/+1 counter on this creature.") and
+Icon of Ancestry ("As this artifact enters, choose a creature type. Creatures you control of the
+chosen type get +1/+1. {3}, {T}: Look at the top three cards of your library. You may reveal a
+creature card of the chosen type from among them ..."), needs-atom records since 2026-11-05.
+Census, blast-radius scripts and base runs: `reports/chosen_quality_2026-11-13/`. Tests:
+`MTG_bot/core/test_executor_chosen_quality.py`, `MTG_bot/core/compiler/test_templates_b17.py`, three
+in `tools/selfplay/test_selfplay.py`, one in `tools/cards/test_gates.py`; packs in
+`tools/scenarios/mapped/M20/` and `mapped/FDN/`.
+
+**R9-1 One role and one slot on round 4's pair: no new verb, predicate or field.**
+- The rules. "As [this permanent] enters, ..." is a replacement effect (CR 614.1c), and a choice it
+  requires is made before the permanent enters (614.12a). "Choose a [value]" and "the chosen
+  [value]" printed on one object are linked abilities: the second refers only to a choice made as
+  a result of the first (607.2d). A colour is one of the five (105.1; colourless is none, 105.2c),
+  a creature type one of 205.3m's.
+- The IR. `Verb.CHOOSE_NAME` takes an optional `quality` role from the closed
+  `ability_tree.CHOSEN_QUALITIES` = (COLOR, CREATURE_TYPE); `FAtomPred.NAME_CHOSEN` reads it back
+  with the same vocabulary in its `string_value` (`_FATOM_STRING_VOCAB`, STACK_KIND_EQ's closed
+  slot). Absent in both is a card name: Runed Halo's and Necromentia's bytes do not change, and
+  there is no NAME token to be a second form of absent. An FAtom slot means what its predicate
+  says (`_FATOM_RULES`): within NAME_CHOSEN `string_value` has the one meaning, the quality read,
+  and it stays NAME_CHOSEN's quality slot for good, so the rename is a pure relabel (F12; the
+  pre-gate review's point, settled at gate round 9).
+- Refused as the tree is built (`ability_tree.chosen_quality_fault`, from CardRecord; the compiler
+  raises it as a shape gap, StateCorruptionError, so a partly compiled card never stops a set):
+  1. a value outside the vocabulary, in either place;
+  2. `quality` on any other verb (the role table), and beside `name_filter`;
+  3. a NAME_CHOSEN of a quality (a card name included) with no CHOOSE_NAME of that quality on its
+     own object; a CHOOSE_NAME nothing on its object reads (a choice with no consequence, a
+     phantom ask: a card whose reading sentence did not compile is a shape gap, not a card that
+     asks a colour for nothing); two CHOOSE_NAMEs of one quality on one object;
+  4. a read on another object: a token's, an emblem's or the back face's abilities, a granted
+     ability (its source is the object it is granted to; CR 607.5 links a pair only granted
+     together), a keyword's parameters (hexproof's quality is judged in the targeting source's
+     coordinates); except a PROTECTION quality, which `legality.protected_from` judges in the
+     coordinates of the ability that gives it (Runed Halo's own grant);
+  5. a quality chosen anywhere but as an EtBState's own effect;
+  6. a choice that may not be made while its reads can be asked: a CHOOSE_NAME in a static
+     ability's effect (a static runs no choice; GET_EMBLEM's class there, BACKLOG), or under an
+     EtBState's condition (skipped when it fails), which 7 refuses;
+  7. (`EtBState` itself) an effect beside a tapped flag, counters or a gate in one node: the
+     effect stands in its own node, so "This land enters tapped. As it enters, choose a color."
+     (KHM Shimmerdrift Vale, FDN Uncharted Haven) is two EtBState nodes, the one canonical form
+     (gate round 9, m6).
+- Why 5. A colour chosen and read once by a resolving effect is already the menu of five (`Choose`
+  over five grants: Feat of Resistance's and Gods Willing's "the color of your choice", verified),
+  so CHOOSE_NAME(COLOR) there would be its second encoding. A resolving creature-type choice (KHM
+  Crippling Fear, Haunting Voyage) has no encoding yet: its card brings one with its tests. A card
+  name keeps both places (Necromentia chooses in a spell).
+- The engine. `executor.name_choices` is keyed by (source, quality) and dropped when the source
+  leaves (CR 400.7), its value kept in the source's last known information (`LastKnown.choices`):
+  an ability whose source has left reads it there (CR 113.7a, 608.2h; Icon of Ancestry's look
+  after a Disenchant in response, pack `icon_of_ancestry_reveals_by_its_last_known_choice`). The
+  colour menu is W, U, B, R, G, asked as `quality:<source>:COLOR`. The creature-type menu is the
+  format pool's (`Supply.creature_types`, set on the executor as `creature_type_pool` beside
+  `name_pool`: the creature types of the deckable cards' type lines, of the creature tokens they
+  make and of their type grants, M21's Saproling and FDN's Dog being no card's and M21's Sphinx
+  only Riddleform's grant, less a face's artifact, enchantment and land types, CR 205.3d,
+  205.3g-i: ELD Gingerbrute is a Food Golem), public, so it reveals no hidden card; a rig with no
+  format names the world's, and the bench marks that ask leaky. CR 205.3e/m allow any creature
+  type: cutting the menu to the pool's is a scaffold (BACKLOG "Scaffolds to remove", with round
+  4's `name_pool`).
+  NAME_CHOSEN COLOR reads the printed colours (no effect changes one), CREATURE_TYPE SUBTYPE_EQ's
+  live words (the type line and GRANT_TYPE's overlay). A read with nothing chosen raises, as
+  round 4's did.
+- Choices before the entering state. `Executor._apply_etb_state` makes every "As this enters"
+  choice before it judges any EtBState gate or counts any entering counter, in whatever order the
+  abilities print: FDN Banner of Kinship's "enters with a fellowship counter ... for each creature
+  you control of the chosen type" will be counted after its choice (the card still waits for its
+  pieces; the test builds the shape with the counters printed first), and a gate may read the
+  choice. A permanent a pack or the probe puts on the battlefield has made its
+  choice before the opening turn reads it (`ScenarioRunner._as_entered`; the probe's own case
+  moved there): Icon of Ancestry's anthem is read at once, where Runed Halo's quality was read
+  only when protection was asked.
+- The compiler (`templates_b17`, frame B13-cast-chosen): "As this artifact|creature|enchantment|land
+  enters, choose a color|creature type." (20 printings of 17 cards); "Whenever you cast a spell of
+  the chosen color|type, put a +1/+1 counter on this creature." and, through the frame, the same
+  head with any clause that parses alone ("you gain 1 life"); "[Other] creatures you control of
+  the chosen type|color get +P/+T."; "You may reveal a creature card of the chosen type from among
+  them and put it into your hand." (Garruk's Harbinger's shape, `templates_b4.reveal_one_from_among`).
+  "The chosen type" is a creature type: on a card that chose another kind of type the read has no
+  choice of its quality, a shape gap (no such card compiles). Not matched: "As it enters, choose a
+  color." (FDN Uncharted Haven: "it" has no context in a template) and a face named in full (KHM
+  The Ringhart Crest).
+- Census (`census.txt`): 22 printings of 19 cards choose a colour (10) or a creature type (12) as
+  they enter; B17 reads the choice on 20. Whole now: M20 Diamond Knight and Icon of Ancestry, FDN
+  and M19 Diamond Mare, ORI Prism Ring, KHM Rally the Ranks. Partly, with a reader: ELD and FDN
+  Heraldic Banner, M12 and FDN Adaptive Automaton, M15 Obelisk of Urd. Refused (shape gaps), since
+  no reader of their choice compiles: 10E Story Circle and Voice of All, FDN Banner of Kinship and
+  Secluded Courtyard, KHM Bloodline Pretender, Realmwalker, Reflections of Littjara and
+  Shimmerdrift Vale, M14 Door of Destinies; on the base they were partial, dealt in the all and
+  castable pools with the choice unparsed (Secluded Courtyard's any-colour mana unrestricted,
+  stronger than printed). Each is a piece short (BACKLOG). Card names chosen as a permanent
+  enters: Runed Halo compiles; Pithing Needle, Phyrexian Revoker, Alpine Moon and Sorcerous
+  Spyglass do not.
+- Rejected:
+  - a verb and a predicate per quality (CHOOSE_COLOR / COLOR_CHOSEN, CHOOSE_CREATURE_TYPE /
+    TYPE_CHOSEN): four components for one operation over three menus (AGENTS §9);
+  - a NAME value: two byte forms of a card name;
+  - the policies' `scope` role: one role name, two meanings;
+  - a new FAtom field: STACK_KIND_EQ's closed string slot already carries a vocabulary;
+  - five granted triggers made by an enters trigger (the 2026-11-05 needs-atom's emulation): a
+    trigger is not "as enters", and every read (statics, triggers, mana) would fork five ways;
+  - a missing choice read as False (the rulings' "no type was chosen: it does nothing"): every
+    entry makes the choice, a source that left answers from its last known information, and the
+    IR refuses every read the engine judges elsewhere and every choice that may go unmade, so a
+    missing choice is an engine fault, raised; a copy that entered without choosing has no card
+    here;
+  - CR 205.3m's whole list (about 300) as the menu: the types no card or token of the pool has are
+    equal null picks for every as-enters card of the 19 sets, and the menu could never be the
+    network's; a symmetric card ("all creatures of the chosen type get -1/-1") would need one null
+    option (BACKLOG).
+
+**R9-2 What the network sees (AGENTS §10).**
+- The ask: a new kind, `quality`, appended to `features.ASK_KINDS` (no index moves) and started on
+  load as `other`, as a kind never encoded before is: the `name` row never trained, since every
+  name ask goes to the fallback (`actor.NetAgent.decide`). Each option carries its value in a new
+  option column, `O_VALUE`: the component token the trees name it by (`features.value_token`: a
+  colour is its COLOR_HAS and ADD_MANA value `str:W`, a creature type the face token `sub:Elf` its
+  cards carry), embedded with the card-component embedding (`ir_emb`), so "Elf" in the menu is the
+  vector in every Elf card's component bag. Colour options are also the option types W to G, as
+  the mana ask's are; the search's option classes key the value too (`search.option_classes`).
+- The board: a permanent's chosen colour or creature type in a new card column, `C_CHOSEN` (the
+  same token), added to the card's embedding. 0 is none, a zero term: `PolicyValueNet.value_emb`
+  masks the padding row, which `_init` and every checkpoint hold at random values. So an old
+  checkpoint computes what it computed before on every observation without a choice (no parameter
+  added, `model.load` unchanged): bitwise, tokens, logits and values on 64 decisions of three FDN
+  games, a random net with non-zero output layers, base against branch
+  (`reports/chosen_quality_2026-11-13/old_net_*.py`). An encoding recorded before the columns
+  existed (a ceiling window's `--search-record` shards, a simulator's views) reads as one with none
+  (`model.widened`; `simulator.Data.load` widens each view shard). A checkpoint older than an ask
+  kind or a feature column loads grown, the policy network's (`model.load`) and the simulator's
+  view network (`simulator.load`) by the same rules (`model.upgraded`): runs/window1/sim.pt, 30
+  ask rows and 22 global columns, which gate B's queue loads with `--search-sim` (gate round 9,
+  m7; it failed on main too).
+- Not seen: a chosen card name (it has no component token; the `name` ask stays the fallback's),
+  and a creature-type menu wider than MAX_OPTIONS (64): in the M20 (69) and M21 (74) pools Icon of
+  Ancestry's choice is the fallback's (`HeuristicAgent._quality`: the type its own visible cards
+  most share), under the observation caps' scaffold. FDN's 47 fit; a colour menu always does.
+
+**R9-3 The rename: deferred (ledger F12).** CHOOSE_QUALITY / QUALITY_CHOSEN would say what the
+pair now does. Against now: it re-bakes M21 Runed Halo's verified tree (and Necromentia's), which
+then leave the verified pool until re-verified, for a label: the network reads `Verb.CHOOSE_NAME`
+as an id, not as English, and the meaning is in the role. Deferred, the blast radius stays purely
+additive (no verified tree changes, so the replays measure the engine change alone). Fold it with
+the next round that re-bakes Runed Halo, or with a third quality (a card type: IKO Umori; a basic
+land type: M10 Convincing Mirage), re-verifying both.
+
+**Blast radius** (by script over the 19 sets, base dafdd5ff;
+`reports/chosen_quality_2026-11-13/blast_radius.txt`):
+- trees changed: 20 compiler trees, all unverified, and 20 with records applied (the two M20
+  needs-atom records re-mapped to the compiler's tree through `cardtool write`): 6 now compile
+  whole, 5 parse more sentences, 9 are refused (above).
+- verified cards: 0 leave, 0 join; the stamps match (M21 275, M20 270, FDN 180 against
+  dafdd5ff; M21 275, M20 273, FDN 183 on the branch merged with main 8db1834f, against it: the
+  same 20 trees, and 300/300 replays identical, 0 crashes, decks from 275, 273 and 183 cards).
+- Still-verified cards with unchanged bytes on a touched path: M21 Runed Halo (its choice and
+  read, keyed (source, None)) and Necromentia (its read); 7 with entering counters (M21 Malefic
+  Scythe, Wildwood Scourge; M20 Squad Captain, Voracious Hydra; FDN Gnarlid Colony, Goblin
+  Boarders, Wildwood Scourge), two of them gated by their kicker (Gnarlid Colony, Goblin
+  Boarders), through the entry hook whose gate and counter passes are the old loops, after the
+  choices.
+- 300 seeded heuristic games (100 each, M21, M20, FDN), decks from the cards verified on both:
+  300/300 identical digests, 0 crashes either side, on 92aca048 and again on the final code.
+- `Executor.state_fingerprint` (`__init__.py:3519`) folds the choices as (source, quality,
+  value), `(s, 'None', n)` for a card name where main folded `(s, n)`: a state holding Runed
+  Halo's or Necromentia's choice has other fingerprint bytes than on main (a state without one
+  does not). The replay digests (`preflight._digest`) do not fold the fingerprint and are
+  unchanged.
+- G3 (`gates.mutants`) on the choosers: Runed Halo keeps its 1 live mutant. Necromentia has 12
+  where the base had 13: dropping its choice step leaves reads with no choice, refused now, a
+  mutant the base killed only by the read raising. The single-reader anthems gain the widen that
+  drops the read and the choice together (Rally the Ranks 6, Obelisk of Urd 8, Heraldic Banner 6,
+  Adaptive Automaton 7, each one more than on 92aca048).
+- Random-play soaks dealing the new trees (800 games: M20 compiled with the unverified records 200,
+  FDN compiled 200, FDN, KHM, ORI and M19 castable 100 each): 0 crashes. Every family card in
+  those pools was cast, in 4 to 28 games, its choice made by random answers. Detector hits: 2 in
+  one M20 game (D5 folds Omnath's counters across its two lives, BACKLOG) and 7 in four FDN games
+  (D3 and D5 classes that come up on the base's FDN pool too), in no game that cast a family card
+  (`soak_coverage.txt`). Rerun on the final code: the same casts and hits, 0 crashes.
+- The conformance checker's pools (M21, ZNR) hold no new tree: no V4′ CHOOSE emission, no V5′
+  drift beyond the baseline's.
+
+**Pre-gate review** (one fresh-eyes reviewer on 92aca048; nothing FATAL), fixed on the branch,
+each fix with a test or pack that fails on 92aca048 (`reports/chosen_quality_2026-11-13/review_runs.txt`):
+- M1, an ability whose source left raised at its read (Icon of Ancestry's look after a Disenchant
+  in response): the choice is kept in the source's last known information (R9-1's engine). A
+  source that left and came back still answers with its new choice, as for every LKI read
+  (BACKLOG: "An ability whose source left and came back").
+- M2, the new terms added `ir_emb`'s random padding row to every card and option token, so old
+  checkpoints did not compute what they did (the reviewer measured r28's last value move from
+  -0.114 to +0.009 on one ask): masked (R9-2).
+- M3, G3 lost the "drop the chosen type" widen on every single-reader anthem: stillborn, as a
+  choice nothing reads is refused. The widen drops the choice with its last read
+  (`gates._without_unread_choices`, as the zone swap drops `arrange`).
+- m1, three accepted forms the engine could not honour: a choice under an EtBState's condition,
+  a gate reading the choice (judged before it was made), a choice in a static. Refusal 6, and
+  the hook makes every choice before judging any gate.
+- m2, `search.option_classes` folded a creature-type menu into one class: it keys O_VALUE.
+- m3, encodings recorded at the old widths (7 and 4) did not collate: `model.widened`.
+- NITs: the ask grows from `other` (R9-2); ELD's menu held Food (R9-1's engine); the
+  string_value reading (R9-1's IR, F12); Changeling's absence, G3's bare reads and Icon of
+  Ancestry's 172 tokens (BACKLOG). Kept: `ScenarioRunner._as_entered` ignores EtBState conditions
+  (no choice stands under one now), and `bench/test_router._arranged` places a chooser without a
+  choice (its tests set the choice they read).
+
 ## 14. Round R10 — one or more objects moved at once (2026-11-13; gate round 10 FIX-THEN-GO, fixed)
 
 The card backlog's wave 3, its third package (BACKLOG, "Card backlog wave 3: the plan"): M20
@@ -1124,14 +1393,14 @@ Woodland Champion ("Whenever one or more tokens you control enter, put that many
 on this creature.") and Angelic Guardian ("Whenever one or more creatures you control attack, they
 gain indestructible until end of turn."), both needs-atom records since 2026-11-05. Census,
 scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
-`MTG_bot/core/test_executor_one_or_more.py`. Round 9 is a parallel branch (a chosen quality).
+`MTG_bot/core/test_executor_one_or_more.py`. Round 9 (§13, a chosen quality) merged first.
 
 **The change: no new node, field or verb.**
 - `TriggeredAbility.once_per_event` (and DelayedTrigger's) on a ZoneChangeEvent: one trigger for
   the objects one event moves (CR 603.2c: "it can trigger repeatedly if one event contains
   multiple occurrences"; the flag reads "one or more"). `ability_tree.gathers_occurrences`
-  (ability_tree.py:3077) now answers True for a ZoneChangeEvent whose subject is absent or is not
-  the source or what it is attached to, and `_check_once_per_event` (:3117) refuses the flag on a
+  (ability_tree.py:3096) now answers True for a ZoneChangeEvent whose subject is absent or is not
+  the source or what it is attached to, and `_check_once_per_event` (:3136) refuses the flag on a
   zone change of one object as it does on an attack or a damage event: flagged, "when this
   creature enters" would be a second byte form of the unflagged trigger.
 - **One event** is one atom boundary: `GameEvent.batch` (executor/events.py:222), stamped by
@@ -1144,11 +1413,11 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
   one by its last known information (CR 603.10a). `_check_trigger` binds a flagged ZoneChangeEvent;
   every other kind but an attack and combat damage is still refused.
 - **The gathered register.** On a flagged declaration or zone change
-  (`ability_tree.gathers_objects`, :3107) `_put` (:1648) binds the `event` register to all of
+  (`ability_tree.gathers_objects`, :3126) `_put` (:1648) binds the `event` register to all of
   them, and a `gathered` register to the same list, which replaces round 4's `declare_attackers`.
   - "They" is `Selector(referent="event")`, the one C2 referent form, now denoting every object
     the register binds (executor/selectors.py:705: a referent is bound, never chosen, so no count
-    slices it; nor does MOVE_ZONE's count clamp, verbs.py:359, which made "exile them" move the
+    slices it; nor does MOVE_ZONE's count clamp, verbs.py:360, which made "exile them" move the
     first only until gate round 10). At resolution `resolve` (binding.py:1745) keeps those the
     effect can act on: not one that has changed zones since its row (a new object, CR 400.7);
     not one the event moved into a hand or a library (CR 400.7's exception for an ability that
@@ -1157,8 +1426,8 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     combat is still one of them.
   - "Among them" (an aggregate QProp over `Selector(referent="event")`: "the greatest power among
     them", MAX; SUM) reads every object gathered, those no longer among "they" included, each by
-    its last known information once it left (CR 608.2h; `quantity.read_population`, :674; a
-    gathered object's own departure row answers in `departed_lki`, :506, on the zone change's own
+    its last known information once it left (CR 608.2h; `quantity.read_population`, :682; a
+    gathered object's own departure row answers in `departed_lki`, :508, on the zone change's own
     resolution only: a query, which carries the bindings but no event, reads the live object). The
     departed tokens stay in the world until the trigger resolves, as the first row's always did
     (`TriggerBinder.pending_references`, binding.py:1561). Gate round 10's MAJOR-1: 88b7f7e8 kept
@@ -1168,7 +1437,7 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     target among the attackers it gathered); the replays caught it before a commit, and
     `test_battlesong_berserker_targets_one_of_the_attackers_it_gathered` pins it.
   - "That many" is `QProp("event", THAT_MANY_COUNT)`: the `result` register first (Kinetic
-    Augur's precedence), else `gathered` (executor/quantity.py:664), every object gathered, those
+    Augur's precedence), else `gathered` (executor/quantity.py:672), every object gathered, those
     that left included (Woodland Champion's ruling; Basri Ket's: "attacking nontoken creatures
     that leave combat before the triggered ability resolves are counted"). A single event writes no
     `gathered`, so "that many" with no antecedent still raises.
@@ -1180,19 +1449,19 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     "one or more creatures die" is CreatureDiesEvent's (CR 700.4), the binder's to gather when a
     card needs it (gate round 10's MINOR-3, divergence D24; no tree changes);
   - a read of one object of a gathered register, which would take the first in handle order
-    (`_check_gathered_reads`, ability_tree.py:3206; `_reads_one_event_object`, :3182): a QProp of
+    (`_check_gathered_reads`, ability_tree.py:3225; `_reads_one_event_object`, :3201): a QProp of
     "event" other than THAT_MANY_COUNT ("its power"), an FAtom referent "event" ("attached to
     it"), a DurationUntilLeaves of "event" ("until it leaves"), the event referent in a role a verb
-    reads as one object (`_ONE_OBJECT_ROLES`, :3179: DEAL_DAMAGE's dealer, "it deals"; FIGHT's
+    reads as one object (`_ONE_OBJECT_ROLES`, :3198: DEAL_DAMAGE's dealer, "it deals"; FIGHT's
     foe; verbs.py takes the first of several), in the effect, a token's power and toughness
     (resolved as the token is made), a reflexive trigger in it (it reads the same register) and
     the condition; and an
     intervening "if" that tests its subject (CR 603.4: judged on the event's one object, and a
     gathered event has none): a condition may hold only `ability_tree.SUBJECT_FREE` predicates
-    (:3157, the R6-2 list, now in the IR; tools/audit imports it);
-  - a FIRST over a referent Selector (QProp.__post_init__, :873): "its power" is the string
+    (:3176, the R6-2 list, now in the IR; tools/audit imports it);
+  - a FIRST over a referent Selector (QProp.__post_init__, :881): "its power" is the string
     referent's, the one encoding ("the greatest power among them", MAX, stands);
-  - a QCount over a referent Selector with no filter (QCount.__post_init__, :791): "the number
+  - a QCount over a referent Selector with no filter (QCount.__post_init__, :799): "the number
     of them" has one encoding, THAT_MANY_COUNT, and the count of the Selector would differ from it
     once an object leaves. With a filter it is the one encoding of "for each creature card exiled
     this way" (some of them; IS_RESULT in a selector's filter is refused as the referent's second
@@ -1202,9 +1471,9 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     object each. No tree of the 19 sets had either form.
 - **Executor nets** for what the IR cannot see: a singular referent read of an event register
   that holds several objects raises (quantity.py:470), and so does a bare Conditional after a
-  sentence that names no object (executor/__init__.py:310; it was judged on the trigger's source).
+  sentence that names no object (executor/__init__.py:311; it was judged on the trigger's source).
   "That much", "this way" and "that many" read registers, not an object: `_REGISTER_FIELDS`
-  (quantity.py:619) skips the object lookup, so a gathered event whose objects have all left
+  (quantity.py:627) skips the object lookup, so a gathered event whose objects have all left
   still counts them (8b8c35b9 raised there and crashed M21 Basri Ket's -2 when its one attacker
   died in response; the round's fresh-eyes review found it). A zone change journalled without a
   batch raises (events.py `_emit`), and so does gathering one (`TriggerBinder._occurrences`):
@@ -1213,8 +1482,8 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
 - **Compiler** (no new verb): B2b-tokens-enter-that-many-counters (templates_b2b.py:2227) and
   B2b-attackers-gain-keyword-eot (:2262, any bare keyword of B11's table: the grant of B5b's
   "it gains <keyword> until end of turn" over the event referent); the frame
-  B13-one-or-more-leave-graveyard (Desecrated Tomb; compiler frames.py:153, `_once_per_event`
-  :90). A pronoun keeps a frame's clause out as before. KHM Elvish Warmaster's "one or more
+  B13-one-or-more-leave-graveyard (Desecrated Tomb; compiler frames.py:154, `_once_per_event`
+  :91). A pronoun keeps a frame's clause out as before. KHM Elvish Warmaster's "one or more
   other Elves you control enter" gets no frame: without its "This ability triggers only once each
   turn" its own Elf Warrior token triggers it again, a loop the card never makes, in every pool
   that deals partly compiled cards (the first draft had the frame: 201 firings in 100 KHM

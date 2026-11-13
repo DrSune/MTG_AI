@@ -43,6 +43,7 @@ from MTG_bot.core.ability_tree import (
     DelayedTrigger,
     DurationEot,
     DurationPermanent,
+    EtBState,
     FAnd,
     FAtom,
     FAtomPred,
@@ -548,6 +549,20 @@ _ZONE_SWAP = {ZoneKind.GRAVEYARD: ZoneKind.EXILE, ZoneKind.EXILE: ZoneKind.GRAVE
               ZoneKind.LIBRARY: ZoneKind.GRAVEYARD}
 
 
+def _without_unread_choices(keywords: tuple, abilities: tuple) -> tuple:
+    """``abilities`` less every "As this enters, choose ..." node whose quality nothing in the
+    card reads any more. A mutant that drops the last read ("creatures you control of the chosen
+    type" widened to every creature you control) drops the choice with it, as the zone swap of an
+    arranged move drops ``arrange``: the IR refuses a choice nothing reads
+    (ability_tree.chosen_quality_fault), so the mutant would be stillborn and the fault untested.
+    Only a node that does nothing but choose goes."""
+    read = {n.string_value for _p, n in _paths((keywords, abilities))
+            if isinstance(n, FAtom) and n.pred is FAtomPred.NAME_CHOSEN}
+    return tuple(a for a in abilities if not (
+        isinstance(a, EtBState) and a == EtBState(effect=a.effect) and isinstance(a.effect, Atom)
+        and a.effect.verb is Verb.CHOOSE_NAME and a.effect.args.get("quality") not in read))
+
+
 def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
     """(operator, where, mutant card) for every viable fault-model mutant of the card's tree."""
     root = (card.keywords, card.abilities)
@@ -738,7 +753,8 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         for op, new in cands:
             try:
                 kws, abilities = _rebuild(root, at, new)
-                mutant = dataclasses.replace(card, keywords=kws, abilities=abilities)
+                mutant = dataclasses.replace(card, keywords=kws,
+                                             abilities=_without_unread_choices(kws, abilities))
             except (ValueError, TypeError, AttributeError):
                 continue  # stillborn: the IR's own validation refuses it
             key = repr(mutant)
