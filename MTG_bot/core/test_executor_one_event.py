@@ -370,6 +370,27 @@ class TestTheLayersAfterTheEvent(_Case):
                         bindings={"cards": pair})
         assert self.gains() == [1, 1, 1, 1]
 
+    def test_a_counter_that_turns_on_a_keyword_is_seen_by_the_triggers_of_its_event(self) -> None:
+        """"This creature has flying as long as it has a +1/+1 counter on it": a counter is put on
+        it, and "whenever a +1/+1 counter is put on a creature with flying, you gain 1 life" sees
+        the flying the counter gave it, though nothing moved (the base read the layers as they
+        were before the counter)."""
+        flying = FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING)
+        flies_if_countered = at.StaticAbility(
+            atom(Verb.GRANT_ABILITY, ability=at.KeywordAbility(Keyword.FLYING),
+                 target=at.Selector(QConst(1), at.SelectorMode.ALL, SELF, zones=(BF_YOU,))),
+            FAtom(FAtomPred.HAS_COUNTER, counter_kind=at.CounterKind.PLUS_1_PLUS_1))
+        [bear] = self.creatures(1, [flies_if_countered])
+        countered = at.CounterPlacedEvent(at.CounterKind.PLUS_1_PLUS_1, FAnd((CREATURE, flying)))
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [
+            TriggeredAbility(countered, None, _gain())]))
+        self.ex.layers.recompute()
+        assert not self.ex.layers.keyword_of(bear, Keyword.FLYING)
+        counter = atom(Verb.PUT_COUNTER, target=EVERY, counter_kind=at.CounterKind.PLUS_1_PLUS_1,
+                       count=QConst(1))
+        self.ex.execute(counter, source=bear, controller=self.p0, bindings={"target": [bear]})
+        assert self.gains() == [1]
+
     def test_a_trigger_from_anywhere_reads_the_card_in_its_new_zone(self) -> None:
         """CR 603.6c, 603.10: "whenever a creature card with flying is put into your graveyard
         from anywhere" does not look back, so it sees the card in the graveyard, which has no
@@ -411,6 +432,29 @@ class TestTheLayersAfterTheEvent(_Case):
         self.ex.fire_triggers()
         assert self.ex.ledger.effective_pt(self.world.cards[bear].identity, bear,
                                            self.world.cards[bear].counters) == (2, 2)
+
+
+def test_an_anthem_entering_in_a_later_instruction_counts_for_what_enters_with_it() -> None:
+    """CR 603.10 within one resolution: "put a 2/2 onto the battlefield, then Glorious Anthem and a
+    3/3". The second event's triggers see the Anthem that entered with it: Garruk's Uprising draws
+    for the 3/3, a 4/4 right after (the first event's layers knew no Anthem; the base drew none)."""
+    r = _runner("M21", [_real("uprising", "Garruk's Uprising"),
+                        _real("anthem", "Glorious Anthem", zone="hand"), _creature("bear", zone="hand"),
+                        _creature("big", "3", "3", zone="hand"),
+                        {"key": "lib", "name": "L", "type": "Land", "zone": "library", "controller": 0}])
+
+    def put(*names: str) -> at.Atom:
+        named = at.FOr(tuple(FAtom(FAtomPred.NAME_EQ, string_value=n) for n in names)) \
+            if len(names) > 1 else FAtom(FAtomPred.NAME_EQ, string_value=names[0])
+        return atom(Verb.MOVE_ZONE, cards=at.Selector(at.QUnbounded(), at.SelectorMode.ALL, named,
+                                                      zones=(Zone(ZoneKind.HAND, YOU),)),
+                    destination=BF_YOU)
+
+    draws = sum(1 for e in r.ex.journal.events if e.kind == KIND_CARD_DRAWN)
+    r.ex.apply_effect(at.Seq((put("Bear"), put("Big", "Glorious Anthem"))),
+                      source=r.handles["uprising"], controller=r.p0)
+    assert r.world.zone_of(r.handles["big"]).kind == ZONE_BATTLEFIELD
+    assert sum(1 for e in r.ex.journal.events if e.kind == KIND_CARD_DRAWN) == draws + 1
 
 
 # ------------------------------------------------------ CR 400.7: "it" is the object, until it moves
