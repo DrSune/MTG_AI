@@ -714,5 +714,66 @@
  },
  "probe": {
   "sha": "cf7392260a3be993ad4c390ee164ed216f1f3d0275663652120b647201492301"
+ },
+ "verified": {
+  "tree_sha": "a01b5243c0482acf2b93093e6fff67d715a9f0ac65652b5d3368e089be11b53c",
+  "probe_sha": "9be76ffd6804c6d13fdff6c569607063d38eafee213d74175f95be1abefd23be",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1b-B",
+  "clauses": [
+   {
+    "clause": "[+1] Target creature you control gains deathtouch and lifelink until EOT",
+    "status": "OK",
+    "evidence": "activate [0]: slot offers only you_bear/you_giant/you_vampire; +DEATHTOUCH +LIFELINK, removed at end of turn",
+    "issue": ""
+   },
+   {
+    "clause": "If it's a Vampire, put a +1/+1 counter on it",
+    "status": "OK",
+    "evidence": "activate [0] targets=you_vampire: counter, 2/2 -> 3/3; no counter on bear or giant",
+    "issue": ""
+   },
+   {
+    "clause": "[+1] You may sacrifice a Vampire",
+    "status": "OK",
+    "evidence": "activate [1]: may ask fire/skip; fire sacrifices you_vampire, skip does nothing (loyalty still +1). Which-Vampire choice with two Vampires pinned by B01_3",
+    "issue": ""
+   },
+   {
+    "clause": "When you do, Sorin deals 3 damage to any target and you gain 3 life",
+    "status": "OK",
+    "evidence": "activate [1]: target asked after the sacrifice from creatures, Sorin, both players; 3 damage, you life 20->23. Reflexive timing and player target pinned by B01_3, no-Vampire case by B01_4",
+    "issue": ""
+   },
+   {
+    "clause": "[-3] You may put a Vampire creature card from your hand onto the battlefield",
+    "status": "NOT_EXERCISED",
+    "evidence": "activate [2]: hand holds no Vampire card, so the may fired with nothing to put; loyalty 4->1 only. Packs B01_1 (puts Vampire, leaves Bear) and B01_2 (decline)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_1.json",
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_2.json",
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_3.json",
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_4.json",
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_5.json",
+   "tools/scenarios/cards/M20/sorin_imperious_bloodlord_6.json"
+  ],
+  "mutation": {
+   "mutants": 43,
+   "killed": 35,
+   "score": 0.813953488372093,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/2/pred",
+    "amount+1 at 1/1/effect/steps/0/inner/args/target/count",
+    "widen filter (drop part 2) at 1/1/effect/steps/0/inner/args/target/filter",
+    "amount+1 at 1/2/effect/inner/args/cards/count",
+    "widen filter (drop part 1) at 1/2/effect/inner/args/cards/filter",
+    "controller YOU->OPPONENT at 1/2/effect/inner/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/2/effect/inner/args/destination",
+    "controller YOU->OPPONENT at 1/2/effect/inner/args/destination/controller"
+   ]
+  }
  }
 }

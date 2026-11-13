@@ -1,0 +1,57 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Sorin, Imperious Bloodlord",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vh",
+   "name": "VH",
+   "type": "Creature \u2014 Vampire",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "nh",
+   "name": "NH",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 2,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "vh"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "vh": "battlefield",
+   "nh": "hand"
+  },
+  "counters": {
+   "s": {
+    "LOYALTY": 1
+   }
+  }
+ },
+ "notes": "Printed: '[-3]: You may put a Vampire creature card from your hand onto the battlefield.' Hand: a Vampire creature card and a non-Vampire creature card. The Vampire enters; the Bear stays in hand; Sorin pays 3 loyalty (4 -> 1)."
+}
