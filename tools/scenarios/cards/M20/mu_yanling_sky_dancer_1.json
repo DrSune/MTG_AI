@@ -1,0 +1,13 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Mu Yanling, Sky Dancer +2: 'Until your next turn, up to one target creature gets -2/-0 and loses flying.' P0 targets the opposing 3/3 flyer. On the opponent's turn it attacks as a 1-power creature with no flying: P0's ground Bear blocks it and takes only 1 damage. When P0's next turn begins the flyer is a 3/3 again.",
+ "cards":[
+  {"key":"mu","real":"Mu Yanling, Sky Dancer","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":"2","toughness":"2","type":"Creature","zone":"battlefield","controller":0},
+  {"key":"fl","name":"Drake","power":"3","toughness":"3","type":"Creature","keywords":["FLYING"],"zone":"battlefield","controller":1}],
+ "steps":[
+  {"op":"loyalty","key":"mu","set":2},
+  {"op":"activate","key":"mu","idx":0,"seat":0,"targets":["fl"]},
+  {"op":"advance_turn"},
+  {"op":"combat","seat":1,"attack":{"fl":true},"block":{"bear":"fl"}},
+  {"op":"advance_turn"}],
+ "expect":{"counters":{"mu":{"LOYALTY":4}},"blocked":{"fl":["bear"]},"damage_received":{"bear":1},"power":{"fl":3}}}

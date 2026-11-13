@@ -1,0 +1,8 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Mu Yanling, Sky Dancer -3: 'Create a 4/4 blue Elemental Bird creature token with flying.' Loyalty 5 -> 2; one 4/4 Elemental Bird token.",
+ "cards":[
+  {"key":"mu","real":"Mu Yanling, Sky Dancer","zone":"battlefield","controller":0}],
+ "steps":[
+  {"op":"loyalty","key":"mu","set":5},
+  {"op":"activate","key":"mu","idx":1,"seat":0}],
+ "expect":{"counters":{"mu":{"LOYALTY":2}},"tokens":{"Elemental Bird":1},"battlefield_pt":{"Elemental Bird":[4,4]}}}

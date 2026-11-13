@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7,"library_top":true},
+"notes":"Garruk -7 emblem: the search is a 'may': declined, the creature stays in the library.",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"gr","name":"Grizzly","type":"Creature","power":2,"toughness":2,"zone":"library","controller":0}],
+"steps":[{"op":"loyalty","key":"ga","set":7},{"op":"activate","key":"ga","idx":2,"seat":0},
+{"op":"end_turn","decisions":["skip"]}],
+"expect":{"zone":{"gr":"library"}}}

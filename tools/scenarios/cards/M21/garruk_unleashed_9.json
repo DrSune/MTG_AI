@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Garruk -7 emblem: search for A creature card (one), put it onto the battlefield. Two creature cards in the library: exactly one enters, the other stays. first-legal takes the first offered creature (Creature Two).",
+ "cards": [
+  {
+   "key": "ga",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Creature Two",
+   "type": "Creature",
+   "power": 2,
+   "toughness": 2,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Creature One",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ga",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "ga",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "end_turn",
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "c2": "battlefield",
+   "c1": "library"
+  }
+ }
+}

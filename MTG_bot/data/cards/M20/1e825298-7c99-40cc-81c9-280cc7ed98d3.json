@@ -453,5 +453,61 @@
  },
  "probe": {
   "sha": "daec3343a58d5d880a051f285c768725f90d6219b304d0ba674dbbb831e41fca"
+ },
+ "verified": {
+  "tree_sha": "fadc7416546c0e2a309440ab5ef505f38efc1fbf49002626f61e7b55c7b73764",
+  "probe_sha": "daec3343a58d5d880a051f285c768725f90d6219b304d0ba674dbbb831e41fca",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "+2: Until your next turn, up to one target creature gets -2/-0 and loses flying",
+    "status": "OK",
+    "evidence": "six single targets and a no-target activation (0..1 slot); opp_flier 1/1 -> -1/1 and -FLYING; expiry at next turn pinned by B04_1",
+    "issue": ""
+   },
+   {
+    "clause": "-3: Create a 4/4 blue Elemental Bird creature token with flying",
+    "status": "NOT_EXERCISED",
+    "evidence": "loyalty 2 < 3 in trace; pack B04_2 (token, loyalty)",
+    "issue": ""
+   },
+   {
+    "clause": "-8: You get an emblem with Islands you control have '{T}: Draw a card.'",
+    "status": "NOT_EXERCISED",
+    "evidence": "loyalty 2 < 8 in trace; pack B04_3",
+    "issue": ""
+   },
+   {
+    "clause": "Loyalty 2",
+    "status": "OK",
+    "evidence": "cast: LOYALTY 2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/mu_yanling_sky_dancer_1.json",
+   "tools/scenarios/cards/M20/mu_yanling_sky_dancer_2.json",
+   "tools/scenarios/cards/M20/mu_yanling_sky_dancer_3.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 8,
+   "score": 0.4,
+   "survived": [
+    "amount+1 at 1/1/effect/args/count",
+    "amount+1 at 1/1/effect/args/tokens/power",
+    "amount-1 at 1/1/effect/args/tokens/power",
+    "amount+1 at 1/1/effect/args/tokens/toughness",
+    "amount-1 at 1/1/effect/args/tokens/toughness",
+    "drop cost part 0 (CostTap) at 1/2/effect/args/emblem/abilities/0/effect/args/ability/cost",
+    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/args/ability/effect/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/args/ability/effect/args/controller",
+    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/2/effect/args/emblem/abilities/0/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

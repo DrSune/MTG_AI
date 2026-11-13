@@ -1,0 +1,6 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Garruk, Unleashed -2 printed: create a 3/3 Beast; THEN if an opponent controls MORE creatures than you, put a loyalty counter on Garruk. Seat 1 has one creature, seat 0 has the new Beast: equal, not more: no counter, loyalty 4-2=2.",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"foe","name":"Foe","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":1}],
+"steps":[{"op":"activate","key":"ga","idx":1,"seat":0}],
+"expect":{"tokens":{"Beast":1},"counters":{"ga":{"LOYALTY":2}}}}

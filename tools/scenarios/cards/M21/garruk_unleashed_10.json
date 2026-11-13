@@ -1,0 +1,9 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Garruk, Unleashed +1: UP TO ONE target creature; zero is allowed. No target chosen with creatures on both sides: nobody gets +3/+3 or trample; Garruk still pays the +1 (loyalty 5).",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"mine","name":"Mine","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"theirs","name":"Theirs","type":"Creature","power":3,"toughness":3,"zone":"battlefield","controller":1},
+{"key":"theirs2","name":"Theirs Two","type":"Creature","power":1,"toughness":1,"zone":"battlefield","controller":1}],
+"steps":[{"op":"activate","key":"ga","idx":0,"seat":0,"targets":[]}],
+"expect":{"power":{"mine":2,"theirs":3,"theirs2":1},"toughness":{"mine":2,"theirs":3,"theirs2":1},
+"battlefield_keywords":{"Mine":[],"Theirs":[],"Theirs Two":[]},"counters":{"ga":{"LOYALTY":5}}}}

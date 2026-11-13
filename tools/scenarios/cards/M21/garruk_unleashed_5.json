@@ -1,0 +1,8 @@
+{"set":"M21","world":{"life":20,"seed":7,"library_top":true},
+"notes":"Garruk -7 emblem printed: at the beginning of YOUR end step you may search your library for a creature card, put it onto the battlefield, then shuffle. Library top: Zap (instant), Grizzly (creature). Accept: Grizzly onto the battlefield (a search may take any creature, not only the top).",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"gr","name":"Grizzly","type":"Creature","power":2,"toughness":2,"zone":"library","controller":0},
+{"key":"zap","name":"Zap","type":"Instant","zone":"library","controller":0}],
+"steps":[{"op":"loyalty","key":"ga","set":7},{"op":"activate","key":"ga","idx":2,"seat":0},
+{"op":"end_turn","decisions":["fire","first-legal"]}],
+"expect":{"zone":{"gr":"battlefield","zap":"library","ga":"graveyard"}}}

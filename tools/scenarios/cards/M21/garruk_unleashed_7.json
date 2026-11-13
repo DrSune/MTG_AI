@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Garruk, Unleashed +1: ONE up-to-one target creature gets +3/+3 and trample until EOT. Two creatures; only the targeted Wolf gets it, Other stays 2/2 without trample.",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"wolf","name":"Wolf","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0},
+{"key":"other","name":"Other","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":0}],
+"steps":[{"op":"activate","key":"ga","idx":0,"seat":0,"targets":["wolf"]}],
+"expect":{"power":{"wolf":5,"other":2},"toughness":{"wolf":5,"other":2},"battlefield_keywords":{"Wolf":["TRAMPLE"],"Other":[]},"counters":{"ga":{"LOYALTY":5}}}}

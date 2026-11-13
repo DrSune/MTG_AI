@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7},
+"notes":"Garruk -2: seat 1 controls two creatures, seat 0 only the new Beast (counted after it is created): more, so one loyalty counter: 4-2+1=3.",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"f1","name":"Foe One","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":1},
+{"key":"f2","name":"Foe Two","type":"Creature","power":2,"toughness":2,"zone":"battlefield","controller":1}],
+"steps":[{"op":"activate","key":"ga","idx":1,"seat":0}],
+"expect":{"tokens":{"Beast":1},"counters":{"ga":{"LOYALTY":3}}}}

@@ -1,0 +1,7 @@
+{"set":"M21","world":{"life":20,"seed":7,"library_top":true},
+"notes":"Garruk -7 emblem: at the beginning of YOUR end step only. Seat 0 declines at its own end step; at the OPPONENT's end step the emblem does not trigger (no ask: the step needs no decision), so the creature stays in the library.",
+"cards":[{"key":"ga","real":"Garruk, Unleashed","zone":"battlefield","controller":0},
+{"key":"gr","name":"Grizzly","type":"Creature","power":2,"toughness":2,"zone":"library","controller":0}],
+"steps":[{"op":"loyalty","key":"ga","set":7},{"op":"activate","key":"ga","idx":2,"seat":0},
+{"op":"end_turn","decisions":["skip"]},{"op":"advance_turn"},{"op":"end_turn"}],
+"expect":{"zone":{"gr":"library"}}}
