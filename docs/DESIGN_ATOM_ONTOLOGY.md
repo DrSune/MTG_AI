@@ -489,7 +489,8 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
       emblem for its controller as of a card), and would never have applied (its liveness gate
       read the battlefield). `ReplacementRegistry.attach_source` takes the emblem's owner as the
       record's controller and `_source_alive` keeps an emblem's records live (CR 114.4): fixed, not
-      narrowed, since DOM Jaya Ballard's and M15 Ajani Steadfast's emblems replace events.
+      narrowed, since DOM Jaya Ballard's emblem has one ("If a spell cast this way would be put into
+      your graveyard, exile it instead").
       `test_executor_permissions.py::TestEmblems::test_an_emblems_replacement_reads_its_owner_as_you`
       and `..._the_opponent_as_you`.
     - M4. The proposal's "a single-atom player verb names its player in the `controller` role"
