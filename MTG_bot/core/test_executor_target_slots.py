@@ -17,6 +17,7 @@ from __future__ import annotations
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     CastSpellEvent,
+    Choose,
     ControllerRef,
     Cost,
     DurationEot,
@@ -24,6 +25,8 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FOr,
+    Keyword,
+    KeywordAbility,
     PtDelta,
     PtDirection,
     QAtMost,
@@ -32,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     SelectorMode,
     Seq,
     SpellKind,
+    StaticAbility,
     TriggeredAbility,
     Verb,
     Zone,
@@ -41,7 +45,8 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.executor.query import activation_target_slots
 from MTG_bot.core.executor.stack import cast
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_HAND, ZONE_LIBRARY
+from MTG_bot.core.test_executor_absent_antecedent import GOLEM
 from MTG_bot.core.test_executor_binding import card_id, record_of
 from MTG_bot.core.test_executor_stack import StackCase
 from MTG_bot.core.test_executor_verbs import atom
@@ -253,11 +258,9 @@ def any_target(count, *extra) -> Selector:
 DRAKUSETH = (damage(any_target(QConst(1)), 4), damage(any_target(QAtMost(2), ANOTHER), 3))
 
 
-class TestTriggerSlots(TargetSlotsCase):
-    """CR 603.3d with 601.2c: a triggered ability with several instances of "target" designates
-    each in turn as it goes on the stack, as a spell or an activation does, and each target is
-    checked again against its own instance as it resolves (CR 608.2b). Every test raised
-    NotImplementedError before the fix ("per-slot designation is /06 arc 3")."""
+class TriggerSlotsCase(TargetSlotsCase):
+    """A decision provider answering from ``answers`` and logging ``asks``, and a creature
+    whose enters trigger is the effect under test."""
 
     def setUp(self):
         super().setUp()
@@ -294,6 +297,13 @@ class TestTriggerSlots(TargetSlotsCase):
             bindings={"cards": beast},
         )
         return beast
+
+
+class TestTriggerSlots(TriggerSlotsCase):
+    """CR 603.3d with 601.2c: a triggered ability with several instances of "target" designates
+    each in turn as it goes on the stack, as a spell or an activation does, and each target is
+    checked again against its own instance as it resolves (CR 608.2b). Every test raised
+    NotImplementedError before the fix ("per-slot designation is /06 arc 3")."""
 
     def test_each_slot_is_designated_in_turn_and_the_other_targets_include_players(self):
         self.answers = [str(self.theirs), str(self.p1), str(self.theirs2)]
@@ -343,3 +353,82 @@ class TestTriggerSlots(TargetSlotsCase):
         self.ex.fire_triggers()
         self.assertEqual(self.ex.damage, {self.theirs2: 3})
         self.assertEqual(self.world.players[self.p1].life, 17)
+
+    def test_targets_under_a_mode_not_chosen_yet_stay_loud(self):
+        # "... deals 1 damage to target creature you don't control, then choose one: target
+        # creature you control gets +1/+0; or you gain 2 life." A Choose inside the effect is not
+        # narrowed before designation, so every mode's slots would be asked (CR 700.2a, 603.3c).
+        gain = atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(2))
+        with self.assertRaises(NotImplementedError) as cm:
+            self.enter(damage(target(QConst(1), ControllerRef.OPPONENT), 1),
+                       Choose(QConst(1), (pump(ONE_MINE, 1), gain)))
+        self.assertIn("a mode not chosen yet", str(cm.exception))
+
+
+class TestAPlayerTargetMadeIllegal(TriggerSlotsCase):
+    """CR 608.2b: a "target player" who becomes an illegal target beside a target still legal
+    (here: hexproof, CR 702.11d, from a "You have hexproof." permanent of theirs; Sublime
+    Epiphany answered by Veil of Summer): the spell or ability resolves, the other target is
+    affected, and that player's instruction does nothing. Each test raised "TARGET_PLAYER needs
+    a bound target" before the fix; before the per-slot player read, the union's first handle (a
+    card) stood for the player."""
+
+    YOU = Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()),
+                   zones=(Zone(ZoneKind.PLAYER, ControllerRef.YOU),))
+
+    def setUp(self):
+        super().setUp()
+        for seat in (self.p0, self.p1):
+            for i in range(2):
+                self.world.add_card(card_id(f"Library {seat} {i}"), seat, ZONE_LIBRARY)
+
+    def hexproof(self, seat):
+        """A permanent of ``seat``'s with "You have hexproof." (templates_b16)."""
+        leyline = self.world.add_card(card_id("Leyline", type_line="Enchantment"), seat, ZONE_BATTLEFIELD)
+        grant = StaticAbility(effect=atom(Verb.GRANT_ABILITY, target=self.YOU,
+                                          ability=KeywordAbility(keyword=Keyword.HEXPROOF)))
+        self.ex.attach_card(leyline, record_of([grant], oid=self.world.cards[leyline].identity.oracle_id))
+        self.ex.layers.recompute()
+
+    def hands(self) -> tuple[int, int]:
+        return tuple(len(self.world.players[s].zone(ZONE_HAND).entries) for s in (self.p0, self.p1))
+
+    def test_a_spell_resolves_and_that_player_draws_nothing(self):
+        # Sublime Epiphany's two modes: "... 1 damage to target creature. Target player draws."
+        draws = atom(Verb.DRAW, controller=ControllerRef.TARGET_PLAYER, amount=QConst(1))
+        spell = self.spell("Epiphany", damage(target(QConst(1)), 1), draws)
+        with self.ex.holding_priority():
+            cast(self.ex, self.p0, spell, targets=((self.theirs,), (self.p1,)))
+        before = self.hands()
+        self.hexproof(self.p1)
+        self.ex.all_pass()
+        self.assertEqual(self.world.zone_of(spell).kind, ZONE_GRAVEYARD)  # resolved, not countered
+        self.assertEqual(self.ex.damage, {self.theirs: 1})
+        self.assertEqual(self.hands(), before)
+
+    def test_a_trigger_resolves_and_that_player_loses_nothing(self):
+        lose = atom(Verb.LOSE_LIFE, controller=ControllerRef.TARGET_PLAYER, amount=QConst(2))
+        self.answers = [str(self.theirs), str(self.p1)]
+        with self.ex.holding_priority():
+            self.enter(damage(target(QConst(1), ControllerRef.OPPONENT), 2), lose)
+            self.ex._priority_check()
+        self.hexproof(self.p1)
+        self.ex.fire_triggers()
+        self.assertEqual(self.ex.damage, {self.theirs: 2})
+        self.assertEqual((self.world.players[self.p0].life, self.world.players[self.p1].life), (20, 20))
+
+    def test_an_activation_resolves_and_that_player_creates_nothing(self):
+        # "{0}: Target creature you control gets +2/+0. Target player creates a 3/3 Golem." The
+        # acting player is the designation (verbs._actor_absent): no player, no token.
+        makes = atom(Verb.CREATE_TOKEN, controller=ControllerRef.TARGET_PLAYER, tokens=GOLEM)
+        relic = self.world.add_card(card_id("Relic", type_line="Artifact"), self.p0, ZONE_BATTLEFIELD)
+        ability = ActivatedAbility(cost=Cost(()), effect=Seq((pump(ONE_MINE, 2), makes)))
+        self.ex.attach_card(relic, record_of([ability], oid=self.world.cards[relic].identity.oracle_id))
+        with self.ex.holding_priority():
+            activate(self.ex, relic, 0, seat=self.p0, targets=((self.mine,), (self.p1,)))
+        self.hexproof(self.p1)
+        self.ex.all_pass()
+        self.assertEqual(self.power(self.mine), 4)
+        golems = [h for s in (self.p0, self.p1) for h in self.world.players[s].zone(ZONE_BATTLEFIELD).entries
+                  if self.world.cards[h].identity.name == "Golem"]
+        self.assertEqual(golems, [])

@@ -182,6 +182,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     network's owner.
   - The class not yet mapped: M10 Capricious Efreet (also a random pick among the designated),
     KHM Halvar, God of Battle, M20 Loaming Shaman (also "any number of target cards").
+  - A Choose inside a multi-slot trigger's effect raises: `_declare_mode` narrows only a top-level
+    one, so every mode's slots would be asked and an unfillable one would remove the ability (CR
+    700.2a, 603.3c). Drakuseth is the only multi-slot trigger of the 19 sets.
+  - "Up to" with none chosen binds the empty designation `target=[]` in every lane (the trigger
+    lane already did). `selectors.role_handles` stays binding-first for a referent-less ALL in the
+    `target` role (the payments' `all_bf()` idiom), so a population there reads a designation
+    beside it, empty or not. Of the 28 such atoms in the 19 sets, none sits beside a designation
+    that can be empty (`reports/m20_census_fixes_2026-11-13/review_residuals.txt`).
+  - An atom skipped by `verbs._actor_absent` leaves the result register as the atom before wrote
+    it, so an "it" after a skipped token maker would read that older object: a skipped producer
+    should write an empty result. Of the 12 skippable atoms with a result reader after them
+    (Duress, Pilfer, Kitesail Freebooter, Necromentia, Transmogrify), each is the single required
+    designation's, never skipped: with that target illegal the ability does not resolve.
 - **A player's keywords are not in the observation** (2026-11-13). Hexproof and protection on a
   player (Leyline of Sanctity, Veil of Summer, Runed Halo) change the opponent's target menus,
   which the engine computes, but `tools/selfplay/features.py` encodes keywords per card only, so

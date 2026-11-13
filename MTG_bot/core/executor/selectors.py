@@ -148,16 +148,20 @@ def player_slot_selector(ref: ControllerRef) -> Selector:
 _PLAYER_SLOT_KEYS = frozenset(repr(player_slot_selector(ref)) for ref in DESIGNATED_PLAYER_REFS)
 
 
-def designated_player(ctx: ExecCtx) -> Handle | None:
+def designated_player(ctx: ExecCtx) -> list[Handle] | None:
     """What a designated-player read ("target player", "target opponent", their anaphora) is
     bound to: the designation, or in a designation of several slots the player slot's own. The
     union of the slots names the other slots' objects too, and its first handle may be a card
     (Sublime Epiphany's "Target player draws a card." beside "Return target nonland permanent to
-    its owner's hand." drew for the permanent's controller)."""
+    its owner's hand." drew for the permanent's controller). Empty when the designation was made
+    and holds nothing now: the player became an illegal target beside a target still legal, so
+    the spell resolves and that player's part does nothing (CR 608.2b). None when no designation
+    was made at all."""
     for key, handles in (ctx.slot_designations or {}).items():
         if key in _PLAYER_SLOT_KEYS:
-            return handles[0] if handles else None
-    return ctx.binding_one("target")
+            return list(handles[:1])
+    bound = ctx.binding_handles("target")
+    return None if bound is None else bound[:1]
 
 
 def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
@@ -178,11 +182,9 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
             raise ValueError(
                 "executor: TARGET_PLAYER needs a bound target (12c target prompt)"
             )
-        if bound.namespace == "player":
-            return [bound]
         # CR 608.2h: a designated object that has left the battlefield ("that player" of
         # Massacre Wurm's dies trigger) answers with the controller it last had there.
-        return [last_known_controller(ctx, bound)]
+        return [h if h.namespace == "player" else last_known_controller(ctx, h) for h in bound]
     raise NotImplementedError(
         f"executor: ControllerRef.{ref.name} has no player-side meaning here"
     )
@@ -207,11 +209,8 @@ def controller_matches(
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
     if who in DESIGNATED_PLAYER_REFS:
-        bound = designated_player(ctx)
-        expected: Handle | None = bound
-        if bound is not None and bound.namespace == "card":
-            expected = controller_of(ctx, bound)
-        return expected is not None and actual == expected
+        bound = designated_player(ctx) or []
+        return actual in [h if h.namespace == "player" else controller_of(ctx, h) for h in bound]
     return who is ControllerRef.ANY
 
 

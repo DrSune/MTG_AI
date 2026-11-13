@@ -2101,9 +2101,19 @@ class TriggerBinder:
         a required slot impossible to fill the ability is removed (False). The per-slot map rides
         the context (``ExecCtx.slot_designations``), which each TARGET selector then reads at
         resolution, and the union is ``target``. The ask site is the single slot's."""
-        from MTG_bot.core.executor.query import activation_target_slots
+        from MTG_bot.core.executor.query import activation_target_slots, designates
         from MTG_bot.core.executor.stack import can_designate, slot_options
 
+        if any(isinstance(inner, Choose) and designates(inner) for inner in own_nodes(node.effect)):
+            # CR 700.2a, 603.3c: a mode's targets are chosen for the chosen mode only.
+            # _declare_mode narrows a top-level Choose before this; one inside the effect is
+            # still whole, so every mode's slots would be asked and an unfillable one would
+            # remove the ability while another mode stays choosable (the single-slot lane
+            # treats such a slot as optional: _required_target_keys).
+            raise NotImplementedError(
+                f"executor: trigger {node.effect!r:.80}: a target under a mode not chosen yet "
+                "(a Choose inside the effect) is not designated slot by slot"
+            )
         slots = activation_target_slots(
             self.executor, node.effect, source=ctx.source, seat=ctx.controller,
             bindings=ctx.bindings,

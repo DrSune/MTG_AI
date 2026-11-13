@@ -26,6 +26,7 @@ from dataclasses import replace
 
 from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     Atom,
     AtomArgs,
     CardRecord,
@@ -2645,13 +2646,18 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
 def _actor_absent(ctx: ExecCtx, atom: Atom) -> bool:
     """CR 608.2b: an instruction whose acting player is named through an antecedent ("Its
     controller creates a 3/3 Golem", Cavalier of Dawn; "Its controller mills two cards", Zulaport
-    Duelist: a referent Selector in the ``controller`` role) needs information about that object.
-    With no object there (an "up to one" target designated none, CR 115.6, or the antecedent
-    left nothing), that part of the effect does not happen. A referent with no register at all
-    still raises (selectors.resolve_selector: a template fold that never compiled the
-    antecedent)."""
+    Duelist: a referent Selector in the ``controller`` role) or through a designation ("Target
+    player draws a card", Sublime Epiphany: TARGET_PLAYER) needs information about that object or
+    player. With none there (an "up to one" target designated none, CR 115.6; the antecedent left
+    nothing; the designated player became an illegal target beside a target still legal), that
+    part of the effect does not happen. A referent with no register at all, and a designation
+    never made, still raise (selectors.resolve_selector, selectors.players_for_ref: a template
+    fold that never compiled the antecedent or never opened the slot)."""
     actor = atom.args.get("controller")
-    return isinstance(actor, Selector) and actor.referent is not None and not role_players(ctx, atom)
+    named = (isinstance(actor, Selector) and actor.referent is not None) or (
+        isinstance(actor, ControllerRef) and actor in DESIGNATED_PLAYER_REFS
+    )
+    return named and not role_players(ctx, atom)
 
 
 def run_atom(atom: Atom, ctx: ExecCtx) -> None:
