@@ -393,9 +393,9 @@ class Executor:
         # CR 610.3: objects moved "until" an event, waiting to return.
         # Replayed state, folded into state_fingerprint while non-empty.
         self.returns = ReturnRegistry()
-        # The returns a shared event's boundaries ended, run when it is over
-        # (_one_event). Transient: empty between ops.
-        self._returns_due: list[ReturnRow] = []
+        # The returns a shared event's boundaries ended, by the depth of the
+        # event, run when it is over (_one_event). Transient: empty between ops.
+        self._returns_due: dict[int, list[ReturnRow]] = {}
         # Built before the binder: its lifecycle hooks reach them during
         # attach.
         self.layers = LayerRegistry(self)
@@ -1281,13 +1281,14 @@ class Executor:
         (CR 610.3: the return is a second one-shot effect, created immediately after the
         event), not between its boundaries; also when a step of the event raised (the guarded
         effect lane skips it and goes on): the moves that ended them happened."""
+        depth = self.journal.open_depth()
         opened = False
         try:
             with self.journal.one_event(after) as opened:
                 yield
         finally:
-            if opened and self._returns_due:
-                due, self._returns_due = self._returns_due, []
+            due = self._returns_due.pop(depth, []) if opened else []
+            if due:
                 self._run_returns(due)
 
     def _run_returns(self, rows: list[ReturnRow]) -> None:
@@ -1307,7 +1308,7 @@ class Executor:
         ``_v_move_zone``). The returns a shared event's boundaries end wait for the
         whole event (:meth:`_one_event`)."""
         if self.journal.event_open():
-            self._returns_due.extend(rows)
+            self._returns_due.setdefault(self.journal.open_depth(), []).extend(rows)
             return
         live = [
             row

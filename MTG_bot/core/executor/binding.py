@@ -381,8 +381,8 @@ def looks_back(node: EventSpec, event: GameEvent) -> bool:
     what exists immediately after it (CR 603.10)."""
     if isinstance(node, (CreatureDiesEvent, SacrificeEvent)):
         return True
-    if not isinstance(node, ZoneChangeEvent):
-        return False
+    if not isinstance(node, ZoneChangeEvent) or node.to_zone.kind is ZoneKind.BATTLEFIELD:
+        return False  # an enters ability: checked after the event, the newcomers too (CR 603.6a)
     if node.from_zone.kind in (ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD):
         return True
     return (
@@ -432,8 +432,13 @@ class TriggerBinder:
         # Cached synthetic keyword-trigger nodes, keyed (family, holder):
         # ONE node object per (family, handle).
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
-        # True while the triggers that do not look back are matched and the layers have not
-        # yet been brought up to date for them (:meth:`_layers_now`).
+        # True while the triggers that do not look back are matched (CR 603.10): only then
+        # are the layers brought up to date (:meth:`_layers_now`) and a departed object read as
+        # it is right after its event (``ExecCtx.after_event``).
+        self._after_event = False
+        # The layers may differ from what a recompute would give now: set as a drain begins
+        # (the rows journalled since moved the world) and after an event's moves (its lifecycle
+        # attached and detached sources); a recompute clears it.
         self._layers_stale = False
         # CR 724.1c: while an effect ends the turn, state-based actions
         # are checked but no triggered ability is put onto the stack; the
@@ -706,11 +711,14 @@ class TriggerBinder:
         still attached (each sees the others leave, and its own death) and the ones it moved
         onto it not counted; then the event's moves are carried out on the registry
         (:meth:`_lifecycle`) and every other trigger is matched, the newcomers included (CR
-        603.6a), the layers brought up to date first (:meth:`_layers_now`). ``upto`` stops
-        before that journal position; it always falls between two atom boundaries, so it
-        never splits an event."""
+        603.6a), the layers brought up to date first (:meth:`_layers_now`). So an event's
+        look-back triggers are queued before its others; their controller orders them (CR
+        603.3b). ``upto`` stops before that journal position; it always falls between two atom
+        boundaries, so it never splits an event."""
         events = self.executor.journal.events
         end = len(events) if upto is None else min(upto, len(events))
+        if self._seen_journal_len < end:
+            self._layers_stale = True
         while self._seen_journal_len < end:
             start = self._seen_journal_len
             stop = start + 1
@@ -733,12 +741,14 @@ class TriggerBinder:
                 self._match(event, True, triggers, arrived, left)
             for event in moves:
                 self._lifecycle(event)
-            # CR 603.10: brought up to date at the first read that needs them (_layers_now).
-            self._layers_stale = True
-            triggers = self._triggers()
-            for event in rows:
-                self._match(event, False, triggers)
-            self._layers_stale = False
+            self._layers_stale = self._layers_stale or bool(moves)
+            self._after_event = True
+            try:
+                triggers = self._triggers()
+                for event in rows:
+                    self._match(event, False, triggers)
+            finally:
+                self._after_event = False
 
     def _triggers(self, arrived: AbstractSet[Handle] = frozenset()) -> list:
         """The bound triggers, printed and graveyard-functioning, in (Handle, index) order,
@@ -752,10 +762,11 @@ class TriggerBinder:
         )
 
     def _layers_now(self) -> None:
-        """Bring the layers up to date for the triggers that do not look back, once per event
-        (CR 603.10: the continuous effects that exist immediately after it), at the first read
-        that needs them (a filter: :meth:`_ctx`; the granted and keyword triggers)."""
-        if self._layers_stale:
+        """Bring the layers up to date for the triggers that do not look back (CR 603.10: the
+        continuous effects that exist immediately after the event), at the first read that needs
+        them (a filter: :meth:`_ctx`; the granted and keyword triggers), unless nothing moved
+        since the last recompute."""
+        if self._after_event and self._layers_stale:
             self._layers_stale = False
             self.executor.layers.recompute()
 
@@ -2378,6 +2389,7 @@ class TriggerBinder:
             # the firing ctx reads the SAME journal the matcher
             # is draining (history preds at a trigger's condition gate).
             journal=ex.journal,
+            after_event=self._after_event,
         )
 
     # ------------------------------------------------------------ delayed

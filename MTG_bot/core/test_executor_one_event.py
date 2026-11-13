@@ -233,6 +233,9 @@ class TestOneEventMovesTogether(_Case):
         (ZoneChangeEvent(ANY, Zone(ZoneKind.HAND, YOU)), (ZONE_BATTLEFIELD, ZONE_HAND), True),
         (ZoneChangeEvent(ANY, Zone(ZoneKind.HAND, YOU)), (ZONE_LIBRARY, ZONE_HAND), False),
         (ENTERS, (ZONE_HAND, ZONE_BATTLEFIELD), False),
+        # an enters ability is checked after the event, from a graveyard too (CR 603.6a)
+        (ZoneChangeEvent(Zone(ZoneKind.GRAVEYARD, YOU), BF_YOU), (ZONE_GRAVEYARD, ZONE_BATTLEFIELD),
+         False),
     ],
 )
 def test_which_triggers_look_back(node, row, back) -> None:
@@ -366,6 +369,27 @@ class TestTheLayersAfterTheEvent(_Case):
         self.ex.execute(_move(BF_YOU), source=self.watch, controller=self.p0,
                         bindings={"cards": pair})
         assert self.gains() == [1, 1, 1, 1]
+
+    def test_a_trigger_from_anywhere_reads_the_card_in_its_new_zone(self) -> None:
+        """CR 603.6c, 603.10: "whenever a creature card with flying is put into your graveyard
+        from anywhere" does not look back, so it sees the card in the graveyard, which has no
+        flying: a static gave the creature its flying on the battlefield (the base read the
+        stale keyword map and triggered; the fresh-eyes review's repro)."""
+        flying = FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING)
+        grant = atom(Verb.GRANT_ABILITY, ability=at.KeywordAbility(Keyword.FLYING),
+                     target=at.Selector(at.QUnbounded(), at.SelectorMode.ALL,
+                                        FAnd((CREATURE, YOU_ARE)), zones=(BF_YOU,)))
+        to_graveyard = ZoneChangeEvent(ANY, Zone(ZoneKind.GRAVEYARD, YOU), FAnd((CREATURE, flying)))
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [
+            at.StaticAbility(grant), TriggeredAbility(to_graveyard, None, _gain())]))
+        [bear] = self.creatures(1, [])
+        self.ex.layers.recompute()
+        assert self.ex.layers.keyword_of(bear, Keyword.FLYING)
+        with self.ex.atomic():  # the drain sees the death before any state check recomputes
+            self.ex.execute(atom(Verb.DESTROY, target=EVERY), source=bear, controller=self.p1,
+                            bindings={"target": [bear]})
+        self.ex.fire_triggers()
+        assert self.gains() == []
 
     def test_a_keyword_trigger_lost_in_the_same_drain_does_not_trigger(self) -> None:
         """Prowess granted by a static whose source dies in the same resolution as a cast row is
@@ -505,6 +529,25 @@ class TestWhatOneEventIs(_Case):
         assert [(e.subject, e.zone_move[1]) for e in rows[-3:]] == [
             (anchor, ZONE_GRAVEYARD), (other, ZONE_GRAVEYARD), (exiled, ZONE_GRAVEYARD)]
         assert self.gains(self.p0) == [1] and self.gains(self.p1) == [1]
+
+    def test_a_nested_event_does_not_run_the_returns_of_the_event_around_it(self) -> None:
+        """A boundary nested inside another (a spell an effect casts and resolves) is an event of
+        its own; when it ends, the returns the event around it is holding still wait for that
+        one to end (CR 610.3)."""
+        [anchor] = self.creatures(1, [])
+        exiled = self.world.add_card(card_id("Exiled", "1", "1"), self.p0, ZONE_GRAVEYARD)
+        until = atom(Verb.MOVE_ZONE, cards=EVERY, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+                     duration=at.DurationUntilLeaves("source"))
+        self.ex.execute(until, source=anchor, controller=self.p0, bindings={"cards": [exiled]})
+        sacrifice = atom(Verb.SACRIFICE, target=self.a_bear())
+        with self.ex.atomic(), self.ex._one_event():
+            self.ex.execute(sacrifice, source=self.watch, controller=self.p0)
+            before = self.ex.journal.snapshot()  # a boundary opens
+            with self.ex._one_event():  # an event nested in it ends
+                pass
+            self.ex.journal.record_atom(before, None, "TEST", [])
+            assert self.world.zone_of(exiled).kind == ZONE_EXILE  # not yet
+        assert self.world.zone_of(exiled).kind == ZONE_GRAVEYARD
 
     def test_a_return_still_comes_when_a_step_of_the_event_is_skipped(self) -> None:
         """Control. The guarded effect lane skips a step whose anaphora has no antecedent and goes

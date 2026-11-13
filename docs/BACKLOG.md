@@ -213,8 +213,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   chooses and acts before the next chooses, in seat order (CR 101.4: every player chooses, in
   APNAP order, then they all act), and a body of two instructions is one event where each
   instruction should be one. No EachPlayer of the 19 sets has a body of two instructions over two
-  players (Transmogrify's names one player); a draw inside such a body (its own event, CR 121.2)
-  would split the shared batch in the binder's drain, which groups an event's rows by contiguity.
+  players (Transmogrify's names one player). A row journalled outside the shared batch between two
+  players' boundaries (a drawn card, its own event, CR 121.2; the choice rows a ONE_OF or REST
+  partition journals) splits the batch in the binder's drain, which groups an event's rows by
+  contiguity: the gathered counts stay right, but a permanent that moved in the first part no
+  longer sees the second (Yarok's Fenlurker in a game of three or more, where nothing watches it).
 - **An effect finds every object it moved itself, a hidden zone included** (2026-11-13, the
   one-event fix). `TriggerBinder._gone` judges "it"/"they" as the trigger begins to resolve (CR
   400.7), so a later instruction of the same effect finds an object an earlier one moved: right

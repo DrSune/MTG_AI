@@ -234,6 +234,10 @@ class ExecCtx:
     # carried out (CR 118.12); MAY_DONE reads it. Transient, per resolution,
     # like look_window.
     may_done: dict[str, bool] = field(default_factory=dict)
+    # Set while the binder matches a trigger that does not look back (CR 603.10): its filters
+    # read the objects as they are right after the event, one that left too (as a card in its
+    # new zone, not by its last known information: :func:`departed_lki`, :func:`last_known`).
+    after_event: bool = False
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -515,7 +519,10 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     or zone change) and the object is gone, its last known information answers for
     it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
     each object it gathered, each in its own row. Otherwise None: the caller reads the
-    live object (a query's context, which carries the bindings but no event, included)."""
+    live object (a query's context, which carries the bindings but no event, included; a
+    trigger that does not look back, ``ctx.after_event``, CR 603.10)."""
+    if ctx.after_event:
+        return None
     found = departure_lki(handle, ctx.event, ctx.executor)
     ex, event = ctx.executor, ctx.event
     if (
@@ -560,7 +567,7 @@ def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     has left). None otherwise: a card that has been sitting in a graveyard is read as it is
     now (its owner controls nothing, CR 108.4a; its printed power, CR 400.7)."""
     found = departed_lki(handle, ctx)
-    if found is not None:
+    if found is not None or ctx.after_event:
         return found
     ex = ctx.executor
     if ex is None or handle.namespace != "card":
