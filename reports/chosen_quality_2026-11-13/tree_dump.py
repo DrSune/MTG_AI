@@ -8,8 +8,11 @@ reports/life_family_2026-11-13/tree_diff.py.
 Facts (the engine paths ontology round R9 touches, read on a card's tree with records applied):
 - as-enters-choice: an EtBState with an effect (a CHOOSE_NAME): Executor._apply_etb_state now runs
   every choice before any entering counters, and the pack runner makes it for a setup permanent;
-- chosen-read: a NAME_CHOSEN (executor.name_choices is keyed by (source, quality));
-- entering-counters: an EtBState with counters (the same two-pass entry hook).
+- chosen-read: a NAME_CHOSEN (executor.name_choices is keyed by (source, quality); a source that
+  left answers from its last known choice);
+- entering-counters: an EtBState with counters (the same entry hook);
+- entering-gate: an EtBState with a condition (since gate round 9's review the hook judges every
+  gate after every choice).
 """
 from __future__ import annotations
 
@@ -43,6 +46,8 @@ def facts(card) -> list[str]:
         out.append("chosen-read")
     if any(isinstance(n, at.EtBState) and n.initial_counters for n in nodes):
         out.append("entering-counters")
+    if any(isinstance(n, at.EtBState) and n.condition is not None for n in nodes):
+        out.append("entering-gate")
     return out
 
 

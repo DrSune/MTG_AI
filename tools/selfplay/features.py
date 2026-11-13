@@ -81,16 +81,17 @@ ASK_KINDS = (
     # the order of cards put into one end of a library at once (CR 401.4, a scry's groups)
     "arrange",
     # a colour or a creature type chosen as a permanent enters (CR 614.12a): the "name" ask's
-    # CHOOSE_NAME with a quality, its options the values (O_VALUE)
+    # CHOOSE_NAME with a quality, its options the values (O_VALUE). It starts as "other", as a
+    # kind never encoded before does: the "name" row never trained (actor.NetAgent.decide gives
+    # every name ask to the fallback)
     "quality",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
 #: "other". An old network plays the second main phase's menu as it plays the first's, and an
 #: instant-speed priority point as it played the combat window's "act now or pass" (DESIGN_PRIORITY
-#: §3.1: the main-phase row would fire instants at once, PASS there meaning "end my phase"). A
-#: quality is chosen as a card name is (one CHOOSE_NAME).
-ASK_GROWN_FROM = {"act_second_main": "act", "priority": "cw", "quality": "name"}
+#: §3.1: the main-phase row would fire instants at once, PASS there meaning "end my phase").
+ASK_GROWN_FROM = {"act_second_main": "act", "priority": "cw"}
 
 ZONES = ("pad", ZONE_HAND, ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_EXILE, "stack", ZONE_COMMAND,
          ZONE_LIBRARY)

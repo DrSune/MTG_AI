@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: '{3}, {T}: Look at the top three cards of your library. You may reveal a creature card of the chosen type from among them and put it into your hand. Put the rest on the bottom of your library in a random order.' The Icon enters choosing Elf and its controller activates the look; in response the opponent casts Disenchant on the Icon, which resolves first. The ability still resolves (CR 113.7a) and reads the chosen type from the Icon's last known information (CR 608.2h): the Library Elf is revealed into the hand, the Forest and the Goblin go to the bottom. Red on 92aca048: the choice left with the Icon and the read raised (NotImplementedError: NAME_CHOSEN of a CREATURE_TYPE needs a CHOOSE_NAME record of the source); on the base (dafdd5ff) the card did not compile (a needs-atom record) and no ask offers the word Elf.",
+ "cards": [
+  {"key": "icon", "real": "Icon of Ancestry", "zone": "hand", "controller": 0},
+  {"key": "disenchant", "real": "Disenchant", "zone": "hand", "controller": 1},
+  {"key": "lib_goblin", "name": "Library Goblin", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "lib_elf", "name": "Library Elf", "type": "Creature — Elf Warrior", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "lib_forest", "name": "Library Forest", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 3}, "1": {"W": 2}},
+ "steps": [
+  {"op": "enter", "key": "icon", "decisions": ["Elf"]},
+  {"op": "activate", "key": "icon", "idx": 2, "seat": 0, "hold": true},
+  {"op": "cast", "key": "disenchant", "real": "Disenchant", "controller": 1, "targets": ["icon"], "hold": true},
+  {"op": "resolve"},
+  {"op": "resolve", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"icon": "graveyard", "disenchant": "graveyard", "lib_elf": "hand", "lib_goblin": "library", "lib_forest": "library"},
+  "hand": {"0": 1}
+ }
+}

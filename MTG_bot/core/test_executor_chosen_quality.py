@@ -18,7 +18,9 @@ Every test here but one fails on the base, dafdd5ff: the role, the slot, the che
 creature-type pool do not exist there, it built a card-name choice nothing reads, and its entering
 counters were counted before a choice printed after them (``reports/chosen_quality_2026-11-13/base_runs.txt``). The exception,
 ``test_runed_halo_keeps_its_bytes_and_its_verification``, pins that the optional role leaves Runed
-Halo's tree and stamp as they were, true on both.
+Halo's tree and stamp as they were, true on both. The pre-gate review's tests (a source that
+left, a gate reading the choice, a choice that could go unmade, a creature type that is another
+card type's subtype) fail on the round's first commit, 92aca048, too (``review_runs.txt``).
 """
 
 from __future__ import annotations
@@ -50,7 +52,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler import card_records
 from MTG_bot.core.executor.games import _setup_game, get_supply
 from MTG_bot.core.executor.legality import ctx_for
-from MTG_bot.core.executor.quantity import eval_filter
+from MTG_bot.core.executor.quantity import creature_types, eval_filter
 from MTG_bot.core.test_executor_binding import record_of
 from tools.run_scenarios import ScenarioRunner
 
@@ -189,6 +191,21 @@ def test_a_quality_is_chosen_only_as_a_permanent_enters() -> None:
     assert record_of([at.ActivatedAbility(cost=tap, effect=_choose(None)), _anthem(None)])
 
 
+@pytest.mark.parametrize("quality", [None, "COLOR"])
+def test_a_choice_is_made_wherever_its_reads_can_be_asked(quality) -> None:
+    """Never under an EtBState's gate (when it fails nothing is chosen) and never in a static
+    ability (which runs no choice): either would leave the reads with no answer, raised when
+    asked. Both built on 92aca048."""
+    gate = FAtom(FAtomPred.IS_TOKEN)
+    with pytest.raises(ValueError, match="under an EtBState's condition"):
+        record_of([EtBState(condition=gate, effect=_choose(quality)), _anthem(quality)])
+    with pytest.raises(ValueError, match="in a static ability's effect"):
+        record_of([StaticAbility(effect=_choose(quality)), _anthem(quality)])
+    # a gate may read the choice: the executor makes it before judging any gate
+    assert record_of([EtBState(effect=_choose(quality)),
+                      EtBState(tapped=True, condition=_chosen(quality))])
+
+
 @pytest.mark.parametrize("quality", [None, "COLOR", "CREATURE_TYPE"])
 def test_a_choice_nothing_reads_is_refused(quality) -> None:
     """A choice with no consequence is a phantom ask (AGENTS §10): a card whose reading sentence
@@ -246,6 +263,16 @@ def test_a_creature_type_is_one_of_the_format_pools() -> None:
     assert offered == [pool]
 
 
+def test_a_creature_type_is_no_other_card_types_subtype() -> None:
+    """CR 205.3d: each subtype belongs to one of the object's card types, so ELD Gingerbrute,
+    "Artifact Creature — Food Golem", is a Golem, and Food (an artifact type, CR 205.3g) is never
+    offered as a creature type. Red on 92aca048: ELD's menu held Food."""
+    assert creature_types("Artifact Creature — Food Golem") == ["Golem"]
+    assert creature_types("Land Creature — Forest Dryad") == ["Dryad"]
+    assert creature_types("Kindred Enchantment — Elf Aura") == ["Elf"]
+    assert creature_types("Creature — Elf Warrior // Sorcery — Adventure") == ["Elf", "Warrior"]
+
+
 @pytest.mark.parametrize(("quality", "word", "counted"), [
     (None, "Elf One", 1), ("CREATURE_TYPE", "Elf", 2)])
 def test_every_choice_is_made_before_the_entering_counters_are_counted(quality, word, counted):
@@ -278,6 +305,24 @@ def test_every_choice_is_made_before_the_entering_counters_are_counted(quality, 
     assert runner.world.cards[banner].counters == {"CHARGE": counted}
 
 
+@pytest.mark.parametrize(("word", "tapped"), [("R", True), ("G", False)])
+def test_a_gate_on_the_entering_state_reads_the_choice(word, tapped) -> None:
+    """CR 614.12a: the choice is made before the permanent enters, so before its gates are
+    judged, whatever the printed order ("it enters tapped if it is the chosen color", printed
+    first). Red on 92aca048: the gate was judged before the choice and the read raised."""
+    runner = _runner("M21", [_card("gem", "Gem", zone="hand", type="Artifact", colors=["R"])])
+    gem = runner.handles["gem"]
+    oid = runner.world.cards[gem].identity.oracle_id
+    runner.ex.binder.records[oid] = at.CardRecord(
+        oracle_id=oid, name="Gem", type_line="Artifact", types=("Artifact",), subtypes=(),
+        supertypes=(), colors=("R",), color_identity=frozenset({"R"}), mana_cost=None,
+        mana_value=3, power=None, toughness=None, loyalty=None, keywords=(),
+        abilities=(EtBState(tapped=True, condition=_chosen("COLOR")),
+                   EtBState(effect=_choose("COLOR"))), is_token=False)
+    runner.run_step({"op": "enter", "key": "gem", "decisions": [word]})
+    assert runner.world.cards[gem].tapped is tapped
+
+
 def test_the_choice_leaves_with_the_permanent_and_a_return_chooses_again() -> None:
     runner = _runner("FDN", [_card("mare", "Diamond Mare", zone="hand")])
     mare = runner.handles["mare"]
@@ -287,6 +332,31 @@ def test_the_choice_leaves_with_the_permanent_and_a_return_chooses_again() -> No
     assert runner.ex.name_choices == {}  # CR 400.7: a new object
     runner.run_step({"op": "enter", "key": "mare", "decisions": ["B"]})
     assert runner.ex.name_choices == {(mare, "COLOR"): "B"}
+
+
+def test_a_source_that_left_answers_from_its_last_known_choice() -> None:
+    """CR 113.7a, 608.2h: an ability whose source has left the battlefield still resolves, and
+    "the chosen color" is the source's last known information (Icon of Ancestry's look after a
+    Disenchant in response: the M20 pack). A return is a new object: its own choice answers. Red
+    on 92aca048: the choice left with the permanent and the read raised."""
+    runner = _runner("FDN", [
+        _card("mare", "Diamond Mare", zone="hand"),
+        _card("green", "Green Thing", type="Creature", colors=["G"], power=1, toughness=1),
+    ])
+    mare, green = runner.handles["mare"], runner.handles["green"]
+    runner.run_step({"op": "enter", "key": "mare", "decisions": ["G"]})
+    runner.run_step({"op": "move", "key": "mare", "to": "graveyard"})
+    assert runner.ex.name_choices == {}
+    assert runner.ex.departed_lki[mare].choices == (("COLOR", "G"),)
+    ctx = ctx_for(runner.ex, source=mare, controller=runner.p0)
+    assert eval_filter(_chosen("COLOR"), green, ctx)
+    with pytest.raises(NotImplementedError, match="NAME_CHOSEN of a CREATURE_TYPE needs"):
+        eval_filter(_chosen("CREATURE_TYPE"), green, ctx)  # it chose no creature type
+    runner.run_step({"op": "move", "key": "mare", "to": "hand"})
+    runner.run_step({"op": "enter", "key": "mare", "decisions": ["B"]})
+    assert mare not in runner.ex.departed_lki
+    assert not eval_filter(_chosen("COLOR"), green, ctx_for(runner.ex, source=mare,
+                                                            controller=runner.p0))
 
 
 def test_a_read_of_what_its_source_did_not_choose_raises() -> None:

@@ -1180,6 +1180,12 @@ class Executor:
                     self._op_seq,
                     # before _remove_from_combat below
                     self.attacked.get(event.subject) if event.subject in self.attackers else None,
+                    # before the choices are dropped below
+                    tuple(
+                        (quality, self.name_choices[(event.subject, quality)])
+                        for quality in (None, *CHOSEN_QUALITIES)
+                        if (event.subject, quality) in self.name_choices
+                    ),
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1327,18 +1333,25 @@ class Executor:
     def _apply_etb_state(self, card: Handle) -> None:
         """Stamp the compiled EtBState nodes on a permanent the journal
         just saw ENTER the battlefield: what is done as it enters (each
-        ``effect``, :meth:`run_as_enters`), then the tapped flag
-        and any initial counters (CR 614.1c — part of the entering state, not
+        ``effect``, :meth:`run_as_enters`), then, where its gate holds, the
+        tapped flag and any initial counters (CR 614.1c — part of the entering state, not
         a trigger, so no TAP event is emitted and nothing is re-journalled;
         the move's own journal row already carries the entry). A card whose
         record is not registered has no declared entered state."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
             return
+        etb = [node for node in record.abilities if isinstance(node, EtBState)]
+        # CR 614.12a: a choice an "As this enters" effect requires is made before the permanent
+        # enters, so before anything of its entering state reads it, in whatever order the
+        # abilities print: the gates and the counters it enters with (Banner of Kinship counts
+        # the creatures of the chosen type). No choice stands under a gate
+        # (ability_tree.chosen_quality_fault).
+        for node in etb:
+            if node.effect is not None:
+                self.run_as_enters(card, node.effect)
         nodes: list[EtBState] = []
-        for node in record.abilities:
-            if not isinstance(node, EtBState):
-                continue
+        for node in etb:
             if node.condition is not None:
                 # CR 614.1c: gated entering state — "if this
                 # creature entered the battlefield kicked ..." (Cragplate
@@ -1362,12 +1375,6 @@ class Executor:
                 if not eval_filter(node.condition, card, ctx):
                     continue
             nodes.append(node)
-        # CR 614.12a: a choice an "As this enters" effect requires is made before the permanent
-        # enters, so before the counters it enters with are counted, in whatever order the
-        # abilities print (Banner of Kinship counts the creatures of the chosen type).
-        for node in nodes:
-            if node.effect is not None:
-                self.run_as_enters(card, node.effect)
         for node in nodes:
             if node.tapped:
                 self.world.cards[card].tapped = True

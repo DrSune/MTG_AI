@@ -61,8 +61,8 @@ compiler: newly compiling whole (6): [('FDN', 'Diamond Mare'), ('KHM', 'Rally th
 verified cards leaving the verified pool (0): []
 verified cards joining (0): []
 still-verified cards (unchanged bytes) whose tree reads a changed engine path (9):
-   FDN Gnarlid Colony ['entering-counters']
-   FDN Goblin Boarders ['entering-counters']
+   FDN Gnarlid Colony ['entering-counters', 'entering-gate']
+   FDN Goblin Boarders ['entering-counters', 'entering-gate']
    FDN Wildwood Scourge ['entering-counters']
    M20 Squad Captain ['entering-counters']
    M20 Voracious Hydra ['entering-counters']
@@ -81,7 +81,7 @@ sentence unparsed, and dealt in the all and castable pools.
 300 seeded heuristic games (reports/life_family_2026-11-13/replay.py: seeds 910000-910099 per set,
 every third coherent, the rest stress), verified pools, decks dealt from the cards verified on both
 checkouts; digest = tools/selfplay/preflight._digest; replay_compare.py <base> <branch>, the branch
-run on the final code:
+run on 92aca048 and again on the final code (after the pre-gate review's fixes, review_runs.txt), the same:
 M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
 M20: deckable 270 (base) / 270 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
 FDN: deckable 180 (base) / 180 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)

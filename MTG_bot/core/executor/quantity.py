@@ -489,7 +489,8 @@ class LastKnown(NamedTuple):
     its control entries expired: what anything that needs the object as it last existed reads
     (Executor.departed_lki). ``op`` is the public op in which it left; ``attacking`` the player
     or planeswalker it was attacking then, None if it was not attacking (it leaves combat as it
-    leaves the battlefield, CR 506.4)."""
+    leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
+    value) pairs (Executor.name_choices; quality None for a card name)."""
 
     power: int | None
     toughness: int | None
@@ -498,6 +499,7 @@ class LastKnown(NamedTuple):
     controller: Handle
     op: int
     attacking: Handle | None = None
+    choices: tuple[tuple[str | None, str], ...] = ()
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -716,14 +718,34 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+#: The subtypes of the card types a creature face can share its type line with: artifact,
+#: enchantment and land types (CR 205.3g-i, the rules of 2026-11-06).
+_OTHER_SUBTYPES = {
+    "Artifact": frozenset({
+        "Attraction", "Blood", "Bobblehead", "Book", "Clue", "Communicator", "Contraption",
+        "Equipment", "Food", "Fortification", "Gold", "Heartwood", "Incubator", "Infinity", "Junk",
+        "Lander", "Map", "Mutagen", "Powerstone", "Spacecraft", "Stone", "Treasure", "Vehicle",
+        "Vibranium"}),
+    "Enchantment": frozenset({
+        "Aura", "Background", "Cartouche", "Case", "Class", "Curse", "Plan", "Role", "Room", "Rune",
+        "Saga", "Shard", "Shrine"}),
+    "Land": frozenset({
+        "Cave", "Desert", "Forest", "Gate", "Island", "Lair", "Locus", "Mine", "Mountain", "Plains",
+        "Planet", "Power-Plant", "Sphere", "Swamp", "Tower", "Town", "Urza's"}),
+}
+
+
 def creature_types(type_line: str) -> list[str]:
     """The creature types a printed type line gives: the subtypes of each face that is a creature
-    or kindred card (CR 205.3d: an object has only subtypes of its own card types; 205.3m)."""
+    or kindred card, less those of its other card types (CR 205.3d: each subtype is one of its
+    own card types'; 205.3m). ELD Gingerbrute, "Artifact Creature — Food Golem", is a Golem."""
     out: list[str] = []
     for face in type_line.split("//"):
         types, _, subtypes = face.partition("—")
-        if {"Creature", "Kindred", "Tribal"} & set(types.split()):
-            out.extend(subtypes.split())
+        kinds = set(types.split())
+        if {"Creature", "Kindred", "Tribal"} & kinds:
+            other = frozenset().union(*(_OTHER_SUBTYPES.get(kind, ()) for kind in kinds))
+            out.extend(s for s in subtypes.split() if s not in other)
     return out
 
 
@@ -947,11 +969,17 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # The object has what the SOURCE's CHOOSE_NAME of this quality recorded (CR 607.2d: the
         # read refers only to its own object's choice): Runed Halo's name, Diamond Knight's
         # colour, Icon of Ancestry's creature type, chosen as the source entered (EtBState.effect,
-        # CR 614.12a). No record is an UNANSWERED question: flagged, never "False" (the FLIP_WON
-        # convention).
+        # CR 614.12a). A source that has left the battlefield answers from its last known
+        # information (CR 113.7a, 608.2h): the Icon's {3},{T} ability after a Disenchant in
+        # response, a protection its granter gave before it left. No record is an UNANSWERED
+        # question: flagged, never "False" (the FLIP_WON convention).
         ex = ctx.executor
         quality = atom.string_value
         chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
+        if chosen is None and ex is not None:
+            snap = last_known(ctx.source, ctx)
+            if snap is not None:
+                chosen = dict(snap.choices).get(quality)
         if chosen is None:
             raise NotImplementedError(
                 f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "

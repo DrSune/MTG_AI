@@ -3705,24 +3705,40 @@ def chosen_quality_fault(*nodes: Any) -> str | None:
     - a colour or a creature type (CHOOSE_NAME's ``quality``) is chosen only as a permanent
       enters, as an EtBState's effect (CR 614.12a), where it lasts as long as the permanent. A
       colour chosen and read at once by a resolving effect is the menu of five
-      (``Choose``, Feat of Resistance); a creature type chosen that way waits for its card."""
+      (``Choose``, Feat of Resistance); a creature type chosen that way waits for its card;
+    - every CHOOSE_NAME is made whenever its reads can be asked: never under an EtBState's
+      condition (skipped when it fails), never in a static ability (which runs no choice; the
+      class of a GET_EMBLEM there, BACKLOG). The executor makes every "As this enters" choice
+      before it judges any EtBState condition, so a condition may read it."""
     chosen: list[object] = []  # the quality of each CHOOSE_NAME (None: a card name)
     read: set[object] = set()  # the quality each NAME_CHOSEN reads
     faults: list[str] = []
 
-    def visit(node: Any, as_enters: bool = False) -> None:
+    def visit(node: Any, as_enters: bool = False, in_static: bool = False) -> None:
         if isinstance(node, tuple):
             for item in node:
-                visit(item)
+                visit(item, in_static=in_static)
         elif isinstance(node, (BackFace, TokenSpec, EmblemSpec)):
             faults.append(chosen_quality_fault(getattr(node, "keywords", ()), node.abilities) or "")
         elif isinstance(node, EtBState):
+            if node.condition is not None and any(
+                isinstance(n, Atom) and n.verb is Verb.CHOOSE_NAME for n in walk(node.effect)
+            ):
+                faults.append(
+                    "a CHOOSE_NAME under an EtBState's condition: when the condition fails the "
+                    "choice is not made and its reads have no answer"
+                )
             visit((node.condition, node.initial_counters))
             visit(node.effect, as_enters=True)
         elif isinstance(node, Atom):
             if node.verb is Verb.CHOOSE_NAME:
                 quality = node.args.get("quality")
-                if quality is not None and not as_enters:
+                if in_static:
+                    faults.append(
+                        "a CHOOSE_NAME in a static ability's effect: a static runs no choice, "
+                        "so its reads have no answer"
+                    )
+                elif quality is not None and not as_enters:
                     faults.append(
                         f"CHOOSE_NAME of a {quality} stands only as the effect of an EtBState "
                         "(\"As this permanent enters\", CR 614.12a)"
@@ -3733,14 +3749,15 @@ def chosen_quality_fault(*nodes: Any) -> str | None:
                 if role == "ability" and not protection:
                     faults.append(chosen_quality_fault(value) or "")  # the grantee's ability
                 else:
-                    visit(value)
+                    visit(value, in_static=in_static)
         elif isinstance(node, KeywordAbility) and node.keyword is not Keyword.PROTECTION:
             faults.append(chosen_quality_fault(node.params) or "")
         elif dataclasses.is_dataclass(node) and not isinstance(node, type):
             if isinstance(node, FAtom) and node.pred is FAtomPred.NAME_CHOSEN:
                 read.add(node.string_value)
+            inside = in_static or isinstance(node, StaticAbility)
             for f in dataclasses.fields(node):
-                visit(getattr(node, f.name))
+                visit(getattr(node, f.name), in_static=inside)
 
     visit(nodes)
 

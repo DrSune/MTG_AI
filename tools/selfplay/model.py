@@ -100,6 +100,12 @@ class PolicyValueNet(nn.Module):
         mask = (ids > 0).unsqueeze(-1).to(emb.dtype)
         return (emb * mask).sum(1) / mask.sum(1).clamp(min=1.0)
 
+    def value_emb(self, ids: torch.Tensor) -> torch.Tensor:
+        """A chosen value's component token, id 0 (none) a zero vector. Masked, as in
+        ``card_table_emb``: ``_init`` and every checkpoint give the padding row random values,
+        so a term that read it would move every token of an older network."""
+        return self.ir_emb(ids) * (ids > 0).unsqueeze(-1).to(self.ir_emb.weight.dtype)
+
     def tokens(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """The input tokens [global, me, opponent, cards..., options...] and which are real (the
         opponent simulator reads the same view through them: simulator.py)."""
@@ -118,9 +124,9 @@ class PolicyValueNet(nn.Module):
         x_card = (self.name_emb(name_idx) + ir[card_idx] + self.zone_emb(cards_i[..., 1])
                   + self.ctrl_emb(cards_i[..., 2]) + self.owner_emb(cards_i[..., 3])
                   + self.card_f(cards_f)
-                  # a permanent's chosen colour or creature type by its component token (0, the
-                  # padding row, for none: an older network computes what it computed before)
-                  + self.ir_emb(cards_i[..., FT.C_CHOSEN]))
+                  # a permanent's chosen colour or creature type by its component token (0 for
+                  # none, a zero term: an older network computes what it computed before)
+                  + self.value_emb(cards_i[..., FT.C_CHOSEN]))
         x_play = self.player_f(b["players_f"]) + self.player_role.weight[None]
         ent = torch.cat([x_play, x_card], dim=1)  # [B, 2+E, d]
         zero = ent.new_zeros(bsz, 1, self.d)
@@ -134,7 +140,7 @@ class PolicyValueNet(nn.Module):
         x_opt = (self.opt_type(opts_i[..., 0]) + self.opt_ab(opts_i[..., 3].clamp(0, 23))
                  + self.opt_f(opts_f) + self.opt_ref(_gather(ent_ext, opts_i[..., 1]))
                  + self.opt_ref2(_gather(ent_ext, opts_i[..., 2]))
-                 + self.ir_emb(opts_i[..., FT.O_VALUE]))  # a quality ask's value, as above
+                 + self.value_emb(opts_i[..., FT.O_VALUE]))  # a quality ask's value, as above
         x_glob = (self.glob_f(b["glob_f"]) + self.ask_emb(b["ask_i"][:, 0]))[:, None]
         seg = self.segment.weight
         x = torch.cat([x_glob + seg[0], x_play + seg[1], x_card + seg[2], x_opt + seg[3]], dim=1)
@@ -190,6 +196,17 @@ def _gather(ent_ext: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:
                         .expand(-1, -1, d))
 
 
+def _widened(a: np.ndarray, width: int) -> np.ndarray:
+    """``a`` with zero columns appended up to ``width``. Columns are only ever appended
+    (C_CHOSEN, O_VALUE on 2026-11-13), and 0 is none, so an encoding recorded before one existed
+    (a ceiling window's --search-record shards, a simulator's views) reads exactly."""
+    if a.shape[-1] > width:
+        raise ValueError(f"an encoding {a.shape[-1]} columns wide, wider than this code's {width}")
+    if a.shape[-1] == width:
+        return a
+    return np.concatenate([a, np.zeros((*a.shape[:-1], width - a.shape[-1]), a.dtype)], axis=-1)
+
+
 def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dict[str, torch.Tensor]:
     """Pad a list of features.encode() dicts into one batch."""
     bsz = len(obs)
@@ -203,11 +220,11 @@ def collate(obs: list[dict[str, np.ndarray]], device: torch.device | str) -> dic
     opt_mask = np.zeros((bsz, k), bool)
     for i, o in enumerate(obs):
         n = o["cards_i"].shape[0]
-        cards_i[i, :n] = o["cards_i"]
+        cards_i[i, :n] = _widened(o["cards_i"], FT.CI)
         cards_f[i, :n] = o["cards_f"]
         card_mask[i, :n] = True
         m = o["opts_i"].shape[0]
-        opts_i[i, :m] = o["opts_i"]
+        opts_i[i, :m] = _widened(o["opts_i"], FT.OI)
         opts_f[i, :m] = o["opts_f"]
         opt_mask[i, :m] = True
     out = {
@@ -279,13 +296,13 @@ def collate_packed(p: Packed, idx: np.ndarray, device: torch.device | str) -> di
     c_rows, c_mask = _rows(p.c_off, idx)
     o_rows, o_mask = _rows(p.o_off, idx)
     out = {
-        "cards_i": p.cards_i[c_rows].astype(np.int64) * c_mask[..., None],
+        "cards_i": _widened(p.cards_i[c_rows].astype(np.int64), FT.CI) * c_mask[..., None],
         "cards_f": p.cards_f[c_rows].astype(np.float32) * c_mask[..., None],
         "card_mask": c_mask,
         "players_f": p.players_f[idx].astype(np.float32),
         "glob_f": p.glob_f[idx].astype(np.float32),
         "ask_i": p.ask_i[idx].astype(np.int64),
-        "opts_i": p.opts_i[o_rows].astype(np.int64) * o_mask[..., None],
+        "opts_i": _widened(p.opts_i[o_rows].astype(np.int64), FT.OI) * o_mask[..., None],
         "opts_f": p.opts_f[o_rows].astype(np.float32) * o_mask[..., None],
         "opt_mask": o_mask,
     }

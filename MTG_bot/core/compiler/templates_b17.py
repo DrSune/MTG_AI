@@ -59,7 +59,10 @@ from MTG_bot.core.compiler.templates_b2b import (
     _other_creatures_you_control,
     _self_selector,
 )
-from MTG_bot.core.compiler.templates_b4 import _creatures_you_control, reveal_one_from_among
+from MTG_bot.core.compiler.templates_b4 import (
+    _creatures_you_control,
+    reveal_one_from_among,
+)
 
 _BUCKET: Final[str] = "B17"
 _PRIORITY: Final[int] = 10

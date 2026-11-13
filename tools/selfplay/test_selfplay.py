@@ -925,13 +925,14 @@ def test_heuristic_names_the_opponents_most_expensive_public_card() -> None:
 
 def test_a_chosen_quality_and_its_menu_reach_the_encoding(table) -> None:
     """A colour or a creature type chosen as a permanent enters (DESIGN_ATOM_ONTOLOGY §13) is a
-    "quality" ask, an appended kind grown from "name", each option carrying its value as the
-    component token the trees name it by (O_VALUE: "str:R", "sub:Elf"); then the permanent shows
-    the value it chose (C_CHOSEN), which the network adds to the card as its component embedding."""
+    "quality" ask, an appended kind grown from "other" (the "name" row never trained), each option
+    carrying its value as the component token the trees name it by (O_VALUE: "str:R", "sub:Elf");
+    then the permanent shows the value it chose (C_CHOSEN), which the network adds to the card as
+    its component embedding."""
     from MTG_bot.bench.protocol import Ask, Option
 
-    assert FT.ASK_KINDS[-1] == "quality" and FT.ASK_GROWN_FROM["quality"] == "name"
-    game, _router, me = _teach(field0=("Diamond Mare", "Mountain"), set_code="FDN")
+    assert FT.ASK_KINDS[-1] == "quality" and "quality" not in FT.ASK_GROWN_FROM
+    game, _router, _me = _teach(field0=("Diamond Mare", "Mountain"), set_code="FDN")
     mare = _named(game, "Diamond Mare")
     ir = table.ir_index
     colours = Ask(seat=0, kind="quality", site=f"quality:{mare}:COLOR", prompt="",
@@ -964,6 +965,34 @@ def test_a_chosen_quality_and_its_menu_reach_the_encoding(table) -> None:
     assert not torch.equal(x0, x1)
     elf, zombie, none = opts[0, -3:]
     assert not torch.equal(elf, zombie) and not torch.equal(elf, none)
+
+
+def test_no_chosen_value_adds_nothing_to_the_tokens(table) -> None:
+    """C_CHOSEN and O_VALUE at 0 add a zero term, whatever ``ir_emb``'s padding row holds:
+    ``_init`` and every checkpoint give it random values, so an older network computes what it
+    did. An encoding recorded before the two columns existed (7 and 4 wide: a ceiling window's
+    --search-record shards) reads as one that has none. Red on 92aca048: the row was added to
+    every card and option token, and the old widths did not collate."""
+    from MTG_bot.bench.protocol import Ask, Option
+
+    game, _router, _me = _teach(field0=("Diamond Mare", "Mountain"), set_code="FDN")
+    act = Ask(seat=0, kind="act", site="act", prompt="", options=(Option("PASS", "pass"),))
+    feats = FT.encode(game.executor, 0, act, table)
+    batch = M.collate([feats], "cpu")
+    old = {**feats, "cards_i": feats["cards_i"][:, :FT.C_CHOSEN],
+           "opts_i": feats["opts_i"][:, :FT.O_VALUE]}
+    assert all(torch.equal(v, batch[k]) for k, v in M.collate([old], "cpu").items())
+    first = np.array([0])
+    packed = M.collate_packed(M.pack([feats]), first, "cpu")
+    assert all(torch.equal(v, packed[k])
+               for k, v in M.collate_packed(M.pack([old]), first, "cpu").items())
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    with torch.no_grad():
+        net.ir_emb.weight[0] = 1.0
+        x1, _ = net.tokens(batch)
+        net.ir_emb.weight[0] = -1.0
+        x2, _ = net.tokens(batch)
+    assert torch.equal(x1, x2)
 
 
 def test_heuristic_chooses_the_quality_its_cards_share() -> None:
@@ -1352,6 +1381,11 @@ def test_copies_of_a_card_are_one_move_to_the_audit(table) -> None:
     keys = option_classes(feats)
     assert keys[1] == keys[3] and len({keys[0], keys[1], keys[2]}) == 3
     assert distinct([3, 1, 2, 0], feats) == [3, 2, 0]
+    # a quality ask's creature types share their option type: only the value (O_VALUE) tells
+    # them apart, and so does the key (red on 92aca048: one class, the first type kept)
+    types = Ask(seat=0, kind="quality", site=f"quality:{twins[0]}:CREATURE_TYPE", prompt="",
+                options=tuple(Option(t, t) for t in ("Elf", "Goblin", "Zombie")))
+    assert distinct([2, 0, 1], FT.encode(game.executor, 0, types, table)) == [2, 0, 1]
 
 
 def test_combat_is_planned_once_per_turn_before_combat() -> None:

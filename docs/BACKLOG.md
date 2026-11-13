@@ -151,7 +151,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature. The new object should be untouched, while information about the source (its power for
   "deals damage equal to its power") comes from its last known information (CR 608.2h), which
   `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
-  dealt pools.
+  dealt pools. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
+  source that left answers from its last known choice (`LastKnown.choices`), but Icon of
+  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
@@ -541,7 +543,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **A GET_EMBLEM in a static ability's effect is accepted and never runs** (2026-11-13, gate
   round 7, m4): a static ability applies continuously and resolves nothing, so the emblem is
   never made. Refuse it at construction (as a reflexive trigger in a static ability is) when a
-  tree first writes one; none of the 19 sets' does.
+  tree first writes one; none of the 19 sets' does. A CHOOSE_NAME there is refused since gate
+  round 9 (`ability_tree.chosen_quality_fault`: its reads would have no answer); the class's
+  other one-shot verbs are not.
 - **`compile_supply` counts an emblem's verbs as its maker's** (2026-11-13, gate round 7, m8):
   `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
   mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
@@ -1024,6 +1028,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - The menu of creature types is the format pool's: a symmetric card ("all creatures of the chosen
     type get -1/-1") would need one type no object has, which no as-enters card of the 19 sets
     does.
+  - Changeling is not compiled (CR 702.73a: every creature type): the KHM castable pool deals the
+    now whole Rally the Ranks beside 7 partial changelings whose trees do not say so, so its
+    anthem misses them, as every SUBTYPE_EQ read does (gate round 9 review).
+  - G3 widens only an FAnd, so a read that is a whole filter has no "drop the read" mutant: the
+    cast triggers of Diamond Knight, Diamond Mare and Prism Ring ("a spell of the chosen color"),
+    like every single-atom filter. Their packs cast a spell of another colour. An anthem's read
+    has one: its widen drops the choice with it (`gates._without_unread_choices`).
 - **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
   verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
   - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
@@ -1449,7 +1460,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   goes to the fallback agent (`actor.NetAgent.decide`). Icon of Ancestry's menu in the M20 and
   M21 pools (69 and 73 types) is over `MAX_OPTIONS`, so the heuristic chooses there (the
   observation caps' scaffold). The bench's seat view (`bench/view.py`) shows no chosen value
-  either. Fix with a name embedding on the chooser and a two-stage or wider ask.
+  either. Fix with a name embedding on the chooser and a two-stage or wider ask. Icon of
+  Ancestry's tree is 172 IR tokens, past `CardTable.max_ir`'s 128: its choice and its reads fall
+  in the first 128.
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
   targets, emblems, or live (not printed) types and colours** (interface audit, /184; since
   2026-11-12 a card's tree shows what its emblem does, but not which emblems a player has). Needs input

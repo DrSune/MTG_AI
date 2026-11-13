@@ -188,8 +188,9 @@ class SimAgent:
 
 def option_classes(feats: dict) -> list[tuple]:
     """Per option of an encoded ask, a key equal for the options the encoding cannot tell apart:
-    the same option type, ability and numbers, pointing at entities whose encoded rows are equal
-    (two copies of a card in one zone and one state). To the network they are one move (equal
+    the same option type, ability, value (a quality ask's colour or creature type, O_VALUE) and
+    numbers, pointing at entities whose encoded rows are equal (two copies of a card in one zone
+    and one state). To the network they are one move (equal
     tokens give equal logits), and to the rules the same move made with another card object; the
     search's results for them differ only by noise (KNOWLEDGE/2026-11-12/197). Entity refs index
     [me, opponent, cards...] plus one, 0 for none (features.encode)."""
@@ -198,8 +199,8 @@ def option_classes(feats: dict) -> list[tuple]:
     def entity(e: int) -> Any:
         return (ci[e - 3].tobytes(), cf[e - 3].tobytes()) if e >= 3 else e
 
-    return [(int(oi[k, 0]), int(oi[k, 3]), of[k].tobytes(), entity(int(oi[k, 1])),
-             entity(int(oi[k, 2]))) for k in range(len(oi))]
+    return [(int(oi[k, 0]), int(oi[k, 3]), int(oi[k, FT.O_VALUE]), of[k].tobytes(),
+             entity(int(oi[k, 1])), entity(int(oi[k, 2]))) for k in range(len(oi))]
 
 
 def distinct(ranked: list[int], feats: dict) -> list[int]:

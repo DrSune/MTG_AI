@@ -42,7 +42,10 @@ from MTG_bot.core.compiler import frames, templates_b17
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.compiler.ingest import ingest_pool
-from MTG_bot.core.compiler.templates import AbilityOutcome, EffectOutcome, TemplateRegistry
+from MTG_bot.core.compiler.templates import (
+    AbilityOutcome,
+    TemplateRegistry,
+)
 from MTG_bot.core.errors import StateCorruptionError
 
 DATA = Path(__file__).resolve().parents[2] / "data"
