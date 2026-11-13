@@ -56,7 +56,8 @@ flock -n 9 || { echo "another queue holds $O" >&2; exit 1; }
 log() { echo "{\"t\": $(date +%s), \"step\": \"$1\", \"what\": \"$2\"}" >> "$O/queue.log"; }
 refuse() { echo "$1" >&2; log window "refused: $1"; exit 1; }
 resume_note() {
-  echo "resume r28: $W/reports/r28_2026-11-12/start.sh" | tee -a "$O/queue.log"
+  echo "resume r28: $W/reports/r28_2026-11-12/start.sh"
+  log r28 "resume it: $W/reports/r28_2026-11-12/start.sh"
 }
 
 if [ "$SMOKE" != 1 ]; then

@@ -89,7 +89,8 @@ def paired(base: dict[int, float], other: dict[int, float], reps: int = 10000) -
     boot = np.concatenate([d[rng.integers(0, len(d), (1000, len(d)))].mean(1)
                            for _ in range(reps // 1000)])
     lo, hi = np.quantile(boot, [0.025, 0.975])
-    corr = np.corrcoef([base[s] for s in seeds], [other[s] for s in seeds])[0, 1]
+    xb, xo = np.array([base[s] for s in seeds]), np.array([other[s] for s in seeds])
+    corr = np.corrcoef(xb, xo)[0, 1] if xb.std() > 0 and xo.std() > 0 else math.nan
     (mb, sb), (mo, so) = mean_se(list(base.values())), mean_se(list(other.values()))
     su = math.sqrt(sb ** 2 + so ** 2)
     return (f"{d.mean():+.4f} [{lo:+.4f}, {hi:+.4f}] (SE {d.std(ddof=1) / math.sqrt(len(d)):.4f}) "
