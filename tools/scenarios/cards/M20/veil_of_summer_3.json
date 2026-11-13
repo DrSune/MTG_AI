@@ -1,0 +1,15 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Veil of Summer: 'You and permanents you control gain hexproof from blue and from black until end of turn.' After Veil the opponent cannot target P0's creature with blue Unsummon or black Murder, but a red Shock can (hexproof from COLOURS only).",
+ "cards":[
+  {"key":"veil","real":"Veil of Summer","zone":"hand","controller":0},
+  {"key":"uns","real":"Unsummon","zone":"hand","controller":1},
+  {"key":"mur","real":"Murder","zone":"hand","controller":1},
+  {"key":"sh","real":"Shock","zone":"hand","controller":1},
+  {"key":"bear","name":"Bear","power":"2","toughness":"2","type":"Creature","zone":"battlefield","controller":0}],
+ "mana":{"0":{"G":1},"1":{"U":1,"B":3,"R":1}},
+ "steps":[
+  {"op":"cast","real":"Veil of Summer","key":"veil"},
+  {"op":"cast","real":"Unsummon","key":"uns","controller":1,"targets":["bear"],"tap":true,"expect_raise":"illegal target"},
+  {"op":"cast","real":"Murder","key":"mur","controller":1,"targets":["bear"],"tap":true,"expect_raise":"illegal target"},
+  {"op":"cast","real":"Shock","key":"sh","controller":1,"targets":["bear"],"tap":true}],
+ "expect":{"zone":{"bear":"graveyard","sh":"graveyard","uns":"hand","mur":"hand"}}}

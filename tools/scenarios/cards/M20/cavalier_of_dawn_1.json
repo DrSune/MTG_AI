@@ -1,0 +1,8 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Cavalier of Dawn: 'destroy up to one target nonland permanent. Its controller creates a 3/3 colorless Golem artifact creature token.' With zero targets chosen (up to one), nothing is destroyed and nobody gets a Golem.",
+ "cards":[
+  {"key":"cav","real":"Cavalier of Dawn","zone":"hand","controller":0},
+  {"key":"ob","name":"OppBear","power":"2","toughness":"2","type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[
+  {"op":"enter","key":"cav","decisions":["NONE"]}],
+ "expect":{"zone":{"cav":"battlefield","ob":"battlefield"},"tokens":{"Golem":0}}}

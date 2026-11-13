@@ -1,0 +1,11 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Cavalier of Dawn: 'When this creature dies, return target artifact or enchantment card from your graveyard to your hand.' P0's graveyard holds Pacifism (enchantment), a Dead Bear (creature) and the opponent's graveyard holds Ancestral Blade (artifact). Cavalier dies: P0 returns Pacifism; the creature card and the opponent's artifact stay.",
+ "cards":[
+  {"key":"cav","real":"Cavalier of Dawn","zone":"battlefield","controller":0},
+  {"key":"pac","real":"Pacifism","zone":"graveyard","controller":0},
+  {"key":"db","name":"Dead Bear","power":"2","toughness":"2","type":"Creature","zone":"graveyard","controller":0},
+  {"key":"ob","real":"Ancestral Blade","zone":"graveyard","controller":1},
+  {"key":"giant","name":"Giant","power":"6","toughness":"6","type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[
+  {"op":"deal_damage","source":"giant","target":"cav","amount":99,"decisions":["pac"]}],
+ "expect":{"zone":{"cav":"graveyard","pac":"hand","db":"graveyard","ob":"graveyard"},"hand":{"0":1}}}

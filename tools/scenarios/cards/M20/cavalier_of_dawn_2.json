@@ -1,0 +1,43 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cavalier of Dawn: 'destroy up to one target nonland permanent.' The target ask offers the Cavalier (card:0), the opponent's Bear (card:1) and NONE (up to one), and never the opponent's Forest (card:2, a land).",
+ "cards": [
+  {
+   "key": "cav",
+   "real": "Cavalier of Dawn",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ob",
+   "name": "OppBear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ol",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "cav",
+   "expect_raise": "needs a decision from ('card:0', 'card:1', 'NONE')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ol": "battlefield"
+  }
+ }
+}

@@ -1,0 +1,13 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Vivien, Nature's Avenger -6: 'Target creature gets +10/+10 and gains trample until end of turn.' Loyalty 6 -> 0 (she dies). P0's 2/2 Bear becomes 12/12 with trample: it attacks, the 0/2 Wall blocks, P0 assigns lethal (2) to the Wall and the other 10 trample over: opponent 20 -> 10. Next turn the Bear is 2/2 again.",
+ "cards":[
+  {"key":"viv","real":"Vivien, Nature's Avenger","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":"2","toughness":"2","type":"Creature","zone":"battlefield","controller":0},
+  {"key":"wall","name":"Wall","power":"0","toughness":"2","type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[
+  {"op":"loyalty","key":"viv","set":6},
+  {"op":"activate","key":"viv","idx":2,"seat":0,"targets":["bear"]},
+  {"op":"combat","seat":0,"attack":{"bear":true},"block":{"wall":"bear"},"trample":{"bear":[0]}},
+  {"op":"advance_turn"},
+  {"op":"advance_turn"}],
+ "expect":{"zone":{"viv":"graveyard","wall":"graveyard"},"life":{"1":10},"power":{"bear":2},"toughness":{"bear":2}}}

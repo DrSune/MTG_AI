@@ -371,5 +371,60 @@
  },
  "probe": {
   "sha": "6b0eddd9491caebbc9aa3e71f88283b894f1b2375e2b95ff0f64b966d408ebe9"
+ },
+ "verified": {
+  "tree_sha": "d08cde7240f95e225931f5dff336a0befa8bb82edcbd895d3855b55fe3d53381",
+  "probe_sha": "6b0eddd9491caebbc9aa3e71f88283b894f1b2375e2b95ff0f64b966d408ebe9",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "Draw a card if an opponent has cast a blue or black spell this turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace never has an opposing spell; pack B00_1 (blue), B00_2 (red control, no draw)",
+    "issue": ""
+   },
+   {
+    "clause": "Spells you control can't be countered this turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "no counterspell in trace; pack B00_4",
+    "issue": ""
+   },
+   {
+    "clause": "You and permanents you control gain hexproof from blue and from black until end of turn",
+    "status": "OK",
+    "evidence": "cast: HEXPROOF on you and all five permanents, removed at end of turn; colour limit and player case pinned by B00_3, B00_5",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/veil_of_summer_1.json",
+   "tools/scenarios/cards/M20/veil_of_summer_2.json",
+   "tools/scenarios/cards/M20/veil_of_summer_3.json",
+   "tools/scenarios/cards/M20/veil_of_summer_4.json",
+   "tools/scenarios/cards/M20/veil_of_summer_5.json",
+   "tools/scenarios/cards/M20/veil_of_summer_6.json",
+   "tools/scenarios/cards/M20/veil_of_summer_7.json"
+  ],
+  "mutation": {
+   "mutants": 17,
+   "killed": 4,
+   "score": 0.23529411764705882,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/pred/count",
+    "controller OPPONENT->YOU at 1/0/effect/steps/0/pred/event/actor/who",
+    "amount+1 at 1/0/effect/steps/0/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/then_effect/args/controller",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/condition",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/condition",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/condition/children/0/who",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/event/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/event/filter/children/0/who"
+   ]
+  }
  }
 }

@@ -495,5 +495,58 @@
  },
  "probe": {
   "sha": "8af64a3d0d3305928d4f93cb2298f68b75b5b3bf858347fc76272622ea944d2b"
+ },
+ "verified": {
+  "tree_sha": "e13c47d520cb8aab844f08180faec0440759c6e485715408b8b91a137946d9ce",
+  "probe_sha": "8af64a3d0d3305928d4f93cb2298f68b75b5b3bf858347fc76272622ea944d2b",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "+1: Put three +1/+1 counters on up to one target creature",
+    "status": "OK",
+    "evidence": "six targets get 3 counters; no-target activation; loyalty +1",
+    "issue": ""
+   },
+   {
+    "clause": "-1: Reveal until a creature card; put it into your hand and the rest on the bottom in a random order",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace's top card was already a creature, nothing to put on the bottom; pack B10_1 (no ask, rest at the bottom)",
+    "issue": ""
+   },
+   {
+    "clause": "-6: Target creature gets +10/+10 and gains trample until end of turn",
+    "status": "NOT_EXERCISED",
+    "evidence": "loyalty 3 < 6; pack B10_2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/vivien_nature's_avenger_1.json",
+   "tools/scenarios/cards/M20/vivien_nature's_avenger_2.json",
+   "tools/scenarios/cards/M20/vivien_nature's_avenger_3.json",
+   "tools/scenarios/cards/M20/vivien_nature's_avenger_4.json"
+  ],
+  "mutation": {
+   "mutants": 26,
+   "killed": 12,
+   "score": 0.46153846153846156,
+   "survived": [
+    "drop step 1 at 1/1/effect/steps/1",
+    "library order: random -> the owner's at 1/1/effect/steps/1/steps/1",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/steps/1/args/cards/zones/0/controller",
+    "zone LIBRARY->GRAVEYARD at 1/1/effect/steps/1/steps/1/args/destination",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "until-end-of-turn->permanent at 1/2/effect/steps/0/args/duration",
+    "amount+1 at 1/2/effect/steps/0/args/power/magnitude",
+    "amount-1 at 1/2/effect/steps/0/args/power/magnitude",
+    "amount+1 at 1/2/effect/steps/0/args/target/count",
+    "amount+1 at 1/2/effect/steps/0/args/toughness/magnitude",
+    "amount-1 at 1/2/effect/steps/0/args/toughness/magnitude",
+    "until-end-of-turn->permanent at 1/2/effect/steps/1/args/duration",
+    "amount+1 at 1/2/effect/steps/1/args/target/count"
+   ]
+  }
  }
 }

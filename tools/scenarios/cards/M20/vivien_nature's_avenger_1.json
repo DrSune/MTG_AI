@@ -1,0 +1,12 @@
+{"set":"M20","world":{"life":20,"seed":7,"library_top":true},
+ "notes":"Vivien, Nature's Avenger -1: 'Reveal cards from the top of your library until you reveal a creature card. Put that card into your hand and the rest on the bottom of your library in a random order.' Top-first the library is Filler, Filler, Crea, then the rest. Crea goes to hand, the two Fillers go to the bottom (random order: nothing is asked, the fillers share a name so the order cannot show), the rest stays on top; loyalty 3 -> 2.",
+ "cards":[
+  {"key":"viv","real":"Vivien, Nature's Avenger","zone":"battlefield","controller":0},
+  {"key":"cr","name":"Crea","power":"1","toughness":"1","type":"Creature","zone":"library","controller":0},
+  {"key":"f2","name":"Filler","type":"Instant","zone":"library","controller":0},
+  {"key":"f1","name":"Filler","type":"Instant","zone":"library","controller":0}],
+ "steps":[
+  {"op":"loyalty","key":"viv","set":3},
+  {"op":"activate","key":"viv","idx":1,"seat":0}],
+ "expect":{"zone":{"cr":"hand","f1":"library","f2":"library"},"hand":{"0":1},"counters":{"viv":{"LOYALTY":2}},
+  "library":{"0":["Library 5","Library 4","Library 3","Library 2","Library 1","Library 0","Filler","Filler"]}}}

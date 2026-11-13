@@ -357,5 +357,57 @@
  },
  "probe": {
   "sha": "4758b3d6bbf7dfafe84dc7a64804d7c59e01c6f4a22464f0125f2172221f923a"
+ },
+ "verified": {
+  "tree_sha": "f8c7fc72975142443b26206e83c2b48de560e6b4ab6a8d8c6deb1ebfeb37c59e",
+  "probe_sha": "4758b3d6bbf7dfafe84dc7a64804d7c59e01c6f4a22464f0125f2172221f923a",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "attack: no tap",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, destroy up to one target nonland permanent",
+    "status": "OK",
+    "evidence": "target ask over permanents, 7 variants destroyed; zero-target and no-land pinned by B08_1, B08_2",
+    "issue": ""
+   },
+   {
+    "clause": "Its controller creates a 3/3 colorless Golem artifact creature token",
+    "status": "OK",
+    "evidence": "Golem appears under the destroyed permanent's controller (you:Golem / opp:Golem); no-target gives none (B08_1, B08_3)",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, return target artifact or enchantment card from your graveyard to your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace graveyard holds no artifact/enchantment card; pack B08_4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/cavalier_of_dawn_1.json",
+   "tools/scenarios/cards/M20/cavalier_of_dawn_2.json",
+   "tools/scenarios/cards/M20/cavalier_of_dawn_3.json",
+   "tools/scenarios/cards/M20/cavalier_of_dawn_4.json",
+   "tools/scenarios/cards/M20/cavalier_of_dawn_5.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 9,
+   "score": 0.6,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "target->all at 1/1/effect/args/cards",
+    "amount+1 at 1/1/effect/args/cards/count",
+    "controller YOU->OPPONENT at 1/1/effect/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/1/effect/args/destination"
+   ]
+  }
  }
 }

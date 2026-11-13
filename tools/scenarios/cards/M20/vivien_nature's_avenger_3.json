@@ -1,0 +1,9 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Vivien, Nature's Avenger -6: 'Target creature gets +10/+10': a 2/3 creature becomes exactly 12/13.",
+ "cards":[
+  {"key":"viv","real":"Vivien, Nature's Avenger","zone":"battlefield","controller":0},
+  {"key":"bear","name":"Bear","power":"2","toughness":"3","type":"Creature","zone":"battlefield","controller":0}],
+ "steps":[
+  {"op":"loyalty","key":"viv","set":6},
+  {"op":"activate","key":"viv","idx":2,"seat":0,"targets":["bear"]}],
+ "expect":{"power":{"bear":12},"toughness":{"bear":13},"zone":{"viv":"graveyard"}}}

@@ -1,0 +1,16 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Veil of Summer: 'Spells you control can't be countered this turn.' Only this turn: P0 casts Veil, the turn passes through the opponent's turn to P0's next turn, where P0 casts Centaur Courser and P1 answers with Convolute: the Courser is countered (graveyard).",
+ "cards":[
+  {"key":"veil","real":"Veil of Summer","zone":"hand","controller":0},
+  {"key":"courser","real":"Centaur Courser","zone":"hand","controller":0},
+  {"key":"con","real":"Convolute","zone":"hand","controller":1}],
+ "steps":[
+  {"op":"mana","seat":0,"add":{"G":1}},
+  {"op":"cast","real":"Veil of Summer","key":"veil"},
+  {"op":"advance_turn"},
+  {"op":"advance_turn"},
+  {"op":"mana","seat":0,"add":{"G":3}},
+  {"op":"mana","seat":1,"add":{"U":3}},
+  {"op":"cast","real":"Centaur Courser","key":"courser","hold":true},
+  {"op":"cast","real":"Convolute","key":"con","controller":1,"targets":["courser"],"tap":true}],
+ "expect":{"zone":{"veil":"graveyard","courser":"graveyard","con":"graveyard"}}}
