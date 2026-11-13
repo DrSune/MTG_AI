@@ -1,67 +1,222 @@
 {
- "base": "b5611855 (export)",
- "head": "this branch (09f6078e, 720c13a6, d2943026)",
- "decks": "the cards verified both before and after (M21 266, M20 255, FDN 175; the dealt pools' hashes match on both sides), even seeds stress, odd coherent; deck_pairs_seed 1409",
- "agents": "HeuristicAgent vs HeuristicAgent",
- "seeds": "0-299 per set",
- "command": "reports/m20_faults_2026-11-12/replay.py ROOT SET 0 300 ONLY OUT.jsonl, then reports/engine_faults_2026-11-12/replay_compare.py BASE.jsonl HEAD.jsonl",
- "sets": {
-  "M21": {
-   "games": 300,
-   "identical_play": 300,
-   "identical_fingerprint": 300,
-   "play_differs": [],
-   "fingerprint_only_differs": [],
-   "outcome_differs": [],
-   "crashes_base": [],
-   "crashes_head": [],
-   "wall_s": [
-    111.3,
-    115.9
-   ],
-   "asks_differ": 21,
-   "asks_total": [
-    56264,
-    56293
-   ]
+ "command": "reports/m20_faults_2026-11-12/replay.py ROOT SET 0 300 ONLY OUT.jsonl per side, then reports/engine_faults_2026-11-12/replay_compare.py BASE.jsonl HEAD.jsonl",
+ "agents": "HeuristicAgent vs HeuristicAgent; seeds 0-299 per set, even stress, odd coherent; deck_pairs_seed 1409",
+ "vs_main": {
+  "base": "main c3e7a778 (export)",
+  "head": "the branch after main was merged and the review fixed (effadcc9)",
+  "decks": "the cards verified on both (M21 269, M20 260, FDN 177; dealt-pool hashes equal on both sides: 62ce10adecdbbf2a, 884f4a24a7175774, 5784a187984e7bc6)",
+  "sets": {
+   "M21": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     128.0,
+     127.8
+    ],
+    "asks_differ": 15,
+    "asks_total": [
+     56608,
+     56631
+    ]
+   },
+   "M20": {
+    "games": 300,
+    "identical_play": 294,
+    "identical_fingerprint": 294,
+    "play_differs": [
+     37,
+     97,
+     101,
+     197,
+     215,
+     228
+    ],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     118.3,
+     119.6
+    ],
+    "asks_differ": 5,
+    "asks_total": [
+     50519,
+     50530
+    ]
+   },
+   "FDN": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     121.9,
+     123.3
+    ],
+    "asks_differ": 0,
+    "asks_total": [
+     48767,
+     48767
+    ]
+   }
   },
-  "M20": {
-   "games": 300,
-   "identical_play": 300,
-   "identical_fingerprint": 300,
-   "play_differs": [],
-   "fingerprint_only_differs": [],
-   "outcome_differs": [],
-   "crashes_base": [],
-   "crashes_head": [],
-   "wall_s": [
-    107.4,
-    112.6
-   ],
-   "asks_differ": 0,
-   "asks_total": [
-    46831,
-    46831
-   ]
-  },
-  "FDN": {
-   "games": 300,
-   "identical_play": 300,
-   "identical_fingerprint": 300,
-   "play_differs": [],
-   "fingerprint_only_differs": [],
-   "outcome_differs": [],
-   "crashes_base": [],
-   "crashes_head": [],
-   "wall_s": [
-    109.3,
-    120.6
-   ],
-   "asks_differ": 0,
-   "asks_total": [
-    49892,
-    49892
-   ]
+  "m20_play_differs_first_ask": {
+   "how": "the six games replayed on both engines with every ask recorded as [kind, source card, answer] (scratch script divergence.py; the first entry that differs)",
+   "games": {
+    "37": {
+     "ask": 495,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:31"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:5"
+     ]
+    },
+    "97": {
+     "ask": 80,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:3"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:3"
+     ]
+    },
+    "101": {
+     "ask": 35,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:33"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:7"
+     ]
+    },
+    "197": {
+     "ask": 66,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:94"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:70"
+     ]
+    },
+    "215": {
+     "ask": 165,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:88"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:63"
+     ]
+    },
+    "228": {
+     "ask": 67,
+     "main": [
+      "discard",
+      "Cavalier of Gales",
+      "card:93"
+     ],
+     "head": [
+      "choose",
+      "Cavalier of Gales",
+      "card:60"
+     ]
+    }
+   }
+  }
+ },
+ "vs_b5611855": {
+  "base": "b5611855 (export)",
+  "head": "this branch (09f6078e, 720c13a6, d2943026)",
+  "decks": "the cards verified both before and after (M21 266, M20 255, FDN 175; the dealt pools' hashes match on both sides), even seeds stress, odd coherent; deck_pairs_seed 1409",
+  "sets": {
+   "M21": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     111.3,
+     115.9
+    ],
+    "asks_differ": 21,
+    "asks_total": [
+     56264,
+     56293
+    ]
+   },
+   "M20": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     107.4,
+     112.6
+    ],
+    "asks_differ": 0,
+    "asks_total": [
+     46831,
+     46831
+    ]
+   },
+   "FDN": {
+    "games": 300,
+    "identical_play": 300,
+    "identical_fingerprint": 300,
+    "play_differs": [],
+    "fingerprint_only_differs": [],
+    "outcome_differs": [],
+    "crashes_base": [],
+    "crashes_head": [],
+    "wall_s": [
+     109.3,
+     120.6
+    ],
+    "asks_differ": 0,
+    "asks_total": [
+     49892,
+     49892
+    ]
+   }
   }
  }
 }

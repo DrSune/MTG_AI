@@ -507,7 +507,7 @@
    [
     "M20",
     "Drawn from Dreams",
-    "mapped",
+    "verified",
     "MOVE_ZONE",
     "ONE_OF",
     "QConst(value=2)"
@@ -739,7 +739,7 @@
    [
     "M20",
     "Cavalier of Gales",
-    "mapped",
+    "verified",
     "LIBRARY",
     "CHOOSE"
    ],
@@ -1070,7 +1070,7 @@
    [
     "M20",
     "Cavalier of Gales",
-    "mapped",
+    "verified",
     "When this creature enters, draw three cards, then put two cards from your hand on top of your library in any order.",
     "parsed"
    ],
@@ -1535,9 +1535,9 @@
    [
     "FDN",
     "Vivien Reid",
-    "compiled",
+    "mapped",
     "[−8]: You get an emblem with \"Creatures you control get +2/+2 and have vigilance, trample, and indestructible.\"",
-    "unparsed"
+    "parsed"
    ],
    [
     "ELD",
@@ -1589,6 +1589,13 @@
     "compiled",
     "YOU",
     1
+   ],
+   [
+    "FDN",
+    "Vivien Reid",
+    "mapped",
+    "YOU",
+    1
    ]
   ]
  },
@@ -1600,10 +1607,28 @@
    "ActivatedAbility"
   ],
   [
+   "M21",
+   "Tolarian Kraken",
+   "compiled",
+   "TriggeredAbility"
+  ],
+  [
+   "M20",
+   "Cavalier of Night",
+   "verified",
+   "TriggeredAbility"
+  ],
+  [
    "M20",
    "Mask of Immolation",
    "verified",
    "StaticAbility"
+  ],
+  [
+   "M20",
+   "Sorin, Imperious Bloodlord",
+   "mapped",
+   "ActivatedAbility"
   ],
   [
    "M20",

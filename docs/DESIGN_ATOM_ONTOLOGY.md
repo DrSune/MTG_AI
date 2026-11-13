@@ -142,7 +142,7 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 5 | MOVE_ZONE x `arrange` ("RANDOM": "put the rest on the bottom of your library in a random order"; absent = the owner arranges, CR 401.4), accepted only where `ability_tree.orders_a_library` holds | M21 Garruk's Harbinger (compiler, B5b-rest-bottom-random); M20 Drawn from Dreams and Brightwood Tracker (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12); 54 cards of the 19 sets print "in a random order", most still unparsed |
 | 2026-11-12, gate round 6 | Conditional `then:DelayedTrigger` ("<step>. When you do, Y": the "if you do" gate, CR 118.12, around a reflexive trigger, CR 603.12), accepted only where `ability_tree._reflexive_misplaced` holds (§11 R6-1) | M21 Tolarian Kraken (compiler, B2b-do-tap-or-untap); M20 Cavalier of Night and Sorin, Imperious Bloodlord (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12, trigger timing); 22 reflexive sentences on 21 cards of the 19 sets, 19 unparsed |
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
-| 2026-11-12, gate round 7 (pending) | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it: YOU, ALL_OPPONENTS, TARGET_OPPONENT; CR 114.2) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer (record) | 5 trees; 24 emblem texts in the 19 sets (26 entries), the other 19 makers' texts unparsed (NUMBERS.md 2026-11-12) |
+| 2026-11-12, gate round 7 (pending) | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it: YOU, ALL_OPPONENTS, TARGET_OPPONENT; CR 114.2) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
 | 2026-11-12, gate round 7 (pending) | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
 
 ## 6. Identity + conformance
@@ -466,11 +466,23 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     name at pool compile). The compiler compiles the quote as the emblem's own text; a quote that
     does not compile leaves its sentence unparsed. `EmblemAbility` (unused) and `CardRecord.emblem`
     are deleted: one encoding. Each GET_EMBLEM makes a new emblem (CR 114.2; the executor's
-    one-per-(owner, emblem) table did nothing on a second).
+    one-per-(owner, emblem) table did nothing on a second: pack
+    `basri_ket_two_emblems_both_trigger` fails on main c3e7a778, one Soldier for two emblems).
+  - **Who gets it is the `controller` role**, as LOSE_LIFE's is in "each opponent loses 2 life":
+    a single-atom player verb names its player there. An EachPlayer around the GET_EMBLEM would
+    run too (it rotates the controller), but EachPlayer is for an effect each player goes through
+    on their own (Transmogrify's "that player puts that card onto the battlefield, then shuffles",
+    Liliana, Waker of the Dead's "each opponent who can't loses 3 life"), and functionally
+    identical wordings land in the same atoms (the owner directive, Status above).
   - **ALL over the top of a library reads the open look window**, as ONE_OF and REST do, and
     leaves the window to the REST after it (Goblin Ringleader).
   - No new verb, role value class beyond EmblemSpec, or field classification beyond
     `EmblemSpec.abilities` (IDENTITY).
+  - Pre-gate review (one fresh-eyes reviewer on 09f6078e and 720c13a6, 2026-11-13), fixed in
+    effadcc9: FDN Vivien Reid's -8 had lost the emblem its entry's record attached (the emblem
+    is now in her record); a search's exact count over another player's hidden zone, and an
+    emblem's choices, were not asked; the bench called every NONE "no block". Logged in the
+    BACKLOG: "any number" over a menu the engine cannot ask takes all of it (not live).
 - BINDING STATE: rounds 1–6 complete; round 7 proposed; further ontology changes require a
   NEW gated round (any R-item that reclassifies a field or opens a normalization is Type-1).
 

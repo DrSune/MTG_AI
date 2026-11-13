@@ -255,6 +255,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Effects, zones and replacements
 
+- **"Any number" over a menu the engine cannot ask takes all of it** (2026-11-13, the review of
+  the any-number fix). `selectors.resolve_selector` asks "any number" (and "up to N") pick by pick
+  only where `_choose_lift_allowed` lets a choice be asked. Elsewhere, as an exact count there
+  takes the first N by handle, it takes the whole menu: a positional (top-N) zone, a PLAYER zone,
+  another player's hidden zone the effect does not search, a merged multi-seat menu, a menu that
+  names the source. Not live: of the 7 "any number" selectors in the 19 sets' trees, 6 are asked
+  and Conspicuous Snoop's CAST source is a population read (`reports/m20_faults_2026-11-12/
+  census.json`). Fix with the first card that needs one: who decides each of those menus is not
+  encoded.
 - **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
@@ -911,17 +920,25 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   card's "zone LIBRARY->GRAVEYARD"; all three G1 traces kill the first. Re-probe Anticipate,
   Stormwing Entity and Track Down too (their traces show `arrange` asks, now asked top first),
   and write the two M20 records through `cardtool try --write`.
-- **Re-verify M21 Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead** (2026-11-12, the
-  emblem encoding, ontology R5 round 7 pending its gate). Their ultimate's GET_EMBLEM now carries the
-  emblem (EmblemSpec, the same abilities their emblem entries compiled to before, checked by
-  `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
-  their tree shas changed and they left the verified pool (M21 269 -> 266). Two plays change: each
-  ultimate makes a new emblem (CR 114.2; a second one used to do nothing), and the card encoder
-  sees what the emblem does. The G1 probe starts at printed loyalty, so it never reaches these
-  ultimates; their packs do (`basri_ket_emblem`, `garruk_unleashed_emblem`, `liliana_emblem_*`).
-  Verified cards that play differently with unchanged bytes and may want a look: M21 Necromentia
-  and Siege Striker ("any number" is asked), M20 Cavalier of Gales (its "put two cards from your
-  hand on top of your library" is asked as `choose:`, no longer as a discard).
+- **Re-verify M21 Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead; map-check FDN
+  Vivien Reid** (2026-11-13, the emblem encoding, ontology R5 round 7 pending its gate).
+  - The three M21 ultimates' GET_EMBLEM now carries the emblem (EmblemSpec, the abilities their
+    emblem entries compiled to before, checked by
+    `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
+    their tree shas changed and they left the verified pool (measured on the tree merged with main
+    c3e7a778: M21 272 -> 269; M20 260 and FDN 177 unchanged).
+  - Two plays change: each ultimate makes a new emblem (CR 114.2; a second one used to do
+    nothing, pack `basri_ket_two_emblems_both_trigger`), and the card encoder sees what the
+    emblem does. The G1 probe starts at printed loyalty, so it never reaches these ultimates;
+    their packs do (`basri_ket_emblem`, `garruk_unleashed_emblem`, `liliana_emblem_*`).
+  - FDN Vivien Reid has a new record (unverified, `claude-wave2-m20-faults`): its -8 carries the
+    abilities of the retired "Vivien Reid Emblem" record, and its +1 is mapped as Brightwood
+    Tracker's three steps. It goes to blind G2; pack
+    `tools/scenarios/mapped/FDN/vivien_reid_emblem_anthem.json` plays the -8.
+  - Verified cards that play differently with unchanged bytes and may want a look: M21
+    Necromentia and Siege Striker ("any number" is asked), M20 Cavalier of Gales (its "put two
+    cards from your hand on top of your library" is asked as `choose:`, no longer as a discard;
+    its stamp's evidence reads "discard-style hand picks", so its G1 trace changed).
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
