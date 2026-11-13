@@ -1118,6 +1118,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **Re-verify M21 Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead; map-check FDN
   Vivien Reid; re-verify M21 Siege Striker** (2026-11-13, the emblem encoding and "any number",
   ontology gate round 7).
+  - G3 (2026-11-13): Garruk, Unleashed's +1 and M20 Mu Yanling, Sky Dancer's +2 lost their two
+    "up to one" twin "target->all" survivors (the activation twin rule); `cardtool verify` passes
+    for both with their wave-1c verdicts (`runs/verify_wave1c/verdicts/A/A08.json`, `B/B04.json`).
   - The three M21 ultimates' GET_EMBLEM now carries the emblem (EmblemSpec, the abilities their
     emblem entries compiled to before, checked by
     `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
@@ -1163,12 +1166,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Bloodlord's first +1, 2026-11-13: `activate()` now refuses an empty designation for a slot that
   needs a target before any cost is paid, CR 602.2b, 601.2c, as the cast lane does; it used to
   pay and then raise "TARGET selector has no designation" at resolution, after an ALL twin had
-  already acted); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
+  already acted), there also with an "up to one" count (M21 Garruk, Unleashed's +1 and M20 Mu
+  Yanling, Sky Dancer's +2, 2026-11-13: `resolve_activated` binds a designation that chose
+  nothing as the empty one, so the ALL twin acts on nothing; spells and triggers bind it too,
+  but no card in the 19 sets has "up to" twins there, and they keep the exact count); an
+  end-step trigger whose condition requires TURN_OF YOU (Searslicer
   Goblin); a printed static PREVENT_EFFECT's atom `condition` (Blightbeetle); a granted
   damage-policy static's "you may" (Garruk, Savage Herald's -7). Over the 701 verified cards
   only M20 Maniacal Rage and Wolfrider's Saddle lose mutants (two non-critical "widen filter"
   each, survivors in their records); the activation rule changes none of the 709 verified on
-  2026-11-13. What stays:
+  2026-11-13, nor its "up to one" extension any of the 715 verified later that day. What stays:
   - **Live, and killed by packs since 2026-11-13.** M21 Archfiend's Vessel ("or you
     cast it from your graveyard": no card in the 19 sets casts a creature card from a graveyard)
     and M21 Teferi's Ageless Insight (its condition's `who` matters only with a second draw

@@ -50,6 +50,7 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     OptionalEffect,
     Phase,
+    QAtMost,
     QConst,
     QProp,
     QPropField,
@@ -411,7 +412,15 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
       resolve_activated re-checks the same slot (CR 608.2b) and binds ``target``. Every mutant
       keeps the slot, so it is offered, refused, designated and resolved as the card. A lone
       TARGET selector is no twin: its mutant has no slot and is activated with no target
-      (Celestial Enforcer). A Choose above a twin stays out here too."""
+      (Celestial Enforcer). A Choose above a twin stays out here too. Here an "up to one"
+      count (QAtMost(1)) qualifies as well (Garruk, Unleashed's +1, Mu Yanling, Sky Dancer's
+      +2): a designation that chose nothing is bound as the empty designation
+      (resolve_activated binds ``target`` to [] whenever query.designates finds a slot, which
+      the remaining twin keeps), so role_handles hands the ALL twin no object; a chosen target
+      that is illegal on resolution stops the whole ability (CR 608.2b). A lone "up to" TARGET
+      has no slot left in its mutant, nothing is bound, and the ALL selector acts on its whole
+      population. Spells and triggers bind the empty designation too, but no card in the 19
+      sets has "up to" twins there, so they keep the exact count."""
     if isinstance(ability, SpellAbility):
         if isinstance(ability.effect, Choose):
             return set()  # a modal spell
@@ -430,7 +439,8 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     if any(isinstance(nodes.get(p[:k]), blocked) for p, _ in sels for k in range(len(base) + 1, len(p))):
         return set()
     sel = sels[0][1]
-    if not (isinstance(sel.count, QConst) and sel.count.value >= 1) or sel.referent is not None \
+    up_to_one = isinstance(ability, ActivatedAbility) and sel.count == QAtMost(n=1)
+    if not (isinstance(sel.count, QConst) and sel.count.value >= 1 or up_to_one) or sel.referent is not None \
             or any(getattr(n, "referent", None) is not None for n in walk(sel.filter)) \
             or not all(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones) \
             or _player_widening_applies(sel):

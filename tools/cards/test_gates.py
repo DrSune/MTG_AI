@@ -31,6 +31,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     Keyword,
     OptionalEffect,
+    QAtMost,
     QConst,
     QUnbounded,
     Selector,
@@ -843,6 +844,56 @@ def test_target_to_all_on_twins_in_an_activation_is_dead() -> None:
     assert real[3] is not None and tapped(real) == {"My Bird": False, "Opp Ox": False}
     got = _game(pack, _everyone(enforcer, "1/0/effect/args/target"))
     assert got[3] is None and tapped(got) == {"My Bird": True, "Opp Ox": True}
+
+
+def test_target_to_all_on_up_to_one_twins_in_an_activation_is_dead() -> None:
+    """Garruk, Unleashed's +1 (M21, "Up to one target creature gets +3/+3 and gains trample until
+    end of turn") and Mu Yanling, Sky Dancer's +2 (M20, "Until your next turn, up to one target
+    creature gets -2/-0 and loses flying"): twins with an "up to one" count. A designation that
+    chose nothing is bound as the empty designation (resolve_activated, query.designates: the
+    remaining twin keeps the slot), so the ALL twin acts on nothing; a target gone before the
+    ability resolves stops it whole (CR 608.2b). One target among three creatures, none chosen,
+    the target gone in response, no creature at all, the act menu with a target and without.
+    The near shape, the same grant with its lone "up to" TARGET, has no slot left in the mutant:
+    nothing is bound, and with no target chosen it reaches every creature."""
+    def layers(r: ScenarioRunner) -> tuple:
+        return tuple(r.ex.events), tuple((rec.kind, rec.targets) for rec in r.ex.layers.records)
+
+    for code, name, key, kws in (("M21", "Garruk, Unleashed", "ga", []), ("M20", "Mu Yanling, Sky Dancer", "mu", ["FLYING"])):
+        card = _card(name, code)
+        offered = _where(card)
+        assert not {w for op, w in offered if op == "target->all" and w.startswith("1/0/")}, name
+        assert _at(card, SORIN.format(0)).count == QAtMost(n=1)
+        mutants = [_everyone(card, SORIN.format(step)) for step in (0, 1)]
+        creature = {"type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "keywords": kws}
+        pw = {"key": key, "real": name, "zone": "battlefield", "controller": 0}
+        board = [pw, {**creature, "key": "a", "name": "A", "controller": 0}, {**creature, "key": "b", "name": "B", "controller": 0},
+                 {**creature, "key": "o", "name": "O", "controller": 1}]
+        activate = {"op": "activate", "key": key, "idx": 0, "seat": 0}
+        packs = [_pack(board, [{**activate, "targets": ["a"]}], code=code),
+                 _pack(board, [{**activate, "targets": []}], code=code),
+                 _pack(board, [{**activate, "targets": ["a"], "hold": True}, {"op": "move", "key": "a", "to": "hand"}], code=code),
+                 _pack([pw], [activate], code=code),
+                 _pack(board, [{"op": "act", "seat": 0, "words": [f"act:{key}:0", "a"]}], code=code),
+                 _pack(board, [{"op": "act", "seat": 0, "words": [f"act:{key}:0", "DONE"]}], code=code)]
+        for i, pack in enumerate(packs):
+            real = _game(pack, inspect=layers)
+            assert real[3] is None, (name, i)
+            for step, mutant in enumerate(mutants):
+                assert _game(pack, mutant, inspect=layers) == real, (name, i, step)
+        untouched = {o[0]: o[5] for o in _game(packs[1])[0].values() if o[0] in ("A", "B", "O")}
+        assert untouched == {"A": (2, 2), "B": (2, 2), "O": (2, 2)}, name
+        lone = dataclasses.replace(card, abilities=(
+            dataclasses.replace(card.abilities[0], effect=card.abilities[0].effect.steps[0]), *card.abilities[1:]))
+        assert gates._twin_targets(lone.abilities[0], (1, 0)) == set()
+        reached = {o[0]: o[5] for o in _game(packs[1], _everyone(lone, "1/0/effect/args/target"))[0].values()
+                   if o[0] in ("A", "B", "O")}
+        assert reached != untouched and len(set(reached.values())) == 1, name  # every creature, alike
+    # the same "up to one" twins in a trigger or a spell keep their mutants: no card has them
+    effect = _card("Garruk, Unleashed").abilities[0].effect
+    end_step = _card("Barrin, Tolarian Archmage").abilities[1].event
+    assert gates._twin_targets(TriggeredAbility(event=end_step, condition=None, effect=effect), (1, 0)) == set()
+    assert gates._twin_targets(dataclasses.replace(_card("Sure Strike").abilities[0], effect=effect), (1, 0)) == set()
 
 
 KRAKEN = "1/0/effect/steps/1/then_effect/effect/inner/options/{}/args/target"
