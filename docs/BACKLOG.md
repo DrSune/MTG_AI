@@ -100,12 +100,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     no-op: the flag would gather the combat rows. Such a card is needs-atom (none compiles).
   - A dealer trigger with no recipient ("whenever this creature deals damage") split by trample
     or several blockers still fires per DAMAGE row, not once per step (none compiled).
-- **A pack cannot respond to a combat trigger** (2026-11-12): the combat op's `respond` steps run
-  when the step has priority with an empty stack, after the attack triggers resolved. So "an
-  attacker leaves while Tide Skimmer's / Makeshift Battalion's / Mangara's trigger waits" is
-  pinned by `MTG_bot/core/test_executor_trigger_timing.py` (binder.hold), not by a pack, and
-  Mangara's G3 mutant that only S5 tells apart (below, Gates) has no pack to kill it. A
-  `"hold": true` on the combat op's declare step would give packs that window.
 
 ### Casting, the stack and targets
 
@@ -380,7 +374,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       `role_players` does.
     - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
       ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
-  - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`.
+  - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`. Scenario packs may
+    have three or more seats since 2026-11-13 (`"world": {"players": N}`;
+    `tools/scenarios/teferis_ageless_insight_three_players.json`).
+- **A player who loses a game of three or more stays in it** (2026-11-13): `_player_losses`
+  records the loser and ends the game only when one player is left, but the player does not
+  leave it (CR 800.4a: its objects leave, its turns are skipped; `next_turn_seat` still gives it
+  turns). The pack runner fails a three-or-more-seat pack whose loser its `lost` lane does not
+  name, so no pack passes over it.
 - **A printed "target opponent" read without a TARGET selector still takes a trigger's
   pre-bind** (2026-11-12): `binding._put` binds the dealer of a DAMAGE firing, or the dead
   creature of a DIES firing, for an effect that reads a designated player and prints no TARGET
@@ -392,6 +393,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
   `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
   `_remove_from_combat` drops the entry).
+  - That one defending player is the engine's choice: the first other seat in turn order
+    (`Executor._turn_based_actions`, BEGIN_COMBAT). With three or more players the active player
+    never chooses whom each creature attacks (CR 506.2, 508.1b; Commander plays with the attack
+    multiple players option, CR 802), so a three-seat pack's combat attacks that seat only.
 
 ### Rules not modelled
 
@@ -578,10 +583,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   AGENTS §11 (alters legal options or state outcomes).
   - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
     hand, put each of those cards into your hand instead" runs as an extra step that returns one
-    card, not all three. It is unreachable until something lets you cast it from elsewhere
-    (Chandra, Flame's Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On),
-    replacing the one-and-rest split, once a pack can cast it from the graveyard. Re-checked on
-    18afa85 (2026-10-30): tree unchanged, still unreachable.
+    card, not all three. No compiled card lets you cast it from elsewhere (Chandra, Flame's
+    Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On), replacing the
+    one-and-rest split. A pack casts it from the graveyard since 2026-11-13 (the runner's test
+    permission): `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
+    fails today (Records, "See the Truth's ... branch compiles wrong").
   - Not significant, kept: Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
     Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
@@ -799,6 +805,38 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Records to map or re-verify
 
+- **Card backlog wave 3: the plan** (2026-11-13; a read-only census of M20's 55 castable-unverified
+  cards, by package and by reach in the other 18 sets).
+  - **The order:**
+    1. **Life-total family** (gated round 7): `LIFE_TOTAL_GE`, ordinals on the life events, and
+       Angel of Vitality's replacement amount. Covers Twinblade Paladin, Angel of Vitality and
+       Vengeful Warchief, plus FDN's twins. Agent running.
+    2. **A chosen colour or creature type**, on round 4's `EtBState.effect`. Covers Diamond Knight
+       and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away.
+    3. **Gathered zone-change events** (`once_per_event` on ZoneChangeEvent, `event` as the
+       gathered set). Covers Woodland Champion and Angelic Guardian, and makes a new kept green-
+       white token package.
+  - **Ungated, beside them:**
+    - player hexproof;
+    - Cavalier of Dawn (no token without a target);
+    - Drakuseth (per-slot trigger designation);
+    - Vivien, Nature's Avenger (a stale note);
+    - two encoding rulings: "its controller" damage (Chandra's Outrage vs the verified Chandra,
+      Flame's Fury) and discard as a zone change (Glint-Horn Buccaneer vs the verified Bag of
+      Holding). Agent running.
+  - **Re-verify:** Octoprophet (its 2026-11-06 blocker, scry order, is fixed by `arrange`).
+  - **Later:**
+    - the cost twins: exile and remove-counter costs. Widest reach, 16 cards in other sets;
+      waits on the F3 ruling;
+    - entering with counters, and "that targets you";
+    - R5-2 (PERMIT_CAST, the permission lane), its own lane. It covers M21's Furious Rise,
+      Conspicuous Snoop and Radha, and M20's Golos and Mystic Forge;
+    - the Leylines' opening-hand action, last: every Leyline needs a second piece.
+  - **Side findings:**
+    - A second copy of the same emblem does nothing (`Executor.get_emblem`), likely wrong under
+      CR 114. Handed to wave 2C's emblem work.
+    - packages.py does not read a life-gain replacement as a life consumer, reads chosen-quality
+      filters as unknown, and never puts a card of 3+ colours in a pair deck.
 - **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
   verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
   - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
@@ -806,12 +844,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - The tree runs the normal outcome first (one card to hand, the rest to the bottom), then a
     Conditional moving a count-1 CHOOSE over `result` to hand. So it gives one card, not three, and
     never "instead".
-  - Unreachable today: no compiled card casts it from elsewhere. M20 Chandra, Acolyte of Flame's −2
-    would, but it needs an atom.
+  - Unreachable in games: no compiled card casts it from elsewhere. M20 Chandra, Acolyte of
+    Flame's −2 would, but it needs an atom.
   - The fix is a compiler one: an "instead" clause on a look chooses between the two outcomes,
-    Conditional(not from hand, all looked-at cards to hand, else the normal pair). Test it with a
-    pack once the runner can cast from a zone other than the hand (the Archfiend's Vessel item
-    needs the same op).
+    Conditional(not from hand, all looked-at cards to hand, else the normal pair).
+  - Its pack (2026-11-13, the runner's test permission casts it from the graveyard):
+    `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
+    expects all three cards in hand and no choice. It fails today at the first ask (`one_of`,
+    which card goes to the hand); answered, the tree ends with two cards in hand and one on the
+    bottom. With the fix it passes and moves to `tools/scenarios/`.
   - See the Truth stays unverified until then; its main branch was judged OK.
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
@@ -829,6 +870,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **Sorin, Imperious Bloodlord's +1.** Re-mapped 2026-11-12 as a reflexive trigger (CR 603.12),
     its target chosen as it goes on the stack after the sacrifice; goes back to G2. Its packs,
     `tools/scenarios/mapped/M20/sorin_imperious_bloodlord_*`, run in the suite on the record.
+    G3 (2026-11-13): its first +1's two "target->all" survivors are dead (the activation twin
+    rule); `cardtool verify` passes with the wave-1b verdict `runs/verify_wave1b/verdicts/B/B01.json`.
   - **Goblin Ringleader** and **Mu Yanling, Sky Dancer** were re-mapped 2026-11-12 (`cardtool
     write`) and go back to blind G2. Ringleader's "all Goblin cards revealed this way" is an ALL over
     the revealed window, not a one-of choice (pack
@@ -862,11 +905,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/blightbeetle_stolen_reads_its_new_controller.json`.
   - Both trees are unchanged and go back to verification with their packs.
   - M21 Tolarian Kraken: the reflexive trigger landed (2026-11-12, trigger lane); its two
-    "target->all" survivors now differ from the card where a pack can show it (Gates, below).
+    "target->all" survivors now differ from the card where a pack can show it, and
+    `reports/g3_equivalence_2026-11-13/packs/A05_*.json` does (Gates, below).
     M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
     re-read now counts a departed attacker by its last attack (its ruling). One survivor is live
-    only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: G3 survivors no
-    2-seat M21 pack can kill (Gates, "G3 survivors no 2-seat same-set pack can kill").
+    only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: their G3
+    survivors are killed since 2026-11-13 by packs the runner can now run (Gates, "G3 survivors
+    no 2-seat same-set pack can kill"); both cards go to blind verification with them.
   - FDN Battlesong Berserker and Searslicer Goblin lost their documented equivalent mutants;
     neither has a current verdict.
 - **M21 Runed Halo, Garruk, Savage Herald and Rookie Mistake can go to G1 and G2** (2026-11-12,
@@ -959,37 +1004,51 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **G3 survivors no 2-seat same-set pack can kill** (2026-11-12, verification wave 1's G3 pass;
   evidence in `reports/g3_equivalence_2026-11-12/`). The equivalent classes are now dead-role
   rules in `gates.mutants`, each proven in `tools/cards/test_gates.py`: twin TARGET selectors in a
-  resolution-time Choose of a spell (Gods Willing) and in a trigger outside any Choose
-  (Battlesong Berserker); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
+  resolution-time Choose of a spell (Gods Willing), in a trigger outside any Choose
+  (Battlesong Berserker) and in an activated ability outside any Choose (Sorin, Imperious
+  Bloodlord's first +1, 2026-11-13: `activate()` now refuses an empty designation for a slot that
+  needs a target before any cost is paid, CR 602.2b, 601.2c, as the cast lane does; it used to
+  pay and then raise "TARGET selector has no designation" at resolution, after an ALL twin had
+  already acted); an end-step trigger whose condition requires TURN_OF YOU (Searslicer
   Goblin); a printed static PREVENT_EFFECT's atom `condition` (Blightbeetle); a granted
   damage-policy static's "you may" (Garruk, Savage Herald's -7). Over the 701 verified cards
   only M20 Maniacal Rage and Wolfrider's Saddle lose mutants (two non-critical "widen filter"
-  each, survivors in their records). What stays:
-  - **Live only where no pack reaches.** M21 Archfiend's Vessel ("or you cast it from your
-    graveyard": the effect-cast lane can, `stack.cast_card`, but no card in the 19 sets casts a
-    creature card from a graveyard and the runner casts from hand only) and M21 Teferi's Ageless
-    Insight (its condition's `who` matters only with a second draw replacement firing on the turn
-    draw, none in the 19 sets, or with three seats, where the mutant raises). Both are proven live
-    in `proof_vessel_teferi.py`, so no rule. Options: a pack op that casts through
-    `stack.cast_card` from any zone (kills the Vessel's two), a 3-seat pack world, or a recorded
-    decision to accept the survivor.
+  each, survivors in their records); the activation rule changes none of the 709 verified on
+  2026-11-13. What stays:
+  - **Live, and killed by packs since 2026-11-13.** M21 Archfiend's Vessel ("or you
+    cast it from your graveyard": no card in the 19 sets casts a creature card from a graveyard)
+    and M21 Teferi's Ageless Insight (its condition's `who` matters only with a second draw
+    replacement firing on the turn draw, none in the 19 sets, or with three seats, where the
+    mutant raises), both proven live in `proof_vessel_teferi.py`, so no rule. The Vessel's two
+    are killed by `tools/scenarios/archfiends_vessel_cast_from_your_graveyard.json` (the
+    runner's test permission casts it from the graveyard through `stack.cast_card`), Teferi's by
+    `tools/scenarios/teferis_ageless_insight_three_players.json` (a three-seat world). These are
+    demonstration packs, not verification evidence: the cards go to blind verifiers.
   - **Live, and now the card is right.** M21 Tolarian Kraken's twins sit in its reflexive
     trigger's Choose: with no legal target the {1} is paid, then the card's reflexive trigger is
-    removed as it goes on the stack and the mutant's resolves (test_gates
-    `..._reflexive_trigger_choice_stays_live`). A spec pack of that game, choosing the tap option,
-    kills them (`tolarian_kraken_pays_with_no_legal_target` stops at the payment ask). M21
+    removed as it goes on the stack (CR 603.3d) and the mutant's waits there (test_gates
+    `..._reflexive_trigger_choice_stays_live`). It resolves asking nothing: its "you may" narrows
+    to skip, since the option left with a TARGET has no legal one (`query.optional_offer`), so no
+    pack can choose the tap option. What a pack sees is the trigger itself:
+    `reports/g3_equivalence_2026-11-13/packs/A05_kraken_reflexive_no_target_leaves_nothing_to_counter.json`
+    (the opponent's Sublime Epiphany finds no ability of the Kraken to counter) kills both, for
+    a verifier; or one more pass of priority resolves it instead of ending the main phase. M21
     Mangara's inner-filter mutant differs only when an attacked planeswalker changes control while
-    the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws),
-    which no pack can stage (Combat, "A pack cannot respond to a combat trigger"); its event-filter
-    mutant is equivalent (`proof_mangara.py`) but its shape is that one card's, so no rule.
+    the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws).
+    A pack can respond while the trigger waits since 2026-11-13 (the combat op's
+    `respond_to_triggers`), but no M21 card changes a planeswalker's control at instant speed and
+    the runner has no op that does, so S5 is still unstaged: the window's Mangara pack
+    (`mangara_counts_an_attacker_destroyed_while_its_trigger_waits.json`, an attacker destroyed,
+    S6) plays the same with both mutants. Its event-filter mutant is equivalent
+    (`proof_mangara.py`) but its shape is that one card's, so no rule.
   - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
 - **G3 has no operator for a qualifier re-read on resolution** (2026-11-12, gate round 6 m8). R6-2
   moved event qualifiers out of the condition; a mutant moving one back (Tide Skimmer's "two or
   more creatures with flying" re-read as the trigger resolves) differs only when the qualifier
-  stops holding while the trigger waits, which no pack can stage ("A pack cannot respond to a
-  combat trigger", Combat). Add the operator as non-critical, or add the combat op's response
-  window first and make it critical.
+  stops holding while the trigger waits. A pack can stage that since 2026-11-13 (the combat op's
+  `respond_to_triggers`: a flyer destroyed while Tide Skimmer's trigger waits), so the operator
+  can be critical.
 - **Probe (G1) blind spots** (verifiers: M20 2026-11-05, FDN round 1 and round 3 2026-11-06).
   - Clauses left NOT_EXERCISED: granted abilities are never activated, loyalty never reaches an
     ultimate, the land drop is always a Plains, the library holds 6 cards, no planeswalker is on
@@ -1028,7 +1087,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     unconsumed although the words were used. The other 35 are genuine leftovers (enter 12,
     end_turn 10, combat 7, advance_turn 5, deal_damage 1; e.g. faiths_fetters "skip",
     spirit_of_malevolence_dies_trigger "foe"). Fix: hand each word out once, fail a step that
-    leaves words unused, then repair the flagged packs with red evidence.
+    leaves words unused, then repair the flagged packs with red evidence. The
+    `test_permission_cast` op (2026-11-13) already fails a step that leaves words unused.
+  - **Keys a step does not read pass silently** on most ops: 2 `end_turn` steps and 8 `loyalty`
+    steps carry a `seat`, which neither op reads. The world, the combat step and
+    `test_permission_cast` refuse unknown keys since 2026-11-13 (a misspelt trigger window or
+    seat count would have run the pack without it); the other ops should too, once those packs
+    are repaired.
   - **The `cast` op still gives its words to two lanes.** It passes the step's words to the cast
     as its decision pool (where `stack.cast_modes` takes a mode word) and to the provider. The
     provider's queue does not drop a word the pool took, so a cast step that names a mode by word
@@ -1040,6 +1105,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - In a combat step, a creature missing from the `attack` map takes its attack answer from the
     step's `decisions`, which shifts the words meant for a trigger.
   - The deal_damage op cannot target a player.
+  - A pack can respond while a combat step's triggers wait (`respond_to_triggers`, 2026-11-13),
+    but not while an upkeep or end-step trigger waits: `to_step` passes until the step holds
+    priority with an empty stack. `Executor.pass_until(step, waiting=True)` stops at the step's
+    first priority point; a `to_step` flag for it would be the combat window's twin.
   - The docstring omits the `life` op and lanes the runner reads (kickback_asks, battlefield_pt,
     battlefield_keywords).
 - **Packs bind every placed card's record; games bind none until a card is cast, played or

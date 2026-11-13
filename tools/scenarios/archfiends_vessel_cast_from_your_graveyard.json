@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vessel", "real": "Archfiend's Vessel", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "test_permission_cast", "key": "vessel", "from": "graveyard"}
+ ],
+ "expect": {
+  "kick_rows": {"vessel": {"from": "graveyard"}},
+  "zone": {"vessel": "exile"},
+  "tokens": {"Demon": 1},
+  "battlefield_pt": {"Demon": [5, 5]},
+  "battlefield_keywords": {"Demon": ["FLYING"]},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Printed: 'When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it. If you do, create a 5/5 black Demon creature token with flying.' No compiled card lets a player cast it from a graveyard, so a test permission does (test_permission_cast, the effect-cast lane a real permission takes). Seat 0 casts the Vessel from its graveyard in its main phase, paying {B}; the CAST row records the graveyard (kick_rows 'from'). It resolves and enters from the stack, not the graveyard, so only the second half of the condition holds: you cast it from your graveyard. The Vessel is exiled and a 5/5 flying Demon is created. A Vessel put onto the battlefield from the graveyard would exile itself too, by the first half; the CAST row is what tells this cast from that."
+}

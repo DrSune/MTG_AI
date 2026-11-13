@@ -73,3 +73,21 @@
 - **A green verifier is still not proof of rightness.** See the Truth's verdict was OK with one clause unjudged. Reading the tree found the branch wrong.
 - **Merges can conflict in meaning, not only in text.** Two correct fixes (arrange, and the owner's library) turned a pack red together. The full check on the merged tree caught it.
 - **Packs need verified supporting cards.** The suite plays verified cards only. Tale's End's first packs used Sorin and Battalion Foot Soldier.
+
+## 4. After the wave (2026-11-13 00:40-01:15)
+
+- **Sorin, Imperious Bloodlord is verified** (mutation score 0.81, 6 packs).
+  - Its first +1's twin-target mutants are equivalent. The proof found one engine fault first:
+    `activate()` accepted a targeted ability with no targets. It paid the cost, then failed at
+    resolution (CR 602.2b, 601.2c).
+  - `legality.activation_target_reason` now refuses an empty designation before anything is paid.
+    An "up to" slot may stay empty.
+  - G3's twin rule covers activated abilities (6ac1354e). No verified card's mutant set changes.
+  - Celestial Enforcer's spec pack had pinned the old crash. It now expects the refusal, with the
+    mana unspent.
+- **Tolarian Kraken is verified** (0.83, 5 packs).
+  - Its twin mutants are observable. With no legal target the printed card's reflexive trigger is
+    removed (CR 603.3d), and a mutant's goes on the stack.
+  - A pack by another agent, reviewed and adopted by the blind verifier, shows it: the opponent
+    finds nothing on the stack to counter.
+- **Verified pools:** M21 273 (of 280 castable), M20 261, FDN 177.

@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you draw a card, you may pay {1}. When you do, you may tap or untap target creature.' The Kraken is the only creature and has protection from blue (Feat of Resistance, blue), so its reflexive trigger has no legal target when it would go on the stack after the payment, and is removed (CR 603.12, 603.3d). The opponent's Sublime Epiphany therefore finds no ability of the Kraken on the stack to counter.",
+ "cards": [
+  {"key": "k", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 0},
+  {"key": "feat", "real": "Feat of Resistance", "zone": "hand", "controller": 0},
+  {"key": "ct", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "R": 1, "C": 2}, "1": {"U": 6}},
+ "steps": [
+  {"op": "cast", "key": "feat", "targets": ["k"], "decisions": ["1"]},
+  {"op": "cast", "key": "ct", "hold": true},
+  {"op": "resolve"},
+  {"op": "mana", "seat": 0, "add": {"C": 0}, "hold": true},
+  {"op": "resolve", "decisions": ["fire"]},
+  {"op": "mana", "seat": 1, "add": {"U": 0}, "hold": true},
+  {"op": "cast", "key": "se", "controller": 1, "targets": ["ability:k"], "decisions": ["1"],
+   "expect_raise": "no ability of 'k' is on the stack"}
+ ],
+ "expect": {"mana_pool": {"0": {"C": 0}}, "zone": {"k": "battlefield", "se": "hand"}}
+}

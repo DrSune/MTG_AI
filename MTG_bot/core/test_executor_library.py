@@ -49,6 +49,7 @@ from MTG_bot.core.executor import (
     activate,
 )
 from MTG_bot.core.executor.durations import DurationLedger
+from MTG_bot.core.executor.games import identity_of
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import legal_search
 from MTG_bot.core.executor.stack import StackObject
@@ -721,20 +722,41 @@ class TestLoyaltyLedger(LibraryCase):
         rows = [e for e in self.journal_rows("COUNTER_PLACED") if e.subject == self.pw]
         self.assertEqual([r.data for r in rows], [("LOYALTY", 1)])
 
+    def red_sorcery_in_graveyard(self):
+        """The −2's target: "target red instant or sorcery card from your graveyard", here Crash
+        Through with the {R} it costs (the cast lane offers only a spell the seat can pay for)."""
+        crash = record("Crash Through")
+        card = self.world.add_card(identity_of(crash), self.p0, ZONE_GRAVEYARD)
+        self.ex.attach_card(card, crash)
+        self.world.players[self.p0].mana_pool["R"] = 1
+        return card
+
+    def minus_two(self):
+        self.activate_pw(1, targets=(self.red_sorcery_in_graveyard(),), decisions=["skip"])  # skip the CAST
+
     def test_minus_two_pays_and_sets_the_clock(self):
-        self.activate_pw(1, decisions=["skip"])  # −2, skip the CAST
+        self.minus_two()
         self.assertEqual(self.loyalty(), 3)
         self.assertEqual(self.loyalty_clock_for_pw(), self.world.turn)
+
+    def test_minus_two_needs_its_target(self):
+        # CR 602.2b, 601.2c: an ability that says "target" is not activated without its target,
+        # and is refused before its cost is paid (no loyalty spent, no clock), as a spell's
+        # empty designation is refused before it is cast.
+        with self.assertRaisesRegex(ValueError, "illegal activation: target:selection:count_below_min"):
+            self.activate_pw(1, decisions=["skip"])
+        self.assertEqual(self.loyalty(), 5)
+        self.assertIsNone(self.loyalty_clock_for_pw())
 
     def loyalty_clock_for_pw(self):
         return self.ex.loyalty_clock.get(self.pw)
 
     def test_second_loyalty_ability_same_turn_is_gated(self):
-        self.activate_pw(1, decisions=["skip"])
+        self.minus_two()
         self.assertEqual(self.playable(3), "window:loyalty:once_per_turn")
 
     def test_next_turn_clears_the_once_per_turn_clock(self):
-        self.activate_pw(1, decisions=["skip"])
+        self.minus_two()
         self.assertIsNotNone(self.playable(1))
         self.ex.advance_turn()
         self.ex.advance_turn()  # back to p0, world.turn advanced

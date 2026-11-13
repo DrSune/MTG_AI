@@ -10,6 +10,8 @@ reason listed by ``coverage``. The track never guesses. Exclusions:
 - ability indexes that cannot be mapped to an oracle line;
 - choices given as opaque numbers;
 - combat damage-order and trample lanes;
+- combat response windows (steps run inside the combat; until 2026-11-13 they were left out
+  of the prompt while the gold included them);
 - packs that expect an engine error.
 
 **Self-check at build time.** For each item the steps are replayed on a fresh runner, and the
@@ -269,6 +271,8 @@ def _render_step(step: dict, labels: dict[str, str], runner: Any, supply: Any, o
     if op == "combat":
         if any(step.get(k) for k in ("order", "trample", "policy")):
             raise Unrenderable("combat damage-order/trample lanes")
+        if step.get("respond") or step.get("respond_to_triggers"):
+            raise Unrenderable("combat response windows")  # their steps happen inside the combat
         if step.get("decisions"):
             _words(step["decisions"], labels)
         attackers = [L(k) for k, go in step.get("attack", {}).items() if go]

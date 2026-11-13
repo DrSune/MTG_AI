@@ -1,0 +1,58 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "s",
+   "real": "Sorin, Imperious Bloodlord",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ba",
+   "name": "BA",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bb",
+   "name": "BB",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "s",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "ba"
+   ]
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "BA": [
+    "DEATHTOUCH",
+    "LIFELINK"
+   ],
+   "BB": []
+  },
+  "counters": {
+   "ba": {},
+   "bb": {}
+  }
+ },
+ "notes": "Printed: '[+1]: Target creature you control gains deathtouch and lifelink until end of turn. If it's a Vampire, put a +1/+1 counter on it.' Two non-Vampire Bears: only the targeted one (BA) gains deathtouch and lifelink; the other (BB) gains neither; no counter on either."
+}

@@ -13,9 +13,18 @@ Exit code 0 = every pack passed. A failing expect prints the pack, the
 key and observed-vs-expected — nothing else.
 
 Pack vocabulary (all keys required as noted):
-  world   : {"life": int, "seed": int}
+  world   : {"life": int, "seed": int, "library_top": bool?, "players": int?}
+                                            players: the seats, 2 unless given.
+                                            With 3 or more nobody skips the
+                                            first draw (CR 103.8c), turns go
+                                            round in seat order, and the engine
+                                            makes the first other seat in turn
+                                            order the defending player (the
+                                            attacker's choice among opponents,
+                                            CR 506.2, is not modelled). Any
+                                            other world key is refused
   cards   : [{"key": str, "zone": "hand"|"battlefield"|"library"|"graveyard"
-                    |"exile", "controller": 0|1,
+                    |"exile", "controller": seat index (0, 1, ...),
               "real": "<pool card name>"  OR  "<compiled token name>"
                                             (a token golden — "Treasure" —
                                             addressed by name through the
@@ -36,7 +45,8 @@ Pack vocabulary (all keys required as noted):
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
-                                            (a target may be "p0"/"p1": a player)
+                                            (a target may be "p<N>": the player
+                                            at seat N)
               "decisions": [str...]},       each word must be offered by the ask it
                                             answers (a pack key resolves to its handle;
                                             "first-legal" takes the first offered word).
@@ -49,10 +59,10 @@ Pack vocabulary (all keys required as noted):
              {"op": "enter", "key": k, "hold_triggers": true}
                                             the triggers the entry arms wait,
                                             unresolved, until the NEXT step's
-                                            settle — the stand-in for "in
-                                            response to the trigger" (the
-                                            engine has no priority window
-                                            for triggers),
+                                            settle — the older stand-in for
+                                            "in response to the trigger" (it
+                                            keeps them off the stack; "hold"
+                                            below puts them on it),
              {"op": "move", "key": k, "to": "hand"|"graveyard"|"exile"
               |"battlefield"|"library"}     a journalled move by "another
                                             effect" (a bounce, a destroy, an
@@ -121,6 +131,27 @@ Pack vocabulary (all keys required as noted):
              "tap": true on a cast step: the caster taps the mana sources
                                             that pay it (the menu's automatic
                                             payment, CR 601.2g, 605.3a),
+             {"op": "test_permission_cast", "key": k,
+              "from": "graveyard"|"exile"|"library", "controller": seat?,
+              "targets": [key...]?, "x": int?, "decisions": [str...]?}
+                                            a TEST permission: no card grants
+                                            it. The caster casts its own card
+                                            from that zone (a library's top
+                                            card only) as though a permission
+                                            let it, through the lane a real
+                                            permission's cast takes
+                                            (stack.cast_card), which journals
+                                            the zone (kick_rows "from"). A
+                                            permission changes where, not when
+                                            or at what cost (CR 601.3): the
+                                            card's own timing and its whole
+                                            cost are judged first, and a miss
+                                            raises "illegal cast" ("window:"
+                                            for a sorcery at instant speed).
+                                            The mana is the pool's (no "tap",
+                                            no kicker: any other key is
+                                            refused), and every decision word
+                                            must answer an ask,
              {"op": "combat", "seat": 0|1, "attack": {key: bool|pwKey},
                                             (a planeswalker's pack key
                                             attacks that planeswalker)
@@ -130,12 +161,25 @@ Pack vocabulary (all keys required as noted):
               "trample": {attackerKey: [amount...]},    excess asks
               "policy": {attackerKey: "UNBLOCKED"|
                                   "AS_BLOCKED"},        damage-assignment policy
-              "respond": {STEP: [step...]}}  steps run when that combat step
+              "respond": {STEP: [step...]},  steps run when that combat step
                                             (DECLARE_ATTACKERS,
                                             DECLARE_BLOCKERS, ...) has
                                             priority with an empty stack: an
                                             instant cast after blocks
-                                            the whole COMBAT phase; the
+              "respond_to_triggers": {STEP: [step...]}}
+                                            steps run at that combat step's
+                                            first priority point, before
+                                            anyone passes: what its turn-based
+                                            actions triggered (the attack
+                                            triggers) waits on the stack and
+                                            the steps respond to it (an
+                                            attacker destroyed, CR 117.3b,
+                                            117.5). A window where no
+                                            triggered ability waits fails the
+                                            pack; a step's two windows run
+                                            this one first.
+                                            The op runs the whole COMBAT phase
+                                            and refuses any other key; the
                                             ask provider answers ONLY from
                                             these maps and the step's
                                             "decisions" (the engine narrows
@@ -164,14 +208,21 @@ Pack vocabulary (all keys required as noted):
              "lost": {"0": bool},          the seat is in
                                             executor.lost_players (LOSE_GAME,
                                             or CR 704.5a/b: a step that ends the
-                                            game is the last one that runs),
+                                            game is the last one that runs).
+                                            With three or more players the
+                                            game goes on, so a seat that lost
+                                            and is not named true here fails
+                                            the pack,
              "mana_pool": {"0": {"W": 1}},  the PlayerState.mana_pool totals
                                             (an absent colour equals 0)
-             "kick_rows": {key: {"kicked": bool, "x": int|null}},
+             "kick_rows": {key: {"kicked": bool, "x": int|null,
+                                 "from": zone}},
                                         the LAST CAST journal row of the
                                         key's card (the same 6-tuple
                                         WAS_KICKED reads: paid flag + the
-                                        declared X). A never-cast key FAILS
+                                        declared X; "from", the zone it was
+                                        cast from, CAST_THIS_TURN_FROM's
+                                        column). A never-cast key FAILS
                                         loudly — no row, no silent False.
              "counters": {key: {"KIND": n}},  the counter table,
              "power": {key: int},             ledger effective_pt,
@@ -184,7 +235,9 @@ Pack vocabulary (all keys required as noted):
              "controller": {key: 0|1}}  the effective controller's seat
                                         (CR 610.3c)
   setup cards may carry "counters": {"KIND": n}; an activate step's targets
-  may name a player as "p0"/"p1".
+  may name a player as "p<N>". A seat a pack names (a card's controller, a
+  step's seat, a lane's seat key) must be one of the world's: any other is
+  refused, never read as another seat.
   any step may carry "expect_raise": "<text>": the step must raise, with the
   text in its message (a refusal: "illegal target"). A step without
   "decisions" raises at its first ask that is not a response window, and the
@@ -213,6 +266,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
+    SpellAbility,
     Verb,
     Zone,
     ZoneKind,
@@ -220,7 +274,19 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
 from MTG_bot.core.executor.games import OPENING_HAND, get_supply, identity_of, mulligans
-from MTG_bot.core.executor.stack import cast, play_land
+from MTG_bot.core.executor.legality import (
+    BEGIN_COMBAT,
+    COMBAT_DAMAGE,
+    DECLARE_ATTACKERS,
+    DECLARE_BLOCKERS,
+    END_OF_COMBAT,
+    FIRST_STRIKE_DAMAGE,
+    card_window_reason,
+    ctx_for,
+    spell_record,
+)
+from MTG_bot.core.executor.query import cast_designee_ok
+from MTG_bot.core.executor.stack import cast, cast_card, play_land
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -284,6 +350,22 @@ FIRST_LEGAL = "first-legal"
 #: The asks a combat step's maps describe: the combat itself (attackers, blockers, damage order,
 #: trample excess, damage policy). An unspecified one keeps the combat op's default.
 COMBAT_DECLARATIONS = ("attack:", "block:", "order:", "trample:", "policy:")
+#: The steps of the combat phase in order (CR 506.1), as a combat step's windows name them.
+COMBAT_STEPS = (
+    BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOCKERS, FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT,
+)
+#: The keys a world, a combat step and a test permission's cast read. Any other is refused: a
+#: misspelt one would be ignored, and the pack would pass without the window, the seats or the
+#: field it names.
+WORLD_KEYS = frozenset({"life", "seed", "library_top", "players"})
+_ANY_STEP = ("op", "decisions", "hold", "expect_raise", "eval_reclassification", "comment")
+COMBAT_KEYS = frozenset(
+    {*_ANY_STEP, "seat", "attack", "may", "block", "order", "trample", "policy", "respond",
+     "respond_to_triggers"}
+)
+PERMISSION_CAST_KEYS = frozenset({*_ANY_STEP, "key", "from", "controller", "targets", "x"})
+#: The zones a test permission casts a card from (the test_permission_cast op).
+PERMISSION_ZONES = {"graveyard": ZONE_GRAVEYARD, "exile": ZONE_EXILE, "library": ZONE_LIBRARY}
 _ORACLES: dict[str, Any] = {}  # the act op's card text, one index per set
 
 
@@ -297,13 +379,19 @@ class ScenarioRunner:
         #: the running step's queue of decision words (None outside a step with words)
         self.queue: list[str] | None = None
         world_cfg = pack.get("world", {})
+        unknown = set(world_cfg) - WORLD_KEYS
+        if unknown:  # a misspelt "players" would build a two-player world unnoticed
+            raise PackError(f"world: unknown keys {sorted(unknown)}; it takes {sorted(WORLD_KEYS)}")
+        players = world_cfg.get("players", 2)
+        if type(players) is not int or players < 2:
+            raise PackError(f"world: players must be a whole number of two or more, got {players!r}")
         self.world = GameWorld(
-            num_players=2,
+            num_players=players,
             start_life=world_cfg.get("life", 20),
             master_seed=world_cfg.get("seed", 7),
         )
-        self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
-        self.seats = [self.p0, self.p1]
+        self.seats = list(self.world.player_order)
+        self.p0, self.p1 = self.seats[0], self.seats[1]
         self.ex = Executor(self.world)
         self.handles: dict[str, Any] = {}
         synth = 0
@@ -353,7 +441,7 @@ class ScenarioRunner:
                 )
             zone = ZONE_OF_NAME[card.get("zone", "battlefield")]
             self.handles[card["key"]] = self.world.add_card(
-                identity, self.seats[card["controller"]], zone
+                identity, self._seat(card["controller"], f"card {card['key']!r}"), zone
             )
             # A permanent that starts tapped ("start_tapped", or the older "tapped"). Applied
             # after the opening begin_turn below, whose untap step would untap seat 0's.
@@ -366,8 +454,11 @@ class ScenarioRunner:
         self.ex.attach_pool(supply.pool)
         if "mulligan" in pack:
             self._mulligans(list(pack["mulligan"]))
-        # The clock opens for real (begin_turn: markers, ledger; turn 1 of a two-player game, so
-        # seat 0 skips its draw step, CR 103.8a); a faked turn would desync world.turn and the
+        if len(self.seats) > 2:
+            self._fill_libraries()  # seat 0 draws in the opening turn
+        # The clock opens for real (begin_turn: markers, ledger; turn 1, so in a two-player game
+        # seat 0 skips its draw step, CR 103.8a, and with more players nobody does, 103.8c);
+        # a faked turn would desync world.turn and the
         # sickness clock against advance_turn. A card pre-placed on the battlefield can trigger
         # at this first begin_turn (an upkeep or beginning-of-turn trigger) before any step
         # installs an answerer; a caller may pass one for setup.
@@ -382,7 +473,7 @@ class ScenarioRunner:
         # begin_turn, whose steps each empty the pools as they end (CR 500.4).
         for seat, colors in pack.get("mana", {}).items():
             for color, n in colors.items():
-                self.world.players[self.seats[int(seat)]].mana_pool[color] = n
+                self.world.players[self._seat(seat, "mana")].mana_pool[color] = n
         # The asks the engine made, and libraries deep enough for real
         # begin_turn/advance_turn draws.
         self.asks_seen: list[tuple[str, tuple[str, ...]]] = []
@@ -390,15 +481,21 @@ class ScenarioRunner:
         # as (tag, vocab, ANSWER) triples; the expect lane kickback_asks reads
         # these.
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
-        # The filler below lands ON TOP of a pack's typed library cards, so
-        # library-peek/scry asks would offer opaque "Library N" candidates.
-        # A pack that sets ``"world": {"library_top": true}`` re-raises its
-        # OWN library-zone cards above the filler (relative order preserved).
-        for seat_idx in (0, 1):
+        if len(self.seats) == 2:
+            self._fill_libraries()
+
+    def _fill_libraries(self) -> None:
+        """Six filler cards per library, in before the first draw: seat 1's in turn 2 of a
+        two-player game (after the opening turn, as always), seat 0's own in turn 1 with more
+        players (CR 103.8c). The filler lands ON TOP of a pack's typed library cards, so
+        library-peek/scry asks would offer opaque "Library N" candidates. A pack that sets
+        ``"world": {"library_top": true}`` re-raises its OWN library-zone cards above the
+        filler (relative order preserved)."""
+        for seat_idx in range(len(self.seats)):
             for i in range(6):
                 self.world.add_card(
                     CardIdentity(
-                        oracle_id=f"9f00000{i}-0000-0000-0000-00000000000{seat_idx}",
+                        oracle_id=f"9f00000{i}-0000-0000-0000-{seat_idx:012d}",
                         name=f"Library {i}",
                         type_line="Creature",
                         power="1",
@@ -408,14 +505,28 @@ class ScenarioRunner:
                     self.seats[seat_idx],
                     ZONE_LIBRARY,
                 )
-        if pack.get("world", {}).get("library_top"):
-            for key, handle in self.handles.items():
+        if self.pack.get("world", {}).get("library_top"):
+            for handle in self.handles.values():
                 if self.world.zone_of(handle).kind != ZONE_LIBRARY:
                     continue
                 pl = self.world.players[self.world.controller_of(handle)]
                 entries = pl.zone(ZONE_LIBRARY).entries
                 entries.remove(handle)
                 entries.append(handle)
+
+    def _seat(self, index: Any, what: str):
+        """The player at seat ``index`` (a number, or its digits as a lane key writes them). A
+        seat the world does not have is refused, never wrapped: Python reads -1 as the last."""
+        text = str(index)
+        if type(index) not in (int, str) or not text.isdecimal() or int(text) >= len(self.seats):
+            raise PackError(f"{what}: no seat {index!r} in this {len(self.seats)}-player world")
+        return self.seats[int(text)]
+
+    def _player(self, word: str):
+        """The player a ``p<N>`` word names (``p0``, ``p2``), or None for any other word."""
+        if word[:1] == "p" and word[1:].isdecimal():
+            return self._seat(word[1:], f"player word {word!r}")
+        return None
 
     def _mulligans(self, words: list[str]) -> None:
         """The pack's ``mulligan`` lane: opening hands, then CR 103.5 answered word for word."""
@@ -482,6 +593,8 @@ class ScenarioRunner:
             finally:
                 self.ex.decisions.provider = None
                 self.queue = None
+            if queue and step["op"] == "test_permission_cast":  # a word no ask took tested nothing
+                self.unoffered.append(f"test_permission_cast {step['key']}: words no ask took: {queue}")
             return
         if step["op"] != "combat":
             # A step WITHOUT a decisions queue still answers kickback asks
@@ -531,7 +644,7 @@ class ScenarioRunner:
             self.ex.execute(
                 _atom(verb, **roles),
                 source=self.handles[step["source"]],
-                controller=self.seats[step.get("controller", 0)],
+                controller=self._seat(step.get("controller", 0), op),
                 bindings={"target": self.handles[step["target"]]},
             )
         elif op == "cast":
@@ -546,8 +659,8 @@ class ScenarioRunner:
             # target list — the pack says WHO, seat-indexed.
             for tok in step.get("decisions", ()):
                 if isinstance(tok, str) and tok.startswith("player:"):
-                    targets.append(self.seats[int(tok.split(":", 1)[1])])
-            seat = self.seats[step.get("controller", 0)]
+                    targets.append(self._seat(tok.split(":", 1)[1], f"cast {spell_key}: {tok}"))
+            seat = self._seat(step.get("controller", 0), f"cast {spell_key}")
             if step.get("tap"):
                 # "tap": the caster taps the mana sources that pay it, as a player
                 # does while casting (CR 601.2g, 605.3a; the menu's automatic payment).
@@ -565,7 +678,7 @@ class ScenarioRunner:
             with self.ex.holding_priority():
                 frame = cast(
                     self.ex,
-                    self.seats[step.get("controller", 0)],
+                    seat,
                     self.handles[spell_key],
                     x=step.get("x"),
                     kicked=bool(step.get("kicked", False)),
@@ -600,11 +713,7 @@ class ScenarioRunner:
             # once-per-turn ledger, and the journal's entry hook that
             # stamps the compiled EtBState (the M21 checklands and
             # temples enter TAPPED; asserting the printed promise).
-            play_land(
-                self.ex,
-                self.seats[int(step.get("seat", 0))],
-                self.handles[step["key"]],
-            )
+            play_land(self.ex, self._seat(step.get("seat", 0), op), self.handles[step["key"]])
         elif op == "enter":
             handle = self.handles[step["key"]]
             atom = _atom(
@@ -687,14 +796,13 @@ class ScenarioRunner:
             # directly. The LIFE_LEAD_OVER_START_GE lane reads current life
             # minus the executor's starting-life snapshot, so this sets up a
             # "gained N since the start" scenario without a healing spell.
-            seat = self.seats[int(step["seat"])]
-            self.world.players[seat].life = int(step["set"])
+            self.world.players[self._seat(step["seat"], op)].life = int(step["set"])
         elif op == "mana":
             # harness pool write, as loyalty/life: mana empties as each step
             # and phase ends (CR 500.5), so a pack that pays after a phase or
             # turn change adds the seat's mana at that step, standing in for
             # the lands it would tap there.
-            pool = self.world.players[self.seats[int(step["seat"])]].mana_pool
+            pool = self.world.players[self._seat(step["seat"], op)].mana_pool
             for color, n in step["add"].items():
                 pool[color] = pool.get(color, 0) + int(n)
         elif op == "activate":
@@ -704,8 +812,8 @@ class ScenarioRunner:
                 self.ex,
                 self.handles[step["key"]],
                 int(step.get("idx", 0)),
-                seat=self.seats[int(step.get("seat", 0))],
-                # "p0"/"p1" designate a player (a "target opponent", or a "target
+                seat=self._seat(step.get("seat", 0), op),
+                # "p<N>" designates a player (a "target opponent", or a "target
                 # player" that may be the caster); any other word is a pack key.
                 targets=tuple(self._target_handle(k) for k in step.get("targets", ())),
                 # No decisions pool: the step's words answer its asks through the provider
@@ -721,15 +829,18 @@ class ScenarioRunner:
             self._combat(step)
         elif op == "act":
             self._act_window(step)
+        elif op == "test_permission_cast":
+            self._test_permission_cast(step)
         else:
             raise PackError(f"unknown op {op!r}")
 
     def _target_handle(self, key: str):
-        """A ``targets`` entry: a pack key, ``p0``/``p1`` for a player (so a "target
+        """A ``targets`` entry: a pack key, ``p<N>`` for the player at seat N (so a "target
         player" slot can name the caster in a cast or an activate step), or
         ``ability:<key>`` for that card's topmost ability on the stack."""
-        if key in ("p0", "p1") and key not in self.handles:
-            return self.seats[int(key[1])]
+        player = None if key in self.handles else self._player(key)
+        if player is not None:
+            return player
         if key.startswith("ability:"):  # the topmost ability on the stack of that pack card
             source = self.handles[key.split(":", 1)[1]]
             frame = next((f for f in reversed(self.ex.stack.frames) if f.source == source
@@ -742,12 +853,13 @@ class ScenarioRunner:
     def _resolve_word(self, word: str) -> str:
         """A word (or either side of a ``card@target`` composite) given as a
         PACK KEY resolves to the handle string the vocabulary carries; the
-        seat literals ``p0``/``p1`` resolve to the player handles (an "any
+        seat literals ``p<N>`` resolve to the player handles (an "any
         target" instant's vocabulary names players)."""
         if word in self.handles:
             return str(self.handles[word])
-        if word in ("p0", "p1"):
-            return str(self.seats[int(word[1])])
+        player = self._player(word)
+        if player is not None:
+            return str(player)
         card, sep, target = word.partition("@")
         if sep:
             target, x_sep, x = target.partition(":x")  # an X spell's window token
@@ -781,12 +893,12 @@ class ScenarioRunner:
         set_code = str(self.pack.get("set", "M21"))
         oracle = _ORACLES.get(set_code) or _ORACLES.setdefault(set_code, OracleIndex.for_sets(set_code))
         game = Game(executor=self.ex, seed=0, pool_mode="all")
-        router = SeatRouter(game, [Words(), Words()], [SeatLens(0, oracle), SeatLens(1, oracle)],
-                            supply=self.supply)
+        router = SeatRouter(game, [Words() for _ in self.seats],
+                            [SeatLens(i, oracle) for i in range(len(self.seats))], supply=self.supply)
         from MTG_bot.core.executor.games import MAX_ACTS_PER_STEP
 
+        seat = self._seat(step.get("seat", 0), "act")
         self.ex.decisions.provider = router.answer
-        seat = self.seats[int(step.get("seat", 0))]
         try:
             for _ in range(MAX_ACTS_PER_STEP):
                 if not router.take_priority(game, seat):
@@ -826,6 +938,9 @@ class ScenarioRunner:
         probe showed Feline Sovereign's trigger destroying a target its
         controller was never shown to choose. A pack installs none, so its
         defaults are unchanged."""
+        unknown = set(step) - COMBAT_KEYS
+        if unknown:
+            raise PackError(f"combat: unknown keys {sorted(unknown)}; it takes {sorted(COMBAT_KEYS)}")
         outer = self.ex.decisions.provider
         answers: dict[str, str] = {}
         queues: dict[str, list[str]] = {}
@@ -892,19 +1007,36 @@ class ScenarioRunner:
                     got = "DECLINE"
             return got if got in vocab else vocab[0]
 
-        # "respond": {step: [steps]}: the combat stops when that step's players
-        # have priority with an empty stack, and those steps run there (an
-        # instant after blockers are declared), each ending with both players
-        # passing; then the combat goes on.
+        # The windows, in the combat's step order: "respond_to_triggers" at a step's first
+        # priority point, what its turn-based actions triggered waiting on the stack; "respond"
+        # when the step holds priority with an empty stack. The steps run there, each ending
+        # with both players passing unless it holds; then the combat goes on.
+        windows = []
+        for lane, waiting in (("respond_to_triggers", True), ("respond", False)):
+            for name, responses in step.get(lane, {}).items():
+                if name not in COMBAT_STEPS:
+                    raise PackError(f"combat: {lane}: {name!r} is not a combat step {COMBAT_STEPS}")
+                windows.append((COMBAT_STEPS.index(name), not waiting, name, waiting, responses))
+        windows.sort(key=lambda w: w[:2])
+        early = any(w[2] == BEGIN_COMBAT or (w[3] and w[2] == DECLARE_ATTACKERS) for w in windows)
         self.ex.decisions.provider = answer
         try:
-            seat = self.seats[int(step.get("seat", 0))]
-            self.ex.combat_attacks(seat)
-            for name, responses in step.get("respond", {}).items():
-                if self.ex.phase != name:
-                    self.ex.pass_until(name)
-                if self.ex.phase != name:
+            seat = self._seat(step.get("seat", 0), "combat")
+            if early:
+                self.ex.start_combat(seat)  # nobody passes before the first window
+            else:
+                self.ex.combat_attacks(seat)
+            for _order, _late, name, waiting, responses in windows:
+                ex = self.ex
+                if waiting or not (ex.phase == name and ex.tba_done and not ex.stack.frames):
+                    ex.pass_until(name, waiting=waiting)
+                if ex.phase != name:
                     raise PackError(f"combat: the step {name} never came")
+                if waiting and not any(f.spell_kind == "TRIGGERED" for f in ex.stack.frames):
+                    raise PackError(
+                        f"combat: respond_to_triggers: no triggered ability waits at {name} "
+                        f"(the stack holds {[f.spell_kind for f in ex.stack.frames]})"
+                    )
                 for inner in responses:
                     self.ex.decisions.provider = None
                     try:
@@ -915,10 +1047,54 @@ class ScenarioRunner:
         finally:
             self.ex.decisions.provider = outer
 
+    def _test_permission_cast(self, step: dict) -> None:
+        """The ``test_permission_cast`` op: the caster casts its card from the zone it is in, as
+        though a permission let it ("you may cast it from your graveyard"). No card grants it:
+        it is a test permission, for the clauses that read where a spell was cast from when no
+        compiled card casts one from there. The cast takes the lane a real permission's cast
+        takes (``verbs._v_cast`` -> ``stack.cast_card``), which journals the zone it left (the
+        CAST row CAST_THIS_TURN_FROM reads). A permission changes where a card may be cast
+        from, never when or at what cost (CR 601.3, 601.2f-h; ``query.permission_cast``): the
+        card's own timing and its whole cost are judged first, by the gates a permission's
+        cast passes (``legality.card_window_reason``, ``query.cast_designee_ok``)."""
+        unknown = set(step) - PERMISSION_CAST_KEYS
+        if unknown:  # "tap", "kicked": the effect-cast lane pays from the pool and kicks nothing
+            raise PackError(f"test_permission_cast: keys it cannot apply {sorted(unknown)}")
+        key, zone = step["key"], step["from"]
+        if zone not in PERMISSION_ZONES:
+            raise PackError(f"test_permission_cast {key}: from {zone!r}; it casts from {sorted(PERMISSION_ZONES)}")
+        handle = self.handles[key]
+        seat = self._seat(step.get("controller", 0), f"test_permission_cast {key}")
+        where = self.world.zone_of(handle)
+        if where.kind != PERMISSION_ZONES[zone] or where.controller != seat:
+            raise PackError(
+                f"test_permission_cast {key}: the card is in seat "
+                f"{self.seats.index(where.controller)}'s {where.kind}, not the caster's {zone}"
+            )
+        if where.kind == ZONE_LIBRARY and where.entries[-1] != handle:
+            raise PackError(f"test_permission_cast {key}: a library card is cast from the top only")
+        record = spell_record(self.ex, handle)
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
+        x = int(step.get("x", 0))  # the effect-cast lane's X, 0 unless announced (verbs._v_cast)
+        if node is None:
+            reason = f"cast:not_a_spell:{handle}"  # a land is played, never cast (CR 305.1)
+        else:
+            reason = card_window_reason(self.ex, seat, record, node)
+        if reason is None and not cast_designee_ok(
+            self.ex, ctx_for(self.ex, source=handle, controller=seat, x_value=x), handle
+        ):
+            reason = "cost: its total cost cannot be paid (CR 601.2h)"
+        if reason is not None:
+            raise ValueError(f"executor: illegal cast: {reason}")
+        with self.ex.holding_priority():
+            targets = tuple(self._target_handle(k) for k in step.get("targets", ()))
+            cast_card(self.ex, seat, handle, cost_override=None, targets=targets, x=x)
+        self.ex._finish_op()  # undriven: both players pass until the stack is empty
+
     def check(self) -> list[str]:
         fails = []
         for seat, life in self.pack.get("expect", {}).get("life", {}).items():
-            got = self.world.players[self.seats[int(seat)]].life
+            got = self.world.players[self._seat(seat, "expect life")].life
             if got != life:
                 fails.append(f"life[{seat}]: expected {life}, got {got}")
         for key, zone in self.pack.get("expect", {}).get("zone", {}).items():
@@ -1083,25 +1259,34 @@ class ScenarioRunner:
             if got != bool(tapped):
                 fails.append(f"tapped[{key}]: expected {tapped}, got {got}")
         for seat, size in expect.get("hand", {}).items():
-            got = len(self.world.players[self.seats[int(seat)]].zone(ZONE_HAND).entries)
+            got = len(self.world.players[self._seat(seat, "expect hand")].zone(ZONE_HAND).entries)
             if got != size:
                 fails.append(f"hand[{seat}]: expected {size}, got {got}")
         for seat, want_lost in expect.get("lost", {}).items():
-            got_lost = self.seats[int(seat)] in self.ex.lost_players
+            got_lost = self._seat(seat, "expect lost") in self.ex.lost_players
             if got_lost != bool(want_lost):
                 fails.append(f"lost[{seat}]: expected {want_lost}, got {got_lost}")
+        if len(self.seats) > 2:
+            # With three or more players a loss does not end the game, and the engine keeps the
+            # player in it (CR 800.4a's leaving is not modelled): a loss the pack does not name
+            # would pass unseen.
+            for player in self.ex.lost_players:
+                seat = str(self.seats.index(player))
+                if not expect.get("lost", {}).get(seat):
+                    fails.append(f"lost[{seat}]: seat {seat} lost the game and the pack does not say so")
         # The ADD_MANA totals on PlayerState.mana_pool. Zero-equivalence on
         # both sides: legality.pay_costs DELETES a spent colour from the
         # dict, so an absent key and an explicit 0 assert the same fact.
         for seat, colors in expect.get("mana_pool", {}).items():
-            pool = self.world.players[self.seats[int(seat)]].mana_pool
+            pool = self.world.players[self._seat(seat, "expect mana_pool")].mana_pool
             got_pool = {k: v for k, v in pool.items() if v}
             want_pool = {k: v for k, v in dict(colors).items() if v}
             if got_pool != want_pool:
                 fails.append(f"mana_pool[{seat}]: expected {want_pool}, got {got_pool}")
         # The LAST CAST journal row per key: the 6-tuple WAS_KICKED consumes
-        # (kicked flag + declared X). A key with no CAST row fails loudly
-        # (never a silent False).
+        # (kicked flag + declared X) and CAST_THIS_TURN_FROM reads (the zone it
+        # was cast from). A key with no CAST row fails loudly (never a silent
+        # False), and so does a field the row does not have.
         for key, want in expect.get("kick_rows", {}).items():
             handle = self.handles[key]
             rows = [
@@ -1112,7 +1297,11 @@ class ScenarioRunner:
             if not rows:
                 fails.append(f"kick_rows[{key}]: no CAST row journalled")
                 continue
-            _caster, _ord, _kind, _from, got_x, got_kicked = rows[-1].cast
+            _caster, _ord, _kind, got_from, got_x, got_kicked = rows[-1].cast
+            if set(want) - {"kicked", "x", "from"}:
+                fails.append(f"kick_rows[{key}]: unknown fields {sorted(set(want) - {'kicked', 'x', 'from'})}")
+            if "from" in want and got_from != want["from"]:
+                fails.append(f"kick_rows[{key}].from: expected {want['from']!r}, got {got_from!r}")
             if "kicked" in want and bool(got_kicked) != bool(want["kicked"]):
                 fails.append(
                     f"kick_rows[{key}].kicked: expected {want['kicked']}, "
@@ -1124,7 +1313,7 @@ class ScenarioRunner:
         # engine's pay: tags ("PASS"/"PAY"). Absent, the lane is unchecked; an
         # explicit [] pins "this seat was never asked".
         for seat, wants in expect.get("kickback_asks", {}).items():
-            seat_str = str(self.seats[int(seat)])
+            seat_str = str(self._seat(seat, "expect kickback_asks"))
             got_ans = [
                 a
                 for (w, _, a) in self.rung1_asks
@@ -1201,7 +1390,7 @@ class ScenarioRunner:
                         )
         for lane, zk in (("library", ZONE_LIBRARY), ("graveyard", ZONE_GRAVEYARD)):
             for seat, names in expect.get(lane, {}).items():
-                zone = self.world.players[self.seats[int(seat)]].zone(zk)
+                zone = self.world.players[self._seat(seat, f"expect {lane}")].zone(zk)
                 order = [self.world.cards[h].identity.name for h in zone.entries]
                 if lane == "library":
                     order = list(reversed(order))  # TOP first (draw pops last)

@@ -403,11 +403,19 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
       a Choose (Tolarian Kraken's reflexive "tap or untap target creature") stay out: the
       mutant's slot is no longer required, so with no legal target its trigger still goes on
       the stack.
-    - Activated abilities stay out: ``activate`` validates no targets."""
+    - An activated ability (Sorin, Imperious Bloodlord's first +1): ``activate`` validates the
+      designation against query.activation_target_slots (every TARGET selector of the
+      ability's own nodes, deduped by repr) and refuses an empty one for a slot that needs a
+      target before any cost is paid (legality.activation_target_reason, CR 602.2b, 601.2c);
+      the act menu offers the row only when every slot can be designated (menu.can_designate);
+      resolve_activated re-checks the same slot (CR 608.2b) and binds ``target``. Every mutant
+      keeps the slot, so it is offered, refused, designated and resolved as the card. A lone
+      TARGET selector is no twin: its mutant has no slot and is activated with no target
+      (Celestial Enforcer). A Choose above a twin stays out here too."""
     if isinstance(ability, SpellAbility):
         if isinstance(ability.effect, Choose):
             return set()  # a modal spell
-    elif not isinstance(ability, TriggeredAbility):
+    elif not isinstance(ability, (TriggeredAbility, ActivatedAbility)):
         return set()
     found = list(_paths(ability, base))
     nodes = dict(found)
@@ -417,7 +425,7 @@ def _twin_targets(ability: Any, base: tuple) -> set[tuple]:
     if any(isinstance(n, ControllerRef) and n in DESIGNATED_PLAYER_REFS for _, n in found):
         return set()
     blocked: tuple[type, ...] = (*_ABILITY_TYPES, DelayedTrigger, TokenSpec)
-    if isinstance(ability, TriggeredAbility):
+    if not isinstance(ability, SpellAbility):
         blocked = (*blocked, Choose)
     if any(isinstance(nodes.get(p[:k]), blocked) for p, _ in sels for k in range(len(base) + 1, len(p))):
         return set()
