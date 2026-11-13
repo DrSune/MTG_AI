@@ -234,8 +234,25 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   lifelink source dealing damage to its own controller (10E Orcish Artillery with Loxodon
   Warhammer) leaves no DAMAGE, LIFE_LOST or LIFE_GAINED row, though that player lost 3 and gained 3
   (CR 120.3a, 702.15b). Every history and trigger reader inherits it (EVENT_THIS_TURN, bloodthirst,
-  LIFE_GAINED_THIS_TURN_GE, "whenever you gain life"). Fix: journal player damage and lifelink gains
-  from the verbs' own tuples, not the life diff.
+  LIFE_GAINED_THIS_TURN_GE, "whenever you gain life", and since 2026-11-13 the life events'
+  `ordinal`: such a loss does not use up Vengeful Warchief's "first time"). Fix: journal player
+  damage and lifelink gains from the verbs' own tuples, not the life diff.
+- **One lifelink source damaging several recipients at once makes one life-gain event per
+  recipient** (2026-11-13, found with the life family). By the rulings (Ajani's Pridemate, Angel of
+  Vitality, Twinblade Paladin: "if a single creature you control with lifelink deals combat damage
+  to multiple creatures, players, planeswalkers, and/or battles at the same time ..., the ability
+  will apply only once"; CR 119.9, 120.3f) it is one event.
+  - In combat `Executor._damage_wave` runs one DEAL_DAMAGE atom per (dealer, recipient), so the
+    journal holds one LIFE_GAINED row per recipient. A trampling 5/5 lifelinker blocked by a 0/2
+    gives rows of 2 and 3; with Angel of Vitality, 3 and 4 (27 life where the rules give 26).
+  - Outside combat one atom's rows merge, but `verbs._v_deal_damage` calls `_lifelink_gain` per
+    target, so a life-gain replacement applies once per target.
+  - Stronger than printed: every "whenever you gain life" card triggers once per recipient
+    (verified: FDN Ajani's Pridemate, Marauding Blight-Priest; M20 Bloodthirsty Aerialist, Epicure
+    of Blood; M21 Light of Promise's grant, Vito), and Angel of Vitality adds 1 per recipient.
+  - Fix: gather a dealer's lifelink damage per atom, and per dealer in a combat damage step, and
+    gain once. It moves the gain's row after the damage rows and changes its cause verb, so measure
+    the replay shift on the verified pool.
 - **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
   fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
   a graveyard as graveyard-only, while the activation lane reads the same rule in
@@ -254,6 +271,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Effects, zones and replacements
 
+- **The life-gain replacement lane applies records in record order and never asks** (2026-11-13):
+  `ReplacementRegistry.replacement_for_life_gained` returns the first live record, where CR 616.1
+  lets the gaining player choose the order (the damage lane asks, `_choose`). Two Angels of
+  Vitality commute, so nothing compiled today is affected; a "+1" beside "twice that much" (Rhox
+  Faithmender, Alhammarret's Archive) does not (3 life: 8 or 7). Ask the order before compiling
+  "twice that much life".
 - **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
@@ -754,7 +777,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   from this <permanent>" and "Exile this <permanent>", 4 (Hanged Executioner, Brittle Effigy,
   Inquisitive Puppet, Steelbane Hydra; 2 more, Soul of Zendikar and Soul of Ravnica, also need
   activation from a graveyard, CR 113.6m); a discard trigger event, 3 (Megrim in 10E and M10,
-  Liliana's Caress); a life-total threshold, 3 (Twinblade Paladin in M20 and FDN, Serra Ascendant).
+  Liliana's Caress). Built 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12, gate round 7 pending): the
+  life-total threshold, `FAtomPred.LIFE_TOTAL_GE` (Twinblade Paladin and Angel of Vitality in M20
+  and FDN, Serra Ascendant).
 - **What the history atoms do not read** (refused or documented, 2026-11-06): untap-step rows
   precede `journal.turn_window()` (no turn-start marker), so "became untapped this turn" is refused;
   a damage threshold counts per recipient, never per dealer ("a source you controlled dealt 5 or
@@ -767,7 +792,25 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Firecraft's spell mastery), "can't be countered by blue or black spells" (Autumn's Veil) and the
   compound "cost {1} less to cast and can't be countered" (Thryx, Cunning Nightbonder) have no
   template; "Each opponent who cast a spell this turn" (Angelic Arbiter) needs a per-player judged
-  history; Vengeful Warchief and Vilis can now use LifeLostEvent as a trigger.
+  history. Vilis uses LifeLostEvent as a trigger; Vengeful Warchief's "for the first time each
+  turn" is `LifeLostEvent.ordinal` since 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12).
+- **FAtom never checks a required `count` in its generic slot loop** (2026-11-13): the loop in
+  `FAtom.__post_init__` leaves `count` out of the slots it requires, so the bare form of every
+  count-taking predicate builds (`FAtom(LIFE_LEAD_OVER_START_GE)`, pinned as legal by
+  `test_ability_tree_r10.test_life_lead_bare_count_builds_and_roundtrips`) and fails only at
+  evaluation, on an assert. EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN and LIFE_TOTAL_GE check it
+  by hand. A validator accepting a form with no meaning: require `count` wherever the rules row
+  does, after a census that no tree builds a bare one.
+- **The life family's wordings still unparsed** (2026-11-13, `reports/life_family_2026-11-13/
+  census.txt`): "you gain twice that much life instead" (M13 Rhox Faithmender, ORI Alhammarret's
+  Archive) is Angel of Vitality's replacement with QBin(MUL, 2, QProp(event, AMOUNT)), left out
+  until the life lane asks the CR 616.1 order (Open engine faults, Effects); "If an opponent would
+  gain life, that player loses that much life instead" (ORI Tainted Remedy) needs a non-YOU actor in
+  `replacement_for_life_gained`; the life totals relative to the starting life (Cosmos Elixir,
+  Path of Bravery, Elenda, Happily Ever After, Righteous Valkyrie, Angel of Destiny, Ayli) are
+  LIFE_LEAD_OVER_START_GE with templates to write; FDN Vanguard Seraph needs surveil, ELD Deathless
+  Knight its "return this card from your graveyard to your hand"; M13 Elderscale Wurm a damage floor
+  and a set-life verb (CR 119.5, as M20 Loxodon Lifechanter).
 - **Lure has no atom** (round-3 verification, 2026-11-06): Prized Unicorn (M20, needs-atom) "All
   creatures able to block this creature do so" puts a requirement on each creature able to block
   it, obeyed only by that creature blocking it. A lure atom must also extend the count of
@@ -1158,6 +1201,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
   columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
   columns with zeros since 2026-11-06).
+- **The observation holds no turn history** (2026-11-13, the life family): `players_f` has each
+  player's life exactly (`life / 20`), but nothing of what happened this turn: life gained or lost,
+  cards drawn, spells cast. So the state the turn-history atoms and the event ordinals read is
+  hidden: whether Vengeful Warchief's "first time each turn" is used up, Mystic Skyfish's second
+  draw, LIFE_GAINED_THIS_TURN_GE's sum. The card tokens show the atom (`@ordinal num:1`); only the
+  network's own inference covers the count. Add per-player turn counters (life gained, life lost,
+  gain and loss events, draws, casts) at the next observation-schema change.
+- **Card tokens bucket every number above 5** (`features._bucket`: `num:0`..`num:5`, `num:6+`):
+  Twinblade Paladin's and Angel of Vitality's 25, Serra Ascendant's 30 and Elderscale Wurm's 7 read
+  alike, as do Thieves' Guild Enforcer's 8 and Speaker of the Heavens' 7. The life totals they are
+  compared with are exact, so a threshold above 5 is learnable only from the effect it gates (the
+  keyword or P/T column flipping). DESIGN_CARD_POOL plans log-bucketed numbers.
 - **A delayed or reflexive trigger on the stack encodes as ability index -1** (2026-11-12, gate
   round 6 m7; `tools/selfplay/features.py` `_ability_index`): its node is no printed ability of
   its source, so Tolarian Kraken's reflexive tap-or-untap looks like any other trigger of the

@@ -1,0 +1,4 @@
+M20 (compiled, unverified records, 200 games, 0 crashes, 0 detector hits): dealt ['Angel of Vitality', 'Twinblade Paladin', 'Vengeful Warchief']; games cast in: {'Twinblade Paladin': 16, 'Vengeful Warchief': 13, 'Angel of Vitality': 7}
+FDN (compiled, 200 games, 0 crashes, 0 detector hits): dealt ['Angel of Vitality', 'Cat Collector', 'Drogskol Reaver', 'Twinblade Paladin']; games cast in: {'Twinblade Paladin': 33, 'Drogskol Reaver': 8, 'Angel of Vitality': 22}
+ZNR (castable, 200 games, 0 crashes, 0 detector hits): dealt ['Attended Healer', "Cleric of Life's Bond"]; games cast in: {'Attended Healer': 9, "Cleric of Life's Bond": 2}
+M11 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Serra Ascendant']; games cast in: {'Serra Ascendant': 9}

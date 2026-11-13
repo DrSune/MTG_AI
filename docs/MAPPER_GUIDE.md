@@ -205,7 +205,19 @@ $PY tools/cards/cardtool.py --help
   - "during an opponent's turn" is part of the trigger event: `FAtom(TURN_OF, who=OPPONENT)` in
     the event's filter (`CastSpellEvent(filter=FAtom(TURN_OF, who=OPPONENT), actor=...)`), never
     the condition.
-  - "your second card each turn" is `CardDrawnEvent(ordinal=2)`.
+  - "your second card each turn" is `CardDrawnEvent(ordinal=2)`. "Whenever you gain|lose life
+    for the first time each turn" is `LifeGainedEvent|LifeLostEvent(actor=<you>, ordinal=1)`;
+    "... during each of your turns" adds `FAtom(TURN_OF, who=YOU)` to the `actor`. Never an
+    ordinal in EVENT_THIS_TURN or a replacement: the IR refuses it there.
+  - "as long as you have N or more life" is `FAtom(LIFE_TOTAL_GE, who=YOU, count=QConst(N))` in
+    the static's condition; "N or less life" is `FNot` of it at N + 1, never another predicate.
+    "At least N life more than your starting life total" is LIFE_LEAD_OVER_START_GE, a different
+    meaning (Commander starts at 40). `who` names one player: a target player's (TARGET_PLAYER)
+    or that player's (a referent Selector); "an opponent has N or less life" (several players) is
+    a needs-atom.
+  - "If you would gain life, you gain that much life plus N instead" is a ReplacementAbility over
+    `LifeGainedEvent(actor=<you>)` whose action gains `QBin(ADD, QProp('event', AMOUNT),
+    QConst(N))`: `parse` it.
   - "equipped creature" is `IS_ATTACHED_TO_SOURCE` in triggers, plus `TYPE_EQ 'Creature'` in statics.
   - Tribal nouns ("target Pirate", "Goblins you control") are `SUBTYPE_EQ` plus `TYPE_EQ 'Creature'`.
   - A filter with one part is written bare: no one-part `FAnd`.

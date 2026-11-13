@@ -1,0 +1,35 @@
+## life-total thresholds: 18 sentences on 14 cards, 11 unparsed
+M21 | Speaker of the Heavens | verified | B5a-speaker-gate | Activate only if you have at least 7 life more than your starting life total and only as a sorcery.
+ZNR | Angel of Destiny | partly-compiled | UNPARSED (triggered) | At the beginning of your end step, if you have at least 15 life more than your starting life total, each player this creature attacked this turn loses the game.
+M20 | Ajani, Strength of the Pride | verified | mapped (card record) | [0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.
+M20 | Angel of Vitality | mapped | mapped (card record) | This creature gets +2/+2 as long as you have 25 or more life.
+M20 | Twinblade Paladin | mapped | mapped (card record) | As long as you have 25 or more life, this creature has double strike.
+KHM | Cosmos Elixir | partly-compiled | UNPARSED (triggered) | At the beginning of your end step, draw a card if your life total is greater than your starting life total.
+KHM | Righteous Valkyrie | partly-compiled | UNPARSED (spell-effect) | As long as you have at least 7 life more than your starting life total, creatures you control get +2/+2.
+M11 | Serra Ascendant | compiled | B14-as-long-as-self | As long as you have 30 or more life, this creature gets +5/+5 and has flying.
+M13 | Elderscale Wurm | partly-compiled | UNPARSED (triggered) | When this creature enters, if your life total is less than 7, your life total becomes 7.
+M13 | Elderscale Wurm | partly-compiled | UNPARSED (spell-effect) | As long as you have 7 or more life, damage that would reduce your life total to less than 7 reduces it to 7 instead.
+M14 | Path of Bravery | partly-compiled | UNPARSED (spell-effect) | As long as your life total is greater than or equal to your starting life total, creatures you control get +1/+1.
+M15 | Resolute Archangel | partly-compiled | UNPARSED (triggered) | When this creature enters, if your life total is less than your starting life total, it becomes equal to your starting life total.
+FDN | Angel of Vitality | compiled | B14-self-as-long-as | This creature gets +2/+2 as long as you have 25 or more life.
+FDN | Ayli, Eternal Pilgrim | partly-compiled | UNPARSED (spell-effect) | Activate only if you have at least 10 life more than your starting life total.
+FDN | Elenda, Saint of Dusk | partly-compiled | UNPARSED (spell-effect) | As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has menace.
+FDN | Elenda, Saint of Dusk | partly-compiled | UNPARSED (spell-effect) | Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.
+FDN | Twinblade Paladin | compiled | B14-as-long-as-self | As long as you have 25 or more life, this creature has double strike.
+ELD | Happily Ever After | partly-compiled | UNPARSED (triggered) | At the beginning of your upkeep, if there are five colors among permanents you control, there are six or more card types among permanents you control and/or cards in your graveyard, and your life total is greater than or equal to your starting life total, you win the game.
+
+## first time, on a life event: 6 sentences on 6 cards, 2 unparsed
+ZNR | Attended Healer | partly-compiled | parsed (fallback or continuation) | Whenever you gain life for the first time each turn, create a 1/1 white Cat creature token.
+ZNR | Cleric of Life's Bond | partly-compiled | B9-gain-life-counter-self | Whenever you gain life for the first time each turn, put a +1/+1 counter on this creature.
+M20 | Vengeful Warchief | mapped | mapped (card record) | Whenever you lose life for the first time each turn, put a +1/+1 counter on this creature.
+FDN | Cat Collector | partly-compiled | parsed (fallback or continuation) | Whenever you gain life for the first time during each of your turns, create a 1/1 white Cat creature token.
+FDN | Vanguard Seraph | partly-compiled | UNPARSED (triggered) | Whenever you gain life for the first time each turn, surveil 1.
+ELD | Deathless Knight | partly-compiled | UNPARSED (triggered) | When you gain life for the first time each turn, return this card from your graveyard to your hand.
+
+## life-gain replacements: 5 sentences on 4 cards, 3 unparsed
+M20 | Angel of Vitality | mapped | mapped (card record) | If you would gain life, you gain that much life plus 1 instead.
+M13 | Rhox Faithmender | partly-compiled | UNPARSED (spell-effect) | If you would gain life, you gain twice that much life instead.
+ORI | Alhammarret's Archive | partly-compiled | UNPARSED (spell-effect) | If you would gain life, you gain twice that much life instead.
+ORI | Tainted Remedy | partly-compiled | UNPARSED (spell-effect) | If an opponent would gain life, that player loses that much life instead.
+FDN | Angel of Vitality | compiled | B5b-repl-life-plus | If you would gain life, you gain that much life plus 1 instead.
+

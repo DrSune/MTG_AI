@@ -1,0 +1,2 @@
+plain life p0 25 p1 17 gain rows [(2, 'DEAL_DAMAGE'), (3, 'DEAL_DAMAGE')]
+angel life p0 27 p1 17 gain rows [(3, 'GAIN_LIFE'), (4, 'GAIN_LIFE')]

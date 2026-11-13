@@ -5,6 +5,21 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-13 (the life family: LIFE_TOTAL_GE, life-event ordinals, a replaced gain's amount; ontology R7, gate round 7 pending)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| life-total threshold sentences, 19 sets | **18 on 14 names**: 7 absolute (**5 compile**: Twinblade Paladin and Angel of Vitality in M20 and FDN, M11 Serra Ascendant; M13 Elderscale Wurm's 2 need a damage floor and a set-life verb), 11 on 10 cards relative to the starting life total (LIFE_LEAD_OVER_START_GE) | `.venv/bin/python reports/life_family_2026-11-13/census.py` | `census.txt`; DESIGN_ATOM_ONTOLOGY §12, ledger F11 |
+| "for the first time" on a life event, 19 sets | **6 sentences on 6 cards, 4 compile** (M20 Vengeful Warchief; ZNR Attended Healer, Cleric of Life's Bond; FDN Cat Collector); FDN Vanguard Seraph needs surveil, ELD Deathless Knight its graveyard return | same | `census.txt` |
+| life-gain replacements, 19 sets | **5 sentences on 4 names, 2 compile** (Angel of Vitality, M20 and FDN); "twice that much" (Rhox Faithmender, Alhammarret's Archive) waits on the CR 616.1 ask, Tainted Remedy on a non-YOU actor | same | `census.txt`; BACKLOG |
+| trees changed, 19 sets | **11** compiler trees and **11** with records applied, all unverified; **8** now compile whole (M20 and FDN Twinblade Paladin, Angel of Vitality; M20 Vengeful Warchief; FDN Drogskol Reaver; M11 Serra Ascendant; M14 Archangel of Thune) | `reports/life_family_2026-11-13/tree_dump.py <checkout> <out>` on 07bf26ff and on the branch, then `tree_diff.py <base> <branch>` | `blast_radius.txt`; the 3 M20 needs-atom records re-mapped through `cardtool write` |
+| verified stamps that still match | M21 **273 -> 273**, M20 **261 -> 261**, FDN **177 -> 177** (0 out, 0 in) | same | 8 still-verified life-trigger cards read the binder's life lane, unchanged for a node with no ordinal |
+| seeded heuristic games, decks from cards verified on both | **300/300 identical digests**, 0 crashes either side (100 each M21, M20, FDN; 273/261/177 deckable) | `reports/life_family_2026-11-13/replay.py <checkout> trees_base.json trees_branch.json 100 <out>` on both, `replay_compare.py` | `blast_radius.txt` |
+| random-play soaks dealing the new trees | **0 crashes, 0 detector hits** in 700 games (M20 compiled with the unverified records 200, FDN compiled 200, ZNR castable 200, M11 castable 100; M14 deals no deck); cast in: M20 Twinblade Paladin 16 games, Vengeful Warchief 13, Angel of Vitality 7; FDN Twinblade Paladin 33, Angel of Vitality 22, Drogskol Reaver 8; ZNR Attended Healer 9, Cleric of Life's Bond 2; M11 Serra Ascendant 9 (FDN Cat Collector, still partly compiled, is outside FDN's compiled pool) | `.venv/bin/python reports/life_family_2026-11-13/soak_coverage.py` (`tools/cards/soak.play_one`, seeds 1..N, stress decks) | `soak_coverage.txt`; `tools/cards/soak.py` on the same runs: 0 crashes, 0 detector hits, FDN's three win-rate outliers none of the family |
+| V4′ CHOOSE baseline, ZNR | **49 -> 50** (Cleric of Life's Bond's IS_SOURCE self-selector, no decision) | `.venv/bin/python tools/audit/ontology_conformance.py --write-v4-baseline` | the only diff in `ontology_conformance_v4_baseline.json`; the uncapped census has no new branching row (one row's count 83 -> 84) |
+| the round's tests and packs on the base | **45 of 46** unit tests and **3 of 3** packs fail on 07bf26ff; the passing one refuses an ordinal on DamageDealtEvent/SacrificeEvent, true on both | `pytest MTG_bot/core/test_executor_life_family.py MTG_bot/core/test_scenario_packs.py::test_mapped_pack` on a copy of 07bf26ff | `base_runs.txt` |
+| a lifelink source damaging two recipients at once | **2** LIFE_GAINED rows where the rulings give one event; with Angel of Vitality 27 life where the rules give 26 | `.venv/bin/python reports/life_family_2026-11-13/lifelink_probe.py` | `lifelink_probe.txt`; BACKLOG (engine fault, not fixed here) |
+
 ## 2026-11-12 (trigger timing: reflexive triggers CR 603.12, event qualifiers CR 603.4; ontology R6, gate round 6 FIX-THEN-GO, fixed)
 
 | Number | Value | Command | Notes |
