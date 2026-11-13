@@ -1,0 +1,44 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "r",
+   "real": "Drogskol Reaver",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "r",
+   "target": "giant",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 3
+  },
+  "life": {
+   "0": 23
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Printed: lifelink damage to a creature gains life too and draws once."
+}

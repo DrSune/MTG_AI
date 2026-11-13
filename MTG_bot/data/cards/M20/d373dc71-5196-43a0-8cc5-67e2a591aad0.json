@@ -217,5 +217,39 @@
  },
  "probe": {
   "sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01"
+ },
+ "verified": {
+  "tree_sha": "dc3a4c2a3e59316257ecee60c54928e3c6cfa508c7e9d75377a187b693443038",
+  "probe_sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1d",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "gain 3 life: trigger, one counter, 3/3 -> 4/4",
+    "issue": ""
+   },
+   {
+    "clause": "As long as you have 25 or more life, this creature has double strike.",
+    "status": "NOT_EXERCISED",
+    "evidence": "life never reaches 25 in the trace; tree LIFE_TOTAL_GE 25 YOU grants DOUBLE_STRIKE to source, but the edge and turn-off are unshown",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/twinblade_paladin_1.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_2.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,61 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Twinblade Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 4
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 4
+  },
+  "life": {
+   "0": 24
+  },
+  "counters": {
+   "t": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "battlefield_keywords": {
+   "Twinblade Paladin": []
+  }
+ },
+ "notes": "Printed: gain life -> counter; double strike only at 25 or more: 24 has none."
+}

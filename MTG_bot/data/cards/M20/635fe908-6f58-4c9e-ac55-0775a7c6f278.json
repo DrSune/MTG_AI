@@ -224,5 +224,48 @@
  },
  "probe": {
   "sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6"
+ },
+ "verified": {
+  "tree_sha": "fcba0e02ca1b95d3f8d832bf42fb19c934677000b5dae708dde5f88d58729d9b",
+  "probe_sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1d",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING on cast",
+    "issue": ""
+   },
+   {
+    "clause": "If you would gain life, you gain that much life plus 1 instead.",
+    "status": "OK",
+    "evidence": "gain 3 stimulus: 'you gains 4 life (by card/GAIN_LIFE)', life 20 -> 24 (reads event amount + 1)",
+    "issue": ""
+   },
+   {
+    "clause": "+2/+2 as long as you have 25 or more life",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace tops out at 24 life, never reaches 25; tree LIFE_TOTAL_GE 25 on the controller is right, but the edge and the turn-off are unshown",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/angel_of_vitality_1.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_2.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 5,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/effect/args/power/magnitude",
+    "amount-1 at 1/1/effect/args/power/magnitude",
+    "amount+1 at 1/1/effect/args/toughness/magnitude",
+    "amount-1 at 1/1/effect/args/toughness/magnitude",
+    "amount+1 at 1/1/condition/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,50 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "635fe908-6f58-4c9e-ac55-0775a7c6f278",
+ "name": "Angel of Vitality",
+ "text_sha": "02f03e978cfe57298a82e27221529b41f858ad8c82ce82cb2d184cca3dcbf223",
+ "verified": {
+  "tree_sha": "fcba0e02ca1b95d3f8d832bf42fb19c934677000b5dae708dde5f88d58729d9b",
+  "probe_sha": "6a427ca5ae5ac1c87dd158b9e0c34546d5bb602cbbfda8739046574fa1ab2454",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1d",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "If you would gain life, you gain that much life plus 1 instead.",
+    "status": "OK",
+    "evidence": "gain 3: 'you gains 4 life (by card/GAIN_LIFE)', 20 -> 24",
+    "issue": ""
+   },
+   {
+    "clause": "+2/+2 as long as you have 25 or more life",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace tops out at 24 life; edge and turn-off unshown",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/angel_of_vitality_1.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_2.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 5,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/effect/args/power/magnitude",
+    "amount-1 at 1/1/effect/args/power/magnitude",
+    "amount+1 at 1/1/effect/args/toughness/magnitude",
+    "amount-1 at 1/1/effect/args/toughness/magnitude",
+    "amount+1 at 1/1/condition/count"
+   ]
+  }
+ }
+}

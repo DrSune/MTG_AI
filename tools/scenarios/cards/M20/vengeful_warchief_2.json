@@ -1,0 +1,59 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Vengeful Warchief",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "name": "Double Striker",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1,
+   "keywords": [
+    "DOUBLE_STRIKE"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "hit": true
+   },
+   "respond": {
+    "FIRST_STRIKE_DAMAGE": [
+     {
+      "op": "enter",
+      "key": "w"
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 16
+  },
+  "counters": {
+   "w": {}
+  },
+  "zone": {
+   "w": "battlefield"
+  }
+ },
+ "notes": "Printed: first time each turn counts losses before the Warchief arrived: first-strike loss, Warchief enters, regular loss -> no counter (the card's ruling)."
+}

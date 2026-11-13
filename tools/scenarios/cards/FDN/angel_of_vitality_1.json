@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ang",
+   "real": "Angel of Vitality",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 4
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 4
+  },
+  "life": {
+   "0": 25
+  },
+  "power": {
+   "ang": 4
+  },
+  "toughness": {
+   "ang": 4
+  }
+ },
+ "notes": "Printed: if you would gain life, you gain that much plus 1 instead (lifelink 4 -> 5, 20 -> 25); +2/+2 as long as you have 25 or more life: exactly 25 counts."
+}

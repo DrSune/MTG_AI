@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d373dc71-5196-43a0-8cc5-67e2a591aad0",
+ "name": "Twinblade Paladin",
+ "text_sha": "55095e9e0769f903293a48b6feae943412c6819b8f185f50e99914d56b06ae9d",
+ "verified": {
+  "tree_sha": "dc3a4c2a3e59316257ecee60c54928e3c6cfa508c7e9d75377a187b693443038",
+  "probe_sha": "8181b85cffb84782a0abca6b2f7ffc6bc5fddb5a5dcb654b0f226b3f77bf48d9",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1d",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "gain 3 life: trigger, one counter, 3/3 -> 4/4",
+    "issue": ""
+   },
+   {
+    "clause": "As long as you have 25 or more life, this creature has double strike.",
+    "status": "NOT_EXERCISED",
+    "evidence": "life never reaches 25 in the trace",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/twinblade_paladin_1.json",
+   "tools/scenarios/cards/FDN/twinblade_paladin_2.json",
+   "tools/scenarios/cards/FDN/twinblade_paladin_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count"
+   ]
+  }
+ }
+}

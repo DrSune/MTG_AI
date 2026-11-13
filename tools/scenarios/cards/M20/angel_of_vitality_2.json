@@ -1,0 +1,59 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ang",
+   "real": "Angel of Vitality",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 3
+  },
+  "life": {
+   "0": 24
+  },
+  "power": {
+   "ang": 2
+  },
+  "toughness": {
+   "ang": 2
+  }
+ },
+ "notes": "Printed: lifelink 3 -> gain 4 (20 -> 24): 24 is below 25, no bonus."
+}

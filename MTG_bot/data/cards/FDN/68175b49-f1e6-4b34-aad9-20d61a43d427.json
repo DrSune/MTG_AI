@@ -1,0 +1,49 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "68175b49-f1e6-4b34-aad9-20d61a43d427",
+ "name": "Drogskol Reaver",
+ "text_sha": "92f573e00762efda70faf448c0abb8521d633812fd92b9901afa8bba9de60db3",
+ "verified": {
+  "tree_sha": "495815d14a15c6f70a361ee742f8081f2e6a33ac9d33e18285ff07224d2cb5d6",
+  "probe_sha": "6595a21465084949d742227a75944f7e675e2b56da42cfc974b16b28d644c398",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1d",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "Double strike",
+    "status": "OK",
+    "evidence": "attack unblocked: two damage events of 3 (opp 20 -> 14), keyword present",
+    "issue": ""
+   },
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "each damage event 'you gains 3 life (by card/DEAL_DAMAGE)': one gain event per damage event, 20 -> 26 over both",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you gain life, draw a card.",
+    "status": "OK",
+    "evidence": "gain 3 (non-combat): one draw; double strike lifelink: two gain events, two triggers, two draws (hand 6 -> 8). Several lifelink sources in one step not shown, covered by pack",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/drogskol_reaver_1.json",
+   "tools/scenarios/cards/FDN/drogskol_reaver_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -525,6 +525,16 @@ def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
         _move_to(ctx, card, ctx.world.controller_of(card), ZONE_GRAVEYARD)
 
 
+def _v_destroy(ctx: ExecCtx, atom: Atom) -> None:
+    """CR 701.7a: destroy moves a permanent to its owner's graveyard. CR 702.12b: a permanent
+    with indestructible can't be destroyed, so it stays where it is (a sacrifice is no
+    destruction: SACRIFICE keeps _to_graveyard)."""
+    for card in role_handles(ctx, atom, "target"):
+        if ctx.layers is not None and ctx.layers.keyword_of(card, Keyword.INDESTRUCTIBLE):
+            continue
+        _move_to(ctx, card, ctx.world.controller_of(card), ZONE_GRAVEYARD)
+
+
 def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
@@ -2642,7 +2652,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
 HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MOVE_ZONE: _v_move_zone_until,  # _v_move_zone plus the "until" duration
     Verb.SACRIFICE: _to_graveyard,
-    Verb.DESTROY: _to_graveyard,
+    Verb.DESTROY: _v_destroy,
     Verb.GAIN_LIFE: _v_gain_life,
     Verb.LOSE_LIFE: _v_lose_life,
     Verb.DEAL_DAMAGE: _v_deal_damage,

@@ -149,6 +149,39 @@ class TestStateBasedActions(ExecutorCase):
         )
         self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_BATTLEFIELD)
 
+    def test_destroy_spares_an_indestructible_permanent(self):
+        # CR 702.12b: a permanent with indestructible can't be destroyed; DESTROY ignored it.
+        self.grant_indestructible(self.alpha)
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": self.alpha},
+        )
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_BATTLEFIELD)
+
+    def test_sacrifice_ignores_indestructible(self):
+        # A sacrifice is no destruction (CR 701.21a): indestructible does not stop it.
+        self.grant_indestructible(self.alpha)
+        self.ex.execute(
+            atom(Verb.SACRIFICE, target=target_sel()),
+            source=self.alpha,
+            controller=self.p0,
+            bindings={"target": self.alpha},
+        )
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_GRAVEYARD)
+
+    def test_destroy_all_spares_only_the_indestructible(self):
+        self.grant_indestructible(self.alpha)
+        self.ex.execute(
+            atom(Verb.DESTROY, target=target_sel()),
+            source=self.gamma,
+            controller=self.p1,
+            bindings={"target": [self.alpha, self.beta]},
+        )
+        self.assertEqual(self.world.zone_of(self.alpha).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(self.beta).kind, ZONE_GRAVEYARD)
+
     def test_zero_toughness_dies_even_indestructible(self):
         # CR 702.12b: indestructible ignores lethal damage, NOT 0-or-less
         # toughness — the SBA still buries it.
