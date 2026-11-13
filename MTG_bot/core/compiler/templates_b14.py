@@ -19,7 +19,8 @@ condition holds, the condition first or last (Twinblade Paladin, Angel of Vitali
 Ascendant). Each is the existing carrier with the condition put in its condition slot: Gadrak's
 "can't attack unless" (StaticAbility.condition = FNot of the condition), Tome Anima's "can't be
 blocked as long as", the kicker Baloth's gated EtBState, Thieves' Guild Enforcer's self static
-(MODIFY_PT, then GRANT_ABILITY per keyword, in printed order).
+(MODIFY_PT, then GRANT_ABILITY per keyword, the keywords sorted: one static's effects share a
+timestamp, CR 613.7, so their printed order means nothing).
 
 Priority 10, as B11: no other template matches these sentences.
 """
@@ -181,7 +182,7 @@ def _build_self_static_as_long_as(m: re.Match[str]) -> SentenceOutcome:
     """As long as <condition>, this creature gets +P/+T [and has <keywords>] / has <keywords>,
     the condition first or last: one tree for both wordings. "As long as" is the static's
     condition, never a duration; the effect is Thieves' Guild Enforcer's (MODIFY_PT, then a
-    GRANT_ABILITY per keyword, in printed order, on this creature)."""
+    GRANT_ABILITY per keyword, on this creature), the keywords sorted by name."""
     steps: list[Effect] = []
     if m.group("p"):
         steps.append(
@@ -197,7 +198,9 @@ def _build_self_static_as_long_as(m: re.Match[str]) -> SentenceOutcome:
             )
         )
     keywords = m.group("kws") or m.group("kws_only")
-    for keyword in _keyword_list(keywords) if keywords else ():
+    # One static's effects share a timestamp (CR 613.7), so the printed keyword order means
+    # nothing: the grants are sorted, one tree for "flying and lifelink" and "lifelink and flying".
+    for keyword in sorted(_keyword_list(keywords) if keywords else (), key=lambda k: k.name):
         steps.append(
             Atom(
                 verb=Verb.GRANT_ABILITY,

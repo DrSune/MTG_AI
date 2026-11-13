@@ -231,13 +231,14 @@ $PY tools/cards/cardtool.py --help
   - "your second card each turn" is `CardDrawnEvent(ordinal=2)`. "Whenever you gain|lose life
     for the first time each turn" is `LifeGainedEvent|LifeLostEvent(actor=<you>, ordinal=1)`;
     "... during each of your turns" adds `FAtom(TURN_OF, who=YOU)` to the `actor`. Never an
-    ordinal in EVENT_THIS_TURN or a replacement: the IR refuses it there.
+    ordinal in EVENT_THIS_TURN, a replacement or PREVENT_EFFECT's `event`: the IR refuses it there.
   - "as long as you have N or more life" is `FAtom(LIFE_TOTAL_GE, who=YOU, count=QConst(N))` in
     the static's condition; "N or less life" is `FNot` of it at N + 1, never another predicate.
     "At least N life more than your starting life total" is LIFE_LEAD_OVER_START_GE, a different
-    meaning (Commander starts at 40). `who` names one player: a target player's (TARGET_PLAYER)
-    or that player's (a referent Selector); "an opponent has N or less life" (several players) is
-    a needs-atom.
+    meaning (Commander starts at 40). `who` is YOU and nothing else (the IR refuses any other): a
+    card that reads another player's life total ("if target opponent has 10 or less life", "an
+    opponent has N or less life") is a needs-atom, and its card brings the slot's next value
+    with its tests.
   - "If you would gain life, you gain that much life plus N instead" is a ReplacementAbility over
     `LifeGainedEvent(actor=<you>)` whose action gains `QBin(ADD, QProp('event', AMOUNT),
     QConst(N))`: `parse` it.

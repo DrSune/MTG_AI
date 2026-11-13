@@ -120,8 +120,10 @@
     "ir": "abilities[0]"
    }
   ],
-  "g0_warnings": [],
-  "notes": "The compiler builds the whole tree since the life family (ontology gate round 7): LifeLostEvent(actor=YOU, ordinal=1), the first life loss of the turn, counted by the trigger binder over the whole turn (the ruling: a loss before it arrived uses up the turn). One loss is one source's damage at once or one effect's or payment's loss, so three creatures damaging you in one combat damage step are three losses, one of them first. Pack tools/scenarios/mapped/M20/vengeful_warchief_first_loss_each_turn.json (three attackers at once: one counter; the next turn's first loss: a second)."
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): ability TriggeredAbility on LifeLostEvent"
+  ],
+  "notes": "The compiler builds the whole tree since the life family (ontology round R8, gate round 8): LifeLostEvent(actor=YOU, ordinal=1), the first life loss of the turn, counted by the trigger binder over the whole turn (the ruling: a loss before it arrived uses up the turn). One loss is one source's damage at once or one effect's or payment's loss, so three creatures damaging you in one combat damage step are three losses, one of them first. Pack tools/scenarios/mapped/M20/vengeful_warchief_first_loss_each_turn.json (three attackers at once: one counter; the next turn's first loss: a second)."
  },
  "probe": {
   "sha": "c58bdc59f540850264617496b52ea63f590221f5fdf3b60a9b3d2796a2d98eb9"

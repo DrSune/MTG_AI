@@ -1656,19 +1656,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         lead = world.players[player].life - ctx.executor.starting_life[player]
         return lead >= threshold
     if pred is FAtomPred.LIFE_TOTAL_GE:
-        # Twinblade Paladin's "as long as you have 25 or more life": the player's
-        # life total now (CR 119.1), whatever it started at (CR 103.4; the card's
-        # ruling for formats that do not start at 20). ``who`` names one player
-        # (FAtom refuses a ref that names several), the judged handle is unused.
-        from MTG_bot.core.executor.selectors import players_for
-
-        assert atom.count is not None and atom.who is not None
-        players = players_for(atom.who, ctx)
-        if len(players) != 1:
-            raise ValueError(
-                f"executor: LIFE_TOTAL_GE reads one player's life, {atom.who!r} named {players}"
-            )
-        return world.players[players[0]].life >= resolve(atom.count, ctx)
+        # Twinblade Paladin's "as long as you have 25 or more life": your life total
+        # now (CR 119.1), whatever it started at (CR 103.4; the card's ruling for
+        # formats that do not start at 20). ``who`` is YOU (FAtom refuses any other);
+        # the judged handle is unused.
+        assert atom.count is not None
+        return world.players[ctx.controller].life >= resolve(atom.count, ctx)
     if pred is FAtomPred.LIFE_GAINED_THIS_TURN_GE:
         # Sanguine Indulgence's CostModifier condition: the
         # CARDS_DRAWN_THIS_TURN_GE twin over the LIFE_GAINED rows (subject is

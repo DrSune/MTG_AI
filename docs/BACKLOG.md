@@ -232,21 +232,32 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `ordinal`: such a loss does not use up Vengeful Warchief's "first time"). Fix: journal player
   damage and lifelink gains from the verbs' own tuples, not the life diff.
 - **One lifelink source damaging several recipients at once makes one life-gain event per
-  recipient** (2026-11-13, found with the life family). By the rulings (Ajani's Pridemate, Angel of
-  Vitality, Twinblade Paladin: "if a single creature you control with lifelink deals combat damage
-  to multiple creatures, players, planeswalkers, and/or battles at the same time ..., the ability
-  will apply only once"; CR 119.9, 120.3f) it is one event.
+  recipient** (2026-11-13, found with the life family; completed by ontology gate round 8, m4).
+  By the rulings (Ajani's Pridemate, Angel of Vitality, Twinblade Paladin: "if a single creature
+  you control with lifelink deals combat damage to multiple creatures, players, planeswalkers,
+  and/or battles at the same time ..., the ability will apply only once"; CR 119.9, 120.3f) it is
+  one event; several lifelink sources are several events. Cases:
+  `reports/life_family_2026-11-13/lifelink_cases.py` (output `lifelink_cases.txt`).
   - In combat `Executor._damage_wave` runs one DEAL_DAMAGE atom per (dealer, recipient), so the
     journal holds one LIFE_GAINED row per recipient. A trampling 5/5 lifelinker blocked by a 0/2
-    gives rows of 2 and 3; with Angel of Vitality, 3 and 4 (27 life where the rules give 26).
-  - Outside combat one atom's rows merge, but `verbs._v_deal_damage` calls `_lifelink_gain` per
-    target, so a life-gain replacement applies once per target.
+    gives rows of 2 and 3 and Ajani's Pridemate 2 counters; with Angel of Vitality, 3 and 4 (27
+    life where the rules give 26). A 4/4 lifelinker blocked by two 0/2 walls gives rows of 2 and 2
+    and 2 counters.
+  - Outside combat one atom's own rows merge, but `verbs._v_deal_damage` calls `_lifelink_gain`
+    per target. With a life-gain replacement in play each per-target gain is replaced, and each
+    replacement's action is its own journal boundary (the executor's drain), so the rows do not
+    merge either: a lifelinker dealing 1 damage to each of two creatures with Angel of Vitality
+    and Ajani's Pridemate gives 24 life where the rules give 23, 2 gain rows and 2 counters.
   - Stronger than printed: every "whenever you gain life" card triggers once per recipient
     (verified: FDN Ajani's Pridemate, Marauding Blight-Priest; M20 Bloodthirsty Aerialist, Epicure
-    of Blood; M21 Light of Promise's grant, Vito), and Angel of Vitality adds 1 per recipient.
+    of Blood; M21 Light of Promise's grant, Vito), and Angel of Vitality adds 1 per recipient. The
+    gate reviewer's 1,500 seeded games on the verified pools: 13 damage steps in 2 games differ
+    (M20 Epicure of Blood, FDN Marauding Blight-Priest trigger once more).
+  - The trees the life family made whole inherit it, so none of these is stamped verified
+    before the fix lands: FDN Drogskol Reaver, M14 Archangel of Thune, Twinblade Paladin (M20 and
+    FDN), Angel of Vitality (M20 and FDN).
   - Fix: gather a dealer's lifelink damage per atom, and per dealer in a combat damage step, and
-    gain once. It moves the gain's row after the damage rows and changes its cause verb, so measure
-    the replay shift on the verified pool.
+    gain once; measure the replay shift on the verified pool.
 - **The trigger lane reads CR 113.6m its own way** (2026-11-12, found with the activation-zone
   fix): `binding.functions_from_graveyard` files a trigger whose effect moves its own card out of
   a graveyard as graveyard-only, while the activation lane reads the same rule in
@@ -491,6 +502,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **One encoding for "as long as" on a self static, and one keyword order** (2026-11-13,
+  ontology gate round 8, m5 and m6; divergences D22 and D23). "As long as <condition>" is the
+  StaticAbility's `condition` in 14 statics (B14's among them), and a DurationWhileCondition on
+  the atom in five verified trees: M21 Predatory Wurm (`B4-modify-pt-while-garruk`) and Sigiled Contender
+  (`B4-grant-lifelink-while-counter`), the M20 records Celestial Messenger, Vivien's Crocodile
+  and Unchained Berserker. `layers._static_while_duration` reads the atom form's subject by its
+  shape (a bare FAtom of the source, an FAnd as existence). Fold: the five write their gate as
+  the static's `condition` (CONTROLLER_COUNT_GE 1 over the planeswalker filter; IS_ATTACKING and
+  HAS_COUNTER of the source), the static lane of `_static_while_duration` goes (a duration role on
+  a static's atom is then refused), and the five are re-verified. With it, sort the keyword grants
+  of one static wherever a template builds them, as B14 does since gate round 8 (CR 613.7: one
+  timestamp): 6 trees re-bake (10E Loxodon Warhammer, THB Shadowspear, FDN Unflinching Courage,
+  M11 Sword of Vengeance, DOM Forebear's Blade, FDN Vivien Reid's emblem). Census:
+  `reports/life_family_2026-11-13/gate8_census.py`.
 - **One encoding for "each opponent <verb>s"** (2026-11-13, ontology gate round 7, M4;
   ATOM_DIVERGENCES D21). A plural `controller` role (LOSE_LIFE, the hand lane's discards,
   GET_EMBLEM) and an EachPlayer around one atom (9 trees: Dragon Mage's draw, Thieves' Guild
@@ -820,7 +845,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   from this <permanent>" and "Exile this <permanent>", 4 (Hanged Executioner, Brittle Effigy,
   Inquisitive Puppet, Steelbane Hydra; 2 more, Soul of Zendikar and Soul of Ravnica, also need
   activation from a graveyard, CR 113.6m); a discard trigger event, 3 (Megrim in 10E and M10,
-  Liliana's Caress). Built 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12, gate round 7 pending): the
+  Liliana's Caress). Built 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12, ontology round R8; gate round 8
+  FIX-THEN-GO, fixed): the
   life-total threshold, `FAtomPred.LIFE_TOTAL_GE` (Twinblade Paladin and Angel of Vitality in M20
   and FDN, Serra Ascendant).
 - **What the history atoms do not read** (refused or documented, 2026-11-06): untap-step rows
@@ -883,9 +909,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **Card backlog wave 3: the plan** (2026-11-13; a read-only census of M20's 55 castable-unverified
   cards, by package and by reach in the other 18 sets).
   - **The order:**
-    1. **Life-total family** (gated round 7): `LIFE_TOTAL_GE`, ordinals on the life events, and
-       Angel of Vitality's replacement amount. Covers Twinblade Paladin, Angel of Vitality and
-       Vengeful Warchief, plus FDN's twins. Agent running.
+    1. **Life-total family** (ontology round R8, gate round 8 FIX-THEN-GO, fixed):
+       `LIFE_TOTAL_GE`, ordinals on the life events, and Angel of Vitality's replacement amount.
+       Covers Twinblade Paladin, Angel of Vitality and Vengeful Warchief, plus FDN's twins.
+       Built (DESIGN_ATOM_ONTOLOGY §12); the three M20 records are mapped, not verified.
     2. **A chosen colour or creature type**, on round 4's `EtBState.effect`. Covers Diamond Knight
        and Icon of Ancestry, plus FDN Diamond Mare and five FDN cards one piece away.
     3. **Gathered zone-change events** (`once_per_event` on ZoneChangeEvent, `event` as the

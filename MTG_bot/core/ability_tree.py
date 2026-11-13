@@ -320,10 +320,6 @@ class ControllerRef(Enum):
 #: The refs naming the player a spell or ability designated: "target player" and
 #: "target opponent" read the same binding and differ only in who may be designated.
 DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
-#: The refs naming exactly one player: you, or a designated player. OPPONENT, ANY and
-#: ALL_OPPONENTS name several in multiplayer, DEFENDING_PLAYER may (one per attacked player), and
-#: OWNER names a card's owner, not a player in scope.
-_ONE_PLAYER_REFS = frozenset({ControllerRef.YOU, *DESIGNATED_PLAYER_REFS})
 
 #: Who gets an emblem (GET_EMBLEM's ``controller``, CR 114.2): the recipients the 19 sets print,
 #: "you", "each opponent" and "target opponent". Another one comes with the card that prints it.
@@ -551,13 +547,12 @@ class FAtomPred(Enum):
         # (the PRED carries slots only — the number is template-side).
     )
     LIFE_TOTAL_GE = (
-        "LIFE_TOTAL_GE"  # ``who``'s current life total (CR 119.1) is at least
+        "LIFE_TOTAL_GE"  # your current life total (CR 119.1) is at least
         # ``count``: "as long as you have 25 or more life" (Twinblade Paladin).
         # Not LIFE_LEAD_OVER_START_GE: that one is relative to the starting
         # life total, which is 40 in Commander (CR 103.4c). "N or less life" is
-        # FNot(LIFE_TOTAL_GE(N + 1)), never a second predicate; ``who`` names
-        # one player, so the FNot reads that player (FAtom refuses a ref that
-        # names several).
+        # FNot(LIFE_TOTAL_GE(N + 1)), never a second predicate. ``who`` is YOU,
+        # the only reading printed (FAtom refuses any other).
     )
     NAME_PARTITION_COUNT_GE = (
         "NAME_PARTITION_COUNT_GE"  # the
@@ -1309,7 +1304,7 @@ class FAtom:
       keyword      — Keyword (KEYWORD_HAS)
       who          — ControllerRef | Selector (CONTROLLER_IS,
                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                     LIFE_TOTAL_GE (one player only),
+                     LIFE_TOTAL_GE (YOU only),
                      INSTANT_OR_SORCERY_CAST_THIS_TURN,
                      CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
                      WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP):
@@ -1534,22 +1529,15 @@ class FAtom:
             # (a negative literal count is refused by QConst itself)
             if self.count is None:
                 raise ValueError("FAtom: LIFE_TOTAL_GE requires slot 'count'")
-            if not (
-                self.who in _ONE_PLAYER_REFS
-                if isinstance(self.who, ControllerRef)
-                else isinstance(self.who, Selector)
-                and self.who.referent in ("event", "result", "target")
-            ):
-                # Over several players the threshold would need a quantifier the
-                # slot cannot carry, and FNot(N + 1) would read "each of them has N
-                # or less life" where "an opponent has N or less life" means one.
-                # The referents "source" and "controller" name you (CR 113.8):
-                # a second byte form of YOU.
-                raise ValueError(
-                    "FAtom: LIFE_TOTAL_GE who must name one player: you, the target "
-                    "player or opponent, or the controller of an object in scope (a "
-                    f"referent Selector: event, result or target), got {self.who!r}"
-                )
+            if self.who is not ControllerRef.YOU:
+                # YOU is the only reading the 19 sets print (gate round 8, M1). Over
+                # several players FNot(N + 1) would read "each of them has N or less
+                # life" where "an opponent has N or less life" means one; TARGET_PLAYER,
+                # TARGET_OPPONENT and a referent "target" read one binding (three byte
+                # forms of one meaning, D18), and a TARGET_* in a filter designates
+                # nothing (the designation scans read only CONTROLLER_IS). Another value
+                # comes back with a card that prints it, and its tests.
+                raise ValueError(f"FAtom: LIFE_TOTAL_GE who must be YOU, got {self.who!r}")
         if (
             self.pred is FAtomPred.CONTROLLER_IS
             and self.who
@@ -1708,8 +1696,8 @@ _MOVE_ZONE_DURATIONS: tuple[type, ...] = (
 def _check_ordinal(owner: str, ordinal: object) -> None:
     """The one ordinal contract (CastSpellEvent, CardDrawnEvent, LifeGainedEvent,
     LifeLostEvent): the Nth such event of one player this turn, an int >= 1, or None for
-    every one. Only the trigger binder reads it: a turn-history atom or a replacement
-    refuses an event that carries one."""
+    every one. Only the trigger binder reads it: a turn-history atom, a replacement and an
+    Atom's ``event`` role (PREVENT_EFFECT) refuse an event that carries one."""
     if ordinal is not None and (
         isinstance(ordinal, bool) or not isinstance(ordinal, int) or ordinal < 1
     ):
@@ -2767,6 +2755,12 @@ class AtomArgs:
                 raise ValueError(
                     f"AtomArgs: role 'arrange' must be one of {_MOVE_ARRANGE} (absent: the owner "
                     f"arranges the cards, CR 401.4), got {value!r}"
+                )
+            if role == "event" and getattr(value, "ordinal", None) is not None:
+                # PREVENT_EFFECT's event: no prevention lane counts events (gate round 8, m1)
+                raise ValueError(
+                    "AtomArgs: an event ordinal is a trigger's (the trigger binder reads it); "
+                    "no prevention lane counts events"
                 )
         # The mill lane is defined by TOP-pop; a journal_kind="MILL" site
         # that forgets pop_order would silently fall through to the generic
@@ -4031,8 +4025,8 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # LIFE_LEAD_OVER_START_GE: count = the threshold; no who slot (the
     # predicate binds its subject player directly).
     FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
-    # LIFE_TOTAL_GE: who = the one player whose life total is read; count =
-    # the threshold, required (both checked in FAtom.__post_init__).
+    # LIFE_TOTAL_GE: who = YOU; count = the threshold, required (both
+    # checked in FAtom.__post_init__).
     FAtomPred.LIFE_TOTAL_GE: (frozenset({"count", "who"}), frozenset({"count", "who"})),
     FAtomPred.NAME_PARTITION_COUNT_GE: (
         frozenset({"inner_filter", "count"}),

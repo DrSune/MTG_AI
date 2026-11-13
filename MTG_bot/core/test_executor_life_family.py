@@ -1,9 +1,9 @@
-"""The life family (2026-11-13, ontology gate round 7): a life-total threshold, "for the first
-time each turn" on life events, and a replaced gain's amount.
+"""The life family (2026-11-13, ontology round R8, gate round 8): a life-total threshold, "for the
+first time each turn" on life events, and a replaced gain's amount.
 
-- ``FAtomPred.LIFE_TOTAL_GE(who, count)``: one player's life total now is at least ``count``
-  (CR 119.1), whatever it started at (CR 103.4). "N or less life" is FNot(LIFE_TOTAL_GE(N + 1)),
-  never a second predicate, so ``who`` names one player.
+- ``FAtomPred.LIFE_TOTAL_GE(who, count)``: your life total now is at least ``count`` (CR 119.1),
+  whatever it started at (CR 103.4). "N or less life" is FNot(LIFE_TOTAL_GE(N + 1)), never a
+  second predicate; ``who`` is YOU, the only reading printed.
 - ``LifeGainedEvent.ordinal`` / ``LifeLostEvent.ordinal``: the Nth gain or loss of that player
   this turn, CardDrawnEvent.ordinal's contract, counted by the trigger binder. One loss is one
   source's damage to the player at once, or one effect's or payment's loss (CR 120.3a, 119.3,
@@ -124,21 +124,6 @@ def test_life_total_is_not_the_lead_over_the_starting_life() -> None:
     assert eval_filter(life_ge(25), alpha, ctx) and not eval_filter(lead_5, alpha, ctx)
 
 
-def test_life_total_reads_a_designated_or_referent_player() -> None:
-    world, ex, p0, p1, alpha, beta = _world()
-    world.players[p1].life = 10
-    target = ctx_for(ex, source=alpha, controller=p0)
-    target.bindings["target"] = p1
-    for who in (ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT):
-        assert eval_filter(FNot(life_ge(11, who)), alpha, target)  # "has 10 or less life"
-        assert not eval_filter(life_ge(11, who), alpha, target)
-    # "that creature's controller", a referent Selector: Beta's controller, p1
-    event = ctx_for(ex, source=alpha, controller=p0)
-    event.bindings["event"] = [beta]
-    assert eval_filter(life_ge(10, referent_sel("event")), alpha, event)
-    assert not eval_filter(life_ge(11, referent_sel("event")), alpha, event)
-
-
 @pytest.mark.parametrize(
     ("make", "message"),
     [
@@ -149,19 +134,23 @@ def test_life_total_reads_a_designated_or_referent_player() -> None:
          "does not take slot 'string_value'"),
         (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, who=YOU, count=QConst(25), inner_filter=YOU_ARE),
          "does not take slot 'inner_filter'"),
-        # a ref naming several players, where "N or less" through FNot would read "each"
+        # YOU is the only reading printed (gate round 8, M1). Several players would make "N or
+        # less" through FNot read "each"; TARGET_PLAYER, TARGET_OPPONENT and a referent "target"
+        # read one binding (three byte forms of one meaning), and a TARGET_* in a filter
+        # designates nothing; "source" and "controller" are you again (CR 113.8).
         *[
-            (lambda ref=ref: life_ge(10, ref), "must name one player")
+            (lambda ref=ref: life_ge(10, ref), "who must be YOU")
             for ref in (ControllerRef.OPPONENT, ControllerRef.ANY, ControllerRef.ALL_OPPONENTS,
-                        ControllerRef.DEFENDING_PLAYER, ControllerRef.OWNER)
+                        ControllerRef.DEFENDING_PLAYER, ControllerRef.OWNER,
+                        ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT)
         ],
-        # a Selector that names no object in scope
+        *[
+            (lambda referent=referent: life_ge(10, referent_sel(referent)), "who must be YOU")
+            for referent in ("target", "event", "result", "source", "controller")
+        ],
         (lambda: life_ge(10, at.Selector(QConst(1), at.SelectorMode.CHOOSE, YOU_ARE,
                                           zones=(at.Zone(at.ZoneKind.BATTLEFIELD, YOU),))),
-         "must name one player"),
-        # the source's and the ability's controller are you (CR 113.8): a second form of YOU
-        (lambda: life_ge(10, referent_sel("source")), "must name one player"),
-        (lambda: life_ge(10, referent_sel("controller")), "must name one player"),
+         "who must be YOU"),
     ],
 )
 def test_life_total_refuses_what_has_no_meaning(make, message) -> None:
@@ -216,7 +205,8 @@ def test_an_event_class_without_an_ordinal_takes_none() -> None:
 @pytest.mark.parametrize("cls", sorted(_ORDINAL_EVENTS))
 def test_an_ordinal_is_read_only_by_a_trigger(cls) -> None:
     """A history count says how much happened; an ordinal there would be a second byte form of
-    the count, or a reading no card prints. No replacement lane counts events."""
+    the count, or a reading no card prints. No replacement or prevention lane counts events
+    (gate round 8, m1: PREVENT_EFFECT's ``event`` role, resolving or static)."""
     event = _ORDINAL_EVENTS[cls](1)
     for pred in (FAtomPred.EVENT_THIS_TURN, FAtomPred.SUBJECT_OF_EVENT_THIS_TURN):
         if pred is FAtomPred.SUBJECT_OF_EVENT_THIS_TURN and cls == "CastSpellEvent":
@@ -225,6 +215,11 @@ def test_an_ordinal_is_read_only_by_a_trigger(cls) -> None:
             FAtom(pred, event=event, count=QConst(1))
     with pytest.raises(ValueError, match="event ordinal is a trigger's"):
         at.ReplacementAbility(event=event, condition=None, action=_gain(1))
+    with pytest.raises(ValueError, match="event ordinal is a trigger's"):
+        Atom(Verb.PREVENT_EFFECT, AtomArgs(pairs=(("event", event),)))
+    with pytest.raises(ValueError, match="event ordinal is a trigger's"):
+        at.StaticAbility(effect=Atom(Verb.PREVENT_EFFECT, AtomArgs(pairs=(
+            ("condition", YOU_ARE), ("event", _ORDINAL_EVENTS[cls](2))))))
     at.TriggeredAbility(event=event, condition=None, effect=_gain(1))  # where it belongs
     at.DelayedTrigger(duration=at.DurationEot(), event=event, condition=None, effect=_gain(1))
 
@@ -437,6 +432,20 @@ def test_as_long_as_reads_the_same_either_way_round(registry) -> None:
     enforcer = _one(registry, "As long as an opponent has eight or more cards in their graveyard, "
                               "this creature gets +2/+1 and has deathtouch.").outcome.ability.effect
     assert at.canonical_json(ours) == at.canonical_json(enforcer)
+
+
+def test_a_static_grants_its_keywords_in_one_order(registry) -> None:
+    """One static's effects share a timestamp (CR 613.7): "has flying and lifelink" and "has
+    lifelink and flying" are one tree, the grants sorted (gate round 8, m6)."""
+    for head in ("this creature has", "this creature gets +5/+5 and has"):
+        trees = {at.canonical_json(_one(registry, f"As long as you have 30 or more life, {head} "
+                                                  f"{kws}.").outcome.ability)
+                 for kws in ("flying and lifelink", "lifelink and flying")}
+        assert len(trees) == 1, head
+    grants = _one(registry, "As long as you have 30 or more life, this creature has vigilance, "
+                            "lifelink, and flying.").outcome.ability.effect.steps
+    assert [g.args.get("ability").keyword.name for g in grants] == ["FLYING", "LIFELINK",
+                                                                    "VIGILANCE"]
 
 
 def test_the_first_time_each_turn_is_an_ordinal(registry) -> None:

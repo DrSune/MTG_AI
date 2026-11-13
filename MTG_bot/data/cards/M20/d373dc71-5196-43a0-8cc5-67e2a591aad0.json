@@ -213,7 +213,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "The compiler builds the whole tree since the life family (ontology gate round 7): the static's condition is FAtomPred.LIFE_TOTAL_GE(who=YOU, count=25), the life total now (CR 119.1), not LIFE_LEAD_OVER_START_GE (relative to the starting life, 40 in Commander). The probe's board sits at 20 life, so the double strike is not exercised there; pack tools/scenarios/mapped/M20/twinblade_paladin_double_strike_at_25_life.json gains to exactly 25 and attacks (22 -> 14)."
+  "notes": "The compiler builds the whole tree since the life family (ontology round R8, gate round 8): the static's condition is FAtomPred.LIFE_TOTAL_GE(who=YOU, count=25), the life total now (CR 119.1), not LIFE_LEAD_OVER_START_GE (relative to the starting life, 40 in Commander). The probe's board sits at 20 life, so the double strike is not exercised there; pack tools/scenarios/mapped/M20/twinblade_paladin_double_strike_at_25_life.json gains to exactly 25 and attacks (22 -> 14). ENGINE, not this tree: one lifelink source dealing damage to several recipients at once is one life-gain event by the rulings, but the engine makes one per recipient, so the 'whenever you gain life' counter comes once per recipient there; not to be stamped verified before that fix (docs/BACKLOG.md)."
  },
  "probe": {
   "sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01"
