@@ -1,8 +1,8 @@
 # The ceiling-read window: registration draft (before any of its games)
 
-**For the coordinator:** review, then copy into a KNOWLEDGE note (suggested
-`KNOWLEDGE/2026-11-13/204-ceiling-window.md`) at a commit before the window runs. Results are
-appended to that note and never edit §1-§8.
+**For the coordinator:** review, then copy into a KNOWLEDGE note (the next number: main holds 204,
+the card backlog's wave 3, so `KNOWLEDGE/2026-11-13/205-ceiling-window.md`) at a commit before the
+window runs. Results are appended to that note and never edit §1-§8.
 
 **Context.** `docs/PLAN_CEILING.md` §14.1 and §14.5 as amended 2026-11-13 02:25:
 - r28's gates have sat at about 0.54 against its init since update 100 (199 §7), and R3 is
