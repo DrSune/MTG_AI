@@ -86,7 +86,7 @@ M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical dige
 M20: deckable 270 (base) / 270 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
 FDN: deckable 180 (base) / 180 (branch); taken out: 0; games 100; identical digests 100; crashes 0 (base) / 0 (branch)
 
-Random-play soaks dealing the new trees (soak_coverage.py: tools/cards/soak.play_one, random answers, stress decks, seeds 1..N):
+Random-play soaks dealing the new trees (soak_coverage.py: tools/cards/soak.play_one, random answers, stress decks, seeds 1..N), on 92aca048 and again on the final code, line for line the same:
 M20 (compiled, unverified records, 200 games, 0 crashes, 2 detector hits): dealt ['Diamond Knight', 'Icon of Ancestry']; games cast in: {'Icon of Ancestry': 16, 'Diamond Knight': 14}
 FDN (compiled, 200 games, 0 crashes, 7 detector hits): dealt ['Diamond Mare']; games cast in: {'Diamond Mare': 28}
 FDN (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Adaptive Automaton', 'Diamond Mare', 'Heraldic Banner']; games cast in: {'Adaptive Automaton': 4, 'Diamond Mare': 5, 'Heraldic Banner': 4}

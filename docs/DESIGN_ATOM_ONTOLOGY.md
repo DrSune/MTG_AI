@@ -1192,7 +1192,7 @@ land type: M10 Convincing Mirage), re-verifying both.
   those pools was cast, in 4 to 28 games, its choice made by random answers. Detector hits: 2 in
   one M20 game (D5 folds Omnath's counters across its two lives, BACKLOG) and 7 in four FDN games
   (D3 and D5 classes that come up on the base's FDN pool too), in no game that cast a family card
-  (`soak_coverage.txt`).
+  (`soak_coverage.txt`). Rerun on the final code: the same casts and hits, 0 crashes.
 - The conformance checker's pools (M21, ZNR) hold no new tree: no V4′ CHOOSE emission, no V5′
   drift beyond the baseline's.
 

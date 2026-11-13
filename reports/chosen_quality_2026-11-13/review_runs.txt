@@ -62,3 +62,5 @@ The blast radius on the final code (the commands of blast_radius.txt): tree_dump
 the branch, tree_diff: the same 20 trees, 0 verified in or out, stamps 275/270/180; the 9
 still-verified cards on a touched path, FDN Gnarlid Colony and Goblin Boarders also gated
 (entering-gate, their kicker). 300 seeded heuristic games: 300/300 identical digests, 0 crashes.
+soak_coverage.py: line for line the output in soak_coverage.txt (800 games, 0 crashes, the same
+casts and the same detector hits).
