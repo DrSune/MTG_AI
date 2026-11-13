@@ -87,3 +87,35 @@ and batch B 9 M20 cards, each with 2 plants. Each batch caught both of its plant
 - **A verified card can still be WRONG under a new engine fact.** Cavalier of Gales, Necromentia
   and Siege Striker play differently with unchanged trees. Re-reviewing the cards a merge touches
   keeps the stamps honest.
+
+## 4. After the wave (2026-11-13 03:50-04:15)
+
+**Gate round 8 (the life family) is merged** (84c33953). Its fixes:
+- LIFE_TOTAL_GE's `who` is YOU only. The target forms never designated a target.
+- PREVENT_EFFECT refuses an event with an ordinal.
+- New divergence rows: D22, "as long as" on the atom in 5 verified trees, and D23, grant
+  order.
+
+**The lifelink fix is in the same merge.**
+- One lifelink source's damage dealt at once is one life-gain event, whatever the number of
+  recipients (CR 702.15e). It was one per recipient, in combat and with a life-gain replacement
+  out of combat.
+- In 1,500 seeded games, 3 played differently, with the same winners.
+
+**G3: "up to one" twin targets on an activated ability are dead** (7ba36f23).
+- An empty designation is bound and handed to the ALL mutant as itself, so it acts on nothing.
+- No verified card's mutant set changes.
+- Garruk, Unleashed and Mu Yanling, Sky Dancer are verified.
+
+**Verification wave 1d.** One blind verifier (Sonnet) judged two batches of 3 cards and 2 plants
+each, and caught all 4 plants:
+- Epicure of Blood's loss went to its own controller;
+- Thicket Crasher's trample went to the opponent's Elementals;
+- Spectral Sailor's cost was missing its {U};
+- Ajani's Pridemate got two counters.
+
+Verified: M20 and FDN Angel of Vitality and Twinblade Paladin, M20 Vengeful Warchief, and FDN
+Drogskol Reaver.
+
+**Verified pools (deckable), 2026-11-13 04:15:** M21 275, M20 273, FDN 183. When the owner asked
+(2026-11-12 evening) they were M21 270, M20 257, FDN 175.
