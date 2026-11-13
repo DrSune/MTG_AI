@@ -38,7 +38,10 @@
    "op": "activate",
    "key": "ch",
    "idx": 2,
-   "seat": 0
+   "seat": 0,
+   "decisions": [
+    "ct"
+   ]
   }
  ],
  "expect": {
@@ -62,5 +65,5 @@
    }
   }
  },
- "notes": "B-49 follow-up #1 (was branch chandra_heart_of_fire:01, the [+1] permission's free cast from exile). The [-9] is now idx 2 and owns its last sentence 'Add six {R}.' (it used to sit on the cast lane, so casting Chandra added six {R}). It searches the lone red sorcery Crash Through out of the graveyard into exile. 'You may cast them this turn.' is suppressed (CR 611.2a; the card is engine-unsupported), so Crash Through stays exiled and no card is drawn."
+ "notes": "B-49 follow-up #1 (was branch chandra_heart_of_fire:01, the [+1] permission's free cast from exile). The [-9] is now idx 2 and owns its last sentence 'Add six {R}.' (it used to sit on the cast lane, so casting Chandra added six {R}). It searches the lone red sorcery Crash Through out of the graveyard into exile. 'You may cast them this turn.' is suppressed (CR 611.2a; the card is engine-unsupported), so Crash Through stays exiled and no card is drawn. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved."
 }

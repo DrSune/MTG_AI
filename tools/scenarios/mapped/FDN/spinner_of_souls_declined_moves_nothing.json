@@ -1,0 +1,20 @@
+{
+ "name": "spinner_of_souls_declined_moves_nothing",
+ "set": "FDN",
+ "note": "Spinner of Souls' reveal is optional ('you may reveal'), and the second sentence moves only what it revealed: P0 declines (skip), so nothing is revealed and the library keeps its order (the top card is not sent to the bottom as 'the rest' of nothing).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "spinner", "real": "Spinner of Souls", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "OppGiant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "beast", "name": "Lib Beast", "power": "3", "toughness": "3", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "land", "name": "Land", "type": "Land", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogiant", "target": "bear", "amount": 2, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "beast": "library"},
+  "library": {"0": ["Land", "Lib Beast", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

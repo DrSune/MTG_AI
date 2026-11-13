@@ -827,7 +827,7 @@ class LayerRegistry:
         # CR 704.5d), unless its duration is a condition read off the source.
         if (
             layer.source not in world.cards
-            and layer.source not in self.executor.emblems.values()
+            and layer.source not in self.executor.emblems
             and (not layer.resolved or isinstance(layer.duration, DurationWhileCondition))
         ):
             return False
@@ -1047,7 +1047,9 @@ class LayerRegistry:
             if layer.status != "live":
                 continue
             if layer.kind == "static":
-                targets = self._static_targets(layer)
+                # Players too: "You have hexproof" (Leyline of Sanctity) is a player's keyword,
+                # as a resolved grant to "you" is (CR 702.11c).
+                targets = self._static_grant_targets(layer)
                 for atom in layer.atoms:
                     payload = atom.args.get("ability")
                     if atom.verb == Verb.GRANT_ABILITY:
@@ -1286,8 +1288,9 @@ class LayerRegistry:
 
     def _static_grant_targets(self, layer: LayerRecord) -> tuple[Handle, ...]:
         """A static grant's targets including PLAYERS ("You have protection
-        from ...", Runed Halo); _static_targets keeps battlefield cards only, which
-        is what the P/T and keyword maps are keyed on."""
+        from ...", Runed Halo; "You have hexproof", Leyline of Sanctity): what the keyword and
+        granted-ability maps are keyed on. _static_targets keeps battlefield cards only, which
+        is what the P/T entries are materialized on."""
         from MTG_bot.core.executor.legality import enumerate_candidates
 
         assert layer.selector is not None
@@ -1300,12 +1303,15 @@ class LayerRegistry:
         )
 
     def hexproof_of(self, handle: Handle) -> tuple[Filter | None, ...]:
-        """CR 702.11b: the live HEXPROOF rows on ``handle`` — one entry per
-        row: ``None`` for a bare "Hexproof"
+        """CR 702.11b-d: the live HEXPROOF rows on a permanent OR A PLAYER (``handle``) — one
+        entry per row: ``None`` for a bare "Hexproof"
         (blocks EVERY opponent-controlled source) and the row's Filter
         for "Hexproof from {quality}" (Spined Megalodon's compiled
         COLOR_HAS-U param; a multi-quality row blocks from any of its
-        qualities, the ``protection_rows`` pair-consumer's twin).
+        qualities, the ``protection_rows`` pair-consumer's twin). Rows come from
+        printed keywords, one-shot grants (Veil of Summer's "You and permanents you
+        control gain hexproof from blue and from black") and static grants (Leyline
+        of Sanctity's "You have hexproof"), as protection's do.
 
         The loss-aware gate is ``_keywords`` (the materialized map, not a
         raw record scan): ``_apply_remove`` on a live LOSE_ABILITY strips
@@ -1331,11 +1337,22 @@ class LayerRegistry:
             return ()
         found: list[Filter | None] = []
         for layer in self.records:
-            if layer.status != "live" or layer.kind not in ("keyword", "grant"):
+            if layer.status != "live":
                 continue
-            if handle not in layer.targets:
+            if layer.kind in ("keyword", "grant"):
+                if handle in layer.targets:
+                    found.extend(rows_of(layer.payload))
                 continue
-            found.extend(rows_of(layer.payload))
+            if layer.kind != "static" or layer.selector is None:
+                continue
+            rows = [
+                row
+                for atom in layer.atoms
+                if atom.verb == Verb.GRANT_ABILITY
+                for row in rows_of(atom.args.get("ability"))
+            ]
+            if rows and handle in self._static_grant_targets(layer):
+                found.extend(rows)
         for granted in self._granted.get(handle, ()):
             found.extend(rows_of(granted.node))
         return tuple(found) or (None,)

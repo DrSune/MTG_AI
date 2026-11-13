@@ -1,0 +1,19 @@
+{
+ "name": "leyline_of_sanctity_you_have_hexproof",
+ "set": "M20",
+ "note": "Leyline of Sanctity: 'You have hexproof.' (CR 702.11c: you can't be the target of spells or abilities your opponents control). With the Leyline on P0's battlefield, P1's Duress ('Target opponent reveals their hand...') has no legal target, so it can't be cast (CR 601.2c); P1's Mind Rot ('Target player discards two cards.') can still target P1 itself, and does. The Leyline's opening-hand sentence is still needs-atom, so the pack puts it on the battlefield. Red before 2026-11-13: 'You have hexproof.' did not compile and player hexproof was never read, so Duress took P0's instant.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "leyline", "real": "Leyline of Sanctity", "zone": "battlefield", "controller": 0},
+  {"key": "spare", "name": "Spare Instant", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "duress", "real": "Duress", "zone": "hand", "controller": 1},
+  {"key": "rot", "real": "Mind Rot", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"B": 4}},
+  {"op": "cast", "key": "duress", "real": "Duress", "controller": 1, "targets": ["p0"], "expect_raise": "illegal"},
+  {"op": "cast", "key": "rot", "real": "Mind Rot", "controller": 1, "targets": ["p1"]}
+ ],
+ "expect": {"zone": {"spare": "hand", "duress": "graveyard", "rot": "graveyard"}, "hand": {"0": 1}}
+}

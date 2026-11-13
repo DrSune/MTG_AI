@@ -458,15 +458,18 @@ from MTG_bot.core.executor.selectors import controller_of as _effective_controll
 
 
 def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
-    """CR 702.11b: does ``candidate``'s live HEXPROOF forbid targeting from
+    """CR 702.11b-d: does ``candidate``'s live HEXPROOF forbid targeting from
     ``ctx``'s source? The keyword's quality rows are evaluated against the
     targeting source, the same single-oracle shape as protection
     (:func:`protected_from`).
 
-    Direction (CR 702.11b): hexproof blocks only OPPONENT-controlled
-    sources; any other seat is an opponent, and the controller always
-    targets their own object freely. The candidate's controller is read
-    through ``controller_of`` (GAIN_CONTROL overlay aware).
+    Direction (CR 702.11b-c): hexproof blocks only OPPONENT-controlled
+    sources; any other seat is an opponent, and a player always targets
+    themself and their own objects freely. A permanent's controller is read
+    through ``controller_of`` (GAIN_CONTROL overlay aware). A player with
+    hexproof (CR 702.11c, Leyline of Sanctity; "from [quality]", 702.11d,
+    Veil of Summer) is the one hexproof protects; a hexproof permanent's
+    controller is not.
 
     Zone relevance (CR 702.11b "on a permanent"; CR 113.6): the keyword
     functions only on the battlefield. A creature spell is not a
@@ -474,9 +477,7 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     (Sporeweb Weaver is countered by a blue Cancel; Carnage Tyrant prints
     "can't be countered" for this reason). The identity-seeded keyword
     names are zone-less, so this consumer guard is what keeps a hexproof
-    card off the battlefield an ordinary target. A candidate the layers
-    registry does not know (a player seat: 702.11 protects the hexproof
-    OBJECT, never its controller) is never vetoed here.
+    card off the battlefield an ordinary target.
 
     Filter rows evaluate against ``ctx.source`` through ``eval_filter``
     (COLOR_HAS reads the source card's own identity), so an opponent's
@@ -486,15 +487,17 @@ def _hexproof_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     if layers is None:
         return False
     world = ctx.world
-    if candidate not in world.cards:
-        return False  # player seat / off-world handle: never hexproof here
-    if world.zone_of(candidate).kind != ZONE_BATTLEFIELD:
+    if candidate.namespace == "player":
+        holder = candidate
+    elif candidate not in world.cards:
+        return False  # an off-world handle (an ability on the stack, an emblem)
+    elif world.zone_of(candidate).kind != ZONE_BATTLEFIELD:
         return False  # a permanent's keyword: dead anywhere else (CR 113.6)
+    else:
+        holder = _effective_controller(ctx, candidate)
+    if holder == ctx.controller:
+        return False  # 702.11b-c: "your opponents control", your own targets are free
     rows = layers.hexproof_of(candidate)
-    if not rows:
-        return False
-    if _effective_controller(ctx, candidate) == ctx.controller:
-        return False  # 702.11b: "an opponent controls", own target is free
     return any(row is None or eval_filter(row, ctx.source, ctx) for row in rows)
 
 
@@ -573,6 +576,20 @@ def _protection_vetoes_target(candidate: Handle, ctx: ExecCtx) -> bool:
     source with the stated quality." ``ctx.source`` is the spell, or the source of
     the ability, doing the targeting."""
     return protected_from(ctx.executor, candidate, ctx.source)
+
+
+def player_targetable(
+    executor: Executor, player: Handle, source: Handle | None, controller: Handle
+) -> bool:
+    """The vetoes a player meets as a target of a spell or ability from ``source`` that
+    ``controller`` controls: protection from the source (CR 702.16b) and hexproof against its
+    controller (CR 702.11c-d). The player slots the query synthesizes ("target player", "target
+    opponent", the players of "any target") read it; a player in a selector's own population
+    meets the same two in :func:`enumerate_candidates`. No source: nothing to judge."""
+    if source is None:
+        return True
+    ctx = ctx_for(executor, source=source, controller=controller)
+    return not (_hexproof_vetoes_target(player, ctx) or _protection_vetoes_target(player, ctx))
 
 
 def enumerate_candidates(sel: Selector, ctx: ExecCtx) -> list[Handle]:
@@ -2027,12 +2044,14 @@ def resolve_activated(executor: Executor, obj) -> str:
     NO_LEGAL_TARGETS row). Otherwise its effect runs from its source, in its
     controller's coordinates, with the targets bound and every X the announced X
     (CR 107.3a). Returns "resolved"; the caller settles afterwards."""
-    from MTG_bot.core.executor.query import activation_target_slots
+    from MTG_bot.core.executor.query import activation_target_slots, designates
     from MTG_bot.core.executor.stack import recheck_targets
 
     ability, source, seat = obj.node, obj.source, obj.controller
     bindings: dict[str, Binding] = {}
     slot_designations = obj.slot_designations or None
+    if not obj.declared_targets and designates(ability.effect):
+        bindings["target"] = []  # an "up to" designation that chose nothing (CR 115.6)
     if obj.declared_targets:
         # CR 608.2b: the targets are checked again as the ability resolves, after its
         # costs are paid (Heartfire Immolator sacrificed itself while targeting itself).

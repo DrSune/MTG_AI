@@ -326,6 +326,8 @@ class Probe:
             players[_seat_name(world, seat)] = (
                 pl.life, len(pl.zone("hand").entries), len(pl.zone("library").entries),
                 tuple(sorted((k, v) for k, v in pl.mana_pool.items() if v)),
+                # a player's keywords: hexproof, protection (CR 702.11c, 702.16)
+                tuple(k.name for k in Keyword if ex.layers.keyword_of(seat, k)),
             )
         return objs, players
 
@@ -378,6 +380,10 @@ class Probe:
                 da, db = dict(a[3]), dict(b[3])
                 delta = {k: db.get(k, 0) - da.get(k, 0) for k in sorted(set(da) | set(db))}
                 parts.append("mana " + " ".join(f"{k}{v:+d}" for k, v in delta.items() if v))
+            if a[4] != b[4]:
+                parts.append("keywords " + " ".join(
+                    [f"+{k}" for k in sorted(set(b[4]) - set(a[4]))]
+                    + [f"-{k}" for k in sorted(set(a[4]) - set(b[4]))]))
             out.append(f"{seat}: " + "; ".join(parts))
         return out
 

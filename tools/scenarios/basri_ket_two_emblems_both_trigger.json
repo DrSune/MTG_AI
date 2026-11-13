@@ -1,0 +1,25 @@
+{
+ "world": {"life": 20, "seed": 7},
+ "notes": "CR 114.2: each 'you get an emblem' puts a new emblem into the command zone, and each one's abilities function (CR 114.4). Basri Ket's -6 used on two of its controller's turns gives two emblems with 'At the beginning of combat on your turn, create a 1/1 white Soldier creature token, then put a +1/+1 counter on each creature you control.' At the next beginning of combat both trigger: two Soldiers, the Wolf gets two counters (4/4). Before 2026-11-12 the executor kept one emblem per (owner, emblem) and the second -6 did nothing: one Soldier, one counter (the pack fails there).",
+ "cards": [
+  {"key": "basri", "zone": "battlefield", "controller": 0, "real": "Basri Ket"},
+  {"key": "wolf", "zone": "battlefield", "controller": 0, "name": "Wolf", "type": "Creature", "power": "2", "toughness": "2"}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "basri", "set": 7},
+  {"op": "activate", "key": "basri", "idx": 2, "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "loyalty", "key": "basri", "set": 7},
+  {"op": "activate", "key": "basri", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0}
+ ],
+ "expect": {
+  "tokens": {"Soldier": 2},
+  "power": {"wolf": 4},
+  "toughness": {"wolf": 4},
+  "counters": {"wolf": {"PLUS_1_PLUS_1": 2}}
+ }
+}

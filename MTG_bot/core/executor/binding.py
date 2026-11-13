@@ -454,7 +454,7 @@ class TriggerBinder:
             self.attached[(handle, idx)] = ability
         # Same attach order as _register (replacements first - its
         # idempotence sweep must not expire the layers' static prevents).
-        self.executor.replacements.attach_source(handle, record)
+        self.executor.replacements.attach_source(handle, record, controller=owner)
         self.executor.layers.attach_source(handle, record, controller=owner)
         return len(triggers)
 
@@ -1666,7 +1666,8 @@ class TriggerBinder:
                 designated = True
         target = ctx.bindings.get("target")
         targets = (target,) if isinstance(target, Handle) else tuple(target or ())
-        selectors = self._designation_slots(node)[0] if designated else []
+        per_slot = dict(ctx.slot_designations or {})  # several slots (_designate_slots)
+        selectors = self._designation_slots(node)[0] if designated and not per_slot else []
         return StackObject(
             handle=self.executor.ability_handles.allocate(),
             node=node,
@@ -1674,6 +1675,7 @@ class TriggerBinder:
             spell_kind="TRIGGERED",
             declared_targets=tuple(sorted(t for t in targets if isinstance(t, Handle))),
             declared_clock=self.executor.journal.clock,
+            slot_designations=per_slot,
             source=payload.source,
             event=event,
             ctx=ctx,
@@ -1692,7 +1694,27 @@ class TriggerBinder:
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
         kept: list[Handle] | None = None
-        if obj.target_node is not None and obj.declared_targets:
+        if obj.slot_designations and obj.declared_targets:
+            # CR 608.2b, slot by slot, as a spell's targets are (stack.recheck_targets): an
+            # illegal target leaves its own slot, and the ability does not resolve only when
+            # every target is illegal.
+            from MTG_bot.core.executor.query import activation_target_slots
+            from MTG_bot.core.executor.stack import recheck_targets
+
+            bindings = {k: v for k, v in obj.ctx.bindings.items() if k != "target"}
+            slots = activation_target_slots(
+                self.executor, obj.node.effect, source=obj.source, seat=obj.controller,
+                bindings=bindings,
+            )
+            legal_now, per_slot = recheck_targets(
+                self.executor, slots, obj.declared_targets, designations=obj.slot_designations,
+                since=obj.declared_clock,
+            )
+            kept = list(legal_now)
+            if per_slot is not None:
+                obj.ctx.slot_designations = per_slot
+                obj.ctx.designation_union = legal_now
+        elif obj.target_node is not None and obj.declared_targets:
             # CR 608.2b: the targets chosen from a TARGET slot are checked again
             # against that slot now; with none still legal the ability does not
             # resolve, otherwise it acts on those still legal.
@@ -1707,7 +1729,10 @@ class TriggerBinder:
                 controller=obj.controller,
                 bindings=bindings,
             )
-            slot = _widen_any_target(self.executor, obj.target_node, slot, obj.source) or slot
+            slot = (
+                _widen_any_target(self.executor, obj.target_node, slot, obj.source, obj.controller)
+                or slot
+            )
             from MTG_bot.core.executor.returns import moved_since
 
             kept = [
@@ -1791,7 +1816,10 @@ class TriggerBinder:
                         controller=ctx.controller,
                         bindings=ctx.bindings,
                     )
-                    slot = _widen_any_target(self.executor, value, slot, ctx.source) or slot
+                    slot = (
+                        _widen_any_target(self.executor, value, slot, ctx.source, ctx.controller)
+                        or slot
+                    )
                     if len(slot.candidates) < need:
                         return False
             return True
@@ -1882,10 +1910,11 @@ class TriggerBinder:
     def _target_players(self, node: _AnyTrigger, ctx: ExecCtx) -> list[Handle]:
         """The players a trigger's "target opponent" / "target player" may designate now: the
         ability controller's opponents, or every player (CR 115.1, 102.2), minus those with
-        protection from its source (CR 702.16b: Runed Halo naming the trigger's card). Chosen
-        from as it goes on the stack (:meth:`_designate`) and checked against again as it
-        resolves (:meth:`resolve`, CR 608.2b)."""
-        from MTG_bot.core.executor.legality import protected_from
+        protection from its source (CR 702.16b: Runed Halo naming the trigger's card) or
+        hexproof against its controller (CR 702.11c). Chosen from as it goes on the stack
+        (:meth:`_designate`) and checked against again as it resolves (:meth:`resolve`, CR
+        608.2b)."""
+        from MTG_bot.core.executor.legality import player_targetable
 
         opponent_only = self._designation_slots(node)[2]
         players = (
@@ -1893,7 +1922,7 @@ class TriggerBinder:
             if opponent_only
             else list(ctx.world.player_order)
         )
-        return [h for h in players if not protected_from(self.executor, h, ctx.source)]
+        return [h for h in players if player_targetable(self.executor, h, ctx.source, ctx.controller)]
 
     def _designate(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
         """The trigger designation channel (CR 603.1).
@@ -1919,8 +1948,7 @@ class TriggerBinder:
           candidate is auto-filled (no ask), none removes the ability (the
           word "target" makes it a required target, CR 603.3d);
         * a multi-slot trigger (two distinct TARGETs, or a TARGET and a
-          TARGET_PLAYER) → raises (this channel has no per-slot
-          designation, and never guess-binds a second slot).
+          TARGET_PLAYER) → designated slot by slot (:meth:`_designate_slots`).
 
         The site tag carries the CONTROLLER seat (``target:<seat>:<source>:
         <digest>``, four segments like the combat lane): the answer belongs
@@ -1949,12 +1977,7 @@ class TriggerBinder:
         if not selectors and not reads_target_player:
             return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):
-            raise NotImplementedError(
-                f"executor: trigger {node.effect!r:.80} carries "
-                f"{len(selectors) + int(reads_target_player)} designation "
-                "slots; per-slot designation is /06 arc 3 (never guess-bind "
-                "the second)"
-            )
+            return self._designate_slots(node, ctx)
         if reads_target_player:
             # The synthetic player slot (spell_target_slots' twin), populated by
             # _target_players; the cross-seat ruling is CR 603.1's: the
@@ -2007,7 +2030,9 @@ class TriggerBinder:
             # selector would ask a register it never saw.
             bindings=ctx.bindings,
         )
-        slot = _widen_any_target(self.executor, selector, slot, ctx.source) or slot
+        slot = (
+            _widen_any_target(self.executor, selector, slot, ctx.source, ctx.controller) or slot
+        )
         candidates = sorted(slot.candidates)
         count = selector.count
         # CR 603.3d: an exact-count slot the ability needs in every
@@ -2062,6 +2087,73 @@ class TriggerBinder:
         # TARGETING feed — see the player-slot note above; an empty
         # pick list (an "up to N" answered NONE) emits none.
         self.executor.journal.emit_targeting(ctx.source, ctx.controller, picks)
+        return True
+
+    def _designate_slots(self, node: _AnyTrigger, ctx: ExecCtx) -> bool:
+        """CR 603.3d, 601.2c: a trigger with several designations ("deals 4 damage to any target
+        and 3 damage to each of up to two other targets", Drakuseth, Maw of Flames) designates
+        them as a spell or an activation does: the slots of ``query.activation_target_slots``
+        (the player slot of "target player" included), the targets of each in turn, one ask per
+        pick over the candidates ``stack.slot_options`` leaves: never one picked twice for one
+        word "target" (CR 115.3), never one an "another"/"other" slot shares with another slot,
+        and never one that leaves a later slot without its minimum. A slot with one legal filler
+        and its minimum not reached takes it unasked; once it has its minimum, NONE ends it. With
+        a required slot impossible to fill the ability is removed (False). The per-slot map rides
+        the context (``ExecCtx.slot_designations``), which each TARGET selector then reads at
+        resolution, and the union is ``target``. The ask site is the single slot's."""
+        from MTG_bot.core.executor.query import activation_target_slots, designates
+        from MTG_bot.core.executor.stack import can_designate, slot_options
+
+        if any(isinstance(inner, Choose) and designates(inner) for inner in own_nodes(node.effect)):
+            # CR 700.2a, 603.3c: a mode's targets are chosen for the chosen mode only.
+            # _declare_mode narrows a top-level Choose before this; one inside the effect is
+            # still whole, so every mode's slots would be asked and an unfillable one would
+            # remove the ability while another mode stays choosable (the single-slot lane
+            # treats such a slot as optional: _required_target_keys).
+            raise NotImplementedError(
+                f"executor: trigger {node.effect!r:.80}: a target under a mode not chosen yet "
+                "(a Choose inside the effect) is not designated slot by slot"
+            )
+        slots = activation_target_slots(
+            self.executor, node.effect, source=ctx.source, seat=ctx.controller,
+            bindings=ctx.bindings,
+        )
+        if any(filter_bound_player_refs(slot.selector.filter) for slot in slots if not slot.synthetic):
+            # "Exile target creature target opponent controls": that creature's legal set is
+            # known only once the player is chosen; the slots are made independently, so its
+            # population would be empty and the ability wrongly removed.
+            raise NotImplementedError(
+                f"executor: trigger {node.effect!r:.80}: a target's legal set reads the "
+                "designated player beside it, which per-slot designation does not choose first"
+            )
+        if not can_designate(slots):
+            return False
+        groups: list[tuple[Handle, ...]] = []
+        for slot in slots:
+            picked: list[Handle] = []
+            while len(picked) < slot.max_count:
+                options = slot_options(slots, tuple(groups), picked)
+                if not options:
+                    break
+                done = len(picked) >= slot.min_count
+                if len(options) == 1 and not done:
+                    picked.append(options[0])
+                    continue
+                vocab = tuple(str(h) for h in options) + (("NONE",) if done else ())
+                answer = ctx.take_decision(
+                    vocab, f"target:{ctx.controller}:{ctx.source}:{site_digest(vocab)}"
+                )
+                if answer == "NONE":
+                    break
+                picked.append(next(h for h in options if str(h) == answer))
+            groups.append(tuple(sorted(picked)))
+        union = tuple(sorted({h for group in groups for h in group}))
+        ctx.slot_designations = {
+            repr(slot.selector): group for slot, group in zip(slots, groups, strict=True)
+        }
+        ctx.designation_union = union
+        ctx.bindings["target"] = list(union)
+        self.executor.journal.emit_targeting(ctx.source, ctx.controller, list(union))
         return True
 
     def _ctx(

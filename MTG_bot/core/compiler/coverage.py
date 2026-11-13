@@ -30,7 +30,7 @@ The numbers:
 from __future__ import annotations
 
 import types
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
@@ -59,6 +59,7 @@ from MTG_bot.core.compiler import (
     templates_b12,
     templates_b14,
     templates_b15,
+    templates_b16,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, compile_card
 from MTG_bot.core.compiler.ingest import RawCard, pool_stats
@@ -93,6 +94,7 @@ _BUCKET_MODULES: tuple[types.ModuleType, ...] = (
     templates_b12,
     templates_b14,
     templates_b15,
+    templates_b16,
 )
 
 
@@ -312,12 +314,8 @@ def _compile_pool_tolerant(
 ) -> tuple[dict[str, CompileResult], list[ShapeGap]]:
     """``compile_pool`` semantics, except that a card whose printed shape
     raises ``StateCorruptionError`` becomes a ``ShapeGap`` row (excluded from
-    ``results``) instead of crashing the whole pass.
-
-    Emblem attachment mirrors ``compiler.compile_pool`` exactly (owner lookup
-    by ``related_names``, later same-named entries win) over the compiled
-    subset, so emblem atoms are reachable both through the owner's record
-    and through the emblem's own entry.
+    ``results``) instead of crashing the whole pass. An emblem's atoms are reachable through
+    the GET_EMBLEM of the card that makes it and through the emblem's own entry.
     """
     results: dict[str, CompileResult] = {}
     gaps: list[ShapeGap] = []
@@ -326,23 +324,6 @@ def _compile_pool_tolerant(
             results[oid] = compile_card(raw, registry, None)
         except StateCorruptionError as exc:
             gaps.append(ShapeGap(oid, raw.identity.name, str(exc)[:160]))
-
-    name_to_oid: dict[str, str] = {}
-    for oid, raw in pool.items():
-        if not raw.is_emblem and oid in results:
-            name_to_oid[raw.identity.name] = oid
-    for oid, raw in pool.items():
-        if not (raw.is_emblem and oid in results):
-            continue
-        owner_oid = next(
-            (name_to_oid[n] for n in raw.related_names if n in name_to_oid), None
-        )
-        # As in compiler.compile_pool: a back-face planeswalker's emblem stays an orphan.
-        if owner_oid is not None and "Planeswalker" in results[owner_oid].card.types:
-            owner_result = results[owner_oid]
-            results[owner_oid] = replace(
-                owner_result, card=replace(owner_result.card, emblem=results[oid].card)
-            )
     return results, gaps
 
 

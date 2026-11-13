@@ -72,7 +72,7 @@ from MTG_bot.core.ability_tree import (
     DeclareAttackersEvent,
     DelayedTrigger,
     EachPlayer,
-    EmblemAbility,
+    EmblemSpec,
     EtBState,
     FAnd,
     FAtom,
@@ -116,8 +116,8 @@ YOU, OPPONENT, ANY = ControllerRef.YOU, ControllerRef.OPPONENT, ControllerRef.AN
 _OPPONENTS = frozenset({OPPONENT, ControllerRef.ALL_OPPONENTS, ControllerRef.TARGET_OPPONENT,
                         ControllerRef.DEFENDING_PLAYER})
 _ABILITIES = (StaticAbility, TriggeredAbility, ActivatedAbility, SpellAbility, KeywordAbility,
-              ReplacementAbility, CostModifier, EtBState, EmblemAbility, KickerAbility)
-_NESTED = (*_ABILITIES, TokenSpec, DelayedTrigger, BackFace)
+              ReplacementAbility, CostModifier, EtBState, KickerAbility)
+_NESTED = (*_ABILITIES, TokenSpec, EmblemSpec, DelayedTrigger, BackFace)
 
 Shape = tuple[str, Any]  # (family, the subject filter for spell and permanent, else None)
 

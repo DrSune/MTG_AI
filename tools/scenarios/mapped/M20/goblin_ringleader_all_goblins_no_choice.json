@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "goblin_ringleader_all_goblins_no_choice",
+ "notes": "Printed: 'When this creature enters, reveal the top four cards of your library. Put all Goblin cards revealed this way into your hand and the rest on the bottom of your library in any order.' The top four, top first: Mountain, Goblin B, Elf, Goblin A. Both Goblins go to the hand with no ask; the Mountain and the Elf go to the bottom in the order their owner picks (CR 401.4), here the Elf above the Mountain: the step's one word answers that one arrange ask. Before 2026-11-12 the record took the Goblins through a ONE_OF of count 4, which asked the order of the picks first: the word went to that ask, which does not offer it, and the pack fails.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "gr", "real": "Goblin Ringleader", "zone": "hand", "controller": 0},
+  {"key": "ga", "name": "Goblin A", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "elf", "name": "Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "gb", "name": "Goblin B", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "mtn", "name": "Mountain", "type": "Basic Land — Mountain", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "gr", "decisions": ["elf"]}
+ ],
+ "expect": {
+  "zone": {"gr": "battlefield", "ga": "hand", "gb": "hand", "elf": "library", "mtn": "library"},
+  "hand": {"0": 2},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Elf", "Mountain"]}
+ }
+}

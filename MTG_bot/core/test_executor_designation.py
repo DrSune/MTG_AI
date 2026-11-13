@@ -467,10 +467,13 @@ class TestZoneAnyEnumeration(DesignationCase):
         self.assertEqual(resolve_selector(creature_only, ctx), [])
 
 
-class TestMultiSlotStaysLoud(DesignationCase):
-    def test_two_distinct_targets_raise_never_guess_bind(self):
-        # One trigger designation channel cannot serve two DISTINCT TARGET
-        # slots — the raise stands.
+class TestMultiSlotDesignation(DesignationCase):
+    def test_two_distinct_targets_are_designated_slot_by_slot(self):
+        # CR 603.3d, 601.2c: each slot from its own population, in printed order (one legal
+        # filler each here, so nothing is asked); test_executor_target_slots.TestTriggerSlots
+        # has the asks, "other" and the resolution re-check.
+        relic = self.world.add_card(card_id("Relic", type_line="Artifact"), self.p1, ZONE_BATTLEFIELD)
+        land = self.world.add_card(card_id("Plains", type_line="Land"), self.p1, ZONE_BATTLEFIELD)
         twin = self.carrier(self.p0, "Twin Carrier")
         self.attach(
             twin,
@@ -478,7 +481,7 @@ class TestMultiSlotStaysLoud(DesignationCase):
                 Seq(
                     steps=(
                         atom(
-                            Verb.EXILE,
+                            Verb.DESTROY,
                             target=Selector(
                                 QConst(1),
                                 SelectorMode.TARGET,
@@ -499,10 +502,10 @@ class TestMultiSlotStaysLoud(DesignationCase):
                 )
             ),
         )
-        self.answer("unused")  # any provider: the raise fires BEFORE asks
-        with self.assertRaises(NotImplementedError) as cm:
-            self.enter(twin)
-        self.assertIn("designation slots", str(cm.exception))
+        self.never_ask()
+        self.enter(twin)
+        self.assertEqual(self.world.zone_of(relic).kind, ZONE_GRAVEYARD)
+        self.assertTrue(self.world.cards[land].tapped)
 
 
 class TestQueryLanePredParity(DesignationCase):
@@ -764,9 +767,10 @@ class TestTargetPlayerNestedFilter(DesignationCase):
         )
         self.assertEqual(self.world.zone_of(mine).kind, ZONE_BATTLEFIELD)
 
-    def test_target_slot_plus_player_lane_stays_loud(self):
-        # A TARGET-mode selector AND a separate target-player read is two
-        # slots — never guess-bind the second.
+    def test_a_target_chosen_from_the_target_players_objects_stays_loud(self):
+        # "Exile target creature target opponent controls": the creature's legal set reads the
+        # player designated beside it, which the per-slot designation does not choose first.
         dower, _theirs, _mine = self._tp_wrapped(SelectorMode.TARGET)
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(NotImplementedError) as cm:
             self.enter(dower)
+        self.assertIn("reads the designated player", str(cm.exception))

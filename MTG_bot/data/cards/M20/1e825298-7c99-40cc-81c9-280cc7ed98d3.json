@@ -266,7 +266,158 @@
      },
      "args": {
       "tag": "AtomArgs",
-      "pairs": []
+      "pairs": [
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "emblem",
+        {
+         "tag": "EmblemSpec",
+         "abilities": [
+          {
+           "tag": "StaticAbility",
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "GRANT_ABILITY"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "ability",
+               {
+                "tag": "ActivatedAbility",
+                "cost": {
+                 "tag": "Cost",
+                 "parts": [
+                  {
+                   "tag": "CostTap",
+                   "target": null
+                  }
+                 ]
+                },
+                "effect": {
+                 "tag": "Atom",
+                 "verb": {
+                  "tag": "Verb",
+                  "name": "DRAW"
+                 },
+                 "args": {
+                  "tag": "AtomArgs",
+                  "pairs": [
+                   [
+                    "amount",
+                    {
+                     "tag": "QConst",
+                     "value": 1
+                    }
+                   ],
+                   [
+                    "controller",
+                    {
+                     "tag": "ControllerRef",
+                     "name": "YOU"
+                    }
+                   ]
+                  ]
+                 }
+                }
+               }
+              ],
+              [
+               "target",
+               {
+                "tag": "Selector",
+                "count": {
+                 "tag": "QUnbounded"
+                },
+                "mode": {
+                 "tag": "SelectorMode",
+                 "name": "ALL"
+                },
+                "filter": {
+                 "tag": "FAnd",
+                 "children": [
+                  {
+                   "tag": "FAtom",
+                   "pred": {
+                    "tag": "FAtomPred",
+                    "name": "CONTROLLER_IS"
+                   },
+                   "string_value": null,
+                   "color": null,
+                   "colors": [],
+                   "count": null,
+                   "counter_kind": null,
+                   "keyword": null,
+                   "who": {
+                    "tag": "ControllerRef",
+                    "name": "YOU"
+                   },
+                   "inner_filter": null
+                  },
+                  {
+                   "tag": "FAtom",
+                   "pred": {
+                    "tag": "FAtomPred",
+                    "name": "SUBTYPE_EQ"
+                   },
+                   "string_value": "Island",
+                   "color": null,
+                   "colors": [],
+                   "count": null,
+                   "counter_kind": null,
+                   "keyword": null,
+                   "who": null,
+                   "inner_filter": null
+                  },
+                  {
+                   "tag": "FAtom",
+                   "pred": {
+                    "tag": "FAtomPred",
+                    "name": "TYPE_EQ"
+                   },
+                   "string_value": "Land",
+                   "color": null,
+                   "colors": [],
+                   "count": null,
+                   "counter_kind": null,
+                   "keyword": null,
+                   "who": null,
+                   "inner_filter": null
+                  }
+                 ]
+                },
+                "zones": [
+                 {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "BATTLEFIELD"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "ANY"
+                  }
+                 }
+                ]
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ]
+        }
+       ]
+      ]
      }
     }
    },
@@ -280,9 +431,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-0",
-  "date": "2026-11-05",
-  "draft_py": "# Mu Yanling, Sky Dancer (M20). \"[+2]: Until your next turn, up to one target creature gets -2/-0\n# and loses flying.\" Garruk, Unleashed's loyalty +1 shape (B5c-loyalty-pt-trample: a Seq of\n# MODIFY_PT and a keyword change over one \"up to one target creature\" selector) with Rookie\n# Mistake's \"-2/-0\" (DECREASE 2 / DECREASE 0), Soul Sear's LOSE_ABILITY for \"loses flying\", and\n# DurationUntilNextTurn for \"until your next turn\" on both steps. The compiled [-3] and [-8] and\n# the planeswalker carrier are kept, in printed order after the [+2].\ntarget = Selector(\n    count=QAtMost(n=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nplus_two = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=2),)),\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'duration': DurationUntilNextTurn(),\n                'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=2)),\n                'target': target,\n                'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=0)),\n            }),\n            A(Verb.LOSE_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'duration': DurationUntilNextTurn(),\n                'target': target,\n            }),\n        ),\n    ),\n)\nabilities = [plus_two, *compiled]\n",
+  "author": "claude-wave2-m20-faults",
+  "date": "2026-11-12",
+  "draft_py": "# Mu Yanling, Sky Dancer (M20). Re-mapped 2026-11-12 (wave 2): the [-8]'s emblem rides its\n# GET_EMBLEM (EmblemSpec, the emblem's abilities; controller YOU, who gets it), so the -8 is no\n# longer an empty emblem.\n# \"[+2]: Until your next turn, up to one target creature gets -2/-0 and loses flying.\" Garruk,\n# Unleashed's loyalty +1 shape (a Seq of MODIFY_PT and a keyword change over one \"up to one target\n# creature\" selector) with Rookie Mistake's \"-2/-0\", Soul Sear's LOSE_ABILITY for \"loses flying\",\n# and DurationUntilNextTurn on both steps (unchanged from the first mapping).\n# \"[-8]: You get an emblem with \"Islands you control have '{T}: Draw a card.'\"\": the emblem's one\n# static ability is Mask of Immolation's granted-activated-ability shape (StaticAbility +\n# GRANT_ABILITY of an ActivatedAbility) over \"Islands you control\" (Dread Presence's \"a Swamp you\n# control\": CONTROLLER_IS YOU, SUBTYPE_EQ, TYPE_EQ Land), the ability {T}: DRAW 1 (Crash Through).\ntarget = Selector(\n    count=QAtMost(n=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nplus_two = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=2),)),\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'duration': DurationUntilNextTurn(),\n                'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=2)),\n                'target': target,\n                'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=0)),\n            }),\n            A(Verb.LOSE_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'duration': DurationUntilNextTurn(),\n                'target': target,\n            }),\n        ),\n    ),\n)\nislands = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Island'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ntap_draw = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nemblem = EmblemSpec(\n    abilities=(StaticAbility(effect=A(Verb.GRANT_ABILITY, {'ability': tap_draw, 'target': islands})),),\n)\nminus_eight = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-8),)),\n    effect=A(Verb.GET_EMBLEM, {'controller': ControllerRef.YOU, 'emblem': emblem}),\n)\nminus_three, carrier = compiled\nabilities = [plus_two, minus_three, minus_eight, carrier]\n",
   "clauses": [
    {
     "clause": "[+2]: Until your next turn, up to one target creature gets -2/-0 and loses flying.",
@@ -298,9 +449,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "G1 starts at loyalty 2, so only the +2 is exercised there. Packs in /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/mu_yanling: pack_plus_two_persists.json / pack_plus_two_ends.json (lasts through the opponent's turn, ends at your next turn), pack_minus_three.json (4/4 flying Bird). WEAKER THAN PRINTED, two engine/pool issues: (1) B-50 is live: pack_plus_two_survives_mu_leaving.json fails, because the 'loses flying' layer expires when Mu Yanling leaves the battlefield (the -2/-0 stays); (2) the -8's emblem is empty because the card 'Mu Yanling, Sky Dancer Emblem' is unmapped (its sentence is UNPARSED); pack_minus_eight_emblem.json fails until that emblem card has a record."
+  "notes": "Re-mapped 2026-11-12 for the emblem encoding (GET_EMBLEM carries its EmblemSpec and who gets it): the -8's emblem was empty (GET_EMBLEM {}), it now grants Islands you control '{T}: Draw a card.'. The +2 and -3 are unchanged. G1 starts at loyalty 2, so only the +2 is exercised there; tools/scenarios/mapped/M20/mu_yanling_sky_dancer_emblem_islands_draw.json plays the -8 (the emblem outlives her; only her controller's Islands draw)."
  },
  "probe": {
-  "sha": "a996f3a9f55991ef5f54af6cf21f08d0bf8482e8348bb47ae6280d1382059bc2"
+  "sha": "daec3343a58d5d880a051f285c768725f90d6219b304d0ba674dbbb831e41fca"
  }
 }

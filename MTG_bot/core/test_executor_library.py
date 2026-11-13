@@ -39,6 +39,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
     from_dict,
 )
 from MTG_bot.core.executor import (
@@ -347,6 +348,52 @@ class TestShuffleIntoItsOwnersLibrary(LibraryCase):
         self.assertIn(stalker, self.zone(self.p1, ZONE_LIBRARY))
         self.assertIn(bear, self.zone(self.p0, ZONE_LIBRARY))
         self.assertEqual(self.shuffled(), [str(self.p0), str(self.p1)])
+
+
+class TestRevealUntilDig(LibraryCase):
+    """Vivien, Nature's Avenger's −1 (and Spinner of Souls, Evolutionary Leap): "Reveal cards from
+    the top of your library until you reveal a creature card. Put that card into your hand and the
+    rest on the bottom of your library in a random order." The rest are the other revealed cards
+    (CR 701.20a: revealing moves nothing), all of them, under the library. Before the fix the move
+    of "that card" closed the look window and "the rest" was the library's new top card alone."""
+
+    def dig(self):
+        """The tree B16 compiles (test_templates_b16 pins it): the reveal, then "that card"
+        (the ``result``) to your hand and REST over the library's top to the bottom, RANDOM."""
+        that_card = Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                             zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result")
+        rest = Selector(QConst(1), SelectorMode.REST, UNIV,
+                        zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),))
+        effect = Seq((
+            atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QConst(1),
+                 until=FAtom(FAtomPred.TYPE_EQ, string_value="Creature")),
+            Seq((
+                atom(Verb.MOVE_ZONE, cards=that_card, destination=HAND_YOU),
+                atom(Verb.MOVE_ZONE, cards=rest, arrange="RANDOM",
+                     destination=Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.BOTTOM)),
+            )),
+        ))
+        self.ex.apply_effect(effect, source=self.p0, controller=self.p0)
+
+    def test_that_card_to_hand_and_every_other_revealed_card_to_the_bottom(self):
+        # Library bottom to top: L1 L2 Bear L3 L4. Revealed: L4, L3, Bear.
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p0)
+        lib = self.zone(self.p0, ZONE_LIBRARY)
+        lib.remove(bear)
+        lib.insert(2, bear)
+        l1, l2, l3, l4 = self.libs
+        self.dig()
+        self.assertIn(bear, self.zone(self.p0, ZONE_HAND))
+        after = self.zone(self.p0, ZONE_LIBRARY)
+        self.assertEqual(set(after[:2]), {l3, l4})  # the rest, under the library
+        self.assertEqual(after[2:], [l1, l2])  # the unrevealed cards, on top
+
+    def test_no_creature_card_puts_every_revealed_card_on_the_bottom(self):
+        self.dig()
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [self.h1])
+        self.assertEqual(sorted(self.zone(self.p0, ZONE_LIBRARY)), sorted(self.libs))
+        moved = [row[2] for row in self.ex.events if row[1] == "MOVE"]
+        self.assertEqual(sorted(moved), sorted(str(h) for h in self.libs))  # all four, once
 
 
 # -------------------------------------------------------------- Bad Deal

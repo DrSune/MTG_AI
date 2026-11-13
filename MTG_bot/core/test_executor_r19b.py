@@ -44,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     QConst,
+    QUnbounded,
     ReplacementAbility,
     Seq,
     Selector,
@@ -264,6 +265,53 @@ class LookWindowTest(BindingCase):
             self.zone(self.p0, ZONE_LIBRARY),
             [self.libs[2], self.libs[3], self.libs[0], self.libs[1]],
         )
+
+    def _ringleader(self, *extra):
+        """Goblin Ringleader: "reveal the top four cards of your library. Put all Goblin cards
+        revealed this way into your hand and the rest on the bottom of your library in any
+        order." Library bottom->top: L1, L2, L3, L4, then ``extra``."""
+        for name, subtype in extra:
+            self.world.add_card(card_id(name, type_line=f"Creature — {subtype}"), self.p0)
+        goblins = Selector(
+            QUnbounded(), SelectorMode.ALL, FAtom(FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
+            zones=(_lib_top(),),
+        )
+        rest = Selector(QConst(1), SelectorMode.REST, UNIV, zones=(_lib_top(),))
+        return Seq((
+            atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QConst(4)),
+            atom(Verb.MOVE_ZONE, cards=goblins, destination=HAND_YOU),
+            atom(Verb.MOVE_ZONE, cards=rest, destination=_lib_bottom()),
+        ))
+
+    def test_all_goblins_of_the_window_go_to_hand_without_a_choice(self):
+        # Window (top first): Gob B, Elf, Gob A, L4. Both Goblins go to hand, no ask picks them;
+        # the rest (Elf, L4) go to the bottom in the order their owner picks: Elf highest.
+        effect = self._ringleader(("Gob A", "Goblin"), ("Elf", "Elf"), ("Gob B", "Goblin"))
+        lib = self.zone(self.p0, ZONE_LIBRARY)
+        gob_a, elf, gob_b = lib[4], lib[5], lib[6]
+        asks = []
+
+        def provider(vocab, what):
+            asks.append(what)
+            return str(elf)
+
+        self.ex.decisions.provider = provider
+        self.ex.apply_effect(effect, source=self.watch, controller=self.p0)
+        self.assertEqual(sorted(self.zone(self.p0, ZONE_HAND)), sorted((gob_a, gob_b)))
+        self.assertEqual(self.zone(self.p0, ZONE_LIBRARY),
+                         [self.libs[3], elf, self.libs[0], self.libs[1], self.libs[2]])
+        self.assertEqual([w.split(":")[0] for w in asks], ["arrange"])
+
+    def test_all_goblins_takes_only_the_window(self):
+        # A Goblin under the top four stays where it is.
+        effect = self._ringleader(("Gob Deep", "Goblin"), ("E1", "Elf"), ("E2", "Elf"), ("E3", "Elf"),
+                                  ("E4", "Elf"))
+        deep = self.zone(self.p0, ZONE_LIBRARY)[4]
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        self.ex.apply_effect(effect, source=self.watch, controller=self.p0)
+        self.assertEqual(self.zone(self.p0, ZONE_HAND), [])
+        self.assertEqual(self.world.zone_of(deep).kind, ZONE_LIBRARY)
+        self.assertEqual(self.zone(self.p0, ZONE_LIBRARY)[-1], deep)  # the Elves went under it
 
 
 # ------------------------------------------------- 1 attached-to anaphora

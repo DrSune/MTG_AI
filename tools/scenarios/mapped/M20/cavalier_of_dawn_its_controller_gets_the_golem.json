@@ -1,0 +1,15 @@
+{
+ "name": "cavalier_of_dawn_its_controller_gets_the_golem",
+ "set": "M20",
+ "note": "Cavalier of Dawn enters targeting P1's 2/2: it is destroyed and its controller, P1 (as it last existed, CR 608.2h), creates one 3/3 Golem artifact creature token; P0 creates none.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Dawn", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "OppBear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 5}},
+ "steps": [
+  {"op": "cast", "real": "Cavalier of Dawn", "key": "cav", "decisions": ["obear"]}
+ ],
+ "expect": {"zone": {"cav": "battlefield", "obear": "graveyard"}, "tokens": {"Golem": 1}}
+}

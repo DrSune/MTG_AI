@@ -103,11 +103,15 @@ from MTG_bot.core.executor.legality import (
     build_payment_plan,
     ctx_for,
     off_battlefield_activations,
-    protected_from,
+    player_targetable,
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
-from MTG_bot.core.executor.selectors import filter_bound_player_refs
+from MTG_bot.core.executor.selectors import (
+    filter_bound_player_refs,
+    player_slot_selector,
+    without_another_marker,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -695,7 +699,10 @@ def optional_offer(
                 # way the target ask does (_widen_any_target), or a board with no creature or
                 # planeswalker would narrow Goblin Arsonist's may to skip
                 _player_widening_applies(value)
-                and any(not protected_from(executor, h, source) for h in executor.world.players)
+                and any(
+                    player_targetable(executor, h, source, controller)
+                    for h in executor.world.players
+                )
             ):
                 return MAY_VOCAB[1:]
     # The CAST atom's third unactionable shape. The compiler turns "you may
@@ -1214,7 +1221,7 @@ def player_target_slot(
     anywhere names an opponent: "that player" anaphora after "Target opponent
     reveals their hand" read TARGET_PLAYER, and the designating word decides.
     A player with protection from ``source`` (the spell, or the ability's
-    source) can't be its target (CR 702.16b)."""
+    source) or hexproof against ``seat`` can't be its target (CR 702.16b, 702.11c)."""
     players = executor.world.player_order
     opponent_only = ControllerRef.TARGET_OPPONENT in refs
     candidates = tuple(
@@ -1222,17 +1229,12 @@ def player_target_slot(
             h
             for h in players
             if not (opponent_only and h == seat)
-            and not protected_from(executor, h, source)
+            and player_targetable(executor, h, source, seat)
         )
     )
     ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
     return TargetSlot(
-        selector=Selector(
-            count=QConst(1),
-            mode=SelectorMode.TARGET,
-            filter=FAnd(()),
-            zones=(Zone(ZoneKind.PLAYER, ref),),
-        ),
+        selector=player_slot_selector(ref),
         candidates=candidates,
         min_count=1,
         max_count=1,
@@ -1316,6 +1318,24 @@ def role_target_selectors(value: object) -> list[Selector]:
     return []
 
 
+def designates(effect: object) -> bool:
+    """Does an ability's own effect make a designation: the slot walkers' test
+    (:func:`spell_target_slots`, :func:`activation_target_slots`) without their candidates? The
+    resolution lanes bind a designation that chose nothing ("up to one", CR 115.6) as the empty
+    designation, so "its controller" finds no object (``verbs._actor_absent``); with no
+    designation at all a referent read stays the loud refusal of a template fold that never
+    compiled the target (``selectors.ReferentAbsentBindingError``)."""
+    for inner in own_nodes(effect):
+        if _rotation_player_refs(inner):
+            return True
+        if isinstance(inner, Atom) and any(
+            role_target_selectors(value) or _designated_player_refs(value)
+            for _role, value in inner.args.pairs
+        ):
+            return True
+    return False
+
+
 def _spell_slot(
     executor: Executor,
     inner: Atom,
@@ -1323,8 +1343,11 @@ def _spell_slot(
     value: Selector,
     source: Handle,
     seat: Handle,
+    bindings: dict[str, Binding] | None = None,
 ) -> TargetSlot:
-    """One TARGET selector's slot: the per-selector body both slot walkers share."""
+    """One TARGET selector's slot: the per-selector body both slot walkers share. ``bindings``: a
+    trigger's firing registers, which a filter may read (Feline Sovereign's "that creature's
+    controller", CONTROLLER_IS who=Selector(referent="event"))."""
     # Candidates enumerate through the DESIGNATION face (IS_ANY_TARGET =
     # potential-target tautology); the slot keeps the ORIGINAL selector as
     # its identity — the cast lane repr-matches designations to the atom's
@@ -1336,10 +1359,11 @@ def _spell_slot(
         enum_value,
         source=source,
         controller=seat,
+        bindings=bindings,
     )
     if enum_value is not value:
         slot = replace(slot, selector=value)
-    widened = _widen_any_target(executor, value, slot, source)
+    widened = _widen_any_target(executor, value, slot, source, seat)
     if widened is not None:
         slot = widened
     return _clamp_cast_target_slot(executor, inner, role, slot, source, seat)
@@ -1570,10 +1594,13 @@ def activation_target_slots(
     *,
     source: Handle,
     seat: Handle,
+    bindings: dict[str, Binding] | None = None,
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of an ACTIVATED ability — the activation
     twin of :func:`spell_target_slots`, one slot type and one validation
-    oracle for every ability in the game.
+    oracle for every ability in the game. A triggered ability with several
+    designations makes its slots here too, its firing registers as ``bindings``
+    (``binding.TriggerBinder._designate_slots``).
 
     The corpus' "target opponent" activations (Liliana's Steward's "{T},
     Sacrifice: target opponent discards") carry NO TARGET-mode Selector at
@@ -1600,7 +1627,7 @@ def activation_target_slots(
                 if key in seen:
                     continue
                 seen.add(key)
-                slots.append(_spell_slot(executor, inner, _role, value, source, seat))
+                slots.append(_spell_slot(executor, inner, _role, value, source, seat, bindings))
     if not slots:
         bound = _designation_only_slot(executor, effect, source, seat)
         if bound is not None:
@@ -1659,11 +1686,14 @@ def _is_any_target_idiom(filter_: object) -> bool:
     matches a card (no card carries "Player" in its types) — it is the
     discriminator that separates this population from the printed
     "target creature or planeswalker" TWO-branch shape, which never
-    denotes a player (CR 115.1d; Finishing Blow). One shape, two lanes:
-    the twins in :mod:`selectors` read it identically so offer and
-    resolution legality never diverge."""
+    denotes a player (CR 115.1d; Finishing Blow). "Other targets" is the
+    idiom beside the "another target" marker (templates_b5c), FAnd(IS_ANY_TARGET,
+    the idiom): Drakuseth, Maw of Flames' "each of up to two other targets". One
+    shape, two lanes: the twins in :mod:`selectors` read it identically so offer
+    and resolution legality never diverge."""
     from MTG_bot.core.ability_tree import FOr
 
+    filter_ = without_another_marker(filter_)
     if not isinstance(filter_, FOr) or len(filter_.children) != 3:
         return False
     kinds = {
@@ -1697,22 +1727,23 @@ def _widen_any_target(
     executor: Executor,
     selector: Selector,
     slot: TargetSlot,
-    source: Handle | None = None,
+    source: Handle,
+    controller: Handle,
 ) -> TargetSlot | None:
     """Players join an "any target" population — the universal ANY-zone
     shape or the battlefield idiom (:func:`_player_widening_applies`); None
-    means "no widening applies". CR 702.16b: a player with protection from
-    ``source`` (the spell, or the source of the ability, doing the
-    targeting) is not added; the cards already faced the same veto in
-    ``enumerate_candidates``. Runed Halo naming Shock keeps its controller
-    out of Shock's "any target"."""
+    means "no widening applies". A player with protection from ``source``
+    (the spell, or the source of the ability, doing the targeting; CR
+    702.16b) or hexproof against ``controller`` (CR 702.11c) is not added;
+    the cards already faced the same vetoes in ``enumerate_candidates``.
+    Runed Halo naming Shock keeps its controller out of Shock's "any target"."""
     if not _player_widening_applies(selector):
         return None
     world = executor.world
     players = {h for h in world.players}
     if players & set(slot.candidates):
         return None
-    players = {h for h in players if not protected_from(executor, h, source)}
+    players = {h for h in players if player_targetable(executor, h, source, controller)}
     candidates = tuple(sorted(set(slot.candidates) | players))
     forced = slot.forced
     if isinstance(selector.count, QConst):

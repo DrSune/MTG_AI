@@ -164,6 +164,36 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **The folded `activate` takes its targets before it asks X** (2026-10-29, the activation X
   lane), so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No
   carrier has both: Ugin's [−X] has no target.
+- **A triggered ability's per-slot designation: what is left** (2026-11-13; the designation itself
+  is `binding.TriggerBinder._designate_slots`, as spells and activations designate).
+  - A target whose legal set reads the player designated beside it ("exile target creature target
+    opponent controls") raises: the slots are made independently, so its population would be
+    empty. Needs the player designated first and the dependent slot made with it bound. No card
+    of the 19 sets prints it; the spell lane has the same limit silently (the spell is uncastable).
+  - The engine's `target:` ask of a multi-slot trigger does not say which slot it fills or what
+    was picked so far: the rig sets `AskContext.slot`, `picked` and `targeted` only for the
+    router's own `pick:` asks of spells and activations (AGENTS §10). A features change, with the
+    network's owner.
+  - The class not yet mapped: M10 Capricious Efreet (also a random pick among the designated),
+    KHM Halvar, God of Battle, M20 Loaming Shaman (also "any number of target cards").
+  - A Choose inside a multi-slot trigger's effect raises: `_declare_mode` narrows only a top-level
+    one, so every mode's slots would be asked and an unfillable one would remove the ability (CR
+    700.2a, 603.3c). Drakuseth is the only multi-slot trigger of the 19 sets.
+  - "Up to" with none chosen binds the empty designation `target=[]` in every lane (the trigger
+    lane already did). `selectors.role_handles` stays binding-first for a referent-less ALL in the
+    `target` role (the payments' `all_bf()` idiom), so a population there reads a designation
+    beside it, empty or not. Of the 28 such atoms in the 19 sets, none sits beside a designation
+    that can be empty (`reports/m20_census_fixes_2026-11-13/review_residuals.txt`).
+  - An atom skipped by `verbs._actor_absent` leaves the result register as the atom before wrote
+    it, so an "it" after a skipped token maker would read that older object: a skipped producer
+    should write an empty result. Of the 12 skippable atoms with a result reader after them
+    (Duress, Pilfer, Kitesail Freebooter, Necromentia, Transmogrify), each is the single required
+    designation's, never skipped: with that target illegal the ability does not resolve.
+- **A player's keywords are not in the observation** (2026-11-13). Hexproof and protection on a
+  player (Leyline of Sanctity, Veil of Summer, Runed Halo) change the opponent's target menus,
+  which the engine computes, but `tools/selfplay/features.py` encodes keywords per card only, so
+  the network sees the Leyline on the battlefield, not "you have hexproof" (a resolved Veil leaves
+  no permanent behind). A features change, with the network's owner.
 
 ### Triggers, events and the journal
 
@@ -244,19 +274,30 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first
   one's triggered/static abilities. Not live: in the M21 and M20 verified pools only Pirate, Treasure
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
-  hash the spec's abilities into the id.
+  hash the spec's abilities into the id (an emblem's record is keyed by a hash of its EmblemSpec
+  since 2026-11-12, `verbs.emblem_record`).
 
 ### Effects, zones and replacements
 
+- **An ALL over the top of a library writes the look window's partition state on every read**
+  (2026-11-13, gate round 7, m2): `selectors.resolve_selector` sets `ctx.one_of_window` and
+  `ctx.one_of_picks` for any read of such a selector, a count included, and the window closes
+  after any atom that is not a look (`verbs.run_atom`'s close after LOOK_AT/REVEAL). Write that
+  state only when `journal_partition` is set (the move's own read). Not live: Goblin Ringleader is
+  the only ALL over a library top, read once, by its move.
+- **"Any number" over a menu the engine cannot ask takes all of it** (2026-11-13, the review of
+  the any-number fix). `selectors.resolve_selector` asks "any number" (and "up to N") pick by pick
+  only where `_choose_lift_allowed` lets a choice be asked. Elsewhere, as an exact count there
+  takes the first N by handle, it takes the whole menu: a positional (top-N) zone, a PLAYER zone,
+  another player's hidden zone the effect does not search, a merged multi-seat menu, a menu that
+  names the source. Not live: of the 7 "any number" selectors in the 19 sets' trees, 6 are asked
+  and Conspicuous Snoop's CAST source is a population read (`reports/m20_faults_2026-11-12/
+  census.json`). Fix with the first card that needs one: who decides each of those menus is not
+  encoded.
 - **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
-- **A move from a hand asks its cards as a discard** (2026-11-12): MOVE_ZONE `from` HAND takes the
-  discard lane (`verbs._v_move_zone`, `_discard_picks`), whose ask is `discard:<seat>:...`, so
-  Cavalier of Gales's "put two cards from your hand on top of your library" reaches a bench seat
-  as "choose what to discard" (protocol.py's prompt for the kind). The cards and their order are
-  right; the label is not. Name the ask by its destination, or give the move its own kind.
 - **Cards a controller picks from a look at another player's library or hand raise as they go
   into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
   `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
@@ -457,6 +498,75 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **One encoding for "each opponent <verb>s"** (2026-11-13, ontology gate round 7, M4;
+  ATOM_DIVERGENCES D21). A plural `controller` role (LOSE_LIFE, the hand lane's discards,
+  GET_EMBLEM) and an EachPlayer around one atom (9 trees: Dragon Mage's draw, Thieves' Guild
+  Enforcer's and Ruin Crab's mill, Pursued Whale's token, Keral Keep Disciples' damage, Peer into
+  the Abyss, Yarok's Fenlurker, Goremand, Run Afoul) write the same meaning, because DRAW,
+  LOOK_AT/REVEAL, ADD_MANA and the mill lane read one player (`selectors.role_player`, B-108) and
+  CREATE_TOKEN refuses more. The fold: give every player verb LOSE_LIFE's plural lane
+  (`role_players`), rewrite the one-atom EachPlayers whose other roles do not read the rotated
+  "you" (Dragon Mage, Thieves' Guild Enforcer, Ruin Crab, Pursued Whale, Keral Keep Disciples) and
+  refuse that shape at construction, as GET_EMBLEM's is. EachPlayer stays where another role reads
+  the rotated "you": Peer into the Abyss ("their library", "their life"), Goremand and Run Afoul
+  (a creature they control), Yarok's Fenlurker ("their hand"), Liliana, Waker of the Dead's "who
+  can't", Transmogrify. A gated round: it changes verified trees, each re-verified after.
+- **ALL's count has two meanings** (2026-11-13, gate round 7, m3): `verbs._v_move_zone`'s
+  non-partition lane and `verbs._hand_picks` take the first N of an ALL with a finite count
+  (`pool[:n]`), where every other lane takes the whole population. Register it in
+  ATOM_DIVERGENCES or refuse a count other than QUnbounded on ALL, after a census of the trees
+  that write one.
+- **A GET_EMBLEM in a static ability's effect is accepted and never runs** (2026-11-13, gate
+  round 7, m4): a static ability applies continuously and resolves nothing, so the emblem is
+  never made. Refuse it at construction (as a reflexive trigger in a static ability is) when a
+  tree first writes one; none of the 19 sets' does.
+- **`compile_supply` counts an emblem's verbs as its maker's** (2026-11-13, gate round 7, m8):
+  `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
+  mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
+  emblem with a verb the supply reads is compiled; none of the 6 emblem trees has one.
+- **"N damage to that creature's controller": two answers, one of them stale** (2026-11-13,
+  analysis only; a decision for the next gate round).
+  - MAPPER_GUIDE ("has no encoding yet ... Mark such a card needs-atom (M20 Chandra's Outrage)")
+    and Chandra's Outrage's needs-atom note reject a TARGET selector over the PLAYER zone (a slot
+    of its own), a referent Selector in `target` (the creature itself), ALL over Zone(PLAYER,
+    TARGET_PLAYER) (a phantom player slot) and DEAL_DAMAGE `recipient` (raises). None of these is
+    the verified M20 Chandra, Flame's Fury's −2: `DEAL_DAMAGE(target=Selector(ALL, QUnbounded,
+    FAtom(CONTROLLER_IS, who=Selector(referent="target")), zones=(Zone(PLAYER, ANY),)))`.
+  - That form opens no designation (AGENTS §10), never names TARGET_PLAYER (D18), and reuses the
+    canonical "its controller" referent Selector as CONTROLLER_IS's `who`, as filters already read
+    "that creature's controller" (M21 Feline Sovereign, `who=Selector(referent="event")`). By the
+    identity law it is the one encoding for the wording: the guide's line is stale.
+  - One engine fault first: `selectors.controller_matches` reads a referent's current controller
+    (`controller_of`), not the one it last had (CR 608.2h), which `role_players` reads
+    (`last_known_controller`). Probed 2026-11-13: "destroy target artifact; 3 damage to that
+    artifact's controller" on a stolen artifact hits its owner. Exact today for damage dealt while
+    the object is still there (Chandra's two, Searing Barrage, Ravaging Blaze, Synchronized
+    Spellcraft) or on the stack (ELD Bonecrusher Giant's "that spell's controller"); wrong for
+    10E Cryoclasm, ORI Smash to Smithereens and THB Impending Doom.
+  - Then: the guide's line, and the cards: Chandra's Outrage (M20, M11, M12, M14), Bonecrusher
+    Giant (referent "event"), Searing Barrage, Ravaging Blaze, Cryoclasm, Smash to Smithereens,
+    Impending Doom, Synchronized Spellcraft (X).
+- **"Whenever you discard a card" has two encodings in waiting** (2026-11-13, analysis only).
+  - M20 Bag of Holding (verified) triggers on `ZoneChangeEvent(HAND YOU -> GRAVEYARD YOU)`; M20
+    Glint-Horn Buccaneer's needs-atom note asks for a discard event (B-48).
+  - CR 701.8a defines the action as the move, but the two are not the same set. A discard need
+    not end in the graveyard: a replacement redirects it (Leyline of the Void M20/M11 and Dryad
+    Militant FDN exile it; Darksteel Colossus M10/FDN, Progenitus FDN, Nexus of Fate M19 and Legacy
+    Weapon 10E shuffle themselves in; madness, none in the 19 sets, exiles it), and a card's text
+    may put a card from a hand into a graveyard without discarding it (none in the 19 sets).
+  - So Glint-Horn's note is right: one wording, one encoding (identity law), the keyword action's
+    own event as SacrificeEvent is CR 701.21's: a `DiscardEvent(actor, filter)` with B-48's one
+    discard encoding. Type-1: the next ontology round.
+  - Per card: Glint-Horn stays needs-atom (with Leyline of the Void compiled it would deal no
+    damage for a redirected discard: weaker than printed). Bag of Holding keeps its stamp: none of
+    the redirecting cards compiles in the pools, and its effect ("exile that card from your
+    graveyard") cannot see a redirected card anyway; it refolds when the event lands. Fell Specter,
+    Liliana's Caress, Megrim, Rielle, Tinybones and Waste Not wait for the same event.
+- **DOM Shalai, Voice of Plenty: "You, planeswalkers you control, and other creatures you control
+  have hexproof."** (2026-11-13). The player and a filtered set of permanents in one static:
+  `layers._new_static` refuses two populations in one record, and no filter joins "you" with type
+  tests (TYPE_EQ is False on a player). Templates_b16 covers "You have hexproof." and "You and
+  permanents you control ..."; this one needs a decision on its shape.
 - **D19: a MOVE_ZONE into a library with no position means two things** (2026-11-12, ontology
   gate round 5, m5; ATOM_DIVERGENCES D19): "put it on the bottom of your library" (M21 Epitaph
   Golem) and "shuffle it into its owner's library" (M20 Cavalier of Gales: the move, then a
@@ -650,13 +760,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     top card: a noncreature on top put nothing onto the battlefield. Packs
     `transmogrify_reveals_until_a_creature`, `transmogrify_own_creature_reveals_from_your_library`,
     `transmogrify`.
-  - The other 11 "reveal ... until" cards in the 19 sets are unparsed. Their tails move "the
-    rest" (to the bottom in a random order: Vivien, Nature's Avenger, Evolutionary Leap, Spinner
-    of Souls, Jalira, Esika, Lukka; to the graveyard with the match: Consuming Aberration), count
-    several matches (Mass Polymorph's "that many"), make the put optional (Dreamshaper Shaman) or
-    replace a draw (Abundance). The look window holds "the rest" (window minus result), but no
-    selector reads it yet. "In a random order" is MOVE_ZONE's `arrange` RANDOM (2026-11-12,
-    ontology gate round 5).
+  - 2026-11-13: "Reveal cards from the top of your library until you reveal a creature card. Put
+    that card into your hand and the rest on the bottom of your library in a random order."
+    compiles (templates_b16), and the REST of "the rest" reads the reveal's window and matches
+    (verbs._look writes the partition anchors one_of_window / one_of_picks): M20 Vivien, Nature's
+    Avenger and FDN Spinner of Souls are mapped (records, packs in `tools/scenarios/mapped/`).
+    ORI Evolutionary Leap's tail compiles, its cost frame ("{G}, Sacrifice a creature:") does not.
+  - Still unparsed: "onto the battlefield" tails (M15 Jalira, THB Dreamshaper Shaman, IKO Lukka's
+    "creature card with greater mana value"), Consuming Aberration (the match goes to the
+    graveyard with the rest), Mass Polymorph ("that many"), Abundance (replaces a draw).
 - **B-114 [2026-11-12, gate round 4] Massacre Wurm's "that player" is TARGET_PLAYER (divergence
   D18): fold it to `Selector(referent="event")`, as Gloom Sower writes "that creature's
   controller".** "Whenever a creature an opponent controls dies, that player loses 2 life." compiles
@@ -780,8 +892,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   requirements a block declaration obeys (`most_obeyed` in `_declare_blockers`) to those
   per-creature requirements; the matroid greedy over attackers no longer gives the most then (a
   maximum-weight matching does, menace aside).
-- **A planeswalker whose emblem record is empty should not reach a supply** (M20 verification
-  round, 2026-11-05): Mu Yanling, Sky Dancer's -8 emblem is unmapped, so the -8 does nothing.
 - **B-46 [/166; first touch done + round S-3a, /167] Fourteen older sets are dealt mostly partly blank.** The castable pools of M19,
   10E, M10–M13, M15, ORI, DOM, WAR, FDN, ELD, THB and IKO deal 2,482 cards. Only 683 of them
   (27.5%) are fully compiled; the engine plays the rest with their unparsed sentences blank.
@@ -853,8 +963,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - See the Truth stays unverified until then; its main branch was judged OK.
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
-  - **Battalion Foot Soldier.** "Search your library for any number of cards named Battalion Foot
-    Soldier": the engine takes every copy and never asks how many.
+  - **Battalion Foot Soldier** and **Cavalier of Flame**: "any number of" took every candidate with no
+    ask. Engine fixed 2026-11-12 (`selectors.resolve_selector`, `verbs._hand_picks`: asked pick by
+    pick with a NONE stop, CR 107.1c; packs
+    `tools/scenarios/mapped/M20/{battalion_foot_soldier_finds_any_number,cavalier_of_flame_discards_any_number_draws_that_many}.json`).
+    Both records, unchanged, go back to blind G2; Cavalier of Flame's mapping notes still describe
+    the old engine.
   - **Sanitarium Skeleton.** "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand":
     the ability was offered on the battlefield, where it does nothing, and refused from the
     graveyard. Engine fixed 2026-11-12 (`legality.activation_zone`, CR 113.6m; packs
@@ -865,12 +979,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/sorin_imperious_bloodlord_*`, run in the suite on the record.
     G3 (2026-11-13): its first +1's two "target->all" survivors are dead (the activation twin
     rule); `cardtool verify` passes with the wave-1b verdict `runs/verify_wave1b/verdicts/B/B01.json`.
-  - **Goblin Ringleader.** "Put all Goblin cards revealed this way into your hand" is mapped as a
-    one-of choice.
-  - **Mu Yanling, Sky Dancer's -8.** The emblem is empty (`GET_EMBLEM {}`). It should give "Islands
-    you control have '{T}: Draw a card.'"
-  - **Cavalier of Flame.** "Discard any number of cards, then draw that many" discards the whole hand
-    with no ask.
+  - **Goblin Ringleader** and **Mu Yanling, Sky Dancer** were re-mapped 2026-11-12 (`cardtool
+    write`) and go back to blind G2. Ringleader's "all Goblin cards revealed this way" is an ALL over
+    the revealed window, not a one-of choice (pack
+    `tools/scenarios/mapped/M20/goblin_ringleader_all_goblins_no_choice.json`); Mu Yanling's -8
+    carries its emblem in the GET_EMBLEM (EmblemSpec, ontology gate round 7; pack
+    `tools/scenarios/mapped/M20/mu_yanling_sky_dancer_emblem_islands_draw.json`).
 - **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
   changed, verified stamps left untouched, so each left the verified pool, the pool training runs
   deal, once a run pins this code. Verified deckable pools measured on the tree merged with main
@@ -958,6 +1072,29 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   card's "zone LIBRARY->GRAVEYARD"; all three G1 traces kill the first. Re-probe Anticipate,
   Stormwing Entity and Track Down too (their traces show `arrange` asks, now asked top first),
   and write the two M20 records through `cardtool try --write`.
+- **Re-verify M21 Basri Ket, Garruk, Unleashed and Liliana, Waker of the Dead; map-check FDN
+  Vivien Reid; re-verify M21 Siege Striker** (2026-11-13, the emblem encoding and "any number",
+  ontology gate round 7).
+  - The three M21 ultimates' GET_EMBLEM now carries the emblem (EmblemSpec, the abilities their
+    emblem entries compiled to before, checked by
+    `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
+    their tree shas changed and they left the verified pool (measured on the tree merged with main
+    26616a73: M21 275 -> 272; M20 261 and FDN 177 unchanged).
+  - Two plays change: each ultimate makes a new emblem (CR 114.2; a second one used to do
+    nothing, pack `basri_ket_two_emblems_both_trigger`), and the card encoder sees what the
+    emblem does. The G1 probe starts at printed loyalty, so it never reaches these ultimates;
+    their packs do (`basri_ket_emblem`, `garruk_unleashed_emblem`, `liliana_emblem_*`).
+  - FDN Vivien Reid has a new record (unverified, `claude-wave2-m20-faults`): its -8 carries the
+    abilities of the retired "Vivien Reid Emblem" record, and its +1 is mapped as Brightwood
+    Tracker's three steps. It goes to blind G2; pack
+    `tools/scenarios/mapped/FDN/vivien_reid_emblem_anthem.json` plays the -8.
+  - M21 Siege Striker's "you may tap any number" lost its OptionalEffect (gate round 7, m1: the
+    "may" played as stopping at once), so its tree changed and it left the verified pool too
+    (M21 272 -> 271); its packs no longer answer a may.
+  - Verified cards that play differently with unchanged bytes and may want a look: M21
+    Necromentia ("any number" is asked), M20 Cavalier of Gales (its "put two
+    cards from your hand on top of your library" is asked as `choose:`, no longer as a discard;
+    its stamp's evidence reads "discard-style hand picks", so its G1 trace changed).
 - **M20 Tale's End can go back to G1 and G2** (2026-11-11): its record is mapped but not verified,
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
@@ -1212,9 +1349,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ### What the network sees
 
 - **The network sees neither which planeswalker an attacker attacks, nor block pairings, stack
-  targets, emblems, or live (not printed) types and colours** (interface audit, /184). Needs input
+  targets, emblems, or live (not printed) types and colours** (interface audit, /184; since
+  2026-11-12 a card's tree shows what its emblem does, but not which emblems a player has). Needs input
   columns, zero-initialised on load like new ask kinds (`model.load` pads card, player and global
-  columns with zeros since 2026-11-06).
+  columns with zeros since 2026-11-06). Emblems (gate round 7, m6): an emblem-sourced ask has no
+  source entity (`features.py` ~503 reads only a `card:` handle from the site) and an emblem's
+  trigger on the stack is left out (~514-521). Fix before a run deals the makers (M21 Basri Ket,
+  Garruk, Unleashed, Liliana, Waker of the Dead once re-verified).
 - **A delayed or reflexive trigger on the stack encodes as ability index -1** (2026-11-12, gate
   round 6 m7; `tools/selfplay/features.py` `_ability_index`): its node is no printed ability of
   its source, so Tolarian Kraken's reflexive tap-or-untap looks like any other trigger of the

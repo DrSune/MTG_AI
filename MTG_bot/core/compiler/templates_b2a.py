@@ -2256,11 +2256,13 @@ TEMPLATES: Final[tuple[Template, ...]] = (
     _template(
         "B2a-garruk-emblem",
         "Garruk, Unleashed Emblem",
-        _exact(
-            "At the beginning of your end step, "
-            "you may search your library for a creature card, "
-            "put it onto the battlefield, "
-            "then shuffle your library."
+        # "then shuffle" is the planeswalker's quote of it (today's Oracle wording), "then shuffle
+        # your library" the emblem entry's: one shuffle.
+        re.compile(
+            r"At the beginning of your end step, "
+            r"you may search your library for a creature card, "
+            r"put it onto the battlefield, "
+            r"then shuffle(?: your library)?\."
         ),
         _build_garruk_emblem,
     ),

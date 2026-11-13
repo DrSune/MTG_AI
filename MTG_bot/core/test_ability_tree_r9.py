@@ -13,8 +13,8 @@ turn, and COUNTER_COUNT of the target.
   token golden.
 - AtomArgs ``color`` takes ``"ANY"`` ("mana of any one color"), distinct
   from colourless ``"C"``.
-- ``Verb.GET_EMBLEM`` is role-less like FLIP_COIN: the emblem payload is
-  the card-level attach, and the quoted text never enters the IR.
+- ``Verb.GET_EMBLEM`` carries its emblem (``emblem``: an EmblemSpec, the
+  emblem's abilities) and who gets it (``controller``), both required.
 - ``FAtomPred.CONTROLLER_COUNT_GT`` compares ``inner_filter`` with the
   trailing ``right_inner_filter`` (omitted when None); both are required.
 
@@ -121,8 +121,38 @@ def _fatom_exiled_with_source() -> at.FAtom:
 
 
 def _atom_get_emblem() -> at.Atom:
-    """GET_EMBLEM: a role-less marker; the payload is the card-level attach."""
-    return at.Atom(at.Verb.GET_EMBLEM, at.AtomArgs(pairs=()))
+    """GET_EMBLEM: the emblem's abilities (Mu Yanling, Sky Dancer's "Islands you control have
+    '{T}: Draw a card.'") and who gets it."""
+    draw = at.Atom(
+        at.Verb.DRAW,
+        at.AtomArgs(pairs=(("amount", at.QConst(1)), ("controller", at.ControllerRef.YOU))),
+    )
+    islands = at.Selector(
+        at.QUnbounded(),
+        at.SelectorMode.ALL,
+        at.FAnd(
+            (
+                at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.YOU),
+                at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Island"),
+                at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Land"),
+            )
+        ),
+        zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),),
+    )
+    grant = at.Atom(
+        at.Verb.GRANT_ABILITY,
+        at.AtomArgs(
+            pairs=(
+                ("target", islands),
+                ("ability", at.ActivatedAbility(at.Cost(parts=(at.CostTap(),)), draw)),
+            )
+        ),
+    )
+    emblem = at.EmblemSpec(abilities=(at.StaticAbility(effect=grant),))
+    return at.Atom(
+        at.Verb.GET_EMBLEM,
+        at.AtomArgs(pairs=(("emblem", emblem), ("controller", at.ControllerRef.YOU))),
+    )
 
 
 def _atom_add_land_play() -> at.Atom:
@@ -197,7 +227,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "atom_get_emblem",
         _atom_get_emblem,
-        "9cf51cea082481b40926e407f20fb58009dd2c06fb54c657af8ca91fbfe2c7c4",
+        "f82c8e11c677c52eec9cde7bbf549cf743fe506917d417f5d0fb4195426757fb",
     ),
     (
         "atom_add_land_play",
@@ -323,7 +353,7 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
         "exiled_with_source_slot",
         lambda: at.FAtom(at.FAtomPred.IS_EXILED_WITH_SOURCE, count=at.QConst(1)),
     ),
-    # GET_EMBLEM is role-less (no emblem_ref role exists).
+    # GET_EMBLEM takes its emblem and who gets it, nothing else.
     (
         "get_emblem_with_role",
         lambda: at.Atom(
@@ -479,7 +509,7 @@ def test_bare_fatom_omits_right_inner_filter_byte_shape() -> None:
 
 
 def test_verb_role_tables_r8() -> None:
-    assert at._VERB_ROLES[at.Verb.GET_EMBLEM] == {}
+    assert at._VERB_ROLES[at.Verb.GET_EMBLEM] == {"emblem": True, "controller": True}
     assert at._VERB_ROLES[at.Verb.ADD_LAND_PLAY] == {
         "count": False,
         "duration": False,

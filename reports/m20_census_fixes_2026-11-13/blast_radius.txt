@@ -1,0 +1,84 @@
+Blast radius of the branch (base 07bf26ff), by script over the 19 sets: tree_dump.py on each
+checkout (records applied, verified or not), tree_diff.py on the two dumps. "Reads a changed engine
+path" (tree_dump.facts): player-grant and hexproof-grant (item 1: the keyword map keys a static
+grant on players, hexproof_of reads static rows, the player vetoes), actor-antecedent and
+up-to-slot (item 2: run_atom's gate; an empty designation bound as []), multi-slot and
+another-mark (item 3: per-slot trigger designation, the designated player's own slot, the
+any-target widening through the mark), reveal-until (item 4: the partition anchors).
+
+Why none of the 33 still-verified cards below plays differently (and 300/300 replays agree,
+replay_summary.txt):
+- player-grant: Runed Halo's protection now also enters the player's keyword map; protection_rows
+  already read the static for a player, and no consumer of the map reads players.
+- hexproof-grant: resolved grants to permanents (Dive Down, Heroic Intervention, Ranger's Guile):
+  hexproof_of read those before; it now also reads static rows.
+- actor-antecedent: an exact target or the event (Stroke of Midnight, Ajani, Angelic Ascension,
+  Gloom Sower, Liliana, Secure the Scene, Transmogrify): the antecedent always names an object.
+- up-to-slot: zero chosen binds [] instead of nothing; their readers are TARGET selectors and
+  IS_ANY_TARGET, which answer both alike (MTG_bot test scan, commit 3e00e709).
+- multi-slot: no player slot among them, so the designated-player read is unchanged.
+- another-mark (Rookie Mistake, Garruk, Savage Herald): creature filters, never the any-target
+  idiom.
+- reveal-until (Transmogrify): the anchors are written, and no REST reads them.
+The one card that plays differently, M21 Sublime Epiphany (target player draws beside another
+target), is not in the verified pool: it has no card record.
+
+compiler trees changed (8):
+   FDN Crystal Barricade
+   M11 Leyline of Sanctity
+   M20 Leyline of Sanctity
+   M20 Veil of Summer
+   M20 Vivien, Nature's Avenger
+   ORI Orbs of Warding
+   WAR Lazotep Plating
+   WAR Teyo, the Shieldmage
+trees with records applied changed (12):
+   FDN Crystal Barricade compiler 
+   FDN Drakuseth, Maw of Flames compiler 
+   FDN Spinner of Souls compiler 
+   M11 Leyline of Sanctity compiler 
+   M20 Cavalier of Dawn compiler 
+   M20 Drakuseth, Maw of Flames compiler 
+   M20 Leyline of Sanctity compiler 
+   M20 Veil of Summer compiler 
+   M20 Vivien, Nature's Avenger compiler 
+   ORI Orbs of Warding compiler 
+   WAR Lazotep Plating compiler 
+   WAR Teyo, the Shieldmage compiler 
+verified cards leaving the verified pool (0):
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (33):
+   FDN Dive Down ['hexproof-grant']
+   FDN Primal Might ['multi-slot', 'up-to-slot']
+   FDN Sanguine Indulgence ['up-to-slot']
+   FDN Stroke of Midnight ['actor-antecedent']
+   M20 Ajani, Inspiring Leader ['actor-antecedent', 'up-to-slot']
+   M20 Brought Back ['up-to-slot']
+   M20 Captivating Gyre ['up-to-slot']
+   M20 Mu Yanling, Celestial Wind ['up-to-slot']
+   M20 Rabid Bite ['multi-slot']
+   M20 Reckless Air Strike ['multi-slot']
+   M20 Sorin, Vampire Lord ['up-to-slot']
+   M20 Soul Salvage ['up-to-slot']
+   M21 Angelic Ascension ['actor-antecedent']
+   M21 Basri Ket ['up-to-slot']
+   M21 Basri's Aegis ['up-to-slot']
+   M21 Basri, Devoted Paladin ['up-to-slot']
+   M21 Frost Breath ['up-to-slot']
+   M21 Garruk, Savage Herald ['another-mark', 'multi-slot']
+   M21 Garruk, Unleashed ['up-to-slot']
+   M21 Gloom Sower ['actor-antecedent']
+   M21 Heroic Intervention ['hexproof-grant']
+   M21 Hunter's Edge ['multi-slot']
+   M21 Liliana, Death Mage ['actor-antecedent', 'up-to-slot']
+   M21 Primal Might ['multi-slot', 'up-to-slot']
+   M21 Ranger's Guile ['hexproof-grant']
+   M21 Read the Tides ['up-to-slot']
+   M21 Return to Nature ['multi-slot']
+   M21 Rookie Mistake ['another-mark', 'multi-slot']
+   M21 Runed Halo ['player-grant']
+   M21 Sanguine Indulgence ['up-to-slot']
+   M21 Secure the Scene ['actor-antecedent']
+   M21 Transmogrify ['actor-antecedent', 'reveal-until']
+   M21 Volcanic Salvo ['up-to-slot']
+verified stamps matching, per set (base -> branch): {'FDN': '177->177', 'M20': '261->261', 'M21': '273->273'}

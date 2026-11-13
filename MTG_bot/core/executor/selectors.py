@@ -132,6 +132,38 @@ def defending_players(ctx: ExecCtx) -> list[Handle]:
     return [] if seat is None else [seat]
 
 
+def player_slot_selector(ref: ControllerRef) -> Selector:
+    """The selector of the player slot the query synthesizes for "target player"
+    (TARGET_PLAYER) or "target opponent" (TARGET_OPPONENT) (``query.player_target_slot``): no
+    compiled Selector carries that designation, so this one keys it in a designation of several
+    slots (``ExecCtx.slot_designations``)."""
+    return Selector(
+        count=QConst(1),
+        mode=SelectorMode.TARGET,
+        filter=FAnd(()),
+        zones=(Zone(ZoneKind.PLAYER, ref),),
+    )
+
+
+_PLAYER_SLOT_KEYS = frozenset(repr(player_slot_selector(ref)) for ref in DESIGNATED_PLAYER_REFS)
+
+
+def designated_player(ctx: ExecCtx) -> list[Handle] | None:
+    """What a designated-player read ("target player", "target opponent", their anaphora) is
+    bound to: the designation, or in a designation of several slots the player slot's own. The
+    union of the slots names the other slots' objects too, and its first handle may be a card
+    (Sublime Epiphany's "Target player draws a card." beside "Return target nonland permanent to
+    its owner's hand." drew for the permanent's controller). Empty when the designation was made
+    and holds nothing now: the player became an illegal target beside a target still legal, so
+    the spell resolves and that player's part does nothing (CR 608.2b). None when no designation
+    was made at all."""
+    for key, handles in (ctx.slot_designations or {}).items():
+        if key in _PLAYER_SLOT_KEYS:
+            return list(handles[:1])
+    bound = ctx.binding_handles("target")
+    return None if bound is None else bound[:1]
+
+
 def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     """The player seats a ControllerRef denotes, in seat order."""
     if ref is ControllerRef.YOU:
@@ -145,16 +177,14 @@ def players_for_ref(ref: ControllerRef, ctx: ExecCtx) -> list[Handle]:
     if ref in DESIGNATED_PLAYER_REFS:
         # "target player" and "target opponent" read the same binding;
         # they differ only in who could be designated (query/binding slots).
-        bound = ctx.binding_one("target")
+        bound = designated_player(ctx)
         if bound is None:
             raise ValueError(
                 "executor: TARGET_PLAYER needs a bound target (12c target prompt)"
             )
-        if bound.namespace == "player":
-            return [bound]
         # CR 608.2h: a designated object that has left the battlefield ("that player" of
         # Massacre Wurm's dies trigger) answers with the controller it last had there.
-        return [last_known_controller(ctx, bound)]
+        return [h if h.namespace == "player" else last_known_controller(ctx, h) for h in bound]
     raise NotImplementedError(
         f"executor: ControllerRef.{ref.name} has no player-side meaning here"
     )
@@ -179,11 +209,8 @@ def controller_matches(
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
     if who in DESIGNATED_PLAYER_REFS:
-        bound = ctx.binding_one("target")
-        expected: Handle | None = bound
-        if bound is not None and bound.namespace == "card":
-            expected = controller_of(ctx, bound)
-        return expected is not None and actual == expected
+        bound = designated_player(ctx) or []
+        return actual in [h if h.namespace == "player" else controller_of(ctx, h) for h in bound]
     return who is ControllerRef.ANY
 
 
@@ -346,14 +373,29 @@ def existing(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
     return [h for h in handles if not phased_out(ctx, h)]
 
 
+def without_another_marker(filter_: object) -> object:
+    """The filter beside the "another target" marker (templates_b5c's distinct-target
+    encoding): FAnd(IS_ANY_TARGET, X) -> X; any other filter as it is."""
+    if isinstance(filter_, FAnd) and len(filter_.children) == 2:
+        rest = [
+            c for c in filter_.children
+            if not (isinstance(c, FAtom) and c.pred is FAtomPred.IS_ANY_TARGET)
+        ]
+        if len(rest) == 1:
+            return rest[0]
+    return filter_
+
+
 def _is_any_target_idiom(filter_: object) -> bool:
     """Mirror of :func:`query._is_any_target_idiom`: the compiled
     printed-"any target" idiom, an FOr of exactly the three TYPE_EQ atoms
     ``Creature`` / ``Planeswalker`` / ``Player`` (the Player branch is the
     discriminator: no card matches it, and it separates this population
     from the printed "target creature or planeswalker" two-branch shape,
-    which never denotes a player, CR 115.1d). The twins are pinned equal by
+    which never denotes a player, CR 115.1d), alone or beside the "another
+    target" marker ("other targets", Drakuseth). The twins are pinned equal by
     test_geyser_any_target_pins."""
+    filter_ = without_another_marker(filter_)
     if not isinstance(filter_, FOr) or len(filter_.children) != 3:
         return False
     kinds = {
@@ -454,21 +496,26 @@ def referent_absent(exc: BaseException) -> bool:
     return False
 
 
-def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
+def _choose_lift_allowed(sel: Selector, ctx: ExecCtx, *, search: bool = False) -> bool:
     """May this CHOOSE ask the decider instead of taking the silent slice?
     A CHOOSE the effect runtime resolves is asked of the deciding player when
     this allows it; any other CHOOSE keeps the silent deterministic slice.
 
-    The rules of ``tools.audit.r3_lane_ledger.lift_verdict``, on live IR
-    (the ledger's lanes are pinned by :mod:`MTG_bot.core.test_ontology_r3`):
-    a referent selector, or a menu that names the source itself, never
-    asks; only a plain QConst count asks (QUnbounded takes the whole
-    population, every other shape keeps the silent slice); every menu zone
-    must be public or controller-owned: positional zones keep their fixed
-    lanes, a hidden-side (hand/library) zone owned by anyone but YOU never
-    asks, a PLAYER zone never asks (whose choice it is is not encoded), and
-    a multi-zone menu with an ANY controller (a merged multi-seat menu)
-    never asks.
+    The rules began as R3's ``tools.audit.r3_lane_ledger.lift_verdict``
+    (2026-10-20; that ledger records the lanes as R3 left them, and the lanes
+    are pinned by :mod:`MTG_bot.core.test_ontology_r3`). Since then the "up to
+    N" and "any number" lanes ask too, and a search asks over the hidden zones
+    it searches. A referent selector, or a menu that names the source itself,
+    never asks; only a plain QConst count asks (the "up to N" and "any number"
+    lanes pass theirs as the QConst of their ceiling; every other shape keeps
+    the silent slice); every menu zone must be public or controller-owned:
+    positional zones keep their fixed lanes, a hidden-side (hand/library) zone
+    owned by anyone but YOU never asks unless the effect searches it (``search``:
+    the searcher looks at every card in a searched zone, hidden or not, CR
+    701.23a; Necromentia), a PLAYER zone never asks (whose choice it is is not
+    encoded), and a multi-zone menu with an ANY controller (a merged multi-seat
+    menu) never asks. The source is a card in the world or an emblem: an
+    emblem's ability is its owner's, who decides its choices (CR 114.2, 114.4).
 
     The ledger's fourth rule, "the chooser must be the card's controller",
     does not apply: the ask names the player who decides
@@ -490,14 +537,18 @@ def _choose_lift_allowed(sel: Selector, ctx: ExecCtx) -> bool:
             return False  # top-N / ordered-peek: fixed lanes
         if zone.kind is ZoneKind.PLAYER:
             return False  # seat menu: whose choice it is is not encoded
-        if zone.kind in (ZoneKind.HAND, ZoneKind.LIBRARY) and (
-            zone.controller is not ControllerRef.YOU
+        if (
+            zone.kind in (ZoneKind.HAND, ZoneKind.LIBRARY)
+            and zone.controller is not ControllerRef.YOU
+            and not search
         ):
             return False
     if len(zones) > 1 and any(z.controller is ControllerRef.ANY for z in zones):
         return False  # a merged multi-seat menu
     src = ctx.source
     # A synthetic player-handle source (unit-world idiom) keeps the silent slice.
+    if src.namespace == "emblem":
+        return ctx.executor is not None and src in ctx.executor.emblems
     return src.namespace == "card" and src in ctx.world.cards
 
 
@@ -509,13 +560,15 @@ def resolve_selector(
     ok: Callable[[Handle], bool] | None = None,
     ask_choose: bool = False,
     sacrifice: bool = False,
+    search: bool = False,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
     ALL returns the filtered population in zone order; CHOOSE takes the
     first ``count`` of the Handle-sorted candidates (``QUnbounded`` takes
     all), unless ``ask_choose`` lets the decider pick
-    (:func:`_choose_lift_allowed`); RANDOM draws through the executor-owned
+    (:func:`_choose_lift_allowed`; ``search``: a SEARCH designation, whose
+    searcher looks at hidden zones too); RANDOM draws through the executor-owned
     seeded Random; TARGET designation is the spell's/ability's designation
     binding under ``"target"`` (CR 601.2c designates the targets once and
     every "target" in the effect means THAT designation, whatever role the
@@ -606,19 +659,23 @@ def resolve_selector(
             None,
         )
         if (
-            sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST)
+            sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST, SelectorMode.ALL)
             and matched_top_library is not None
         ):
             # See the Truth: "Look at the top three…. Put ONE OF THOSE cards
             # into your hand": the partition population is the LOOKED-AT
             # window, not the zone's single top card (TOP enumeration
             # answers one, so the ONE_OF ask would auto-fire and the REST
-            # re-search would take the whole pile). The ONE_OF
+            # re-search would take the whole pile). An ALL takes every card
+            # of the window that passes its filter, no choice ("Put all
+            # Goblin cards revealed this way into your hand", Goblin
+            # Ringleader). The ONE_OF or ALL
             # stashes its windowed candidates in ctx.one_of_window (the
             # sibling REST's anchor — run_atom closes the raw window at the
             # ONE_OF atom's completion, before REST resolves). Cards that
             # left the library between the look and the partition drop out;
-            # the Selector's filter still applies below.
+            # the Selector's filter still applies below. With no window open
+            # the zone is its top card, as before.
             win = ctx.look_window or (
                 ctx.one_of_window if sel.mode is SelectorMode.REST else ()
             )
@@ -642,7 +699,7 @@ def resolve_selector(
             # A found card that left the zone since the search drops out.
             found = set(ctx.search_found)
             candidates = [h for h in candidates if h in found]
-    if partition_window is not None and sel.mode is SelectorMode.ONE_OF:
+    if partition_window is not None and sel.mode in (SelectorMode.ONE_OF, SelectorMode.ALL):
         ctx.one_of_window = tuple(partition_window)
     candidates = [h for h in candidates if eval_filter(sel.filter, h, ctx)]
 
@@ -699,28 +756,35 @@ def resolve_selector(
         # sorted AT CONSTRUCTION, so a multi-zone ALL slot enumerates in
         # canonical zone order (pinned by
         # ``test_zones_sorted_deduped_by_canonical_json``).
+        if partition_window is not None:
+            ctx.one_of_picks = tuple(candidates)  # the window's REST is the cards left
         return candidates
     if sel.mode is SelectorMode.CHOOSE:
         ordered = sorted(candidates)
-        if isinstance(sel.count, QUnbounded):
-            return ordered
-        k = resolve(sel.count, ctx)
+        unbounded = isinstance(sel.count, QUnbounded)
+        if unbounded and not (ask_choose and ok is None):
+            return ordered  # a population read (counts, queries, the CAST clamp): all of it
+        # "Any number" is every number from zero to all of them (CR 107.1c): "up to" the whole
+        # menu.
+        k = len(ordered) if unbounded else resolve(sel.count, ctx)
         # Who picks. A sacrifice menu is its controller's (CR 701.21a);
         # any other menu is the effect controller's (CR 608.2d).
         decider = sacrificing_player(ctx, ordered) if sacrifice else ctx.controller
         if (
             ask_choose
             and ok is None
-            and isinstance(sel.count, QAtMost)
+            and (unbounded or isinstance(sel.count, QAtMost))
             and k > 0
             and ordered
-            and _choose_lift_allowed(replace(sel, count=QConst(sel.count.n)), ctx)
+            and _choose_lift_allowed(replace(sel, count=QConst(k)), ctx, search=search)
         ):
             # "up to N" names every number from zero to N (the untargeted
-            # twin of the 0..N target count, CR 115.6), so each pick may
+            # twin of the 0..N target count, CR 115.6), and "any number" every
+            # number from zero to the whole menu (CR 107.1c), so each pick may
             # stop with NONE, the first included (the discard lane's shape,
-            # verbs._discard_picks): Ugin's -10 can keep a permanent card in
-            # hand, a named library search can fail to find (CR 701.23b).
+            # verbs._hand_picks): Ugin's -10 can keep a permanent card in
+            # hand, a named library search can fail to find (CR 701.23b),
+            # Siege Striker taps the creatures its controller picks.
             # The other lift rules are the QConst lane's own (same zones,
             # same referent and self-reference refusals).
             picks = []
@@ -739,11 +803,13 @@ def resolve_selector(
                 picks.append(pick)
                 pool.remove(pick)
             return picks
+        if unbounded:
+            return ordered  # no lift (a positional zone, another player's hidden zone): all of it
         if (
             ask_choose
             and ok is None
             and 0 < k < len(ordered)
-            and _choose_lift_allowed(sel, ctx)
+            and _choose_lift_allowed(sel, ctx, search=search)
         ):
             # WHICH k of the menu is the decider's decision, not an accident
             # of Handle order: the same sequential shrinking-menu ask as the

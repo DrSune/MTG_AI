@@ -312,11 +312,9 @@ def main() -> int:
         for oid, res in results.items():
             raw = pool.get(oid)
             if raw is not None and raw.is_emblem:
-                continue  # emblem is attached into its owner's record
+                continue  # an emblem's abilities ride its maker's GET_EMBLEM (EmblemSpec)
             rec = res.card
             abilities = list(rec.abilities) + list(rec.keywords)
-            if rec.emblem is not None:
-                abilities += list(rec.emblem.abilities) + list(rec.emblem.keywords)
             if not abilities:
                 continue
             compiled += 1

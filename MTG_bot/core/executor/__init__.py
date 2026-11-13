@@ -485,11 +485,9 @@ class Executor:
         self.name_pool: tuple[tuple[str, str], ...] = ()
         # ----------------------------------------------- emblems + attachments
         # Granted emblems are replayed state that is NOT world cards (an
-        # emblem never enters a zone): (owner, emblem oracle_id) -> the
-        # synthetic Handle("emblem", n) the binder bound its triggers to.
-        # The key doubles as the CR 113.7 idempotence gate: a second copy
-        # of the same emblem does nothing.
-        self.emblems: dict[tuple[Handle, str], Handle] = {}
+        # emblem never enters a zone): the synthetic Handle("emblem", n) the
+        # binder bound its abilities to -> (owner, emblem oracle_id).
+        self.emblems: dict[Handle, tuple[Handle, str]] = {}
         self._emblem_seq = 0
         # Attachment relation (auras/equipment): AURA handle -> HOST handle.
         # CardState has no attachment field, so the table lives
@@ -3097,20 +3095,15 @@ class Executor:
 
     # ------------------------------------------------------- emblem / attach
 
-    def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle | None:
-        """Grant ``owner`` their emblem (CR 113.7). Returns the synthetic
-        handle, or ``None`` when the owner ALREADY has this emblem (a
-        second copy does nothing — the idempotence gate, visible as the
-        duplicate event row in the verb handler). The emblem is executor
-        replayed state, not a world card: its triggers bind to the owner
-        through the binder, its statics anchor to the owner in the layer
+    def get_emblem(self, owner: Handle, emblem: CardRecord) -> Handle:
+        """Put a new emblem into ``owner``'s command zone (CR 114.2) and return its synthetic
+        handle. Each one is an object of its own, so a second emblem with the same abilities works
+        beside the first. The emblem is executor replayed state, not a world card: its triggers
+        bind to the owner through the binder, its statics anchor to the owner in the layer
         registry, and both are folded into the fingerprint."""
-        key = (owner, emblem.oracle_id)
-        if key in self.emblems:
-            return None
         handle = Handle("emblem", self._emblem_seq)
         self._emblem_seq += 1
-        self.emblems[key] = handle
+        self.emblems[handle] = (owner, emblem.oracle_id)
         self.binder.bind_emblem(handle, emblem, owner)
         self.layers.recompute()  # emblem statics are live the moment it lands
         return handle
@@ -3492,7 +3485,7 @@ class Executor:
                 tuple(
                     sorted(
                         ((str(owner), oid), str(handle))
-                        for (owner, oid), handle in self.emblems.items()
+                        for handle, (owner, oid) in self.emblems.items()
                     )
                 )
             ).encode()

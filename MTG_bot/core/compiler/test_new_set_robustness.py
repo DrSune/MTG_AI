@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from MTG_bot.core.ability_tree import Keyword
+from MTG_bot.core.ability_tree import Atom, Keyword, Verb, walk
 from MTG_bot.core.compiler.compiler import _is_keyword_line, compile_card, compile_pool
 from MTG_bot.core.compiler.coverage import build_full_registry, measure_pool
 from MTG_bot.core.compiler.ingest import ingest_pool
@@ -53,19 +53,21 @@ def test_a_vehicle_is_an_honest_refusal_not_a_value_error(registry) -> None:
         compile_card(_by_name("KHM")["Raiders' Karve"], registry)
 
 
-def test_an_emblem_whose_planeswalker_is_a_back_face_stays_an_orphan(registry) -> None:
-    # Valki, God of Lies is a creature; Tibalt (the back face) owns the emblem.
+def test_an_emblem_whose_text_does_not_compile_leaves_its_sentence_unparsed(registry) -> None:
+    # Valki, God of Lies is a creature; Tibalt (the back face) makes the emblem. Neither its nor
+    # Tyvar Kell's emblem text compiles: the sentence stays unparsed, never an empty emblem.
     pool = ingest_pool(DATA / "KHM.json")
     names = {"Valki, God of Lies // Tibalt, Cosmic Impostor", "Tibalt, Cosmic Impostor Emblem",
              "Tyvar Kell", "Tyvar Kell Emblem"}
     compiled = compile_pool(
         {oid: raw for oid, raw in pool.items() if raw.identity.name in names}, registry
     )
-    valki = next(r.card for r in compiled.results.values()
+    valki = next(r for r in compiled.results.values()
                  if r.card.name.startswith("Valki, God of Lies"))
-    assert valki.emblem is None
-    tyvar = next(r.card for r in compiled.results.values() if r.card.name == "Tyvar Kell")
-    assert tyvar.emblem is not None  # a front-face planeswalker still carries its emblem
+    assert any("emblem" in s for s, _ in valki.back_face_unparsed)
+    tyvar = next(r for r in compiled.results.values() if r.card.name == "Tyvar Kell")
+    assert any("emblem" in s for s, _ in tyvar.unparsed)
+    assert not any(isinstance(n, Atom) and n.verb is Verb.GET_EMBLEM for n in walk(tyvar.card))
     measure_pool(pool, registry, "KHM")  # and the whole-set measurement does not raise
 
 

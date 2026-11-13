@@ -4,9 +4,496 @@
  "oracle_id": "5513b150-c08f-4f3e-8e41-fd7b43d00b78",
  "name": "Vivien, Nature's Avenger",
  "text_sha": "0c360bb2ba1f6e7d6c400cd58bf4f9ac6434ffe18015f17ae31542a7ef5f1c49",
- "needs_atom": {
-  "missing": "REVEAL-UNTIL DIG for the [-1]: 'Reveal cards from the top of your library until you reveal a creature card. Put that card into your hand and the rest on the bottom of your library in a random order.' No node iterates the library from the top until a card matching a filter is revealed, and no selector names 'the other revealed cards' to send them to the bottom in a random order. The only existing encoding (Transmogrify, B5b-transmogrify-reveal-creature: SEARCH over Zone(LIBRARY, position=TOP) + REVEAL count QUnbounded) looks at the top card only (documented divergence: a non-creature top card finds nothing), so it would play weaker than printed; Repeat takes a fixed count. The [+1] (Basri Ket's PUT_COUNTER x3 on up to one target creature) and [-6] (Garruk, Unleashed's MODIFY_PT+GRANT_ABILITY TRAMPLE Seq with a single target, +10/+10) map onto existing nodes.",
-  "author": "claude-mapper-m20-7",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": 1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -1
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "REVEAL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "until",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "CHOOSE"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "ANY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ],
+             "referent": "result"
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "arrange",
+            {
+             "tag": "String",
+             "value": "RANDOM"
+            }
+           ],
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "REST"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "BOTTOM"
+             }
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostLoyalty",
+       "delta": -6
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 10
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 10
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "TRAMPLE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "PLANESWALKER"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-fixer-a695",
+  "date": "2026-11-13",
+  "draft_py": "# Vivien, Nature's Avenger. The compiler composes the -1 (the B13 loyalty frame around B16's\n# \"Reveal cards from the top of your library until you reveal a creature card.\", with B16's \"Put\n# that card into your hand and the rest on the bottom of your library in a random order.\" as its\n# trailing sentence). The +1 is Basri Ket's +1 with three counters (B5c-loyalty-put-counter); the\n# -6 is Garruk, Unleashed's +1 with a single target and +10/+10 (B5c-loyalty-pt-trample).\ncreature = FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')\nbattlefield = (Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),)\nplus_one = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=3),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(count=QAtMost(n=1), mode=SelectorMode.TARGET, filter=creature,\n                           zones=battlefield),\n    }),\n)\ntarget_creature = Selector(count=QConst(value=1), mode=SelectorMode.TARGET, filter=creature,\n                           zones=battlefield)\nminus_six = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-6),)),\n    effect=Seq(steps=(\n        A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=10)),\n            'target': target_creature,\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=10)),\n        }),\n        A(Verb.GRANT_ABILITY, {\n            'ability': KeywordAbility(keyword=Keyword.TRAMPLE),\n            'duration': DurationEot(),\n            'target': target_creature,\n        }),\n    )),\n)\nminus_one, carrier = compiled\nabilities = [plus_one, minus_one, minus_six, carrier]\n",
+  "clauses": [
+   {
+    "clause": "[+1]: Put three +1/+1 counters on up to one target creature.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "[−1]: Reveal cards from the top of your library until you reveal a creature card.",
+    "ir": "abilities[1].cost, abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "Put that card into your hand and the rest on the bottom of your library in a random order.",
+    "ir": "abilities[1].effect.steps[1]"
+   },
+   {
+    "clause": "[−6]: Target creature gets +10/+10 and gains trample until end of turn.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (REVEAL-until dig, 2026-11-05; stale since REVEAL.until, round 4, and MOVE_ZONE arrange RANDOM, round 5). templates_b16 compiles the -1 (loyalty frame + reveal-until + 'that card to hand, the rest to the bottom in a random order'); the REVEAL-until now leaves the partition anchors the REST reads after the found card's move closed the look window (verbs._look). The +1 and -6 are mapped here. The dig subtree is byte-identical to FDN Spinner of Souls'. Packs: tools/scenarios/mapped/M20/vivien_*.json."
+ },
+ "probe": {
+  "sha": "8af64a3d0d3305928d4f93cb2298f68b75b5b3bf858347fc76272622ea944d2b"
  }
 }

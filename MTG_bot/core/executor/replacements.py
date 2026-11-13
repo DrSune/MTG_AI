@@ -171,9 +171,12 @@ class ReplacementRegistry:
 
     # ------------------------------------------------------------ lifecycle
 
-    def attach_source(self, handle: Handle, record: CardRecord) -> int:
+    def attach_source(
+        self, handle: Handle, record: CardRecord, controller: Handle | None = None
+    ) -> int:
         """Register the permanent's ReplacementAbility nodes (lifetime:
-        while attached — the binder's detach expires them)."""
+        while attached — the binder's detach expires them). ``controller`` is
+        an emblem's owner, its "you" (CR 114.2); a permanent's is read off it."""
         self.detach_source(handle)
         count = 0
         for node in record.abilities:
@@ -187,7 +190,11 @@ class ReplacementRegistry:
                         condition=node.condition,
                         status="live",
                         source=handle,
-                        controller=self.executor.controller_of(handle),
+                        controller=(
+                            controller
+                            if controller is not None
+                            else self.executor.controller_of(handle)
+                        ),
                         event=node.event,
                         action=node.action,
                     )
@@ -296,7 +303,10 @@ class ReplacementRegistry:
     def _source_alive(self, source: Handle) -> bool:
         """The battlefield-lifetime gate of a permanent's own replacement and
         prevention records. A phased-out source does not exist (CR 702.26b),
-        so its static records do not apply until it phases in."""
+        so its static records do not apply until it phases in. An emblem's
+        abilities function in the command zone (CR 114.4), where it stays."""
+        if source in self.executor.emblems:
+            return True
         world = self.world
         return (
             source in world.cards

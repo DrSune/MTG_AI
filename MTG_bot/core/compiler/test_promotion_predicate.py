@@ -151,7 +151,12 @@ class PromotionPredicateCensus(unittest.TestCase):
             "count": [],
             "core": [],
         }
+        # An emblem's surfaces are counted once, in the GET_EMBLEM of the card that makes it: its
+        # own MTGJSON entry (no card of the pool) is left out.
+        emblem_entries = {raw.identity.name for raw in pool.values() if raw.is_emblem}
         for name, card in cls.base.items():
+            if name in emblem_entries:
+                continue
             for ab in card.abilities:
                 for verb, in_cost, sel in _walk(ab, False, None):
                     if sel.mode is not SelectorMode.CHOOSE:
