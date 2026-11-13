@@ -432,6 +432,9 @@ class TriggerBinder:
         # Cached synthetic keyword-trigger nodes, keyed (family, holder):
         # ONE node object per (family, handle).
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
+        # True while the triggers that do not look back are matched and the layers have not
+        # yet been brought up to date for them (:meth:`_layers_now`).
+        self._layers_stale = False
         # CR 724.1c: while an effect ends the turn, state-based actions
         # are checked but no triggered ability is put onto the stack; the
         # firings stay queued for the cleanup step (724.1f). Set and cleared
@@ -702,9 +705,10 @@ class TriggerBinder:
         look-back triggers are matched first, the permanents it moved off the battlefield
         still attached (each sees the others leave, and its own death) and the ones it moved
         onto it not counted; then the event's moves are carried out on the registry
-        (:meth:`_lifecycle`), the layers brought up to date, and every other trigger matched,
-        the newcomers included (CR 603.6a). ``upto`` stops before that journal position; it
-        always falls between two atom boundaries, so it never splits an event."""
+        (:meth:`_lifecycle`) and every other trigger is matched, the newcomers included (CR
+        603.6a), the layers brought up to date first (:meth:`_layers_now`). ``upto`` stops
+        before that journal position; it always falls between two atom boundaries, so it
+        never splits an event."""
         events = self.executor.journal.events
         end = len(events) if upto is None else min(upto, len(events))
         while self._seen_journal_len < end:
@@ -724,26 +728,50 @@ class TriggerBinder:
                 e.subject: e for e in moves
                 if e.zone_move[0] == ZONE_BATTLEFIELD and e.zone_move[1] != ZONE_BATTLEFIELD
             }
+            triggers = self._triggers(arrived)
             for event in rows:
-                self._match(event, True, arrived, left)
+                self._match(event, True, triggers, arrived, left)
             for event in moves:
                 self._lifecycle(event)
-            self.executor.layers.recompute()
+            # CR 603.10: brought up to date at the first read that needs them (_layers_now).
+            self._layers_stale = True
+            triggers = self._triggers()
             for event in rows:
-                self._match(event, False)
+                self._match(event, False, triggers)
+            self._layers_stale = False
+
+    def _triggers(self, arrived: AbstractSet[Handle] = frozenset()) -> list:
+        """The bound triggers, printed and graveyard-functioning, in (Handle, index) order,
+        without those of the permanents in ``arrived``."""
+        return sorted(
+            [
+                *(kv for kv in self.attached.items() if kv[0][0] not in arrived),
+                *self.attached_graveyard.items(),
+            ],
+            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+        )
+
+    def _layers_now(self) -> None:
+        """Bring the layers up to date for the triggers that do not look back, once per event
+        (CR 603.10: the continuous effects that exist immediately after it), at the first read
+        that needs them (a filter: :meth:`_ctx`; the granted and keyword triggers)."""
+        if self._layers_stale:
+            self._layers_stale = False
+            self.executor.layers.recompute()
 
     def _match(
         self,
         event: GameEvent,
         look_back: bool,
+        triggers: list,
         arrived: AbstractSet[Handle] = frozenset(),
         left: dict[Handle, GameEvent] | None = None,
     ) -> None:
         """Queue the triggers of one kind (``look_back``, :func:`looks_back`) that ``event``
-        matches. Looking back, a permanent the event moved onto the battlefield (``arrived``,
-        already bound if it was cast or played) has no say, and one it moved off (``left``) is
-        the one that left: the controller it had there (CR 603.3a), the granted abilities it had
-        (its last known information)."""
+        matches, the bound ones among ``triggers``. Looking back, a permanent the event moved
+        onto the battlefield (``arrived``, already bound if it was cast or played) has no say,
+        and one it moved off (``left``) is the one that left: the controller it had there (CR
+        603.3a), the granted abilities it had (its last known information)."""
         left = left or {}
         # Matching one event moves no card (queueing only appends trigger instances), so
         # each source's controller is looked up once per event: per-card lookups dominated
@@ -753,11 +781,7 @@ class TriggerBinder:
         def controller(handle: Handle) -> Handle:
             return self._controller_memo(ctrl_of, handle, left.get(handle, event))
 
-        on_battlefield = [kv for kv in self.attached.items() if kv[0][0] not in arrived]
-        for (handle, _idx), ability in sorted(
-            [*on_battlefield, *self.attached_graveyard.items()],
-            key=lambda kv: (str(kv[0][0]), kv[0][1]),
-        ):
+        for (handle, _idx), ability in triggers:
             if looks_back(ability.event, event) is not look_back:
                 continue
             ctrl = controller(handle)
@@ -771,27 +795,33 @@ class TriggerBinder:
         # creature dies, draw a card"), whatever the layers say now.
         # Determinism: Handle order, then the registry's layer-seq order.
         layers = self.executor.layers
-        for host in sorted(self.world.cards):
-            if host in arrived:
+        if not look_back and layers.grants_triggers:
+            self._layers_now()
+        granted = {host: layers.granted_abilities(host) for host in layers.granted_hosts()}
+        for host in left:
+            lki = self.executor.departed_lki.get(host)
+            if lki is not None:
+                granted[host] = lki.granted
+        for host in sorted(granted):
+            if host in arrived or host not in self.world.cards:
                 continue
-            lki = self.executor.departed_lki.get(host) if host in left else None
-            granted_rows = lki.granted if lki is not None else layers.granted_abilities(host)
-            for granted in granted_rows:
-                node = granted.node
+            for row in granted[host]:
+                node = row.node
                 if (
                     isinstance(node, TriggeredAbility)
                     and looks_back(node.event, event) is look_back
                     and self._match_node(node.event, event, host, controller(host))
                 ):
                     self._queue(host, controller(host), node, event)
-        if not look_back:
-            # KEYWORD triggers (PROWESS / BATTALION). The compiler
+        if not look_back and event.kind in (KIND_CAST, KIND_DECLARE_ATTACKERS):
+            # KEYWORD triggers (PROWESS / BATTALION: a cast, a declaration). The compiler
             # folds printed keywords into CardRecord.keywords with NO
             # ability row (Blood Glutton compiles with an EMPTY abilities
             # tuple), so the engine constructs the canonical node itself —
             # EPHEMERAL IR construction: the frozen serialised IR and the
             # goldens on disk are untouched. Order: family, then the
             # registry's Handle-sorted holder list.
+            self._layers_now()
             for family in ("PROWESS", "BATTALION"):
                 for host in layers.holders(Keyword[family]):
                     if (
@@ -2285,6 +2315,7 @@ class TriggerBinder:
         controller: Handle,
         event: GameEvent,
     ) -> ExecCtx:
+        self._layers_now()  # a trigger's filter is about to be read (CR 603.10)
         ex = self.executor
         bindings: dict[str, Handle] = {}
         if event.subject is not None:

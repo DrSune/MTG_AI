@@ -341,6 +341,51 @@ def test_garruks_uprising_sees_an_anthems_bonus_on_a_creature_that_enters() -> N
     assert sum(1 for e in r.ex.journal.events if e.kind == KIND_CARD_DRAWN) == draws + 1
 
 
+class TestTheLayersAfterTheEvent(_Case):
+    """CR 603.10: the triggers that do not look back are checked with the continuous effects
+    that exist right after the event, also where no filter of a printed trigger is read first
+    (the binder brings the layers up to date at the first read that needs them)."""
+
+    def test_creatures_that_enter_have_the_triggered_ability_a_static_grants_them(self) -> None:
+        """"Creatures you control have 'Whenever another creature you control enters, you gain 1
+        life'": two creatures enter at once and have it right after; each sees the other enter
+        (CR 603.6a), as does the granter: 4 life (the base: 2, the granter's alone)."""
+        granted = TriggeredAbility(ENTERS, None, _gain())
+        grant = atom(Verb.GRANT_ABILITY, ability=granted,
+                     target=at.Selector(at.QUnbounded(), at.SelectorMode.ALL,
+                                        FAnd((CREATURE, YOU_ARE)), zones=(BF_YOU,)))
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [at.StaticAbility(grant)]))
+        self.ex.layers.recompute()
+        pair = self.creatures(2, [], zone=ZONE_HAND)
+        self.ex.decisions.provider = in_trigger_order
+        self.ex.execute(_move(BF_YOU), source=self.watch, controller=self.p0,
+                        bindings={"cards": pair})
+        assert self.gains() == [1, 1, 1, 1]
+
+    def test_a_keyword_trigger_lost_in_the_same_drain_does_not_trigger(self) -> None:
+        """Prowess granted by a static whose source dies in the same resolution as a cast row is
+        journalled: the creature no longer has prowess right after (the base: it triggered on
+        the stale keyword map)."""
+        grant = atom(Verb.GRANT_ABILITY, ability=at.KeywordAbility(Keyword.PROWESS),
+                     target=at.Selector(at.QUnbounded(), at.SelectorMode.ALL,
+                                        FAnd((CREATURE, FNot(SELF), YOU_ARE)), zones=(BF_YOU,)))
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [at.StaticAbility(grant)]))
+        [bear] = self.creatures(1, [])
+        spell = self.world.add_card(card_id("Shock", type_line="Instant"), self.p0, ZONE_HAND)
+        self.ex.layers.recompute()
+        assert self.ex.layers.keyword_of(bear, Keyword.PROWESS)
+
+        def cast_after_the_death() -> None:
+            self.ex.execute(atom(Verb.DESTROY, target=EVERY), source=bear, controller=self.p1,
+                            bindings={"target": [self.watch]})
+            self.ex.journal.emit_cast(spell, self.p0, "INSTANT", "hand", None)
+
+        _held(self.ex, cast_after_the_death)
+        self.ex.fire_triggers()
+        assert self.ex.ledger.effective_pt(self.world.cards[bear].identity, bear,
+                                           self.world.cards[bear].counters) == (2, 2)
+
+
 # ------------------------------------------------------ CR 400.7: "it" is the object, until it moves
 
 

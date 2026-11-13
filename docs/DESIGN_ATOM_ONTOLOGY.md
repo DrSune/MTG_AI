@@ -1519,6 +1519,13 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
   - a dies-window replacement's exile is its own boundary;
   - "one or more creatures die" waits for the binder to gather CreatureDiesEvent; its zone-change
     form is refused (divergence D24).
+  - Fixed 2026-11-13 with no IR change (the first three, and the CR 400.7 "it" of a per-object
+    trigger): the binder matches an event's rows together, its look-back triggers (CR 603.10a)
+    before its moves are carried out and every other trigger after, with the layers brought up
+    to date; one EachPlayer, and a replacement's action with the event it modified, are one
+    batch (`EventJournal.one_event`); "it" and "they" are cut by one CR 400.7 check
+    (`TriggerBinder._gone`). BACKLOG keeps what is left (an EachPlayer body still runs player by
+    player).
 - The flag stands on a subject that names objects through `IS_RESULT`, `IS_ANY_TARGET` or a
   referent FAtom (no tree has one; gate round 10's nit). Each can name several objects (the
   objects an instruction acted on, an ability's several targets, the Auras attached to a
