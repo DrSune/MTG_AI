@@ -1,0 +1,77 @@
+Blast radius of the one-event fix (2026-11-13), base 891113a2 (a git archive) -> the branch, by script.
+
+1. Trees: round 10's tree_dump.py on each checkout (19 sets, every record applied), tree_diff.py:
+compiler trees changed (0):
+trees with records applied changed (0):
+compiler: fewer unparsed sentences (0):
+compiler: newly compiling whole (0): []
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+verified stamps matching, per set (base -> branch): {'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}
+(The 40 "still-verified cards whose tree reads a changed engine path" tree_diff.py lists are round
+10's facts, kept for comparison; this change's reach is section 2.)
+
+2. Reach (reach.py <checkout> <out.json>, the verified pools M21 275, M20 273, FDN 183 on both): the
+verified cards whose trees read a path this change touched.
+  eachplayer-move (6): M20 Yarok's Fenlurker; M21 Goremand; M21 Pursued Whale; M21 Run Afoul; M21 Thieves' Guild Enforcer; M21 Transmogrify
+  enters-other (19): FDN Adventuring Gear; FDN Garruk's Uprising; FDN Impact Tremors; FDN Spitfire Lagac; FDN Tatyova, Benthic Druid; M20 Bishop of Wings; M20 Corpse Knight; M20 Dread Presence; M20 Griffin Protector; M20 Impassioned Orator; M20 Marauding Raptor; M20 Omnath, Locus of the Roil; M20 Risen Reef; M20 Sage's Row Denizen; M20 Waterkin Shaman; M21 Garruk's Uprising; M21 Terror of the Peaks; M21 Thieves' Guild Enforcer; M21 Watcher of the Spheres
+  event-act (6): M20 Bag of Holding; M20 Cavalier of Thorns; M20 Marauding Raptor; M21 Basri, Devoted Paladin; M21 Gloom Sower; M21 Hooded Blightfang
+  event-info (1): M21 Terror of the Peaks
+  granted-trigger (2): M21 Infernal Scarring; M21 Light of Promise
+  gy-only (1): M21 Silversmote Ghoul
+  layer-read (41): FDN Adventuring Gear; FDN Ancestor Dragon; FDN Battlesong Berserker; FDN Firebrand Archer; FDN Garruk's Uprising; FDN Impact Tremors; FDN Spitfire Lagac; FDN Tatyova, Benthic Druid; FDN Wildwood Scourge; M20 Bishop of Wings; M20 Corpse Knight; M20 Dread Presence; M20 Griffin Protector; M20 Impassioned Orator; M20 Kykar, Wind's Fury; M20 Marauding Raptor; M20 Netcaster Spider; M20 Omnath, Locus of the Roil; M20 Risen Reef; M20 Sage's Row Denizen; M20 Waterkin Shaman; M21 Basri Ket; M21 Basri, Devoted Paladin; M21 Feline Sovereign; M21 Garruk's Harbinger; M21 Garruk's Uprising; M21 Gloom Sower; M21 Hooded Blightfang; M21 Keral Keep Disciples; M21 Makeshift Battalion; M21 Riddleform; M21 Rin and Seri, Inseparable; M21 Sanctum of All; M21 Snarespinner; M21 Spellgorger Weird; M21 Subira, Tulzidi Caravanner; M21 Terror of the Peaks; M21 Thieves' Guild Enforcer; M21 Tide Skimmer; M21 Watcher of the Spheres; M21 Wildwood Scourge
+  lookback (32): FDN Gleaming Barrier; FDN Maalfeld Twins; FDN Massacre Wurm; FDN Pelakka Wurm; FDN Solemn Simulacrum; FDN Spinner of Souls; M20 Bishop of Wings; M20 Cavalier of Dawn; M20 Cavalier of Flame; M20 Cavalier of Gales; M20 Cavalier of Night; M20 Cavalier of Thorns; M20 Immortal Phoenix; M20 Moldervine Reclamation; M20 Overgrowth Elemental; M20 Retributive Wand; M20 Silverback Shaman; M20 Starfield Mystic; M20 Steadfast Sentry; M21 Basri's Lieutenant; M21 Canopy Stalker; M21 Conclave Mentor; M21 Deathbloom Thallid; M21 Goblin Arsonist; M21 Havoc Jester; M21 Infernal Scarring; M21 Malefic Scythe; M21 Massacre Wurm; M21 Nine Lives; M21 Pitchburn Devils; M21 Solemn Simulacrum; M21 Spirit of Malevolence
+  replacement (11): FDN Angel of Vitality; FDN Obliterating Bolt; FDN Scorching Dragonfire; M20 Angel of Vitality; M20 Reduce to Ashes; M21 Conclave Mentor; M21 Containment Priest; M21 Fiery Emancipation; M21 Nine Lives; M21 Scorching Dragonfire; M21 Teferi's Ageless Insight
+  CR 113.6m classifier: graveyard-only on the base, bound on the battlefield on the branch: ['M20 Cavalier of Gales', 'M20 Cavalier of Thorns', 'M20 Immortal Phoenix']
+
+3. 600 seeded heuristic games (replay.py <checkout> 200 <out.json>: seeds 910000-910199 per set,
+every third deck coherent, the rest stress; verified pools; the same decks on both, no tree
+changes), replay_compare.py <base.json> <branch.json>:
+
+## first build (a layers recompute per drained event)
+M21: games 200; identical digests 198; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 84.0 / 97.0 (+15.5%)
+  game 60: digest DIFFERS, journal same; outcome win -> win, turns 28 -> 28, rows 730 -> 730, crash None -> None
+  game 143: digest DIFFERS, journal same; outcome win -> win, turns 31 -> 31, rows 529 -> 529, crash None -> None
+M20: games 200; identical digests 200; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 73.6 / 90.5 (+23.1%)
+FDN: games 200; identical digests 199; identical journals 199; crashes 0 (base) / 0 (branch); engine seconds 89.8 / 105.3 (+17.3%)
+  game 12: digest DIFFERS, journal DIFFERS; outcome win -> win, turns 21 -> 21, rows 691 -> 693, crash None -> None
+differing games: M21:60 M21:143 FDN:12
+
+## final (the layers brought up to date at the first read that needs them)
+M21: games 200; identical digests 198; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 83.6 / 83.5 (-0.2%)
+  game 60: digest DIFFERS, journal same; outcome win -> win, turns 28 -> 28, rows 730 -> 730, crash None -> None
+  game 143: digest DIFFERS, journal same; outcome win -> win, turns 31 -> 31, rows 529 -> 529, crash None -> None
+M20: games 200; identical digests 200; identical journals 200; crashes 0 (base) / 0 (branch); engine seconds 72.1 / 70.7 (-2.0%)
+FDN: games 200; identical digests 199; identical journals 199; crashes 0 (base) / 0 (branch); engine seconds 86.3 / 86.2 (-0.2%)
+  game 12: digest DIFFERS, journal DIFFERS; outcome win -> win, turns 21 -> 21, rows 691 -> 693, crash None -> None
+differing games: M21:60 M21:143 FDN:12
+
+The same three games differ in both builds; engine time fell from +15-23% to within noise of the
+base once the recompute became lazy and the granted-trigger scan stopped walking every card.
+
+Each differing game, its first differing event and why the branch is right (differing_games.txt:
+first_diff.py and queued.py on both checkouts):
+
+- FDN game 12 (journal 691 -> 693 rows). Row 501-506: one state-based check (CR 704.3, one event)
+  kills three of p1's blockers, Strix Lookout, Spinner of Souls and Fierce Empath. FDN Spinner of
+  Souls ("Whenever another nontoken creature you control dies, you may reveal cards ... until you
+  reveal a creature card ...") dies with them and, looking back (CR 603.10a), triggers for both
+  others. The base matched the rows one by one and detached the Spinner at its own row, so it saw
+  Strix Lookout (row 502) but not Fierce Empath (row 506); the branch queues the second trigger
+  (@506), which reveals Aegis Turtle into p1's hand (row 517). Same winner and lives.
+- M21 game 60 (journal identical; one fewer priority decision per seat, asks [86, 366] ->
+  [85, 365]). M21 Niambi, Esteemed Speaker's enters trigger returns Concordia Pegasus, enchanted
+  by M21 Light of Promise ("Enchanted creature has 'Whenever you gain life, put that many +1/+1
+  counters on this creature'"), to its owner's hand, then gains life. The base matched the gain
+  (@534) against the layers as they stood before the bounce and triggered the Pegasus's granted
+  ability while the Pegasus was in a hand (it resolved doing nothing: a new object, CR 400.7, with
+  no granted ability, CR 603.10); the branch brings the layers up to date first and queues none.
+- M21 game 143 (journal identical; the digest's ask counts differ). M21 Angelic Ascension exiles
+  p1's Teferi's Protege and p1 creates a 4/4 Angel token with flying (row 451). p1 controls M21
+  Watcher of the Spheres ("Whenever another creature you control with flying enters, this
+  creature gets +1/+1 until end of turn"): the token enters with flying, so the Watcher triggers
+  (CR 603.6a, 603.10). The base read the keyword map as the last recompute left it, before the
+  token existed, so even its printed flying was missing; the branch triggers (@451) and the
+  Watcher gets +1/+1 until end of turn.
+
+4. Engine mutants (mutants.py <worktree>, mutants.txt): 21 of 21 killed by the test modules.

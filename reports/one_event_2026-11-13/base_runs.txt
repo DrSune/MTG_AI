@@ -1,0 +1,59 @@
+The one-event tests and the round-10 evidence scripts on the base (891113a2, a git archive at
+<base>) and on the branch.
+
+$ run_on_base.py <branch> <base> MTG_bot/core/test_executor_one_event.py
+PASSED TestLookingBackAcrossOneDrain::test_a_granted_keyword_of_a_creature_that_died_in_the_second_instruction
+PASSED TestLookingBackAcrossOneDrain::test_a_granted_type_of_a_creature_that_died_in_the_second_instruction
+PASSED test_infernal_scarring_draws_when_its_creature_dies_in_a_later_instruction
+PASSED test_gloom_sower_reads_the_controller_of_a_blocker_that_left
+PASSED TestWhatOneEventIs::test_a_return_still_comes_when_a_step_of_the_event_is_skipped
+FAILED TestOneEventMovesTogether::test_a_holder_leaving_with_them_counts_them
+FAILED TestOneEventMovesTogether::test_a_newcomer_bound_before_its_row_does_not_see_what_leaves_with_it
+FAILED TestOneEventMovesTogether::test_a_permanent_that_enters_does_not_see_what_leaves_with_it
+FAILED TestOneEventMovesTogether::test_a_permanent_that_leaves_does_not_see_what_enters_with_it
+FAILED TestOneEventMovesTogether::test_a_stolen_creature_looks_back_as_the_controller_it_had
+FAILED TestOneEventMovesTogether::test_creatures_dying_at_once_each_see_the_other_die
+FAILED TestOneEventMovesTogether::test_creatures_entering_at_once_each_see_the_other_enter
+FAILED test_which_triggers_look_back[node0-row0-True]
+FAILED test_which_triggers_look_back[node1-row1-True]
+FAILED test_which_triggers_look_back[node2-row2-True]
+FAILED test_which_triggers_look_back[node3-row3-True]
+FAILED test_which_triggers_look_back[node4-row4-False]
+FAILED test_which_triggers_look_back[node5-row5-True]
+FAILED test_which_triggers_look_back[node6-row6-False]
+FAILED test_which_triggers_look_back[node7-row7-False]
+FAILED test_a_dies_trigger_that_moves_its_card_functions_on_the_battlefield
+FAILED test_garruks_uprising_sees_an_anthems_bonus_on_a_creature_that_enters
+FAILED TestTheLayersAfterTheEvent::test_a_keyword_trigger_lost_in_the_same_drain_does_not_trigger
+FAILED TestTheLayersAfterTheEvent::test_creatures_that_enter_have_the_triggered_ability_a_static_grants_them
+FAILED test_marauding_raptor_does_not_hit_the_new_object_a_flickered_creature_became
+FAILED test_bag_of_holding_does_not_exile_a_discarded_card_that_left_the_graveyard
+FAILED test_terror_of_the_peaks_reads_a_creature_that_left_as_it_last_existed
+FAILED TestWhatOneEventIs::test_a_return_waits_for_the_end_of_the_event_that_ended_it
+FAILED TestWhatOneEventIs::test_each_player_sacrificing_is_one_event
+FAILED test_entries_replaced_in_one_instruction_are_one_event
+FAILED test_a_death_replaced_in_a_state_based_check_is_part_of_its_event
+26 failed, 5 passed in 2.80s
+
+
+$ simultaneous_movers.py <base>
+two creatures die in one DESTROY: life 20 -> 21 (the rules give 22)
+two creatures enter in one MOVE_ZONE: life 20 -> 21 (the rules give 22)
+$ holder_leaves_with_them.py <base>
+watchdog and bears: ['graveyard', 'graveyard', 'graveyard', 'graveyard']
+gains (the rules: [3]): []
+$ eachplayer_split.py <base>
+bears: ['graveyard', 'graveyard']
+gains (the rules, CR 101.4: [2]): [1, 1]
+$ simultaneous_movers.py <branch>
+two creatures die in one DESTROY: life 20 -> 22 (the rules give 22)
+two creatures enter in one MOVE_ZONE: life 20 -> 22 (the rules give 22)
+$ holder_leaves_with_them.py <branch>
+watchdog and bears: ['graveyard', 'graveyard', 'graveyard', 'graveyard']
+gains (the rules: [3]): [3]
+$ eachplayer_split.py <branch>
+bears: ['graveyard', 'graveyard']
+gains (the rules, CR 101.4: [2]): [2]
+
+$ pytest MTG_bot/core/test_executor_one_event.py (branch)
+31 passed in 2.74s
