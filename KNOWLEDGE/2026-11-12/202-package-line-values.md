@@ -114,3 +114,20 @@ settings as §1, CPU under a 4 GiB cap. The kill rule is §1's.
 - If S1 holds, the sacrifice package is the first line class with measured value. It becomes the
   first candidate for forcing by frequency and for a specialist (PLAN_CEILING §14.3).
 - If S1 fails, no measured line has value yet. The ceiling read at 400 decides alone.
+
+**§3's result** (2026-11-13 01:58-03:12; 100 states × 3 futures, 104 games, 0 voids, 0 crashes):
+
+| Line | A1 − B | A* − B | p(step) | Follow-through: own (B) / after a forced first step | Critic A* − B, turn tops 1 / 2 / 3 |
+|---|---|---|---|---|---|
+| sacrifice, with activations | −0.007 ± 0.015 | −0.173 ± 0.059 | 0.775 | 0.087 / 0.085 | −0.026 / −0.139 / −0.135 |
+
+- **S1 is falsified.**
+  - Forcing every producer step, outlet activations included, costs 0.173 (about 3 SE).
+  - Sacrificing creatures for the Jester's pings, and casting every producer at once, loses
+    games in these decks.
+- **S2 is as expected: the policy rarely takes the steps itself** (0.087).
+  - That low use is right, not a barrier. The heuristic's 6% firing (package mode) was not a
+    barrier to value.
+- **The critic sees it:** −0.14 two turns on.
+- **So no measured line has value yet.** As registered, the ceiling read at the next window
+  decides "richer decks, more skill" alone.
