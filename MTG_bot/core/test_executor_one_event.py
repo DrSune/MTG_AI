@@ -188,14 +188,36 @@ class TestOneEventMovesTogether(_Case):
         self.one_boundary((leaver, ZONE_GRAVEYARD), (newcomer, ZONE_BATTLEFIELD))
         assert self.gains() == []
 
-    def test_a_permanent_that_enters_does_not_see_what_leaves_with_it(self) -> None:
+    def test_a_permanent_that_enters_does_not_see_what_leaves_with_it(self, bound_early=False) -> None:
         """CR 603.10a: a leaves-the-battlefield trigger uses the abilities that existed before the
         event, and the newcomer's did not: its "whenever another creature you control leaves the
         battlefield" does not see a creature that leaves as it enters (the base: it did)."""
         [leaver] = self.creatures(1, [])
         [newcomer] = self.creatures(1, [TriggeredAbility(LEAVES, None, _gain())], zone=ZONE_HAND)
+        if bound_early:
+            rec = self.ex.binder.records[self.world.cards[newcomer].identity.oracle_id]
+            self.ex.attach_card(newcomer, rec)
         self.one_boundary((leaver, ZONE_GRAVEYARD), (newcomer, ZONE_BATTLEFIELD))
         assert self.gains() == []
+
+    def test_a_newcomer_bound_before_its_row_does_not_see_what_leaves_with_it(self) -> None:
+        """The same when the newcomer is bound before its row is matched, as a permanent spell or a
+        land is as it is put onto the battlefield (``stack.cast``, ``stack.play_land``)."""
+        self.test_a_permanent_that_enters_does_not_see_what_leaves_with_it(bound_early=True)
+
+    def test_a_stolen_creature_looks_back_as_the_controller_it_had(self) -> None:
+        """CR 603.3a, 603.10a: the player who controlled a leaves-the-battlefield ability's source
+        as it left controls the trigger. A creature of yours that the opponent controls, with
+        "whenever another creature you control dies, you gain 1 life", dies with one of the
+        opponent's creatures in one DESTROY: the opponent gains 1 (the base: nothing, it read the
+        creature in your graveyard as yours, after the other's row)."""
+        [stolen] = self.creatures(1, [TriggeredAbility(DIES, None, _gain())])
+        [theirs] = self.creatures(1, [], player=self.p1)
+        self.ex.gain_control(stolen, self.p1, "Permanent")
+        assert self.ex.controller_of(stolen) == self.p1
+        self.ex.execute(atom(Verb.DESTROY, target=EVERY), source=theirs, controller=self.p1,
+                        bindings={"target": [stolen, theirs]})
+        assert self.gains(self.p1) == [1] and self.gains(self.p0) == []
 
 
 @pytest.mark.parametrize(
@@ -265,6 +287,23 @@ class TestLookingBackAcrossOneDrain(_Case):
         [bear] = self.creatures(1, [])
         self.ex.layers.recompute()
         assert self.ex.layers.keyword_of(bear, Keyword.FLYING)
+        self.ex.apply_effect(at.Seq((_gain(QConst(5)), atom(Verb.DESTROY, target=EVERY))),
+                             source=self.watch, controller=self.p0, bindings={"target": [bear]})
+        assert self.gains() == [5, 1]
+
+    def test_a_granted_type_of_a_creature_that_died_in_the_second_instruction(self) -> None:
+        """The same for a type an effect gave it ("is a Knight in addition to its other types"):
+        "whenever a Knight you control dies" sees the creature as the Knight it was."""
+        knight = FAtom(FAtomPred.SUBTYPE_EQ, string_value="Knight")
+        make = atom(Verb.GRANT_TYPE, types=("Knight",),
+                    target=at.Selector(at.QUnbounded(), at.SelectorMode.ALL,
+                                       FAnd((CREATURE, YOU_ARE)), zones=(BF_YOU,)))
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [
+            at.StaticAbility(make),
+            TriggeredAbility(CreatureDiesEvent(filter=FAnd((OTHER_OF_YOURS, knight))), None, _gain())]))
+        [bear] = self.creatures(1, [])
+        self.ex.layers.recompute()
+        assert "Knight" in self.ex.layers.type_overlay(bear)
         self.ex.apply_effect(at.Seq((_gain(QConst(5)), atom(Verb.DESTROY, target=EVERY))),
                              source=self.watch, controller=self.p0, bindings={"target": [bear]})
         assert self.gains() == [5, 1]
@@ -418,6 +457,25 @@ class TestWhatOneEventIs(_Case):
         assert [(e.subject, e.zone_move[1]) for e in rows[-3:]] == [
             (anchor, ZONE_GRAVEYARD), (other, ZONE_GRAVEYARD), (exiled, ZONE_GRAVEYARD)]
         assert self.gains(self.p0) == [1] and self.gains(self.p1) == [1]
+
+
+def test_entries_replaced_in_one_instruction_are_one_event() -> None:
+    """CR 614.6: M21 Containment Priest ("If a nontoken creature would enter and it wasn't cast,
+    exile it instead") replaces both entries of one instruction putting two creature cards onto
+    the battlefield; the two exiles are that instruction's event: a flagged "whenever one or
+    more creature cards are put into exile, you gain that much life" counts 2 (the base: 1,
+    then 1, each replacement's action an event of its own)."""
+    r = _runner("M21", [_real("priest", "Containment Priest"), _creature("watch"),
+                        _creature("a", zone="graveyard"), _creature("b", zone="graveyard")])
+    watch, cards = r.handles["watch"], [r.handles["a"], r.handles["b"]]
+    exiled = ZoneChangeEvent(ANY, Zone(ZoneKind.EXILE, ControllerRef.ANY), CREATURE)
+    r.ex.attach_card(watch, record_of([TriggeredAbility(exiled, None, _gain(THAT_MANY),
+                                                        once_per_event=True)],
+                                      oid=r.world.cards[watch].identity.oracle_id))
+    r.ex.execute(_move(BF_YOU), source=watch, controller=r.p0, bindings={"cards": cards})
+    assert all(r.world.zone_of(h).kind == ZONE_EXILE for h in cards)
+    assert [e.data[0] for e in r.ex.journal.events
+            if e.kind == KIND_LIFE_GAINED and e.subject == r.p0] == [2]
 
 
 def test_a_death_replaced_in_a_state_based_check_is_part_of_its_event() -> None:
