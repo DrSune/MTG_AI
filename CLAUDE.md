@@ -24,7 +24,11 @@ Window 1 is scored in `KNOWLEDGE/2026-11-11/192`, window 2 in notes 193-195, 192
 Gate B (`KNOWLEDGE/2026-11-12/196`, §8: on r28; §9: no automatic start) is a decision at r28's
 read at update 400 by a registered break-even rule; its worktree `/home/sune/Desktop/MTG_AI-gateb`
 (pinned at 8aabbc8, do not edit it) is re-pinned and re-smoked before it runs. The plan after r27:
-`docs/PLAN_CEILING.md` §14-§15. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
+`docs/PLAN_CEILING.md` §14-§15. **Since 2026-11-13 04:52 r28 is paused (at update 195) for the
+ceiling-read window** (`KNOWLEDGE/2026-11-13/205`, registered before its games): the transient unit
+`mtg-ceiling` runs `reports/ceiling_window/queue.sh` from the worktree `/home/sune/Desktop/MTG_AI-cw`
+pinned at c9a764d5 (do not edit it), about 3.7 hours; the transient unit `mtg-ceiling-resume` restarts
+r28 when it ends. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
 and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
