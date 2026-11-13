@@ -1553,7 +1553,11 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
         # revealed cards match ``until``, or every card is revealed (no match).
         # The matches are "that card" (the ``result``), every revealed card the
         # window, so "the rest" are the window's other cards; nothing moves
-        # (CR 701.20b).
+        # (CR 701.20b). The reveal is a partition, as a ONE_OF pick is: the
+        # window and the matches are the anchors a later REST reads ("Put that
+        # card into your hand and the rest on the bottom of your library",
+        # Vivien, Nature's Avenger), after the move of "that card" has closed
+        # the look window (run_atom).
         assert isinstance(until, Filter)  # role table: a Filter
         n = amount(ctx, atom, "count")
         seen_cards, found = [], []
@@ -1564,6 +1568,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
             if eval_filter(until, card, ctx):
                 found.append(card)
         ctx.bindings["result"] = found
+        ctx.one_of_window, ctx.one_of_picks = tuple(seen_cards), tuple(found)
     elif isinstance(count_q, QUnbounded):
         # QUnbounded is not number-resolvable, and here it means the ENTIRE
         # zone — the Cultivate compile idiom (REVEAL with an unbounded count
