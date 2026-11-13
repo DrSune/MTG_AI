@@ -46,6 +46,7 @@ deterministic by ``TestMayAndDeterminism`` (test_executor_binding.py).
 
 from __future__ import annotations
 
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, NamedTuple
 
@@ -329,13 +330,28 @@ class DelayedBinding:
 
 def functions_from_graveyard(ability: object) -> bool:
     """CR 113.6m ("An ability whose cost or effect specifies that it moves
-    the object it's on out of a particular zone functions only in that zone"): a
+    the object it's on out of a particular zone functions only in that zone, unless its
+    trigger condition ... specifies that the object is put into that zone"): a
     triggered ability whose effect moves its own source out of a graveyard
     ("return this card from your graveyard to the battlefield tapped", Silversmote
-    Ghoul) functions only while that card is in a graveyard."""
-    from MTG_bot.core.executor.selectors import _filter_is_self_referential
+    Ghoul) functions only while that card is in a graveyard. One that triggers on that
+    card being put into a graveyard from the battlefield ("When this creature dies,
+    return it to its owner's hand", Immortal Phoenix) functions on the battlefield and
+    looks back at its own death (CR 603.10a). "Another" (an IS_SOURCE under a
+    negation) is not the card itself."""
+    from MTG_bot.core.executor.selectors import _filter_names_the_source
 
     if not isinstance(ability, TriggeredAbility):
+        return False
+    event = ability.event
+    dies = event.filter if isinstance(event, CreatureDiesEvent) else None
+    if (
+        isinstance(event, ZoneChangeEvent)
+        and event.from_zone.kind is ZoneKind.BATTLEFIELD
+        and event.to_zone.kind is ZoneKind.GRAVEYARD
+    ):
+        dies = event.subject
+    if dies is not None and _filter_names_the_source(dies):
         return False
     for node in walk(ability.effect):
         if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
@@ -349,10 +365,31 @@ def functions_from_graveyard(ability: object) -> bool:
                 isinstance(sel, Selector)
                 and sel.zones
                 and all(z.kind is ZoneKind.GRAVEYARD for z in sel.zones)
-                and _filter_is_self_referential(sel.filter)
+                and _filter_names_the_source(sel.filter)
             ):
                 return True
     return False
+
+
+def looks_back(node: EventSpec, event: GameEvent) -> bool:
+    """CR 603.10a: does a trigger on ``node`` look back in time at ``event``? A
+    leaves-the-battlefield ability does (a death, a sacrifice, a zone change out of the
+    battlefield, CR 603.6c; one from "anywhere" never is), and so does an ability that
+    triggers when a card leaves a graveyard, or when an object all players can see is put
+    into a hand or a library. Such a trigger is checked against the abilities that existed
+    immediately before the event and the objects as they were then; every other one against
+    what exists immediately after it (CR 603.10)."""
+    if isinstance(node, (CreatureDiesEvent, SacrificeEvent)):
+        return True
+    if not isinstance(node, ZoneChangeEvent):
+        return False
+    if node.from_zone.kind in (ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD):
+        return True
+    return (
+        node.to_zone.kind in (ZoneKind.HAND, ZoneKind.LIBRARY)
+        and event.kind == KIND_ZONE_CHANGE
+        and event.zone_move[0] not in (None, ZONE_HAND, ZONE_LIBRARY)
+    )
 
 
 class TriggerBinder:
@@ -395,17 +432,6 @@ class TriggerBinder:
         # Cached synthetic keyword-trigger nodes, keyed (family, holder):
         # ONE node object per (family, handle).
         self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
-        # A battlefield departure normally detaches the leaver's triggers on
-        # the ZONE_CHANGE journal row — but EventJournal.record_atom journals the
-        # card's CREATURE_DIES row IMMEDIATELY after that row (same diff
-        # iteration), and the dying permanent's own "when this dies"
-        # trigger must still be attached when the dies row is matched. A
-        # ZONE_CHANGE(bf→non-bf) whose very next journalled row is that
-        # card's CREATURE_DIES parks its handle here; :meth:`_lifecycle`
-        # runs the deferred detach at the dies row, after the match pass
-        # queued the firing. Non-death departures (bounce/exile/hand) have
-        # no dies row and detach on the spot.
-        self._pending_dies_detach: set[Handle] = set()
         # CR 724.1c: while an effect ends the turn, state-based actions
         # are checked but no triggered ability is put onto the stack; the
         # firings stay queued for the cleanup step (724.1f). Set and cleared
@@ -666,51 +692,99 @@ class TriggerBinder:
         return ctrl
 
     def on_events(self, upto: int | None = None) -> None:
-        """Match every not-yet-seen journalled event against the attached
-        triggers and the scheduled delayed triggers, queueing one
-        TriggerInstance per match. The attach/detach lifecycle rides the
-        same pass in journal order: a permanent ENTERING re-registers
-        before matching (its own ETB trigger is live — IS_SOURCE sees it),
-        a permanent LEAVING detaches only after matching (its own dies
-        trigger still fires). ``upto`` stops before that journal
-        position; it always falls between two atom boundaries, so it never
-        splits a zone change from its dies row."""
+        """Match every not-yet-seen journalled event against the attached, granted,
+        keyword and delayed triggers, queueing one TriggerInstance per match, an event at a
+        time: the rows one atom boundary journalled (``GameEvent.batch``), or a row journalled
+        outside one. CR 603.10: a trigger is checked against the objects and the continuous
+        effects that exist immediately after the event, except one that looks back in time
+        (CR 603.10a, :func:`looks_back`): that one is checked against the abilities that
+        existed immediately before it and the objects as they were. So the event's
+        look-back triggers are matched first, the permanents it moved off the battlefield
+        still attached (each sees the others leave, and its own death) and the ones it moved
+        onto it not counted; then the event's moves are carried out on the registry
+        (:meth:`_lifecycle`), the layers brought up to date, and every other trigger matched,
+        the newcomers included (CR 603.6a). ``upto`` stops before that journal position; it
+        always falls between two atom boundaries, so it never splits an event."""
         events = self.executor.journal.events
         end = len(events) if upto is None else min(upto, len(events))
         while self._seen_journal_len < end:
-            event = events[self._seen_journal_len]
-            self._seen_journal_len += 1
-            self._lifecycle(event, attach=True)
-            # Matching one event moves no card (queueing only appends trigger
-            # instances), so each source's controller is looked up once per
-            # event: per-card lookups dominated this pass.
-            ctrl_of: dict = {}
-            for (handle, _idx), ability in sorted(
-                [*self.attached.items(), *self.attached_graveyard.items()],
-                key=lambda kv: (str(kv[0][0]), kv[0][1]),
-            ):
-                ctrl = self._controller_memo(ctrl_of, handle, event)
-                if self._match_node(ability.event, event, handle, ctrl):
-                    self._queue(handle, ctrl, ability, event)
-            # GRANTED triggers. A StaticAbility GRANT_ABILITY layer parks its
-            # TriggeredAbility row in the layer registry — the ``attached``
-            # map above only walks the card's PRINTED rows (Light of
-            # Promise's granted life trigger lives here).
-            # No battlefield gate, mirroring the attached loop's lifecycle:
-            # the dies row must still see the grant while the aura is on.
-            # Determinism: Handle order, then the registry's layer-seq order.
-            layers = self.executor.layers
-            for host in sorted(self.world.cards):
-                granted_rows = layers.granted_abilities(host)
-                if not granted_rows:
-                    continue
-                ctrl = self._controller_memo(ctrl_of, host, event)
-                for granted in granted_rows:
-                    node = granted.node
-                    if isinstance(node, TriggeredAbility) and self._match_node(
-                        node.event, event, host, ctrl
-                    ):
-                        self._queue(host, ctrl, node, event)
+            start = self._seen_journal_len
+            stop = start + 1
+            batch = events[start].batch
+            while batch and stop < end and events[stop].batch == batch:
+                stop += 1
+            self._seen_journal_len = stop
+            rows = events[start:stop]
+            moves = [e for e in rows if e.kind == KIND_ZONE_CHANGE]
+            arrived = {
+                e.subject for e in moves
+                if e.zone_move[1] == ZONE_BATTLEFIELD and e.zone_move[0] != ZONE_BATTLEFIELD
+            }
+            left = {
+                e.subject: e for e in moves
+                if e.zone_move[0] == ZONE_BATTLEFIELD and e.zone_move[1] != ZONE_BATTLEFIELD
+            }
+            for event in rows:
+                self._match(event, True, arrived, left)
+            for event in moves:
+                self._lifecycle(event)
+            self.executor.layers.recompute()
+            for event in rows:
+                self._match(event, False)
+
+    def _match(
+        self,
+        event: GameEvent,
+        look_back: bool,
+        arrived: AbstractSet[Handle] = frozenset(),
+        left: dict[Handle, GameEvent] | None = None,
+    ) -> None:
+        """Queue the triggers of one kind (``look_back``, :func:`looks_back`) that ``event``
+        matches. Looking back, a permanent the event moved onto the battlefield (``arrived``,
+        already bound if it was cast or played) has no say, and one it moved off (``left``) is
+        the one that left: the controller it had there (CR 603.3a), the granted abilities it had
+        (its last known information)."""
+        left = left or {}
+        # Matching one event moves no card (queueing only appends trigger instances), so
+        # each source's controller is looked up once per event: per-card lookups dominated
+        # this pass.
+        ctrl_of: dict = {}
+
+        def controller(handle: Handle) -> Handle:
+            return self._controller_memo(ctrl_of, handle, left.get(handle, event))
+
+        on_battlefield = [kv for kv in self.attached.items() if kv[0][0] not in arrived]
+        for (handle, _idx), ability in sorted(
+            [*on_battlefield, *self.attached_graveyard.items()],
+            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+        ):
+            if looks_back(ability.event, event) is not look_back:
+                continue
+            ctrl = controller(handle)
+            if self._match_node(ability.event, event, handle, ctrl):
+                self._queue(handle, ctrl, ability, event)
+        # GRANTED triggers. A StaticAbility GRANT_ABILITY layer parks its
+        # TriggeredAbility row in the layer registry — the ``attached``
+        # map above only walks the card's PRINTED rows (Light of
+        # Promise's granted life trigger lives here). A permanent that left
+        # has the ones it had as it left (Infernal Scarring's "When this
+        # creature dies, draw a card"), whatever the layers say now.
+        # Determinism: Handle order, then the registry's layer-seq order.
+        layers = self.executor.layers
+        for host in sorted(self.world.cards):
+            if host in arrived:
+                continue
+            lki = self.executor.departed_lki.get(host) if host in left else None
+            granted_rows = lki.granted if lki is not None else layers.granted_abilities(host)
+            for granted in granted_rows:
+                node = granted.node
+                if (
+                    isinstance(node, TriggeredAbility)
+                    and looks_back(node.event, event) is look_back
+                    and self._match_node(node.event, event, host, controller(host))
+                ):
+                    self._queue(host, controller(host), node, event)
+        if not look_back:
             # KEYWORD triggers (PROWESS / BATTALION). The compiler
             # folds printed keywords into CardRecord.keywords with NO
             # ability row (Blood Glutton compiles with an EMPTY abilities
@@ -726,87 +800,52 @@ class TriggerBinder:
                     ):
                         continue
                     node = self._keyword_node(family, host)
-                    ctrl = self._controller_memo(ctrl_of, host, event)
+                    ctrl = controller(host)
                     if not self._match_node(node.event, event, host, ctrl):
                         continue
                     if family == "BATTALION" and self._group_size(event) < 3:
                         continue  # CR 508.2: a group of at least three
                     self._queue(host, ctrl, node, event)
-            for entry in list(self.delayed):
-                if self._match_node(
-                    entry.node.event, event, entry.source, entry.controller
-                ):
-                    self._queue(
-                        entry.source, entry.controller, entry.node, event, delayed=True
-                    )
-            self._lifecycle(event, attach=False)
+        for entry in list(self.delayed):
+            if looks_back(entry.node.event, event) is look_back and self._match_node(
+                entry.node.event, event, entry.source, entry.controller
+            ):
+                self._queue(entry.source, entry.controller, entry.node, event, delayed=True)
 
-    def _lifecycle(self, event: GameEvent, attach: bool) -> None:
-        if event.kind == KIND_CREATURE_DIES and not attach:
-            # The dies row was MATCHED above with the leaver still
-            # attached (the ZONE_CHANGE row deferred its detach here), so
-            # the dead card's own "when this dies" trigger queued its
-            # firing. The departure now runs — still BEFORE any
-            # resolution: firings drain in a later settle round, and
-            # detach_lki is read at RESOLUTION time (quantity.py), so
-            # the LKI lane is untouched by the deferral.
-            handle = event.subject
-            if handle is not None and handle in self._pending_dies_detach:
-                self._pending_dies_detach.discard(handle)
-                self.detach(handle)
-            return
-        if event.kind != KIND_ZONE_CHANGE or event.subject is None:
-            return
+    def _lifecycle(self, event: GameEvent) -> None:
+        """One zone change, carried out on the registry once its event's look-back
+        triggers are matched: a card put into a graveyard binds the triggers that
+        function there (CR 113.6m), one that left a graveyard drops them; a permanent
+        that left the battlefield detaches, one that entered registers."""
         from_state, to_state = event.data[0], event.data[1]
         handle = event.subject
-        if attach and to_state == ZONE_GRAVEYARD and from_state != ZONE_GRAVEYARD:
+        assert handle is not None  # a zone move always names its subject
+        if from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
+            for key in [k for k in self.attached_graveyard if k[0] == handle]:
+                del self.attached_graveyard[key]  # it left the graveyard
+        if to_state == ZONE_GRAVEYARD and from_state != ZONE_GRAVEYARD:
             record = self.handle_record.get(handle)
             if record is None and handle in self.world.cards:
                 record = self.records.get(self.world.cards[handle].identity.oracle_id)
             if record is not None:
                 self._register_graveyard(handle, record)  # CR 113.6m
-        if not attach and from_state == ZONE_GRAVEYARD and to_state != ZONE_GRAVEYARD:
-            for key in [k for k in self.attached_graveyard if k[0] == handle]:
-                del self.attached_graveyard[key]  # it left the graveyard
-        if attach:
-            if to_state == ZONE_BATTLEFIELD:
-                record = self.handle_record.get(handle)
-                card = self.world.cards.get(handle)
-                if record is None and card is not None and not card.identity.is_token:
-                    # A dealt card an effect moves here (a fetched or ramped land) was never
-                    # cast or played, so nothing bound its record (attach_pool runs before
-                    # the decks are dealt): bind it by oracle id, as graveyard entry does.
-                    # Not a token: its record comes only from CREATE_TOKEN, and the id is
-                    # its name's hash, so the registry would give a vanilla token another's
-                    # abilities.
-                    record = self.records.get(card.identity.oracle_id)
-                    if record is not None:
-                        self.handle_record[handle] = record
-                if record is not None and not any(
-                    key[0] == handle for key in self.attached
-                ):
-                    self._register(handle, record)
-        elif from_state == ZONE_BATTLEFIELD and to_state != ZONE_BATTLEFIELD:
-            # When record_atom journalled this card's CREATURE_DIES row
-            # immediately after this row (same diff iteration), defer the
-            # detach to it so the IS_SOURCE dies trigger is still attached
-            # when its own event is matched. Any other departure (bounce,
-            # exile, hand, or a graveyard move with no dies twin) detaches
-            # on the spot.
-            events = self.executor.journal.events
-            nxt = (
-                events[self._seen_journal_len]
-                if self._seen_journal_len < len(events)
-                else None
-            )
-            if (
-                nxt is not None
-                and nxt.kind == KIND_CREATURE_DIES
-                and nxt.subject == handle
-            ):
-                self._pending_dies_detach.add(handle)
-            else:
-                self.detach(handle)
+        if from_state == ZONE_BATTLEFIELD and to_state != ZONE_BATTLEFIELD:
+            self.detach(handle)
+        elif to_state == ZONE_BATTLEFIELD:
+            record = self.handle_record.get(handle)
+            card = self.world.cards.get(handle)
+            if record is None and card is not None and not card.identity.is_token:
+                # A dealt card an effect moves here (a fetched or ramped land) was never
+                # cast or played, so nothing bound its record (attach_pool runs before
+                # the decks are dealt): bind it by oracle id, as graveyard entry does.
+                # Not a token: its record comes only from CREATE_TOKEN, and the id is
+                # its name's hash, so the registry would give a vanilla token another's
+                # abilities.
+                record = self.records.get(card.identity.oracle_id)
+                if record is not None:
+                    self.handle_record[handle] = record
+            if record is not None and not any(key[0] == handle for key in self.attached):
+                self._register(handle, record)
 
     def _queue(
         self,
@@ -1731,6 +1770,40 @@ class TriggerBinder:
             target_node=selectors[0] if selectors else None,
         )
 
+    def _gone(self, ctx: ExecCtx) -> list[Handle]:
+        """CR 400.7: the objects the event register names ("it", "they") that the effect can no
+        longer find as it begins to resolve. One that has changed zones since the event is a
+        new object; one the event moved is found where it went only if that zone is public
+        (the rule's exception for an ability that triggers on the move); a token off the
+        battlefield has ceased to exist (CR 111.7, 111.8: it can't be moved). The effect does
+        not act on them (``selectors.resolve_selector``), and a read of their information finds
+        them as they last existed (CR 608.2h: ``quantity.last_known``): Terror of the Peaks'
+        "that creature's power", "that many" (every object a gathered event names). A gathered
+        event's objects are judged by its rows, any other's by the one; a reflexive trigger's
+        event is its creator's. Moves the effect makes itself come after: it finds what it moved
+        (CR 400.7)."""
+        from MTG_bot.core.executor.returns import moved_since
+
+        event = ctx.event
+        objects = [h for h in ctx.binding_handles("event") or () if h.namespace == "card"]
+        if not objects or not isinstance(event, GameEvent) or event.clock <= 0:
+            return []  # no object, or a synthetic event with no place in the journal
+        rows = self._occurrences(event) if ctx.binding_handles("gathered") is not None else [event]
+        since = max(e.clock for e in rows)
+        hidden = {
+            e.subject for e in rows
+            if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] in (ZONE_HAND, ZONE_LIBRARY)
+        }
+        cards = self.world.cards
+        return [
+            h
+            for h in objects
+            if h not in cards
+            or h in hidden
+            or (cards[h].identity.is_token and self.world.zone_of(h).kind != ZONE_BATTLEFIELD)
+            or moved_since(self.executor.journal, h, since)
+        ]
+
     def resolve(self, obj) -> str:
         """CR 608.2: a triggered ability on the stack resolves (``stack.resolve_top``).
         Its intervening "if" is checked again (CR 603.4): false, it is removed and does
@@ -1742,35 +1815,7 @@ class TriggerBinder:
         propagates. May-offers ask the executor's decision stream."""
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
-        gathered = obj.ctx.binding_handles("gathered")
-        if gathered is not None:
-            # CR 400.7: "they", as the effect acts on them, are the objects the event gathered.
-            # One that has changed zones since is a new object, which the effect does not
-            # touch; one the event moved is found where it went only if that zone is public
-            # (the rule's exception for an ability that triggers on the move); a token off the
-            # battlefield no longer exists (CR 111.7, 111.8: it can't be moved, and is kept only
-            # as the last known information read below). "That many" still counts every one
-            # (the ``gathered`` register), and "among them" reads every one
-            # (quantity._resolve_prop, CR 608.2h). A reflexive trigger's ctx.event is its
-            # creator's.
-            from MTG_bot.core.executor.returns import moved_since
-
-            event = obj.ctx.event
-            assert isinstance(event, GameEvent)
-            rows = self._occurrences(event)
-            since = max(e.clock for e in rows)
-            hidden = {e.subject for e in rows if e.kind == KIND_ZONE_CHANGE
-                      and e.zone_move[1] in (ZONE_HAND, ZONE_LIBRARY)}
-            cards = self.world.cards
-            obj.ctx.bindings["event"] = [
-                h
-                for h in gathered
-                if h in cards
-                and h not in hidden
-                and not (cards[h].identity.is_token
-                         and self.world.zone_of(h).kind != ZONE_BATTLEFIELD)
-                and not moved_since(self.executor.journal, h, since)
-            ]
+        obj.ctx.bindings["gone"] = self._gone(obj.ctx)
         kept: list[Handle] | None = None
         if obj.slot_designations and obj.declared_targets:
             # CR 608.2b, slot by slot, as a spell's targets are (stack.recheck_targets): an

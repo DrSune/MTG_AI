@@ -34,7 +34,8 @@ ordinals are event data; ``begin_turn`` resets them.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import cast
 
@@ -213,12 +214,15 @@ class GameEvent:
     cause: Handle | None
     cause_verb: str
     data: tuple[object, ...] = ()
-    # The atom boundary that journalled the row (``EventJournal.record_atom``): the clock of its
-    # first row. The objects one boundary moves are moved at once, one event of several
-    # occurrences (CR 603.2c): the tokens one effect creates, the cards one instruction or one
-    # state-based-action check (CR 704.3) moves. A draw is the exception: each card is a draw of
-    # its own (CR 121.2). 0 for a row emitted outside an atom. Replays and forks re-derive it, so
-    # it stays out of ``dump()`` and no fingerprint or game log changes.
+    # The event the row is an occurrence of (``EventJournal.record_atom``): the clock of the
+    # first row of its atom boundary, or of the first boundary of a shared event
+    # (``EventJournal.one_event``). The objects one boundary moves are moved at once, one event
+    # of several occurrences (CR 603.2c): the tokens one effect creates, the cards one
+    # instruction or one state-based-action check (CR 704.3) moves. One instruction each player
+    # performs is one event (CR 101.4), and so is an event a replacement effect modified (CR
+    # 614.6). A draw is the exception: each card is a draw of its own (CR 121.2). 0 for a row
+    # emitted outside an atom. Replays and forks re-derive it, so it stays out of ``dump()`` and
+    # no fingerprint or game log changes.
     batch: int = 0
 
     # Typed views onto the documented per-kind data layouts (one cast
@@ -344,6 +348,38 @@ class EventJournal:
         # into every boundary around it, so each change is journalled exactly once.
         # Transient: empty between ops.
         self._open: list[_Snapshot] = []
+        # The shared events open (:meth:`one_event`), by the depth of the boundaries they
+        # gather: the batch of the event, 0 until one of its boundaries journals a row.
+        # Transient: empty between ops.
+        self._shared: dict[int, int] = {}
+
+    @contextmanager
+    def one_event(self, after: Sequence[GameEvent] = ()) -> Iterator[bool]:
+        """The atom boundaries closed inside, at the depth it was opened at, are ONE event: their
+        rows share one batch (a drawn card keeps its own, CR 121.2). CR 101.4: "each player
+        sacrifices a creature" is performed by every player at once (``Executor``'s EachPlayer
+        runs one boundary per player); CR 614.6: what a replacement effect does instead is part
+        of the event it modified (its action runs as a boundary of its own: Scorching
+        Dragonfire's exile instead of a death in a state-based check, Containment Priest's
+        instead of an entry). ``after``: the rows of the boundary closed at this depth just
+        before, whose event this continues (its batch); else the first boundary inside that
+        journals a row gives the batch. A boundary nested inside another (a spell an effect casts and resolves, a cost
+        paid within an action) is an event of its own; opened where one is already open at this
+        depth, it joins that one. Yields whether it opened the event."""
+        depth = len(self._open)
+        if depth in self._shared:
+            yield False
+            return
+        drawn = {e.batch for e in after if e.kind == KIND_CARD_DRAWN}
+        self._shared[depth] = next((e.batch for e in after if e.batch not in drawn), 0)
+        try:
+            yield True
+        finally:
+            del self._shared[depth]
+
+    def event_open(self) -> bool:
+        """Is a shared event (:meth:`one_event`) open at the depth of the next boundary?"""
+        return len(self._open) in self._shared
 
     # ------------------------------------------------------------- emitting
 
@@ -548,14 +584,22 @@ class EventJournal:
         event the atom caused. Returns the newly appended events. ``combat``
         names the combat damage step the atom deals damage in (0: none); its
         DAMAGE rows carry it (``GameEvent.combat_step``). Every row carries the boundary's
-        ``batch``, a drawn card's its own (``GameEvent.batch``)."""
+        ``batch`` (a shared event's, :meth:`one_event`), a drawn card's its own
+        (``GameEvent.batch``)."""
         start = len(self.events)
         world = self.world
         after = self._capture()
-        batch = self._clock + 1  # the clock of this boundary's first row
+        depth = next(
+            (i for i in range(len(self._open) - 1, -1, -1) if self._open[i] is before),
+            len(self._open),
+        )
+        batch = self._shared.get(depth, 0)  # 0: the clock of this boundary's first row
 
-        def emit(kind: str, subject: Handle, data: tuple[object, ...]) -> None:
-            self._emit(kind, subject, cause, cause_verb, data, batch)
+        def emit(kind: str, subject: Handle, data: tuple[object, ...], own: int = 0) -> None:
+            nonlocal batch
+            if not own and not batch:
+                batch = self._clock + 1
+            self._emit(kind, subject, cause, cause_verb, data, own or batch)
 
         # --- zone membership: moves, ETBs, deaths, draws, token creates.
         for card, (owner, kind) in after.zones.items():
@@ -568,12 +612,11 @@ class EventJournal:
             # change, not a CARD_DRAWN row. Every draw runs through a DRAW atom (_v_draw; the
             # turn's draw is the _TURN_DRAW atom), whose boundary moves nothing else.
             drawn = from_state == ZONE_LIBRARY and kind == ZONE_HAND and cause_verb == "DRAW"
-            if drawn:
-                batch = self._clock + 1  # CR 121.2: cards are drawn one at a time
-            emit(KIND_ZONE_CHANGE, card, (from_state, kind, was[0] if was else None, owner))
+            own = self._clock + 1 if drawn else 0  # CR 121.2: cards are drawn one at a time
+            emit(KIND_ZONE_CHANGE, card, (from_state, kind, was[0] if was else None, owner), own)
             if drawn:
                 self.draw_counts[owner] = self.draw_counts.get(owner, 0) + 1
-                emit(KIND_CARD_DRAWN, card, (owner, self.draw_counts[owner]))
+                emit(KIND_CARD_DRAWN, card, (owner, self.draw_counts[owner]), own)
             if from_state == ZONE_BATTLEFIELD and kind == ZONE_GRAVEYARD:
                 identity = world.cards[card].identity
                 # The was-snapshot folds counters too (a 2/2 that died with a
@@ -657,6 +700,8 @@ class EventJournal:
                     consumed.add(entry[0])
                     emit(KIND_DAMAGE, subject, (entry[3], combat) if combat else (entry[3],))
 
+        if self._shared.get(depth) == 0 and batch:
+            self._shared[depth] = batch  # the shared event's first row: its batch
         self._close(before, after, consumed | before.consumed_raw)
         return self.events[start:]
 

@@ -671,7 +671,7 @@ def damage_source(ctx: ExecCtx, atom: Atom) -> Handle | None:
             f"executor: DEAL_DAMAGE dealer {type(dealer).__name__} has no "
             "consumer outside the replacement lane"
         )
-    found = sorted(resolve_selector(dealer, ctx))
+    found = sorted(resolve_selector(dealer, ctx, info=True))
     return found[0] if found else None
 
 
