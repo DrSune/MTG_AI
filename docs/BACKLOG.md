@@ -971,7 +971,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     emblem entries compiled to before, checked by
     `test_compiler.py::TestM21Smoke::test_planeswalkers_carry_their_emblems`) and who gets it, so
     their tree shas changed and they left the verified pool (measured on the tree merged with main
-    c3e7a778: M21 272 -> 269; M20 260 and FDN 177 unchanged).
+    76f46aff: M21 273 -> 270; M20 261 and FDN 177 unchanged).
   - Two plays change: each ultimate makes a new emblem (CR 114.2; a second one used to do
     nothing, pack `basri_ket_two_emblems_both_trigger`), and the card encoder sees what the
     emblem does. The G1 probe starts at printed loyalty, so it never reaches these ultimates;

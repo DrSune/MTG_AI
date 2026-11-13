@@ -459,7 +459,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     moved from `known_bugs/` to `tools/scenarios/mapped/<SET>/`, where the suite plays them on the
     records. Verified pools on the merged tree (deckable, `get_supply("verified", <set>)`): M21
     264, M20 253, FDN 173 (main bc0d4606: 269, 255, 175).
-- R5 round 7 (proposed 2026-11-12, branch `worktree-agent-a68bbb5431c425326`, main c3e7a778
+- R5 round 7 (proposed 2026-11-12, branch `worktree-agent-a68bbb5431c425326`, main 76f46aff
   merged; awaiting the adversarial gate):
   - **The emblem rides its maker.** `GET_EMBLEM(emblem=EmblemSpec(abilities), controller=who)`
     replaces C19's role-less marker and `CardRecord.emblem` (an emblem's MTGJSON entry attached by
@@ -467,7 +467,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     does not compile leaves its sentence unparsed. `EmblemAbility` (unused) and `CardRecord.emblem`
     are deleted: one encoding. Each GET_EMBLEM makes a new emblem (CR 114.2; the executor's
     one-per-(owner, emblem) table did nothing on a second: pack
-    `basri_ket_two_emblems_both_trigger` fails on main c3e7a778, one Soldier for two emblems).
+    `basri_ket_two_emblems_both_trigger` fails on main 76f46aff, one Soldier for two emblems).
   - **Who gets it is the `controller` role**, as LOSE_LIFE's is in "each opponent loses 2 life":
     a single-atom player verb names its player there. An EachPlayer around the GET_EMBLEM would
     run too (it rotates the controller), but EachPlayer is for an effect each player goes through

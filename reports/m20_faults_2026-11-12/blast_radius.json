@@ -1,5 +1,5 @@
 {
- "vs_main_c3e7a778": {
+ "vs_main_76f46aff": {
   "10E": {
    "trees_changed": [],
    "trees_changed_with_every_record": [],
@@ -279,20 +279,23 @@
     "Mu Yanling, Sky Dancer"
    ],
    "verified": [
-    260,
-    260
+    261,
+    261
    ],
    "verified_left": [],
    "verified_joined": [],
    "compiled": [
-    261,
-    261
+    262,
+    262
    ],
    "compiled_left": [],
    "compiled_joined": [],
    "verified_flagged_unchanged_bytes": {
     "Cavalier of Gales": [
      "hand_put"
+    ],
+    "Sorin, Imperious Bloodlord": [
+     "nested_target"
     ],
     "Sorin, Vampire Lord": [
      "nested_target"
@@ -314,8 +317,8 @@
     "Liliana, Waker of the Dead"
    ],
    "verified": [
-    272,
-    269
+    273,
+    270
    ],
    "verified_left": [
     "Basri Ket",

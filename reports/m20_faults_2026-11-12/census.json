@@ -1084,7 +1084,7 @@
    [
     "M20",
     "Sorin, Imperious Bloodlord",
-    "mapped",
+    "verified",
     "[−3]: You may put a Vampire creature card from your hand onto the battlefield.",
     "parsed"
    ],
@@ -1609,7 +1609,7 @@
   [
    "M21",
    "Tolarian Kraken",
-   "compiled",
+   "verified",
    "TriggeredAbility"
   ],
   [
@@ -1627,7 +1627,7 @@
   [
    "M20",
    "Sorin, Imperious Bloodlord",
-   "mapped",
+   "verified",
    "ActivatedAbility"
   ],
   [
