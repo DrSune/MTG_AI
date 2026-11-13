@@ -307,6 +307,12 @@ def _conditional_subject(pred: object, ctx: ExecCtx) -> Handle | None:
         event = [h for h in ctx.binding_handles("event") or [] if h.namespace == "card"]
         if len(event) == 1:
             return event[0]
+        if len(event) > 1:
+            # A gathered event (ability_tree.gathers_objects) names several objects: no "it".
+            raise NotImplementedError(
+                "executor: a bare Conditional after a sentence that names no object, under an "
+                "event that gathered several objects, has no object to judge"
+            )
     return ctx.source
 
 

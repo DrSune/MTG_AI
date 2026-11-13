@@ -21,6 +21,8 @@ Every test here fails on the base, 30fabc4a, except the controls named in
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from MTG_bot.core import ability_tree as at
@@ -28,7 +30,6 @@ from MTG_bot.core.ability_tree import (
     Atom,
     AtomArgs,
     ControllerRef,
-    CounterKind,
     DeclareAttackersEvent,
     FAnd,
     FAtom,
@@ -151,9 +152,9 @@ def test_a_gathered_register_has_no_it(event, field) -> None:
     """Under the flag the event register holds several objects: "its power" would read the one
     that comes first in handle order. Read the set ("they") or its size ("that many")."""
     one = _gain(QProp(referent="event", field=field))
-    with pytest.raises(ValueError, match="reads one of them"):
+    with pytest.raises(ValueError, match="a read of one of them"):
         TriggeredAbility(event, None, one, once_per_event=True)
-    with pytest.raises(ValueError, match="reads one of them"):
+    with pytest.raises(ValueError, match="a read of one of them"):
         at.DelayedTrigger(at.DurationEot(), event, None, one, True)
     # a reflexive trigger in it reads the same register (CR 603.12)
     when_you_do = at.Seq((
@@ -161,16 +162,76 @@ def test_a_gathered_register_has_no_it(event, field) -> None:
         at.Conditional(FAtom(FAtomPred.MAY_DONE),
                        at.DelayedTrigger(None, None, None, one)),
     ))
-    with pytest.raises(ValueError, match="reads one of them"):
+    with pytest.raises(ValueError, match="a read of one of them"):
         TriggeredAbility(event, None, when_you_do, once_per_event=True)
+    # and so does the intervening "if" ("if you control at least its power creatures")
+    its_power = FAtom(FAtomPred.CONTROLLER_COUNT_GE, inner_filter=CREATURE,
+                      count=QProp(referent="event", field=field))
+    with pytest.raises(ValueError, match="a read of one of them"):
+        TriggeredAbility(event, its_power, _gain(QConst(1)), once_per_event=True)
     # unflagged, the register holds the one object the event names; and the set and its size
     # are read under the flag
     TriggeredAbility(event, None, one)
+    TriggeredAbility(event, its_power, _gain(QConst(1)))
     TriggeredAbility(event, None, _gain(THAT_MANY), once_per_event=True)
     grant = Atom(Verb.GRANT_ABILITY, AtomArgs(pairs=(
         ("ability", at.KeywordAbility(Keyword.INDESTRUCTIBLE)), ("duration", at.DurationEot()),
         ("target", referent_sel("event")))))
     TriggeredAbility(event, None, grant, once_per_event=True)
+
+
+def test_attached_to_it_has_no_object_under_the_flag() -> None:
+    """"Destroy each Aura attached to it" reads one object (FAtom IS_ATTACHED_TO, referent
+    "event"): under the flag the register holds several, so the IR refuses it; unflagged it
+    stands."""
+    auras = at.Selector(at.QUnbounded(), at.SelectorMode.ALL,
+                        FAtom(FAtomPred.IS_ATTACHED_TO, referent="event"),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+    destroy = Atom(Verb.DESTROY, AtomArgs(pairs=(("target", auras),)))
+    event = _enters(FAtom(FAtomPred.IS_TOKEN))
+    with pytest.raises(ValueError, match="a read of one of them"):
+        TriggeredAbility(event, None, destroy, once_per_event=True)
+    TriggeredAbility(event, None, destroy)
+
+
+def test_every_single_object_read_is_refused_under_the_flag() -> None:
+    """The other reads of one object of a gathered register (fresh-eyes review of 8b8c35b9): a
+    token's power ("an X/X token, where X is its power", resolved as the token is made), "until
+    it leaves", "it deals damage", "fights it" (FIGHT takes the first foe, verbs.py) and an
+    intervening "if" that tests the event's object. Each stands unflagged. A subject-free
+    condition (Mangara's count) stands under the flag."""
+    event = _enters(FAtom(FAtomPred.IS_TOKEN))
+    its_power = QProp(referent="event", field=QPropField.POWER)
+    beast = Atom(Verb.CREATE_TOKEN, AtomArgs(pairs=(("count", QConst(1)), ("tokens", TokenSpec(
+        name="Beast", type_line="Creature — Beast", types=("Creature",), subtypes=("Beast",),
+        power=its_power, toughness=QConst(1), keywords=(), abilities=(), colors=("G",))))))
+    exile_until = atom(Verb.MOVE_ZONE, cards=at.Selector(
+        QConst(1), at.SelectorMode.TARGET, CREATURE, zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)),
+        destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER), duration=at.DurationUntilLeaves("event"))
+    it_deals = atom(Verb.DEAL_DAMAGE, amount=QConst(1), dealer=referent_sel("event"),
+                    target=at.Selector(QConst(1), at.SelectorMode.TARGET, CREATURE,
+                                       zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)))
+    fights_it = atom(Verb.FIGHT, target=referent_sel("event"))
+    big = FAtom(FAtomPred.POWER_GE, count=QConst(5))
+    for effect, condition in ((beast, None), (exile_until, None), (it_deals, None),
+                              (fights_it, None), (_gain(QConst(1)), big)):
+        with pytest.raises(ValueError, match="a read of one of them"):
+            TriggeredAbility(event, condition, effect, once_per_event=True)
+        TriggeredAbility(event, condition, effect)
+    counted = FAtom(FAtomPred.CONTROLLER_COUNT_GE, inner_filter=CREATURE, count=QConst(2))
+    TriggeredAbility(event, counted, _gain(QConst(1)), once_per_event=True)
+
+
+def test_a_first_over_a_referent_selector_is_refused() -> None:
+    """"Its power" is QProp("event", POWER), the one encoding: a FIRST over Selector(referent=
+    "event") is its second byte form, and under the flag it read the first object by handle
+    order. An aggregation over the referent ("the greatest power among them") is another
+    meaning and stands."""
+    for referent in ("event", "result", "target"):
+        with pytest.raises(ValueError, match="not a FIRST over the Selector"):
+            QProp(referent=referent_sel(referent), field=QPropField.POWER)
+    greatest = QProp(referent=referent_sel("event"), field=QPropField.POWER, agg=at.QAgg.MAX)
+    TriggeredAbility(_enters(FAtom(FAtomPred.IS_TOKEN)), None, _gain(greatest), once_per_event=True)
 
 
 def test_a_gathered_damage_event_keeps_its_one_subject() -> None:
@@ -261,6 +322,25 @@ class TestOneEvent(BindingCase):
                         bindings={"cards": [maker]})
         assert self.gains() == [1, 2]
 
+    def test_a_read_of_one_of_several_gathered_objects_raises_at_run_time(self) -> None:
+        """The executor's nets for what the IR cannot see: a bare Conditional after a sentence that
+        names no object would be judged on one of the gathered objects (it was the trigger's
+        source), and a singular referent read of the register would take the first."""
+        cond = at.Conditional(FAtom(FAtomPred.POWER_GE, count=QConst(5)), _gain(QConst(10)))
+        self._gathering(_enters(FAtom(FAtomPred.IS_TOKEN)))
+        node = self.ex.binder.records[self.world.cards[self.watch].identity.oracle_id].abilities[0]
+        self.ex.attach_card(self.watch, self.record_for(self.watch, [dataclasses.replace(
+            node, effect=at.Seq((_gain(QConst(1)), cond)))]))
+        with self.assertRaisesRegex(NotImplementedError, "no object to judge"):
+            self.ex.execute(_soldiers(2), source=self.watch, controller=self.p0)
+        from MTG_bot.core.executor.legality import ctx_for
+        from MTG_bot.core.executor.quantity import referent_handle
+
+        ctx = ctx_for(self.ex, source=self.watch, controller=self.p0,
+                      bindings={"event": list(self.libs[:2])})
+        with self.assertRaisesRegex(NotImplementedError, "holds several objects"):
+            referent_handle("event", ctx)
+
     def test_the_batch_stays_out_of_the_journal_dump(self) -> None:
         """Replays and forks re-derive the batch: the dump rows, so every fingerprint and game
         log, keep their bytes (control: the base's rows have the same six fields)."""
@@ -312,6 +392,37 @@ def test_woodland_champion_counts_a_token_that_left_before_resolution() -> None:
                  controller=r.p0, bindings={"cards": soldiers()[:1]})
     assert len(soldiers()) == 2  # one left (and, a token, ceased to exist) before resolution
     assert _counter_rows(r, "champ") == [3]
+
+
+@pytest.mark.parametrize(("made", "leave"), [(3, 3), (1, 1)])
+def test_woodland_champion_counts_its_tokens_when_all_of_them_left(made, leave) -> None:
+    """"Even if some or ALL of them leave": with every gathered token gone, "they" names nothing
+    and "that many" still counts them all (fresh-eyes review of 8b8c35b9: it raised, the count
+    looking up an object first)."""
+    r = _runner("M20", [_real("champ", "Woodland Champion")])
+    r.ex.binder.hold = True
+    try:
+        r.ex.execute(_soldiers(made), source=r.handles["champ"], controller=r.p0)
+    finally:
+        r.ex.binder.hold = False
+    gone = [h for h in r.world.players[r.p0].zone(ZONE_BATTLEFIELD).entries
+            if r.world.cards[h].identity.name == "Soldier"][:leave]
+    r.ex.execute(_move(Zone(ZoneKind.GRAVEYARD, ControllerRef.OWNER)), source=r.handles["champ"],
+                 controller=r.p0, bindings={"cards": gone})
+    assert _counter_rows(r, "champ") == [made]
+
+
+def test_basri_ket_counts_an_attacker_that_died_before_its_trigger_resolved() -> None:
+    """M21 Basri Ket's -2 (verified): its ruling counts "attacking nontoken creatures that leave
+    combat before the triggered ability resolves". Its one Bear dies in response: 1 Soldier, as
+    on the base (8b8c35b9 raised: every gathered attacker had left)."""
+    r = _runner("M21", [_real("basri", "Basri Ket"), _creature("bear")])
+    r.run_step({"op": "loyalty", "key": "basri", "set": 3})
+    r.run_step({"op": "activate", "key": "basri", "idx": 1, "seat": 0})
+    r.run_step({"op": "combat", "seat": 0, "attack": {"bear": True},
+                "respond_to_triggers": {"DECLARE_ATTACKERS": [
+                    {"op": "move", "key": "bear", "to": "graveyard"}]}})
+    assert sum(1 for c in r.world.cards.values() if c.identity.name == "Soldier") == 1
 
 
 # ---------------------------------------------------------------------- Angelic Guardian

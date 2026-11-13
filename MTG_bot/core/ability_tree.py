@@ -847,7 +847,10 @@ class QProp:
     validated against the referent: player-count fields need "controller",
     AMOUNT needs "event". With a Selector referent, `agg` collapses the
     (possibly many) selected objects; a string referent is singular, so agg
-    must be FIRST.
+    must be FIRST. Over a Selector that has a referent of its own, agg is
+    never FIRST: "its power" is QProp("event", POWER), the one encoding, and
+    the first of several bound objects is no object the text names ("the
+    greatest power among them" stays MAX).
     """
 
     referent: Selector | str
@@ -861,6 +864,15 @@ class QProp:
         ):
             raise ValueError(
                 f"QProp: referent must be a Selector or one of {_QPROP_STR_REFERENTS}, got {self.referent!r}"
+            )
+        if (
+            isinstance(self.referent, Selector)
+            and self.referent.referent is not None
+            and self.agg is QAgg.FIRST
+        ):
+            raise ValueError(
+                f"QProp: the property of Selector(referent={self.referent.referent!r}) is "
+                f"QProp({self.referent.referent!r}, field), not a FIRST over the Selector"
             )
         if not isinstance(self.field, QPropField):
             raise ValueError(
@@ -3117,32 +3129,76 @@ def _check_once_per_event(owner: str, event: object, value: object) -> None:
         )
 
 
-def _reads_one_event_object(effect: object) -> bool:
-    """Does ``effect`` read one object of its event register, a QProp of "event" other than
-    THAT_MANY_COUNT ("its power")? Its own nodes, and a reflexive trigger's in it, which reads the
-    register of the resolution that created it (CR 603.12); another ability's have their own."""
-    for node in walk(effect, skip=_FOREIGN_ABILITY_NODES):
-        if isinstance(node, DelayedTrigger) and node.reflexive and node is not effect:
-            if _reads_one_event_object(node.effect):
+#: The predicates that read no subject (a count, a turn, a life total: §11 R6-2). They read the
+#: same in any slot, so a trigger qualifier made of them has one slot per event class
+#: (tools/audit/ontology_conformance), and a gathered trigger's intervening "if" may hold them.
+SUBJECT_FREE = frozenset({
+    FAtomPred.TURN_OF, FAtomPred.CONTROLLER_COUNT_GE, FAtomPred.CONTROLLER_COUNT_GT,
+    FAtomPred.ZONE_COUNT_GE, FAtomPred.NAME_PARTITION_COUNT_GE,
+    FAtomPred.ATTACK_AGAINST_COUNT_GE, FAtomPred.DIED_THIS_TURN, FAtomPred.EVENT_THIS_TURN,
+    FAtomPred.CARDS_DRAWN_THIS_TURN_GE, FAtomPred.LIFE_GAINED_THIS_TURN_GE,
+    FAtomPred.LIFE_LEAD_OVER_START_GE, FAtomPred.LIFE_TOTAL_GE,
+    FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, FAtomPred.FLIP_WON, FAtomPred.MAY_DONE,
+})
+
+
+def _reads_subject(filter_: object) -> bool:
+    """Does a condition test the object it is judged on: an atom (through FAnd, FOr and FNot,
+    not the inner filters of counting atoms) outside :data:`SUBJECT_FREE`?"""
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_reads_subject(c) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _reads_subject(filter_.inner)
+    return isinstance(filter_, FAtom) and filter_.pred not in SUBJECT_FREE
+
+
+#: The roles a verb reads as one object, taking the first of several: "it deals" (CR 120.2b names
+#: one source) and the creature fought (CR 701.12a, one each).
+_ONE_OBJECT_ROLES = (("dealer", Verb.DEAL_DAMAGE), ("target", Verb.FIGHT))
+
+
+def _reads_one_event_object(node: object) -> bool:
+    """Does ``node`` read one object of its event register: a QProp of "event" other than
+    THAT_MANY_COUNT ("its power"), "attached to it" (an FAtom referent "event"), "until it leaves"
+    (DurationUntilLeaves of "event") or the event referent in a role read as one object
+    (:data:`_ONE_OBJECT_ROLES`)? Its own nodes, a token's power and toughness (resolved as the
+    token is made), and a reflexive trigger's, which reads the register of the resolution that
+    created it (CR 603.12); another ability's have their own."""
+    for n in walk(node, skip=(*_A_CLASSES, DelayedTrigger)):
+        if isinstance(n, DelayedTrigger) and n.reflexive and n is not node:
+            if _reads_one_event_object(n.effect):
                 return True
         elif (
-            isinstance(node, QProp)
-            and node.referent == "event"
-            and node.field is not QPropField.THAT_MANY_COUNT
+            (isinstance(n, QProp) and n.referent == "event"
+             and n.field is not QPropField.THAT_MANY_COUNT)
+            or (isinstance(n, FAtom) and n.referent == "event")
+            or (isinstance(n, DurationUntilLeaves) and n.source == "event")
+            or (isinstance(n, Atom) and any(
+                n.verb is verb and getattr(n.args.get(role), "referent", None) == "event"
+                for role, verb in _ONE_OBJECT_ROLES))
         ):
             return True
     return False
 
 
-def _check_gathered_reads(owner: str, event: object, once_per_event: object, effect: object) -> None:
+def _check_gathered_reads(
+    owner: str, event: object, once_per_event: object, effect: object, condition: object
+) -> None:
     """Where the event register holds several objects (:func:`gathers_objects`) there is no "it":
     the register is read as those objects (Selector(referent="event"), "they") or their number
-    (QProp("event", THAT_MANY_COUNT), "that many"). Another QProp of "event" would read the one
-    of them that comes first in handle order."""
-    if gathers_objects(event, once_per_event) and _reads_one_event_object(effect):
+    (QProp("event", THAT_MANY_COUNT), "that many"). A read of one of them ("its power",
+    "attached to it", "until it leaves", "it deals"), in the effect or the condition, and an
+    intervening "if" that tests its subject, would take the first in handle order."""
+    if gathers_objects(event, once_per_event) and (
+        _reads_one_event_object(effect)
+        or (condition is not None
+            and (_reads_one_event_object(condition) or _reads_subject(condition)))
+    ):
         raise ValueError(
-            f"{owner}: once_per_event gathers several objects into the event register; a QProp "
-            "of 'event' other than THAT_MANY_COUNT reads one of them"
+            f"{owner}: once_per_event gathers several objects into the event register; a read "
+            "of one of them (a QProp of 'event' other than THAT_MANY_COUNT, a referent 'event' "
+            "in an FAtom, a DurationUntilLeaves or a role read as one object, a condition testing "
+            "its subject) has no object to read"
         )
 
 
@@ -3207,7 +3263,9 @@ class DelayedTrigger:
             raise ValueError(
                 f"DelayedTrigger: effect must be an Effect, got {type(self.effect).__name__}"
             )
-        _check_gathered_reads("DelayedTrigger", self.event, self.once_per_event, self.effect)
+        _check_gathered_reads(
+            "DelayedTrigger", self.event, self.once_per_event, self.effect, self.condition
+        )
 
     @property
     def reflexive(self) -> bool:
@@ -3297,7 +3355,9 @@ class TriggeredAbility:
             raise ValueError(
                 f"TriggeredAbility: effect must be an Effect, got {type(self.effect).__name__}"
             )
-        _check_gathered_reads("TriggeredAbility", self.event, self.once_per_event, self.effect)
+        _check_gathered_reads(
+            "TriggeredAbility", self.event, self.once_per_event, self.effect, self.condition
+        )
 
 
 @dataclass(frozen=True)

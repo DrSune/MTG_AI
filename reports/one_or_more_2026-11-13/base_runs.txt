@@ -4,8 +4,24 @@ and the four tools/scenarios/mapped/M20 packs copied in), 2026-11-13:
     pytest MTG_bot/core/test_executor_one_or_more.py MTG_bot/core/test_scenario_packs.py \
       -k "one_or_more or mapped/M20/woodland or mapped/M20/angelic" -rA --tb=line
 
-34 of 36 unit tests and 4 of 4 packs fail. The 2 that pass are the controls, true on both: a flagged
-SacrificeEvent is refused at bind, and "that many" with no antecedent raises.
+Final module (43 tests, after the fresh-eyes review's fixes): 40 of 43 unit tests and 4 of 4 packs
+fail on 30fabc4a ("44 failed, 3 passed"). The 3 that pass are true on both: the 2 controls (a
+flagged SacrificeEvent is refused at bind; "that many" with no antecedent raises) and Basri Ket's
+pin (its -2 counts an attacker that died before the trigger resolved: 1 Soldier on the base, while
+8b8c35b9 raised there).
+
+The same module on an archive of de082e81 (the branch before the review's fixes): 19 of 43 fail,
+every review-driven test: the singular-read refusals (12 parametrized reads of the register,
+"attached to it", the token's power / "until it leaves" / "it deals" / a subject-testing condition,
+a FIRST over a referent Selector), the run-time nets, Woodland Champion with all its tokens gone
+(3 of 3 and 1 of 1) and Basri Ket's pin. The 12 parametrized cases stop first on the message
+(de082e81 refused the effect's read under other words); the intervening "if" each also holds
+("if you control at least its power creatures") was accepted there, 12 of 12, and is refused on
+the branch (gathered_condition.py <tree>).
+
+The first module (36 tests, 8b8c35b9) on the base: 34 of 36 failed, the 2 controls passed. The
+reasons and the run below are that module's; the 7 tests added since fail on the base for the
+reasons of their neighbours (the flag is unknown to the binder on a zone change; no refusal).
 
 Why each fails on the base (in order of the test file):
 - the flag on a zone change of one object: accepted (DID NOT RAISE);

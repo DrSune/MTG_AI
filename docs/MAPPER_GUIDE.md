@@ -148,10 +148,13 @@ $PY tools/cards/cardtool.py --help
     `Selector(referent='event')`, the same referent form as "it" (Angelic Guardian: `parse` it);
     an object that has changed zones since is a new object (CR 400.7) and is left out. "That
     many" is `QProp('event', THAT_MANY_COUNT)`: every object gathered, those that left since
-    included (Woodland Champion's ruling). There is no "it" among several objects: the IR refuses
-    another QProp of 'event' ("its power") under the flag, and a QCount of a referent Selector
-    anywhere (the number is THAT_MANY_COUNT). A gathered combat damage event keeps its one
-    subject, the player (Feline Sovereign's "that player").
+    included (Woodland Champion's ruling). There is no "it" among several objects: under the flag
+    the IR refuses another QProp of 'event' ("its power"), "attached to it", "until it leaves",
+    "it deals", and an intervening "if" that tests the object (the condition may only count or
+    read the turn: `ability_tree.SUBJECT_FREE`). Anywhere, "its power" is
+    `QProp('event', POWER)`, never a FIRST over `Selector(referent='event')`, and "that many" is
+    THAT_MANY_COUNT, never a QCount of a referent Selector. A gathered combat damage event keeps
+    its one subject, the player (Feline Sovereign's "that player").
   - The IR refuses the flag where it changes nothing (`ability_tree.gathers_occurrences`): on
     "this creature" or "equipped creature" (one attacker, dealer or moved object per event), on
     damage that is not only combat damage (`combat` False or None), and with no dealer named.

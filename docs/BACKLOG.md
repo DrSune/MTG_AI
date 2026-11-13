@@ -227,12 +227,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   of the Peaks' "that creature's power", CR 608.2h). Its reach: the verified trees with an event
   referent Selector, 15 in M21, M20 and FDN (`tree_dump.py`'s event-selector fact; some are
   replacement actions, whose `event` the drain binds).
-- **A gathered trigger's intervening "if" is judged on the first matching row's object** (2026-11-13,
-  round R10). `_condition_holds` reads `event.subject`; a gathered event names several objects,
-  so a subject-reading condition on a flagged declaration or zone change would read one of them
-  in handle order. Every flagged trigger's condition in the 19 sets reads no subject (Mangara's
-  ATTACK_AGAINST_COUNT_GE); refuse a subject-reading condition under the flag when a card brings
-  one (the subject-free list is `ontology_conformance.SUBJECT_FREE`, in tools).
 - **A replaced death is its own event** (2026-11-13, round R10). A dies-window replacement's exile
   (Scorching Dragonfire) runs as its own atom after the state-based check
   (`Executor._state_checks`), so a gathered "one or more creatures are put into exile"

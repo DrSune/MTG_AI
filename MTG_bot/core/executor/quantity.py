@@ -471,6 +471,13 @@ def _referent_handle(referent: str, ctx: ExecCtx) -> Handle:
         return target
     # The trigger firing bound the event subject / result subject.
     if referent in ("event", "result"):
+        if referent == "event" and len(ctx.binding_handles("event") or ()) > 1:
+            # A gathered event (ability_tree.gathers_objects) names several objects, and none
+            # of them is "it"; the IR refuses the reads it can see, this is the net for the rest.
+            raise NotImplementedError(
+                "executor: the event register holds several objects (a gathered event): "
+                "a read of one of them has none to read"
+            )
         bound = ctx.binding_one(referent)
         if bound is None:
             raise NotImplementedError(
@@ -597,6 +604,21 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         if ctx.event_counter_count is not None:
             return ctx.event_counter_count
         return sum(ctx.world.cards[handle].counters.values())
+    raise NotImplementedError(
+        f"executor: QProp field {field.name} not implemented (12c query surface)"
+    )
+
+
+#: The QProp fields that read a register of the resolution, not an object (QProp validates them to
+#: the "event" referent): "that much" (AMOUNT), "this way" and "that many". No object is looked up
+#: for them, so a gathered event whose objects have all left since still has its count (Woodland
+#: Champion's and Basri Ket's rulings: those that left are counted).
+_REGISTER_FIELDS = frozenset(
+    {QPropField.AMOUNT, QPropField.THIS_WAY_COUNT, QPropField.THAT_MANY_COUNT}
+)
+
+
+def _register_value(field: QPropField, ctx: ExecCtx) -> int:
     if field is QPropField.AMOUNT:
         # The triggering event's damage or life amount (Brash Taunter, Light of
         # Promise), or the replaced gain's (Angel of Vitality).
@@ -611,16 +633,16 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         # this way"): the count of creatures the SAME effect execution's
         # last TAP atom tapped, a per-resolution register (fresh bindings
         # dict per effect run), so an Optional-wrapped tap that DECLINED
-        # leaves the register absent and the magnitude 0. (Handle argument
-        # unused: "this way" counts an action, not a permanent's property.)
+        # leaves the register absent and the magnitude 0. (No object is read:
+        # "this way" counts an action, not a permanent's property.)
         reg = ctx.bindings.get("tapped_this_way")
         return len(reg) if isinstance(reg, (list, tuple)) else 0
     if field is QPropField.THAT_MANY_COUNT:
         # "then do that many": the count of objects the PRECEDING producer
         # atom acted on in THIS resolution, from the ``result`` register
         # (TAP/UNTAP/PUT_COUNTER/MOVE_ZONE/SEARCH/CHOOSE/DISCARD write it;
-        # Kinetic Augur's "discard …, then draw that many"). Handle argument
-        # unused, as for THIS_WAY_COUNT. An UNSET register RAISES, where
+        # Kinetic Augur's "discard …, then draw that many"). As for
+        # THIS_WAY_COUNT, no object is read. An UNSET register RAISES, where
         # THIS_WAY's absence is the benign 0 (a declined may legitimately
         # leaves it unwritten): the compiler only places "that many" in a
         # mandatory continuation, so a missing antecedent is flagged, never
@@ -643,9 +665,7 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
                 "preceding atom wrote the result register in this resolution"
             )
         return len(handles)
-    raise NotImplementedError(
-        f"executor: QProp field {field.name} not implemented (12c query surface)"
-    )
+    raise NotImplementedError(f"executor: QProp field {field.name} reads no register")
 
 
 def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
@@ -654,6 +674,8 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
     )
 
     if isinstance(prop.referent, str):
+        if prop.field in _REGISTER_FIELDS:
+            return _register_value(prop.field, ctx)
         return _prop_value(prop.field, _referent_handle(prop.referent, ctx), ctx)
     # An AGGREGATION over a selector skips objects whose power/toughness is
     # undefined (Carrion Grub: "X is the greatest power among creature cards

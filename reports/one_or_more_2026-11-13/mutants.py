@@ -27,6 +27,18 @@ MUTANTS = [
     ("gathered set = the first row's object only", "MTG_bot/core/executor/binding.py",
      "                for e in self._occurrences(event)\n",
      "                for e in (event,)\n"),
+    # the fresh-eyes review's fixes (after de082e81)
+    ("'that many' looks up an object first (the review's FATAL)", "MTG_bot/core/executor/quantity.py",
+     "        if prop.field in _REGISTER_FIELDS:\n            return",
+     "        if prop.field in _REGISTER_FIELDS:\n            _referent_handle(prop.referent, ctx)\n"
+     "            return"),
+    ("no net for a singular read of several gathered objects", "MTG_bot/core/executor/quantity.py",
+     "        if referent == \"event\" and len(ctx.binding_handles(\"event\") or ()) > 1:",
+     "        if False:"),
+    ("a bare Conditional judged on the source under a gathered event",
+     "MTG_bot/core/executor/__init__.py",
+     "        if len(event) > 1:",
+     "        if False:"),
 ]
 lines = []
 for label, rel, old, new in MUTANTS:

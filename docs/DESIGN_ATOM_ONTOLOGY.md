@@ -588,7 +588,10 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     register that replaces round 4's `declare_attackers` (those that left included: Woodland
     Champion's and Basri Ket's rulings). A gathered combat damage event keeps its one subject.
     The IR refuses a singular read of a gathered register (a QProp of "event" other than
-    THAT_MANY_COUNT, a reflexive trigger in it included) and a QCount of any referent Selector.
+    THAT_MANY_COUNT, "attached to it", "until it leaves", the event in a role read as one object,
+    in the effect, a token's power, a reflexive trigger or the condition; an intervening "if"
+    testing its subject), and anywhere a FIRST or a QCount over a referent Selector; the
+    executor raises on the reads it cannot see.
     Templates: B2b-tokens-enter-that-many-counters (Woodland Champion),
     B2b-attackers-gain-keyword-eot (Angelic Guardian), the frame B13-one-or-more-leave-graveyard
     (Desecrated Tomb); none for Elvish Warmaster, whose head without its once-each-turn limit
@@ -600,9 +603,20 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
   - **Blast radius** (by script): 3 trees changed, all unverified, all now whole; 0 verified cards
     out or in; 300/300 identical replay digests and journal dumps, 0 crashes; G3's critical
     occurrence mutant on 20 more verified trees (stamps stand; re-verification needs a pack).
+  - **Pre-gate review** (one fresh-eyes reviewer on 8b8c35b9, fixed on the branch): FATAL, "that
+    many" looked up an object first, so with every gathered object gone it raised (M21 Basri
+    Ket's -2, verified, crashed when its one attacker died in response: 1 Soldier on 30fabc4a);
+    `_REGISTER_FIELDS` reads no object. MAJOR, more single-object reads of a gathered register
+    were accepted (a FIRST over a referent Selector, a token's power, a subject-testing
+    condition, "until it leaves", "it deals", a bare Conditional; the fix's sweep of verbs.py
+    added FIGHT's foe): refused, or a run-time net.
+    MINOR, "one or more creatures die" as a zone change gathers while CreatureDiesEvent is
+    refused: divergence D24. MINOR, the Elvish Warmaster frame (already dropped). 19 of the 43
+    tests of the module fail on de082e81.
   - **Found, logged, not fixed here** (BACKLOG): DESTROY destroys an indestructible permanent (CR
     702.12b); permanents moving in one atom see each other's moves only in row order (CR 603.6a,
-    603.10a); a referent over a several-object `result` or `target` register takes the first.
+    603.10a); a per-object trigger's "it" follows an object that changed zones (CR 400.7); a
+    referent over a several-object `result` or `target` register takes the first.
 - BINDING STATE: rounds 1–8 complete; further ontology changes require a NEW gated round (any
   R-item that reclassifies a field or opens a normalization is Type-1).
 
@@ -1067,8 +1081,8 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
 - `TriggeredAbility.once_per_event` (and DelayedTrigger's) on a ZoneChangeEvent: one trigger for
   the objects one event moves (CR 603.2c: "it can trigger repeatedly if one event contains
   multiple occurrences"; the flag reads "one or more"). `ability_tree.gathers_occurrences`
-  (ability_tree.py:3060) now answers True for a ZoneChangeEvent whose subject is absent or is not
-  the source or what it is attached to, and `_check_once_per_event` (:3100) refuses the flag on a
+  (ability_tree.py:3072) now answers True for a ZoneChangeEvent whose subject is absent or is not
+  the source or what it is attached to, and `_check_once_per_event` (:3112) refuses the flag on a
   zone change of one object as it does on an attack or a damage event: flagged, "when this
   creature enters" would be a second byte form of the unflagged trigger.
 - **One event** is one atom boundary: `GameEvent.batch` (executor/events.py:222), stamped by
@@ -1081,7 +1095,7 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
   one by its last known information (CR 603.10a). `_check_trigger` binds a flagged ZoneChangeEvent;
   every other kind but an attack and combat damage is still refused.
 - **The gathered register.** On a flagged declaration or zone change
-  (`ability_tree.gathers_objects`, :3090) `_put` (:1639) binds the `event` register to all of
+  (`ability_tree.gathers_objects`, :3102) `_put` (:1639) binds the `event` register to all of
   them, and a `gathered` register to the same list, which replaces round 4's `declare_attackers`.
   - "They" is `Selector(referent="event")`, the one C2 referent form, now denoting every object
     the register binds (executor/selectors.py:705: a referent is bound, never chosen, so no count
@@ -1089,7 +1103,7 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     zones since its row: a new object (CR 400.7). An attacker removed from combat is still one of
     them.
   - "That many" is `QProp("event", THAT_MANY_COUNT)`: the `result` register first (Kinetic
-    Augur's precedence), else `gathered` (executor/quantity.py:639), every object gathered, those
+    Augur's precedence), else `gathered` (executor/quantity.py:661), every object gathered, those
     that left included (Woodland Champion's ruling; Basri Ket's: "attacking nontoken creatures
     that leave combat before the triggered ability resolves are counted"). A single event writes no
     `gathered`, so "that many" with no antecedent still raises.
@@ -1097,13 +1111,29 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
     Sovereign's "that player", unchanged.
 - **The IR refuses** (gate rounds 4-8's classes, met at construction):
   - the flag on a zone change of one object (above);
-  - a read of one object of a gathered register: under `gathers_objects` a QProp of "event"
-    other than THAT_MANY_COUNT ("its power" would read the first in handle order), in the effect
-    and in a reflexive trigger in it, which reads the same register (`_check_gathered_reads`,
-    ability_tree.py:3137);
-  - a QCount over a referent Selector (QCount.__post_init__, :773): "the number of them" has one
+  - a read of one object of a gathered register, which would take the first in handle order
+    (`_check_gathered_reads`, ability_tree.py:3184; `_reads_one_event_object`, :3160): a QProp of
+    "event" other than THAT_MANY_COUNT ("its power"), an FAtom referent "event" ("attached to
+    it"), a DurationUntilLeaves of "event" ("until it leaves"), the event referent in a role a verb
+    reads as one object (`_ONE_OBJECT_ROLES`, :3157: DEAL_DAMAGE's dealer, "it deals"; FIGHT's
+    foe; verbs.py takes the first of several), in the effect, a token's power and toughness
+    (resolved as the token is made), a reflexive trigger in it (it reads the same register) and
+    the condition; and an
+    intervening "if" that tests its subject (CR 603.4: judged on the event's one object, and a
+    gathered event has none): a condition may hold only `ability_tree.SUBJECT_FREE` predicates
+    (:3135, the R6-2 list, now in the IR; tools/audit imports it);
+  - a FIRST over a referent Selector (QProp.__post_init__, :875): "its power" is the string
+    referent's, the one encoding ("the greatest power among them", MAX, stands);
+  - a QCount over a referent Selector (QCount.__post_init__, :788): "the number of them" has one
     encoding, THAT_MANY_COUNT, and the count of the Selector would differ from it once an object
-    leaves. No tree of the 19 sets had one.
+    leaves. No tree of the 19 sets had either form.
+- **Executor nets** for what the IR cannot see: a singular referent read of an event register
+  that holds several objects raises (quantity.py:478), and so does a bare Conditional after a
+  sentence that names no object (executor/__init__.py:314; it was judged on the trigger's source).
+  "That much", "this way" and "that many" read registers, not an object: `_REGISTER_FIELDS`
+  (quantity.py:616) skips the object lookup, so a gathered event whose objects have all left
+  still counts them (8b8c35b9 raised there and crashed M21 Basri Ket's -2 when its one attacker
+  died in response; the round's fresh-eyes review found it).
 - **Compiler** (no new verb): B2b-tokens-enter-that-many-counters (templates_b2b.py:2227) and
   B2b-attackers-gain-keyword-eot (:2262, any bare keyword of B11's table: the grant of B5b's
   "it gains <keyword> until end of turn" over the event referent); the frame
@@ -1131,8 +1161,8 @@ scripts and base runs: `reports/one_or_more_2026-11-13/`. Tests:
 - Limits, logged in the BACKLOG, none printed or compiled in the 19 sets: a permanent moving in the
   same atom as others sees their moves only in journal row order (CR 603.6a "including the
   newcomers", 603.10a; per-object triggers too, `simultaneous_movers.py`); a dies-window
-  replacement's exile is its own boundary; a gathered trigger's intervening "if" would be judged
-  on the first row's object.
+  replacement's exile is its own boundary; "one or more creatures die" has a second, latent
+  encoding (divergence D24).
 
 **A gathered object that has since left** (CR 400.7). It is gathered as the event occurs. "That
 many" counts it; "they" does not touch it, nor the new object it became if it came back (pack
@@ -1151,6 +1181,12 @@ turn is sick). BACKLOG, "What the network sees" (features.py is another lane's).
   form beside the C2 referent, which under a single event would mean "it" again.
 - `QCount(Selector(referent="event"))` for "that many": it counts the objects still there, the
   ruling counts those that left; refused instead.
+- Refusing the flag where nothing reads the gathered set (asked for by the round's brief): the
+  flag decides how many times the ability triggers (CR 603.2c) whether or not its effect reads
+  the set. Desecrated Tomb's "create a 1/1 black Bat" reads nothing of it and is one Bat per
+  event, not one per card (`test_desecrated_tomb_one_bat_per_event`); the refusal would refuse a
+  printed card. What the flag cannot do without a set is refused: on one object's zone change
+  (above) and on an event kind the binder does not group.
 - The batch in the row's `data`: every ZONE_CHANGE row's dump bytes, every fingerprint and game
   log would change (round 8 rejected stamping the ordinal for the same reason).
 - One event per op (`Executor._op_seq`): an op is a whole resolution, several instructions, so

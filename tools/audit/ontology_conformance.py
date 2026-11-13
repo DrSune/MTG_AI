@@ -790,15 +790,9 @@ def check_trigger_timing(sets) -> list[str]:
 # ---------------------------------------------------------------------------
 #: Filter predicates that read the game, not the object they are asked about (quantity.py
 #: answers them the same for every handle). In an EventSpec they qualify the event itself
-#: ("during an opponent's turn", "while you control six or more Shrines").
-SUBJECT_FREE = frozenset({
-    at.FAtomPred.TURN_OF, at.FAtomPred.CONTROLLER_COUNT_GE, at.FAtomPred.CONTROLLER_COUNT_GT,
-    at.FAtomPred.ZONE_COUNT_GE, at.FAtomPred.NAME_PARTITION_COUNT_GE,
-    at.FAtomPred.ATTACK_AGAINST_COUNT_GE, at.FAtomPred.DIED_THIS_TURN, at.FAtomPred.EVENT_THIS_TURN,
-    at.FAtomPred.CARDS_DRAWN_THIS_TURN_GE, at.FAtomPred.LIFE_GAINED_THIS_TURN_GE,
-    at.FAtomPred.LIFE_LEAD_OVER_START_GE, at.FAtomPred.LIFE_TOTAL_GE,
-    at.FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, at.FAtomPred.FLIP_WON, at.FAtomPred.MAY_DONE,
-})
+#: ("during an opponent's turn", "while you control six or more Shrines"). The one list lives in
+#: the IR (``ability_tree.SUBJECT_FREE``), which also reads it for a gathered trigger's condition.
+SUBJECT_FREE = at.SUBJECT_FREE
 
 
 def qualifier_slot(event) -> str | None:
