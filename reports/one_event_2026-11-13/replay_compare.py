@@ -25,6 +25,6 @@ for code in base:
         if x["digest"] != y["digest"] or x["journal"] != y["journal"]:
             differ.append((code, i))
             print(f"  game {i}: digest {'same' if x['digest'] == y['digest'] else 'DIFFERS'}, journal "
-                  f"differs; outcome {x['outcome']} -> {y['outcome']}, turns {x['turns']} -> {y['turns']}, "
+                  f"{'same' if x['journal'] == y['journal'] else 'DIFFERS'}; outcome {x['outcome']} -> {y['outcome']}, turns {x['turns']} -> {y['turns']}, "
                   f"rows {x['rows']} -> {y['rows']}, crash {x['crash']} -> {y['crash']}")
 print("differing games:", " ".join(f"{c}:{i}" for c, i in differ) or "none")

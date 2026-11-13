@@ -155,12 +155,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature. The new object should be untouched, while information about the source (its power for
   "deals damage equal to its power") comes from its last known information (CR 608.2h), which
   `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
-  dealt pools. The same drop reaches the binder (2026-11-13): an object exiled and returned by
-  two instructions of one resolution has lost its last known information before the binder
-  matches its departure, so a look-back trigger there reads the controller and the granted
-  abilities, keywords and types of the new object. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
+  dealt pools. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
   source that left answers from its last known choice (`LastKnown.choices`), but Icon of
-  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin.
+  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin. The same drop
+  reaches the binder (2026-11-13): an object exiled and returned by two instructions of one
+  resolution has lost its last known information before the binder matches its departure, so a
+  look-back trigger there reads the controller and the granted abilities, keywords and types of
+  the new object.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
