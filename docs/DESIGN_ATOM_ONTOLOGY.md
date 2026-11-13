@@ -719,7 +719,8 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     seeded heuristic games (M21, M20, FDN) with identical replay digests and journal dumps, 0
     crashes; the soak (500 games dealing the round's trees) line for line the same, 0 crashes;
     G3 occurrence mutants 8 -> 28 as before; 19 of 19 engine mutants killed. Against
-    30fabc4a: the same 3 trees as the round.
+    30fabc4a: the same 3 trees as the round. Merged with main c164cd34 (round 9), against it:
+    the round's 3 trees, 0 verified cards in or out, 300/300 identical replays, 0 crashes.
   - **Found, logged, not fixed here** (BACKLOG): permanents moving in one atom see each other's
     moves only in row order (CR 603.6a, 603.10a), a holder leaving with them included; one
     EachPlayer instruction is several events (CR 101.4); a per-object trigger's "it" follows an
@@ -1607,3 +1608,6 @@ has no component.
   verified cards in or out; the 300 seeded games identical (digests and journal dumps), 0
   crashes; the soak line for line the same; 19 of 19 engine mutants killed (`mutants.txt`). The
   fixes' first version crashed 7 of 100 FDN games (above); `blast_radius.txt` keeps both runs.
+- The branch merged with main c164cd34 (round 9 merged first), against c164cd34: the round's 3
+  trees, 0 verified cards in or out (M21 275, M20 273, FDN 183), 300/300 identical replay
+  digests and journal dumps, 0 crashes.

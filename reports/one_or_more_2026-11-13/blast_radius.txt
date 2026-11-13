@@ -126,3 +126,25 @@ compiler trees changed (3):
    M19 Desecrated Tomb
    M20 Angelic Guardian
    M20 Woodland Champion
+
+The branch merged with main c164cd34 (round 9, a chosen quality, merged first) against
+c164cd34 (a git archive), the same scripts:
+
+compiler trees changed (3):
+   M19 Desecrated Tomb
+   M20 Angelic Guardian
+   M20 Woodland Champion
+trees with records applied changed (3):
+   M19 Desecrated Tomb compiler -> compiler unverified
+   M20 Angelic Guardian needs-atom record -> record unverified
+   M20 Woodland Champion needs-atom record -> record unverified
+compiler: fewer unparsed sentences (3):
+   M19 Desecrated Tomb 1 -> 0
+   M20 Angelic Guardian 1 -> 0
+   M20 Woodland Champion 1 -> 0
+compiler: newly compiling whole (3): [('M19', 'Desecrated Tomb'), ('M20', 'Angelic Guardian'), ('M20', 'Woodland Champion')]
+verified stamps matching, per set (base -> branch): {'FDN': '183->183', 'M20': '273->273', 'M21': '275->275'}
+
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 5 (21 queues); crashes 0 (base) / 0 (branch)
+M20: deckable 273 (base) / 273 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 0 (0 queues); crashes 0 (base) / 0 (branch)
+FDN: deckable 183 (base) / 183 (branch); taken out: 0; games 100; identical digests 100; identical journals 100; games queueing a flagged trigger 12 (63 queues); crashes 0 (base) / 0 (branch)
