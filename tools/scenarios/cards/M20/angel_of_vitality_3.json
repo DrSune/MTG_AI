@@ -1,0 +1,75 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ang",
+   "real": "Angel of Vitality",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "hit",
+   "name": "Pinger",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 4
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "hit": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 24
+  },
+  "power": {
+   "ang": 2
+  },
+  "toughness": {
+   "ang": 2
+  }
+ },
+ "notes": "Printed: static +2/+2 turns off when life drops from 25 to 24 (lifelink 4 -> 5 gained = 25, then 1 combat damage)."
+}

@@ -1,0 +1,47 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "r",
+   "real": "Drogskol Reaver",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll2",
+   "name": "Second Lifelinker",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "r": true,
+    "ll2": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 28,
+   "1": 12
+  },
+  "hand": {
+   "0": 3
+  }
+ },
+ "notes": "Printed: whenever you gain life, draw a card. Reaver first strike 3 (one gain), then regular: Reaver 3 and the other lifelinker 2 are two sources -> two gains. Three draws."
+}

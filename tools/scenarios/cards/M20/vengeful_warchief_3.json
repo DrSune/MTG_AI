@@ -1,0 +1,60 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Vengeful Warchief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hit",
+   "name": "Pinger",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "hit": true
+   }
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "hit": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18
+  },
+  "counters": {
+   "w": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ },
+ "notes": "Printed: first time EACH turn: a loss in a later turn triggers again."
+}

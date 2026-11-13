@@ -1,0 +1,69 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "t",
+   "real": "Twinblade Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": [
+    "LIFELINK"
+   ]
+  },
+  {
+   "key": "giant",
+   "name": "Big Wall",
+   "power": "9",
+   "toughness": "9",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 4
+  },
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "giant",
+   "amount": 1
+  }
+ ],
+ "expect": {
+  "damage": {
+   "giant": 5
+  },
+  "life": {
+   "0": 25
+  },
+  "counters": {
+   "t": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "battlefield_keywords": {
+   "Twinblade Paladin": [
+    "DOUBLE_STRIKE"
+   ]
+  }
+ },
+ "notes": "Printed: two lifelink gains = two counters; at exactly 25 life double strike."
+}
