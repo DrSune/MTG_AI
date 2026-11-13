@@ -24,6 +24,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     Cost,
     CostTap,
+    CounterKind,
     DurationEot,
     DurationPermanent,
     EmblemSpec,
@@ -49,6 +50,7 @@ from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.executor.stack import StackObject, land_playable, play_land
 from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
+from MTG_bot.core.test_executor_control_follows import conclave_mentor_replacement
 from MTG_bot.core.test_executor_verbs import stock_libraries
 
 _ORACLE = iter(range(1, 1 << 16))
@@ -685,6 +687,29 @@ class TestEmblems(PermCase):
         self.assertTrue(asks[0][0].startswith(f"choose:{emblem}:"), asks)
         self.assertEqual((self.world.cards[first].tapped, self.world.cards[second].tapped), (False, True))
 
+    def _counters_under_an_emblem(self, who: ControllerRef) -> tuple[int, int]:
+        """Conclave Mentor's counter replacement as the text of an emblem P0's planeswalker gives
+        ``who``; one +1/+1 counter is then put on P0's creature and one on P1's."""
+        pw = self.source_card()
+        mine, theirs = self.place("Ally", self.p0), self.place("Foe", self.p1)
+        replacement = EmblemSpec(abilities=(conclave_mentor_replacement(),))
+        self.ex.execute(get_emblem(replacement, who), source=pw, controller=self.p0)
+        counter = atom(Verb.PUT_COUNTER, target=target_sel(), counter_kind=CounterKind.PLUS_1_PLUS_1,
+                       count=QConst(1))
+        for creature in (mine, theirs):
+            self.ex.execute(counter, source=pw, controller=self.p0, bindings={"target": creature})
+        return (self.world.cards[mine].counters.get("PLUS_1_PLUS_1", 0),
+                self.world.cards[theirs].counters.get("PLUS_1_PLUS_1", 0))
+
+    def test_an_emblems_replacement_reads_its_owner_as_you(self):
+        # CR 114.4: an emblem's replacement ability works from the command zone, its "you" the
+        # emblem's owner (DOM Jaya Ballard's emblem has one). Before, the replacement registry
+        # asked for the emblem's controller as of a card on the battlefield and raised.
+        self.assertEqual(self._counters_under_an_emblem(ControllerRef.YOU), (2, 1))
+
+    def test_an_opponents_emblem_replacement_reads_the_opponent_as_you(self):
+        self.assertEqual(self._counters_under_an_emblem(ControllerRef.ALL_OPPONENTS), (1, 2))
+
     def test_binder_dump_has_emblems_row(self):
         pw = self.source_card()
         self.ex.execute(get_emblem(garruk_emblem()), source=pw, controller=self.p0)
@@ -761,6 +786,34 @@ class TestEmblems(PermCase):
             return ex.state_fingerprint()
 
         self.assertEqual(script(11), script(11))
+
+
+class TestEmblemRecipients(PermCase):
+    """Who gets the emblem with three seats, where "each opponent" and "target opponent" differ
+    (CR 114.2; the recipients EMBLEM_RECIPIENTS allows)."""
+
+    def setUp(self):
+        self.world = GameWorld(num_players=3, start_life=20, master_seed=21)
+        self.p0, self.p1, self.p2 = self.world.player_order
+        self.ex = Executor(self.world)
+        self.pw = self.place("Garruk, Unleashed", self.p0, type_line="Planeswalker")
+
+    def owners(self):
+        return sorted(self.ex.binder.emblem_owner.values())
+
+    def test_each_opponent_gets_one(self):
+        self.ex.execute(get_emblem(garruk_emblem(), ControllerRef.ALL_OPPONENTS), source=self.pw,
+                        controller=self.p0)
+        self.assertEqual(self.owners(), [self.p1, self.p2])
+
+    def test_the_target_opponent_gets_one(self):
+        self.ex.execute(get_emblem(garruk_emblem(), ControllerRef.TARGET_OPPONENT), source=self.pw,
+                        controller=self.p0, bindings={"target": self.p2})
+        self.assertEqual(self.owners(), [self.p2])
+
+    def test_you_get_one(self):
+        self.ex.execute(get_emblem(garruk_emblem()), source=self.pw, controller=self.p0)
+        self.assertEqual(self.owners(), [self.p0])
 
 
 if __name__ == "__main__":  # pragma: no cover

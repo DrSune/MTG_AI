@@ -1632,6 +1632,84 @@ def test_synthetic_tarmogoyf_like() -> None:
     assert next(iter(at.walk(card))) is card
 
 
+# ---------------------------------------------------------------------------
+# GET_EMBLEM: who gets it, one encoding, what an emblem holds (ontology gate round 7: M1, M2, m4)
+# ---------------------------------------------------------------------------
+
+
+def _emblem_to(who: object) -> at.Atom:
+    return at.Atom(at.Verb.GET_EMBLEM, at.AtomArgs(pairs=(("emblem", _emblem()), ("controller", who))))
+
+
+def _referent_players(referent: str) -> at.Selector:
+    return at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, at.FAnd(()),
+                       zones=(at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY),), referent=referent)
+
+
+#: "you get", "each opponent gets", "target opponent gets an emblem" (CR 114.2): the recipients
+#: the 19 sets print.
+_PRINTED_RECIPIENTS = (at.ControllerRef.YOU, at.ControllerRef.ALL_OPPONENTS, at.ControllerRef.TARGET_OPPONENT)
+
+
+@pytest.mark.parametrize("who", _PRINTED_RECIPIENTS, ids=lambda r: r.name)
+def test_get_emblem_takes_the_recipients_the_sets_print(who: at.ControllerRef) -> None:
+    assert _emblem_to(who).args.get("controller") is who
+    assert at.EMBLEM_RECIPIENTS == frozenset(_PRINTED_RECIPIENTS)
+
+
+_OTHER_RECIPIENTS: dict[str, object] = {
+    **{ref.name: ref for ref in at.ControllerRef if ref not in _PRINTED_RECIPIENTS},
+    "its controller, a second YOU": _referent_players("controller"),
+    "the source's controller, a second YOU": _referent_players("source"),
+    "a DEAL_DAMAGE result, which lists permanents only": _referent_players("result"),
+    "ALL over the players, a second each player": at.Selector(
+        at.QUnbounded(), at.SelectorMode.ALL, at.FAnd(()),
+        zones=(at.Zone(at.ZoneKind.PLAYER, at.ControllerRef.ANY),)),
+}
+
+
+@pytest.mark.parametrize("name", sorted(_OTHER_RECIPIENTS))
+def test_get_emblem_refuses_every_other_recipient(name: str) -> None:
+    # OWNER raised at run time, OPPONENT gave every opponent one with three seats,
+    # DEFENDING_PLAYER gave nobody one outside combat: each comes with the card that prints it.
+    with pytest.raises(ValueError, match="GET_EMBLEM's controller"):
+        _emblem_to(_OTHER_RECIPIENTS[name])
+
+
+def test_each_opponent_gets_an_emblem_has_one_encoding() -> None:
+    # GET_EMBLEM(controller=ALL_OPPONENTS), never EachPlayer(ALL_OPPONENTS, GET_EMBLEM(YOU)):
+    # both play the same (EachPlayer rotates the controller), so the second is refused.
+    draw = at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("amount", at.QConst(1)), ("controller", at.ControllerRef.YOU))))
+    for effect in (_emblem_to(at.ControllerRef.YOU), at.Seq((draw, _emblem_to(at.ControllerRef.YOU)))):
+        with pytest.raises(ValueError, match="never an EachPlayer around it"):
+            at.EachPlayer(ref=at.ControllerRef.ALL_OPPONENTS, effect=effect)
+    # A granted ability's GET_EMBLEM is that ability's own: whoever activates it gets the emblem.
+    granted = at.ActivatedAbility(at.Cost(parts=(at.CostTap(),)), _emblem_to(at.ControllerRef.YOU))
+    grant = at.Atom(at.Verb.GRANT_ABILITY, at.AtomArgs(pairs=(
+        ("ability", granted),
+        ("target", at.Selector(at.QUnbounded(), at.SelectorMode.ALL, at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Creature"),
+                               zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU),))))))
+    at.EachPlayer(ref=at.ControllerRef.ALL_OPPONENTS, effect=grant)
+
+
+_NOT_AN_EMBLEMS_ABILITY: dict[str, Callable[[], object]] = {
+    "SpellAbility": lambda: at.SpellAbility(at.SpellKind.SORCERY, _get_emblem()),
+    "EtBState": lambda: at.EtBState(tapped=True),
+    "KeywordAbility": lambda: at.KeywordAbility(at.Keyword.FLYING, ()),
+    "CostModifier": lambda: at.CostModifier(
+        at.FAtom(at.FAtomPred.IS_PERMANENT), at.ControllerRef.YOU, at.CostDeltaReduceGeneric(at.QConst(2))),
+    "BackFace": lambda: at.BackFace(face_name="Back"),
+}
+
+
+@pytest.mark.parametrize("kind", sorted(_NOT_AN_EMBLEMS_ABILITY))
+def test_an_emblem_holds_triggered_static_or_replacement_abilities_only(kind: str) -> None:
+    # The engine runs those three from the command zone (CR 114.4); a spell, an "as ~ enters"
+    # state, a keyword, a cost modifier or a back face is no ability an emblem can carry.
+    with pytest.raises(ValueError):
+        at.EmblemSpec(abilities=(_NOT_AN_EMBLEMS_ABILITY[kind](),))
+
+
 def test_synthetic_planeswalker_with_emblem() -> None:
     card = _pw_with_emblem()
     assert card.loyalty == 4

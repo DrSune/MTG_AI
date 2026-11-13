@@ -2333,9 +2333,11 @@ class StallRuleTest(unittest.TestCase):
         # 2026-11-11: 51 -> 59 when the response windows went (DESIGN_PRIORITY
         # §11 5b-1; the random players answered them), then 46 with a new loser
         # when the loop asked at every priority point and the random player
-        # stopped tapping mana by hand (5b-2); double-run identical each time.
-        self.assertEqual(game.turns, 46)
-        self.assertEqual(game.reason, "game over: player:0(life<=0)")
+        # stopped tapping mana by hand (5b-2); double-run identical each time. 2026-11-13: 35
+        # with a new loser when Siege Striker's "you may tap any number" lost its may (gate
+        # round 7, m1: one ask fewer for the random players); double-run identical.
+        self.assertEqual(game.turns, 35)
+        self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:
         first = self._run_loop_game()

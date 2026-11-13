@@ -321,6 +321,12 @@ class ControllerRef(Enum):
 #: "target opponent" read the same binding and differ only in who may be designated.
 DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
 
+#: Who gets an emblem (GET_EMBLEM's ``controller``, CR 114.2): the recipients the 19 sets print,
+#: "you", "each opponent" and "target opponent". Another one comes with the card that prints it.
+EMBLEM_RECIPIENTS = frozenset(
+    {ControllerRef.YOU, ControllerRef.ALL_OPPONENTS, ControllerRef.TARGET_OPPONENT}
+)
+
 
 class QPropField(Enum):
     """Which property QProp reads from its referent. The player-count fields
@@ -2806,6 +2812,17 @@ class Atom:
                     "Atom: REVEAL with `until` counts the revealed cards that pass it; "
                     "QUnbounded is no count to stop at"
                 )
+        # GET_EMBLEM's recipient is one of EMBLEM_RECIPIENTS. Any other ref or a player Selector
+        # is a second form of one of them (OPPONENT is every opponent with three seats, a
+        # "controller" referent is YOU) or a recipient the engine reads wrong (OWNER raises,
+        # DEFENDING_PLAYER names nobody outside combat, a DEAL_DAMAGE "result" lists permanents).
+        if self.verb is Verb.GET_EMBLEM:
+            who = roles["controller"]
+            if not (isinstance(who, ControllerRef) and who in EMBLEM_RECIPIENTS):
+                raise ValueError(
+                    "Atom: GET_EMBLEM's controller (who gets the emblem) must be one of "
+                    f"{sorted(r.name for r in EMBLEM_RECIPIENTS)}, got {who!r}"
+                )
         # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -2941,6 +2958,13 @@ class EachPlayer:
         if not _is_effect(self.effect):
             raise ValueError(
                 f"EachPlayer: effect must be an Effect, got {type(self.effect).__name__}"
+            )
+        # "Each opponent gets an emblem" is GET_EMBLEM's own `controller`: an EachPlayer around
+        # it would run the same (it rotates the controller), a second encoding of one meaning.
+        if any(isinstance(n, Atom) and n.verb is Verb.GET_EMBLEM for n in own_nodes(self.effect)):
+            raise ValueError(
+                "EachPlayer: who gets an emblem is GET_EMBLEM's `controller` (ALL_OPPONENTS for "
+                '"each opponent gets an emblem"), never an EachPlayer around it'
             )
 
 

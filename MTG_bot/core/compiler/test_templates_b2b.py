@@ -1677,7 +1677,9 @@ class TestB2bEffectStructure(unittest.TestCase):
         count = _qconst(atom, "count")
         self.assertEqual(count.value, 1)
 
-    def test_siege_striker_optional_tap(self) -> None:
+    def test_siege_striker_taps_any_number_with_no_may(self) -> None:
+        # "You may tap any number": any number already names none (CR 107.1c), so there is no
+        # OptionalEffect around the pick (a "skip" played the same as stopping at once).
         ability = _ability(
             _single_match(
                 self.reg,
@@ -1685,9 +1687,10 @@ class TestB2bEffectStructure(unittest.TestCase):
                 "of untapped creatures you control.",
             )
         )
-        option = _optional(ability)
-        atom = _atom_inner(option)
+        atom = ability.effect
+        assert isinstance(atom, Atom), type(atom).__name__
         self.assertIs(atom.verb, Verb.TAP)
+        self.assertIsInstance(_selector(atom, "target").count, QUnbounded)
         target = _selector(atom, "target")
         assert isinstance(target.filter, FAnd)
         self._assert_has_type_eq_creature(target.filter)

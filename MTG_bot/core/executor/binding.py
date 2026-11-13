@@ -454,7 +454,7 @@ class TriggerBinder:
             self.attached[(handle, idx)] = ability
         # Same attach order as _register (replacements first - its
         # idempotence sweep must not expire the layers' static prevents).
-        self.executor.replacements.attach_source(handle, record)
+        self.executor.replacements.attach_source(handle, record, controller=owner)
         self.executor.layers.attach_source(handle, record, controller=owner)
         return len(triggers)
 

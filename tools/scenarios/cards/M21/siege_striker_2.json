@@ -8,7 +8,7 @@
   {"key": "giant", "name": "Giant", "type": "Creature", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"ss": true, "bear": false, "giant": false}, "may": {"ss": true}},
+  {"op": "combat", "seat": 0, "attack": {"ss": true, "bear": false, "giant": false}},
   {"op": "end_turn"}
  ],
  "expect": {
