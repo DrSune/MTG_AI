@@ -107,7 +107,11 @@ from MTG_bot.core.executor.legality import (
     spell_castable,
 )
 from MTG_bot.core.executor.quantity import Binding, Quantity, resolve
-from MTG_bot.core.executor.selectors import filter_bound_player_refs
+from MTG_bot.core.executor.selectors import (
+    filter_bound_player_refs,
+    player_slot_selector,
+    without_another_marker,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
@@ -1230,12 +1234,7 @@ def player_target_slot(
     )
     ref = ControllerRef.TARGET_OPPONENT if opponent_only else ControllerRef.TARGET_PLAYER
     return TargetSlot(
-        selector=Selector(
-            count=QConst(1),
-            mode=SelectorMode.TARGET,
-            filter=FAnd(()),
-            zones=(Zone(ZoneKind.PLAYER, ref),),
-        ),
+        selector=player_slot_selector(ref),
         candidates=candidates,
         min_count=1,
         max_count=1,
@@ -1344,8 +1343,11 @@ def _spell_slot(
     value: Selector,
     source: Handle,
     seat: Handle,
+    bindings: dict[str, Binding] | None = None,
 ) -> TargetSlot:
-    """One TARGET selector's slot: the per-selector body both slot walkers share."""
+    """One TARGET selector's slot: the per-selector body both slot walkers share. ``bindings``: a
+    trigger's firing registers, which a filter may read (Feline Sovereign's "that creature's
+    controller", CONTROLLER_IS who=Selector(referent="event"))."""
     # Candidates enumerate through the DESIGNATION face (IS_ANY_TARGET =
     # potential-target tautology); the slot keeps the ORIGINAL selector as
     # its identity — the cast lane repr-matches designations to the atom's
@@ -1357,6 +1359,7 @@ def _spell_slot(
         enum_value,
         source=source,
         controller=seat,
+        bindings=bindings,
     )
     if enum_value is not value:
         slot = replace(slot, selector=value)
@@ -1591,10 +1594,13 @@ def activation_target_slots(
     *,
     source: Handle,
     seat: Handle,
+    bindings: dict[str, Binding] | None = None,
 ) -> list[TargetSlot]:
     """The TARGET-selection slots of an ACTIVATED ability — the activation
     twin of :func:`spell_target_slots`, one slot type and one validation
-    oracle for every ability in the game.
+    oracle for every ability in the game. A triggered ability with several
+    designations makes its slots here too, its firing registers as ``bindings``
+    (``binding.TriggerBinder._designate_slots``).
 
     The corpus' "target opponent" activations (Liliana's Steward's "{T},
     Sacrifice: target opponent discards") carry NO TARGET-mode Selector at
@@ -1621,7 +1627,7 @@ def activation_target_slots(
                 if key in seen:
                     continue
                 seen.add(key)
-                slots.append(_spell_slot(executor, inner, _role, value, source, seat))
+                slots.append(_spell_slot(executor, inner, _role, value, source, seat, bindings))
     if not slots:
         bound = _designation_only_slot(executor, effect, source, seat)
         if bound is not None:
@@ -1680,11 +1686,14 @@ def _is_any_target_idiom(filter_: object) -> bool:
     matches a card (no card carries "Player" in its types) — it is the
     discriminator that separates this population from the printed
     "target creature or planeswalker" TWO-branch shape, which never
-    denotes a player (CR 115.1d; Finishing Blow). One shape, two lanes:
-    the twins in :mod:`selectors` read it identically so offer and
-    resolution legality never diverge."""
+    denotes a player (CR 115.1d; Finishing Blow). "Other targets" is the
+    idiom beside the "another target" marker (templates_b5c), FAnd(IS_ANY_TARGET,
+    the idiom): Drakuseth, Maw of Flames' "each of up to two other targets". One
+    shape, two lanes: the twins in :mod:`selectors` read it identically so offer
+    and resolution legality never diverge."""
     from MTG_bot.core.ability_tree import FOr
 
+    filter_ = without_another_marker(filter_)
     if not isinstance(filter_, FOr) or len(filter_.children) != 3:
         return False
     kinds = {
