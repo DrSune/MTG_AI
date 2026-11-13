@@ -1,0 +1,33 @@
+{
+ "schema": 1,
+ "set": "M20",
+ "oracle_id": "af6cfc23-b64b-4c8a-94b4-69d2b01cb3b9",
+ "name": "Octoprophet",
+ "text_sha": "5c017173828ceae2274f083ec333d5e405a7132e6e482aa6f7c0e01888a58105",
+ "verified": {
+  "tree_sha": "7d20f57e5dba67f373af9eb42d220e640451331e811ba5a9c6a9776773d46c23",
+  "probe_sha": "14f1ddb56e9252cfc5f2555abb2c5cf484bea3097ea31a9b0c01fee998850078",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "When this creature enters, scry 2 (any number on the bottom, the rest on top in any order)",
+    "status": "OK",
+    "evidence": "per-card top/bottom asks, arrange ask for two kept on top; one-on-top/one-bottom variants; both-bottom pinned by B06_4",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/octoprophet_1.json",
+   "tools/scenarios/cards/M20/octoprophet_2.json",
+   "tools/scenarios/cards/M20/octoprophet_3.json",
+   "tools/scenarios/cards/M20/octoprophet_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

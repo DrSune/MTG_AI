@@ -263,5 +263,49 @@
  },
  "probe": {
   "sha": "75d0a48eddddb0cfd857a8bb87c4256ebaf92b38c66b21ed9ae341cb45aa8f97"
+ },
+ "verified": {
+  "tree_sha": "1d2071c4a1e6365c473d7ea6356969f0e611564a07b71957df595ec0a18fe786",
+  "probe_sha": "75d0a48eddddb0cfd857a8bb87c4256ebaf92b38c66b21ed9ae341cb45aa8f97",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "status": "OK",
+    "evidence": "+HASTE on enter",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, reveal the top four cards",
+    "status": "OK",
+    "evidence": "four cards asked/arranged, all four 'targeted' by REST",
+    "issue": ""
+   },
+   {
+    "clause": "Put all Goblin cards revealed this way into your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "no Goblin in top four; pack B01_1 (revealed goblin to hand, unrevealed goblin stays)",
+    "issue": ""
+   },
+   {
+    "clause": "the rest on the bottom of your library in any order",
+    "status": "OK",
+    "evidence": "arrange asks top-first for the 4 cards in every variant; pack B01_1 pins the resulting order",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/goblin_ringleader_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 11,
+   "score": 0.8461538461538461,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/args/destination"
+   ]
+  }
  }
 }

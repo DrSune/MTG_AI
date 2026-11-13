@@ -1,0 +1,60 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Battalion Foot Soldier: 'When this creature enters, you may search your library for any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.' Library holds two other copies and a decoy. P0 accepts, takes one copy, then stops (any number is asked pick by pick, CR 107.1c): one copy to hand, one copy and the decoy stay in the library.",
+ "cards": [
+  {
+   "key": "fs",
+   "real": "Battalion Foot Soldier",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "real": "Battalion Foot Soldier",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "real": "Battalion Foot Soldier",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dec",
+   "name": "Decoy",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fs",
+   "decisions": [
+    "fire",
+    "c1",
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "zone": {
+   "fs": "battlefield",
+   "c1": "hand",
+   "c2": "library",
+   "dec": "library"
+  }
+ }
+}

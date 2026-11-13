@@ -201,5 +201,37 @@
  },
  "probe": {
   "sha": "c37c98f37f8dd63b147c1e325a4b21089cbbc8efa053d37c4f92e1a31c017a71"
+ },
+ "verified": {
+  "tree_sha": "9740d0377845e1dd8b8c3d7c7f8c195b0039892dfc38a6111843ccdffb5d5fb1",
+  "probe_sha": "319683e8dc8e8ed18fcea84273d47120127821a7db2aa924ef12129104e5fa72",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may search ... any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace library holds no copy, only the may ask is seen (fire/skip); packs B05_1/_2/_4 show pick-by-pick with a stop, B05_3 decline",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/battalion_foot_soldier_1.json",
+   "tools/scenarios/cards/M20/battalion_foot_soldier_2.json",
+   "tools/scenarios/cards/M20/battalion_foot_soldier_3.json",
+   "tools/scenarios/cards/M20/battalion_foot_soldier_4.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 3,
+   "score": 0.375,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "drop step 2 at 1/0/effect/inner",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
+   ]
+  }
  }
 }

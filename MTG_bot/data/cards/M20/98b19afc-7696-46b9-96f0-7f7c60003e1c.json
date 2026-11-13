@@ -663,5 +663,51 @@
  },
  "probe": {
   "sha": "ebc28e5ac5274a1f5c1640260867e8550a334a27d275ad4ad4d411f05ea2a206"
+ },
+ "verified": {
+  "tree_sha": "93ef0884df2daf30ecee2eb2239f79737a6d0eccc2befcbf6ef10e2a69a87889",
+  "probe_sha": "61a6ba99cbc0b74dc8f347c9b149c7b29cca066793ed1388ec8e477a44cf0721",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "{1}{R}: Creatures you control get +1/+0 and gain haste until end of turn",
+    "status": "OK",
+    "evidence": "activate: mana C-1 R-1, the card and both own creatures +1/+0 +HASTE, removed at end of turn",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, discard any number of cards, then draw that many cards",
+    "status": "OK",
+    "evidence": "discard asked one by one with NONE stop; 6 discarded/6 drawn, 0/0; partial case pinned by B07_2",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature dies, it deals X damage to each opponent and each planeswalker they control, X = land cards in your graveyard",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace has no land in graveyard (X=0); pack B07_1",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/cavalier_of_flame_1.json",
+   "tools/scenarios/cards/M20/cavalier_of_flame_2.json"
+  ],
+  "mutation": {
+   "mutants": 30,
+   "killed": 21,
+   "score": 0.7,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/amount/selector/zones/0/controller",
+    "controller OPPONENT->YOU at 1/2/effect/steps/0/args/target/zones/0/controller",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/amount/selector/zones/0/controller",
+    "widen filter (drop part 0) at 1/2/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/1/args/target/filter",
+    "controller OPPONENT->YOU at 1/2/effect/steps/1/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

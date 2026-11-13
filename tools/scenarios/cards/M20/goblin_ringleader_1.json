@@ -1,0 +1,115 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Goblin Ringleader: 'reveal the top four cards of your library. Put all Goblin cards revealed this way into your hand and the rest on the bottom of your library in any order.' Top four: N1, Gob1, N2, N3; the fifth card (Gob2) is a Goblin that is NOT revealed and stays. Gob1 goes to hand; N1..N3 go to the bottom in the order the owner picks (top-first: N3, N1, N2).",
+ "cards": [
+  {
+   "key": "rl",
+   "real": "Goblin Ringleader",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "n4",
+   "name": "ND",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Bear",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "name": "Gob2",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Goblin",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "n3",
+   "name": "NC",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Bear",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "n2",
+   "name": "NB",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Bear",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "name": "Gob1",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Goblin",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "n1",
+   "name": "NA",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Bear",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Goblin Ringleader",
+   "key": "rl",
+   "tap": false,
+   "decisions": [
+    "n3",
+    "n1",
+    "n2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rl": "battlefield",
+   "g1": "hand",
+   "g2": "library",
+   "n1": "library",
+   "n2": "library",
+   "n3": "library",
+   "n4": "library"
+  },
+  "library": {
+   "0": [
+    "Gob2",
+    "ND",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "NC",
+    "NA",
+    "NB"
+   ]
+  }
+ }
+}

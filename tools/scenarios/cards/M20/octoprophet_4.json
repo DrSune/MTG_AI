@@ -1,0 +1,64 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "oc",
+   "real": "Octoprophet",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "CardB",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "CardA",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "notes": "Octoprophet: scry 2, both cards go to the bottom: the six other cards are on top in order, the two scried cards under them (order between them unspecified by the text).",
+ "steps": [
+  {
+   "op": "enter",
+   "key": "oc",
+   "decisions": [
+    "bottom",
+    "bottom"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*"
+   ]
+  },
+  "zone": {
+   "oc": "battlefield",
+   "a": "library",
+   "b": "library"
+  }
+ }
+}

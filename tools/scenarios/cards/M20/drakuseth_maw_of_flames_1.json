@@ -1,0 +1,10 @@
+{"set":"M20","world":{"life":20,"seed":7},
+ "notes":"Drakuseth, Maw of Flames: 'Whenever Drakuseth attacks, Drakuseth deals 4 damage to any target and 3 damage to each of up to two other targets.' Targets: the opponent's planeswalker (4), then the opponent player (3) and the opponent's 4-toughness Wall (3). Drakuseth then deals 7 combat damage to the opponent: 20-3-7 = 10. The planeswalker 5 -> 1, the Wall has 3 damage.",
+ "cards":[
+  {"key":"dr","real":"Drakuseth, Maw of Flames","zone":"battlefield","controller":0},
+  {"key":"opw","real":"Chandra, Novice Pyromancer","zone":"battlefield","controller":1},
+  {"key":"wall","name":"Wall","power":"0","toughness":"4","type":"Creature","zone":"battlefield","controller":1}],
+ "steps":[
+  {"op":"loyalty","key":"opw","set":5},
+  {"op":"combat","seat":0,"attack":{"dr":true},"decisions":["opw","player:1","wall"]}],
+ "expect":{"life":{"1":10},"counters":{"opw":{"LOYALTY":1}},"damage":{"wall":3}}}

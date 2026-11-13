@@ -1,0 +1,59 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Battalion Foot Soldier: the search takes any number: P0 takes both other copies; the decoy is not named Battalion Foot Soldier and stays in the library.",
+ "cards": [
+  {
+   "key": "fs",
+   "real": "Battalion Foot Soldier",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "real": "Battalion Foot Soldier",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "real": "Battalion Foot Soldier",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "dec",
+   "name": "Decoy",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "fs",
+   "decisions": [
+    "fire",
+    "c1",
+    "c2"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "zone": {
+   "c1": "hand",
+   "c2": "hand",
+   "dec": "library"
+  }
+ }
+}

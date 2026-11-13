@@ -287,5 +287,35 @@
  },
  "probe": {
   "sha": "840d8c95970e5250f379afa593aa59bc31b22ab5ca16e84536923ae39159056c"
+ },
+ "verified": {
+  "tree_sha": "e9acb2113a8178c9cbe5dd7fc202e8cb1ceac6d917faae6a61a2feb0c50d5088",
+  "probe_sha": "840d8c95970e5250f379afa593aa59bc31b22ab5ca16e84536923ae39159056c",
+  "date": "2026-11-13",
+  "reviewer": "claude-sonnet-verifier-wave1c-B",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "+FLYING",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever Drakuseth attacks, 4 damage to any target and 3 damage to each of up to two other targets",
+    "status": "OK",
+    "evidence": "three target asks: first has no NONE, others offer NONE and exclude the chosen; you_bear 4, you_giant 3, opp_flier 3; player/planeswalker targets and fewer targets pinned by B09_1, B09_2",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/drakuseth_maw_of_flames_1.json",
+   "tools/scenarios/cards/M20/drakuseth_maw_of_flames_2.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 12,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -1,0 +1,64 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "oc",
+   "real": "Octoprophet",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "CardB",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "CardA",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "notes": "Octoprophet: 'scry 2' (put any number on the bottom, the rest on top in any order). Top two are CardA then CardB. Both kept on top, P0 arranges them: CardB first on top, then CardA.",
+ "steps": [
+  {
+   "op": "enter",
+   "key": "oc",
+   "decisions": [
+    "top",
+    "top",
+    "b",
+    "a"
+   ]
+  }
+ ],
+ "expect": {
+  "library": {
+   "0": [
+    "CardB",
+    "CardA",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "zone": {
+   "oc": "battlefield"
+  }
+ }
+}

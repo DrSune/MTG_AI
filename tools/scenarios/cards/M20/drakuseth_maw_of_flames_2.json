@@ -1,0 +1,59 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Drakuseth, Maw of Flames: 'up to two other targets' may be left unchosen. 4 damage to the opponent player, no other targets: 20-4-7 = 9; the planeswalker and Wall untouched.",
+ "cards": [
+  {
+   "key": "dr",
+   "real": "Drakuseth, Maw of Flames",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opw",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "wall",
+   "name": "Wall",
+   "power": "0",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "opw",
+   "set": 5
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "dr": true
+   },
+   "decisions": [
+    "player:1",
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 9
+  },
+  "counters": {
+   "opw": {
+    "LOYALTY": 5
+   }
+  }
+ }
+}
