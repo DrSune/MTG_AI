@@ -216,14 +216,17 @@ They check the tree against the printed text. They run in `cardtool try`, `write
 **False positives.** 0 findings over the 736 verified cards, with one listed exception: Massacre
 Wurm's TARGET_PLAYER antecedent, divergence D18, whose fold is BACKLOG B-114.
 
-**The historical defects each one flags,** in their own trees from git (`testdata/lint_history.json`):
+**The historical defects each one flags,** in their own trees from git
+(`tools/cards/testdata/lint_history.json`):
 - FDN Pilfer's first record, "target opponent" as any player (`players`, fa6e00bc~1);
 - M21 Necromentia's Zombies given to the caster (`players`, golden f6642f44~1);
 - M21 Peer into the Abyss's dropped life loss (`players`, golden 13c169ae~1);
 - M21 Azusa's free repeatable activation, which the network used 9 times a turn (`costs`, golden
   1f112e2e~1);
 - M20 Keldon Raider's orphaned "If you do, draw a card." on its cast (`carrier`, rebuilt from its
-  mapper's report).
+  mapper's report);
+- for `amounts`, the planted shape: wave 1's M20 Ancestral Blade making two Soldiers, rebuilt
+  from its answer key, and 15 more of the amount plants.
 
 **On planted faults.** Rebuilt from the answer keys on today's trees, the lints flag **46 of 72**
 plants with no agent at all:
@@ -239,7 +242,7 @@ whose text names opponents.
   free activations, the class the network once used.
 - On partly compiled cards the findings mark the unparsed sentences, as they should: a mapper's
   draft must clear them.
-- 26 partly compiled cards of 14 sets hold an effect on a permanent's cast carrier. These are
+- 26 partly compiled cards of 11 sets hold an effect on a permanent's cast carrier. These are
   orphaned sentences of the class fixed on 11-05: WAR Teferi, Time Raveler draws a card as it is
   cast. They are in the BACKLOG.
 

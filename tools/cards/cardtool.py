@@ -112,9 +112,7 @@ def cmd_status(args: argparse.Namespace) -> int:
             print("  verified, by the date of the last stamp: " + ", ".join(f"{d} {n}" for d, n in sorted(days.items())))
     if len(args.set) != 1:
         return 0
-    sc = corpus.compile_set(args.set[0])
-    states = {oid: _state(sc, oid) for oid in sc.raw if not sc.raw[oid].is_token and not sc.raw[oid].is_emblem}
-    todo = []
+    todo = []  # the one set's worklist (sc and states are its own)
     for oid, st in states.items():
         if st in ("partly-compiled", "refused"):
             res = sc.results.get(oid)
@@ -611,8 +609,12 @@ def cmd_verify(args: argparse.Namespace) -> int:
     record = json.loads(path.read_text()) if path.exists() else {
         "schema": card_records.SCHEMA, "set": args.set, "oracle_id": oid, "name": raw.identity.name,
         "text_sha": card_records.text_sha(raw)}
-    if hrec is not None and "ir" in hrec:
-        record["ir"] = hrec["ir"]
+    if hrec is not None:  # the tree is the home record's: its ir, or the compiler's when it has none
+        record.pop("needs_atom", None)
+        if "ir" in hrec:
+            record["ir"] = hrec["ir"]
+        else:
+            record.pop("ir", None)
     record["verified"] = {
         "tree_sha": card_records.tree_sha(card), "probe_sha": rep.sha(), "date": dt.datetime.now(dt.UTC).date().isoformat(),
         "reviewer": args.reviewer, "clauses": verdict.get("clauses", []), "packs": kept,
