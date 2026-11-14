@@ -530,7 +530,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
     sc = corpus.compile_set(args.set)
     oid = sc.by_name(args.card)
     raw = sc.raw[oid]
-    home, hrec, records = args.reprint_of, None, None
+    home, hrec, records = getattr(args, "reprint_of", None), None, None  # round.py apply passes none
     if home:
         hrec = card_records.load_records(home).get(oid)
         if not hrec or "verified" not in hrec or hrec.get("text_sha") != card_records.text_sha(raw):

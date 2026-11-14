@@ -225,10 +225,14 @@ def test_a_judgment_changed_after_its_lock_is_refused(tmp_path, capsys) -> None:
     path.write_text(json.dumps(v))
     cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)])
     assert "locked again" in (cardtool.lock_problem(path, json.loads(path.read_text())) or "")
-    # verify reads the lock too (refused on the trace as well here, so nothing is stamped)
+    # verify reads the lock too (refused on the trace as well here, so nothing is stamped), called
+    # the way `round.py apply` calls it, with no reprint option
+    import argparse
+
     v = json.loads(path.read_text())
     v["clauses"][0]["status"] = "NOT_EXERCISED"
     path.write_text(json.dumps(v))
     capsys.readouterr()
-    assert cardtool.main(["verify", "M21", "Wall of Runes", "--verdict", str(path), "--reviewer", "t"]) == 1
+    ns = argparse.Namespace(set="M21", card="Wall of Runes", verdict=str(path), reviewer="t", limit=80)
+    assert cardtool.cmd_verify(ns) == 1
     assert "G2: the judgments changed" in capsys.readouterr().out

@@ -156,6 +156,8 @@ an agent's messages).
   with a card verified in M21, M20 or FDN: 182 distinct cards, 9.4% of those sets' 4,308 cards.
 - Every one builds the home stamp's tree bytes in its own set. 340 are compiled cards, so the
   compiler alone gives the same tree; 64 are mapped cards, which take the home record's tree.
+  392 of the 404 are castable there today (of those sets' 3,722 castable cards); the other 12
+  become castable with the home tree.
 - Per set: M19 66, M14 31, M10 30, M13 30, M11 28, M12 27, M15 26, ORI 24, IKO 24, 10E 23,
   WAR 22, DOM 19, THB 16, ZNR 15, ELD 14, KHM 9. FDN itself holds 6 cards verified only in M20.
 - **None reused a stamp before this note.** The `verified` supply reads only its own set's
