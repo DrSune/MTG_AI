@@ -67,8 +67,9 @@ CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `learner_seats` (the 
 those games: two in a self game; the guard's mulligan rate is per seat), `voids`, `overflow` (the
 learner's asks answered by the fallback) and `throttled` (job requests refused while a full batch
 waited) are per update; before 2026-11-12 the last three were totals since the process started.
-`win` is the training win rate per opponent group; its `self` entry is half the decided seats by
-construction, a check of the crediting, and self games stay out of `win_set`.
+`win` is the training win rate per opponent group; its `self` entry is 0.5 over decided games by
+construction (one seat wins, the other loses), a check of the crediting, and self games stay out
+of `win_set`.
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
