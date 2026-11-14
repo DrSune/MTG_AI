@@ -115,6 +115,9 @@ Enforced while nobody watches:
 **Confounds, recorded before the data.**
 - The arms run one after the other on a shared machine, so CPU load from other jobs differs. The
   load per arm is logged, and the reads are per machine-hour of each arm.
-- Both arms start from a network trained on r28's code and pools.
+- Both arms start from a network trained on r28's code and pools. On main, `--refresh-table`
+  changes 13 rows of its card table and adds 12 component tokens: gate rounds 5-10's
+  `@once_per_event`, `role:arrange`, `EmblemSpec`, `PhasingEvent` and others. They start
+  untrained, in both arms alike (seen in the start script's CPU smoke, 2026-11-14).
 - B's batches may run over `--steps` when it is train-bound. Per decision, the optimizer steps
   are the same (one epoch, mb 4096). B training more decisions per hour is the lever itself.
