@@ -26,6 +26,7 @@ for _p in (HERE.parents[1], HERE):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
+import lints
 from probe import Probe
 
 from MTG_bot.core.ability_tree import (
@@ -186,6 +187,7 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
             and not any(isinstance(a, SpellAbility) for a in card.abilities)):
         fails.append("a permanent spell with no SpellAbility cannot be cast (add the carrier "
                      "SpellAbility(kind=SpellKind.<TYPE>) last, as the compiler does for creatures)")
+    fails += [f"lint {f}" for f in lints.lint(raw, card)]  # tree against text (lints.py)
     if clauses is not None:
         covered = " ".join(c.get("clause", "") for c in clauses)
         for sentence in raw.sentences:

@@ -1,0 +1,724 @@
+[
+ {
+  "lint": "costs",
+  "set": "M21",
+  "oracle_id": "6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51",
+  "name": "Azusa, Lost but Seeking",
+  "source": "git show 1f112e2e~1:MTG_bot/core/golden/M21/6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51.json",
+  "note": "'You may play two additional lands' compiled as a free activated ability; the network activated it up to 9 times a turn (KNOWLEDGE 184 section 2); fixed in 1f112e2e",
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": []
+    },
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "ADD_LAND_PLAY"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "count",
+         {
+          "tag": "QConst",
+          "value": 2
+         }
+        ],
+        [
+         "duration",
+         {
+          "tag": "DurationPermanent"
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ {
+  "lint": "players",
+  "set": "M21",
+  "oracle_id": "92acbbeb-f82b-413b-b243-f7a012f5400c",
+  "name": "Necromentia",
+  "source": "git show f6642f44~1:MTG_bot/core/golden/M21/92acbbeb-f82b-413b-b243-f7a012f5400c.json",
+  "note": "the compiler gave the caster the Zombies 'That player ... creates'; fixed in the M21 campaign's wave 4 (f6642f44)",
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CHOOSE_NAME"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "name_filter",
+          {
+           "tag": "FNot",
+           "inner": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUPERTYPE_EQ"
+              },
+              "string_value": "Basic",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "SEARCH"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "CHOOSE"
+             },
+             "filter": {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "NAME_CHOSEN"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "GRAVEYARD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "TARGET_OPPONENT"
+               }
+              },
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "HAND"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "TARGET_OPPONENT"
+               }
+              },
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "TARGET_OPPONENT"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "TARGET_OPPONENT"
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "EXILE"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_OPPONENT"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "EXILE"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "OWNER"
+             }
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "CHOOSE"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "ANY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ],
+             "referent": "result"
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "SHUFFLE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "zone",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "CREATE_TOKEN"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "count",
+            {
+             "tag": "QCount",
+             "selector": {
+              "tag": "Selector",
+              "count": {
+               "tag": "QUnbounded"
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "ALL"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "MOVED_TO_ZONE_THIS_TURN"
+                 },
+                 "string_value": null,
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": {
+                  "tag": "ControllerRef",
+                  "name": "TARGET_PLAYER"
+                 },
+                 "inner_filter": null,
+                 "from_zone": {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "HAND"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "TARGET_PLAYER"
+                  }
+                 },
+                 "to_zone": {
+                  "tag": "Zone",
+                  "kind": {
+                   "tag": "ZoneKind",
+                   "name": "EXILE"
+                  },
+                  "controller": {
+                   "tag": "ControllerRef",
+                   "name": "TARGET_PLAYER"
+                  }
+                 }
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "NAME_CHOSEN"
+                 },
+                 "string_value": null,
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "EXILE"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "TARGET_PLAYER"
+                }
+               }
+              ]
+             }
+            }
+           ],
+           [
+            "tokens",
+            {
+             "tag": "TokenSpec",
+             "name": "Zombie",
+             "type_line": "Creature — Zombie",
+             "types": [
+              "Creature"
+             ],
+             "subtypes": [
+              "Zombie"
+             ],
+             "power": {
+              "tag": "QConst",
+              "value": 2
+             },
+             "toughness": {
+              "tag": "QConst",
+              "value": 2
+             },
+             "keywords": [],
+             "abilities": [],
+             "colors": [
+              "B"
+             ]
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "lint": "players",
+  "set": "M21",
+  "oracle_id": "21fa2442-6eac-4dce-a9cc-76f0053fdb8f",
+  "name": "Peer into the Abyss",
+  "source": "git show 13c169ae~1:MTG_bot/core/golden/M21/21fa2442-6eac-4dce-a9cc-76f0053fdb8f.json",
+  "note": "the compiler dropped 'and loses half their life, rounded up'; found by the M21 fidelity audit (175), fixed in 13c169ae",
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "DIV"
+         },
+         "left": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            }
+           ]
+          }
+         },
+         "right": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "rounding": {
+          "tag": "Rounding",
+          "name": "CEIL"
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "TARGET_PLAYER"
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ {
+  "lint": "players",
+  "set": "FDN",
+  "oracle_id": "d13f0907-de39-4a90-940a-831740d7aa9b",
+  "name": "Pilfer",
+  "source": "git show fa6e00bc~1:MTG_bot/data/cards/FDN/d13f0907-de39-4a90-940a-831740d7aa9b.json (ir)",
+  "note": "FDN round 1's mapped record: 'Target opponent reveals their hand' written with TARGET_PLAYER; judged WRONG by the blind verifier (round_fdn_verify1), re-mapped in fa6e00bc",
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "REVEAL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "TARGET_PLAYER"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QUnbounded"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CHOOSE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Land",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "TARGET_PLAYER"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "TARGET_PLAYER"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "TARGET_PLAYER"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+]

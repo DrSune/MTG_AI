@@ -68,7 +68,7 @@ It was built on branch `cards/mapping`, which reached `main` with the `cards/int
 ## Gates: a card is dealt only when all pass
 | Gate | What | Fault it catches |
 |---|---|---|
-| G0 static | Strict decode and round trip. Printed fields equal ingest: cost, types, P/T, loyalty, colours. Every number in the text appears in the tree. MTGJSON keywords are present. Verbs are executor-supported. A composition never seen before is flagged. | Malformed trees, a changed printed cost or size, a dropped clause, a wrong number |
+| G0 static | Strict decode and round trip. Printed fields equal ingest: cost, types, P/T, loyalty, colours. Every number in the text appears in the tree. MTGJSON keywords are present. Verbs are executor-supported. A composition never seen before is flagged. The lints (`tools/cards/lints.py`, since 2026-11-14) check the tree against the text: who acts, each activated ability's cost, no number the text never prints, nothing on a permanent's cast carrier. | Malformed trees, a changed printed cost or size, a dropped clause, a wrong number, a flipped controller, a lost cost |
 | G1 behaviour probe | The engine plays the card on a standard board in every variant: each legal target, each mode, X ∈ {0, 1, 3}, each activated ability, each trigger with its stimulus (dies, attacks, upkeep, a spell cast, a creature entering). The trace holds journal events, the state diff and the asks offered. No exception is allowed, and the anomaly detectors (`tools/audit/detectors.py` D1–D6) must stay clean. | Executor bugs in a new context (B-43 bounce to seat 0), crashes, triggers that never fire |
 | G2 blind review | A verifier that did not map the card reads the oracle text, the tree and the traces, and rules on each clause: OK, WRONG or NOT EXERCISED. | Wrong meaning |
 | G3 adequacy (mutation analysis) | The card's tree is mutated with fault-model operators: amount ±1, until end of turn ↔ permanent, you ↔ opponent, target ↔ all, a dropped step, optional ↔ mandatory, a dropped cost, a widened filter, graveyard ↔ exile, hand ↔ battlefield, a widened trigger scope, a dropped keyword. A mutant whose trace equals the original's marks a part no evidence exercised. | A review that never saw the clause that matters |
@@ -110,6 +110,64 @@ It was built on branch `cards/mapping`, which reached `main` with the `cards/int
   honeypot and planted-fault rates.
 - **Keep the model family diverse.** Where possible, mapper and verifier come from different
   families (REVIEW_2026-10-24 A-7: one model as mapper, worker and gate gives correlated errors).
+
+## New set playbook (2026-11-14, from M21, M20 and FDN: KNOWLEDGE/2026-11-14/207)
+The order runs from free to dear. Each step's numbers are what the three sets cost.
+1. **Intake, no agents.** `tools/audit/new_set.py verify` (the source) and `first-touch` (the sealed
+   split), as for M20 and KHM (KNOWLEDGE 159).
+2. **Reprints, no agents.** `cardtool.py status SET` lists the printings that another set's
+   verified record covers (same oracle id and printed text). For each,
+   `cardtool.py verify SET "Card" --reprint-of HOME --reviewer <id>`.
+   - It stamps the card only when its tree here has the home stamp's bytes. It re-runs G0 and the
+     probe here, and the home packs and G3 in the home set, where their supporting cards are.
+   - In the 16 other ingested sets this is 404 printings of 182 cards: 9.4% of their 4,308 cards,
+     and 66 of M19's 299. Every one has the home stamp's tree bytes. A dry run stamps 402; the
+     other 2 need a pack for a G3 mutant newer than their home packs.
+   - Without it, M20 and FDN re-reviewed 62 cards already verified elsewhere (85 reviews).
+3. **Compiled cards, by blind review.**
+   - Batches of 30-38 packets, with planted faults (2 per batch, or 10-15%); verifiers from
+     another model family than the fixers.
+   - The lowest risk first: 416 cards of the 16 sets have every sentence word for word in a
+     verified card.
+   - Cost: 0.7-1.1 agent-minutes per packet. Real cards judged WRONG: 25% during the M21 campaign,
+     5% (26 of 490) since; 14 of those 26 were engine faults.
+   - The verifier runs `cardtool.py survivors` before reporting (MAPPER_GUIDE). Before it, 30 of
+     the 72 cards judged OK in waves 1-1e needed a second trip for G3.
+4. **Partly compiled cards, by mappers.**
+   - Cheapest first (the `status` worklist): 24 cards per mapper, 5 mappers at once, about 40
+     minutes a batch (1.75 agent-minutes per card).
+   - Give the second wave the first wave's lessons and its known engine faults: the M20 wave given
+     them needed 36-41 minutes a batch, the first wave 39-51.
+   - G0's lints run at `try`. 82 of M20's 237 attempts (35%) ended needs-atom, each naming the
+     missing piece.
+5. **A census before any IR work.**
+   - Group the needs-atom notes by missing piece, and count each piece's reach in every ingested
+     set. Wave 3's census turned M20's 55 castable-unverified cards into three packages.
+   - Build the widest piece first, one adversarial gate round per IR change: 7 rounds, about 40
+     agent-minutes each, 14 MAJOR findings at the gate.
+   - Design against what the gates found most: a second encoding the validator accepts, or a
+     role allowed where it means nothing (7 of the 14).
+6. **Engine faults at their cause.**
+   - A test that fails before the fix.
+   - The blast radius by script: trees changed, verified cards in and out, and 300-600 seeded
+     replays before and after.
+   - Re-verify the cards a merge touches: 34 stamps were re-made after tree changes, and 22 of
+     the 189 faults were played by cards already verified.
+   - Merge main into every lane before its gate round. One day of lanes took 11 catch-up merges
+     for 15 merges into main. `gates.py` and the BACKLOG conflicted in text, and two correct
+     fixes turned one pack red in meaning.
+7. **Soak (G5), then deal** the `verified` supply only.
+
+**Where the time goes.**
+- A card that needs no new component costs about 3 agent-minutes: mapping 1.75 when it needs
+  mapping, blind review about 1, G3 follow-up packs 0.1 on average.
+- A card that waits on an IR or engine change costs about 49. The backlog waves spent 2,141
+  agent-minutes for 44 newly verified cards: fixes 71%, gate rounds 13%, G3 rule work 7%,
+  verification 6%, the census 2%.
+- So the census and the gate rounds decide a set's pace.
+
+**The pace.** `cardtool.py status SET [SET ...]` prints, per set, the cards by state, the reprints
+it can carry over, and the verified cards by the date of their last stamp.
 
 ## Era boundary (merge)
 Done: the branch merged into `main` with `cards/integration` (a26578f, 2026-11-05). Training now
