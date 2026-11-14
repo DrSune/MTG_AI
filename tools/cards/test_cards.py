@@ -3,8 +3,11 @@ through the engine's own legality surface."""
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
+
+import pytest
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -151,3 +154,81 @@ def test_a_reverification_keeps_one_copy_of_a_pack_it_carries_again(tmp_path) ->
     (tmp_path / "tales_end_2.json").write_text('{"b": 2}')
     assert kept_pack_path(tmp_path, "tales_end", '{"b": 2}').name == "tales_end_2.json"
     assert kept_pack_path(tmp_path, "tales_end", '{"c": 3}').name == "tales_end_3.json"
+
+
+@pytest.mark.parametrize("code,name,home", [("M19", "Cancel", "M21"), ("M19", "Anticipate", "M20")])
+def test_a_reprint_carries_its_home_stamp_through_verify(tmp_path, monkeypatch, capsys, code, name, home) -> None:
+    """A printing in another set with the same printed text (text_sha) and the same tree bytes is
+    stamped by ``verify --reprint-of``: the home review, its packs and G3 run again in the home
+    set, the probe trace must be the same here, and the stamp is keyed to the tree bytes
+    (KNOWLEDGE 207: 404 such printings in the 16 other sets). Anticipate is a mapped card, so its
+    record's tree comes along. The record goes to a scratch directory here."""
+    import cardtool
+    import corpus
+
+    from MTG_bot.core.compiler import card_records
+
+    sc = corpus.compile_set(code)
+    oid = sc.by_name(name)
+    hrec = card_records.load_records(home)[oid]
+    monkeypatch.setattr(card_records, "RECORDS_DIR", tmp_path)
+    assert cardtool.main(["verify", code, name, "--reprint-of", home, "--reviewer", "t"]) == 0, capsys.readouterr().out
+    rec = json.loads((tmp_path / code / f"{oid}.json").read_text())
+    assert rec["verified"]["tree_sha"] == hrec["verified"]["tree_sha"]
+    assert rec["verified"]["reprint_of"] == home and rec["verified"]["packs"] == hrec["verified"]["packs"]
+    assert rec.get("ir") == hrec.get("ir") and rec["text_sha"] == hrec["text_sha"]
+    assert cardtool.main(["verify", code, name, "--reprint-of", "ZNR", "--reviewer", "t"]) == 1
+
+
+def _verdict(tmp_path: Path, **over: object) -> Path:
+    v = {"id": "A00", "verdict": "OK", "probe_sha": "sha-the-reviewer-read",
+         "clauses": [{"clause": "{T}: Scry 1.", "status": "OK", "evidence": "variant activate [0]", "issue": ""}],
+         "packs": [], **over}
+    path = tmp_path / "A00.json"
+    path.write_text(json.dumps(v))
+    return path
+
+
+def test_the_survivors_step_locks_the_judgments_before_it_shows_any(tmp_path, capsys) -> None:
+    """cardtool survivors (the verifier's G3 round trip, KNOWLEDGE 207): the first run fixes the
+    review's judgments in the verdict and a ledger, then names the critical mutants no pack of the
+    verdict kills; a pack that kills them clears the list. M21 Wall of Runes' scry is for "you"."""
+    import cardtool
+
+    path = _verdict(tmp_path)
+    assert cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)]) == 1
+    out = capsys.readouterr().out
+    assert "locked A00" in out and "controller YOU->OPPONENT at 1/0/effect/args/controller" in out
+    locked = json.loads(path.read_text())
+    assert locked["lock"]["sha"] == cardtool.judgments(locked)
+    assert json.loads((tmp_path / "locks.jsonl").read_text())["sha"] == locked["lock"]["sha"]
+    locked["packs"] = [str(HERE.parents[1] / "tools/scenarios/cards/M21/wall_of_runes_1.json")]
+    locked["clauses"][0]["evidence"] += "; pack wall_of_runes_1"  # evidence and packs may grow
+    path.write_text(json.dumps(locked))
+    assert cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)]) == 0
+    assert "0 critical survive your 1 pack(s)" in capsys.readouterr().out
+
+
+def test_a_judgment_changed_after_its_lock_is_refused(tmp_path, capsys) -> None:
+    import cardtool
+
+    path = _verdict(tmp_path, verdict="WRONG")
+    assert cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)]) == 0
+    v = json.loads(path.read_text())
+    assert cardtool.lock_problem(path, v) is None
+    v["verdict"] = "OK"  # the WRONG judgment turned OK once the survivors could be seen
+    path.write_text(json.dumps(v))
+    assert "judgments changed" in (cardtool.lock_problem(path, v) or "")
+    assert cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)]) == 1
+    assert "REFUSED" in capsys.readouterr().out
+    del v["lock"]  # locking again leaves a second ledger entry; the first one counts
+    path.write_text(json.dumps(v))
+    cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)])
+    assert "locked again" in (cardtool.lock_problem(path, json.loads(path.read_text())) or "")
+    # verify reads the lock too (refused on the trace as well here, so nothing is stamped)
+    v = json.loads(path.read_text())
+    v["clauses"][0]["status"] = "NOT_EXERCISED"
+    path.write_text(json.dumps(v))
+    capsys.readouterr()
+    assert cardtool.main(["verify", "M21", "Wall of Runes", "--verdict", str(path), "--reviewer", "t"]) == 1
+    assert "G2: the judgments changed" in capsys.readouterr().out
