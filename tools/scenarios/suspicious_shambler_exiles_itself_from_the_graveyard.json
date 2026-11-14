@@ -1,0 +1,12 @@
+{
+ "set": "FDN", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sham", "real": "Suspicious Shambler", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "activate", "key": "sham", "idx": 0, "seat": 0}
+ ],
+ "expect": {"zone": {"sham": "exile"}, "tokens": {"Zombie": 2}, "mana_pool": {"0": {}}},
+ "notes": "FDN Suspicious Shambler (the compiler's tree since ontology round R11): '{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens. Activate only as a sorcery.' The cost exiles the card from its graveyard, so the ability works only there (CR 113.6m); activated in its owner's main phase, it exiles itself and makes two Zombies. On the base 1d5e4164 the card was refused (its sorcery gate found no activated ability to attach to)."
+}

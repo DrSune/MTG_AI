@@ -27,8 +27,9 @@ Contract highlights:
   ``ARITH`` mana-array class of §3.3, not an enumerable option.
 * **Cost vocabulary** is the closed grammar union in ``ability_tree`` —
   ``CostTap / CostManaColor / CostManaGeneric / CostManaHybrid / CostLife /
-  CostSacrifice / CostDiscard / CostPutCounter / CostLoyalty``; there is no
-  exile-as-cost node. :class:`CardState` has no loyalty field, so the
+  CostSacrifice / CostDiscard / CostPutCounter / CostExile / CostRemoveCounter /
+  CostLoyalty`` (DESIGN_ATOM_ONTOLOGY §15: a cost part is not the verb atom it
+  mirrors). :class:`CardState` has no loyalty field, so the
   ``CostLoyalty`` ledger rides on its ``counters`` map under
   ``CounterKind.LOYALTY.name`` (seeded from the printed
   :attr:`CardIdentity.loyalty` at binding, :mod:`executor.binding`) and
@@ -82,6 +83,7 @@ from MTG_bot.core.ability_tree import (
     CostDeltaReduceMana,
     CostDeltaWaiveMana,
     CostDiscard,
+    CostExile,
     CostLife,
     CostLoyalty,
     CostManaColor,
@@ -89,6 +91,7 @@ from MTG_bot.core.ability_tree import (
     CostManaHybrid,
     CostModifier,
     CostPutCounter,
+    CostRemoveCounter,
     CostSacrifice,
     CostTap,
     CounterKind,
@@ -293,6 +296,10 @@ class PaymentPlan:
       pairs, sorted by key; ``tap``/``sacrifice``/``discard`` are the
       ``COST_TARGET:PTR*`` designations of the ACTIVATE schedule;
     * ``counters``  — (handle, CounterKind name, count) for CostPutCounter;
+    * ``exile``     — the objects CostExile parts exile (the witness);
+    * ``remove_counters`` — per CostRemoveCounter part, (pool, need, CounterKind
+      name, count): ``need`` of the pool's permanents each lose ``count``
+      counters of the kind; the witness is the pool's first ``need``;
     * ``loyalty``   — the signed CostLoyalty delta;
     * ``life``      — the CostLife amount (CR 119.4-checked).
     """
@@ -321,6 +328,11 @@ class PaymentPlan:
     # Deferred shapes and hand-built plans carry the default ().
     tap_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
     discard_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
+    # CostExile's objects, and every segment's full pool with its need, as for a sacrifice: the
+    # payer chooses which (CR 601.2h) when a segment offers more than it needs.
+    exile: tuple[Handle, ...] = ()
+    exile_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
+    remove_counters: tuple[tuple[tuple[Handle, ...], int, str, int], ...] = ()
 
 
 # ---------------------------------------------------------------- contexts
@@ -713,6 +725,10 @@ def build_payment_plan(
     discard_options_allowed = True
     discard: list[Handle] = []
     counters: list[tuple[Handle, str, int]] = []
+    exile: list[Handle] = []
+    exile_options: list[tuple[tuple[Handle, ...], int]] = []
+    remove_counters: list[tuple[tuple[Handle, ...], int, str, int]] = []
+    removing: dict[tuple[Handle, str], int] = {}  # the witness's counters, per permanent and kind
     life = 0
     loyalty = 0
     remaining: dict[str, int] = dict(world.players[ctx.controller].mana_pool)
@@ -991,6 +1007,33 @@ def build_payment_plan(
                 )
             n = resolve(part.count, ctx)
             counters.extend((h, part.counter_kind.name, n) for h in cands[:need])
+        elif isinstance(part, CostExile):
+            # CR 118.3: what is exiled must be there to exile, every object of it (CR 601.2h: no
+            # partial payment). An object another exile segment of this cost already takes is
+            # not there for this one.
+            cands = [h for h in enumerate_candidates(part.target, ctx) if h not in exile]
+            need = _required_count(part.target, ctx, len(cands))
+            if len(cands) < need:
+                return None, f"cost:exile:insufficient_candidates:{len(cands)}<{need}"
+            exile_options.append((tuple(cands), need))
+            exile.extend(cands[:need])
+        elif isinstance(part, CostRemoveCounter):
+            # CR 118.3: a permanent without that many counters of the kind can't pay ("Remove a
+            # +1/+1 counter from this creature" with none on it): the ability is not activated.
+            kind, n = part.counter_kind.name, resolve(part.count, ctx)
+            cands = [
+                h
+                for h in enumerate_candidates(part.target, ctx)
+                if world.cards[h].counters.get(kind, 0) - removing.get((h, kind), 0) >= n
+            ]
+            need = _required_count(part.target, ctx, len(cands))
+            if len(cands) < need:
+                return None, (
+                    f"cost:remove_counter:{kind}:insufficient_candidates:{len(cands)}<{need}"
+                )
+            remove_counters.append((tuple(cands), need, kind, n))
+            for h in cands[:need]:
+                removing[(h, kind)] = removing.get((h, kind), 0) + n
         elif isinstance(part, CostLife):
             amount = resolve(part.amount, ctx)
             payer = world.players[ctx.controller]
@@ -1088,6 +1131,9 @@ def build_payment_plan(
             if discard_options and discard_options_allowed
             else ()
         ),
+        exile=tuple(sorted(exile)),
+        exile_options=tuple(exile_options),
+        remove_counters=tuple(remove_counters),
     )
     return plan, None
 
@@ -1103,7 +1149,8 @@ def activation_zone(ability: ActivatedAbility) -> str:
     part deciding (the cost is paid first). Sanitarium Skeleton's "{2}{B}: Return this card from
     your graveyard to your hand" works from the graveyard and does nothing on the battlefield;
     Waker of Waves' "Discard this card:" works from the hand, a cost that can't be paid on the
-    battlefield (113.6j). The tree says it: a discard or sacrifice cost, or a MOVE_ZONE, of the
+    battlefield (113.6j); Soul of Zendikar's "Exile this card from your graveyard:" works from the
+    graveyard. The tree says it: a discard, sacrifice or exile cost, or a MOVE_ZONE, of the
     source itself (a selector naming IS_SOURCE, not "another"), out of zones of one kind (a
     discard from "hand or graveyard" names no zone, so it leaves the default)."""
     from MTG_bot.core.executor.selectors import (
@@ -1120,7 +1167,7 @@ def activation_zone(ability: ActivatedAbility) -> str:
         return ZONE_KIND_TO_STATE.get(kinds.pop())
 
     for part in ability.cost.parts:
-        if isinstance(part, (CostDiscard, CostSacrifice)):
+        if isinstance(part, (CostDiscard, CostSacrifice, CostExile)):
             zone = departure(part.target)
             if zone is not None:
                 return zone
@@ -1683,13 +1730,18 @@ def pay_costs(
     mana_use: Handle | None = None,
 ) -> None:
     """Execute a :class:`PaymentPlan` through the journalled verbs in the
-    order mana, tap, sacrifice, discard, counters, loyalty, life — taps,
-    sacrifices, discards and counters fire their journal events exactly
-    like effect atoms (TapState, ZONE_CHANGE, SACRIFICE…). Mana is the
+    order mana, tap, removed counters, sacrifice, exile, discard, put
+    counters, loyalty, life — taps, counters, sacrifices, exiles and discards
+    fire their journal events exactly like effect atoms (TapState,
+    ZONE_CHANGE, SACRIFICE…). The counters come off before a sacrifice or an
+    exile takes their permanent (Hellion Crucible's "Remove two pressure
+    counters from this land and sacrifice it": the payer pays in any order,
+    CR 601.2h, and only that order pays it all). Mana is the
     deterministic pool subtraction (no verb spends mana) with a
     ``PAY_MANA`` audit row on the executor event log. Where the plan
     recorded a real choice (``tap_options``, ``sacrifice_options``,
-    ``discard_options``), the payer picks through the decision channel.
+    ``discard_options``, ``exile_options``, a ``remove_counters`` pool larger
+    than its need), the payer picks through the decision channel.
 
     Each step is its own op, and none settles: casting and activating pay
     inside ``Executor.atomic`` (CR 601.2g-h, 602.2b), and an effect's payment
@@ -1735,6 +1787,25 @@ def pay_costs(
             controller=controller,
             bindings={"target": list(tapped)},
         )
+    for pool, need, kind_name, count in plan.remove_counters:
+        # WHICH permanent loses the counters is the payer's choice when the pool offers one (the
+        # remove_counter ask); "this creature" is forced.
+        holders = _ask_cost_choices(
+            executor, ((pool, need),), "remove_counter", source=source, controller=controller
+        )
+        for handle in holders:
+            executor.apply_effect(
+                _binding_atom(
+                    Verb.REMOVE_COUNTER,
+                    "target",
+                    [handle],
+                    counter_kind=CounterKind[kind_name],
+                    count=QConst(count),
+                ),
+                source=source,
+                controller=controller,
+                bindings={"target": [handle]},
+            )
     if plan.sacrifice:
         # WHO dies is the controller's decision, not an accident of Handle
         # order. When a segment's recorded pool really offers a choice
@@ -1755,6 +1826,26 @@ def pay_costs(
             source=source,
             controller=controller,
             bindings={"target": list(victims)},
+        )
+    if plan.exile:
+        # WHICH cards are exiled is the payer's choice when a segment offers more than it needs
+        # (the exile ask, as the sacrifice lane asks); "this creature" is forced. Each goes to its
+        # owner's exile (CR 400.3), from wherever it is.
+        exiled = plan.exile
+        if plan.exile_options:
+            exiled = _ask_cost_choices(
+                executor, plan.exile_options, "exile", source=source, controller=controller
+            )
+        executor.apply_effect(
+            _binding_atom(
+                Verb.MOVE_ZONE,
+                "cards",
+                exiled,
+                destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER),
+            ),
+            source=source,
+            controller=controller,
+            bindings={"cards": list(exiled)},
         )
     if plan.discard:
         # The discard-cost pool asks through the same lane as the sacrifice

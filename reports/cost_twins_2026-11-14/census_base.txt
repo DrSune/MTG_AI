@@ -1,0 +1,336 @@
+# Cost twins census, the 19 sets (ontology round R11, F3)
+cells: trees or items n(verified); '.' none
+
+## 1. Printed cost items, by shape (every lane)
+shape | M21 | ZNR | M20 | KHM | 10E | M10 | M11 | M12 | M13 | M14 | M15 | ORI | M19 | DOM | WAR | FDN | ELD | THB | IKO | total (verified)
+discard (other) | 7(7) | 2(0) | 3(0) | 2(0) | 1(0) | . | 1(0) | 1(0) | 3(0) | 2(0) | 2(0) | 2(0) | 3(0) | 1(0) | 3(0) | 2(1) | 3(0) | 3(0) | 2(0) | 43 (8)
+discard-self | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 45(0) | 46 (1)
+exile from a graveyard | . | . | 1(0) | 6(0) | . | . | . | 1(0) | . | . | . | 3(0) | 2(0) | 1(0) | . | . | . | 22(0) | 1(0) | 37 (0)
+exile-self (battlefield) | . | . | 1(0) | . | . | . | 1(0) | . | . | . | 1(0) | . | . | . | . | 1(0) | 1(0) | . | . | 5 (0)
+exile-self (graveyard) | . | . | . | 1(0) | . | . | . | . | . | . | 6(0) | . | . | . | . | 1(0) | . | . | . | 8 (0)
+life | 1(1) | . | 3(1) | 1(0) | . | . | 1(0) | . | 1(0) | 1(0) | 2(0) | 1(0) | . | . | . | 3(0) | 1(0) | . | . | 15 (2)
+mana | 44(43) | 28(0) | 57(45) | 60(0) | 65(0) | 23(0) | 25(0) | 32(0) | 38(0) | 39(0) | 60(0) | 32(0) | 43(0) | 30(0) | 27(0) | 64(18) | 60(0) | 63(0) | 73(0) | 863 (106)
+other | . | 1(0) | . | 2(0) | . | . | . | . | . | . | . | . | . | 2(0) | . | 1(0) | . | . | 1(0) | 7 (0)
+put-counter | 2(2) | . | . | . | . | . | . | . | . | . | 1(0) | . | . | . | . | 2(2) | . | . | . | 5 (4)
+remove-counter (another object) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1(0) | . | . | . | . | 1 (0)
+remove-counter (the source) | . | 2(0) | 1(0) | . | . | 1(0) | 1(0) | 2(0) | 1(0) | 1(0) | 1(0) | 1(0) | 4(0) | . | . | 4(0) | 3(0) | . | 2(0) | 24 (0)
+sacrifice (other) | 5(5) | 3(0) | 6(5) | 8(0) | 4(0) | 2(0) | 5(0) | 4(0) | 4(0) | 10(0) | 7(0) | 6(0) | 7(0) | 10(0) | 7(0) | 8(1) | 18(0) | 8(0) | 5(0) | 127 (11)
+sacrifice-self | 9(9) | 3(0) | 8(7) | 13(0) | 13(0) | 3(0) | 3(0) | 2(0) | 6(0) | 5(0) | 7(0) | 4(0) | 10(0) | 8(0) | 4(0) | 16(5) | 7(0) | 13(0) | 4(0) | 138 (21)
+tap (other) | 1(1) | 2(0) | 1(0) | 5(0) | . | . | 1(0) | 1(0) | 1(0) | . | . | 2(0) | . | 2(0) | 3(0) | 2(0) | 2(0) | 1(0) | 2(0) | 26 (1)
+tap-self {T} | 53(53) | 69(0) | 52(42) | 78(0) | 68(0) | 31(0) | 31(0) | 35(0) | 40(0) | 29(0) | 42(0) | 36(0) | 42(0) | 46(0) | 31(0) | 86(44) | 61(0) | 24(0) | 47(0) | 901 (139)
+
+## 1a. Printed costs that exile or remove counters: every item
+set | card | state | lane | shape | item | how the sentence compiles
+ELD | Inquisitive Puppet | partly-compiled | activated | exile-self (battlefield) | Exile this creature | UNPARSED (spell-effect)
+FDN | Feldon's Cane | partly-compiled | activated | exile-self (battlefield) | Exile this artifact | UNPARSED (activated)
+M11 | Brittle Effigy | partly-compiled | activated | exile-self (battlefield) | Exile this artifact | UNPARSED (activated)
+M15 | Perilous Vault | partly-compiled | activated | exile-self (battlefield) | Exile this artifact | UNPARSED (activated)
+M20 | Hanged Executioner | needs-atom | activated | exile-self (battlefield) | Exile this creature | UNPARSED (activated)
+FDN | Suspicious Shambler | refused | activated | exile-self (graveyard) | Exile this card from your graveyard | card refused
+KHM | Spectral Steel | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of Innistrad | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of New Phyrexia | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of Ravnica | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of Shandalar | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of Theros | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+M15 | Soul of Zendikar | partly-compiled | activated | exile-self (graveyard) | Exile this card from your graveyard | UNPARSED (activated)
+DOM | Fungal Plots | partly-compiled | activated | exile from a graveyard | Exile a creature card from your graveyard | UNPARSED (activated)
+IKO | Titans' Nest | partly-compiled | activated | exile from a graveyard | Exile a card from your graveyard | UNPARSED (spell-effect)
+KHM | Dread Rider | partly-compiled | activated | exile from a graveyard | Exile a creature card from your graveyard | UNPARSED (activated)
+KHM | Egon, God of Death // Throne of Death | partly-compiled | activated | exile from a graveyard | Exile a creature card from your graveyard | UNPARSED (activated)
+KHM | Littjara Glade-Warden | refused | activated | exile from a graveyard | Exile a creature card from your graveyard | card refused
+KHM | Stalwart Valkyrie | partly-compiled | alternative | exile from a graveyard | exile a creature card from your graveyard | UNPARSED (spell-effect)
+KHM | Vault Robber | partly-compiled | activated | exile from a graveyard | Exile a creature card from your graveyard | UNPARSED (activated)
+KHM | Weigh Down | partly-compiled | additional | exile from a graveyard | exile a creature card from your graveyard | UNPARSED (spell-effect)
+M12 | Grim Lavamancer | partly-compiled | activated | exile from a graveyard | Exile two cards from your graveyard | UNPARSED (activated)
+M19 | Bone Dragon | partly-compiled | activated | exile from a graveyard | Exile seven other cards from your graveyard | UNPARSED (activated)
+M19 | Graveyard Marshal | partly-compiled | activated | exile from a graveyard | Exile a creature card from your graveyard | UNPARSED (activated)
+M20 | Kethis, the Hidden Hand | needs-atom | activated | exile from a graveyard | Exile two legendary cards from your graveyard | UNPARSED (spell-effect)
+ORI | Despoiler of Souls | partly-compiled | activated | exile from a graveyard | Exile two other creature cards from your graveyard | UNPARSED (activated)
+ORI | Disciple of the Ring | partly-compiled | activated | exile from a graveyard | Exile an instant or sorcery card from your graveyard | UNPARSED (activated)
+ORI | Skaab Goliath | partly-compiled | additional | exile from a graveyard | exile two creature cards from your graveyard | UNPARSED (spell-effect)
+THB | Chainweb Aracnir | partly-compiled | keyword Escape | exile from a graveyard | Exile four other cards from your graveyard | UNPARSED (spell-effect)
+THB | Cling to Dust | partly-compiled | keyword Escape | exile from a graveyard | Exile five other cards from your graveyard | UNPARSED (spell-effect)
+THB | Elspeth, Sun's Nemesis | partly-compiled | keyword Escape | exile from a graveyard | Exile four other cards from your graveyard | UNPARSED (spell-effect)
+THB | Escape Velocity | partly-compiled | keyword Escape | exile from a graveyard | Exile two other cards from your graveyard | UNPARSED (spell-effect)
+THB | Fruit of Tizerus | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Glimpse of Freedom | partly-compiled | keyword Escape | exile from a graveyard | Exile five other cards from your graveyard | UNPARSED (spell-effect)
+THB | Kroxa, Titan of Death's Hunger | partly-compiled | keyword Escape | exile from a graveyard | Exile five other cards from your graveyard | UNPARSED (spell-effect)
+THB | Loathsome Chimera | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Mogis's Favor | partly-compiled | keyword Escape | exile from a graveyard | Exile two other cards from your graveyard | UNPARSED (spell-effect)
+THB | Ox of Agonas | partly-compiled | keyword Escape | exile from a graveyard | Exile eight other cards from your graveyard | UNPARSED (spell-effect)
+THB | Pharika's Spawn | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Phoenix of Ash | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Polukranos, Unchained | partly-compiled | keyword Escape | exile from a graveyard | Exile six other cards from your graveyard | UNPARSED (spell-effect)
+THB | Satyr's Cunning | partly-compiled | keyword Escape | exile from a graveyard | Exile two other cards from your graveyard | UNPARSED (spell-effect)
+THB | Sentinel's Eyes | partly-compiled | keyword Escape | exile from a graveyard | Exile two other cards from your graveyard | UNPARSED (spell-effect)
+THB | Sleep of the Dead | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Sweet Oblivion | partly-compiled | keyword Escape | exile from a graveyard | Exile four other cards from your graveyard | UNPARSED (spell-effect)
+THB | Underworld Charger | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Underworld Rage-Hound | partly-compiled | keyword Escape | exile from a graveyard | Exile three other cards from your graveyard | UNPARSED (spell-effect)
+THB | Uro, Titan of Nature's Wrath | partly-compiled | keyword Escape | exile from a graveyard | Exile five other cards from your graveyard | UNPARSED (spell-effect)
+THB | Voracious Typhon | partly-compiled | keyword Escape | exile from a graveyard | Exile four other cards from your graveyard | UNPARSED (spell-effect)
+THB | Woe Strider | partly-compiled | keyword Escape | exile from a graveyard | Exile four other cards from your graveyard | UNPARSED (spell-effect)
+ELD | Steelbane Hydra | partly-compiled | activated | remove-counter (the source) | Remove a +1/+1 counter from this creature | UNPARSED (activated)
+ELD | Tome of Legends | partly-compiled | activated | remove-counter (the source) | Remove a page counter from this artifact | UNPARSED (activated)
+ELD | Wishclaw Talisman | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this artifact | UNPARSED (activated)
+FDN | Drake Hatcher | partly-compiled | activated | remove-counter (the source) | Remove three incubation counters from this creature | UNPARSED (spell-effect)
+FDN | Myojin of Night's Reach | partly-compiled | activated | remove-counter (the source) | Remove a divinity counter from ~ | UNPARSED (spell-effect)
+FDN | Ramos, Dragon Engine | partly-compiled | activated | remove-counter (the source) | Remove five +1/+1 counters from ~ | UNPARSED (spell-effect)
+FDN | Wishclaw Talisman | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this artifact | UNPARSED (activated)
+IKO | Fertilid | partly-compiled | activated | remove-counter (the source) | Remove a +1/+1 counter from this creature | UNPARSED (activated)
+IKO | Ominous Seas | partly-compiled | activated | remove-counter (the source) | Remove eight foreshadow counters from this enchantment | UNPARSED (spell-effect)
+M10 | Djinn of Wishes | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this creature | UNPARSED (activated)
+M11 | Triskelion | partly-compiled | activated | remove-counter (the source) | Remove a +1/+1 counter from this creature | UNPARSED (spell-effect)
+M12 | Djinn of Wishes | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this creature | UNPARSED (activated)
+M12 | Pentavus | partly-compiled | activated | remove-counter (the source) | Remove a +1/+1 counter from this creature | UNPARSED (activated)
+M13 | Hellion Crucible | partly-compiled | activated | remove-counter (the source) | Remove two pressure counters from this land | UNPARSED (activated)
+M14 | Ring of Three Wishes | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this artifact | UNPARSED (activated)
+M15 | Cruel Sadist | partly-compiled | activated | remove-counter (the source) | Remove X +1/+1 counters from this creature | UNPARSED (activated)
+M19 | Djinn of Wishes | partly-compiled | activated | remove-counter (the source) | Remove a wish counter from this creature | UNPARSED (activated)
+M19 | Dragon's Hoard | partly-compiled | activated | remove-counter (the source) | Remove a gold counter from this artifact | UNPARSED (activated)
+M19 | Magistrate's Scepter | partly-compiled | activated | remove-counter (the source) | Remove three charge counters from this artifact | UNPARSED (activated)
+M19 | Transmogrifying Wand | refused | activated | remove-counter (the source) | Remove a charge counter from this artifact | card refused
+M20 | Barkhide Troll | needs-atom | activated | remove-counter (the source) | Remove a +1/+1 counter from this creature | UNPARSED (activated)
+ORI | Mage-Ring Network | partly-compiled | activated | remove-counter (the source) | Remove any number of storage counters from this land | UNPARSED (activated)
+ZNR | Relic Amulet | partly-compiled | activated | remove-counter (the source) | Remove all charge counters from this artifact | UNPARSED (activated)
+ZNR | Throne of Makindi | partly-compiled | activated | remove-counter (the source) | Remove a charge counter from this land | UNPARSED (activated)
+WAR | Soul Diviner | partly-compiled | activated | remove-counter (another object) | Remove a counter from an artifact, creature, land, or planeswalker you control | UNPARSED (activated)
+
+75 items on 75 printings (72 names); by lane: activated 50, keyword Escape 22, additional 2, alternative 1
+by shape: exile from a graveyard 37, remove-counter (the source) 24, exile-self (graveyard) 8, exile-self (battlefield) 5, remove-counter (another object) 1
+by state: partly-compiled 69, needs-atom 3, refused 3
+
+## 1b. Printed cost items no shape above reads (every lane)
+DOM | Multani, Yavimaya's Avatar | partly-compiled | activated | other | Return two lands you control to their owner's hand | UNPARSED (activated)
+DOM | Torgaar, Famine Incarnate | partly-compiled | additional | other | you may sacrifice any number of creatures | UNPARSED (spell-effect)
+FDN | Maze's End | partly-compiled | activated | other | Return this land to its owner's hand | UNPARSED (activated)
+IKO | Charge of the Forever-Beast | partly-compiled | additional | other | reveal a creature card from your hand | UNPARSED (spell-effect)
+KHM | Icebreaker Kraken | partly-compiled | activated | other | Return three snow lands you control to their owner's hand | UNPARSED (spell-effect)
+KHM | Surtland Elementalist | partly-compiled | additional | other | reveal a Giant card from your hand or pay {2} | UNPARSED (spell-effect)
+ZNR | Zareth San, the Trickster | partly-compiled | activated | other | Return an unblocked attacking Rogue you control to its owner's hand | UNPARSED (activated)
+
+## 2. Compiled trees (records applied) holding each cost part
+shape | M21 | ZNR | M20 | KHM | 10E | M10 | M11 | M12 | M13 | M14 | M15 | ORI | M19 | DOM | WAR | FDN | ELD | THB | IKO | total (verified)
+CostDiscard(another) | 7(7) | 1(0) | . | 1(0) | . | . | . | . | 1(0) | 1(0) | . | . | 1(0) | . | 1(0) | 2(1) | 1(0) | 1(0) | . | 17 (8)
+CostDiscard(the source) | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1 (1)
+CostLife | 1(1) | . | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 2 (2)
+CostLoyalty | 11(9) | 3(0) | 9(9) | 2(0) | . | 2(0) | 2(0) | 4(0) | 4(0) | 2(0) | 1(0) | 3(0) | 6(0) | 2(0) | 15(0) | 4(1) | 2(0) | 3(0) | 2(0) | 77 (19)
+CostPutCounter(the source) | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1(1) | . | . | . | 2 (2)
+CostSacrifice(another) | 5(5) | 1(0) | 5(5) | 1(0) | . | . | 1(0) | 1(0) | . | 1(0) | 1(0) | 2(0) | 4(0) | . | 1(0) | 2(1) | 1(0) | . | 1(0) | 27 (11)
+CostSacrifice(the source) | 10(10) | . | 9(9) | . | 1(0) | 1(0) | 1(0) | . | 2(0) | . | 2(0) | 1(0) | . | . | . | 7(7) | 2(0) | . | 1(0) | 37 (26)
+CostTap(another) | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1 (1)
+CostTap({T}: the source) | 49(49) | 47(0) | 47(44) | 31(0) | 31(0) | 17(0) | 19(0) | 22(0) | 18(0) | 12(0) | 20(0) | 21(0) | 24(0) | 24(0) | 18(0) | 56(45) | 29(0) | 16(0) | 21(0) | 522 (138)
+
+## 2a. Compiled trees holding each verb atom the parts mirror
+shape | M21 | ZNR | M20 | KHM | 10E | M10 | M11 | M12 | M13 | M14 | M15 | ORI | M19 | DOM | WAR | FDN | ELD | THB | IKO | total (verified)
+verb DISCARD | . | 1(0) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1 (0)
+verb MOVE_ZONE -> exile | 19(16) | 2(0) | 11(10) | 4(0) | . | . | . | . | 2(0) | 2(0) | 1(0) | 1(0) | 1(0) | 2(0) | 6(0) | 8(7) | 3(0) | 6(0) | 4(0) | 72 (33)
+verb MOVE_ZONE hand -> graveyard (discard) | 17(15) | 1(0) | 9(9) | . | 3(0) | 3(0) | 2(0) | 2(0) | 2(0) | 2(0) | 2(0) | 4(0) | 3(0) | . | 1(0) | 5(5) | 2(0) | 1(0) | 1(0) | 60 (29)
+verb PUT_COUNTER | 28(28) | 16(0) | 20(19) | 3(0) | 1(0) | 1(0) | 2(0) | . | 3(0) | 4(0) | 4(0) | . | 3(0) | 3(0) | 12(0) | 17(10) | 2(0) | 1(0) | 2(0) | 122 (57)
+verb REMOVE_COUNTER | 1(1) | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | . | 1 (1)
+verb SACRIFICE | 4(4) | . | 3(3) | . | . | . | . | . | . | . | . | . | . | . | . | 1(1) | . | . | . | 8 (8)
+verb TAP | 8(8) | 5(0) | 4(3) | 2(0) | 1(0) | 1(0) | 2(0) | 3(0) | . | 4(0) | 3(0) | 5(0) | 2(0) | 1(0) | . | 1(1) | 5(0) | 1(0) | 5(0) | 53 (12)
+
+## 2b. Where the compiled cost parts sit (parts, all sets)
+activated | CostDiscard(another) | 5
+activated | CostDiscard(the source) | 1
+activated | CostLife | 2
+activated | CostLoyalty | 124
+activated | CostPutCounter(the source) | 4
+activated | CostSacrifice(another) | 8
+activated | CostSacrifice(the source) | 37
+activated | CostTap(another) | 1
+activated | CostTap({T}: the source) | 573
+additional | CostDiscard(another) | 12
+additional | CostSacrifice(another) | 19
+
+## 3. The F3 fold's reach: trees whose bytes change if CostSacrifice, CostDiscard, CostTap and
+##    CostPutCounter became the verb atoms they mirror (verified trees re-bake and leave the pool)
+set | trees (verified), every {T} included | trees (verified), the {T} symbol kept as a part
+M21 | 63 (63) | 25 (25)
+ZNR | 48 (0) | 2 (0)
+M20 | 54 (51) | 14 (14)
+KHM | 33 (0) | 2 (0)
+10E | 31 (0) | 1 (0)
+M10 | 17 (0) | 1 (0)
+M11 | 20 (0) | 2 (0)
+M12 | 23 (0) | 1 (0)
+M13 | 19 (0) | 3 (0)
+M14 | 14 (0) | 2 (0)
+M15 | 21 (0) | 3 (0)
+ORI | 23 (0) | 3 (0)
+M19 | 29 (0) | 5 (0)
+DOM | 24 (0) | 0 (0)
+WAR | 20 (0) | 2 (0)
+FDN | 63 (50) | 12 (10)
+ELD | 31 (0) | 4 (0)
+THB | 17 (0) | 1 (0)
+IKO | 22 (0) | 2 (0)
+total | 572 (164) | 85 (49)
+
+## 3a. The verified trees the fold re-bakes, with the twin parts each holds
+FDN | Azorius Guildgate | CostTap
+FDN | Bloodfell Caves | CostTap
+FDN | Blossoming Sands | CostTap
+FDN | Boros Guildgate | CostTap
+FDN | Cathar Commando | CostSacrifice
+FDN | Dimir Guildgate | CostTap
+FDN | Dismal Backwater | CostTap
+FDN | Druid of the Cowl | CostTap
+FDN | Evolving Wilds | CostSacrifice, CostTap
+FDN | Forest | CostTap
+FDN | Gleaming Barrier | CostSacrifice, CostTap
+FDN | Goblin Firebomb | CostSacrifice, CostTap
+FDN | Goblin Smuggler | CostTap
+FDN | Goldvein Pick | CostSacrifice, CostTap
+FDN | Golgari Guildgate | CostTap
+FDN | Gruul Guildgate | CostTap
+FDN | Heartfire Immolator | CostSacrifice
+FDN | Hungry Ghoul | CostSacrifice
+FDN | Imperious Perfect | CostTap
+FDN | Island | CostTap
+FDN | Izzet Guildgate | CostTap
+FDN | Jungle Hollow | CostTap
+FDN | Llanowar Elves | CostTap
+FDN | Mazemind Tome | CostPutCounter, CostTap
+FDN | Mountain | CostTap
+FDN | Orzhov Guildgate | CostTap
+FDN | Plains | CostTap
+FDN | Rakdos Guildgate | CostTap
+FDN | Rugged Highlands | CostTap
+FDN | Scoured Barrens | CostTap
+FDN | Selesnya Guildgate | CostTap
+FDN | Simic Guildgate | CostTap
+FDN | Strix Lookout | CostTap
+FDN | Swamp | CostTap
+FDN | Swiftwater Cliffs | CostTap
+FDN | Temple of Abandon | CostTap
+FDN | Temple of Deceit | CostTap
+FDN | Temple of Enlightenment | CostTap
+FDN | Temple of Epiphany | CostTap
+FDN | Temple of Malady | CostTap
+FDN | Temple of Malice | CostTap
+FDN | Temple of Mystery | CostTap
+FDN | Temple of Plenty | CostTap
+FDN | Temple of Silence | CostTap
+FDN | Temple of Triumph | CostTap
+FDN | Thornwood Falls | CostTap
+FDN | Thrashing Brontodon | CostSacrifice
+FDN | Thrill of Possibility | CostDiscard
+FDN | Tranquil Cove | CostTap
+FDN | Wind-Scarred Crag | CostTap
+M20 | Bag of Holding | CostSacrifice, CostTap
+M20 | Blood for Bones | CostSacrifice
+M20 | Bloodfell Caves | CostTap
+M20 | Blossoming Sands | CostTap
+M20 | Bone Splinters | CostSacrifice
+M20 | Brightwood Tracker | CostTap
+M20 | Chandra's Embercat | CostTap
+M20 | Cryptic Caves | CostSacrifice, CostTap
+M20 | Destructive Digger | CostSacrifice, CostTap
+M20 | Dismal Backwater | CostTap
+M20 | Elvish Reclaimer | CostSacrifice, CostTap
+M20 | Ember Hauler | CostSacrifice
+M20 | Evolving Wilds | CostSacrifice, CostTap
+M20 | Forest | CostTap
+M20 | Gift of Paradise | CostTap
+M20 | Goblin Smuggler | CostTap
+M20 | Hard Cover | CostTap
+M20 | Icon of Ancestry | CostTap
+M20 | Island | CostTap
+M20 | Jungle Hollow | CostTap
+M20 | Kykar, Wind's Fury | CostSacrifice
+M20 | Leafkin Druid | CostTap
+M20 | Lotus Field | CostTap
+M20 | Manifold Key | CostTap
+M20 | Mask of Immolation | CostSacrifice
+M20 | Mountain | CostTap
+M20 | Mu Yanling, Sky Dancer | CostTap
+M20 | Plains | CostTap
+M20 | Portal of Sanctuary | CostTap
+M20 | Rapacious Dragon | CostSacrifice, CostTap
+M20 | Retributive Wand | CostTap
+M20 | Rugged Highlands | CostTap
+M20 | Salvager of Ruin | CostSacrifice
+M20 | Scoured Barrens | CostTap
+M20 | Sorcerer of the Fang | CostTap
+M20 | Sorin, Vampire Lord | CostTap
+M20 | Soulmender | CostTap
+M20 | Steel Overseer | CostTap
+M20 | Swamp | CostTap
+M20 | Swiftwater Cliffs | CostTap
+M20 | Temple of Epiphany | CostTap
+M20 | Temple of Malady | CostTap
+M20 | Temple of Mystery | CostTap
+M20 | Temple of Silence | CostTap
+M20 | Temple of Triumph | CostTap
+M20 | Thornwood Falls | CostTap
+M20 | Thrashing Brontodon | CostSacrifice
+M20 | Tranquil Cove | CostTap
+M20 | Vial of Dragonfire | CostSacrifice, CostTap
+M20 | Wind-Scarred Crag | CostTap
+M20 | Woodland Mystic | CostTap
+M21 | Animal Sanctuary | CostTap
+M21 | Bloodfell Caves | CostTap
+M21 | Blossoming Sands | CostTap
+M21 | Brash Taunter | CostTap
+M21 | Caged Zombie | CostTap
+M21 | Celestial Enforcer | CostTap
+M21 | Chandra's Magmutt | CostTap
+M21 | Chromatic Orrery | CostTap
+M21 | Dismal Backwater | CostTap
+M21 | Fabled Passage | CostSacrifice, CostTap
+M21 | Forest | CostTap
+M21 | Gadrak, the Crown-Scourge | CostSacrifice, CostTap
+M21 | Ghostly Pilferer | CostDiscard
+M21 | Goremand | CostSacrifice
+M21 | Heartfire Immolator | CostSacrifice
+M21 | Hobblefiend | CostSacrifice
+M21 | Idol of Endurance | CostTap
+M21 | Island | CostTap
+M21 | Jungle Hollow | CostTap
+M21 | Leafkin Avenger | CostTap
+M21 | Liliana's Steward | CostSacrifice, CostTap
+M21 | Llanowar Visionary | CostTap
+M21 | Mazemind Tome | CostPutCounter, CostTap
+M21 | Meteorite | CostTap
+M21 | Mountain | CostTap
+M21 | Niambi, Esteemed Speaker | CostDiscard, CostTap
+M21 | Obsessive Stitcher | CostSacrifice, CostTap
+M21 | Palladium Myr | CostTap
+M21 | Plains | CostTap
+M21 | Portcullis Vine | CostSacrifice, CostTap
+M21 | Radiant Fountain | CostTap
+M21 | Rin and Seri, Inseparable | CostTap
+M21 | Rugged Highlands | CostTap
+M21 | Sanctum of Shattered Heights | CostDiscard
+M21 | Scoured Barrens | CostTap
+M21 | Seasoned Hallowblade | CostDiscard
+M21 | Selfless Savior | CostSacrifice
+M21 | Shacklegeist | CostTap, CostTap(another)
+M21 | Silent Dart | CostSacrifice, CostTap
+M21 | Silversmote Ghoul | CostSacrifice
+M21 | Sparkhunter Masticore | CostDiscard
+M21 | Speaker of the Heavens | CostTap
+M21 | Subira, Tulzidi Caravanner | CostDiscard, CostTap
+M21 | Swamp | CostTap
+M21 | Swiftwater Cliffs | CostTap
+M21 | Tavern Swindler | CostTap
+M21 | Teferi's Protege | CostTap
+M21 | Tempered Veteran | CostTap
+M21 | Temple of Epiphany | CostTap
+M21 | Temple of Malady | CostTap
+M21 | Temple of Mystery | CostTap
+M21 | Temple of Silence | CostTap
+M21 | Temple of Triumph | CostTap
+M21 | Thornwood Falls | CostTap
+M21 | Thrashing Brontodon | CostSacrifice
+M21 | Thrill of Possibility | CostDiscard
+M21 | Tormod's Crypt | CostSacrifice, CostTap
+M21 | Tranquil Cove | CostTap
+M21 | Village Rites | CostSacrifice
+M21 | Vodalian Arcanist | CostTap
+M21 | Waker of Waves | CostDiscard
+M21 | Wind-Scarred Crag | CostTap
+M21 | Witch's Cauldron | CostSacrifice, CostTap

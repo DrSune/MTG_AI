@@ -17,8 +17,10 @@ from MTG_bot.core.ability_tree import (
     Choose,
     ControllerRef,
     Cost,
+    CostExile,
     CostManaColor,
     CostManaGeneric,
+    CostRemoveCounter,
     CostTap,
     CounterKind,
     DeclareBlockersEvent,
@@ -65,7 +67,10 @@ _COST = rf"(?P<cost>{_COST_TOKEN}({_COST_SEP}{_COST_TOKEN})*)"
 
 def _parse_cost(m: re.Match[str]) -> Cost:
     """Parse the 'cost' group into a Cost node."""
-    cost_str = m.group("cost")
+    return Cost(parts=_cost_tokens(m.group("cost")))
+
+
+def _cost_tokens(cost_str: str) -> tuple[CostTap | CostManaColor | CostManaGeneric, ...]:
     tokens = re.findall(r"\{([0-9WUBRGT]+)\}", cost_str)
     parts: list[CostTap | CostManaColor | CostManaGeneric] = []
     for tok in tokens:
@@ -76,7 +81,67 @@ def _parse_cost(m: re.Match[str]) -> Cost:
         else:
             for ch in tok:
                 parts.append(CostManaColor(ch, QConst(1)))
-    return Cost(parts=tuple(parts))
+    return tuple(parts)
+
+
+# The exile and remove-counter cost items (ontology R11, DESIGN_ATOM_ONTOLOGY §15), after the mana
+# and {T} tokens: "{3}{W}, Exile this creature" (Hanged Executioner), "Exile this card from your
+# graveyard" (Soul of Zendikar), "Exile a creature card from your graveyard" (Fungal Plots),
+# "Remove a +1/+1 counter from this creature" (Steelbane Hydra). frames.B13-activated-cost-item
+# composes them with an effect clause. A counter kind the IR lacks (wish, gold, ...) is no match.
+_COUNT_WORDS = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+                "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+_COUNTER_WORDS = {"+1/+1": CounterKind.PLUS_1_PLUS_1, "-1/-1": CounterKind.MINUS_1_MINUS_1,
+                  "charge": CounterKind.CHARGE, "page": CounterKind.PAGE,
+                  "soul": CounterKind.SOUL, "incarnation": CounterKind.INCARNATION}
+_COUNT_ALT = "|".join(_COUNT_WORDS)
+_KIND_ALT = "|".join(re.escape(k) for k in _COUNTER_WORDS)
+_SELF_NOUN = r"(?:artifact|creature|enchantment|land|permanent)"
+_EXILE_SELF = re.compile(rf"Exile this {_SELF_NOUN}")
+_EXILE_SELF_GRAVEYARD = re.compile(r"Exile this card from your graveyard")
+_EXILE_GRAVEYARD = re.compile(
+    rf"Exile (?P<n>{_COUNT_ALT}) (?P<other>other )?(?:(?P<type>artifact|creature|land) )?cards? "
+    r"from your graveyard")
+_REMOVE_SELF = re.compile(rf"Remove (?P<n>{_COUNT_ALT}) (?P<kind>{_KIND_ALT}) counters? from this {_SELF_NOUN}")
+COST_ITEM = "|".join(p.pattern for p in (_EXILE_SELF, _EXILE_SELF_GRAVEYARD, _EXILE_GRAVEYARD, _REMOVE_SELF))
+COST_ITEM = re.sub(r"\(\?P<\w+>", "(?:", COST_ITEM)  # the frame's own groups name the item
+
+
+def _cost_self(zone: Zone) -> Selector:
+    """The source as a cost's object: "this creature" (CHOOSE over IS_SOURCE, MAPPER_GUIDE)."""
+    return Selector(QConst(1), SelectorMode.CHOOSE, FAtom(pred=FAtomPred.IS_SOURCE), zones=(zone,))
+
+
+def cost_item(text: str) -> CostExile | CostRemoveCounter:
+    """One exile or remove-counter cost item (``COST_ITEM``) as its cost part."""
+    if _EXILE_SELF.fullmatch(text):
+        return CostExile(target=_cost_self(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)))
+    if _EXILE_SELF_GRAVEYARD.fullmatch(text):
+        return CostExile(target=_cost_self(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)))
+    m = _EXILE_GRAVEYARD.fullmatch(text)
+    if m is not None:
+        parts = []
+        if m.group("type"):
+            parts.append(FAtom(pred=FAtomPred.TYPE_EQ, string_value=m.group("type").capitalize()))
+        if m.group("other"):
+            parts.append(FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)))
+        filt = parts[0] if len(parts) == 1 else FAnd(children=tuple(parts))
+        return CostExile(target=Selector(QConst(_COUNT_WORDS[m.group("n")]), SelectorMode.CHOOSE, filt,
+                                         zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)))
+    m = _REMOVE_SELF.fullmatch(text)
+    if m is None:
+        raise ValueError(f"cost_item: not an exile or remove-counter cost: {text!r}")
+    return CostRemoveCounter(
+        counter_kind=_COUNTER_WORDS[m.group("kind")],
+        target=_cost_self(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+        count=QConst(_COUNT_WORDS[m.group("n")]),
+    )
+
+
+def cost_with_item(m: re.Match[str]) -> Cost:
+    """The B13-activated-cost-item frame's cost: its mana and {T} tokens, if any, and its item."""
+    tokens = _cost_tokens(m.group("cost")) if m.group("cost") else ()
+    return Cost(parts=(*tokens, cost_item(m.group("item"))))
 
 
 # ---------------------------------------------------------------------------

@@ -931,7 +931,7 @@ def test_a_chosen_quality_and_its_menu_reach_the_encoding(table) -> None:
     its component embedding."""
     from MTG_bot.bench.protocol import Ask, Option
 
-    assert FT.ASK_KINDS[-1] == "quality" and "quality" not in FT.ASK_GROWN_FROM
+    assert FT.ASK_INDEX["quality"] > FT.ASK_INDEX["arrange"] and "quality" not in FT.ASK_GROWN_FROM
     game, _router, _me = _teach(field0=("Diamond Mare", "Mountain"), set_code="FDN")
     mare = _named(game, "Diamond Mare")
     ir = table.ir_index
@@ -993,6 +993,69 @@ def test_no_chosen_value_adds_nothing_to_the_tokens(table) -> None:
         net.ir_emb.weight[0] = -1.0
         x2, _ = net.tokens(batch)
     assert torch.equal(x1, x2)
+
+
+def test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did(table, tmp_path) -> None:
+    """Ontology round R11 (DESIGN_ATOM_ONTOLOGY §15): which objects a cost exiles and which
+    permanent it removes counters from (CR 601.2h) are two ask kinds of their own, appended last
+    and grown from "other": no tree held the two cost parts before, so neither ask was ever
+    encoded. The round adds no input column (the widths below are the base's), so a checkpoint
+    from before the two kinds computes bitwise what it did on every decision of the kinds it
+    knew: tokens, logits and value on the heuristic's decisions of an FDN game."""
+    from MTG_bot.bench.protocol import SEAT_IN_TAG, Ask, Option
+
+    new = ("exile", "remove_counter")
+    assert FT.ASK_KINDS[-2:] == new and set(new) <= SEAT_IN_TAG and not set(new) & set(FT.ASK_GROWN_FROM)
+    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (8, 62, 18, 23, 5)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    with torch.no_grad():
+        for p in net.parameters():
+            p.normal_(0, 0.1)
+    path = tmp_path / "old.pt"
+    M.save(str(path), net, table)
+    ck = torch.load(path, weights_only=False)
+    ck["state"]["ask_emb.weight"] = ck["state"]["ask_emb.weight"][:FT.ASK_INDEX["exile"]].clone()
+    torch.save(ck, path)
+    old, _, _ = M.load(str(path))
+    w = old.ask_emb.weight.data
+    assert all(torch.equal(w[FT.ASK_INDEX[k]], w[FT.ASK_INDEX["other"]]) for k in new)
+    batches = []
+
+    class Recording(HeuristicAgent):
+        def decide(self, ask, obs):
+            if len(batches) < 48 and len(ask.options) <= FT.MAX_OPTIONS:
+                batches.append(FT.encode(obs.executor, ask.seat, ask, table))
+            return super().decide(ask, obs)
+
+    play_game(3, [Recording(), Recording()], pool_mode="castable", set_code="FDN")
+    assert len(batches) == 48 and int(max(int(b["ask_i"][0]) for b in batches)) < FT.ASK_INDEX["exile"]
+    b = M.collate(batches, "cpu")
+    with torch.no_grad():
+        for got, want in zip((old.tokens(b)[0], *old(b)), (net.tokens(b)[0], *net(b)), strict=True):
+            assert torch.equal(got, want)
+    game, _router, me = _teach(hand0=("Fierce Empath",))
+    card = _named(game, "Fierce Empath")
+    ask = Ask(seat=0, kind="exile", site=f"exile:{me}:{card}:00", prompt="",
+              options=(Option(str(card), "the Empath"),))
+    assert int(FT.encode(game.executor, 0, ask, table)["ask_i"][0]) == FT.ASK_INDEX["exile"]
+
+
+def test_heuristic_exiles_the_cheapest_card_a_cost_offers() -> None:
+    """The heuristic pays an exile cost's choice with the card of lowest mana value."""
+    from MTG_bot.bench.agents import Observation
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.bench.test_router import _lenses
+    from MTG_bot.core.state import ZONE_GRAVEYARD
+
+    game, _router, me = _teach(hand0=("Fierce Empath", "Walking Corpse"))
+    cards = sorted(game.world.players[me].zone(ZONE_HAND).entries)
+    for h in cards:
+        game.world.move_to_zone(h, me, ZONE_GRAVEYARD)
+    for options in (cards, cards[::-1]):
+        ask = Ask(seat=0, kind="exile", site=f"exile:{me}:{cards[0]}:00", prompt="",
+                  options=tuple(Option(str(h), str(h)) for h in options))
+        pick = options[HeuristicAgent().decide(ask, Observation(_lenses()[0], game.executor))]
+        assert game.world.cards[pick].identity.name == "Walking Corpse"  # 2, the Empath 3
 
 
 def test_heuristic_chooses_the_quality_its_cards_share() -> None:

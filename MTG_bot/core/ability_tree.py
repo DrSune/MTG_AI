@@ -2544,6 +2544,89 @@ class CostPutCounter:
             )
 
 
+#: The zones a cost may exile from: the source on the battlefield (Hanged Executioner), a card in
+#: a graveyard (Soul of Zendikar's own; Kethis's two legendary cards), a card in a hand. No exile
+#: cost of the 19 sets takes a card from a library, which would also unmake a mana ability (CR
+#: 605.1a), from the stack or from exile.
+_COST_EXILE_ZONES = frozenset({ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD, ZoneKind.HAND})
+
+
+def _check_cost_designation(part: str, sel: object, zones: frozenset[ZoneKind]) -> None:
+    """A cost's objects are chosen by the payer as the cost is paid (CR 601.2h), never targeted
+    (targets are chosen earlier, CR 601.2c) and never "it": a CHOOSE selector with a literal count
+    of one or more ("a", "two", "this creature"), no referent, over ``zones``. X, "all" and "any
+    number" are other amounts no printed cost of these parts has; each comes with its card."""
+    if not isinstance(sel, Selector):
+        raise ValueError(f"{part}: target must be a Selector, got {type(sel).__name__}")
+    if sel.mode is not SelectorMode.CHOOSE or sel.referent is not None:
+        raise ValueError(
+            f"{part}: the payer chooses the objects as they pay (CR 601.2h): a CHOOSE selector "
+            f"with no referent, got mode {sel.mode.name}, referent {sel.referent!r}"
+        )
+    if not (isinstance(sel.count, QConst) and sel.count.value >= 1):
+        raise ValueError(f"{part}: the count is a literal of 1 or more, got {sel.count!r}")
+    if any(zone.kind not in zones for zone in sel.zones):
+        raise ValueError(
+            f"{part}: zones must be among {sorted(z.name for z in zones)}, got "
+            f"{[zone.kind.name for zone in sel.zones]}"
+        )
+
+
+@dataclass(frozen=True)
+class CostExile:
+    """Exile the selected object(s) as a cost: "Exile this creature" (Hanged Executioner),
+    "Exile this card from your graveyard" (Soul of Zendikar, whose ability then works only there,
+    CR 113.6m: ``legality.activation_zone``), "Exile two legendary cards from your graveyard"
+    (Kethis, the Hidden Hand).
+
+    A cost, not MOVE_ZONE in the effect (ledger F3, DESIGN_ATOM_ONTOLOGY §15): it is paid while
+    the ability is activated, before anyone can respond (CR 601.2h, 602.2b, 117.3c), all of it or
+    the ability is not activated (CR 118.3, 601.2h), and it stays paid if the ability is later
+    countered or its targets are gone (CR 608.2b). The payer chooses which objects
+    (``legality.pay_costs``, the ``exile`` ask) when the selector offers more than it needs."""
+
+    target: Selector
+
+    def __post_init__(self) -> None:
+        _check_cost_designation("CostExile", self.target, _COST_EXILE_ZONES)
+
+
+@dataclass(frozen=True)
+class CostRemoveCounter:
+    """Remove ``count`` counters of one kind from the selected permanent as a cost, CostPutCounter's
+    twin: "Remove a +1/+1 counter from this creature" (Barkhide Troll), "Remove three charge
+    counters from this artifact" (Magistrate's Scepter). A permanent without that many counters
+    of the kind can't pay it (CR 118.3), and the ability is not activated.
+
+    Refused until a card brings its tests: LOYALTY (a loyalty ability's cost is CostLoyalty, CR
+    606.4); a count other than a literal of 1 or more ("Remove X +1/+1 counters", M15 Cruel
+    Sadist; "all", ZNR Relic Amulet; "any number", ORI Mage-Ring Network); a counter of any kind
+    the payer chooses (WAR Soul Diviner's "a counter": the kind is required). The payer chooses
+    the permanent (the ``remove_counter`` ask) when the selector offers more than it needs."""
+
+    counter_kind: CounterKind
+    target: Selector
+    count: Quantity = QConst(1)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.counter_kind, CounterKind):
+            raise ValueError(
+                f"CostRemoveCounter: counter_kind must be a CounterKind, got {self.counter_kind!r}"
+            )
+        if self.counter_kind is CounterKind.LOYALTY:
+            raise ValueError(
+                "CostRemoveCounter: a loyalty ability's cost is CostLoyalty (CR 606.4), one "
+                "spelling for one cost"
+            )
+        _check_cost_designation(
+            "CostRemoveCounter", self.target, frozenset({ZoneKind.BATTLEFIELD})
+        )
+        if not (isinstance(self.count, QConst) and self.count.value >= 1):
+            raise ValueError(
+                f"CostRemoveCounter: count is a literal of 1 or more, got {self.count!r}"
+            )
+
+
 @dataclass(frozen=True)
 class CostLoyalty:
     """A loyalty change as a cost — the ONLY signed value in the grammar,
@@ -2590,6 +2673,8 @@ CostPart = (
     | CostSacrifice
     | CostDiscard
     | CostPutCounter
+    | CostExile
+    | CostRemoveCounter
     | CostLoyalty
 )
 
@@ -4137,6 +4222,8 @@ _COST_PART_CLASSES = (
     CostSacrifice,
     CostDiscard,
     CostPutCounter,
+    CostExile,
+    CostRemoveCounter,
     CostLoyalty,
 )
 _COST_DELTA_CLASSES = (
@@ -4704,6 +4791,8 @@ _DATACLASSES: tuple[type, ...] = (
     CostSacrifice,
     CostDiscard,
     CostPutCounter,
+    CostExile,
+    CostRemoveCounter,
     CostLoyalty,
     Cost,
     CostDeltaReduceGeneric,
@@ -4885,6 +4974,12 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CostSacrifice": (("target", "selector"),),
     "CostDiscard": (("target", "selector"),),
     "CostPutCounter": (
+        ("counter_kind", "enum:CounterKind"),
+        ("target", "selector"),
+        ("count", "quantity"),
+    ),
+    "CostExile": (("target", "selector"),),
+    "CostRemoveCounter": (
         ("counter_kind", "enum:CounterKind"),
         ("target", "selector"),
         ("count", "quantity"),
@@ -5074,6 +5169,8 @@ _COST_PART_TAGS = frozenset(
         "CostSacrifice",
         "CostDiscard",
         "CostPutCounter",
+        "CostExile",
+        "CostRemoveCounter",
         "CostLoyalty",
     }
 )
@@ -5567,11 +5664,12 @@ def _role_touches_library(role: str, value: object) -> bool:
 
 def _cost_moves_library_card(cost: Cost) -> bool:
     """CR 605.1a's fourth criterion on the cost side. Of the closed CostPart
-    union only sacrifice and discard move cards (to the graveyard, CR 701.21a,
-    701.9a); they touch a library only if their selector's zone is one. A new
-    card-moving cost part must be added here."""
+    union only sacrifice, discard and exile move cards (to the graveyard, CR
+    701.21a, 701.9a; to exile); they touch a library only if their selector's
+    zone is one (CostExile refuses a library zone). A new card-moving cost part
+    must be added here."""
     return any(
-        isinstance(part, (CostSacrifice, CostDiscard))
+        isinstance(part, (CostSacrifice, CostDiscard, CostExile))
         and any(_zone_holds_library(zone) for zone in part.target.zones)
         for part in cost.parts
     )

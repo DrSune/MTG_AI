@@ -1,0 +1,15 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hang", "real": "Hanged Executioner", "zone": "battlefield", "controller": 0},
+  {"key": "dis", "real": "Disfigure", "zone": "hand", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 3}, "1": {"B": 1}},
+ "steps": [
+  {"op": "activate", "key": "hang", "idx": 1, "seat": 0, "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "dis", "real": "Disfigure", "controller": 1, "targets": ["hang"], "expect_raise": "selection:off_population"}
+ ],
+ "expect": {"zone": {"hang": "exile", "bear": "battlefield", "dis": "hand"}, "mana_pool": {"0": {}, "1": {"B": 1}}},
+ "notes": "Waits for the card's verification: played on Hanged Executioner's record (ontology round R11, DESIGN_ATOM_ONTOLOGY 15). Printed: '{3}{W}, Exile this creature: Exile target creature.' The exile is a cost, paid as the ability is activated (CR 602.2b, 601.2h): while the ability waits on the stack the Executioner is already in exile, so the opponent's Disfigure aimed at it has no such target (refused, nothing paid), and the Bear waits for the ability. On the base 1d5e4164 the card was a needs-atom record with no activated ability (index 1 is its cast carrier)."
+}
