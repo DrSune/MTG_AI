@@ -451,7 +451,7 @@ file is written, run `cardtool.py survivors SET "Card" --verdict v.json`.
 - The first run locks the judgments: it writes their sha256 into the verdict's `lock` and into
   `locks.jsonl` beside it. Never change a status, an issue or the verdict after that: `survivors`
   and `verify` refuse a verdict whose judgments changed since its lock, and the ledger keeps the
-  first lock.
+  first lock. (It reads the live tree, as `runpack` does; that is why it locks first.)
 - It lists the critical mutants that none of the verdict's packs tells apart from the card, each
   with the kind of pack that did in earlier waves. Write those packs from the printed text, add
   them to `packs` (evidence may grow), and run it again until it lists nothing.
