@@ -383,3 +383,45 @@ training, so the GPU is not idle.
 
 H1′ and 195's confirming audit do not depend on gate B. They can run in any GPU window, and they
 take the first one if gate B does not run.
+
+## 10. The decision at r28's read at 400: generation does not run (2026-11-14 ~12:00, by hand)
+
+**Why by hand, and late.** The watcher `reports/r28_2026-11-12/at400.sh` (21bb2816) was never
+armed: the Claude session that coordinated the work lost its login (HTTP 403) on 2026-11-13 at
+10:49, before gate B's pin was ready. r28 passed its gate at 400 unattended (logged at update 402,
+2026-11-13 19:43). The watcher's own rule covered this case: a version froze after v0 (v1, at
+update 352), so it would have resumed r28 and left the decision to a person. That decision is
+made here, by §9's rule, before any of this window's data.
+
+**§9's rule, applied:**
+1. **r28's rate.** The ladder's last fit (update 354, 6,000 games): v1 671.5, v0 644.6, so +26.9
+   Elo. From the launch (2026-11-12 16:32:32) to v1's freeze (2026-11-13 16:43:55) is 24.19 hours.
+   Less the pauses (3.3, 19.7 and 176.9 minutes, each counted from the update row before its
+   resume, so an upper bound), that is 20.86 machine-hours. The rate is **1.29 Elo per
+   machine-hour**.
+2. **The break-even GB1.** 1.29 × 30 h = 38.7 Elo, so **s* = 0.555, above 0.53: generation does
+   not run.**
+   - Counting the pauses as machine time gives s* = 0.548, so the verdict does not depend on
+     that choice.
+   - Generation would have needed a rate of 0.70 Elo per hour or less (s* = 0.53 is 20.9 Elo in
+     30 hours).
+3. **Gate B is closed as not run, not as failed.** Its question (does distilling the network's
+   own searched decisions make it stronger?) stays open. `docs/BACKLOG.md`'s distillation entry
+   (Training and measurement) records it, with this rule as the condition for reopening it: a
+   training run whose rate falls to 0.70 Elo per machine-hour or less.
+   - The futility look and the re-run smoke (§9, step 3) are not built. The agent that was adding
+     the look died with the session, and it is not relaunched.
+
+**H1′ and 195's confirming audit take this window,** as §9 says.
+- **What runs:** gate B's queue's own commands, in a pause of r28, from the worktree
+  `/home/sune/Desktop/MTG_AI-gateb` at the queue's pin 8aabbc8. That commit carries 197's
+  fixes, which is the "fixed code" 195 §5 asks for. H1′ pairs fp32 with bf16 at one commit, so
+  the engine's later changes on main do not enter its comparison.
+  - `h1_bf16` and `h1_fp32`: u1000 against the heuristic, deals 900,000-900,299, both seats;
+  - `audit195`: deals 965,000-965,099.
+- **Where:** `runs/read400/`, by `reports/r28_2026-11-12/at400.sh`. It also holds r28's late
+  per-kind split (199 §8).
+- **Smoked:** `h1_bf16`'s command on the CPU, from that worktree, 1 deal: exit 0.
+- **Predictions:** as registered (192 §7.6 for H1′; 195 §2 and §5 for B1-B3).
+- **Scoring:** H1′ by pairing `h1_fp32` with `h1_bf16`, and B1-B3 with
+  `reports/window2_2026-11-12/score/audit_b.py`.

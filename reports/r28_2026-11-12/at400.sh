@@ -1,72 +1,78 @@
 #!/bin/bash
-# r28's read at update 400 (KNOWLEDGE/2026-11-12/199 §4, §7) and gate B's decision (196 §9-§10).
-# Once the gate at 400 is logged, r28 pauses at its next save. That save is kept as
-# runs/r28_looks/r28_u<it>.pt, and the per-kind split's batch is collected on it (199 §7: the read
-# at 400 repeats the split). Then 196 §9's rule decides gate B:
-# - with no version frozen after v0, r28's rate is 0, so s* = 0.5 <= 0.53 and generation runs:
-#   gate B's queue starts from its worktree, if that worktree is at PIN (re-pinned and re-smoked,
-#   196 §10). The queue finds r28 paused, so G is that same save.
-# - otherwise (a later freeze needs the ladder's fit, or the worktree is not at PIN) r28 resumes
-#   and the decision is made by hand.
-#   systemd-run --user --unit mtg-at400 /bin/bash \
-#     /home/sune/Desktop/MTG_AI/reports/r28_2026-11-12/at400.sh PIN
+# r28's read at update 400, made late (KNOWLEDGE/2026-11-12/199 §8), and the GPU window gate B
+# leaves (196 §10: generation does not run; H1' and 195's confirming audit take this window).
+# - r28 pauses at its first save 10, 15 or 20 updates past a gate (as gate B's queue); that save
+#   is kept as runs/r28_looks/r28_u<it>.pt.
+# - The per-kind split's batch is collected on it (seed 2840) and split with r28's pinned code:
+#   main's features.py and model.py have moved since 44a62d9.
+# - H1' (bf16, then fp32) and 195's confirming audit run with gate B's queue's own commands, from
+#   its worktree at 8aabbc8, into runs/read400/.
+# - Every step has a cap; a failed step is logged and the window goes on; r28 resumes however
+#   the window ends.
+#   systemd-run --user --unit mtg-read400 /bin/bash \
+#     /home/sune/Desktop/MTG_AI/reports/r28_2026-11-12/at400.sh
 set -u
-PIN=${1:?the commit gate B's worktree must be at}
 M=/home/sune/Desktop/MTG_AI
-RUN=$M/runs/selfplay/r28_stratified_ppo
-LOOKS=$M/runs/r28_looks
+R=$M/runs
+RUN=$R/selfplay/r28_stratified_ppo
+LOOKS=$R/r28_looks
+O=$R/read400
 GW=/home/sune/Desktop/MTG_AI-gateb
+RW=/home/sune/Desktop/MTG_AI-r28
 PY=$M/.venv/bin/python
-LOG=$LOOKS/at400.log
-mkdir -p "$LOOKS"
-say() { echo "$(date -Is) $*" >> "$LOG"; }
-row() {  # row gate|save|freeze: the newest gate's update, the newest saved update, later freezes
-  $PY - "$RUN/metrics.jsonl" "$1" <<'PY'
-import json, sys
-rows = [json.loads(x) for x in open(sys.argv[1])]
-if sys.argv[2] == "gate":
-    print(max([r["it"] for r in rows if r.get("event") == "gate"], default=0))
-elif sys.argv[2] == "save":  # saves follow the iter rows of updates divisible by 5 (--save-every 5)
-    print(max([r["it"] for r in rows if r.get("event") == "iter" and r["it"] % 5 == 0], default=0))
-else:
-    print(" ".join(r["version"] for r in rows if r.get("event") == "freeze" and r["version"] != "v0"))
-PY
+U1000=$R/selfplay/r26_outcome_ppo/u1000.pt
+mkdir -p "$LOOKS" "$O"
+export PYTHONDONTWRITEBYTECODE=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+say() { echo "$(date -Is) $*" >> "$O/window.log"; }
+step() {  # step NAME CAP DIR COMMAND... ; a finished step (its .done file) is skipped
+  local name=$1 cap=$2 dir=$3; shift 3
+  [ -f "$O/$name.done" ] && return 0
+  say "$name start"
+  (cd "$dir" && timeout "$cap" "$@") > "$O/$name.out" 2>&1
+  local rc=$?
+  [ $rc -eq 0 ] && touch "$O/$name.done"
+  say "$name exit $rc"
 }
-resume() { "$M/reports/r28_2026-11-12/start.sh" >> "$LOG" 2>&1; say "r28 resumed: $1"; }
+it() {  # the saved update; -1 while the save is still being written
+  $PY -c "import pickle; print(pickle.load(open('$RUN/state.pkl', 'rb'))['it'])" 2>/dev/null || echo -1
+}
 
-say "watching for the gate at 400 (PIN $PIN)"
-until [ "$(row gate)" -ge 400 ]; do
-  systemctl --user is-active -q mtg-r28 || { say "r28 is not running before its gate at 400: nothing done"; exit 1; }
-  sleep 60
-done
-m0=$(stat -c %Y "$RUN/last.pt")
-say "gate at 400 logged (row $(row gate)); waiting for the next save"
-while [ "$(stat -c %Y "$RUN/last.pt")" = "$m0" ]; do
-  systemctl --user is-active -q mtg-r28 || { say "r28 stopped before its next save: nothing done"; exit 1; }
-  sleep 10
+[ "$(git -C "$GW" rev-parse HEAD)" = 8aabbc898be183655b141bf47db3761434b59ed8 ] \
+  || { say "gate B's worktree is not at 8aabbc8: nothing done"; exit 1; }
+say "waiting for a save 10-20 updates past a gate"
+last=$(stat -c %Y "$RUN/state.pkl")
+while true; do
+  systemctl --user is-active -q mtg-r28 || { say "r28 is not running: nothing done"; exit 1; }
+  now=$(stat -c %Y "$RUN/state.pkl")
+  if [ "$now" != "$last" ]; then
+    last=$now
+    case $(( $(it) % 25 )) in 10|15|20) break ;; esac
+  fi
+  sleep 15
 done
 sleep 10  # the save finishes writing
 systemctl --user stop mtg-r28
-it=$(row save)
-cp "$RUN/last.pt" "$LOOKS/r28_u$it.pt"
-say "r28 paused after its save at $it; kept as r28_u$it.pt $(sha256sum "$LOOKS/r28_u$it.pt" | cut -c1-16)"
+trap '"$M/reports/r28_2026-11-12/start.sh" >> "$O/window.log" 2>&1; say "r28 resumed"' EXIT
+n=$(it)
+cp "$RUN/last.pt" "$LOOKS/r28_u$n.pt"
+say "r28 paused after its save at $n; kept as r28_u$n.pt $(sha256sum "$LOOKS/r28_u$n.pt" | cut -c1-16)"
 
-# the per-kind split's batch (199 §7), fresh deals (seed 2840; the look at 100 used 2800)
-timeout 45m "$M/reports/r28_2026-11-12/collect.sh" "$LOOKS/r28_u$it.pt" "$LOOKS/c400" 2840 \
-  > "$LOOKS/c400.out" 2>&1
-say "collect exit $?"
+# the per-kind split (199 §7-§8)
+step "collect$n" 45m "$M" "$M/reports/r28_2026-11-12/collect.sh" "$LOOKS/r28_u$n.pt" \
+  "$LOOKS/c$n" 2840
+[ -f "$O/collect$n.done" ] && step "split$n" 30m "$RW" env PYTHONPATH=. "$PY" \
+  "$M/reports/r28_2026-11-12/kinds_split.py" "$LOOKS/r28_u$n.pt" "$LOOKS/c$n/batch.pkl"
 
-later=$(row freeze)
-if [ -n "$later" ]; then
-  resume "versions frozen after v0 ($later): the rate needs the ladder's fit, decided by hand"
-  exit 0
-fi
-head=$(git -C "$GW" rev-parse HEAD)
-if [ "$head" != "$PIN" ]; then
-  resume "gate B's worktree is at $head, not $PIN: not started"
-  exit 0
-fi
-say "no version frozen after v0: rate 0, s* 0.5 <= 0.53, generation runs (196 §9); starting gate B"
-systemd-run --user --unit mtg-gateb --setenv=PYTHONDONTWRITEBYTECODE=1 /bin/bash \
-  "$GW/reports/gate_b_2026-11-12/queue.sh" >> "$LOG" 2>&1
-say "mtg-gateb start exit $?"
+# 192 §7.6's H1' and 195 §5's confirming audit, as gate B's queue would have run them
+L="$PY -m tools.selfplay.learner"
+H1="--init $U1000 --refresh-table --extend-sets M20 --pool verified --coherent-share 1.0
+  --workers 18 --slots 16 --groups 4 --eval-only --eval-seat eval --eval-opponents heuristic
+  --eval-set M21 --eval-deals 300 --eval-seed0 900000"
+step h1_bf16 20m "$GW" $L --run "$O/h1_bf16" $H1 --infer-bf16
+step h1_fp32 40m "$GW" $L --run "$O/h1_fp32" $H1
+step audit195 180m "$GW" $L --run "$O/audit195" --init "$U1000" --refresh-table \
+  --extend-sets M20 --pool verified --coherent-share 1.0 --infer-bf16 --workers 18 --slots 16 \
+  --groups 4 --eval-only --eval-seat eval+search --eval-opponents snap:opp --opp-ckpt "$U1000" \
+  --eval-set M21 --search-root gumbel --search-m 16 --search-n 16 --search-audit 8 \
+  --search-sim "$R/window1/sim.pt" --eval-deals 100 --eval-seed0 965000
+say "window done"

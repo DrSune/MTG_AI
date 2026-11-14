@@ -1414,7 +1414,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **Distillation from playout labels (parked by the owner, 2026-11-09; DECISIONS D21; taken up
   again as PLAN_CEILING's gate B under D22, pre-registered in KNOWLEDGE/2026-11-12/196 with the
   search's own targets: the epoch is chosen by play, not held-out fit, and a placebo arm is the
-  control).** E3 failed:
+  control). Gate B did not run (196 §10, 2026-11-14): r28's rate, 1.29 Elo per machine-hour, put
+  its break-even score at 0.555, above the 0.53 bar. Reopen it when a training run's rate falls to
+  0.70 Elo per machine-hour or less, or when searched targets become cheaper.** E3 failed:
   one round changes ~3% of choices and cuts regret 2-4% (100k and 300k labels), winning nothing
   measurable; the epoch rule (held-out KL, epoch 0 included) kept the untrained network because 92%
   of the targets tie (KNOWLEDGE 2026-11-06/186 §5). To look at: stop or choose epochs by regret on

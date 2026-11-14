@@ -21,9 +21,11 @@ away); `reports/r28_2026-11-12/start.sh` resumes it from its last save, also aft
 guard `mtg-r28-guard` (`tools/selfplay/guard.py`) stops it on a mulligan runaway or a falling win
 rate against the heuristic (199 §3). r27 ended at update 165: its mulligan ran away (191 §8, 198).
 Window 1 is scored in `KNOWLEDGE/2026-11-11/192`, window 2 in notes 193-195, 192 §7.6 and 191 §8.
-Gate B (`KNOWLEDGE/2026-11-12/196`, §8: on r28; §9: no automatic start) is a decision at r28's
-read at update 400 by a registered break-even rule; its worktree `/home/sune/Desktop/MTG_AI-gateb`
-(pinned at 8aabbc8, do not edit it) is re-pinned and re-smoked before it runs. The plan after r27:
+Gate B did not run. At r28's read at 400, made late on 2026-11-14, its break-even rule put s* at
+0.555, above 0.53 (`KNOWLEDGE/2026-11-12/196` §10). H1′ and 195's confirming audit run instead in a
+pause of r28: `reports/r28_2026-11-12/at400.sh`, as the transient unit `mtg-read400`, into
+`runs/read400/`, from the worktree `/home/sune/Desktop/MTG_AI-gateb` (pinned at 8aabbc8, do not edit
+it). The same window repeats the per-kind split (199 §8), and r28 resumes when it ends. The plan after r27:
 `docs/PLAN_CEILING.md` §14-§15. The ceiling-read window (`KNOWLEDGE/2026-11-13/205`) ran 2026-11-13 04:52-08:08 as a pause
 in r28 (at update 195): package decks hold no extra one-turn search headroom (S1 falsified), so r29
 is not the package A/B; the held-out pool L is frozen (`reports/ceiling_window/pool_L.json`). r28

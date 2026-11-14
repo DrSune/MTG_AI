@@ -317,3 +317,58 @@ GPU, from main at 1e958e36; the batch from `collect.sh ... 2800`, 139,274 rows; 
 - The training win rates (sampled) agree: against the heuristic 0.715 to 0.729, against v0
   0.506 to 0.533.
 - Gate B's break-even rule (196 §9) takes r28's rate at 400. At this pace it is small.
+
+## 8. The read at 400, made late (2026-11-14 ~12:00)
+
+**Why late.** The watcher that was to pause r28 after its gate at 400 and keep that save
+(`at400.sh`, 21bb2816) was never armed. The coordinating session lost its login on 2026-11-13 at
+10:49 (196 §10). r28 ran on unattended, and it stood at update 671 when this was written.
+
+**The split's repeat, registered before its data.**
+- Update 400's weights were not kept. r28 keeps only `last.pt` and its frozen versions.
+- So the split runs on the save at this window's pause instead: update n, labelled with n. It
+  uses §7's scripts, kinds, K1-K3 and decision rule, with the collection seed 2840.
+- Why not v1 (update 350), the kept network closest to 400? The decision the split feeds (a
+  retention scheme before the next push) is about the trainer as it stands now, and the latest
+  weights answer that.
+- **Both halves run on r28's pinned code:**
+  - `collect.sh` runs from r28's worktree, as before;
+  - `kinds_split.py` runs from that worktree with `PYTHONPATH=.`. Main's `features.py` and
+    `model.py` have moved since 44a62d9, while `ppo.py` has not.
+- The window is `reports/r28_2026-11-12/at400.sh`, which also runs H1′ and 195's confirming
+  audit (196 §10).
+
+**The registered read (§4): updates 301-400 against 1-100, and the gates ending there.**
+Source: `look.py runs/selfplay/r28_stratified_ppo 400`, the last row per update. Reads go by
+update count, so the late reading changes nothing in them.
+
+| Quantity | 1-100 | 301-400 |
+|---|---|---|
+| The mulligan per game, pooled per block of 25 | 1.326, 1.288, 1.278, 1.280 | 1.401, 1.401, 1.428, 1.398 |
+| Entropy, per block | 0.255, 0.248, 0.243, 0.247 | 0.285, 0.284, 0.289, 0.297 |
+| Training win rate against the heuristic, per block (sampled) | 0.715-0.730 | 0.723-0.733 |
+| `kl`, median | 0.0064 | 0.0060 |
+| `ev`, median | 0.371 | 0.362 |
+
+- **The gates ending there:**
+  - at 352 against v0, 0.554 [0.537, 0.571], which froze v1;
+  - at 377 against v1, 0.515 [0.500, 0.530];
+  - at 402 against v1, 0.498 [0.483, 0.513].
+- **The ladder at 354:** v0 644.6, v1 671.5, the heuristic 449.4.
+
+**After 400 (not registered; described only, to update 670):**
+- The ten gates against v1 at 427-652 average 0.519 (0.505 to 0.538). Each is about ±0.016.
+- The mulligan per block stays at 1.27-1.46: no runaway, and the guard's 1.80 is never near.
+- Entropy reaches 0.30-0.31.
+- The training win rate against the heuristic holds at 0.72-0.74.
+
+**What it means.**
+- r28 gained +27 Elo over its init by update 350. In the 320 updates since, it has not moved
+  measurably: about 0.52 against v1, or +13 Elo.
+- The rate question R3 opened (§5) is answered: on this trainer and these opponents, learning
+  after v1 is slow, and after update 350 it is flat.
+- Two slow drifts with no registered bound, watched from here on:
+  - the mulligan (1.29 in 1-100, 1.41 in 301-400);
+  - the entropy (0.25 to 0.30).
+  Neither moved the strength reads.
+- The next lever is r29's (205 §10): train both seats of learner-against-learner games.
