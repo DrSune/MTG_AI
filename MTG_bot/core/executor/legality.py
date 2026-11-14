@@ -65,7 +65,7 @@ the replay fingerprint folds in).
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from typing import TYPE_CHECKING
 
@@ -329,10 +329,15 @@ class PaymentPlan:
     tap_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
     discard_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
     # CostExile's objects, and every segment's full pool with its need, as for a sacrifice: the
-    # payer chooses which (CR 601.2h) when a segment offers more than it needs.
-    exile: tuple[Handle, ...] = ()
-    exile_options: tuple[tuple[tuple[Handle, ...], int], ...] = ()
-    remove_counters: tuple[tuple[tuple[Handle, ...], int, str, int], ...] = ()
+    # payer chooses which (CR 601.2h) when a segment offers more than it needs. Left out of the
+    # repr, which the stack's fingerprint row folds (stack.SpellStack.dump): what they paid is in
+    # the world (the exiled card's zone, the counters), and a state holding a stack object keeps
+    # the fingerprint bytes it had before the two parts existed.
+    exile: tuple[Handle, ...] = field(default=(), repr=False)
+    exile_options: tuple[tuple[tuple[Handle, ...], int], ...] = field(default=(), repr=False)
+    remove_counters: tuple[tuple[tuple[Handle, ...], int, str, int], ...] = field(
+        default=(), repr=False
+    )
 
 
 # ---------------------------------------------------------------- contexts

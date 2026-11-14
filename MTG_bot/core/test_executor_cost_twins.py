@@ -295,6 +295,18 @@ def test_the_payer_chooses_the_permanent_a_cost_removes_counters_from() -> None:
     assert w.world.cards[w.gamma].counters == {"PLUS_1_PLUS_1": 1}
 
 
+def test_a_plan_keeps_the_repr_the_stack_fingerprint_folds() -> None:
+    """The stack's fingerprint row folds repr(PaymentPlan) (stack.SpellStack.dump): the three new
+    fields stay out of it, so every state holding a stack object keeps its fingerprint bytes
+    (reports/cost_twins_2026-11-14/fingerprint_check.py, base and branch)."""
+    from MTG_bot.core.executor.legality import PaymentPlan
+    from MTG_bot.core.identity import Handle
+
+    assert repr(PaymentPlan(mana=(("R", 1),), exile=(Handle("card", 9),))) == (
+        "PaymentPlan(mana=(('R', 1),), tap=(), sacrifice=(), discard=(), counters=(), loyalty=0, "
+        "life=0, sacrifice_options=(), tap_options=(), discard_options=())")
+
+
 def test_the_counters_come_off_before_their_permanent_is_sacrificed() -> None:
     """M13 Hellion Crucible's "Remove two pressure counters from this land and sacrifice it": the
     payer pays in any order (CR 601.2h), and only removing first pays it all."""

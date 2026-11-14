@@ -124,6 +124,20 @@ $PY tools/cards/cardtool.py --help
     Battalion Foot Soldier, Cavalier of Flame's "discard any number of cards"). The engine asks it
     pick by pick, each ask with a NONE stop, as it asks "up to N": every number from zero to all
     of them (CR 107.1c). "That many" after it counts the cards actually moved.
+- **Exile and remove-counter costs** (ontology R11, DESIGN_ATOM_ONTOLOGY §15). In a cost, "Exile
+  this creature" is `CostExile(target=<this creature>)`, the "this creature" selector above;
+  "Exile this card from your graveyard" the same selector over `Zone(GRAVEYARD, YOU)` (the ability
+  then works only from the graveyard, CR 113.6m); "Exile two creature cards from your graveyard"
+  `CostExile(Selector(QConst(2), CHOOSE, TYPE_EQ 'Creature', zones=(Zone(GRAVEYARD, YOU),)))`,
+  with `FNot(IS_SOURCE)` for "other". "Remove a +1/+1 counter from this creature" is
+  `CostRemoveCounter(counter_kind=CounterKind.PLUS_1_PLUS_1, target=<this creature>)`, `count`
+  for "two". `parse` the printed sentence: the frame B13-activated-cost-item builds them before
+  any clause that parses alone. Never write the exile or the removal as a step of the effect: a
+  cost is paid as the ability is activated, all of it or not at all, and stays paid when the
+  ability does nothing (CR 601.2h, 602.2b, 118.3, 608.2b). The IR refuses a TARGET or referent
+  selector in them (costs never target, divergence D13), X, "all", "any number", LOYALTY (that is
+  CostLoyalty) and a kind the payer picks ("Remove a counter from ...", WAR Soul Diviner): such a
+  card is a needs-atom until its piece comes with tests.
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it

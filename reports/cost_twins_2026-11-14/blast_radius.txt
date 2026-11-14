@@ -1,0 +1,129 @@
+Round R11's blast radius (2026-11-14). Base: a git archive of 1d5e4164; branch: the worktree at the
+round's first commit 3dfd3aeb (the code the later commits add is a test, a repr and the G3 fix; none
+changes a tree or play: the 600 games are rerun on the final commit, below).
+
+## 1. Trees, 19 sets
+
+    .venv/bin/python reports/cost_twins_2026-11-14/tree_dump.py <checkout> <out.json>   # on each
+    .venv/bin/python reports/cost_twins_2026-11-14/tree_diff.py trees_base.json trees_branch.json
+
+compiler trees changed (12):
+   DOM Fungal Plots
+   ELD Inquisitive Puppet
+   ELD Steelbane Hydra
+   ELD Tome of Legends
+   FDN Suspicious Shambler
+   KHM Egon, God of Death // Throne of Death
+   M11 Brittle Effigy
+   M12 Pentavus
+   M15 Soul of Zendikar
+   M19 Transmogrifying Wand
+   M20 Hanged Executioner
+   ZNR Throne of Makindi
+trees with records applied changed (13):
+   DOM Fungal Plots compiler -> compiler unverified
+   ELD Inquisitive Puppet compiler -> compiler unverified
+   ELD Steelbane Hydra compiler -> compiler unverified
+   ELD Tome of Legends compiler -> compiler unverified
+   FDN Suspicious Shambler compiler -> compiler unverified
+   KHM Egon, God of Death // Throne of Death compiler -> compiler unverified
+   M11 Brittle Effigy compiler -> compiler unverified
+   M12 Pentavus compiler -> compiler unverified
+   M15 Soul of Zendikar compiler -> compiler unverified
+   M19 Transmogrifying Wand compiler -> compiler unverified
+   M20 Barkhide Troll needs-atom record -> record unverified
+   M20 Hanged Executioner needs-atom record -> record unverified
+   ZNR Throne of Makindi compiler -> compiler unverified
+compiler: fewer unparsed sentences (10):
+   DOM Fungal Plots 2 -> 1
+   ELD Inquisitive Puppet 1 -> 0
+   ELD Steelbane Hydra 1 -> 0
+   ELD Tome of Legends 3 -> 2
+   KHM Egon, God of Death // Throne of Death 4 -> 3
+   M11 Brittle Effigy 1 -> 0
+   M12 Pentavus 3 -> 2
+   M15 Soul of Zendikar 1 -> 0
+   M20 Hanged Executioner 1 -> 0
+   ZNR Throne of Makindi 3 -> 2
+compiler: newly compiling whole (5): [('ELD', 'Inquisitive Puppet'), ('ELD', 'Steelbane Hydra'), ('M11', 'Brittle Effigy'), ('M15', 'Soul of Zendikar'), ('M20', 'Hanged Executioner')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (50):
+   FDN Cathar Commando ['cost-twin']
+   FDN Evolving Wilds ['cost-twin']
+   FDN Gleaming Barrier ['cost-twin']
+   FDN Goblin Firebomb ['cost-twin']
+   FDN Goldvein Pick ['cost-twin']
+   FDN Heartfire Immolator ['cost-twin']
+   FDN Hungry Ghoul ['cost-twin']
+   FDN Mazemind Tome ['cost-twin']
+   FDN Thrashing Brontodon ['cost-twin']
+   FDN Thrill of Possibility ['cost-twin']
+   M20 Bag of Holding ['cost-twin']
+   M20 Blood for Bones ['cost-twin']
+   M20 Bone Splinters ['cost-twin']
+   M20 Cryptic Caves ['cost-twin']
+   M20 Destructive Digger ['cost-twin']
+   M20 Elvish Reclaimer ['cost-twin']
+   M20 Ember Hauler ['cost-twin']
+   M20 Evolving Wilds ['cost-twin']
+   M20 Kykar, Wind's Fury ['cost-twin']
+   M20 Mask of Immolation ['cost-twin']
+   M20 Rapacious Dragon ['cost-twin']
+   M20 Salvager of Ruin ['cost-twin']
+   M20 Sanitarium Skeleton ['off-battlefield']
+   M20 Thrashing Brontodon ['cost-twin']
+   M20 Vial of Dragonfire ['cost-twin']
+   M21 Fabled Passage ['cost-twin']
+   M21 Gadrak, the Crown-Scourge ['cost-twin']
+   M21 Ghostly Pilferer ['cost-twin']
+   M21 Goremand ['cost-twin']
+   M21 Heartfire Immolator ['cost-twin']
+   M21 Hobblefiend ['cost-twin']
+   M21 Liliana's Steward ['cost-twin']
+   M21 Mazemind Tome ['cost-twin']
+   M21 Niambi, Esteemed Speaker ['cost-twin']
+   M21 Obsessive Stitcher ['cost-twin']
+   M21 Portcullis Vine ['cost-twin']
+   M21 Sanctum of Shattered Heights ['cost-twin']
+   M21 Seasoned Hallowblade ['cost-twin']
+   M21 Selfless Savior ['cost-twin']
+   M21 Shacklegeist ['cost-twin']
+   M21 Silent Dart ['cost-twin']
+   M21 Silversmote Ghoul ['cost-twin']
+   M21 Sparkhunter Masticore ['cost-twin']
+   M21 Subira, Tulzidi Caravanner ['cost-twin']
+   M21 Thrashing Brontodon ['cost-twin']
+   M21 Thrill of Possibility ['cost-twin']
+   M21 Tormod's Crypt ['cost-twin']
+   M21 Village Rites ['cost-twin']
+   M21 Waker of Waves ['cost-twin', 'off-battlefield']
+   M21 Witch's Cauldron ['cost-twin']
+verified stamps matching, per set (base -> branch): {'FDN': '184->184', 'M20': '277->277', 'M21': '275->275'}
+
+## 2. 600 seeded heuristic games, the verified pools (200 each of M21, M20, FDN)
+
+    .venv/bin/python reports/cost_twins_2026-11-14/replay.py <checkout> trees_base.json trees_branch.json 200 <out.json>   # on each
+    .venv/bin/python reports/cost_twins_2026-11-14/replay_compare.py replay_base.json replay_branch.json
+
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+M20: deckable 277 (base) / 277 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+FDN: deckable 184 (base) / 184 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 600
+
+## 3. Ontology conformance (M21, ZNR)
+
+    .venv/bin/python tools/audit/ontology_conformance.py
+
+Before the baseline update: CONFORMANCE FAIL (errors=1 warns=7): V4' new CHOOSE emission ZNR:Throne of
+Makindi (1 node: its CostRemoveCounter's source, IS_SOURCE, a forced payment segment that asks
+nothing). After --write-v4-baseline (the baseline gains exactly that card, count 1, one shape):
+CONFORMANCE PASS (errors=0 warns=7); the 7 warnings are the base's (V3' 4, V5' 3).
+
+## 4. Fingerprints of states holding a stack object
+
+    .venv/bin/python reports/cost_twins_2026-11-14/fingerprint_check.py <checkout>   # on each
+
+Shock held | stack 1 | 1ae802c96dd22276428b9ece3161599ddd0d7da49cef91bbbbac768bddb30757
+Heartfire Immolator's ability held | stack 1 | 7a834826a947f12655b67902481d6d8d37a45597851cff4ceaa1d8ba0497f28d
+(identical on the base: the PaymentPlan's new fields are out of its repr)

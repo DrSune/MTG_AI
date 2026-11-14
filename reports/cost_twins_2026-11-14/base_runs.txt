@@ -1,0 +1,44 @@
+Round R11's tests and packs on the base, 1d5e4164 (a git archive; the round's test module,
+tools/selfplay/test_selfplay.py, tools/cards/test_gates.py and packs copied in), 2026-11-14:
+
+    pytest MTG_bot/core/test_executor_cost_twins.py MTG_bot/core/test_scenario_packs.py \
+      tools/selfplay/test_selfplay.py -k "cost_twins or hanged_executioner or barkhide_troll or \
+      suspicious_shambler or fungal_plots or cost_asks or exiles_the_cheapest" -rA --tb=line
+
+-> "53 failed, 6 passed" (the module's 44 tests, the 13 packs then written and the 2 selfplay
+tests; the two packs added after G3, barkhide_troll_hexproof_ends_with_the_turn and
+barkhide_troll_hexproof_only_for_itself, fail on the base the same way: the Troll has no ability
+at index 1). The 6 that pass are true on both, controls:
+- test_the_frame_leaves_what_it_cannot_read_unparsed x4: a wish counter, a pronoun clause, X and
+  "all" stay unparsed (nothing parsed them on the base either);
+- test_barkhide_troll_answers_a_bounce_with_hexproof[False] and the pack
+  barkhide_troll_unanswered_unsummon_returns_it: unanswered, Unsummon returns the Troll.
+
+Why the rest fail on the base, grouped (the run's own lines):
+- 25 IR, compiler-unit and payment tests: AttributeError: module 'MTG_bot.core.ability_tree' has no
+  attribute 'CostExile' (13) / 'CostRemoveCounter' (12);
+- 4 frame tests: "no parse: {3}{W}, Exile this creature: Exile target creature." and the Shambler's,
+  Fungal Plots' and Steelbane Hydra's sentences;
+- Hanged Executioner, 4 tests and 4 packs: "illegal activation: ability:not_activated:SpellAbility"
+  (its needs-atom record: index 1 is its cast carrier);
+- Barkhide Troll, 5 tests and 4 packs: "ability_playable: card:0 has no ability idx 1" (3 tests, 3
+  packs); the no-counter test and pack expected "cost:remove_counter" and got that error instead;
+  the cast test: assert {} == {'PLUS_1_PLUS_1': 1} (no counter as it enters: the sentence was
+  unparsed);
+- Suspicious Shambler, 1 test and 2 packs: "pool has no card 'Suspicious Shambler'" (refused on the
+  base: its sorcery gate found no activated ability to attach to);
+- Fungal Plots, 2 packs: "illegal activation: ability:not_activated:SpellAbility";
+- test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did:
+  assert ('arrange', 'quality') == ('exile', 'remove_counter');
+- test_heuristic_exiles_the_cheapest_card_a_cost_offers: assert 'Fierce Empath' == 'Walking Corpse'
+  (no exile answer: the first option).
+
+The G3 fix's test, tools/cards/test_gates.py::test_a_card_that_enters_tapped_or_with_counters_has_mutants:
+fails on the base (AssertionError: Barkhide Troll, its tree there a bare cast carrier). The cause
+the test pins, measured on both checkouts (reports/cost_twins_2026-11-14/g3_etb_counts.py
+<checkout>): gates.mutants builds 0 mutants on the base for every card holding an EtBState with no
+effect (M21 Malefic Scythe 0 -> 14, Temple of Malady 0 -> 9, Wildwood Scourge 0 -> 6; M20 Barkhide
+Troll 0 -> 9, Squad Captain 0 -> 5): gates._without_unread_choices built EtBState(effect=None),
+which the IR refuses, so every mutant was stillborn. 70 verified trees of M21, M20 and FDN hold such
+a node (18, 18, 34); every one of their stamps predates the bug's commit 774fa6b9 (2026-11-13) and
+records its real mutation count (g3_etb_stamps.txt), so no stamp was made with an empty G3.

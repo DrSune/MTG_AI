@@ -1,0 +1,3 @@
+M21 Mazemind Tome | CostPutCounter PAGE on its source
+ZNR Relic Amulet | PUT_COUNTER CHARGE on its source
+FDN Mazemind Tome | CostPutCounter PAGE on its source

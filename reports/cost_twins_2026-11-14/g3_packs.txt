@@ -1,0 +1,9 @@
+Hanged Executioner: 14 mutants, 14 killed by the probe; 0 survive it; 4 packs
+Barkhide Troll: 9 mutants, 2 killed by the probe; 7 survive it; 7 packs
+  drop cost part 0 (CostManaGeneric) at 1/1/cost (critical): killed by barkhide_troll_hexproof_answers_unsummon, barkhide_troll_one_counter_two_activations, barkhide_troll_two_counters_two_activations
+  amount+1 at 1/1/cost/parts/0/amount (critical): killed by barkhide_troll_hexproof_answers_unsummon, barkhide_troll_hexproof_ends_with_the_turn, barkhide_troll_hexproof_only_for_itself, barkhide_troll_one_counter_two_activations, barkhide_troll_two_counters_two_activations
+  amount+1 at 1/1/cost/parts/1/count (critical): killed by barkhide_troll_hexproof_answers_unsummon, barkhide_troll_hexproof_ends_with_the_turn, barkhide_troll_hexproof_only_for_itself, barkhide_troll_one_counter_two_activations, barkhide_troll_two_counters_two_activations
+  until-end-of-turn->permanent at 1/1/effect/args/duration (critical): killed by barkhide_troll_hexproof_ends_with_the_turn
+  widen filter (drop part 0) at 1/1/effect/args/target/filter: SURVIVES the packs
+  widen filter (drop part 1) at 1/1/effect/args/target/filter: killed by barkhide_troll_hexproof_only_for_itself
+  controller YOU->OPPONENT at 1/1/effect/args/target/filter/children/0/who (critical): killed by barkhide_troll_hexproof_answers_unsummon

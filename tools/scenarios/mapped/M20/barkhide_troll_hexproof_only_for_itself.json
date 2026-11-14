@@ -1,0 +1,15 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troll", "real": "Barkhide Troll", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "uns", "real": "Unsummon", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"U": 1}},
+ "steps": [
+  {"op": "activate", "key": "troll", "idx": 1, "seat": 0},
+  {"op": "cast", "key": "uns", "real": "Unsummon", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {"zone": {"troll": "battlefield", "bear": "hand", "uns": "graveyard"}},
+ "notes": "Waits for the card's verification: played on Barkhide Troll's record (ontology round R11). 'This creature gains hexproof until end of turn': only the Troll. Another creature its controller controls stays a legal target, and Unsummon returns it. G3's 'widen filter (drop part 1)' mutant (every permanent you control gains hexproof) refuses the cast."
+}

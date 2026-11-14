@@ -112,7 +112,7 @@ constructor set.
 |---|---|---|---|
 | F1 | controller direction | **RESOLVED 2026-10-10** (NUMBERS /65: event_direction_field 42/41→0 tripwire, controllers_is 173/121 sole encoding). Today's E1 "×7" was FIELD-LIST overcount. | residual re-audit (cheap, piggybacks R2): verify Zone.controller / QProp.referent / EachPlayer.ref are DISTINCT axes, not surviving direction duplicates |
 | F2 | choose-family | Choose fixed-options 28×; SelectorMode.CHOOSE 174×; ONE_OF 25×; REST 10× | ONE axis {op,menu,count}; **emission freeze NOW** (V4′): no NEW compiled CHOOSE pending R3 blindness audit (AGENTS §10) |
-| F3 | cost↔effect twins | Cost{Sacrifice,Discard,Tap,PutCounter} vs Verb atoms | R4+, only if §9 similar-effects survives analysis |
+| F3 | cost↔effect twins | Cost{Sacrifice,Discard,Tap,PutCounter} vs Verb atoms; since R11 also CostExile and CostRemoveCounter beside MOVE_ZONE to exile and REMOVE_COUNTER | **RULED R11 2026-11-14 (§15; gate round 11 pending): not a fusion, the parts stay a closed union.** A cost part is paid while the ability is activated (CR 601.2h by 602.2b), before anyone can respond (117.3c), all of it or the ability is not activated (118.3, 601.2h), and it stays paid when the ability does nothing (608.2b); a verb atom is what a resolving ability does, as much as it can (608.2, 609.3). §9's similar-effects test fails. The fold's reach, measured: 572 trees of the 19 sets change bytes, 164 verified (with {T} kept a part, 85 and 49; `reports/cost_twins_2026-11-14/census_base.txt` §3) |
 | F4 | damage events | CombatDamageEvent vs DamageDealtEvent(combat=T/F), 13 nodes/13 cards | **LANDED R2 /140+142 2026-10-20**: CDE extinct (3 nodes folded, class deleted, journal :2129 preserved); D13 split-over-fire ACCEPTED pin, ZND-8 dedup ticket |
 | F5 | optional | OptionalEffect 28× vs Kicker vs QAtMost | OptionalEffect = the may-axis; Kicker = cost-side sugar; review at R3 |
 | F6 | count/X family | all in use | NOT duplicates; ZND-1g one-X law stands |
@@ -151,6 +151,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 9 (GO) | FAtom NAME_CHOSEN x `string_value` (the same vocabulary): in a CastSpellEvent `filter` (B17-cast-chosen-counter, frame B13-cast-chosen), an anthem's ALL selector (B17-chosen-anthem), a look's ONE_OF pick (B17-reveal-chosen-type); read only on the object that chose it (CR 607.2d) | cast: M20 Diamond Knight, FDN and M19 Diamond Mare, ORI Prism Ring; anthem: M20 Icon of Ancestry, KHM Rally the Ranks, M15 Obelisk of Urd, ELD and FDN Heraldic Banner, M12 and FDN Adaptive Automaton ("Other"); pick: M20 Icon of Ancestry | cast 4 trees, anthem 7, pick 1 (**low-volume**); 17 more "of the chosen" sentences on 15 printings unread: 14 need a piece (BACKLOG), and KHM Crippling Fear's, Alrund's and IKO Umori's choose at resolution or a card type |
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
+| 2026-11-14, gate round 11 (pending, §15) | Cost.parts x CostExile (`target`: a CHOOSE selector, a literal count, BATTLEFIELD, GRAVEYARD or HAND zones): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
+| 2026-11-14, gate round 11 (pending, §15) | Cost.parts x CostRemoveCounter (`counter_kind` but LOYALTY, `target` the source, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
 
 ## 6. Identity + conformance
 
@@ -727,8 +729,12 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     object that changed zones (CR 400.7); a referent over a several-object `result` or `target`
     register takes the first. Closed on main: DESTROY against an indestructible permanent
     (8db1834f).
-- BINDING STATE: rounds 1–10 complete; further ontology changes require a NEW gated round (any
-  R-item that reclassifies a field or opens a normalization is Type-1).
+- R11 round 11 (pending, 2026-11-14; branch `worktree-agent-ab5f3aadf2f65ed6e` on 1d5e4164): the
+  cost twins (§15). Ledger F3 ruled: not a fusion; `CostExile` and `CostRemoveCounter` join the
+  cost union. Awaits its adversarial gate.
+- BINDING STATE: rounds 1–10 complete, round 11 (§15) pending its gate; further ontology changes
+  require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
+  Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
 
@@ -1618,3 +1624,266 @@ has no component.
 - The branch merged with main c164cd34 (round 9 merged first), against c164cd34: the round's 3
   trees, 0 verified cards in or out (M21 275, M20 273, FDN 183), 300/300 identical replay
   digests and journal dumps, 0 crashes.
+
+## 15. Round R11 — the cost twins: exile and remove-counter costs (2026-11-14; gate round 11 pending)
+
+The card backlog's wave 3, its "Later" item (BACKLOG, "Card backlog wave 3: the plan"): M20 Hanged
+Executioner ("{3}{W}, Exile this creature: Exile target creature.") and Barkhide Troll ("{1}, Remove
+a +1/+1 counter from this creature: This creature gains hexproof until end of turn."), needs-atom
+records since 2026-11-05 because the cost union had no part that exiles or removes counters, and
+ledger F3, which waited on this ruling. Census, scripts and base runs:
+`reports/cost_twins_2026-11-14/`. Tests: `MTG_bot/core/test_executor_cost_twins.py` (45), two in
+`tools/selfplay/test_selfplay.py`, one in `tools/cards/test_gates.py`; packs in
+`tools/scenarios/mapped/M20/` (hanged_executioner_*, barkhide_troll_*) and `tools/scenarios/`
+(suspicious_shambler_*, fungal_plots_*).
+
+**The census** (`census.py`; the base 1d5e4164 in `census_base.txt`, the branch in `census.txt`).
+- Printed costs that exile or remove counters, 19 sets (§1a): **75 items on 75 printings of 72
+  names**: activated abilities 50, THB escape 22, additional costs 2 (KHM Weigh Down, ORI Skaab
+  Goliath), an alternative cost 1 (KHM Stalwart Valkyrie). By shape: cards exiled from your
+  graveyard 37 (22 of them escape), counters removed from the source 24, the source exiled from
+  your graveyard 8, the source exiled from the battlefield 5, a counter removed from another
+  object 1 (WAR Soul Diviner). None verified. On the base 69 were partly compiled, 3 needs-atom
+  records (M20 Hanged Executioner, Barkhide Troll, Kethis, the Hidden Hand) and 3 refused (FDN
+  Suspicious Shambler, KHM Littjara Glade-Warden, M19 Transmogrifying Wand). M21 prints none; M20
+  3; FDN 6 (Drake Hatcher, Feldon's Cane, Myojin of Night's Reach, Ramos, Dragon Engine,
+  Suspicious Shambler, Wishclaw Talisman). The wave plan's "16 cards in other sets" does not
+  reproduce (it may have left out escape and the graveyard-exile costs).
+- The existing twins, printed items (verified): sacrifice the source 138 (21), sacrifice another
+  127 (11), discard another 43 (8), discard the source 46 (1; 45 are IKO cycling reminders), {T}
+  901 (139), tap another 26 (1), put a counter 5 (4); life 15 (2) (§1).
+- Compiled, records applied (§2, trees and verified): CostTap({T}) 522 (138), CostSacrifice of the
+  source 37 (26) and of another 27 (11), CostDiscard of another 17 (8) and of the source 1 (1),
+  CostPutCounter 2 (2), CostTap of another 1 (1); CostLife 2 (2), CostLoyalty 77 (19). The verb
+  atoms they mirror (§2a): MOVE_ZONE to exile 72 (33), MOVE_ZONE from a hand to a graveyard 60
+  (29), PUT_COUNTER 122 (57), TAP 53 (12), SACRIFICE 8 (8), REMOVE_COUNTER 1 (1). Where the parts
+  sit (§2b): 755 in activated abilities, 31 in spells' additional costs (19 sacrifices, 12
+  discards); no PAY or CAST cost of an effect holds a non-mana part.
+
+**F3: the ruling (Type-1).**
+- **Fold**: every cost part that mirrors a verb becomes that verb's atom inside `Cost.parts`
+  (CostSacrifice a SACRIFICE atom, CostDiscard the MOVE_ZONE hand-to-graveyard shape, CostTap a
+  TAP, CostPutCounter a PUT_COUNTER; the two new costs a MOVE_ZONE to exile and a REMOVE_COUNTER).
+  Reach (`census_base.txt` §3): **572 trees of the 19 sets change bytes, 164 of them verified**
+  (M21 63, M20 51, FDN 50), every one out of the verified pool until a blind review passes it
+  again; with the {T} symbol kept a part, 85 trees and 49 verified (§3a lists them).
+- **Keep**: the parts stay their own closed union, and `CostExile` and `CostRemoveCounter` join
+  it. Reach: 13 trees, none verified (the blast radius below).
+- **Recommended and built: Keep.** A cost part is not a duplicate of the verb atom it mirrors:
+  1. It is paid before the ability exists as an activated ability: activating runs CR 601.2b-i
+     (602.2b); the total cost is paid at 601.2h, and only at 601.2i has the ability been
+     activated. Its effect happens when it resolves (608.2). A verb atom in a tree is what the
+     resolving ability does.
+  2. It is not an effect. A cost is an action or payment necessary to take another action (CR
+     118.1); an effect is what a resolving spell or ability does (609.1). The action keeps its own
+     rules either way: a sacrifice cost is a sacrifice (701.21a), an exile cost moves the card,
+     so "leaves the battlefield" triggers see it.
+  3. It is never paid partially: a cost without the resources to pay it fully can't be paid
+     (118.3), and the payer may not pay part of it (601.2h). An effect does as much as it can
+     (609.3): "remove a +1/+1 counter" with none there does nothing as an effect and makes the
+     ability unactivatable as a cost. So a cost needs a "can it be paid in full" judge before
+     anything is paid (`legality.build_payment_plan`), which no verb has.
+  4. Nothing can respond to it, and it stays paid: no player receives priority while an ability is
+     being activated (the activating player receives it afterwards, 117.3c), and an ability that
+     does not resolve (608.2b: its targets illegal) refunds nothing. Hanged Executioner's exile, a
+     cost, stays done when its target leaves; written as an effect step it would not happen, and
+     the Executioner would stay to be used again
+     (`test_hanged_executioner_stays_exiled_when_its_target_is_gone`).
+  The brief for this round also cites CR 117.12; this repository holds no copy of the
+  Comprehensive Rules to quote it from, so the four claims above rest on the rules quoted with
+  them. AGENTS §9's merge test (i), "similar practical effects (else the model conflates things it
+  shouldn't)", fails: a cost gates the activation and is an unrespondable, unrefundable payment,
+  an effect is a resolution-time event that can be stopped, and one token (`Verb.SACRIFICE`) would
+  carry both. So F3's condition ("only if §9 similar-effects survives analysis") is not met, and F3
+  is ruled not a fusion (§4). The fold would also move cost-only rules into the verbs: every
+  designation walker and the CR 605.1a classifier read a tree's atoms (`ability_tree.own_nodes`),
+  so a TARGET-mode selector in a cost atom would become a target slot (CR 601.2c chooses targets,
+  601.2h pays costs; divergence D13 shows cost selectors already written TARGET), and the payment's
+  rules would have to live in each verb (a sacrifice acts only on what you control, 701.21a, which
+  the compiler's ANY zones leave to the plan; a spell's discard cost never discards the spell).
+
+**R11-1 The two parts (`ability_tree.py`; no new verb, predicate or container field).**
+- `CostExile(target)` (:2576): exile the selected objects as a cost. "Exile this creature" (the
+  MAPPER_GUIDE "this creature" selector over `Zone(BATTLEFIELD, ANY)`), "Exile this card from your
+  graveyard" (the same over `Zone(GRAVEYARD, YOU)`), "Exile two other creature cards from your
+  graveyard" (`QConst(2)`, `FAnd(TYPE_EQ 'Creature', FNot(IS_SOURCE))`).
+- `CostRemoveCounter(counter_kind, target, count=QConst(1))` (:2595): CostPutCounter's twin.
+- `_check_cost_designation` (:2554) refuses, in both: a TARGET selector (costs never target: D13's
+  folded form from the start) or a referent ("it"); any mode but CHOOSE (the payer chooses as they
+  pay, 601.2h); a count other than a literal of 1 or more (X, "all", "any number"); zones outside
+  `_COST_EXILE_ZONES` (:2551: the battlefield, a graveyard, a hand; no exile cost of the 19 sets
+  takes a library, stack or exile card) and, for removal, anything but the battlefield.
+  `CostRemoveCounter` also refuses LOYALTY (a loyalty ability's cost is CostLoyalty, CR 606.4: one
+  spelling) and a `count` other than a literal of 1 or more. Each refused form waits for its card:
+  X (M15 Cruel Sadist), "all" (ZNR Relic Amulet), "any number" (ORI Mage-Ring Network), a kind the
+  payer chooses (WAR Soul Diviner's "a counter": `counter_kind` is required).
+- In the union (`CostPart`, :2667), `_COST_PART_CLASSES`, the schema (:4981) and the tags; to_dict
+  and from_dict round-trip them (`test_the_two_cost_parts_round_trip_in_a_cost`).
+  `_cost_moves_library_card` (:5665) counts CostExile for CR 605.1a (its zones exclude a library,
+  so an exile cost never unmakes a mana ability: IKO Titans' Nest's "Exile a card from your
+  graveyard: Add {C}" stays one, `test_an_exile_from_the_graveyard_keeps_a_mana_ability`).
+- §3's table is unchanged (27 container fields, `atom_field_table.py` exit 0); `Cost.parts` stays
+  SET-R1b, the new parts sorting with the others.
+- The source has two byte forms in the existing cost parts: `FAnd(CONTROLLER_IS YOU, IS_SOURCE)`
+  (37 parts, 22 verified trees) and `IS_SOURCE` alone (7 parts, 7 verified), the same play.
+  Registered as divergence D25 (`self_forms.txt`); the new parts take MAPPER_GUIDE's form,
+  `IS_SOURCE` alone.
+
+**R11-2 The payment (`executor/legality.py`).**
+- Can it be paid (CR 118.3, 601.2h): `build_payment_plan` (:689). CostExile (:1010) needs as many
+  objects as its count among what its selector finds, none another exile segment of the same cost
+  already takes; CostRemoveCounter (:1020) needs as many permanents its selector finds holding
+  `count` counters of the kind, counted after what an earlier segment's witness removes. One cost
+  never spends a card or a counter twice (`test_one_cost_never_spends_a_counter_or_a_card_twice`).
+  The reasons: `cost:exile:insufficient_candidates:<n><<need>`,
+  `cost:remove_counter:<KIND>:insufficient_candidates:<n><<need>`. `ability_playable` asks the plan,
+  so the menu (`legal_activations`) offers only what can be paid, and `activate` refuses the rest
+  before anything is paid.
+- `PaymentPlan` (:333-341): `exile`, `exile_options` and `remove_counters` (each segment's pool,
+  need, kind and count), kept out of the plan's repr: the stack's fingerprint row folds it
+  (`stack.SpellStack.dump`), and what they paid is in the world, so every state holding a stack
+  object keeps its fingerprint bytes (`fingerprint_check.py`: identical on base and branch;
+  `test_a_plan_keeps_the_repr_the_stack_fingerprint_folds`).
+- Paying it: `pay_costs` (:1724) runs mana, tap, removed counters (:1790), sacrifice, exile
+  (:1830), discard, put counters, loyalty, life. The counters come off before a sacrifice or an
+  exile takes their permanent: M13 Hellion Crucible's "Remove two pressure counters from this land
+  and sacrifice it" pays in full only in that order (CR 601.2h: any order the payer chooses;
+  `test_the_counters_come_off_before_their_permanent_is_sacrificed`). The exile is a MOVE_ZONE to
+  the owner's exile (CR 400.3), journalled as a zone change; the removal a REMOVE_COUNTER event (no
+  journal row, as for loyalty; detector D3 exempts removals by construction).
+- The asks: where a segment's pool is bigger than its need the payer chooses (601.2h) through
+  `_ask_cost_choices` (:1694), the sacrifice lane's shape: `exile:<seat>:<source>:<digest>` and
+  `remove_counter:<seat>:<source>:<digest>`, the Handle strings as the words. "This creature" and
+  every segment with no real choice are filled without asking (AGENTS §10: no phantom ask).
+  `test_the_payer_chooses_which_cards_a_cost_exiles`,
+  `test_the_payer_chooses_the_permanent_a_cost_removes_counters_from` (no printed card of the 19
+  sets removes a counter of a named kind from another object; the ask is tested on a built tree),
+  pack `fungal_plots_the_payer_chooses_the_creature_card`.
+- Where it works (CR 113.6m): `activation_zone` (:1145) reads a CostExile of the source (:1170):
+  "Exile this card from your graveyard" works only there, and its owner activates it (FDN
+  Suspicious Shambler; packs `suspicious_shambler_*`,
+  `test_an_ability_that_exiles_its_card_from_the_graveyard_works_there`).
+- The one plan and payment serve activations (`activate`), spells' additional costs
+  (`stack.cast`) and PAY effects (`verbs._v_pay`).
+
+**R11-3 The compiler.** The frame `B13-activated-cost-item` (frames.py:182) reads
+`[<mana and {T}>, ]<item>: <clause>`, the item one of `templates_b3.COST_ITEM` (:100-107; built by
+`cost_item`, :115, and `cost_with_item`, :141): "Exile this <artifact|creature|enchantment|land|
+permanent>", "Exile this card from your graveyard", "Exile <N> [other] [artifact|creature|land]
+card[s] from your graveyard", "Remove <N> <kind> counter[s] from this <permanent>" with the kinds
+the IR has (+1/+1, -1/-1, charge, page, soul, incarnation). As every frame, it composes only a
+clause that parses alone and holds no pronoun. It is not a trigger frame (no intervening "if",
+:191). `test_frames.py`'s differential is unchanged.
+
+**R11-4 What the network sees (AGENTS §10).** Costs reach the network as their card's component
+tokens (`features.card_tokens` over the tree: `CostExile`, `CostRemoveCounter`, `@counter_kind`,
+`CounterKind.PLUS_1_PLUS_1`, the selectors' tokens), as every cost did. The two asks are two kinds
+appended to `ASK_KINDS` (features.py:91), grown from "other" (`model.upgraded`): no tree held the
+parts, so neither ask was encoded before. **No input column is added.** An old checkpoint computes
+bitwise what it did: a random network saved by the base, loaded by the branch (32 ask rows grown to
+34, the two new rows copies of "other"), on 64 decisions sampled from three FDN games of the
+verified pool (act, act_second_main, attack, block, mulligan, mulligan_bottom, priority): the
+branch's encodings equal the base's, and so do the tokens, logits and value
+(`old_net_base.py`/`old_net_branch.py`, `old_net.txt`;
+`test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did` pins the widths, CI 8,
+CF 62, PF 18, GF 23, OI 5). The options of both asks are cards, entities like any (a graveyard's
+offered cards always stay in the entity list, features.py:574). Not seen: which ability of a card
+a cost belongs to (an act option is its card and ability index, as before), and a counter kind but
++1/+1, -1/-1 and loyalty (summed in F_COUNTERS). The bench (`protocol.SEAT_IN_TAG`, :81, prompts
+:232-233) routes both; the heuristic exiles the card of lowest mana value (heuristic.py:569).
+
+**The cards** (through `cardtool parse`, `try` and `write`; no `verified` block set):
+- M20 Hanged Executioner: the compiler's tree, whole; its needs-atom record re-mapped to it (G0 0
+  failures, G1 0 engine errors; G3 14 mutants, the probe kills 14).
+- M20 Barkhide Troll: a record, `EtBState(initial_counters=((PLUS_1_PLUS_1, 1),))` (Shatterskull
+  Charger's shape without its gate), then `{1}` and `CostRemoveCounter(PLUS_1_PLUS_1, <this
+  creature>)` for B3-grant-kw-self's grant with HEXPROOF until end of turn (G0 0 failures, G1 0
+  engine errors). The probe's board Troll holds no counter, so G1 shows the ability unpayable
+  (`cost:remove_counter:PLUS_1_PLUS_1:insufficient_candidates:0<1`); of G3's 9 mutants the probe
+  kills 2, and the 7 packs kill every critical survivor ({1} dropped or raised, two counters
+  removed, the hexproof made permanent, the grant made the opponent's) and the widened grant
+  (`g3_packs.txt`).
+- FDN Suspicious Shambler: the compiler's tree, whole (it was refused).
+- Still blocked in M21, M20 and FDN, each for another piece: M20 Kethis, the Hidden Hand (a
+  graveyard play permission, R5-2/R5-3; its needs-atom note narrowed to it); FDN Feldon's Cane
+  ("Shuffle your graveyard into your library": no template, and a MOVE_ZONE then SHUFFLE would ask
+  an order the shuffle discards, divergence D19, a phantom ask); FDN Drake Hatcher, Myojin of
+  Night's Reach, Ramos, Dragon Engine and Wishclaw Talisman (counter kinds the IR lacks, and other
+  clauses). BACKLOG "The cost twins still blocked" has every card of the 19 sets.
+
+**A bug found in G3 and fixed** (tools/cards/gates.py:552). `_without_unread_choices` compared every
+EtBState with `EtBState(effect=a.effect)` before testing the effect; built with no effect that node
+is refused (a no-op state), so every mutant of a card entering tapped or with counters was
+stillborn and G3 built none (M20 Barkhide Troll 0 mutants; M21 Malefic Scythe 0, now 14). Since
+774fa6b9 (2026-11-13, gate round 9's pre-gate fixes). 70 verified trees of M21, M20 and FDN hold
+such a node; every one of their stamps predates the bug and records its real mutation count
+(`g3_etb_stamps.txt`), so no stamp was made with an empty G3.
+`tools/cards/test_gates.py::test_a_card_that_enters_tapped_or_with_counters_has_mutants` (red on
+the base; `g3_etb_counts.py`).
+
+**Tests and packs that fail on the base** (`base_runs.txt`): of the module's 44 tests then, the 13
+packs and the 2 selfplay tests, 53 fail on 1d5e4164 and 6 pass on both, controls (four sentences
+the frame must leave unparsed; Unsummon unanswered returns the Troll, a test and a pack). Required
+by the round's brief: a cost that can't be paid
+(`test_barkhide_troll_without_a_counter_cannot_activate`,
+`test_hanged_executioner_cannot_pay_once_it_is_gone`, packs
+`barkhide_troll_without_a_counter_cannot_pay`, `hanged_executioner_already_gone_cannot_pay_again`,
+`fungal_plots_no_creature_card_cannot_pay`); the cost paid as the ability is activated, so removal
+in response does not stop the effect (`test_hanged_executioner_is_exiled_as_its_ability_is_activated`,
+`test_removal_in_response_cannot_reach_hanged_executioner`, packs
+`hanged_executioner_exiled_as_it_is_activated`, `..._stays_exiled_when_its_target_is_bounced`; the
+Troll's counter off at activation and its hexproof answering Unsummon,
+`test_barkhide_troll_answers_a_bounce_with_hexproof`, pack
+`barkhide_troll_hexproof_answers_unsummon`); two activations competing for one counter
+(`test_two_activations_compete_for_the_trolls_counters`, packs
+`barkhide_troll_one_counter_two_activations` and its falsifier
+`barkhide_troll_two_counters_two_activations`).
+
+**Blast radius** (by script over the 19 sets, base 1d5e4164; `blast_radius.txt`):
+- trees changed: **12 compiler trees, 13 with records applied**, all unverified: M20 Hanged
+  Executioner and Barkhide Troll (needs-atom records re-mapped), FDN Suspicious Shambler, M11
+  Brittle Effigy, M12 Pentavus, M15 Soul of Zendikar, M19 Transmogrifying Wand, ELD Inquisitive
+  Puppet, Steelbane Hydra and Tome of Legends, DOM Fungal Plots, ZNR Throne of Makindi, KHM Egon,
+  God of Death's back face. 5 compile whole now (Hanged Executioner, Brittle Effigy, Inquisitive
+  Puppet, Steelbane Hydra, Soul of Zendikar; Suspicious Shambler was refused). No M21 golden
+  changes.
+- verified cards whose trees changed: **0** (expected 0 for Keep); 0 leave, 0 join; the stamps
+  match (M21 275, M20 277, FDN 184).
+- still-verified trees with unchanged bytes on a touched path: 50 (48 with a twin part on the
+  plan's and the payment's lanes, none holding both a counter part and a sacrifice or exile; M20
+  Sanitarium Skeleton and M21 Waker of Waves on `activation_zone`).
+- **600 seeded heuristic games** (200 per verified pool: M21, M20, FDN; decks from the cards
+  verified on both, 275, 277 and 184 deckable): **600/600 identical replay digests, journal dumps
+  and raw event logs**, 0 crashes either side; 0 payments through the new parts (no verified tree
+  holds one). **0 games' play differs**, so there is no first differing event to explain
+  (`replay.py`, `replay_compare.py`).
+- random-play soaks dealing the new trees: SOAK_PLACEHOLDER
+- ontology conformance (M21, ZNR): the V4′ CHOOSE baseline gains ZNR Throne of Makindi's one node,
+  its CostRemoveCounter's source (IS_SOURCE, no decision: no ask, the payment's forced segment);
+  then **PASS, errors 0, warns 7** (the base's 7).
+- the partial trees: ZNR Throne of Makindi's two mana lack "Spend this mana only to cast kicked
+  spells" and M19 Transmogrifying Wand's destroy lacks "Its controller creates a 2/4 white Ox
+  creature token": stronger than printed the moment either pays its cost. Neither can: their
+  charge counters come from their own unparsed sentences, and no compiled card of the 19 sets puts
+  a charge counter on another permanent (`charge_sources.txt`: only ZNR Relic Amulet, on itself).
+  M12 Pentavus (a 0/0 whose counters are unparsed) and ELD Tome of Legends (its page counters
+  unparsed) are inert, weaker. All four are dealt only by castable and all pools. The frame shares
+  the B13-activated frame's gap (a composed ability whose drawback is a later sentence that does
+  not parse): BACKLOG.
+
+**Rejected.**
+- The fold (above).
+- One general part, `CostMoveZone(target, destination)`, for exile and discard (a sacrifice is its
+  own action, 701.21a): with CostDiscard kept it is a second byte form of a discard cost; folding
+  CostDiscard into it re-bakes 8 verified trees for one class fewer. A part per keyword action, as
+  the union already has, stays.
+- A `from` zone role on CostExile: the selector's zones already say where.
+- A kind-less removal now (Soul Diviner, the one card): it needs a counter-kind ask with the kinds
+  as option tokens (O_VALUE); it comes with its card. Likewise X, "all" and "any number".
+- The exile written as a MOVE_ZONE step of the effect (the 2026-11-05 needs-atom note's own
+  reason: a different ability, CR 602.2).
+
+**Limits, logged** (BACKLOG): a cost's parts are judged against the board as it is before payment,
+so a part that a later part of the same cost would make payable is not seen (a sacrifice whose card
+an exile of the same cost then takes: no printed cost of the 19 sets has both); the partial trees
+above; Feldon's Cane waits for D19's fold.

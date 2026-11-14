@@ -1,0 +1,70 @@
+M21 Bloodfell Caves | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Blossoming Sands | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Dismal Backwater | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Forgotten Sentinel | 2026-10-29 | {'mutants': 0, 'killed': 0, 'score': None}
+M21 Jungle Hollow | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Malefic Scythe | 2026-10-30 | {'mutants': 14, 'killed': 10, 'score': 0.7142857142857143}
+M21 Rugged Highlands | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Scoured Barrens | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Swiftwater Cliffs | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Temple of Epiphany | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M21 Temple of Malady | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M21 Temple of Mystery | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M21 Temple of Silence | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M21 Temple of Triumph | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M21 Thornwood Falls | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Tranquil Cove | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M21 Wildwood Scourge | 2026-10-30 | {'mutants': 6, 'killed': 0, 'score': 0.0}
+M21 Wind-Scarred Crag | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Bloodfell Caves | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Blossoming Sands | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Dismal Backwater | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Jungle Hollow | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Lotus Field | 2026-11-05 | {'mutants': 11, 'killed': 10, 'score': 0.9090909090909091}
+M20 Rugged Highlands | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Scoured Barrens | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Squad Captain | 2026-11-05 | {'mutants': 5, 'killed': 5, 'score': 1.0}
+M20 Swiftwater Cliffs | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Temple of Epiphany | 2026-11-05 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M20 Temple of Malady | 2026-11-05 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M20 Temple of Mystery | 2026-11-05 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M20 Temple of Silence | 2026-11-05 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M20 Temple of Triumph | 2026-11-05 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+M20 Thornwood Falls | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Tranquil Cove | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Voracious Hydra | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+M20 Wind-Scarred Crag | 2026-11-05 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Azorius Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Bloodfell Caves | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Blossoming Sands | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Boros Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Dimir Guildgate | 2026-10-29 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Diregraf Ghoul | 2026-11-06 | {'mutants': 0, 'killed': 0, 'score': None}
+FDN Dismal Backwater | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Gnarlid Colony | 2026-10-29 | {'mutants': 12, 'killed': 9, 'score': 0.75}
+FDN Goblin Boarders | 2026-11-06 | {'mutants': 5, 'killed': 1, 'score': 0.2}
+FDN Golgari Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Gruul Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Izzet Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Jungle Hollow | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Orzhov Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Rakdos Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Rugged Highlands | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Scoured Barrens | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Selesnya Guildgate | 2026-10-29 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Simic Guildgate | 2026-11-06 | {'mutants': 6, 'killed': 6, 'score': 1.0}
+FDN Swiftwater Cliffs | 2026-10-29 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Temple of Abandon | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Deceit | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Enlightenment | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Epiphany | 2026-10-29 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Malady | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Malice | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Mystery | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Plenty | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Silence | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Temple of Triumph | 2026-11-06 | {'mutants': 9, 'killed': 8, 'score': 0.8888888888888888}
+FDN Thornwood Falls | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Tranquil Cove | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}
+FDN Wildwood Scourge | 2026-11-06 | {'mutants': 6, 'killed': 0, 'score': 0.0}
+FDN Wind-Scarred Crag | 2026-11-06 | {'mutants': 9, 'killed': 9, 'score': 1.0}

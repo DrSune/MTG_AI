@@ -933,7 +933,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   it reads the created-token `result` that wave added; the cost parts "Remove N <kind> counters
   from this <permanent>" and "Exile this <permanent>", 4 (Hanged Executioner, Brittle Effigy,
   Inquisitive Puppet, Steelbane Hydra; 2 more, Soul of Zendikar and Soul of Ravnica, also need
-  activation from a graveyard, CR 113.6m); a discard trigger event, 3 (Megrim in 10E and M10,
+  activation from a graveyard, CR 113.6m; built 2026-11-14, ontology round R11, DESIGN_ATOM_ONTOLOGY
+  §15: the four and Soul of Zendikar compile whole, Soul of Ravnica's clause has no template); a
+  discard trigger event, 3 (Megrim in 10E and M10,
   Liliana's Caress). Built 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12, ontology round R8; gate round 8
   FIX-THEN-GO, fixed): the
   life-total threshold, `FAtomPred.LIFE_TOTAL_GE` (Twinblade Paladin and Angel of Vitality in M20
@@ -1033,8 +1035,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       Holding). Agent running.
   - **Re-verify:** Octoprophet (its 2026-11-06 blocker, scry order, is fixed by `arrange`).
   - **Later:**
-    - the cost twins: exile and remove-counter costs. Widest reach, 16 cards in other sets;
-      waits on the F3 ruling;
+    - the cost twins: exile and remove-counter costs. Built (ontology round R11,
+      DESIGN_ATOM_ONTOLOGY §15, gate round 11 pending): F3 ruled Keep, `CostExile` and
+      `CostRemoveCounter` join the cost union. M20 Hanged Executioner (re-mapped to the
+      compiler's tree) and Barkhide Troll are mapped, not verified; FDN Suspicious Shambler
+      compiles whole. The census counts 75 printed items on 72 names in the 19 sets (22 of them
+      THB escape costs), not 16; what is still blocked, and why: "The cost twins still blocked"
+      below;
     - entering with counters, and "that targets you";
     - R5-2 (PERMIT_CAST, the permission lane), its own lane. It covers M21's Furious Rise,
       Conspicuous Snoop and Radha, and M20's Golos and Mystic Forge;
@@ -1044,6 +1051,40 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       CR 114. Handed to wave 2C's emblem work.
     - packages.py does not read a life-gain replacement as a life consumer, reads chosen-quality
       filters as unknown, and never puts a card of 3+ colours in a pair deck.
+- **The cost twins still blocked** (2026-11-14, ontology R11, DESIGN_ATOM_ONTOLOGY §15;
+  `reports/cost_twins_2026-11-14/census.txt` §1a). Of the 75 printed exile and remove-counter cost
+  items, 13 trees changed; the rest wait on another piece each:
+  - M21 prints none. M20 Kethis, the Hidden Hand: the graveyard play permission (R5-2, R5-3).
+  - FDN Feldon's Cane: "Shuffle your graveyard into your library" has no template, and written as
+    a MOVE_ZONE into the library then a SHUFFLE it would ask its owner an order the shuffle
+    discards (divergence D19, a phantom ask): it waits for D19's fold.
+  - FDN Drake Hatcher, Myojin of Night's Reach, Wishclaw Talisman (and ELD's), Ramos, Dragon
+    Engine: counter kinds the IR lacks (incubation, divinity, wish) and other clauses ("put that
+    many incubation counters on it", "if you cast it from your hand", "has indestructible as long
+    as ...", "An opponent gains control of this artifact", "Activate only during your turn",
+    "Activate only once each turn", "for each of that spell's colors").
+  - Other kinds the IR lacks: wish (Djinn of Wishes x3, Ring of Three Wishes), gold (Dragon's
+    Hoard), foreshadow (Ominous Seas), pressure (Hellion Crucible), storage (Mage-Ring Network).
+    Amounts no lane pays: X (M15 Cruel Sadist), "all" (ZNR Relic Amulet), "any number" (Mage-Ring
+    Network); a kind the payer picks (WAR Soul Diviner: a counter-kind ask with O_VALUE tokens).
+  - The 22 THB escape costs: a cast from the graveyard with an alternative cost (R5-2's lane);
+    KHM Stalwart Valkyrie's alternative cost; KHM Weigh Down's and ORI Skaab Goliath's additional
+    exile costs (no template for "As an additional cost to cast this spell, exile ...").
+  - Clauses with no template (the cost parses): KHM Dread Rider, Vault Robber, Spectral Steel; M19
+    Graveyard Marshal, Bone Dragon; M12 Grim Lavamancer; IKO Titans' Nest, Fertilid; ORI Disciple of
+    the Ring, Despoiler of Souls; M15 Perilous Vault and the other five Souls; M11 Triskelion (a
+    pronoun clause).
+  - **Partial trees with a stronger-than-printed ability, inert today.** The frame composes an
+    activated ability whose drawback or restriction is a later sentence that does not parse: ZNR
+    Throne of Makindi's two mana lack "Spend this mana only to cast kicked spells", M19
+    Transmogrifying Wand's destroy lacks "Its controller creates a 2/4 white Ox creature token".
+    Neither can pay its cost: their charge counters come from their own unparsed sentences, and
+    no compiled card of the 19 sets puts a charge counter on another permanent
+    (`charge_sources.txt`). Dealt only by castable and all pools. The B13-activated frame has the
+    same gap for any card; fix with the first card whose counters or cost can be paid: refuse a
+    composed ability whose next sentence continues it ("Its controller ...", "Spend this mana
+    only ...") and does not parse. M12 Pentavus (a 0/0 whose five counters are unparsed) and ELD
+    Tome of Legends (its page counters unparsed) are inert and weaker.
 - **A quality chosen as a permanent enters: the cards one piece away** (2026-11-13, ontology R9;
   `reports/chosen_quality_2026-11-13/census.txt`). B17 reads the choice on 20 printings of 17
   cards; these still need one piece each, none small. Where a reader compiles the tree is partial
