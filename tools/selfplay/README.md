@@ -48,7 +48,10 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
    learner scores `--teacher-gate` against it (deal-level 95% lower bound above 0.5) or
    `--teacher-iters` pass. The evaluated weights become the next version.
 3. *Gated frozen self-play*: PPO against the newest frozen version, plus older versions
-   (`--p-past`) and the heuristic (`--p-heuristic`) so it does not forget how to beat them.
+   (`--p-past`; the newest while there is no older one) and the heuristic (`--p-heuristic`) so
+   it does not forget how to beat them. With `--p-self`, that share of games seats the learner
+   in both seats and trains both: twice the trained decisions of a game for the same inference.
+   `--steps` still counts decisions, so an update then holds fewer games.
    Every `--gate-every` iterations the learner plays a gate match on `--gate-deals` fresh deals;
    `--gate-score` with the lower bound above 0.5 freezes the evaluated weights as the next
    version (/183 §27: freeze on significance).
@@ -60,9 +63,12 @@ were the separate value network, the rollout network and the KL anchor to the fr
 serving the workers on the current weights; no new training game is issued while a full next
 batch waits (`throttled`). Serve with `--infer-bf16` (KL to the trainer's numerics ~1e-5, §20);
 without it inference runs in fp32 (before 2026-11-12 it ran fp32 weights under bf16 autocast on
-CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `voids`, `overflow` (the learner's asks
-answered by the fallback) and `throttled` (job requests refused while a full batch waited) are per
-update; before 2026-11-12 the last three were totals since the process started.
+CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `learner_seats` (the learner's seats in
+those games: two in a self game; the guard's mulligan rate is per seat), `voids`, `overflow` (the
+learner's asks answered by the fallback) and `throttled` (job requests refused while a full batch
+waited) are per update; before 2026-11-12 the last three were totals since the process started.
+`win` is the training win rate per opponent group; its `self` entry is half the decided seats by
+construction, a check of the crediting, and self games stay out of `win_set`.
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards

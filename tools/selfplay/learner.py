@@ -12,9 +12,10 @@ The curriculum; the network it starts from is frozen as v0:
 2. Teacher stage: PPO against the heuristic until a frozen copy of the learner scores
    --teacher-gate against it (with the deal-level 95% lower bound above 0.5) or --teacher-iters
    pass.
-3. Self-play stage: PPO against the newest frozen version, older versions (--p-past) and the
-   heuristic (--p-heuristic). Every --gate-every iterations a gate match on fresh deals freezes
-   the learner as the next version when it scores --gate-score with the lower bound above 0.5.
+3. Self-play stage: PPO against the newest frozen version, older versions (--p-past), the
+   heuristic (--p-heuristic) and itself (--p-self: the learner in both seats, both trained).
+   Every --gate-every iterations a gate match on fresh deals freezes the learner as the next
+   version when it scores --gate-score with the lower bound above 0.5.
 
 PPO: every learner decision is recorded with its log-probability and value; when a game ends
 its seats get +1 (win), -1 (loss), --draw-reward (turn cap or stall) or 0 (both lose at once),
@@ -530,7 +531,8 @@ class Learner:
     def curriculum_job(self) -> dict:
         """Stage "teacher": the learner plays the heuristic. Stage "selfplay": the learner plays
         the newest frozen version (most games), older versions and the heuristic (a few, so it
-        does not forget how to beat them). Only the learner's seat is trained on."""
+        does not forget how to beat them), and itself (--p-self). Only the learner's seats are
+        trained on: both of a self game."""
         a = self.args
         # --seed moves the deals: a run started from another run's checkpoint must not train
         # again on the decks and shuffles its ancestors trained on
@@ -541,8 +543,13 @@ class Learner:
             r = self.rng.random()
             if r < a.p_heuristic:
                 opp = "heuristic"
-            elif r < a.p_heuristic + a.p_past and len(self.versions) > 1:
-                opp = self.rng.choice(self.versions[:-1])
+            elif r < a.p_heuristic + a.p_past:
+                # with no older version yet the past share plays the newest (199 §6), never
+                # itself: the self share stays --p-self, and --p-self 0 draws as before it
+                past = self.versions[:-1]
+                opp = self.rng.choice(past) if past else self.versions[-1]
+            elif r < a.p_heuristic + a.p_past + a.p_self:
+                opp = "learner"
             else:
                 opp = self.versions[-1]
         seat = self.rng.randrange(2)
@@ -551,7 +558,7 @@ class Learner:
                         self._deck_mode())
         # the opponent's group as drawn (the iter row's "win"): a freeze while the game runs
         # must not move a game against the then-newest version into "past"
-        job["group"] = "heuristic" if opp == "heuristic" else (
+        job["group"] = "heuristic" if opp == "heuristic" else "self" if opp == "learner" else (
             "frozen" if opp == self.versions[-1] else "past")
         self._mix(job)
         return job
@@ -773,15 +780,16 @@ class Learner:
             # bootstrapping makes reaching it worth what the position was worth.
             z = vals[-1] if void else self.reward(r["outcome"], r["winner"], seat)
             adv = gae(vals, z, a.gamma, a.lam)
-            # the game and the step ride along for --collect (held-out games, game phase)
+            # the game, the step and the seat ride along for --collect (held-out games, game
+            # phase; the two seats of a self game share its id)
             for i, ((f, act, logp, v), ad) in enumerate(zip(steps, adv, strict=True)):
-                self.buffer.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps)))
-        if not void:
+                self.buffer.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps), seat))
+        if not void:  # one entry a game: the results of its learner seats, both in a self game
             seats = r["seats"]
-            for seat in (0, 1):
-                if seats[seat] == "learner" and seats[1 - seat] != "learner":
-                    self.train_results.append((r.get("group") or seats[1 - seat], self.reward(
-                        r["outcome"], r["winner"], seat), r["turns"], r["set_code"]))
+            zs = [self.reward(r["outcome"], r["winner"], s)
+                  for s in (0, 1) if seats[s] == "learner"]
+            self.train_results.append((r.get("group") or seats[1 - seats.index("learner")], zs,
+                                       r["turns"], r["set_code"]))
 
     # ------------------------------------------------------------------ BC
 
@@ -1141,17 +1149,17 @@ class Learner:
             tp = self.throughput(t0, g0, d0)
             res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
-            for group, z, *_ in res:  # the opponent's group as the job drew it (curriculum_job)
-                wr[group].append(z)
+            by_set: dict[str, list] = defaultdict(list)
+            for group, zs, _, set_code in res:  # the group as the job drew it (curriculum_job)
+                wr[group] += zs
+                if group != "self":  # a win and a loss for the learner: in no set's win rate
+                    by_set[set_code] += zs
             # per update, like "games": the void training games, the learner's asks answered by
             # the fallback (overflow) and the job requests refused while a full batch waited
             counts = {"voids": self.counts["train:void"], "overflow": self.counts["overflow"],
                       "throttled": self.counts["throttled"]}
             per_update = {k: v - self._iter_counts.get(k, 0) for k, v in counts.items()}
             self._iter_counts = counts
-            by_set: dict[str, list] = defaultdict(list)
-            for row in res:
-                by_set[row[3]].append(row[1])
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
                       "upd_s": round(time.time() - t1, 1), "collect_s": round(t1 - t0, 1),
                       # with --mix-sets: the training-game win rate per dealing set
@@ -1162,7 +1170,9 @@ class Learner:
                               for k, v in wr.items()},
                       "frozen": self.versions[-1] if self.versions else None,
                       "turns": round(float(np.mean([x[2] for x in res])) if res else 0, 1),
-                      "games": len(res), "mem_gib": round(mem_available_gib(), 1),
+                      # a self game is one game with two learner seats (the guard's denominator)
+                      "games": len(res), "learner_seats": sum(len(x[1]) for x in res),
+                      "mem_gib": round(mem_available_gib(), 1),
                       "mem_min_gib": round(getattr(self, "mem_min", float("nan")), 1),
                       "infer_bs": round(self.infer_items / max(self.infer_batches, 1), 1),
                       **per_update})
@@ -1304,7 +1314,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--bc-vcoef", type=float, default=0.25)
     # PPO
     p.add_argument("--iters", type=int, default=100)
-    p.add_argument("--steps", type=int, default=65536, help="learner decisions per iteration")
+    p.add_argument("--steps", type=int, default=65536,
+                   help="learner decisions per iteration; a self game (--p-self) gives two seats' "
+                        "decisions, so with self games an update holds fewer games")
     p.add_argument("--mb", type=int, default=2048)
     p.add_argument("--tok-budget", type=int, default=65536,
                    help="max padded tokens per training minibatch (bounds activation memory)")
@@ -1356,7 +1368,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--collect", default="",
                    help="write the first full batch of training decisions (pickled rows: "
                         "features, action, log-prob, value, advantage, return, game id, step, "
-                        "steps) to this file and stop without an update (PLAN_CEILING §4.1)")
+                        "steps, seat; step and steps count the seat's decisions) to this file "
+                        "and stop without an update (PLAN_CEILING §4.1)")
     p.add_argument("--pool", default="verified", choices=("verified", "compiled", "castable"),
                    help="the cards every game deals from (training, mixed sets, evaluation; "
                         "games.compile_supply): 'verified' = whose current compiled tree passed "
@@ -1382,7 +1395,10 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                    help="re-freeze when the learner scores this vs the frozen version "
                         "(and the 95%% interval is above 0.5)")
     p.add_argument("--ladder-deals", type=int, default=100)
-    p.add_argument("--p-past", type=float, default=0.1, help="selfplay games vs older versions")
+    p.add_argument("--p-past", type=float, default=0.1,
+                   help="selfplay games vs older versions (vs the newest while there is none)")
+    p.add_argument("--p-self", type=float, default=0.0,
+                   help="selfplay games of the learner against itself, both seats trained")
     p.add_argument("--search-blocks", action="store_true",
                    help="searching seats also plan their blocks at the pre-blocks boundary")
     p.add_argument("--search-root", choices=ROOTS, default="topk",
@@ -1445,6 +1461,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                 "--draft-critic")
     if not 0 <= args.package_share <= 1:
         p.error(f"--package-share {args.package_share} is not a share")
+    if args.p_self < 0 or args.p_heuristic + args.p_past + args.p_self > 1 + 1e-9:
+        p.error(f"--p-self {args.p_self}: the heuristic, past and self shares sum above 1")
     return args
 
 
