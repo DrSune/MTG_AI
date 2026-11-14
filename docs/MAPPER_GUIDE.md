@@ -31,6 +31,39 @@ $PY tools/cards/cardtool.py --help
      the calibration.
    - If you ever see a calibration answer by accident, say so in your report, as mapper A did.
 
+## Common mistakes, most frequent first (KNOWLEDGE/2026-11-14/207)
+Counts are faults found by the card waves (189 causes, 2026-10-29 to 11-13) and planted faults (75
+answer keys); G0's lints (`tools/cards/lints.py`) flag the ones marked *lint* at `try`.
+1. **Who.** Every `controller`, `CONTROLLER_IS`, zone owner and event actor: "you" against "an
+   opponent", "each opponent", "that player", "its controller" (17 faults, 29 of 75 plants).
+   "That player" after "target opponent" reads that binding. *lint players*
+2. **Numbers.** Every amount, count and P/T change: "a card" is 1, "draw two cards, then discard
+   a card" holds 2 and 1 (29 of 75 plants). *lint amounts*
+3. **The tree is right, the engine plays it wrong** (14 of the 26 WRONG verdicts since 11-05:
+   "any number", "any order", graveyard abilities). Judge the trace, never the tree's looks.
+4. **Targets and counts.** TARGET against ALL ("creatures you control" is ALL), "up to N"
+   (`QAtMost`, zero allowed), "any number" (`QUnbounded` CHOOSE), "another" (`FNot(IS_SOURCE)`),
+   "all X revealed" is no choice (20 faults).
+5. **A compiled sentence misread or dropped** (18 faults). Read each sentence's tree in `show`
+   before keeping `compiled`; a permanent's text never sits on its cast carrier. *lint carrier,
+   players (a dropped instruction)*
+6. **Zones and owners.** "Its owner's" hand or library; an ability that works from the graveyard;
+   what a card left behind (15 faults).
+7. **Order and timing.** "In any order" (no `arrange`) against "in a random order" (`RANDOM`);
+   an intervening "if" is the condition, any other qualifier is in the event's filter; modes are
+   chosen at cast (13 faults).
+8. **Once or each.** "One or more ..." and "whenever you attack" carry `once_per_event`;
+   "whenever a creature attacks" is once per creature (11 faults).
+9. **Costs.** Every printed cost part on its ActivatedAbility ({U}, {T}, a sacrifice, `Equip {3}`);
+   a permission is a static, never a free activation (10 faults, 6 plants). *lint costs*
+10. **Durations.** "Until end of turn" on every atom it covers; "until ~ leaves" is the move's
+    `duration` (9 faults; 4 of G3's survivors).
+11. **"May".** "You may" is `OptionalEffect`; "any number" needs none; "if you do" is
+    `Conditional(MAY_DONE)` (5 faults).
+
+Verifiers: a NOT_EXERCISED clause needs a pack; supporting cards in a pack must be verified;
+make each pack fail a wrong expectation once; run `cardtool survivors` before reporting.
+
 ## Mapper workflow
 1. `cardtool.py show SET "Card"` prints:
    - the printed card;
@@ -412,6 +445,18 @@ Write the verdict JSON:
  "clauses": [{"clause": "...", "status": "OK|WRONG|NOT_EXERCISED", "evidence": "<variant label and event>", "issue": ""}],
  "packs": ["<path to each spec pack you wrote>"]}
 ```
+
+**Last step: G3's survivors, before you report.** For each card you judged OK, once its verdict
+file is written, run `cardtool.py survivors SET "Card" --verdict v.json`.
+- The first run locks the judgments: it writes their sha256 into the verdict's `lock` and into
+  `locks.jsonl` beside it. Never change a status, an issue or the verdict after that: `survivors`
+  and `verify` refuse a verdict whose judgments changed since its lock, and the ledger keeps the
+  first lock.
+- It lists the critical mutants that none of the verdict's packs tells apart from the card, each
+  with the kind of pack that did in earlier waves. Write those packs from the printed text, add
+  them to `packs` (evidence may grow), and run it again until it lists nothing.
+- In waves 1-1e, 30 of the 72 cards judged OK needed this as a second trip, with the coordinator
+  sending each survivor back by message.
 
 ## Spec packs (gate G4)
 A scenario pack (format: the docstring of `tools/run_scenarios.py`) sets up the needed board, does

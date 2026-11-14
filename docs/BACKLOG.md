@@ -544,6 +544,31 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **Orphaned sentences on a permanent's cast carrier** (2026-11-14, found by G0's `carrier`
+  lint, KNOWLEDGE/2026-11-14/207 §5.1). 26 partly compiled cards hold an effect on a permanent
+  spell's SpellAbility, so it happens as the card is cast. WAR Teferi, Time Raveler's "Draw a
+  card." (the end of its -3) draws as Teferi is cast. This is the class of the 23 cards fixed on
+  2026-11-05 (KNOWLEDGE 184 §7, M20 Keldon Raider).
+  - The cards: DOM Keldon Overseer, Niambi; ELD and FDN Charming Prince; ELD The Great Henge; FDN
+    Apothecary Stomper, Prayer of Binding, Wardens of the Cycle; IKO Archipelagore, Bushmeat
+    Poacher; KHM Runed Crown, Runeforge Champion, The Raven's Warning; M10 and M12 Cemetery
+    Reaper; M12 Arachnus Spinner; M15 Boonweaver Giant, Might Makes Right; ORI Enthralling Victor;
+    THB Elspeth's Nightmare, Irreverent Revelers, Mischievous Chimera; WAR Jace, Wielder of
+    Mysteries, Samut, Tyrant Smasher, Ugin, the Ineffable.
+  - None is dealt in the `compiled` or `verified` modes, and a mapper's draft that keeps them
+    fails G0. The `castable` and `all` modes deal them.
+  - Fix: the compiler leaves a sentence it cannot attach unparsed, never on the carrier
+    (`reports/card_lessons_2026-11-14/lintscan.py` lists them).
+- **A frame from a verified tree** (2026-11-14, King goal 1b; a design for the owner and a gate
+  round, not built; KNOWLEDGE/2026-11-14/207 §4).
+  - The idea: a template made from a verified card's sentence and tree by freeing its number,
+    type and colour slots.
+  - Reach in the 16 other sets: 396 of their 4,946 unparsed sentences (150 slot variants, 246
+    word for word a mapped card's sentence). It would make 103 of 3,082 partly compiled cards
+    whole. 92% of the unparsed sentences have no verified analog.
+  - Cheaper first step: `cardtool similar` offers the verified mapped sentences, from the
+    records' clause paths, as exemplars.
+
 - **One encoding for "as long as" on a self static, and one keyword order** (2026-11-13,
   ontology gate round 8, m5 and m6; divergences D22 and D23). "As long as <condition>" is the
   StaticAbility's `condition` in 14 statics (B14's among them), and a DurationWhileCondition on

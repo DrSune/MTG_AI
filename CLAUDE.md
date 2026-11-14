@@ -72,7 +72,8 @@ The MTG rules themselves are not heuristics — implement those exactly.
 | `docs/OWNER_VISION_LEARNING.md` | **The owner's learning vision**: full credit, memory, inputs, the opponent simulator, the Teacher. Read before changing how the network learns |
 | `docs/COST_MODEL.md` | Why a parameter's cost depends on where you put it |
 | `docs/BACKLOG.md` | Scaffolds to remove, open engine faults, card-onboarding and training items, parked ideas; each with its reason |
-| `docs/PLAN_CARD_ONBOARDING.md`, `docs/MAPPER_GUIDE.md` | How a card gets a record, and the gates it passes |
+| `docs/PLAN_CARD_ONBOARDING.md`, `docs/MAPPER_GUIDE.md` | How a card gets a record, and the gates it passes; the new-set playbook; the common mistakes |
+| `docs/CARD_AGENT_BRIEFS.md` | Templates for the card agents' briefs (verifier, mapper, IR change, gate reviewer, engine wave) |
 | `MTG_bot/core/` | **The rules engine**: compiler (oracle text to ability tree), executor, state |
 | `MTG_bot/bench/` | Benchmark core shared by the bot and LLM seats: per-seat view, agent protocol, duplicate duels, stats, rules track ([`docs/DESIGN_BENCHMARK.md`](docs/DESIGN_BENCHMARK.md)) |
 | `MTG_bot/data/` | Set files (MTGJSON) and one record per mapped card (`data/cards/<SET>/`) |
