@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M12",
+ "oracle_id": "837182db-1bf3-4a2c-bd01-1af9d9873561",
+ "name": "Unsummon",
+ "text_sha": "b940d8f683ccb7bcfa7b71d20d6843bc9f26134ca565adf5da57b2a2bd765b0a",
+ "verified": {
+  "tree_sha": "5c403c4e77d50d97711a44d4848cce2b5a6c3c7f4b5ffd912ca859598d35a1f6",
+  "probe_sha": "13b3e990759b4f670e796c9d0861887b91c792a891165fccb30a63139cb9d85c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Return target creature to its owner's hand.",
+    "status": "OK",
+    "evidence": "Target slot: the six creatures only (no artifacts, enchantments, lands or players); each moves battlefield -> its owner's hand (opp: hand 2 -> 3 for seat 1's); mana U-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

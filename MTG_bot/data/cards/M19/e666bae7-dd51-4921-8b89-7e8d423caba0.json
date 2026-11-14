@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "e666bae7-dd51-4921-8b89-7e8d423caba0",
+ "name": "Gigantosaurus",
+ "text_sha": "f87924fd81293ce2510cdb1184834c3ded67db33f26a92fc5335f31d7a6669ac",
+ "verified": {
+  "tree_sha": "4f1edda5bb9ee7151f240edf5ed5a17dc1f378b7fe9a1efb6733c62c54931986",
+  "probe_sha": "6b6ffb136e45506fcde04467e8b1a3a8a8a3fae2653494ce36b23395624f1270",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Dinosaur 10/10 for {G}{G}{G}{G}{G})",
+    "status": "OK",
+    "evidence": "tree: only SpellAbility(CREATURE), no keywords. [cast]: card hand -> battlefield, P/T 10/10, you: mana G-5. [stimulus: this creature attacks alone, unblocked]: opp is dealt 10, life 20 -> 10. No trigger fires on any stimulus.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

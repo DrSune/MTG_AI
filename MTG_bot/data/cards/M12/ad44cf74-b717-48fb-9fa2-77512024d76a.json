@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M12",
+ "oracle_id": "ad44cf74-b717-48fb-9fa2-77512024d76a",
+ "name": "Mind Rot",
+ "text_sha": "b891e02aad22b1d77619bc09f21593c86bdec1fd44f6e25caf4f711a052e6ed3",
+ "verified": {
+  "tree_sha": "2ec9ec544dc95ff5bd53c269a1cf89fd6a2c89fc99bb1506436d644a2152f367",
+  "probe_sha": "cea816671585cf2784d4e4a96feb22dd456a74c47161cd8d7583f396f6623932",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target player discards two cards.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you, opp]; [cast targets=['opp']]: opp_spare and opp_trick hand -> graveyard, opp hand 2 -> 0; [cast targets=['you']]: two discard asks over your hand, exactly two cards hand -> graveyard (hand 6 -> 3 with the spell); cost B-1 W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M10",
+ "oracle_id": "b254fefb-11d2-4369-ae5c-0c3bd48ae580",
+ "name": "Oakenform",
+ "text_sha": "8e39f6ec4f390ef7c6c456411ed28ea5b68b7a9e8990103787aa91fa9d659000",
+ "verified": {
+  "tree_sha": "7fd1000ae7ef0fb2eafdb447630ee2c580b21182f005746928fc49666c23db5e",
+  "probe_sha": "e09aee8c3eaed44eb9351c57d704b69fcd49358de524d703db544aec6a9fda7b",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: creatures only (you_relic, you_charm not offered); the effect entry's 'ask enchant' offers the same six.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +3/+3.",
+    "status": "OK",
+    "evidence": "each [cast targets=X]: only X changes, by +3/+3 (you_bear 2/2 -> 5/5, opp_giant 4/4 -> 7/7, opp_flier 1/1 -> 4/4), with no reversion after the turn ends.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "e050a0a3-f48e-4cba-9cd4-692a92261c9f",
+ "name": "Hostile Minotaur",
+ "text_sha": "45b08b80bda1e680a5d681bd831ecfa46f5376b859af1f597d9c4566cacf8c0a",
+ "verified": {
+  "tree_sha": "283fb1c61b962584e9cf61164ffc6042a42b5227f905e113f4ee3c4fc57b6715",
+  "probe_sha": "44e498d38b28ccd2b5860fded44bd6509953cd23c45ebd794ff3adb7219d3937",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords +HASTE in the trace, but the probe attacks only with a card on the battlefield since the turn began, so haste changes nothing there. Pack hostile_minotaur_1 PASS (also against this packet's tree): cast and attack the same turn for 3 while a vanilla 2/2 put onto the battlefield that turn cannot attack; it fails against the tree without HASTE.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/hostile_minotaur_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

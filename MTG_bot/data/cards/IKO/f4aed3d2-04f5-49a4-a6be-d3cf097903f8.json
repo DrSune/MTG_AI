@@ -1,0 +1,105 @@
+{
+ "schema": 1,
+ "set": "IKO",
+ "oracle_id": "f4aed3d2-04f5-49a4-a6be-d3cf097903f8",
+ "name": "Bristling Boar",
+ "text_sha": "3a0231ed661074a21fdb03f4f232394c609701bd1ac7dbfb1b4f2654ae03726d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "count": {
+          "tag": "QAtLeast",
+          "n": 2
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "e712452d46b40cba57fbff53900f79423c52b58b37be19bc65eb5beacdcda604",
+  "probe_sha": "51461dae0d83652b2af2d9cd90ccb117f430e4a91c3e061c2e7fa158ad1b7d9a",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This creature can't be blocked by more than one creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe only blocks with one creature. Tree = compiled template B15-cant-be-blocked-by-more-than-one. Pack bristling_boar_1: Wall A blocks, Wall B never offered a block; the twin with both walls blocking gets only Wall A.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bristling_boar_1.json"
+  ],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

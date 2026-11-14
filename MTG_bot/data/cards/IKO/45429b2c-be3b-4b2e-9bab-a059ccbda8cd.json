@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "IKO",
+ "oracle_id": "45429b2c-be3b-4b2e-9bab-a059ccbda8cd",
+ "name": "Blossoming Sands",
+ "text_sha": "1e8290802626dd9cfddc0879f19b95e8720616be8d866f9c20ad43f34578b79f",
+ "verified": {
+  "tree_sha": "7e7920b610629a6db6f3ec094c35a322ac8ace0ca74d88073ccd520a75bd4dac",
+  "probe_sha": "14c1bc42ac192875cffb00217711d87243d27b0997197ff1f46c7544a5533dd5",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: card's triggered ability [1] triggers, you gains 1 life (by card/GAIN_LIFE), you: life 20 -> 21; same on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: tapped, you: mana G+1; [... | ask 1 -> 1]: tapped, you: mana W+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "994db177-03f5-43dd-bf7b-2994e8d430d3",
+ "name": "Volcanic Dragon",
+ "text_sha": "863812b6aa7a2a78d89e437db118ed199d6ded25ae71c2e55f0bf5703f53c38f",
+ "verified": {
+  "tree_sha": "eb2c5d55d121420d4fba947752b23456a6116e659f0003f962d2eef85064d5c3",
+  "probe_sha": "7711ea9f9908ba6890b74e5a27c7f998d4baf80b2bef5f458ce301bafa9ff1f2",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it]: no block, opp dealt 4 (20 -> 16); keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "haste",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's attack stimuli use a creature already on the battlefield. Pack volcanic_dragon_haste_attacks_the_turn_it_enters (PASS): cast this turn ({4}{R}{R} spent exactly), asked 'ATTACK,DECLINE' and attacks (seat 1 20 -> 16); a Walking Corpse that entered the same turn is never asked. Fails against a not-attacking expectation.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/volcanic_dragon_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

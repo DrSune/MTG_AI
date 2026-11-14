@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "ELD",
+ "oracle_id": "b0af0c54-2a59-4075-8543-d41ff20c4c87",
+ "name": "Wind-Scarred Crag",
+ "text_sha": "6e08fc1a74dca4294d8af74c18b97d15b554f9e5579f068a286ede04d5639e91",
+ "verified": {
+  "tree_sha": "8a97383daf638b24266469c16dea3bc3df9249953c74a75199d20eaa1f17fc76",
+  "probe_sha": "12b3718447bdce80b458ed9617b560f4a08da5257dc8db6ba60b3a92c9594b1f",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'.",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: 'you gains 1 life (by card/GAIN_LIFE)', 'you: life 20 -> 21'; also when it enters on the opponent's turn (you 20 -> 21).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2]]: 'ask choose: [0, 1]', -> 0: tapped, 'mana R+1'; -> 1: tapped, 'mana W+1'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

@@ -1,0 +1,358 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "99024aa8-5687-4d38-8a4b-feef42d6c1ff",
+ "name": "Death Baron",
+ "text_sha": "573072e56d895396c404eb9c310ed4987e0deb36333fb007904b66b6dd6705fb",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAnd",
+                "children": [
+                 {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "SUBTYPE_EQ"
+                  },
+                  "string_value": "Zombie",
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 },
+                 {
+                  "tag": "FNot",
+                  "inner": {
+                   "tag": "FAtom",
+                   "pred": {
+                    "tag": "FAtomPred",
+                    "name": "IS_SOURCE"
+                   },
+                   "string_value": null,
+                   "color": null,
+                   "colors": [],
+                   "count": null,
+                   "counter_kind": null,
+                   "keyword": null,
+                   "who": null,
+                   "inner_filter": null
+                  }
+                 }
+                ]
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "SUBTYPE_EQ"
+                },
+                "string_value": "Skeleton",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DEATHTOUCH"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAnd",
+                "children": [
+                 {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "SUBTYPE_EQ"
+                  },
+                  "string_value": "Zombie",
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 },
+                 {
+                  "tag": "FNot",
+                  "inner": {
+                   "tag": "FAtom",
+                   "pred": {
+                    "tag": "FAtomPred",
+                    "name": "IS_SOURCE"
+                   },
+                   "string_value": null,
+                   "color": null,
+                   "colors": [],
+                   "count": null,
+                   "counter_kind": null,
+                   "keyword": null,
+                   "who": null,
+                   "inner_filter": null
+                  }
+                 }
+                ]
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "SUBTYPE_EQ"
+                },
+                "string_value": "Skeleton",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "34bd1a6ec5c1449b4b5feede5a4ab2051771977738afd66955ae1d77c1c6d667",
+  "probe_sha": "598bac68be6f90a39bb6ee75cddd772d344cf68651ea1756aa5971d770e4686d",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Skeletons you control and other Zombies you control get +1/+1 and have deathtouch.",
+    "status": "OK",
+    "evidence": "Static diff: you_skeleton 2/2 -> 3/3, +DEATHTOUCH; opp_skeleton (on the probe board) unchanged; Death Baron itself 2/2 with no deathtouch ('other'). [this card is dealt lethal damage]: you_skeleton back to 2/2, -DEATHTOUCH. No other Zombie is on the probe battlefield, so pack death_baron_1 adds one: seat 0's Zombie and Skeleton get +1/+1 and deathtouch (1 damage from each destroys a 0/6), the Baron, seat 0's Human and seat 1's Zombie and Skeleton do not (1 damage from each leaves the 0/6 alive). Note for G3: layers.py:700 applies every step of a static Seq to the FIRST step's target selector, so mutants of the deathtouch step's own filter are equivalent (no pack can kill them); the two filters here are identical, so the card plays as printed.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/death_baron_1.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 16,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

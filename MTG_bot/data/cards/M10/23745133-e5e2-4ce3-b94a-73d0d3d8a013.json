@@ -1,0 +1,99 @@
+{
+ "schema": 1,
+ "set": "M10",
+ "oracle_id": "23745133-e5e2-4ce3-b94a-73d0d3d8a013",
+ "name": "Phantom Warrior",
+ "text_sha": "541c7917549ca3b872586a41906dd8ae01a28a98a5173a37d1bf0b3b72529e96",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "6f0819fbab7a2fe845dbf2e4b7d0d4971606df40878552a67ac31eb0881d09f8",
+  "probe_sha": "254f3c027a5880383cc7a627bb9a111fefcb651357d8bf4f2926a80e982d4c9c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This creature can't be blocked.",
+    "status": "OK",
+    "evidence": "stimulus 'this creature attacks and opp_giant blocks it': no DECLARE_BLOCKERS row, 'opp is dealt 2 damage (combat)', opp life 20 -> 18 (same as unblocked); static PREVENT_EFFECT over DeclareBlockersEvent(blocked IS_SOURCE), no duration (permanent), matches the compiler's Ghostly Pilferer shape minus its 'this turn'",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

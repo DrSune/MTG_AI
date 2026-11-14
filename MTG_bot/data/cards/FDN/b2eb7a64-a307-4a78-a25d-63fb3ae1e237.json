@@ -1,0 +1,249 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b2eb7a64-a307-4a78-a25d-63fb3ae1e237",
+ "name": "Cryptic Caves",
+ "text_sha": "b1fb01b8d17c07443f5abb5ae6b5a5e94d3c5b9c4b2903ab028623f57b8b8245",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "C"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "CONTROLLER_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 5
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Land",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "edad3aa913985e08c69fca12198c2a947b37cd2062658629b5e5d75326b8e3cc",
+  "probe_sha": "2b0c9bebbbbe1ef1cabed4ebcde5788b5f772a6f713d597ece1c39e814538076",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana C+1.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, {T}, Sacrifice this land: Draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'ability [1] not activatable from battlefield: condition:false' (fewer than five lands). Pack cryptic_caves_five_lands_draws: with the Caves + 4 lands, {1} is spent, the Caves goes to the graveyard and you draw one card; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result. G3 pack cryptic_caves_draw_needs_untapped_caves.json PASS (five lands, the Caves tapped for {C}: the draw ability is refused 'cost:tap:source_tapped', nothing drawn, Caves stays); FAILS on the dropped-{T} mutant (the tapped Caves still sacrifices and draws).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only if you control five or more lands.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows only the refusal on the small standard board (condition:false). Packs: five lands -> allowed (cryptic_caves_five_lands_draws); four own lands + two opponent lands -> refused 'condition:false' (cryptic_caves_four_lands_refused); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/cryptic_caves_1.json",
+   "tools/scenarios/cards/M20/cryptic_caves_2.json",
+   "tools/scenarios/cards/M20/cryptic_caves_3.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 3,
+   "score": 0.21428571428571427,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/1/cost",
+    "drop cost part 1 (CostSacrifice) at 1/1/cost",
+    "drop cost part 2 (CostTap) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
+    "widen filter (drop part 1) at 1/1/cost/parts/1/target/filter",
+    "controller YOU->OPPONENT at 1/1/cost/parts/1/target/filter/children/0/who",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller",
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "f424b5e9-8f02-4491-a7d8-c7e088611c6a",
+ "name": "Warden of Evos Isle",
+ "text_sha": "415d778ed0cef97a018d9575e6c6fe830976e8ab58efe8e9a5b4181f70e8b82c",
+ "verified": {
+  "tree_sha": "23faade2f0fec2f36a50842fd9e7821bd9f9488139cb757192f4a303f5b35c42",
+  "probe_sha": "d8ca7d42ccbfa3967a59f02f28a642230b5f1a20d61df0a64e8fc3df2a92fe57",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords +FLYING; [opp_giant blocks it] no block occurs, P1 dealt 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Creature spells with flying you cast cost {1} less to cast.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's creature spell has no flying; its own cast pays the full {2}{U} (U-1 W-2). Tree = compiled template B4-cost-modifier-watcher. Packs: warden_of_evos_isle_1 (Griffin Sentinel for {1}{W}), _2 (Centaur Courser not reduced), _3 (P1's flyer not reduced).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/warden_of_evos_isle_1.json",
+   "tools/scenarios/cards/M20/warden_of_evos_isle_2.json",
+   "tools/scenarios/cards/M20/warden_of_evos_isle_3.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 1,
+   "score": 0.2,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/filter",
+    "widen filter (drop part 1) at 1/0/filter",
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

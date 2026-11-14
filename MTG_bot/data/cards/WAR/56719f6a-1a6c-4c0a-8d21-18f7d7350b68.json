@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "56719f6a-1a6c-4c0a-8d21-18f7d7350b68",
+ "name": "Swamp",
+ "text_sha": "874986ec910c7d721c6d33a26999666e55b1399aebcc6e037dc511cc00630fc3",
+ "verified": {
+  "tree_sha": "8ae2624cbeba9be995bbdb8ff70ad6ac6603be75a87081ab9c7506f238029220",
+  "probe_sha": "9d0998eb94f782d5131ec30c2701149e5fc3001e5d7db9faa8659c225352a3dc",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "({T}: Add {B}.)",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: card becomes tapped; you: mana B+1; no other effect; plays as a land drop"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

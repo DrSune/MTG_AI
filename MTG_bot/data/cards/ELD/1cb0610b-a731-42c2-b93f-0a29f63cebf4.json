@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "set": "ELD",
+ "oracle_id": "1cb0610b-a731-42c2-b93f-0a29f63cebf4",
+ "name": "Thrill of Possibility",
+ "text_sha": "9ac3e83f18f0ce7b20fd722bf77c49015a3c693d4e424a85cb9191e74a9e0eea",
+ "verified": {
+  "tree_sha": "d31a3e521ffda0faac689ec193fdbc49e75f3738730846ee8215ec304d16b0ae",
+  "probe_sha": "bbca5d4ca1671d56664c10ea15ad5c1ac6455a08aa3898375fb4133726f0c5fa",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, discard a card.",
+    "status": "OK",
+    "evidence": "every [cast] variant: 'ask discard: [you_spare, you_trick, you_land_drop, you_cast_creature, you_cast_spell]' (any other card in your hand, the spell itself not offered), exactly one card 'moves hand -> graveyard' as part of casting, before the spell goes on the stack; tree equals the compiler's B5a-addl-cost-discard parse",
+    "issue": ""
+   },
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "every variant: 'you draws you:Library 5#1', 'you draws you:Library 4#1', library 6 -> 4 (caster only); cost R-1 W-1 ({1}{R})",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M12",
+ "oracle_id": "68954295-54e3-4303-a6bc-fc4547a4e3a3",
+ "name": "Llanowar Elves",
+ "text_sha": "0b8407d80e572af696e4122d2dbd2844d4bf673ac20821bef15abe3bc9fc3ef3",
+ "verified": {
+  "tree_sha": "2658fe893bc8481365b8b9205d15a297a8a8cd948de21af4892e3caba3fe5e0c",
+  "probe_sha": "42515819ba8ea2073b6be255683bf5ee632d383dad37aa4ef940f851394e7390",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', 'you: mana G+1'; mana empties at end of turn. [cast]: {G} paid (G-1), a 1/1. Pack llanowar_elves_sick_then_taps_for_g.json PASSES: cast this turn the {T} is refused ('summoning sickness'), next own turn it taps for exactly one {G}; wrong twin (activation allowed while sick) fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/llanowar_elves_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

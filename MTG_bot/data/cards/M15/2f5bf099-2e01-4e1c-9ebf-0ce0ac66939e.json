@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M15",
+ "oracle_id": "2f5bf099-2e01-4e1c-9ebf-0ce0ac66939e",
+ "name": "Centaur Courser",
+ "text_sha": "9bc6f8a1dcb9e1b2aa82e821255e3a93b696d17c38cc0b04f662994c6d20fad0",
+ "verified": {
+  "tree_sha": "17e080187fd26c24b2e7eefd5a86b7b6a7e81c9f15729dda59cdda9e79304eaa",
+  "probe_sha": "6239dc4a198278ea8170d3e37cdaeb537296b92fd8e1505330da8011c2bf291d",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla creature, {2}{G}, 3/3)",
+    "status": "OK",
+    "evidence": "[cast] card moves hand -> stack -> battlefield, P/T - -> 3/3, you: mana G-1 W-2; [attacks alone, unblocked] opp life 20 -> 17; [opp_giant blocks] card dies, opp_giant damage 0 -> 3; no triggered ability; every other stimulus 'same as on the board without the card'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

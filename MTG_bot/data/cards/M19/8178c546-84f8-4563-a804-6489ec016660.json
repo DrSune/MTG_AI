@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "8178c546-84f8-4563-a804-6489ec016660",
+ "name": "Greenwood Sentinel",
+ "text_sha": "f5bcffecbc3a199d215289159d129125e53b88f6c13d7f65c70f5fb395e34c83",
+ "verified": {
+  "tree_sha": "ec7d8fbd030cf59b631602cafe98e49ac5faeb043dd06f7842945ecc4bffdd4a",
+  "probe_sha": "d4efff8452b7e3b91c7065caaec4979e8da1d17b5251dc4d94b08d4b6f67d031",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks alone, unblocked]: DECLARE_ATTACKERS card with no 'card becomes tapped' event and no tapped change (other cards' attack variants show the tap); opp 20 -> 18.",
+    "issue": ""
+   },
+   {
+    "clause": "(body) 2/2 Elf Scout for {1}{G}",
+    "status": "OK",
+    "evidence": "[cast]: mana G-1 W-1; P/T 2/2",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

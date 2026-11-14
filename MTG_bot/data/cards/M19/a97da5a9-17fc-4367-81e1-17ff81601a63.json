@@ -1,0 +1,219 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "a97da5a9-17fc-4367-81e1-17ff81601a63",
+ "name": "Anticipate",
+ "text_sha": "949a171ee9947efcc6328bf9f9841cb64f5b26d8db0e6710f244ffe32884d561",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOOK_AT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ONE_OF"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "MOVE_ZONE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "cards",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "REST"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": []
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "position": {
+                "tag": "ZonePosition",
+                "name": "TOP"
+               }
+              }
+             ]
+            }
+           ],
+           [
+            "destination",
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "position": {
+              "tag": "ZonePosition",
+              "name": "BOTTOM"
+             }
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "db20c908a6fe6a0bd7d7ca87e2b89ad7df81d5fa1b612ffb8b413b2137ee3ad2",
+  "probe_sha": "5cfb69f811b9571f68493ee2667396f57d27a92803fe6733eeee950f5b84e8aa",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Look at the top three cards of your library",
+    "status": "OK",
+    "evidence": "cast: one_of offers the three top cards",
+    "issue": ""
+   },
+   {
+    "clause": "Put one of them into your hand",
+    "status": "OK",
+    "evidence": "cast variants: the picked card moves library -> hand",
+    "issue": ""
+   },
+   {
+    "clause": "and the rest on the bottom of your library in any order",
+    "status": "OK",
+    "evidence": "cast: ask arrange over the other two cards in every variant. Resulting library order pinned by B02_1/B02_2 (first named = upper, last named = bottom)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/anticipate_2.json",
+   "tools/scenarios/cards/M20/anticipate_3.json",
+   "tools/scenarios/cards/M20/anticipate_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

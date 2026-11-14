@@ -1,0 +1,34 @@
+{
+ "schema": 1,
+ "set": "KHM",
+ "oracle_id": "5e316864-d55c-496f-8f46-773567896864",
+ "name": "Broken Wings",
+ "text_sha": "eaf34564d82319b3ae1f31fce11ff56572de49c8c59ab18d027bf34ac4f17020",
+ "verified": {
+  "tree_sha": "24cac11af2cfa2eaa74b97a0ca6c11840aebd3fb9a681c3447b6e32afc47a195",
+  "probe_sha": "c1cbcd9c5d8224a4177de3da99fc90eb6f98cd3b2512cdfa9b0bb97d3b610c66",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Destroy target artifact, enchantment, or creature with flying.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_relic, you_charm, opp_relic, opp_charm] (artifacts and enchantments of both sides; the non-flying bears/giants are not offered); each [cast targets=[X]]: 'X moves battlefield -> graveyard (by card/DESTROY)', single target only. Flying-creature branch (no flyer on the standard board) covered by pack broken_wings_flyer.json (opponent's Serra Angel destroyed, non-flyer untouched) PASS; broken_wings_nonflyer_illegal.json (targeting a non-flying creature is refused: 'illegal target selection') PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/broken_wings_1.json",
+   "tools/scenarios/cards/FDN/broken_wings_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter/children/0"
+   ]
+  },
+  "reprint_of": "FDN"
+ }
+}

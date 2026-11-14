@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "ZNR",
+ "oracle_id": "814b87fe-2a75-4ff2-8637-7e69e3fb285b",
+ "name": "Marauding Blight-Priest",
+ "text_sha": "0eb8003aaf57b32ecf1f96c62621825ae06983ef8a097682e9870c53336d8aa3",
+ "verified": {
+  "tree_sha": "d2f24a346cd53b7a7017bcdad4a726170c1710a3f7a54f6c7b8b35d74aa3a75b",
+  "probe_sha": "0af1ffec51ef786df9a8349477941f7cf2f4fec61e539543aba7f5d4636ffbb9",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, each opponent loses 1 life.",
+    "status": "OK",
+    "evidence": "[you gain 3 life]: trigger [0], opp loses 1 life (20 -> 19); [you lose 2 life] -> none. The opponent gaining life is not a probe stimulus: pack marauding_blight_priest_1 (the opponent gains twice: no loss; seat 0 gains once: the opponent loses exactly 1; 27 / 33).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/marauding_blight-priest_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

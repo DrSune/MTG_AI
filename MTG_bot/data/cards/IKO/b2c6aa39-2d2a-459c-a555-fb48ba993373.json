@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "IKO",
+ "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
+ "name": "Island",
+ "text_sha": "f2cf22f799b722dbaac2fee3a0db5c211a477b57c4487b7f53957a3b47edadaa",
+ "verified": {
+  "tree_sha": "b5eb090a94a667262c4b67d99103ffec83e3c5ffe2f3f9ae18b556ccb3492e48",
+  "probe_sha": "958ab98f194a152e4914d3aeb2446969a80c0265edf44abb3e9b3a06c607bd7f",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "({T}: Add {U}.)",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: card becomes tapped; you: mana U+1; no other effect; plays as a land drop"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

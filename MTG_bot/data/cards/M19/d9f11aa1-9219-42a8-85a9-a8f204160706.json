@@ -1,0 +1,37 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "d9f11aa1-9219-42a8-85a9-a8f204160706",
+ "name": "Meteor Golem",
+ "text_sha": "36f9c0daa8404f31ec859211bbab2f5e8c5421fbd7b187a512fc3ed6e7a6e073",
+ "verified": {
+  "tree_sha": "1bc03a6a3da3a99445714c14f693c1817695e4855cbad2adb745b1132cbebe5b",
+  "probe_sha": "a7d496f2767ba6eedfc57edeecd82a939b7ad9e7f362e1bbd9fb0f00f06ea177",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(artifact creature 3/3 for {7})",
+    "status": "OK",
+    "evidence": "[cast]: P/T 3/3, you: mana W-7.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, destroy target nonland permanent an opponent controls.",
+    "status": "OK",
+    "evidence": "[cast] variants: ask target: [opp_flier, opp_tapped, opp_bear, opp_giant, opp_relic, opp_charm] (no land, nothing of yours); each chosen target is targeted and moves battlefield -> graveyard (by card/DESTROY), dies; also on the entry during the opponent's turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "FDN"
+ }
+}

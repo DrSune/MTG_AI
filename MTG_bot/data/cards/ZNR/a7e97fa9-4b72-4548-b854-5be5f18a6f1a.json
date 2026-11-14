@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "ZNR",
+ "oracle_id": "a7e97fa9-4b72-4548-b854-5be5f18a6f1a",
+ "name": "Disenchant",
+ "text_sha": "cdc5e53fa5f673d9b21bd63629d91e8da5e59858b924ae0310daa48a1f8207d9",
+ "verified": {
+  "tree_sha": "6dc64dcf95dca332e406c94c84ca13b9e036de01a240df801fde8d115f178df1",
+  "probe_sha": "05d3fa3bdb19b03db9b99696bf67762649958b9b2a47ac872769bdbd18f6aa20",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Destroy target artifact or enchantment.",
+    "status": "OK",
+    "evidence": "Target slot 1..1 of [you_relic, you_charm, opp_relic, opp_charm] only; each variant: target moves battlefield -> graveyard (by card/DESTROY) and dies; cost W-2; instant.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

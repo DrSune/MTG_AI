@@ -1,0 +1,199 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "18729459-8669-4c56-a78d-fd5982c3b2ac",
+ "name": "Trusted Pegasus",
+ "text_sha": "f1ad319d1948c9f208fab6a72bd806dba0c857ae41c2d83b03ec9e921e7e8368",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FLYING"
+         },
+         "params": []
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACKING"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "KEYWORD_HAS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": {
+              "tag": "Keyword",
+              "name": "FLYING"
+             },
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "5dad338f85f74b81f479367f6da7df939bb732b5ea98d40c869a524ece9bd2f1",
+  "probe_sha": "b434f27634915aa345938cb6ac5457ddd47aa20b9987f97b2745b2f0583def8e",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Flying (This creature can't be blocked except by creatures with flying or reach.)",
+    "status": "OK",
+    "evidence": "cast: 'keywords +FLYING'; stimulus 'this creature attacks and opp_giant blocks it': no block row, opp dealt 2",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, target attacking creature without flying gains flying until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: trigger [0] fires when it attacks (not when you_bear attacks alone) but has no legal target. Packs: trusted_pegasus_gives_attacker_flying.json PASS (Pegasus + Bear attack; the Bear gains FLYING; the non-flying Giant is never offered a block; 4 damage); trusted_pegasus_flying_ends_at_end_of_turn.json PASS (Bear's flying gone after the turn, Pegasus keeps its own); control /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20_verify/work_v3/packs/trusted_pegasus_control_without_pegasus.json (without the Pegasus the Giant blocks the Bear). With two attacking non-fliers and an idle creature the target ask offers exactly the two attackers. Wrong variants fail G3 pack trusted_pegasus_only_the_target_gains_flying.json PASS (Pegasus, Bear and Giant attack, the trigger targets the Bear: the Bear flies, the Giant does not and P1's non-flying Ogre may block the Giant only; P1 20 -> 16); FAILS on the target->all mutant (the Giant flies too, no block ask, P1 -> 12).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/trusted_pegasus_1.json",
+   "tools/scenarios/cards/M20/trusted_pegasus_2.json",
+   "tools/scenarios/cards/M20/trusted_pegasus_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

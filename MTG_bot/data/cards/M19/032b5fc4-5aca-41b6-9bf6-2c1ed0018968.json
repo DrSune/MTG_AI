@@ -1,0 +1,166 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "032b5fc4-5aca-41b6-9bf6-2c1ed0018968",
+ "name": "Aggressive Mammoth",
+ "text_sha": "62a427db020eeab252f22f9d38bbe78c677f7895b4f512b10a0bc0ef84d0f8d3",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "TRAMPLE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "483bb5fafb8cec85c2cb5f66a9a143999f11929a717c62cd47a485d6f49811de",
+  "probe_sha": "f29e1642331c6dd44836cd1f247e3bb75a0d226fe9ddcd54a782b63fafdaa62c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "status": "OK",
+    "evidence": "stimulus 'this creature attacks and opp_giant blocks it': COMBAT_DAMAGE ((4, opp_giant), (4, opp)) - lethal 4 to the 4/4 blocker, 4 tramples over, opp 20 -> 16; cast: 'keywords +TRAMPLE'",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control have trample.",
+    "status": "OK",
+    "evidence": "cast and static: you_bear, you_giant '+TRAMPLE'; your entering you_spare, Raise the Alarm's two Soldiers and Yoked Ox enter with TRAMPLE; the opponent's entering creature and opp creatures unchanged; when the Mammoth dies you_bear/you_giant '-TRAMPLE'; paid 'mana G-3 W-3' (= {3}{G}{G}{G})",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

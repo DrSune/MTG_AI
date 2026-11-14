@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "6f525ccd-4776-492c-a1f9-8bce5740fb28",
+ "name": "Vampire Opportunist",
+ "text_sha": "d7351a6c4205a3911ac789a84b2d8523d82b073a2d806b5185ce1468d46d68b7",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 6
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "ALL_OPPONENTS"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "bacf988bc478ed6bc3449e232931f2564ea589f3cfa28feb880485e565ac27b4",
+  "probe_sha": "6ae58f4ef4e7cd7333ebc291f9727490d413d3d3cb77dbc32edec42943ac059e",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "{6}{B}: Each opponent loses 2 life and you gain 2 life.",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: paid 'mana B-1 W-6' (= {6}{B}); 'opp loses 2 life', opp 20 -> 18; 'you gains 2 life', you 20 -> 22",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

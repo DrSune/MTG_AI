@@ -1,0 +1,139 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "ff27ff37-96c0-41af-8881-a078e884e67b",
+ "name": "Sorin's Thirst",
+ "text_sha": "2d25cc64555e1611ab22fa3d605083ff33c45cdb0f45a7b1b95dfbbbe6ef81c1",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "68b03ccc3280d122b6f3f88b67bce7c2c948f26bcf452e3ca2f9694f51fb19e9",
+  "probe_sha": "0c02bd09db0ff08ca9805f610d7434f29c08075fab7b0ca0febf6616e639876e",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Sorin's Thirst deals 2 damage to target creature",
+    "status": "OK",
+    "evidence": "target slot (cast) 1..1 of the six creatures only (no artifact, enchantment or player); each [cast targets=[X]]: 'X is dealt 2 damage (by card/DEAL_DAMAGE)' (you_bear, opp_flier, opp_bear die; the 4/4s and 3/3 keep 2 damage until the turn ends).",
+    "issue": ""
+   },
+   {
+    "clause": "and you gain 2 life.",
+    "status": "OK",
+    "evidence": "every variant: 'you gains 2 life (by card/GAIN_LIFE)', you: life 20 -> 22; cost B-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "IKO",
+ "oracle_id": "6c922206-6e68-4dcd-9559-88da1074f2c4",
+ "name": "Rugged Highlands",
+ "text_sha": "9d4dbb27f0e2933bdd01fa41a809057eed19659b7b65dc41402bc6caa326a826",
+ "verified": {
+  "tree_sha": "740ac183362cd0633f7e8d10b3d334914b95fd8315b6ba4533e76e6687a7c461",
+  "probe_sha": "a612b8942a8abbf402d83455af10ed92458a8a4aa757cda2131403446b361f9d",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[play land]: triggered ability [1] triggers, 'you gains 1 life', life 20 -> 21; fires again on [from your hand, the card enters during the opponent's turn] (life 20 -> 21); no other stimulus fires it.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {R} or {G}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana R+1; [| ask 1 -> 1]: card becomes tapped, mana G+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

@@ -1,0 +1,185 @@
+{
+ "schema": 1,
+ "set": "ORI",
+ "oracle_id": "5bf9f397-0216-4ec9-a57b-406758dcc233",
+ "name": "Undead Servant",
+ "text_sha": "fb92bb1d5c103cc7b4d421fc1e4e680b86457be9f130ea04348e88363855795a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "MUL"
+         },
+         "left": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "right": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "NAME_EQ"
+            },
+            "string_value": "Undead Servant",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Zombie",
+         "type_line": "Creature — Zombie",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Zombie"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "B"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "2711ddd6f9f168832e31c785c3df777e272867f3ba2bf01250d4a188b63a45b0",
+  "probe_sha": "cba93c903318695a690a3ea1747c4f22aaf75a5dd7ba76fbe97cd12da6953a97",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a 2/2 black Zombie creature token for each card named Undead Servant in your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace: trigger [0] fires on cast and on entering during the opponent's turn, but no Undead Servant is in the graveyard, so zero tokens (consistent). Packs: undead_servant_one_zombie_per_servant_in_your_graveyard.json PASS (two in your graveyard -> two Zombies; one in the opponent's graveyard and a differently named Zombie card not counted); undead_servant_token_is_two_two.json PASS (one in graveyard -> one 2/2 Zombie). Wrong variants (three tokens, 3/3) fail. Tree: count 1 x QCount(NAME_EQ 'Undead Servant', GRAVEYARD YOU), TokenSpec Zombie 2/2 colors ('B',)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/undead_servant_1.json",
+   "tools/scenarios/cards/M20/undead_servant_2.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 1,
+   "score": 0.3333333333333333,
+   "survived": [
+    "amount+1 at 1/0/effect/args/count/left",
+    "controller YOU->OPPONENT at 1/0/effect/args/count/right/selector/zones/0/controller"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

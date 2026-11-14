@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "ORI",
+ "oracle_id": "d481630c-83c4-47d2-a770-db331154d2b9",
+ "name": "Skyraker Giant",
+ "text_sha": "11ef7a20110bbd55f82b40ce6152f906a8c4a5ec4646379664e95e662a75f53c",
+ "verified": {
+  "tree_sha": "48083573c18ef96b95ba57efa951e741ab8f93b8a64d67c917d584975559ca35",
+  "probe_sha": "7cdbf5fca27fb39c25c87d262b2bc3b12a42a299265ad2ebeae958de27e0b0a9",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows 'keywords +REACH' only; no flier attacks into it. Pack skyraker_giant_reach_blocks_flier.json PASSES: seat 0's 2/2 flier attacks, seat 1's Skyraker Giant blocks it, the flier dies, the Giant is marked 2, no life lost; wrong twin with a non-reach 4/3 (cannot block, seat 1 at 18) fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/skyraker_giant_1.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

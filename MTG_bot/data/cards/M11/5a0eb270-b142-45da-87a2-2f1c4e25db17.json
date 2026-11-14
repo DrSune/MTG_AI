@@ -1,0 +1,184 @@
+{
+ "schema": 1,
+ "set": "M11",
+ "oracle_id": "5a0eb270-b142-45da-87a2-2f1c4e25db17",
+ "name": "Chandra's Spitfire",
+ "text_sha": "11ed8b107f3d30700e79bd1a54bb0ea1620ec083f46d4f20727d71185ae400ab",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "OPPONENT_OF"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     },
+     "combat": false
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 3
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "3cd7e14816fcb3712f1f19e8375aaaf8c30d1e2485661e85b710ae7e00f17ece",
+  "probe_sha": "4abd238f73e21b88002c2dd7deceff285e85acc3d45b01c5852deed54a9ac563",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no block, opp is dealt 1.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an opponent is dealt noncombat damage, this creature gets +3/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No noncombat damage to an opponent in the trace; [this creature attacks alone, unblocked] (combat damage to opp) correctly does not trigger. Packs: chandras_spitfire_noncombat_damage_to_opponent (Shock to the opponent -> 4/3), chandras_spitfire_damage_to_you_no_trigger, chandras_spitfire_damage_to_opp_creature_no_trigger, chandras_spitfire_bonus_ends_at_end_of_turn; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra's_spitfire_1.json",
+   "tools/scenarios/cards/M20/chandra's_spitfire_2.json",
+   "tools/scenarios/cards/M20/chandra's_spitfire_3.json",
+   "tools/scenarios/cards/M20/chandra's_spitfire_4.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 1,
+   "score": 0.16666666666666666,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/filter/who",
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

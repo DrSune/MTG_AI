@@ -1,0 +1,41 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "8b6e2feb-9e8f-4912-ada0-1614502d9813",
+ "name": "Makeshift Battalion",
+ "text_sha": "7eb1d2f3b4023a1a823b6767bd7346d36b61d573ed55c0e175c2797f2255f418",
+ "verified": {
+  "tree_sha": "ced12f4e1b6dec55cb98a1da5f6f882708d199c87dd5315f9d76c920774aa55d",
+  "probe_sha": "980ccf09e9862b8f150e800b630272a97d1a66b53a79559146eb25eb44762592",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Battalion: whenever this creature and at least two other creatures attack, put a +1/+1 counter on it",
+    "status": "NOT_EXERCISED",
+    "evidence": "trace attacks alone: no trigger (correct). Packs A08_1 (three attack: counter), A08_2 (two: none), A08_3 (it stays home: none)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/makeshift_battalion_3.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_4.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_5.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_1.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 2,
+   "score": 0.2857142857142857,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "amount+1 at 1/0/event/filter/children/1/count",
+    "amount-1 at 1/0/event/filter/children/1/count",
+    "widen filter (drop part 1) at 1/0/event/filter/children/1/inner_filter",
+    "amount+1 at 1/0/effect/args/count"
+   ]
+  },
+  "reprint_of": "M21"
+ }
+}

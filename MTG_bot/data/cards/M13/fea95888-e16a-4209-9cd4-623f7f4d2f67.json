@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M13",
+ "oracle_id": "fea95888-e16a-4209-9cd4-623f7f4d2f67",
+ "name": "Walking Corpse",
+ "text_sha": "76e47fce172a92382597054d156a3291bfd3bb1bf18dd655f1edea30554cbb59",
+ "verified": {
+  "tree_sha": "beb3563d8653ddafc080291c5f4c417e1e4879b2c58c8d12dccfc7a66178d71d",
+  "probe_sha": "5d8e52088ceaf93d649fa8b8bdcbd11556318739953680b17df6aba214b0412a",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Zombie {1}{B} 2/2)",
+    "status": "OK",
+    "evidence": "[cast]: card moves stack -> battlefield, P/T - -> 2/2, paid B-1 W-1 ({1}{B}); the tree is only SpellAbility(CREATURE); every trigger stimulus is 'same as on the board without the card'; it attacks for 2 (opp life 20 -> 18) and dies to opp_giant's block",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

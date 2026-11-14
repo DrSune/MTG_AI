@@ -1019,6 +1019,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   counts the same card against coverage. One card in ZNR, two in M20, three in KHM.
 
 ### Records to map or re-verify
+- **Two FDN stamps whose packs predate round 10's "each occurrence" mutant** (2026-11-14,
+  KNOWLEDGE 207 §4): Spitfire Lagac and Tatyova, Benthic Druid hold their FDN stamps (tree bytes
+  unchanged), but their reprints in ZNR and DOM fail G3 today. A critical "each occurrence -> once
+  per event" mutant survives every pack. Each needs one pack with two lands entering at once and
+  the number of triggers pinned. Then stamp the reprints (`cardtool verify ZNR "Spitfire Lagac"
+  --reprint-of FDN`, and DOM's).
 
 - **The other "one or more" zone-change cards** (2026-11-13, ontology round R10; out of the
   trained sets). KHM Elvish Warmaster needs "This ability triggers only once each turn", a
