@@ -372,3 +372,31 @@ update count, so the late reading changes nothing in them.
   - the entropy (0.25 to 0.30).
   Neither moved the strength reads.
 - The next lever is r29's (205 §10): train both seats of learner-against-learner games.
+
+**The split at update 685** (2026-11-14 12:40-12:59; r28 paused after its save at 685, kept as
+`runs/r28_looks/r28_u685.pt`, sha256 ed308ff2…; the batch from `collect.sh ... c685 2840`, 139,266
+rows; the full update 143 s; output `runs/read400/split685.out`):
+
+| Kind | Probe decisions | Alignment, full update (SE) | Without its own rows (SE) | Mean abs. Δlog p, full |
+|---|---|---|---|---|
+| mulligan | 2,630 | +0.0123 (0.0038) | +0.0005 (0.0017) | 0.072 |
+| mulligan_bottom | 1,221 | +0.0221 (0.0039) | +0.0006 (0.0022) | 0.070 |
+| priority | 4,000 | +0.0023 (0.0013) | +0.0004 (0.0010) | 0.017 |
+| act | 4,000 | +0.0078 (0.0017) | +0.0017 (0.0014) | 0.036 |
+| attack | 4,000 | +0.0159 (0.0038) | −0.0013 (0.0026) | 0.049 |
+| block | 4,000 | +0.0179 (0.0026) | +0.0030 (0.0022) | 0.055 |
+| target | 4,000 | +0.0172 (0.0021) | +0.0025 (0.0023) | 0.050 |
+
+- **K1 is neither met nor falsified, as at 100.**
+  - Every kind moves along its own advantages.
+  - Priority is at 1.8 SE, not beyond 2.
+  - The mulligan, at 1.9 SE at update 100, is now at 3.2 SE.
+- **K2 is falsified again.** The drift on the mulligan is +0.0005 ± 0.0017, which is no drift. The
+  −0.0065 at 100 is gone.
+- **K3 holds.** The only negative drift is attack's, −0.0013 ± 0.0026 (0.5 SE).
+- **The decision rule does not fire,** so no retention scheme is registered.
+- **What it adds to the stall.** At 685 the update still teaches every kind along its own
+  advantages, about as strongly as at 100, and nothing drifts. The flat gates are not the update
+  undoing itself. They fit a signal per update that is too small, or advantages too noisy, to move
+  greedy play: priority, the most frequent decision, has the smallest Δlog p of all (0.017).
+  That is the case for more on-policy decisions per game (r29).

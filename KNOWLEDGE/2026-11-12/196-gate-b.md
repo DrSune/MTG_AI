@@ -425,3 +425,11 @@ made here, by §9's rule, before any of this window's data.
 - **Predictions:** as registered (192 §7.6 for H1′; 195 §2 and §5 for B1-B3).
 - **Scoring:** H1′ by pairing `h1_fp32` with `h1_bf16`, and B1-B3 with
   `reports/window2_2026-11-12/score/audit_b.py`.
+
+**H1′ scored** (2026-11-14 12:59-13:01; `python -m tools.selfplay.paired runs/read400/h1_fp32/eval_rows.jsonl runs/read400/h1_bf16/eval_rows.jsonl`):
+- u1000 against the heuristic, 300 deals and 600 games, both seats, 0 voids: fp32 0.6883 and
+  bf16 0.6917.
+- **fp32 − bf16 = −0.003 [−0.012, +0.005], paired by deal.** Only 6 of 300 deals differ (4 better
+  in bf16, 2 in fp32).
+- **H1′ is met** (192 §7.6: within ±0.03; the falsifier, +0.04 with its lower bound above 0, is
+  not met). bf16 inference costs no strength, so every bf16 evaluation since 183 stands.
