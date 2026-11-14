@@ -61,15 +61,18 @@ network; expert iteration (search distillation) stalled at this data scale and w
 were the separate value network, the rollout network and the KL anchor to the frozen version
 (/183 §16-§17, §10-§13, §23). Each update runs in `trainer.py`'s process while the learner keeps
 serving the workers on the current weights; no new training game is issued while a full next
-batch waits (`throttled`). Serve with `--infer-bf16` (KL to the trainer's numerics ~1e-5, §20);
-without it inference runs in fp32 (before 2026-11-12 it ran fp32 weights under bf16 autocast on
-CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `learner_seats` (the learner's seats in
-those games: two in a self game; the guard's mulligan rate is per seat), `voids`, `overflow` (the
-learner's asks answered by the fallback) and `throttled` (job requests refused while a full batch
-waited) are per update; before 2026-11-12 the last three were totals since the process started.
-`win` is the training win rate per opponent group; its `self` entry is 0.5 over decided games by
-construction (one seat wins, the other loses), a check of the crediting, and self games stay out
-of `win_set`.
+batch waits (`throttled`). The games already dealt to the workers (up to 3 × `--slots` each) still
+finish, so when the trainer is slower than the workers a batch exceeds `--steps` by their
+decisions; self games, half the inference per trained decision, get there sooner (2026-11-14,
+`reports/pself_smoke_2026-11-14/`). Serve with `--infer-bf16` (KL to the trainer's numerics
+~1e-5, §20); without it inference runs in fp32 (before 2026-11-12 it ran fp32 weights under bf16
+autocast on CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `learner_seats` (the
+learner's seats in those games: two in a self game; the guard's mulligan rate is per seat),
+`voids`, `overflow` (the learner's asks answered by the fallback) and `throttled` (job requests
+refused while a full batch waited) are per update; before 2026-11-12 the last three were totals
+since the process started. `win` is the training win rate per opponent group; its `self` entry
+is 0.5 over decided games by construction (one seat wins, the other loses), a check of the
+crediting, and self games stay out of `win_set`.
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
