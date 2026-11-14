@@ -1015,8 +1015,17 @@ def build_payment_plan(
         elif isinstance(part, CostExile):
             # CR 118.3: what is exiled must be there to exile, every object of it (CR 601.2h: no
             # partial payment). An object another exile segment of this cost already takes is
-            # not there for this one.
-            cands = [h for h in enumerate_candidates(part.target, ctx) if h not in exile]
+            # not there for this one. The source pays only a cost that names it ("Exile this
+            # card from your graveyard"): a spell is on the stack while its costs are paid, but
+            # the cast fold plans with it still in its zone, as CostDiscard's exclusion says.
+            from MTG_bot.core.executor.selectors import _filter_is_self_referential
+
+            cands = [
+                h
+                for h in enumerate_candidates(part.target, ctx)
+                if h not in exile
+                and (h != ctx.source or _filter_is_self_referential(part.target.filter))
+            ]
             need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
                 return None, f"cost:exile:insufficient_candidates:{len(cands)}<{need}"

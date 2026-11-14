@@ -1110,6 +1110,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     composed ability whose next sentence continues it ("Its controller ...", "Spend this mana
     only ...") and does not parse. M12 Pentavus (a 0/0 whose five counters are unparsed) and ELD
     Tome of Legends (its page counters unparsed) are inert and weaker.
+  - A cost's parts are judged against the board as it stands before payment
+    (`legality.build_payment_plan`): a part another part of the same cost would make payable is not
+    seen (a sacrifice whose card an exile of the same cost then takes from the graveyard), and the
+    payer is never offered that order. No printed cost of the 19 sets has such a pair.
 - **A quality chosen as a permanent enters: the cards one piece away** (2026-11-13, ontology R9;
   `reports/chosen_quality_2026-11-13/census.txt`). B17 reads the choice on 20 printings of 17
   cards; these still need one piece each, none small. Where a reader compiles the tree is partial

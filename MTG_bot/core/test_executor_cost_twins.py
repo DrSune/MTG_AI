@@ -277,6 +277,20 @@ def test_the_payer_chooses_which_cards_a_cost_exiles() -> None:
     assert w.world.zone_of(w.land).kind == ZONE_GRAVEYARD
 
 
+def test_the_source_pays_an_exile_cost_only_when_the_cost_names_it() -> None:
+    """A spell is on the stack while its costs are paid (CR 601.2a, 601.2h), but the cast fold
+    plans with it still where it was cast from: "exile a creature card from your graveyard" never
+    takes the spell itself (a creature card cast from the graveyard), as CostDiscard never
+    discards it; "Exile this card from your graveyard" takes exactly the source."""
+    w = _World()
+    w.world.move_to_zone(w.alpha, w.p0, ZONE_GRAVEYARD)
+    creature_card = Selector(QConst(1), SelectorMode.CHOOSE, CREATURE, zones=(GY_YOU,))
+    plan, why = w.plan(_exile(creature_card))
+    assert why is None and plan.exile_options == ((tuple(sorted(w.dead)), 1),)
+    plan, why = w.plan(_exile(THIS_IN_GRAVEYARD))
+    assert why is None and plan.exile == (w.alpha,)
+
+
 def test_the_payer_chooses_the_permanent_a_cost_removes_counters_from() -> None:
     """A cost removing a counter from "a creature you control" (no such printed cost of the 19
     sets has a kind; WAR Soul Diviner's "a counter" is refused) asks which creature, among those

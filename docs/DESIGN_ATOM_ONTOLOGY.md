@@ -1632,7 +1632,7 @@ Executioner ("{3}{W}, Exile this creature: Exile target creature.") and Barkhide
 a +1/+1 counter from this creature: This creature gains hexproof until end of turn."), needs-atom
 records since 2026-11-05 because the cost union had no part that exiles or removes counters, and
 ledger F3, which waited on this ruling. Census, scripts and base runs:
-`reports/cost_twins_2026-11-14/`. Tests: `MTG_bot/core/test_executor_cost_twins.py` (45), two in
+`reports/cost_twins_2026-11-14/`. Tests: `MTG_bot/core/test_executor_cost_twins.py` (46), two in
 `tools/selfplay/test_selfplay.py`, one each in `tools/cards/test_gates.py` and `test_lints.py`;
 packs in `tools/scenarios/mapped/M20/` (hanged_executioner_* 4, barkhide_troll_* 7) and
 `tools/scenarios/` (suspicious_shambler_* 2, fungal_plots_* 2). Main 1db792e1 (the card-onboarding
@@ -1733,7 +1733,10 @@ lessons, G0's lints) is merged; its commits touch no file under `MTG_bot/`.
 **R11-2 The payment (`executor/legality.py`).**
 - Can it be paid (CR 118.3, 601.2h): `build_payment_plan` (:694). CostExile (:1015) needs as many
   objects as its count among what its selector finds, none another exile segment of the same cost
-  already takes; CostRemoveCounter (:1025) needs as many permanents its selector finds holding
+  already takes, and the source only when the cost names it ("Exile this card ..."; a spell's cost
+  is planned with the spell still where it was cast from, as CostDiscard's exclusion says:
+  `test_the_source_pays_an_exile_cost_only_when_the_cost_names_it`); CostRemoveCounter (:1034)
+  needs as many permanents its selector finds holding
   `count` counters of the kind, counted after what an earlier segment's witness removes. One cost
   never spends a card or a counter twice (`test_one_cost_never_spends_a_counter_or_a_card_twice`).
   The reasons: `cost:exile:insufficient_candidates:<n><<need>`,
@@ -1745,22 +1748,22 @@ lessons, G0's lints) is merged; its commits touch no file under `MTG_bot/`.
   (`stack.SpellStack.dump`), and what they paid is in the world, so every state holding a stack
   object keeps its fingerprint bytes (`fingerprint_check.py`: identical on base and branch;
   `test_a_plan_keeps_the_repr_the_stack_fingerprint_folds`).
-- Paying it: `pay_costs` (:1729) runs mana, tap, removed counters (:1795), sacrifice, exile
-  (:1835), discard, put counters, loyalty, life. The counters come off before a sacrifice or an
+- Paying it: `pay_costs` (:1738) runs mana, tap, removed counters (:1804), sacrifice, exile
+  (:1844), discard, put counters, loyalty, life. The counters come off before a sacrifice or an
   exile takes their permanent: M13 Hellion Crucible's "Remove two pressure counters from this land
   and sacrifice it" pays in full only in that order (CR 601.2h: any order the payer chooses;
   `test_the_counters_come_off_before_their_permanent_is_sacrificed`). The exile is a MOVE_ZONE to
   the owner's exile (CR 400.3), journalled as a zone change; the removal a REMOVE_COUNTER event (no
   journal row, as for loyalty; detector D3 exempts removals by construction).
 - The asks: where a segment's pool is bigger than its need the payer chooses (601.2h) through
-  `_ask_cost_choices` (:1699), the sacrifice lane's shape: `exile:<seat>:<source>:<digest>` and
+  `_ask_cost_choices` (:1708), the sacrifice lane's shape: `exile:<seat>:<source>:<digest>` and
   `remove_counter:<seat>:<source>:<digest>`, the Handle strings as the words. "This creature" and
   every segment with no real choice are filled without asking (AGENTS §10: no phantom ask).
   `test_the_payer_chooses_which_cards_a_cost_exiles`,
   `test_the_payer_chooses_the_permanent_a_cost_removes_counters_from` (no printed card of the 19
   sets removes a counter of a named kind from another object; the ask is tested on a built tree),
   pack `fungal_plots_the_payer_chooses_the_creature_card`.
-- Where it works (CR 113.6m): `activation_zone` (:1150) reads a CostExile of the source (:1175):
+- Where it works (CR 113.6m): `activation_zone` (:1159) reads a CostExile of the source (:1184):
   "Exile this card from your graveyard" works only there, and its owner activates it (FDN
   Suspicious Shambler; packs `suspicious_shambler_*`,
   `test_an_ability_that_exiles_its_card_from_the_graveyard_works_there`).
@@ -1827,10 +1830,11 @@ such a node; every one of their stamps predates the bug and records its real mut
 `tools/cards/test_gates.py::test_a_card_that_enters_tapped_or_with_counters_has_mutants` (red on
 the base; `g3_etb_counts.py`).
 
-**Tests and packs that fail on the base** (`base_runs.txt`): of the module's 44 tests then, the 13
-packs and the 2 selfplay tests, 53 fail on 1d5e4164 and 6 pass on both, controls (four sentences
-the frame must leave unparsed; Unsummon unanswered returns the Troll, a test and a pack). Required
-by the round's brief: a cost that can't be paid
+**Tests and packs that fail on the base** (`base_runs.txt`): of the module's 46 tests, the 15
+packs, the 2 selfplay tests and the G3 test, 58 fail on 1d5e4164 and 6 pass on both, controls (four
+sentences the frame must leave unparsed; Unsummon unanswered returns the Troll, a test and a pack);
+the lint test fails on main 1db792e1, where the lints came from. Required by the round's brief: a
+cost that can't be paid
 (`test_barkhide_troll_without_a_counter_cannot_activate`,
 `test_hanged_executioner_cannot_pay_once_it_is_gone`, packs
 `barkhide_troll_without_a_counter_cannot_pay`, `hanged_executioner_already_gone_cannot_pay_again`,
@@ -1855,14 +1859,15 @@ Troll's counter off at activation and its hexproof answering Unsummon,
   changes.
 - verified cards whose trees changed: **0** (expected 0 for Keep); 0 leave, 0 join; the stamps
   match (M21 275, M20 277, FDN 184).
-- still-verified trees with unchanged bytes on a touched path: 50 (48 with a twin part on the
-  plan's and the payment's lanes, none holding both a counter part and a sacrifice or exile; M20
-  Sanitarium Skeleton and M21 Waker of Waves on `activation_zone`).
+- still-verified trees with unchanged bytes on a touched path: 50: 49 hold a twin part, on the
+  plan's and the payment's lanes (none holds both a counter part and a sacrifice or exile, the one
+  case whose payment order changed), and M20 Sanitarium Skeleton and M21 Waker of Waves work off
+  the battlefield (`activation_zone`).
 - **600 seeded heuristic games** (200 per verified pool: M21, M20, FDN; decks from the cards
   verified on both, 275, 277 and 184 deckable): **600/600 identical replay digests, journal dumps
   and raw event logs**, 0 crashes either side; 0 payments through the new parts (no verified tree
   holds one). **0 games' play differs**, so there is no first differing event to explain
-  (`replay.py`, `replay_compare.py`).
+  (`replay.py`, `replay_compare.py`); again 600/600 on the final commit 32ad5cb5, main merged.
 - random-play soaks dealing the new trees (1,100 games: M20 compiled with the unverified records
   200, FDN compiled 200, ELD compiled 100, and castable pools of M11, M15, DOM, ZNR, M19, M12 and
   ELD, 100 each; `soak_coverage.txt`): **0 crashes**; payments through the new parts: Inquisitive

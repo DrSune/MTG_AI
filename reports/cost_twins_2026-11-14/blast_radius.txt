@@ -1,5 +1,5 @@
 Round R11's blast radius (2026-11-14). Base: a git archive of 1d5e4164; branch: the worktree at the
-round's first commit 3dfd3aeb (the code the later commits add is a test, a repr and the G3 fix; none
+round's first commit 3dfd3aeb (the code the later commits add: a repr, the G3 fix and the costs lint; none
 changes a tree or play: the 600 games are rerun on the final commit, below).
 
 ## 1. Trees, 19 sets
@@ -127,3 +127,10 @@ CONFORMANCE PASS (errors=0 warns=7); the 7 warnings are the base's (V3' 4, V5' 3
 Shock held | stack 1 | 1ae802c96dd22276428b9ece3161599ddd0d7da49cef91bbbbac768bddb30757
 Heartfire Immolator's ability held | stack 1 | 7a834826a947f12655b67902481d6d8d37a45597851cff4ceaa1d8ba0497f28d
 (identical on the base: the PaymentPlan's new fields are out of its repr)
+
+## 2b. The 600 games again, on the final commit 32ad5cb5 (main merged, the G3 fix, the lint, the repr), against the same base run
+
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+M20: deckable 277 (base) / 277 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+FDN: deckable 184 (base) / 184 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; payments through the new parts 0; crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 600
