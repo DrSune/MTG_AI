@@ -8,9 +8,10 @@ waves found most often (KNOWLEDGE/2026-11-14/207). They run inside gate G0, so a
   needs its own words ("target player", "target opponent"); "<subject> <verb>s" needs an atom of
   that verb acting for that side, and one at all (M21 Peer into the Abyss lost its life loss).
 - ``costs``: every printed activated ability's cost ("{3}{U}, {T}, Sacrifice this creature:",
-  "Equip {3}", "[+1]:") equals a top-level activated ability's cost, part for part, and the tree has
-  no activation the text does not print (6 of 75 plants; M21 Azusa's land plays as a free
-  activation, which the network used nine times a turn).
+  "Equip {3}", "[+1]:"; since ontology round R11 also "Exile this creature", "Exile two cards from
+  your graveyard", "Remove a +1/+1 counter from this creature") equals a top-level activated
+  ability's cost, part for part, and the tree has no activation the text does not print (6 of 75
+  plants; M21 Azusa's land plays as a free activation, which the network used nine times a turn).
 - ``amounts``: no number of two or more in the tree that the text never prints (an amount one
   too high is the commonest plant, 25 of 75).
 - ``carrier``: a permanent card's cast carrier holds no effect: an effect there happens when the
@@ -38,11 +39,13 @@ from MTG_bot.core.ability_tree import (
     BackFace,
     CardRecord,
     ControllerRef,
+    CostExile,
     CostLife,
     CostLoyalty,
     CostManaColor,
     CostManaGeneric,
     CostManaHybrid,
+    CostRemoveCounter,
     CostSacrifice,
     CostTap,
     EachPlayer,
@@ -311,6 +314,10 @@ def players(raw: RawCard, card: CardRecord) -> list[str]:
 # ----------------------------------------------------------------------------- costs
 _MANA = re.compile(r"\{([^}]+)\}")
 _TAP_OTHER = r"^tap (?:an?|one|two|three|four|five|x|\d+) untapped "
+_COUNT = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+#: A printed counter's name as its CounterKind ("charge" is CHARGE).
+_KINDS = {"+1/+1": "PLUS_1_PLUS_1", "-1/-1": "MINUS_1_MINUS_1"}
 
 
 def _mana_parts(text: str) -> Counter:
@@ -353,8 +360,15 @@ def printed_cost(cost: str) -> Counter | None:
             parts["discard"] += 1
         elif re.match(_TAP_OTHER, low):
             parts["tap:other"] += 1
+        elif re.fullmatch(r"exile (this|~)\b.*", low):
+            parts["exile:self"] += 1
+        elif m := re.fullmatch(r"exile (\w+) [\w ]*?cards? from your graveyard", low):
+            parts[f"exile:{_COUNT.get(m.group(1), m.group(1))}"] += 1
+        elif m := re.fullmatch(r"remove (\w+) (\S+) counters? from (?:~|this \w+)", low):
+            kind = _KINDS.get(m.group(2), m.group(2).upper())
+            parts[f"remove:{kind}:{_COUNT.get(m.group(1), m.group(1))}"] += 1
         else:
-            return None  # exile, remove counters, return, put counters, ...: not read here
+            return None  # return, put counters, ...: not read here
     return parts
 
 
@@ -390,6 +404,12 @@ def tree_cost(ability: ActivatedAbility) -> Counter | None:
             parts[f"loyalty:{part.delta}" if isinstance(part.delta, int) else "loyalty:X"] += 1
         elif type(part).__name__ == "CostDiscard":
             parts["discard"] += 1
+        elif isinstance(part, CostExile):  # ontology R11: the source, or N cards from a graveyard
+            self_ = any(isinstance(c, FAtom) and c.pred is FAtomPred.IS_SOURCE
+                        for c in _conjuncts(part.target.filter))
+            parts["exile:self" if self_ else f"exile:{part.target.count.value}"] += 1
+        elif isinstance(part, CostRemoveCounter):
+            parts[f"remove:{part.counter_kind.name}:{part.count.value}"] += 1
         else:
             return None
     return parts

@@ -113,6 +113,28 @@ def test_a_free_activation_is_flagged_and_an_equip_cost_is_read() -> None:
     assert bare and all(lints.costs(raw, m) for m in bare)
 
 
+def test_the_costs_lint_reads_exile_and_remove_counter_costs() -> None:
+    """Ontology round R11's cost items are read part for part: the round's trees pass, and a tree
+    that drops the exile or the removal, or removes two counters where one is printed (a mutant
+    the probe cannot see: its board Troll holds no counter), is flagged."""
+    assert lints.printed_cost("{1}, Remove a +1/+1 counter from this creature") == {
+        "generic": 1, "remove:PLUS_1_PLUS_1:1": 1}
+    assert lints.printed_cost("{T}, Remove three charge counters from this artifact") == {
+        "tap": 1, "remove:CHARGE:3": 1}
+    assert lints.printed_cost("{1}{G}, Exile a creature card from your graveyard") == {
+        "generic": 1, "G": 1, "exile:1": 1}
+    assert lints.printed_cost("{4}{B}{B}, Exile this card from your graveyard") == {
+        "generic": 4, "B": 2, "exile:self": 1}
+    # Hellion Crucible's "... and sacrifice it" is two parts in one item: not read
+    assert lints.printed_cost("{1}{R}, {T}, Remove two pressure counters from this land and sacrifice it") is None
+    for code, name in (("M20", "Hanged Executioner"), ("M20", "Barkhide Troll"), ("FDN", "Suspicious Shambler")):
+        raw, card = _card(code, name)
+        assert lints.costs(raw, card) == [], name
+        wrong = [m for op, _w, m in gates.mutants(card)
+                 if op.startswith(("drop cost part", "amount+1")) and "/cost/" in _w + "/"]
+        assert wrong and all(lints.costs(raw, m) for m in wrong), name
+
+
 def test_a_quoted_ability_and_a_trigger_event_are_no_instructions() -> None:
     # Light of Promise: 'Enchanted creature has "Whenever you gain life, put that many +1/+1
     # counters on this creature."' names no gain of life.

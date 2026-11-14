@@ -1633,9 +1633,10 @@ a +1/+1 counter from this creature: This creature gains hexproof until end of tu
 records since 2026-11-05 because the cost union had no part that exiles or removes counters, and
 ledger F3, which waited on this ruling. Census, scripts and base runs:
 `reports/cost_twins_2026-11-14/`. Tests: `MTG_bot/core/test_executor_cost_twins.py` (45), two in
-`tools/selfplay/test_selfplay.py`, one in `tools/cards/test_gates.py`; packs in
-`tools/scenarios/mapped/M20/` (hanged_executioner_*, barkhide_troll_*) and `tools/scenarios/`
-(suspicious_shambler_*, fungal_plots_*).
+`tools/selfplay/test_selfplay.py`, one each in `tools/cards/test_gates.py` and `test_lints.py`;
+packs in `tools/scenarios/mapped/M20/` (hanged_executioner_* 4, barkhide_troll_* 7) and
+`tools/scenarios/` (suspicious_shambler_* 2, fungal_plots_* 2). Main 1db792e1 (the card-onboarding
+lessons, G0's lints) is merged; its commits touch no file under `MTG_bot/`.
 
 **The census** (`census.py`; the base 1d5e4164 in `census_base.txt`, the branch in `census.txt`).
 - Printed costs that exile or remove counters, 19 sets (§1a): **75 items on 75 printings of 72
@@ -1730,36 +1731,36 @@ ledger F3, which waited on this ruling. Census, scripts and base runs:
   `IS_SOURCE` alone.
 
 **R11-2 The payment (`executor/legality.py`).**
-- Can it be paid (CR 118.3, 601.2h): `build_payment_plan` (:689). CostExile (:1010) needs as many
+- Can it be paid (CR 118.3, 601.2h): `build_payment_plan` (:694). CostExile (:1015) needs as many
   objects as its count among what its selector finds, none another exile segment of the same cost
-  already takes; CostRemoveCounter (:1020) needs as many permanents its selector finds holding
+  already takes; CostRemoveCounter (:1025) needs as many permanents its selector finds holding
   `count` counters of the kind, counted after what an earlier segment's witness removes. One cost
   never spends a card or a counter twice (`test_one_cost_never_spends_a_counter_or_a_card_twice`).
   The reasons: `cost:exile:insufficient_candidates:<n><<need>`,
   `cost:remove_counter:<KIND>:insufficient_candidates:<n><<need>`. `ability_playable` asks the plan,
   so the menu (`legal_activations`) offers only what can be paid, and `activate` refuses the rest
   before anything is paid.
-- `PaymentPlan` (:333-341): `exile`, `exile_options` and `remove_counters` (each segment's pool,
+- `PaymentPlan` (:336-340): `exile`, `exile_options` and `remove_counters` (each segment's pool,
   need, kind and count), kept out of the plan's repr: the stack's fingerprint row folds it
   (`stack.SpellStack.dump`), and what they paid is in the world, so every state holding a stack
   object keeps its fingerprint bytes (`fingerprint_check.py`: identical on base and branch;
   `test_a_plan_keeps_the_repr_the_stack_fingerprint_folds`).
-- Paying it: `pay_costs` (:1724) runs mana, tap, removed counters (:1790), sacrifice, exile
-  (:1830), discard, put counters, loyalty, life. The counters come off before a sacrifice or an
+- Paying it: `pay_costs` (:1729) runs mana, tap, removed counters (:1795), sacrifice, exile
+  (:1835), discard, put counters, loyalty, life. The counters come off before a sacrifice or an
   exile takes their permanent: M13 Hellion Crucible's "Remove two pressure counters from this land
   and sacrifice it" pays in full only in that order (CR 601.2h: any order the payer chooses;
   `test_the_counters_come_off_before_their_permanent_is_sacrificed`). The exile is a MOVE_ZONE to
   the owner's exile (CR 400.3), journalled as a zone change; the removal a REMOVE_COUNTER event (no
   journal row, as for loyalty; detector D3 exempts removals by construction).
 - The asks: where a segment's pool is bigger than its need the payer chooses (601.2h) through
-  `_ask_cost_choices` (:1694), the sacrifice lane's shape: `exile:<seat>:<source>:<digest>` and
+  `_ask_cost_choices` (:1699), the sacrifice lane's shape: `exile:<seat>:<source>:<digest>` and
   `remove_counter:<seat>:<source>:<digest>`, the Handle strings as the words. "This creature" and
   every segment with no real choice are filled without asking (AGENTS §10: no phantom ask).
   `test_the_payer_chooses_which_cards_a_cost_exiles`,
   `test_the_payer_chooses_the_permanent_a_cost_removes_counters_from` (no printed card of the 19
   sets removes a counter of a named kind from another object; the ask is tested on a built tree),
   pack `fungal_plots_the_payer_chooses_the_creature_card`.
-- Where it works (CR 113.6m): `activation_zone` (:1145) reads a CostExile of the source (:1170):
+- Where it works (CR 113.6m): `activation_zone` (:1150) reads a CostExile of the source (:1175):
   "Exile this card from your graveyard" works only there, and its owner activates it (FDN
   Suspicious Shambler; packs `suspicious_shambler_*`,
   `test_an_ability_that_exiles_its_card_from_the_graveyard_works_there`).
@@ -1773,7 +1774,12 @@ permanent>", "Exile this card from your graveyard", "Exile <N> [other] [artifact
 card[s] from your graveyard", "Remove <N> <kind> counter[s] from this <permanent>" with the kinds
 the IR has (+1/+1, -1/-1, charge, page, soul, incarnation). As every frame, it composes only a
 clause that parses alone and holds no pronoun. It is not a trigger frame (no intervening "if",
-:191). `test_frames.py`'s differential is unchanged.
+:191). `test_frames.py`'s differential is unchanged. G0's costs lint (`tools/cards/lints.py`,
+merged from main) reads the two items part for part (`printed_cost`, `tree_cost`): the round's
+trees pass, and a tree that drops the exile or the removal, or removes two counters where one is
+printed (a mutant the probe cannot see), fails G0
+(`test_lints.py::test_the_costs_lint_reads_exile_and_remove_counter_costs`); before, it skipped
+any card printing one.
 
 **R11-4 What the network sees (AGENTS §10).** Costs reach the network as their card's component
 tokens (`features.card_tokens` over the tree: `CostExile`, `CostRemoveCounter`, `@counter_kind`,
@@ -1811,7 +1817,7 @@ a cost belongs to (an act option is its card and ability index, as before), and 
   Night's Reach, Ramos, Dragon Engine and Wishclaw Talisman (counter kinds the IR lacks, and other
   clauses). BACKLOG "The cost twins still blocked" has every card of the 19 sets.
 
-**A bug found in G3 and fixed** (tools/cards/gates.py:552). `_without_unread_choices` compared every
+**A bug found in G3 and fixed** (tools/cards/gates.py:554). `_without_unread_choices` compared every
 EtBState with `EtBState(effect=a.effect)` before testing the effect; built with no effect that node
 is refused (a no-op state), so every mutant of a card entering tapped or with counters was
 stillborn and G3 built none (M20 Barkhide Troll 0 mutants; M21 Malefic Scythe 0, now 14). Since
@@ -1857,7 +1863,13 @@ Troll's counter off at activation and its hexproof answering Unsummon,
   and raw event logs**, 0 crashes either side; 0 payments through the new parts (no verified tree
   holds one). **0 games' play differs**, so there is no first differing event to explain
   (`replay.py`, `replay_compare.py`).
-- random-play soaks dealing the new trees: SOAK_PLACEHOLDER
+- random-play soaks dealing the new trees (1,100 games: M20 compiled with the unverified records
+  200, FDN compiled 200, ELD compiled 100, and castable pools of M11, M15, DOM, ZNR, M19, M12 and
+  ELD, 100 each; `soak_coverage.txt`): **0 crashes**; payments through the new parts: Inquisitive
+  Puppet 93, Fungal Plots 22, Steelbane Hydra 15, Brittle Effigy 13, Hanged Executioner 8,
+  Suspicious Shambler 7, Barkhide Troll 2. 12 detector hits, none on a row of the round's cards:
+  FDN Hungry Ghoul's counters after it returned from the graveyard (D3's presence model, 7 in a
+  game that also cast the Shambler), FDN Scavenging Ooze (2), M15 Ajani's Pridemate (3 D5).
 - ontology conformance (M21, ZNR): the V4′ CHOOSE baseline gains ZNR Throne of Makindi's one node,
   its CostRemoveCounter's source (IS_SOURCE, no decision: no ask, the payment's forced segment);
   then **PASS, errors 0, warns 7** (the base's 7).
