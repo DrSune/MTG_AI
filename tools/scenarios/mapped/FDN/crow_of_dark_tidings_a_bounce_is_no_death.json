@@ -1,0 +1,14 @@
+{
+ "set": "FDN",
+ "name": "crow_of_dark_tidings_a_bounce_is_no_death",
+ "notes": "M3 mapper. Printed: 'When this creature enters or dies, mill two cards.' Crow of Dark Tidings enters (seat 0 mills Library 5 and Library 4), then is returned to its owner's hand: leaving the battlefield for a hand is no death (CR 700.4), so nothing more is milled.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "crow"},
+  {"op": "move", "key": "crow", "to": "hand"}
+ ],
+ "expect": {"graveyard": {"0": ["Library 4", "Library 5"]}, "zone": {"crow": "hand"}}
+}

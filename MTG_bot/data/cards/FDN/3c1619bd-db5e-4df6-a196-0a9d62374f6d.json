@@ -1,0 +1,222 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3c1619bd-db5e-4df6-a196-0a9d62374f6d",
+ "name": "Hare Apparent",
+ "text_sha": "08a736bff5cf05bc7fb3b55d7d7054809ffe0984cc1c03bc9b1dd9b6181c26cd",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "NAME_EQ"
+             },
+             "string_value": "Hare Apparent",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FNot",
+             "inner": {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Rabbit",
+         "type_line": "Creature — Rabbit",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Rabbit"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "W"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Hare Apparent: \"When this creature enters, create a number of 1/1 white Rabbit creature\n# tokens equal to the number of other creatures you control named Hare Apparent. A deck can have\n# any number of cards named Hare Apparent.\"\n# Enters: CREATE_TOKEN of a 1/1 white Rabbit (M20 Raise the Alarm's token shape) whose count is\n# M21 Rin and Seri's verified \"the number of Cats you control\" QCount (ALL over the battlefield)\n# with M21 Frantic Inventory's verified NAME_EQ for \"named Hare Apparent\", your creatures other\n# than this one (FNot(IS_SOURCE), \"other\"). The count is read as the trigger resolves.\n# The deck rule has no tree: the label \"deck rule\" (MAPPER_GUIDE, Labelled sentences).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QCount(\n            selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        FAtom(pred=FAtomPred.NAME_EQ, string_value='Hare Apparent'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        ),\n        'tokens': TokenSpec(\n            name='Rabbit',\n            type_line='Creature — Rabbit',\n            types=('Creature',),\n            subtypes=('Rabbit',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(),\n            abilities=(),\n            colors=('W',),\n        ),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a number of 1/1 white Rabbit creature tokens equal to the number of other creatures you control named Hare Apparent.",
+    "ir": "abilities[0] (CREATE_TOKEN 1/1 white Rabbits, count QCount of your other creatures named Hare Apparent)"
+   },
+   {
+    "clause": "A deck can have any number of cards named Hare Apparent.",
+    "ir": "deck rule"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "CREATE_TOKEN of a 1/1 white Rabbit; the count is Rin and Seri's verified QCount of your creatures with Frantic Inventory's NAME_EQ 'Hare Apparent' and FNot(IS_SOURCE) ('other'), read on resolution. The deck rule takes the label 'deck rule' (MAPPER_GUIDE, Labelled sentences). Packs: tools/scenarios/mapped/FDN/hare_apparent_a_rabbit_for_each_other_hare_you_control.json, tools/scenarios/mapped/FDN/hare_apparent_the_first_hare_makes_no_rabbit.json."
+ },
+ "probe": {
+  "sha": "292fc9d15197ab4b4097eb589eb6cf7d04974d39c2e3420c4e32342776ae5711"
+ }
+}
