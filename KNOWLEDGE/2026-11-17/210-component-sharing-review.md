@@ -45,9 +45,10 @@ main b1d61997 (R11 merged, the reprint wave stamped). r28's v2 checkpoint was re
   cut at 128 tokens (33 verbs lost outright, emblems and ultimates among them), and "Elf" in a lord's
   filter is a different token from "Elf" on an Elf's face (52 such values, on 396 verified cards).
 - **The remaining cards mostly need templates, not components.** Of the 389 unverified cards of M21,
-  M20 and FDN, 238 (61%) need only templates over existing components; 42 parameters bring that to 315
-  (81%), three engine lanes to 325, and four new components (copy, a play permission, flashback, the
-  opening hand) to 358 (92%). 146 of them print a form one of the IR proposals folds.
+  M20 and FDN, 235 (60%) need only templates over existing components (or only a verification); 43
+  parameters bring that to 314 (81%), three engine lanes to 324, and four new components (copy, a play
+  permission, flashback, the opening hand) to 357 (92%). 146 of them print a form one of the IR
+  proposals folds.
 
 ## 1. The vocabulary as the network sees it
 
@@ -128,7 +129,7 @@ Trees are distinct oracle ids of the 19 sets with records applied; stamps are ve
   majority form is the printed one.
 - **D28 the number of cards in a zone.** QProp(controller, CARDS_IN_HAND / CARDS_IN_GRAVEYARD) on M21
   Jolrael and Liliana, Waker of the Dead (2 stamps), QCount over a zone selector elsewhere (M21 Peer
-  into the Abyss's library, 10 filtered graveyard counts). QPropField.CARDS_IN_LIBRARY and CMC are
+  into the Abyss's library, 10 counts over your graveyard). QPropField.CARDS_IN_LIBRARY and CMC are
   unused twins.
 - **D29 a planeswalker type written as a name.** "A Garruk planeswalker" is a subtype (CR 205.3j):
   SUBTYPE_EQ on 5 trees (5 stamps: Chandra's Embercat, Keral Keep Disciples, Predatory Wurm, Vivien's
@@ -214,25 +215,28 @@ Trees are distinct oracle ids of the 19 sets with records applied; stamps are ve
 
 ## 5. The remaining cards (`remaining.txt`)
 389 unverified cards (FDN 311 partly compiled, 7 needs-atom, 5 refused, 4 others; M20 48 needs-atom,
-4 others; M21 10 compiled), 618 unparsed sentences on 366 of them. Each sentence was classed by a
-lexicon (`remaining.RULES`, from the needs-atom notes and the IR's vocabulary), and the 429 left as
-"templates only" were read once by hand. It is an estimate; note 209 (the census) has per-card needs.
+4 others; M21 10 compiled), 618 unparsed sentences on 366 of them. 16 have no unparsed sentence and
+need only a verification (12 compiled whole, 4 mapped); the 7 refused are classed by their refusal
+(4 activation gates whose ability did not parse, 2 readers of a chosen creature type, 1 Vehicle's
+crew). Each sentence was classed by a lexicon (`remaining.RULES`, from the needs-atom notes and the
+IR's vocabulary), and the 429 left as "templates only" were read once by hand. It is an estimate;
+note 209 (the census) has per-card needs.
 
-| a sentence needs | sentences | cards whose worst sentence it is |
+| a sentence needs | sentences | cards whose worst need it is |
 |---|---|---|
-| templates over existing components | 429 (69%) | 238 |
-| an existing component + a parameter (42 distinct) | 101 (16%) | 77 |
+| templates over existing components (or nothing) | 429 (69%) | 235 |
+| an existing component + a parameter (43 distinct) | 101 (16%) | 79 |
 | an engine lane on an IR shape that exists (3) | 12 (2%) | 10 |
-| a new component (27 distinct) | 75 (12%) | 64 |
+| a new component (28 distinct) | 75 (12%) | 65 |
 
-Cards whole: templates only 238; with the 42 parameters 315; with the three lanes 325; with the four
-largest new components 358 (copy of a spell, ability or permanent: 13 cards waiting; a play
-permission for exiled cards: 10; flashback: 8; the opening hand: 6); the other 23 new components
+Cards whole: templates only 235; with the 43 parameters 314; with the three lanes 324; with the four
+largest new components 357 (copy of a spell, ability or permanent: 13 cards waiting; a play
+permission for exiled cards: 10; flashback: 8; the opening hand: 6); the other 24 new components
 are one to three cards each (alternative costs, punishers, piles, SET_LIFE, SET_COLOR, an extra
-combat...). The largest parameters: ward and surveil (6 each, both compositions of existing atoms),
-distinct counts (6), "the same name as" (5), a targets(filter) predicate (5), "activate only once
-each turn" (5). 11 of the 42 parameters fall under I1, I5, I6 and I9 below. 146 remaining cards print
-a form an IR proposal folds: mapped first, they would be mapped twice.
+combat, crew...). The largest parameters: ward and surveil (6 each, both compositions of existing
+atoms), distinct counts (6), "the same name as" (5), a targets(filter) predicate (5), "activate only
+once each turn" (5). 11 of the 43 parameters fall under I1, I5, I6 and I9 below. 146 remaining cards
+print a form an IR proposal folds: mapped first, they would be mapped twice.
 
 ## 6. Proposals
 
@@ -272,15 +276,17 @@ sentence that needs the form (`proposals.txt`).
 | **I9** | Three one-case nodes made general: TARGETS(filter), QDistinct(property), zone counts as QCount (D28) | -4, +2 | TARGETS 4 (+5 waiting), QDistinct 2 (+6) | 8 | 8 + 0 | 12 |
 
 I1 to I9 together: 258 trees, 161 home + 30 reprint stamps (of 1,144), 14 unverified home trees, 146
-remaining cards (`proposals.txt`, bundles). In bulk a re-verification costs about 3 agent-minutes a
-card (207 §4). Not proposed: folding IS_ATTACHED_TO_SOURCE (125 trees), the cost twins (F3, ruled),
-the CHOOSE_NAME rename (F12: a label, the network reads ids), turning the 40 kept rare components into
-anything.
+remaining cards (`proposals.txt`, bundles). The network input changes only for the re-baked cards: a
+new token joins the table at zero (`CardTable.refresh`, `extend_cards`), a folded token's row goes
+unused, and every other card computes what it did. In bulk a re-verification costs about 3
+agent-minutes a card (207 §4). Not proposed: folding IS_ATTACHED_TO_SOURCE (125 trees), the cost
+twins (F3, ruled), the CHOOSE_NAME rename (F12: a label, the network reads ids), turning the 40 kept
+rare components into anything.
 
 ## 7. The recommended order
 1. **Now, independent of the card work: N1 and N2** (one network change, the bitwise check on r28's
-   checkpoint, a fresh-eyes review). N1 is a correction with no cost; N2 removes one-card tokens. I0
-   can go with any commit: it changes no tree, and stops a mapper minting a second form.
+   checkpoint, a fresh-eyes review). N1 is a correction with no cost; N2 removes one-card tokens.
+   I0 rides with the first gated round: it changes no tree, and stops a mapper minting a second form.
 2. **Before the remaining cards are mapped or templated** (so they are mapped once, onto the shared
    form; PLAN_COMPONENT_TRAINING step 0.4 asked for the fold "before the big training run"):
    - **R12 = I1 + I9**: the comparison and the general nodes (73 trees, 53 + 5 stamps, 46 remaining
@@ -297,4 +303,4 @@ anything.
 
 The new components of §5 (copy, the play permission, flashback, the opening hand) are separate gated
 rounds; each should take the shared forms above as it lands (a flashback permission is a CAST with a
-duration and an alternative cost, not a fourth cast verb).
+duration and an alternative cost, not a new cast verb; surveil is SCRY with a graveyard pile).

@@ -10,15 +10,15 @@ unparsed sentences: 618 on 366 cards (23 cards have none: compiled whole or refu
 
 cards by what their worst sentence needs (a card with no unparsed sentence counts as T):
   -: 0
-  T: 238
-  P: 77
+  T: 235
+  P: 79
   E: 10
-  N: 64
+  N: 65
     FDN compiled: T 2
     FDN mapped: T 2
     FDN needs-atom: T 1, P 2, E 1, N 3
     FDN partly-compiled: T 212, P 54, E 4, N 41
-    FDN refused: T 5
+    FDN refused: T 2, P 2, N 1
     M20 mapped: T 2
     M20 needs-atom: T 2, P 21, E 5, N 20
     M20 refused: T 2
@@ -55,6 +55,7 @@ cards by what their worst sentence needs (a card with no unparsed sentence count
   P   2 [  2] Choose with a chooser (the owner): FDN Uncharted Voyage; M20 Aether Gust
   P   2 [  2] MANA_POLICY use and scope: FDN Vizier of the Menagerie; M20 Renowned Weaponsmith
   P   2 [  2] a property comparison (toughness, or against another object's value): FDN Valorous Stance; M20 Thunderkin Awakener
+  P   2 [  0] a reader of the chosen creature type (counters, mana): FDN Banner of Kinship; FDN Secluded Courtyard
   P   2 [  2] a referent: the player or planeswalker attacked: FDN Kitesail Corsair; M20 Scorch Spitter
   P   2 [  3] a starting-life quantity (ledger F11): FDN Ayli, Eternal Pilgrim; FDN Elenda, Saint of Dusk
   P   2 [  2] an enters condition: cast (from a zone): FDN Myojin of Night's Reach; FDN Nine-Lives Familiar
@@ -63,6 +64,7 @@ cards by what their worst sentence needs (a card with no unparsed sentence count
   N   1 [  1] DiscardEvent (B-48): M20 Glint-Horn Buccaneer
   N   1 [  1] SET_COLOR: M20 Scuttlemutt
   N   1 [  1] SET_LIFE: M20 Loxodon Lifechanter
+  N   1 [  0] Vehicles: crew (CR 702.122): FDN Cultivator's Caravan
   N   1 [  1] a choice between additional costs: FDN Eaten Alive
   N   1 [  1] a choice per type, then the rest: FDN Liliana, Dreadhorde General
   N   1 [  1] a declaration-level restriction (alone): M20 Loyal Pegasus
@@ -99,61 +101,61 @@ cards by what their worst sentence needs (a card with no unparsed sentence count
   P   1 [  2] the chosen-name read on activated abilities: FDN Sorcerous Spyglass
 
 ## Greedy cover: pieces in the order that completes the most cards (T sentences assumed done)
-  with templates only: 238 cards whole
-   1. + 10 -> 248  N COPY: of a spell or ability, a token copy, become a copy (Verb.COPY has no handler)
-   2. +  8 -> 256  N flashback (alternative cost from a graveyard + exile replacement)
-   3. +  7 -> 263  N a play permission with a duration for exiled or revealed cards (impulse)
-   4. +  6 -> 269  P a distinct-value count (QDistinctColorCount over a property)
-   5. +  5 -> 274  P WARD: TargetingEvent trigger + COUNTER_SPELL unless (a Keyword.WARD with a cost)
-   6. +  5 -> 279  P NAME_EQ with a referent slot (the same name as)
-   7. +  5 -> 284  P SCRY with the graveyard as its other pile (surveil, CR 701.25)
-   8. +  4 -> 288  P a targets(filter) predicate (TARGETS_SOURCE generalised)
-   9. +  4 -> 292  E a delayed trigger bound to the objects it names
-  10. +  4 -> 296  N pregame action from the opening hand (CR 103.6)
-  11. +  4 -> 300  P MOVE_ZONE with entering counters
-  12. +  3 -> 303  P AbilityActivatedEvent naming the ability (EVENT_THIS_TURN)
-  13. +  3 -> 306  E a standing prohibition on an event (PREVENT_EFFECT lanes for life, casts, entering)
-  14. +  3 -> 309  P POLICY scope: cast timing (F9)
-  15. +  3 -> 312  P TARGET with an unbounded count
-  16. +  3 -> 315  N alternative cost (CR 118.9)
-  17. +  3 -> 318  N a choice made by the affected player (punisher)
-  18. +  3 -> 321  P a replacement that doubles the event's amount
-  19. +  3 -> 324  P a CounterKind value
-  20. +  3 -> 327  P LOSE_ABILITY of every ability
-  21. +  3 -> 330  P GRANT_TYPE of every creature type
-  22. +  2 -> 332  P Choose with a chooser (the owner)
-  23. +  2 -> 334  E the mill lane writes no result register
-  24. +  2 -> 336  N a mana event (tapped for mana, mana spent on)
-  25. +  2 -> 338  N a designation across several players
-  26. +  2 -> 340  P a referent: the player or planeswalker attacked
-  27. +  2 -> 342  N hand-size rule
-  28. +  2 -> 344  P ADD_MANA reading a chosen colour
-  29. +  2 -> 346  P an enters condition: cast (from a zone)
-  30. +  1 -> 347  P an owner predicate beside CONTROLLER_IS
-  31. +  1 -> 348  P a duration that ends when control of the source is lost
-  32. +  1 -> 349  P a filtered count of the result, by last known information
-  33. +  1 -> 350  P DAMAGE_ASSIGN_POLICY scope: toughness
-  34. +  1 -> 351  N DiscardEvent (B-48)
-  35. +  1 -> 352  N per-category picks from one look
-  36. +  1 -> 353  N SET_LIFE
-  37. +  1 -> 354  N a declaration-level restriction (alone)
-  38. +  1 -> 355  N a standing look at your library's top card
-  39. +  2 -> 357  P MANA_POLICY use and scope
-  40. +  1 -> 358  P MANDATE_BLOCK scope: lure
-  still open: 31
+  with templates only: 235 cards whole
+   1. + 10 -> 245  N COPY: of a spell or ability, a token copy, become a copy (Verb.COPY has no handler)
+   2. +  8 -> 253  N flashback (alternative cost from a graveyard + exile replacement)
+   3. +  7 -> 260  N a play permission with a duration for exiled or revealed cards (impulse)
+   4. +  6 -> 266  P a distinct-value count (QDistinctColorCount over a property)
+   5. +  5 -> 271  P WARD: TargetingEvent trigger + COUNTER_SPELL unless (a Keyword.WARD with a cost)
+   6. +  5 -> 276  P NAME_EQ with a referent slot (the same name as)
+   7. +  5 -> 281  P SCRY with the graveyard as its other pile (surveil, CR 701.25)
+   8. +  4 -> 285  P a targets(filter) predicate (TARGETS_SOURCE generalised)
+   9. +  4 -> 289  E a delayed trigger bound to the objects it names
+  10. +  4 -> 293  N pregame action from the opening hand (CR 103.6)
+  11. +  4 -> 297  P MOVE_ZONE with entering counters
+  12. +  3 -> 300  P AbilityActivatedEvent naming the ability (EVENT_THIS_TURN)
+  13. +  3 -> 303  E a standing prohibition on an event (PREVENT_EFFECT lanes for life, casts, entering)
+  14. +  3 -> 306  P POLICY scope: cast timing (F9)
+  15. +  3 -> 309  P TARGET with an unbounded count
+  16. +  3 -> 312  N alternative cost (CR 118.9)
+  17. +  3 -> 315  N a choice made by the affected player (punisher)
+  18. +  3 -> 318  P a replacement that doubles the event's amount
+  19. +  3 -> 321  P a CounterKind value
+  20. +  3 -> 324  P LOSE_ABILITY of every ability
+  21. +  3 -> 327  P GRANT_TYPE of every creature type
+  22. +  2 -> 329  P Choose with a chooser (the owner)
+  23. +  2 -> 331  E the mill lane writes no result register
+  24. +  2 -> 333  N a mana event (tapped for mana, mana spent on)
+  25. +  2 -> 335  N a designation across several players
+  26. +  2 -> 337  P a referent: the player or planeswalker attacked
+  27. +  2 -> 339  P a reader of the chosen creature type (counters, mana)
+  28. +  2 -> 341  N hand-size rule
+  29. +  2 -> 343  P ADD_MANA reading a chosen colour
+  30. +  2 -> 345  P an enters condition: cast (from a zone)
+  31. +  1 -> 346  P an owner predicate beside CONTROLLER_IS
+  32. +  1 -> 347  P a duration that ends when control of the source is lost
+  33. +  1 -> 348  P a filtered count of the result, by last known information
+  34. +  1 -> 349  P DAMAGE_ASSIGN_POLICY scope: toughness
+  35. +  1 -> 350  N DiscardEvent (B-48)
+  36. +  1 -> 351  N per-category picks from one look
+  37. +  1 -> 352  N SET_LIFE
+  38. +  1 -> 353  N a declaration-level restriction (alone)
+  39. +  1 -> 354  N a standing look at your library's top card
+  40. +  2 -> 356  P MANA_POLICY use and scope
+  still open: 33
 
 ## By class: every parameter, then every engine lane, then the new components by cards waiting
-  distinct pieces: P 42, E 3, N 27
-  templates only: 238 of 389 cards whole
-  + every P piece (42): 315 whole
-  + every E piece (3): 325 whole
-  + N piece 1 (COPY: of a spell or ability, a token copy, become a copy (Ve): 335 whole
-  + N piece 2 (a play permission with a duration for exiled or revealed car): 345 whole
-  + N piece 3 (flashback (alternative cost from a graveyard + exile replace): 353 whole
-  + N piece 4 (pregame action from the opening hand (CR 103.6)): 358 whole
-  + N piece 5 (alternative cost (CR 118.9)): 361 whole
-  + N piece 6 (a choice made by the affected player (punisher)): 364 whole
-  + N piece 27 (an outside-the-game zone): 389 whole
+  distinct pieces: P 43, E 3, N 28
+  templates only: 235 of 389 cards whole
+  + every P piece (43): 314 whole
+  + every E piece (3): 324 whole
+  + N piece 1 (COPY: of a spell or ability, a token copy, become a copy (Ve): 334 whole
+  + N piece 2 (a play permission with a duration for exiled or revealed car): 344 whole
+  + N piece 3 (flashback (alternative cost from a graveyard + exile replace): 352 whole
+  + N piece 4 (pregame action from the opening hand (CR 103.6)): 357 whole
+  + N piece 5 (a choice made by the affected player (punisher)): 360 whole
+  + N piece 6 (alternative cost (CR 118.9)): 363 whole
+  + N piece 28 (a discard replacement keyed on its cause): 389 whole
 
 ## The default bucket (no rule matched: read as T, existing components) for review
   M20 Aether Gust: Choose target spell or permanent that's red or green.

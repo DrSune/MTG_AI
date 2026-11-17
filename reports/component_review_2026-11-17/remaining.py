@@ -129,6 +129,22 @@ def classify(sentence: str, name: str) -> tuple[str, str]:
 
 ORDER = {"-": 0, "T": 1, "P": 2, "E": 3, "N": 4}
 
+#: A refused card has no unparsed list: its refusal says what it lacks.
+REFUSALS = (
+    (r"activation-gate sentence matched but no preceding ActivatedAbility", "T",
+     "template only (the gated ability's own sentence did not parse)"),
+    (r"CHOOSE_NAME of a CREATURE_TYPE that nothing on its object reads", "P",
+     "a reader of the chosen creature type (counters, mana)"),
+    (r"Vehicle needs crew", "N", "Vehicles: crew (CR 702.122)"),
+)
+
+
+def classify_refusal(message: str) -> tuple[str, str]:
+    for pat, cls, piece in REFUSALS:
+        if re.search(pat, message):
+            return cls, piece
+    return "N", f"unknown refusal: {message[:60]}"
+
 
 def main() -> None:
     rows = C.load()
@@ -152,6 +168,11 @@ def main() -> None:
             if piece == "template only":
                 default_bucket.append(f"{r['set']} {r['name']}: {s}")
             needs.append((cls, piece))
+        if r["state"] == "refused":
+            cls, piece = classify_refusal(r["refused"] or "")
+            needs.append((cls, piece))
+            if cls in "PEN":
+                piece_cards[(cls, piece)].add(r["oid"])
         worst = max((ORDER[c] for c, _ in needs), default=1)
         card_need[r["oid"]] = (r, worst, {p for c, p in needs if c in "PEN"}, len(uns))
     n_s = sum(sent_cls.values())
