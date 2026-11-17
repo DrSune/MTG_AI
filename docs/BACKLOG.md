@@ -1079,10 +1079,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Needs a designation of every card that passes a filter at resolution.
   - M20 Chandra, Awakened Inferno: a turn-long die-to-exile replacement made by a resolving
     ability (R5-12's REPLACE); Chandra, Acolyte of Flame: a delayed trigger that remembers objects.
-  - ZNR Valakut Exploration (partly compiled, castable and all pools only): its permission compiles
-    ("for as long as it remains exiled"), its end-step sentence that puts the exiled cards into the
-    graveyard does not, so in those pools an exiled card stays playable for the rest of the game
-    (stronger than printed; the fresh-eyes review's finding 6). The fix is that sentence.
+  - ZNR Valakut Exploration (partly compiled: the engine, castable and all pools deal it, never
+    compiled or verified): its permission compiles ("for as long as it remains exiled"), its
+    end-step sentence that puts the exiled cards into the graveyard does not, so in those pools an
+    exiled card stays playable for the rest of the game (stronger than printed; the fresh-eyes
+    review's finding 6). The fix is that sentence.
   - FDN: Muldrotha (one play per permanent type), Etali (any number of casts as it resolves, from
     every player's exiled cards) and Tinybones (cards you don't own: `ability_tree._permit_zones`
     names only yours), Quilled Greatwurm (six counters removed from among creatures, a removal
@@ -1095,6 +1096,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     piece, not a permission.
   - A filter on the `result` register ("cast a creature spell from among them") and a PERMIT
     reading another register are refused until a card brings them.
+- **The OptionalEffect around ADD_LAND_PLAY, GRANT_ACTIVATION and MANA_POLICY** (2026-11-17,
+  divergence D32; gate round 13). §10's R5-2 point 8 ruled every permission-like atom bare (its
+  "you may" is its use); ontology round R13 made PERMIT so and left the three wrapped in M21 Azusa,
+  Lost but Seeking, Teferi, Master of Time and Chromatic Orrery, all verified. Deferred: unwrapping
+  re-bakes the three verified trees (each leaves the verified pool until a blind review passes it
+  again), and the wrap asks nothing in play (`layers` unwraps a static's OptionalEffect, its use
+  being the choice). Do it with the next round that re-verifies M21 cards; then `OptionalEffect`
+  can refuse all four, as it refuses PERMIT.
 - **The cost twins still blocked** (2026-11-14, ontology R11, DESIGN_ATOM_ONTOLOGY §15;
   `reports/cost_twins_2026-11-14/census.txt` §1a). Of the 75 printed exile and remove-counter cost
   items, 13 trees changed; the rest wait on another piece each:

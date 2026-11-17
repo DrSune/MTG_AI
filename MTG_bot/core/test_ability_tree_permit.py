@@ -359,3 +359,51 @@ def test_roles_that_limit_or_add_nothing_are_refused() -> None:
                           zones=(Zone(kind, ControllerRef.ANY),)))
     with pytest.raises(ValueError, match="a land is never cast"):
         cast(target(FOr(children=(LAND, CREATURE))))
+
+
+# ------------------------------------------------------------------------------ 6. gate round 13
+
+LIBRARY = Zone(ZoneKind.LIBRARY, ControllerRef.YOU)
+GATE_13_FORMS = {
+    # the hand's lands are the rules' to play (CR 305.1)
+    "lands over the hand": (
+        lambda: card(StaticAbility(effect=permit(every(FAnd(()), HAND), lands=True,
+                                                 alternative=Cost()))),
+        "lands` over your hand adds nothing"),
+    # a cast never takes a land: the same permission as over every card (CR 305.9)
+    "a cast over FNot(Land)": (
+        lambda: card(StaticAbility(effect=permit(every(FNot(inner=LAND), GY)))),
+        "FNot\\(Land\\) on a cast permission adds nothing"),
+    # "play lands and cast spells from the top" is one PERMIT with lands
+    "a lands-only and a cast PERMIT over one zone": (
+        lambda: card(StaticAbility(effect=Seq(steps=(permit(every(LAND, TOP), lands=True),
+                                                     permit(every(FAnd(()), TOP)))))),
+        "are one permission"),
+    # a card's own alternative cost is its spell's (CR 118.9), wherever it is cast from
+    "a card's own cost from the hand": (
+        lambda: card(StaticAbility(effect=permit(every(SELF, HAND),
+                                                 alternative=Cost(parts=(CostTap(),))))),
+        "its spell's alternative cost"),
+    # a population over its own card covers the new object it becomes (CR 400.7)
+    "a resolving PERMIT over its own card": (
+        lambda: card(triggered(permit(every(SELF, GY), duration=DurationEot()))),
+        "would cover the card again"),
+    # a card in a library or a hand is never designated (CR 400.2)
+    "a CAST of a TARGET in a library": (
+        lambda: card(triggered(cast(Selector(QConst(1), SelectorMode.TARGET, FAnd(()),
+                                             zones=(LIBRARY,))))),
+        "never designated"),
+    "a CAST of a TARGET in a hand": (
+        lambda: card(triggered(cast(Selector(QConst(1), SelectorMode.TARGET, FAnd(()),
+                                             zones=(HAND,))))),
+        "never designated"),
+}
+
+
+@pytest.mark.parametrize("form", sorted(GATE_13_FORMS))
+def test_the_gate_13_forms_are_refused(form: str) -> None:
+    """Gate round 13's seven forms the IR accepted on f01b303f (`gate13/ir_forms.py`): each says
+    nothing or says what another form says. No tree of the 19 sets uses one."""
+    build, why = GATE_13_FORMS[form]
+    with pytest.raises(ValueError, match=why):
+        build()

@@ -153,7 +153,7 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostExile, one per cost (`target`: a CHOOSE selector, a literal count, one zone: `Zone(BATTLEFIELD, ANY)` for the source or a permanent the payer controls, the payer's graveyard or hand; the source is `IS_SOURCE` alone, count 1): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostRemoveCounter, one per kind per cost (`counter_kind` but LOYALTY, `target` the source or a permanent the payer controls, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
-| 2026-11-17, gate round 13 (pending, §17) | Verb.PERMIT x `source` (ALL over your graveyard, exile, library top or hand; TARGET over a graveyard or exile; the `result` register whole, no filter) x `lands` (True or absent) x `alternative` / `additional` (Costs) x `replace` (`spell_riders()`) x `count` (a literal, resolving only) x `duration` (Eot, UntilEndOfNextTurn, Permanent; required when resolving, absent in a static) | templates_b19 (15 templates): M21 Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace, both Chandras, Idol of Endurance (b3); FDN Omniscience, Think Twice and the flashback cards, Sphinx of Forgotten Lore, Zul Ashur; records: M20 Golos, Mystic Forge | 33 PERMIT atoms in the 19 sets, records applied (`reports/permit_2026-11-17/`) |
+| 2026-11-17, gate round 13 (pending, §17) | Verb.PERMIT x `source` (ALL over your graveyard, exile, library top or hand; TARGET over a graveyard or exile; the `result` register whole, no filter) x `lands` (True or absent) x `alternative` / `additional` (Costs) x `replace` (`spell_riders()`) x `count` (a literal, resolving only) x `duration` (Eot, UntilEndOfNextTurn, Permanent; required when resolving, absent in a static) | templates_b19 (15 templates): M21 Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace, both Chandras, Idol of Endurance (b3); FDN Omniscience, Think Twice and the flashback cards, Sphinx of Forgotten Lore, Zul Ashur; records: M20 Golos, Mystic Forge | 33 PERMIT atoms in the 19 sets, records applied (`reports/permit_2026-11-17/`); low volume: `count` 1 (Idol of Endurance), `additional` 1 (Demonic Embrace) |
 | 2026-11-17, gate round 13 (pending, §17) | Verb.CAST x `alternative` / `additional` (the old `cost` role split) x `replace` (the rider) | M21 Chandra, Flame's Catalyst's [-2]; ZNR Coveted Prize (b8) | 2 CAST atoms |
 
 ## 6. Identity + conformance
@@ -773,7 +773,31 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     13 record trees, 0 verified cards in or out of 1,144; 600 seeded heuristic games (200 each,
     M21, M20, FDN; 275, 277 and 190 deckable): 600/600 identical replay digests, journal dumps and
     raw event logs, 0 crashes either side (`replay_4da972f1.txt`).
-- R13 round 13 (adversarial, pending): Verb.PERMIT, CAST's cost roles and the spell's rider (§17), branch `worktree-agent-a4af16b825120dda1` with main 4739cfef merged (engine wave C1 included). A fresh-eyes review of the code diff (one reviewer, 2026-11-17) found 3 MAJOR, 3 MINOR and 1 NIT, fixed but one MINOR (logged): §17, "The fresh-eyes review".
+- R13 round 13 (adversarial, 2026-11-17; one reviewer on f01b303f, Verb.PERMIT, CAST's cost
+  roles and the spell's rider, §17, branch `worktree-agent-a4af16b825120dda1` with main fdd1a021
+  merged; a fresh-eyes review of the code diff before it: §17): **FIX-THEN-GO**. Fixed:
+  - MAJOR: seven forms the IR accepted said nothing or what another form says
+    (`gate13/ir_forms.py`): `lands` over the hand; a resolving PERMIT over ALL(IS_SOURCE), which
+    played wrong (the card cast and back in the graveyard is a new object the population covers
+    again, CR 400.7, castable again that turn); a cast PERMIT filtered FNot(Land); a lands-only
+    and a cast PERMIT over one zone in one ability (one PERMIT with `lands`); a CAST of a TARGET in
+    a library or a hand (CR 400.2); a card's own alternative cost from the hand as its own static
+    PERMIT. Refused (`_cast_roles_fault`, `_cast_verb_misplaced`, `_split_play_fault`), one test
+    each (`test_the_gate_13_forms_are_refused`). The last stays a SpellAbility piece, as §17 said:
+    a spell's alternative cost (CR 118.9) applies wherever it is cast from, a permission over the
+    hand only from the hand, so the two are not one meaning. MAPPER_GUIDE's own-permission rule
+    says "a static, never over your hand".
+  - MINOR: four surviving mutants that change play, each killed by a test: M6 (a static covering
+    every zone), M7 (the opponent's permission yours), M8 (a counted play spent first), M10 (no
+    rider on a fizzle).
+  - Flashback's exile fired only on resolution, a fizzle and a counter; and, the same cause, a
+    pre-existing EXPLOITABLE fault (a bug-hunt fault, KNOWLEDGE 212): an effect that moved a spell
+    off the stack left its frame, so Unsubstantiate (M21, verified) on your own Shock returned the
+    card to hand and the Shock still resolved. Every move of a spell off the stack now ends its
+    frame and passes its rider (`verbs._off_the_stack`, `_spells_leave_the_stack`); a pack
+    through the menu (`unsubstantiate_your_own_shock_never_resolves`, red on main) and
+    `test_executor_off_the_stack.py` (exile, a library, a creature spell, both riders).
+  - MINOR: BACKLOG's D32 deferral entry; Valakut Exploration's pools; §5's low-volume roles.
 - BINDING STATE: rounds 1–11 complete; further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
@@ -2027,13 +2051,14 @@ permanents, one whole zone, one exile and one removal of a kind per cost, the ra
 segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
 
 
-## 17. Round R13 — PERMIT and REPLACE: playing a card from another zone (2026-11-17; gate round 13 pending)
+## 17. Round R13 — PERMIT and REPLACE: playing a card from another zone (2026-11-17; gate round 13 FIX-THEN-GO, fixed)
 
 KNOWLEDGE 209 §6-§7's first package for M21, M20 and FDN: "permission to cast or play a card from
 another zone" (28 cards of the three sets, 19 needing only it; `reports/completion_2026-11-17/
 worklist.json`), and the "exile it instead" paired with it. §10's R5-2 v3 (PERMIT_CAST), R5-3
 (play_lands) and R5-12's rider were designed and never built; gate rounds 2-4's findings on them
-stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main 4739cfef merged (engine wave C1 included).
+stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main fdd1a021 merged (engine
+wave C1 included).
 Scripts and outputs: `reports/permit_2026-11-17/`.
 
 **How plays were legal before (the root cause).** `legality.spell_castable` cast only from the
@@ -2072,21 +2097,27 @@ names from the zone it names (CR 601.3, 305.1).
 - Refused as second encodings: an OptionalEffect around it (the "you may" is the permission's
   use: a phantom ask), a granted static PERMIT ("each legendary card in your graveyard gains
   'You may play this card from your graveyard'" is a resolving PERMIT), EachPlayer or Repeat
-  around it.
+  around it; since gate round 13 also `lands` over the hand, a cast filtered FNot(Land), a
+  lands-only and a cast PERMIT over one zone in one ability (one PERMIT with `lands`), a resolving
+  PERMIT over its own card as a population (it would cover the new object the card becomes, CR
+  400.7), and a card's own permission over the hand (its spell's alternative cost, CR 118.9).
 
 **R13-2 CAST, the one-shot cast** (CR 608.2g: cast while its ability resolves, ignoring timing).
 Roles `source`, `alternative`, `additional`, `replace`: the old `cost` role (empty: a waiver; with
 parts: added) split into the two PERMIT has, one meaning each. Refused: CAST in a static, in a free
 activation (the old permission row), of its own card in an activation (the old Demonic Embrace
 row, which CR 113.6m would make a graveyard activation at instant speed), of a land, of a permanent
-or a spell. `CostDeltaWaiveMana`, Omniscience's second byte form, which the engine skipped, is
-retired: Omniscience is the static PERMIT over the hand with `alternative=Cost()`.
+or a spell, of a TARGET in a library or a hand (CR 400.2). `CostDeltaWaiveMana`, Omniscience's
+second byte form, which the engine skipped, is retired: Omniscience is the static PERMIT over the
+hand with `alternative=Cost()`.
 
 **R13-3 REPLACE: the spell's rider** (`spell_rider` :3281). "If that spell would be put into your
 graveyard, exile it instead" (CR 614.1a, 614.6) and flashback's "exile it instead of putting it
 anywhere else any time it would leave the stack" are a cast verb's `replace` role, exactly the two
 values `spell_riders()` returns. The engine applies the frame's rider wherever the spell leaves the
-stack (`stack.exit_zone` :295: resolution, a fizzle, COUNTER_SPELL), before engine wave C1's
+stack (`stack.exit_zone` :295: resolution, a fizzle; any effect's move of a spell, a counter or
+Unsubstantiate's return included, through `verbs._off_the_stack`, which also ends the frame: gate
+round 13), before engine wave C1's
 replacements of the move from anywhere (`stack._put_off_the_stack`, `verbs._move_all`): every rider
 exiles, so whichever the controller applies first (CR 616.1) the spell is exiled. A card-level
 replacement of a zone change from the stack is refused (B-99's tree). No `Verb.REPLACE`: a rider

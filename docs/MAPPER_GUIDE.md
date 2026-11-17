@@ -195,9 +195,14 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     end of your next turn" `DurationUntilEndOfNextTurn()`, "for as long as it remains exiled"
     `DurationPermanent()`.
   - In a static ability (Conspicuous Snoop, Omniscience, "you may cast this card from your
-    graveyard") the PERMIT has no duration and no count, and lasts while the static functions; a
-    card's own permission names its card with `FAtom(IS_SOURCE)`. In a spell or an activated,
-    loyalty or triggered ability (Chandra, Heart of Fire's [+1], Golos) the duration is required.
+    graveyard") the PERMIT has no duration and no count, and lasts while the static functions. A
+    card's own permission names its card with `FAtom(IS_SOURCE)` in a static only, never over your
+    hand (a cost to cast it from your hand is its spell's alternative cost, CR 118.9: needs-atom).
+    In a spell or an activated, loyalty or triggered ability (Chandra, Heart of Fire's [+1], Golos)
+    the duration is required, and the cards are designated (TARGET, or `result`): an ALL over its
+    own card would cover the card again once it moves and comes back (CR 400.7).
+  - "Play lands and cast X from Z" is one PERMIT with `lands=True` over `FOr(Land, X)`; a cast
+    permission never filters `FNot(Land)` (a land is never cast anyway).
   - Never under `OptionalEffect`: the "you may" is the permission's use.
   - "If that spell would be put into your graveyard, exile it instead" and flashback's exile are
     the cast verb's `replace` role, `ability_tree.spell_rider(Zone(GRAVEYARD, YOU))` or

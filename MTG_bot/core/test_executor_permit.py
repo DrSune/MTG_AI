@@ -235,6 +235,68 @@ def test_chandra_flames_catalyst_recasts_a_targeted_spell_and_exiles_it() -> Non
     assert _zone(r, "shock") == ZONE_EXILE
 
 
+def test_the_recast_spell_that_fizzles_is_exiled_too() -> None:
+    """The [-2]'s Shock at a creature that leaves before it resolves: the spell doesn't resolve
+    and leaves the stack for the graveyard (CR 608.2b), which its rider replaces (gate round 13's
+    surviving mutant M10: no rider on a fizzle)."""
+    r = _runner("M21", [_real("cf", "Chandra, Flame's Catalyst"),
+                        _real("shock", "Shock", zone="graveyard"),
+                        _real("bear", "Walking Corpse", seat=1)], {"0": {"R": 1}})
+    r.run_step({"op": "activate", "key": "cf", "idx": 1, "seat": 0, "targets": ["shock"],
+                "hold": True})
+    r.run_step({"op": "resolve", "decisions": ["fire", "bear"]})  # the Shock is cast and waits
+    assert [f.handle for f in r.ex.stack.frames] == [r.handles["shock"]]
+    r.run_step({"op": "move", "key": "bear", "to": "hand", "hold": True})
+    r.run_step({"op": "pass"})
+    assert _zone(r, "shock") == ZONE_EXILE and _zone(r, "bear") == ZONE_HAND
+
+
+def test_a_static_permission_reaches_only_the_zone_it_names() -> None:
+    """M19 Crucible of Worlds: "You may play lands from your graveyard." A land in exile is not
+    covered (gate round 13's surviving mutant M6: a static covering every zone)."""
+    r = _runner("M19", [_real("cru", "Crucible of Worlds"),
+                        _real("gl", "Mountain", zone="graveyard"),
+                        _real("el", "Mountain", zone="exile")])
+    rows = _rows(r)
+    assert "land:gl" in rows and "land:el" not in rows, rows
+
+
+def test_an_opponents_permission_is_not_yours() -> None:
+    """The opponent's Crucible of Worlds lets its controller play lands from their graveyard,
+    never you from yours (gate round 13's surviving mutant M7)."""
+    r = _runner("M19", [_real("cru", "Crucible of Worlds", seat=1),
+                        _real("gl", "Mountain", zone="graveyard")])
+    assert "land:gl" not in _rows(r)
+
+
+def test_an_uncounted_permission_is_used_before_a_counted_one() -> None:
+    """Two permissions offer one card the same cost path, one with a single play (Idol of
+    Endurance's) and one without: the cast uses the uncounted one, and the counted play is left
+    for another card (gate round 13's surviving mutant M8: counted first)."""
+    from MTG_bot.core.ability_tree import (
+        Atom, AtomArgs, ControllerRef, Cost, DurationEot, FAnd, QConst, QUnbounded, Selector,
+        SelectorMode, Verb, Zone, ZoneKind,
+    )
+
+    r = _runner("M21", [_real("a", "Goblin Arsonist", zone="exile")])
+    seat = r.seats[0]
+    exiled = Selector(QUnbounded(), SelectorMode.ALL, FAnd(()),
+                      zones=(Zone(ZoneKind.EXILE, ControllerRef.YOU),))
+
+    def free(count: int | None) -> Atom:
+        roles = (("source", exiled), ("alternative", Cost()), ("duration", DurationEot()))
+        if count is not None:
+            roles += (("count", QConst(count)),)
+        return Atom(verb=Verb.PERMIT, args=AtomArgs(pairs=roles))
+
+    counted = r.ex.layers.register_permit(r.handles["a"], seat, free(1), (), DurationEot(), 1)
+    uncounted = r.ex.layers.register_permit(r.handles["a"], seat, free(None), (), DurationEot(), None)
+    assert _rows(r) == {"cast:a:via:a"}  # one option for one cost path
+    _act(r, "cast:a:via:a")
+    assert _zone(r, "a") == ZONE_BATTLEFIELD
+    assert counted.uses == 1 and counted.status == "live" and uncounted.status == "live"
+
+
 def test_demonic_embrace_casts_itself_from_the_graveyard_with_its_extra_costs() -> None:
     """M21 Demonic Embrace: "You may cast this card from your graveyard by paying 3 life and
     discarding a card in addition to paying its other costs." The card's own static works from the

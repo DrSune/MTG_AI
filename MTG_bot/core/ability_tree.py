@@ -3383,6 +3383,10 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
                 "a CAST casts a card (CR 601.2a): a permanent or a spell is never cast, so its "
                 "`source` names no battlefield or stack"
             )
+        if sel.mode is SelectorMode.TARGET and any(
+            z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND) for z in sel.zones
+        ):
+            return "a card in a library or a hand is never designated (CR 400.2): no TARGET there"
         return None
     if roles.get("lands") is False:
         return "`lands` is True (\"play\") or absent (\"cast\"); False is a second form of absent"
@@ -3426,6 +3430,12 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
             )
         if any(z.kind is ZoneKind.HAND for z in sel.zones) and "alternative" not in roles:
             return "casting from your hand needs no permission (CR 117.1a) unless the cost changes"
+        if any(z.kind is ZoneKind.HAND for z in sel.zones) and _filter_names_the_source(sel.filter):
+            return (
+                "a card's own cost to cast it from your hand is its spell's alternative cost (CR "
+                "118.9), a SpellAbility piece: it applies wherever the spell is cast from, and the "
+                "hand needs no permission"
+            )
         if sel.mode is SelectorMode.TARGET:
             if any(z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND) for z in sel.zones):
                 return (
@@ -3442,6 +3452,10 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
     named = _named_card_types(sel.filter)
     if not lands and "Land" in named:
         return "a land is never cast (CR 305.9): \"play lands\" is `lands` True"
+    if not lands and _requires_card_type(sel.filter, "Land", negated=True):
+        return "a cast never takes a land (CR 305.9): FNot(Land) on a cast permission adds nothing"
+    if lands and any(z.kind is ZoneKind.HAND for z in sel.zones):
+        return "a land in your hand is played by the rules (CR 305.1): `lands` over your hand adds nothing"
     if lands and (_requires_card_type(sel.filter, "Land", negated=True) or (named and "Land" not in named)):
         return "playing only cards that are never lands is casting spells: leave `lands` out"
     if rider is not None and _requires_card_type(sel.filter, "Land"):
@@ -4260,6 +4274,10 @@ def permission_fault(*nodes: Any) -> str | None:
         if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
             host, rotated = node, False
             granted = granted and isinstance(node, StaticAbility)
+            split = _split_play_fault(node)
+            if split is not None:
+                faults.append(split)
+                return
         elif isinstance(node, (EachPlayer, Repeat)):
             rotated = True
         for f in dataclasses.fields(node):
@@ -4319,8 +4337,50 @@ def _cast_verb_misplaced(atom: Atom, host: Any, rotated: bool, granted: bool) ->
                 "a PERMIT a resolving ability makes lasts as long as it says (CR 611.2a): "
                 "its duration is required"
             )
+        sel = atom.args.get("source")
+        if (
+            isinstance(sel, Selector)
+            and sel.referent is None
+            and sel.mode is SelectorMode.ALL
+            and _filter_names_the_source(sel.filter)
+        ):
+            return (
+                "a resolving PERMIT over its own card as a population would cover the card again "
+                "once it moves and comes back, a new object (CR 400.7): a card's own permission is "
+                "a static's (CR 113.6f)"
+            )
         return None
     return f"a PERMIT in a {type(host).__name__ if host is not None else 'bare effect'} never applies"
+
+
+def _split_play_fault(ability: Any) -> str | None:
+    """Two PERMITs of one ability that are one: a lands-only one and a cast one over the same
+    zones for as long ("play lands and cast creature spells from the top of your library") are
+    one PERMIT with `lands` over FOr(Land, Creature)."""
+    permits = [
+        n for n in own_nodes(getattr(ability, "effect", None))
+        if isinstance(n, Atom) and n.verb is Verb.PERMIT
+    ]
+    for a in permits:
+        for b in permits:
+            sa, sb = a.args.get("source"), b.args.get("source")
+            if (
+                a.args.get("lands") is True
+                and b.args.get("lands") is not True
+                and isinstance(sa, Selector)
+                and isinstance(sb, Selector)
+                and _requires_card_type(sa.filter, "Land")
+                and sa.zones == sb.zones
+                and sa.referent == sb.referent
+                and a.args.get("duration") == b.args.get("duration")
+                and a.args.get("count") is None
+                and b.args.get("count") is None
+            ):
+                return (
+                    "a lands-only PERMIT and a cast PERMIT over one zone are one permission: "
+                    "`lands` over FOr(Land, <the cast filter>)"
+                )
+    return None
 
 
 def chosen_quality_fault(*nodes: Any) -> str | None:

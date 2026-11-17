@@ -101,6 +101,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
+    ZONE_STACK,
 )
 
 # "One mana of any color" is one of the five colors (CR 105.1, 106.1a); colorless is
@@ -135,15 +136,53 @@ def _replaced_moves(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -
     return replaced
 
 
+def _off_the_stack(
+    ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]
+) -> list[tuple[Handle, Handle, str]]:
+    """The moves of one event with every spell among them taken off the stack first, as a spell
+    leaves it whatever moves it (Unsubstantiate's return to hand, an exile, a library): its frame
+    ends, so it never resolves (the card it becomes is a new object, CR 400.7), and its rider
+    replaces the move (flashback's exile from the stack to anywhere, CR 702.34a;
+    ``stack.exit_zone``). A countered or resolving spell's frame has left the stack already."""
+    ex = ctx.executor
+    if ex is None or not ex.stack.frames:
+        return list(moves)
+    from MTG_bot.core.executor.stack import exit_zone
+
+    out: list[tuple[Handle, Handle, str]] = []
+    for card, player, kind in moves:
+        frame = next((f for f in ex.stack.frames if f.handle == card), None)
+        if frame is not None and ctx.world.zone_of(card).kind == ZONE_STACK:
+            ex.stack.frames.remove(frame)
+            kind = exit_zone(frame, kind)
+        out.append((card, player, kind))
+    return out
+
+
+def _spells_leave_the_stack(
+    ctx: ExecCtx, cards: Sequence[Handle], dest_kind: str, journal_kind: str
+) -> list[Handle]:
+    """``cards``, every spell among them taken off the stack (:func:`_off_the_stack`) before a
+    lane that moves cards itself moves them to ``dest_kind``: a spell its rider sends elsewhere
+    (flashback's exile) moves there now, through :func:`_move_all`; the rest are returned."""
+    moves = _off_the_stack(ctx, [(card, ctx.world.controller_of(card), dest_kind) for card in cards])
+    diverted = [move for move in moves if move[2] != dest_kind]
+    if diverted:
+        _move_all(ctx, diverted, journal_kind)
+    return [card for card, _player, kind in moves if kind == dest_kind]
+
+
 def _move_all(
     ctx: ExecCtx,
     moves: Sequence[tuple[Handle, Handle, str]],
     journal_kind: str = "MOVE",
 ) -> list[Handle]:
     """Move each ``(card, player, kind)`` of one event, in order, but the moves a replacement
-    replaced (:func:`_replaced_moves`); returns the cards that moved."""
+    replaced (:func:`_replaced_moves`); returns the cards that moved. A spell among them leaves
+    the stack first (:func:`_off_the_stack`)."""
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
+    moves = _off_the_stack(ctx, moves)
     replaced = _replaced_moves(ctx, moves)
     moved: list[Handle] = []
     for card, player, kind in moves:
@@ -388,6 +427,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         placing = sorted(cards) if bottom_dest else list(cards)
     stayed: set[Handle] = set()
     order = list(reversed(placing) if bottom_dest else placing)
+    # A spell among them leaves the stack first (Unsubstantiate's "target spell"): its frame ends
+    # and its rider may send it elsewhere.
+    order = _spells_leave_the_stack(ctx, order, dest_kind, journal_kind)
     # The owner's zone always (CR 400.3); a battlefield controller other than
     # the owner becomes a control entry below, never a zone (CR 108.3).
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in order}
@@ -2694,14 +2736,14 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         # so there is no COUNTER row.
         ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
         return
-    ex.stack.frames.remove(frame)  # CR 701.6a-b: a countered spell or ability leaves the stack
+    if ability:  # CR 701.6a-b: a countered ability leaves the stack and ceases to exist
+        ex.stack.frames.remove(frame)
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
-    if not ability:  # a spell goes to its owner's graveyard; an ability ceases to exist
-        from MTG_bot.core.executor.stack import exit_zone
-
-        # its rider exiles it instead (Chandra, Flame's Catalyst's [-2]; flashback, CR 702.34a)
-        _move_all(ctx, [(spell, ctx.world.controller_of(spell), exit_zone(frame, ZONE_GRAVEYARD))])
+    if not ability:
+        # a countered spell goes to its owner's graveyard, leaving the stack as any moved spell
+        # does (_off_the_stack: its frame ends, its rider exiles it instead)
+        _move_all(ctx, [(spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)])
     ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
 
 
