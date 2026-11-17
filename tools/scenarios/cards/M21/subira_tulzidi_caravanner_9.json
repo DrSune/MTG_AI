@@ -1,28 +1,145 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "notes": "Subira, Tulzidi Caravanner. Printed: '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.' Subira pays {1}{R} exactly, taps, and discards the two cards in hand. Then four creatures attack: a 1/1 Runner and a 2/2 Scout are unblocked (one draw each), a 3/3 Brute is unblocked (power 3: no draw), a 2/2 Tank is blocked by the 0/9 Wall (it deals combat damage to a creature, not a player: no draw). Two cards are drawn: hand 2. Life 20 - 1 - 2 - 3 = 14.",
  "cards": [
-  {"key": "sub", "zone": "battlefield", "controller": 0, "real": "Subira, Tulzidi Caravanner"},
-  {"key": "h1", "zone": "hand", "controller": 0, "name": "Hand One", "type": "Instant"},
-  {"key": "h2", "zone": "hand", "controller": 0, "name": "Hand Two", "type": "Creature — Bear", "power": 2, "toughness": 2},
-  {"key": "runner", "zone": "battlefield", "controller": 0, "name": "Runner", "type": "Creature — Human", "power": 1, "toughness": 1},
-  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "type": "Creature — Human", "power": 2, "toughness": 2},
-  {"key": "brute", "zone": "battlefield", "controller": 0, "name": "Brute", "type": "Creature — Ogre", "power": 3, "toughness": 3},
-  {"key": "tank", "zone": "battlefield", "controller": 0, "name": "Tank", "type": "Creature — Beast", "power": 2, "toughness": 2},
-  {"key": "wall", "zone": "battlefield", "controller": 1, "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 9}
+  {
+   "key": "sub",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Subira, Tulzidi Caravanner"
+  },
+  {
+   "key": "h1",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Hand One",
+   "type": "Instant"
+  },
+  {
+   "key": "h2",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Hand Two",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2
+  },
+  {
+   "key": "runner",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Runner",
+   "type": "Creature — Human",
+   "power": 1,
+   "toughness": 1
+  },
+  {
+   "key": "scout",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Scout",
+   "type": "Creature — Human",
+   "power": 2,
+   "toughness": 2
+  },
+  {
+   "key": "brute",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Brute",
+   "type": "Creature — Ogre",
+   "power": 3,
+   "toughness": 3
+  },
+  {
+   "key": "tank",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Tank",
+   "type": "Creature — Beast",
+   "power": 2,
+   "toughness": 2
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "power": 0,
+   "toughness": 9
+  }
  ],
- "mana": {"0": {"R": 1, "C": 1}},
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 1
+  }
+ },
  "steps": [
-  {"op": "activate", "key": "sub", "idx": 1, "seat": 0},
-  {"op": "combat", "seat": 0, "attack": {"runner": true, "scout": true, "brute": true, "tank": true, "sub": false}, "block": {"wall": "tank"}}
+  {
+   "op": "activate",
+   "key": "sub",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "runner": true,
+    "scout": true,
+    "brute": true,
+    "tank": true,
+    "sub": false
+   },
+   "block": {
+    "wall": "tank"
+   },
+   "decisions": [
+    "first-legal"
+   ]
+  }
  ],
  "expect": {
-  "tapped": {"sub": true},
-  "zone": {"h1": "graveyard", "h2": "graveyard"},
-  "mana_pool": {"0": {}},
-  "attackers": {"runner": true, "scout": true, "brute": true, "tank": true, "sub": false},
-  "blocked": {"tank": ["wall"], "runner": [], "scout": [], "brute": []},
-  "hand": {"0": 2},
-  "life": {"0": 20, "1": 14},
-  "damage": {"wall": 2}
- }}
+  "tapped": {
+   "sub": true
+  },
+  "zone": {
+   "h1": "graveyard",
+   "h2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "attackers": {
+   "runner": true,
+   "scout": true,
+   "brute": true,
+   "tank": true,
+   "sub": false
+  },
+  "blocked": {
+   "tank": [
+    "wall"
+   ],
+   "runner": [],
+   "scout": [],
+   "brute": []
+  },
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 14
+  },
+  "damage": {
+   "wall": 2
+  }
+ }
+}

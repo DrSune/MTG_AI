@@ -1,21 +1,84 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "notes": "Sanctum of All. Printed: 'If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' Seat 0 controls six Shrines: Sanctum of All, Sanctum of Stone Fangs ('At the beginning of your first main phase, each opponent loses X life and you gain X life, where X is the number of Shrines you control') and four plain Shrines. Stone Fangs is another Shrine seat 0 controls, so on seat 0's turn-3 first main phase it triggers twice, each with X = 6: seat 0 gains 12 (32), seat 1 loses 12 (8). Sanctum of All's own upkeep may is declined.",
  "cards": [
-  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
-  {"key": "fangs", "real": "Sanctum of Stone Fangs", "zone": "hand", "controller": 0},
-  {"key": "s1", "name": "Shrine One", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
-  {"key": "s2", "name": "Shrine Two", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
-  {"key": "s3", "name": "Shrine Three", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
-  {"key": "s4", "name": "Shrine Four", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0}
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "fangs",
+   "real": "Sanctum of Stone Fangs",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Shrine One",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine Two",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine Three",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "name": "Shrine Four",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "enter", "key": "a"},
-  {"op": "enter", "key": "fangs"},
-  {"op": "advance_turn"},
-  {"op": "advance_turn", "decisions": ["skip"]}
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "enter",
+   "key": "fangs"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "skip",
+    "first-legal"
+   ]
+  }
  ],
  "expect": {
-  "zone": {"a": "battlefield", "fangs": "battlefield"},
-  "life": {"0": 32, "1": 8}
- }}
+  "zone": {
+   "a": "battlefield",
+   "fangs": "battlefield"
+  },
+  "life": {
+   "0": 32,
+   "1": 8
+  }
+ }
+}

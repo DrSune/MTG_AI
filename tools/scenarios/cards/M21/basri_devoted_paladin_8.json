@@ -54,7 +54,10 @@
     "wolf": true,
     "bear": true,
     "ox": false
-   }
+   },
+   "decisions": [
+    "first-legal"
+   ]
   }
  ],
  "expect": {

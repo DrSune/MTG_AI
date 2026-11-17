@@ -78,7 +78,8 @@
    "decisions": [
     "r1",
     "r2",
-    "NONE"
+    "NONE",
+    "first-legal"
    ]
   }
  ],
