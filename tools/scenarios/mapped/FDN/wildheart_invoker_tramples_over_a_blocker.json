@@ -11,7 +11,7 @@
  "mana": {"0": {"C": 8}},
  "steps": [
   {"op": "activate", "key": "invoker", "idx": 0, "seat": 0, "targets": ["bear"]},
-  {"op": "combat", "seat": 0, "attack": {"bear": true, "invoker": false}, "block": {"wall": "bear"}, "trample": {"bear": [0]}}
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "invoker": false}, "block": {"wall": "bear"}, "divide": {"wall": 1}}
  ],
  "expect": {
   "attackers": {"bear": true, "invoker": false},
