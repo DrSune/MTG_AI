@@ -26,7 +26,7 @@ from them, ``kl_update`` is the stop's measure.
 
 ``kinds`` reports each ask kind on its own (DESIGN_PRIORITY §3.5): near-certain passes dilute
 the means, so a policy that always passes, or an act menu that moves far, would not show. Per
-kind: the decisions, the share that declined to act (PASS, DECLINE, NONE, skip), the mean
+kind: the decisions, the share that declined to act (PASS, DECLINE, NONE, skip, keep), the mean
 advantage, and from each decision's last minibatch the entropy normalised by log |A| over asks
 with two options or more (METRICS §17 VAR-1) and the KL from the behaviour policy.
 """
@@ -44,7 +44,8 @@ import torch
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 
-_DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip")]
+#: the options that decline to act; the mulligan's is "keep" (its pass share was 0 without it)
+_DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip", "keep")]
 
 
 def _cut(order: np.ndarray, lengths: np.ndarray, mb: int, tok_budget: int) -> list[np.ndarray]:
