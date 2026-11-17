@@ -12,14 +12,12 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Nothing trains (2026-11-17, 22:25).** r29's first launch at 20:21 failed: neither arm wrote an
-update in 30 minutes (208 §10). Finished games never reached the training buffer. An agent is
-fixing the cause, and r29 relaunches after a GPU smoke reaches 2 updates. The relaunch uses the same
-queue, worktree and steps described below, from a new pinned commit.
-
-**r29** (`KNOWLEDGE/2026-11-14/208`, §9 the pre-launch record), its A/B first.
+**Running since 2026-11-17 23:13: r29, launch 2** (`KNOWLEDGE/2026-11-14/208`; §9 is the
+pre-launch record, §10 the failed launch 1). Launch 1 at 20:21 trained nothing, because a worker
+lost nine in ten game results (T1's outbox read). It was fixed and smoked on the GPU. Launch 2's
+pinned commit is 60f0913f. The A/B runs first.
 - **How it runs.** The queue is the transient unit `mtg-r29`, from the worktree
-  `/home/sune/Desktop/MTG_AI-r29`, pinned at launch commit c13165e9 (do not edit it).
+  `/home/sune/Desktop/MTG_AI-r29`, pinned at launch 2 commit 60f0913f (do not edit it).
   - Both pre-flights run first. Then arm A (`--p-self 0`), then arm B (`--p-self 0.55`), each
     5.5 machine-hours from r28's v2, as `mtg-r29a`/`mtg-r29b` with guards. Then the reads B1 and B2,
     and `decide.py`, which resumes A or B as the main run.
