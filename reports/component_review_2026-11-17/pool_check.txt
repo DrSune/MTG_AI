@@ -1,0 +1,4 @@
+# r28_v2.pt: 613 rows, d 512
+count-matrix pool against card_table_emb, the saved (truncated) rows: max |diff| 1.12e-08 (fp32 summation order only)
+rows past max_ir in the current compile: 77; rows within it, unchanged since the save: 469, recompiled since (a --refresh-table changes them anyway): 37
+rows whose pooled vector moves once nothing is cut: 114 (= the long rows plus the recompiled ones)

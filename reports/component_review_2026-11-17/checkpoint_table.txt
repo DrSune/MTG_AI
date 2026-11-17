@@ -1,0 +1,13 @@
+# The card table of r28_v2.pt
+rows 613 (2 are pad/unknown); component vocabulary 590; max_ir 128; ir_emb (590, 512); config {'n_cards': 613, 'n_ir': 590, 'd': 512, 'layers': 8, 'heads': 8, 'ff': 2048, 'name_dropout': 0.1, 'mask_names': False}
+tokens per row: mean 58.9, median 58, max 128; rows at max_ir (truncated): 61
+rows whose current compile differs from the saved row: 58 of 611
+vocabulary rows no table row uses: 8
+component embedding norms (an untrained N(0, 0.02) row has norm about 0.45; a row added at zero by extend_cards has 0):
+  tokens on       1 rows:  136 tokens, norm median 0.591, mean 0.524
+  tokens on       2 rows:   59 tokens, norm median 0.630, mean 0.565
+  tokens on     3-5 rows:   86 tokens, norm median 0.682, mean 0.671
+  tokens on    6-20 rows:  124 tokens, norm median 0.667, mean 0.670
+  tokens on  21-100 rows:  113 tokens, norm median 0.695, mean 0.706
+  tokens on    101+ rows:   63 tokens, norm median 0.563, mean 0.591
+rows still exactly zero (added after the start, never trained): 7: str:ACTIVATED, str:TRIGGERED, sub:Advisor, sub:Vivien, sub:Scarecrow, sub:Octopus, sub:Troll

@@ -1,0 +1,70 @@
+## 1. 'Destroy target creature.' (M20 Murder) against 'Destroy target artifact.' (M10 Shatter)
+  tokens 30 and 30; shared 28; only Murder: ['mv:num:3', 'str:Creature']; only Shatter: ['mv:num:2', 'str:Artifact']
+  of Murder's 30 tokens, 18 are field keys or carrier tags (@..., Atom, AtomArgs, Selector, FAtom, Zone); the rest: type:Instant mv:num:3 SpellAbility SpellKind.INSTANT Verb.DESTROY role:target num:1 SelectorMode.TARGET FAtomPred.TYPE_EQ str:Creature ZoneKind.BATTLEFIELD ControllerRef.ANY
+
+## 2. Mass (verified): '@field' tokens are 0.39 of a card's (truncated) bag on average (median 0.40)
+
+## 2. Mass (19 sets): '@field' tokens are 0.31 of a card's (truncated) bag on average (median 0.33)
+  tokens that are an exact copy of another (the same count on every compiled card of the 19 sets): 72 tokens in 50 groups; the largest:
+      2642 uses each: @args = @verb = Atom = AtomArgs
+         7 uses each: @items = StringTuple = Verb.GRANT_TYPE = role:types
+        44 uses each: @left = @op = @right = QBin
+         4 uses each: @owner_scoped = @step = DurationUntilNextStep = role:step
+       164 uses each: @types = TokenSpec = Verb.CREATE_TOKEN = role:tokens
+         1 uses each: ActivationWindow.INSTANT = Verb.EXTRA_TURN = Verb.GRANT_ACTIVATION = role:window
+         8 uses each: role:journal_kind = role:pop_order = str:MILL = str:TOP
+        39 uses each: @agg = @field = QProp
+       672 uses each: @direction = @magnitude = PtDelta
+      1708 uses each: @mode = @zones = Selector
+         1 uses each: @phased_in = DurationUntilEndOfNextTurn = PhasingEvent
+       160 uses each: @power = @subtypes = @toughness
+  share of a verified card's (truncated) bag that is such a copy: mean 0.16
+
+## 3. Collisions over the verified cards: 647 distinct (tree + face) meanings
+  same multiset (order lost): 647 distinct bags; 0 bags hold 2+ meanings (0 meanings)
+  same mean (multiset up to scale): 647 distinct bags; 0 bags hold 2+ meanings (0 meanings)
+  same set (counts lost): 647 distinct bags; 0 bags hold 2+ meanings (0 meanings)
+  same mean of the first 128 (what the network reads): 647 distinct bags; 0 bags hold 2+ meanings (0 meanings)
+
+## 3. Collisions over the 19 sets' compiled trees: 2882 distinct (tree + face) meanings
+  same multiset (order lost): 2881 distinct bags; 1 bags hold 2+ meanings (2 meanings)
+    e.g. 10E Holy Strength | 10E Unholy Strength
+  same mean (multiset up to scale): 2881 distinct bags; 1 bags hold 2+ meanings (2 meanings)
+  same set (counts lost): 2878 distinct bags; 4 bags hold 2+ meanings (8 meanings)
+  same mean of the first 128 (what the network reads): 2881 distinct bags; 1 bags hold 2+ meanings (2 meanings)
+    e.g. 10E Holy Strength | 10E Unholy Strength
+
+## 4. Numbers (verified): 249 of 651 cards (38%) carry two or more different number tokens in their tree; the bag does not say which number belongs to which verb or role
+
+## 4. Numbers (19 sets): 670 of 4314 cards (16%) carry two or more different number tokens in their tree; the bag does not say which number belongs to which verb or role
+
+## 5. Truncation (verified): 79 of 651 cards past 128; 3736 tokens cut, by kind: field 1526, selector/zone 670, other 668, role 220, filter predicate 179, quantity 161, string 128, verb 87, keyword 46, cost/counter 29, duration 13, event 9
+  cards whose cut part holds a printed keyword (keywords come last): 36
+  components a card loses entirely (in the cut part only), by kind (card-component pairs): filter predicate 39, keyword 39, quantity 37, string 37, verb 33, event 9, cost/counter 7, duration 3
+    verb: Basri Ket:Verb.GET_EMBLEM; Feline Sovereign:Verb.DESTROY; Garruk, Savage Herald:Verb.DAMAGE_ASSIGN_POLICY; Garruk, Savage Herald:Verb.GRANT_ABILITY; Garruk, Unleashed:Verb.PUT_COUNTER; Garruk, Unleashed:Verb.SEARCH; Garruk, Unleashed:Verb.SHUFFLE; Garruk, Unleashed:Verb.GET_EMBLEM; Liliana, Waker of the Dead:Verb.GRANT_ABILITY; Liliana, Waker of the Dead:Verb.GET_EMBLEM; Mazemind Tome:Verb.GAIN_LIFE; Niambi, Esteemed Speaker:Verb.DRAW; Rin and Seri, Inseparable:Verb.GAIN_LIFE; Sanctum of All:Verb.TRIGGER_ADDITIONAL
+    filter predicate: Alpine Houndmaster:FAtomPred.IS_ATTACKING; Alpine Houndmaster:FAtomPred.TYPE_EQ; Basri Ket:FAtomPred.CONTROLLER_IS; Basri, Devoted Paladin:FAtomPred.CONTROLLER_IS; Experimental Overload:FAtomPred.IS_SOURCE; Garruk's Harbinger:FAtomPred.COLOR_HAS; Garruk, Savage Herald:FAtomPred.IS_ANY_TARGET; Garruk, Unleashed:FAtomPred.IS_SOURCE; Liliana, Waker of the Dead:FAtomPred.CONTROLLER_IS; Malefic Scythe:FAtomPred.CONTROLLER_IS; Mazemind Tome:FAtomPred.MAY_DONE; Necromentia:FAtomPred.MOVED_TO_ZONE_THIS_TURN; Sanctum of All:FAtomPred.SUBTYPE_EQ; Sanctum of All:FAtomPred.IS_SOURCE
+    event: Basri Ket:TurnPhaseEvent; Basri Ket:Phase.COMBAT; Garruk, Unleashed:TurnPhaseEvent; Garruk, Unleashed:Phase.END_TURN; Liliana, Waker of the Dead:TurnPhaseEvent; Liliana, Waker of the Dead:Phase.COMBAT; Sanctum of All:AbilityTriggerEvent; Cavalier of Flame:CreatureDiesEvent; Wolfrider's Saddle:DeclareBlockersEvent
+    keyword: Basri, Devoted Paladin:Keyword.FLYING; Chandra's Firemaw:Keyword.HASTE; Gadrak, the Crown-Scourge:Keyword.FLYING; Garruk's Harbinger:Keyword.HEXPROOF; Garruk's Warsteed:Keyword.VIGILANCE; Kinetic Augur:Keyword.TRAMPLE; Liliana, Waker of the Dead:Keyword.HASTE; Malefic Scythe:Keyword.EQUIP; Niambi, Esteemed Speaker:Keyword.FLASH; Rousing Read:Keyword.ENCHANT; Teferi's Wavecaster:Keyword.FLASH; Thieves' Guild Enforcer:Keyword.FLASH; Ajani, Inspiring Leader:Keyword.DOUBLE_STRIKE; Ajani, Inspiring Leader:Keyword.FLYING
+  the longest: FDN Vivien Reid 326, M20 Sorin, Imperious Bloodlord 278, M20 Cavalier of Flame 272, M21 Garruk, Unleashed 256, M21 Garruk, Savage Herald 237, M20 Mask of Immolation 235, M20 Gods Willing 232, M21 Liliana, Waker of the Dead 226, M20 Wolfrider's Saddle 224, M21 Rin and Seri, Inseparable 221, M21 Basri Ket 216, M20 Chandra's Flame Wave 215
+
+## 5. Truncation (19 sets): 116 of 4314 cards past 128; 5640 tokens cut, by kind: field 2339, selector/zone 1030, other 1016, role 302, filter predicate 274, quantity 234, string 176, verb 116, keyword 82, cost/counter 47, duration 15, event 9
+  cards whose cut part holds a printed keyword (keywords come last): 65
+  components a card loses entirely (in the cut part only), by kind (card-component pairs): keyword 75, filter predicate 67, quantity 50, verb 44, string 43, cost/counter 15, event 9, duration 4
+    verb: Basri Ket:Verb.GET_EMBLEM; Chandra, Flame's Catalyst:Verb.DRAW; Chandra, Heart of Fire:Verb.SHUFFLE; Chandra, Heart of Fire:Verb.SEARCH; Chandra, Heart of Fire:Verb.ADD_MANA; Feline Sovereign:Verb.DESTROY; Garruk, Savage Herald:Verb.DAMAGE_ASSIGN_POLICY; Garruk, Savage Herald:Verb.GRANT_ABILITY; Garruk, Unleashed:Verb.PUT_COUNTER; Garruk, Unleashed:Verb.SEARCH; Garruk, Unleashed:Verb.SHUFFLE; Garruk, Unleashed:Verb.GET_EMBLEM; Liliana, Waker of the Dead:Verb.GRANT_ABILITY; Liliana, Waker of the Dead:Verb.GET_EMBLEM
+    filter predicate: Alpine Houndmaster:FAtomPred.IS_ATTACKING; Alpine Houndmaster:FAtomPred.TYPE_EQ; Basri Ket:FAtomPred.CONTROLLER_IS; Basri, Devoted Paladin:FAtomPred.CONTROLLER_IS; Chandra, Heart of Fire:FAtomPred.COLOR_HAS; Experimental Overload:FAtomPred.IS_SOURCE; Garruk's Harbinger:FAtomPred.COLOR_HAS; Garruk, Savage Herald:FAtomPred.IS_ANY_TARGET; Garruk, Unleashed:FAtomPred.IS_SOURCE; Liliana, Waker of the Dead:FAtomPred.CONTROLLER_IS; Malefic Scythe:FAtomPred.CONTROLLER_IS; Mazemind Tome:FAtomPred.MAY_DONE; Necromentia:FAtomPred.MOVED_TO_ZONE_THIS_TURN; Sanctum of All:FAtomPred.SUBTYPE_EQ
+    event: Basri Ket:TurnPhaseEvent; Basri Ket:Phase.COMBAT; Garruk, Unleashed:TurnPhaseEvent; Garruk, Unleashed:Phase.END_TURN; Liliana, Waker of the Dead:TurnPhaseEvent; Liliana, Waker of the Dead:Phase.COMBAT; Sanctum of All:AbilityTriggerEvent; Cavalier of Flame:CreatureDiesEvent; Wolfrider's Saddle:DeclareBlockersEvent
+    keyword: Basri, Devoted Paladin:Keyword.FLYING; Chandra's Firemaw:Keyword.HASTE; Gadrak, the Crown-Scourge:Keyword.FLYING; Garruk's Harbinger:Keyword.HEXPROOF; Garruk's Warsteed:Keyword.VIGILANCE; Kinetic Augur:Keyword.TRAMPLE; Liliana, Waker of the Dead:Keyword.HASTE; Malefic Scythe:Keyword.EQUIP; Niambi, Esteemed Speaker:Keyword.FLASH; Rousing Read:Keyword.ENCHANT; Teferi's Wavecaster:Keyword.FLASH; Thieves' Guild Enforcer:Keyword.FLASH; Cliffhaven Kitesail:Keyword.EQUIP; Maul of the Skyclaves:Keyword.EQUIP
+
+## 6. Names inside component tokens (verified): a card name in a filter or value: 20 cards; distinct card-name tokens 21
+
+## 6. Names inside component tokens (19 sets): a card name in a filter or value: 113 cards, back face name (@face_name): 87 cards; distinct card-name tokens 114
+  verified cards naming themselves in a filter ('cards named ~'): 6: Frantic Inventory, Battalion Foot Soldier, Faerie Miscreant, Growth Cycle, Pack Mastiff, Undead Servant
+
+## 7. One value, two tokens (verified): 52 type or subtype values are both a face token (type:/sub:) and a filter value (str:); 396 cards name one in a filter. e.g. Angel, Artifact, Aura, Basri, Beast, Bird, Cat, Chandra, Construct, Creature, Demon, Dinosaur, Dog, Dragon, Elemental, Elf, Enchantment, Equipment, Forest, Garruk, Goblin, Golem, Griffin, Human, Hydra, Instant, Island, Knight, Land, Liliana
+
+## 7. One value, two tokens (19 sets): 72 type or subtype values are both a face token (type:/sub:) and a filter value (str:); 1125 cards name one in a filter. e.g. Angel, Artifact, Aura, Basri, Bat, Bear, Beast, Berserker, Bird, Cat, Chandra, Cleric, Construct, Creature, Demon, Dinosaur, Dog, Dragon, Drake, Dwarf, Elemental, Elf, Enchantment, Equipment, Faerie, Forest, Garruk, Giant, Goat, Goblin
+  SpellKind.X beside type:X: on 610 of 651 verified cards (a creature is type:Creature and SpellKind.CREATURE)
+
+## 8. Ability structure (verified): 163 of 651 cards (25%) have two or more abilities beyond a bare spell kind; their tokens mix in one bag
+
+## 8. Ability structure (19 sets): 349 of 4314 cards (8%) have two or more abilities beyond a bare spell kind; their tokens mix in one bag

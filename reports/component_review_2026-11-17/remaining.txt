@@ -1,0 +1,586 @@
+# The unverified cards of M21, M20 and FDN: what their unparsed sentences need
+cards by state: FDN partly-compiled 311, M20 needs-atom 48, M21 compiled 10, FDN needs-atom 7, FDN refused 5, M20 mapped 2, M20 refused 2, FDN mapped 2, FDN compiled 2
+
+unparsed sentences: 618 on 366 cards (23 cards have none: compiled whole or refused or mapped)
+  T existing components, a template is missing: 429 (69%)
+  P existing component + a parameter: 101 (16%)
+  E the IR has the shape, the engine has no lane: 12 (2%)
+  N a new component: 75 (12%)
+  - nothing to encode: 1 (0%)
+
+cards by what their worst sentence needs (a card with no unparsed sentence counts as T):
+  -: 0
+  T: 238
+  P: 77
+  E: 10
+  N: 64
+    FDN compiled: T 2
+    FDN mapped: T 2
+    FDN needs-atom: T 1, P 2, E 1, N 3
+    FDN partly-compiled: T 212, P 54, E 4, N 41
+    FDN refused: T 5
+    M20 mapped: T 2
+    M20 needs-atom: T 2, P 21, E 5, N 20
+    M20 refused: T 2
+    M21 compiled: T 10
+
+## The pieces, by the cards waiting on each (sentences in brackets)
+  N  13 [ 15] COPY: of a spell or ability, a token copy, become a copy (Verb.COPY has no handler): FDN Abyssal Harvester; FDN Chandra, Flameshaper; FDN Electroduplicate; FDN Extravagant Replication; FDN Homunculus Horde; FDN Pyromancer's Goggles; FDN Rite of Replication; FDN Self-Reflection ...
+  N  10 [ 10] a play permission with a duration for exiled or revealed cards (impulse): FDN Chandra, Flameshaper; FDN Etali, Primal Storm; FDN Kellan, Planar Trailblazer; FDN Muldrotha, the Gravetide; FDN Redcap Gutter-Dweller; FDN Strongbox Raider; FDN Zul Ashur, Lich Lord; M20 Chandra, Acolyte of Flame ...
+  N   8 [  9] flashback (alternative cost from a graveyard + exile replacement): FDN Bulk Up; FDN Electroduplicate; FDN Inspiration from Beyond; FDN Mystical Teachings; FDN Revenge of the Rats; FDN Self-Reflection; FDN Sphinx of Forgotten Lore; FDN Think Twice
+  E   6 [  6] a delayed trigger bound to the objects it names: FDN Charming Prince; FDN Kykar, Zephyr Awakener; FDN Nine-Lives Familiar; M20 Chandra, Acolyte of Flame; M20 Rienne, Angel of Rebirth; M20 Thunderkin Awakener
+  N   6 [  6] pregame action from the opening hand (CR 103.6): FDN Leyline Axe; M20 Leyline of Abundance; M20 Leyline of Anticipation; M20 Leyline of Combustion; M20 Leyline of Sanctity; M20 Leyline of the Void
+  P   6 [  6] SCRY with the graveyard as its other pile (surveil, CR 701.25): FDN Cephalid Inkmage; FDN Lightshell Duo; FDN Rune-Sealed Wall; FDN Uncharted Voyage; FDN Vanguard Seraph; FDN Wary Thespian
+  P   6 [  6] WARD: TargetingEvent trigger + COUNTER_SPELL unless (a Keyword.WARD with a cost): FDN Cackling Prowler; FDN Koma, World-Eater; FDN Ovika, Enigma Goliath; FDN Sire of Seven Deaths; FDN Tolarian Terror; FDN Zul Ashur, Lich Lord
+  P   6 [  6] a distinct-value count (QDistinctColorCount over a property): FDN Lunar Insight; FDN Maze's End; M20 Atemsis, All-Seeing; M20 Embodiment of Agonies; M20 Field of the Dead; M20 Shared Summons
+  P   5 [  5] AbilityActivatedEvent naming the ability (EVENT_THIS_TURN): FDN Mild-Mannered Librarian; FDN Ramos, Dragon Engine; FDN Steel Hellkite; FDN Three Tree Mascot; M20 Frilled Sandwalla
+  P   5 [  6] NAME_EQ with a referent slot (the same name as): FDN Hare Apparent; FDN Koma, World-Eater; FDN Maelstrom Pulse; M20 Legion's End; M20 Pattern Matcher
+  P   5 [  5] a targets(filter) predicate (TARGETS_SOURCE generalised): FDN Luminous Rebuke; M20 Cerulean Drake; M20 Gargos, Vicious Watcher; M20 Leyline of Combustion; M20 Season of Growth
+  P   4 [  4] MOVE_ZONE with entering counters: FDN Infernal Vessel; FDN Undying Malice; FDN Valkyrie's Call; M20 Unholy Indenture
+  P   4 [  8] a CounterKind value: FDN Drake Hatcher; FDN Fishing Pole; FDN Myojin of Night's Reach; FDN Wishclaw Talisman
+  E   3 [  4] a standing prohibition on an event (PREVENT_EFFECT lanes for life, casts, entering): FDN Giant Cindermaw; M20 Grafdigger's Cage; M20 Rule of Law
+  N   3 [  4] a choice made by the affected player (punisher): FDN Desecration Demon; FDN Painful Quandary; FDN Perforating Artist
+  N   3 [  3] alternative cost (CR 118.9): FDN Blasphemous Edict; FDN Quilled Greatwurm; M20 Sephara, Sky's Blade
+  P   3 [  3] GRANT_TYPE of every creature type: FDN Soulstone Sanctuary; FDN Taurean Mauler; FDN Three Tree Mascot
+  P   3 [  3] LOSE_ABILITY of every ability: FDN Eaten by Piranhas; FDN Imprisoned in the Moon; FDN Witness Protection
+  P   3 [  3] POLICY scope: cast timing (F9): FDN Harbinger of the Tides; FDN High Fae Trickster; M20 Leyline of Anticipation
+  P   3 [  3] TARGET with an unbounded count: FDN Chandra, Flameshaper; FDN Divine Resilience; M20 Loaming Shaman
+  P   3 [  4] a replacement that doubles the event's amount: FDN Doubling Season; FDN Gratuitous Violence; FDN Twinflame Tyrant
+  E   2 [  2] the mill lane writes no result register: FDN Dread Summons; M20 Gorging Vulture
+  N   2 [  3] a designation across several players: FDN Run Away Together; M20 Scheming Symmetry
+  N   2 [  2] a mana event (tapped for mana, mana spent on): FDN Carnelian Orb of Dragonkind; M20 Leyline of Abundance
+  N   2 [  2] a standing look at your library's top card: FDN Vizier of the Menagerie; M20 Mystic Forge
+  N   2 [  2] hand-size rule: FDN Finale of Revelation; FDN Niv-Mizzet, Visionary
+  P   2 [  2] ADD_MANA reading a chosen colour: FDN Heraldic Banner; FDN Uncharted Haven
+  P   2 [  2] Choose with a chooser (the owner): FDN Uncharted Voyage; M20 Aether Gust
+  P   2 [  2] MANA_POLICY use and scope: FDN Vizier of the Menagerie; M20 Renowned Weaponsmith
+  P   2 [  2] a property comparison (toughness, or against another object's value): FDN Valorous Stance; M20 Thunderkin Awakener
+  P   2 [  2] a referent: the player or planeswalker attacked: FDN Kitesail Corsair; M20 Scorch Spitter
+  P   2 [  3] a starting-life quantity (ledger F11): FDN Ayli, Eternal Pilgrim; FDN Elenda, Saint of Dusk
+  P   2 [  2] an enters condition: cast (from a zone): FDN Myojin of Night's Reach; FDN Nine-Lives Familiar
+  P   2 [  2] division of an amount among targets (CR 601.2d): FDN Biogenic Upgrade; M20 Vivien, Arkbow Ranger
+  N   1 [  1] CHANGE_TARGET: FDN Bolt Bend
+  N   1 [  1] DiscardEvent (B-48): M20 Glint-Horn Buccaneer
+  N   1 [  1] SET_COLOR: M20 Scuttlemutt
+  N   1 [  1] SET_LIFE: M20 Loxodon Lifechanter
+  N   1 [  1] a choice between additional costs: FDN Eaten Alive
+  N   1 [  1] a choice per type, then the rest: FDN Liliana, Dreadhorde General
+  N   1 [  1] a declaration-level restriction (alone): M20 Loyal Pegasus
+  N   1 [  1] a discard replacement keyed on its cause: FDN Wilt-Leaf Liege
+  N   1 [  1] a menu that remembers its picks: FDN Demonic Pact
+  N   1 [  1] a once-each-turn limit on a trigger: FDN Exemplar of Light
+  N   1 [  1] an ability's resolutions this turn: FDN Venom Connoisseur
+  N   1 [  1] an extra combat phase (EXTRA_TURN's sibling): FDN Aurelia, the Warleader
+  N   1 [  1] an outside-the-game zone: M20 Vivien, Arkbow Ranger
+  N   1 [  1] game result: win, can't lose: FDN Herald of Eternal Dawn
+  N   1 [  1] mana kept between steps: FDN Savage Ventmaw
+  N   1 [  1] per-category picks from one look: M20 Kaalia, Zenith Seeker
+  N   1 [  3] piles (separate, then an opponent picks): FDN Curator of Destinies
+  P   1 [  1] AbilityTriggerEvent with a cause filter: M20 Yarok, the Desecrated
+  P   1 [  1] CounterKind STUN (an untap replaced): FDN Grappling Kraken
+  P   1 [  1] DAMAGE_ASSIGN_POLICY scope: toughness: M20 Gauntlets of Light
+  P   1 [  1] EVENT_THIS_TURN over the object's controller: FDN Steel Hellkite
+  P   1 [  1] GRANT_TYPE reading a chosen creature type: FDN Adaptive Automaton
+  P   1 [  1] LIFE_TOTAL_GE about another player: FDN Hidetsugu's Second Rite
+  P   1 [  1] MANDATE_BLOCK scope: lure: M20 Prized Unicorn
+  P   1 [  1] MOVE_ZONE onto the battlefield attacking: M20 Thunderkin Awakener
+  P   1 [  1] PUT_COUNTER on a player, CounterKind POISON: FDN Fynn, the Fangbearer
+  P   1 [  1] PUT_COUNTER over every counter kind present: FDN Zimone, Paradox Sculptor
+  P   1 [  1] Phase.DRAW (a draw-step trigger): FDN Dictate of Kruphix
+  P   1 [  1] a cast permission with the mana cost waived (CostDeltaWaiveMana): FDN Omniscience
+  P   1 [  1] a comparison over a quantity (total power): FDN Surrak, the Hunt Caller
+  P   1 [  1] a duration that ends when control of the source is lost: M20 Dungeon Geists
+  P   1 [  1] a filtered count of the result, by last known information: M20 Flood of Tears
+  P   1 [  1] a quantity field: the excess damage: FDN Goblin Negotiation
+  P   1 [  1] a referent for the object a cost took: FDN Ayli, Eternal Pilgrim
+  P   1 [  1] an ordinal on DeclareAttackersEvent: FDN Aurelia, the Warleader
+  P   1 [  1] an owner predicate beside CONTROLLER_IS: M20 Agent of Treachery
+  P   1 [  1] the amount the previous step did: FDN Exsanguinate
+  P   1 [  2] the chosen-name read on activated abilities: FDN Sorcerous Spyglass
+
+## Greedy cover: pieces in the order that completes the most cards (T sentences assumed done)
+  with templates only: 238 cards whole
+   1. + 10 -> 248  N COPY: of a spell or ability, a token copy, become a copy (Verb.COPY has no handler)
+   2. +  8 -> 256  N flashback (alternative cost from a graveyard + exile replacement)
+   3. +  7 -> 263  N a play permission with a duration for exiled or revealed cards (impulse)
+   4. +  6 -> 269  P a distinct-value count (QDistinctColorCount over a property)
+   5. +  5 -> 274  P WARD: TargetingEvent trigger + COUNTER_SPELL unless (a Keyword.WARD with a cost)
+   6. +  5 -> 279  P NAME_EQ with a referent slot (the same name as)
+   7. +  5 -> 284  P SCRY with the graveyard as its other pile (surveil, CR 701.25)
+   8. +  4 -> 288  P a targets(filter) predicate (TARGETS_SOURCE generalised)
+   9. +  4 -> 292  E a delayed trigger bound to the objects it names
+  10. +  4 -> 296  N pregame action from the opening hand (CR 103.6)
+  11. +  4 -> 300  P MOVE_ZONE with entering counters
+  12. +  3 -> 303  P AbilityActivatedEvent naming the ability (EVENT_THIS_TURN)
+  13. +  3 -> 306  E a standing prohibition on an event (PREVENT_EFFECT lanes for life, casts, entering)
+  14. +  3 -> 309  P POLICY scope: cast timing (F9)
+  15. +  3 -> 312  P TARGET with an unbounded count
+  16. +  3 -> 315  N alternative cost (CR 118.9)
+  17. +  3 -> 318  N a choice made by the affected player (punisher)
+  18. +  3 -> 321  P a replacement that doubles the event's amount
+  19. +  3 -> 324  P a CounterKind value
+  20. +  3 -> 327  P LOSE_ABILITY of every ability
+  21. +  3 -> 330  P GRANT_TYPE of every creature type
+  22. +  2 -> 332  P Choose with a chooser (the owner)
+  23. +  2 -> 334  E the mill lane writes no result register
+  24. +  2 -> 336  N a mana event (tapped for mana, mana spent on)
+  25. +  2 -> 338  N a designation across several players
+  26. +  2 -> 340  P a referent: the player or planeswalker attacked
+  27. +  2 -> 342  N hand-size rule
+  28. +  2 -> 344  P ADD_MANA reading a chosen colour
+  29. +  2 -> 346  P an enters condition: cast (from a zone)
+  30. +  1 -> 347  P an owner predicate beside CONTROLLER_IS
+  31. +  1 -> 348  P a duration that ends when control of the source is lost
+  32. +  1 -> 349  P a filtered count of the result, by last known information
+  33. +  1 -> 350  P DAMAGE_ASSIGN_POLICY scope: toughness
+  34. +  1 -> 351  N DiscardEvent (B-48)
+  35. +  1 -> 352  N per-category picks from one look
+  36. +  1 -> 353  N SET_LIFE
+  37. +  1 -> 354  N a declaration-level restriction (alone)
+  38. +  1 -> 355  N a standing look at your library's top card
+  39. +  2 -> 357  P MANA_POLICY use and scope
+  40. +  1 -> 358  P MANDATE_BLOCK scope: lure
+  still open: 31
+
+## By class: every parameter, then every engine lane, then the new components by cards waiting
+  distinct pieces: P 42, E 3, N 27
+  templates only: 238 of 389 cards whole
+  + every P piece (42): 315 whole
+  + every E piece (3): 325 whole
+  + N piece 1 (COPY: of a spell or ability, a token copy, become a copy (Ve): 335 whole
+  + N piece 2 (a play permission with a duration for exiled or revealed car): 345 whole
+  + N piece 3 (flashback (alternative cost from a graveyard + exile replace): 353 whole
+  + N piece 4 (pregame action from the opening hand (CR 103.6)): 358 whole
+  + N piece 5 (alternative cost (CR 118.9)): 361 whole
+  + N piece 6 (a choice made by the affected player (punisher)): 364 whole
+  + N piece 27 (an outside-the-game zone): 389 whole
+
+## The default bucket (no rule matched: read as T, existing components) for review
+  M20 Aether Gust: Choose target spell or permanent that's red or green.
+  M20 Agent of Treachery: When this creature enters, gain control of target permanent.
+  M20 Atemsis, All-Seeing: {2}{U}, {T}: Draw two cards, then discard a card.
+  M20 Atemsis, All-Seeing: Whenever Atemsis deals damage to an opponent, you may reveal your hand.
+  M20 Cerulean Drake: Protection from red (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything red.)
+  M20 Chandra's Outrage: Chandra's Outrage deals 4 damage to target creature and 2 damage to that creature's controller.
+  M20 Chandra's Regulator: Whenever you activate a loyalty ability of a Chandra planeswalker, you may pay {1}.
+  M20 Chandra's Regulator: {1}, {T}, Discard a Mountain card or a red card: Draw a card.
+  M20 Chandra, Acolyte of Flame: [0]: Put a loyalty counter on each red planeswalker you control.
+  M20 Chandra, Acolyte of Flame: [0]: Create two 1/1 red Elemental creature tokens.
+  M20 Chandra, Acolyte of Flame: They gain haste.
+  M20 Chandra, Awakened Inferno: [+2]: Each opponent gets an emblem with "At the beginning of your upkeep, this emblem deals 1 damage to you."
+  M20 Chandra, Awakened Inferno: [−3]: Chandra deals 3 damage to each non-Elemental creature.
+  M20 Chandra, Awakened Inferno: [−X]: Chandra deals X damage to target creature or planeswalker.
+  M20 Chandra, Awakened Inferno: If a permanent dealt damage this way would die this turn, exile it instead.
+  M20 Flood of Tears: Return all nonland permanents to their owners' hands.
+  M20 Gargos, Vicious Watcher: Hydra spells you cast cost {4} less to cast.
+  M20 Gauntlets of Light: Enchanted creature has "{2}{W}: Untap this creature."
+  M20 Glint-Horn Buccaneer: {1}{R}, Discard a card: Draw a card.
+  M20 Glint-Horn Buccaneer: Activate only if this creature is attacking.
+  M20 Golos, Tireless Pilgrim: When Golos enters, you may search your library for a land card, put that card onto the battlefield tapped, then shuffle.
+  M20 Golos, Tireless Pilgrim: {2}{W}{U}{B}{R}{G}: Exile the top three cards of your library.
+  M20 Kaalia, Zenith Seeker: When Kaalia enters, look at the top six cards of your library.
+  M20 Kaalia, Zenith Seeker: Put the rest on the bottom of your library in a random order.
+  M20 Kethis, the Hidden Hand: Legendary spells you cast cost {1} less to cast.
+  M20 Leyline of the Void: If a card would be put into an opponent's graveyard from anywhere, exile it instead.
+  M20 Loxodon Lifechanter: {5}{W}: This creature gets +X/+X until end of turn, where X is your life total.
+  M20 Masterful Replication: Choose one —
+  M20 Masterful Replication: • Create two 3/3 colorless Golem artifact creature tokens.
+  M20 Masterful Replication: • Choose target artifact you control.
+  M20 Mystic Forge: You may cast artifact spells and colorless spells from the top of your library.
+  M20 Mystic Forge: {T}, Pay 1 life: Exile the top card of your library.
+  M20 Rienne, Angel of Rebirth: Other multicolored creatures you control get +1/+0.
+  M20 Season of Growth: Whenever a creature you control enters, scry 1.
+  M20 Sephara, Sky's Blade: Other creatures you control with flying have indestructible.
+  M20 Vivien, Arkbow Ranger: They gain trample until end of turn.
+  M20 Vivien, Arkbow Ranger: [−3]: Target creature you control deals damage equal to its power to target creature or planeswalker.
+  FDN Abrade: Choose one —
+  FDN Abrade: • Abrade deals 3 damage to target creature.
+  FDN Abyssal Harvester: {T}: Exile target creature card from a graveyard that was put there this turn.
+  FDN Abyssal Harvester: Then exile all other Nightmare tokens you control.
+  FDN Adamant Will: Target creature gets +2/+2 and gains indestructible until end of turn.
+  FDN Aetherize: Return all attacking creatures to their owner's hand.
+  FDN Ajani, Caller of the Pride: [−3]: Target creature gains flying and double strike until end of turn.
+  FDN Ajani, Caller of the Pride: [−8]: Create X 2/2 white Cat creature tokens, where X is your life total.
+  FDN Alesha, Who Laughs at Fate: Whenever Alesha attacks, put a +1/+1 counter on it.
+  FDN Alesha, Who Laughs at Fate: Raid — At the beginning of your end step, if you attacked this turn, return target creature card with mana value less than or equal to Alesha's power from your graveyard to the battlefield
+  FDN Ambush Wolf: When this creature enters, exile up to one target card from a graveyard.
+  FDN An Offer You Can't Refuse: Its controller creates two Treasure tokens.
+  FDN Angel of Finality: When this creature enters, exile target player's graveyard.
+  FDN Angelic Destiny: Enchanted creature gets +4/+4, has flying and first strike, and is an Angel in addition to its other types.
+  FDN Angelic Destiny: When enchanted creature dies, return this card to its owner's hand.
+  FDN Apothecary Stomper: When this creature enters, choose one —
+  FDN Apothecary Stomper: • Put two +1/+1 counters on target creature you control.
+  FDN Arahbo, the First Fang: Other Cats you control get +1/+1.
+  FDN Arahbo, the First Fang: Whenever Arahbo or another nontoken Cat you control enters, create a 1/1 white Cat creature token.
+  FDN Arbiter of Woe: When this creature enters, each opponent discards a card and loses 2 life.
+  FDN Arbiter of Woe: You draw a card and gain 2 life.
+  FDN Arcane Epiphany: This spell costs {1} less to cast if you control a Wizard.
+  FDN Arcane Epiphany: Draw three cards.
+  FDN Arcanis the Omnipotent: {T}: Draw three cards.
+  FDN Arcanis the Omnipotent: {2}{U}{U}: Return Arcanis to its owner's hand.
+  FDN Archmage of Runes: Instant and sorcery spells you cast cost {1} less to cast.
+  FDN Archmage of Runes: Whenever you cast an instant or sorcery spell, draw a card.
+  FDN Archway Angel: When this creature enters, you gain 2 life for each Gate you control.
+  FDN Armasaur Guide: Whenever you attack with three or more creatures, put a +1/+1 counter on target creature you control.
+  FDN Ashroot Animist: Whenever this creature attacks, another target creature you control gains trample and gets +X/+X until end of turn, where X is this creature's power.
+  FDN Authority of the Consuls: Creatures your opponents control enter tapped.
+  FDN Authority of the Consuls: Whenever a creature an opponent controls enters, you gain 1 life.
+  FDN Axgard Cavalry: {T}: Target creature gains haste until end of turn.
+  FDN Ayli, Eternal Pilgrim: {1}{W}{B}, Sacrifice another creature: Exile target nonland permanent.
+  FDN Bake into a Pie: Create a Food token.
+  FDN Ballyrush Banneret: Kithkin spells and Soldier spells you cast cost {1} less to cast.
+  FDN Balmor, Battlemage Captain: Whenever you cast an instant or sorcery spell, creatures you control get +1/+0 and gain trample until end of turn.
+  FDN Basilisk Collar: Equipped creature has deathtouch and lifelink.
+  FDN Beast-Kin Ranger: Whenever another creature you control enters, this creature gets +1/+0 until end of turn.
+  FDN Billowing Shriekmass: When this creature enters, mill three cards.
+  FDN Billowing Shriekmass: Threshold — This creature gets +2/+1 as long as there are seven or more cards in your graveyard.
+  FDN Bite Down: Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.
+  FDN Blasphemous Edict: Each player sacrifices thirteen creatures of their choice.
+  FDN Bloodthirsty Conqueror: Whenever an opponent loses life, you gain that much life.
+  FDN Bloodtithe Collector: When this creature enters, if an opponent lost life this turn, each opponent discards a card.
+  FDN Bolt Bend: This spell costs {3} less to cast if you control a creature with power 4 or greater.
+  FDN Boltwave: Boltwave deals 3 damage to each opponent.
+  FDN Boros Charm: Choose one —
+  FDN Boros Charm: • Boros Charm deals 4 damage to target player or planeswalker.
+  FDN Boros Charm: • Permanents you control gain indestructible until end of turn.
+  FDN Boros Charm: • Target creature gains double strike until end of turn.
+  FDN Brass's Bounty: For each land you control, create a Treasure token.
+  FDN Bulk Up: Double target creature's power until end of turn.
+  FDN Burglar Rat: When this creature enters, each opponent discards a card.
+  FDN Burnished Hart: {3}, Sacrifice this creature: Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.
+  FDN Burrog Befuddler: When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.
+  FDN Burst Lightning: If this spell was kicked, it deals 4 damage instead.
+  FDN Bushwhack: Choose one —
+  FDN Bushwhack: • Search your library for a basic land card, reveal it, put it into your hand, then shuffle.
+  FDN Bushwhack: • Target creature you control fights target creature you don't control.
+  FDN Cackling Prowler: Morbid — At the beginning of your end step, if a creature died this turn, put a +1/+1 counter on this creature.
+  FDN Campus Guide: When this creature enters, you may search your library for a basic land card, reveal it, then shuffle and put that card on top.
+  FDN Cat Collector: When this creature enters, create a Food token.
+  FDN Celestial Armor: That creature gains hexproof and indestructible until end of turn.
+  FDN Cemetery Recruitment: Return target creature card from your graveyard to your hand.
+  FDN Cemetery Recruitment: If it's a Zombie card, draw a card.
+  FDN Cephalid Inkmage: Threshold — This creature can't be blocked as long as there are seven or more cards in your graveyard.
+  FDN Chandra, Flameshaper: [+2]: Add {R}{R}{R}.
+  FDN Chandra, Flameshaper: Exile the top three cards of your library.
+  FDN Chandra, Flameshaper: Choose one.
+  FDN Charming Prince: When this creature enters, choose one —
+  FDN Charming Prince: • Scry 2.
+  FDN Charming Prince: • Exile another target creature you own.
+  FDN Circuitous Route: Search your library for up to two basic land cards and/or Gate cards, put them onto the battlefield tapped, then shuffle.
+  FDN Claws Out: Affinity for Cats (This spell costs {1} less to cast for each Cat you control.)
+  FDN Cloudblazer: When this creature enters, you gain 2 life and draw two cards.
+  FDN Confiscate: You control enchanted permanent.
+  FDN Consuming Aberration: Consuming Aberration's power and toughness are each equal to the number of cards in your opponents' graveyards.
+  FDN Consuming Aberration: Whenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard.
+  FDN Corsair Captain: When this creature enters, create a Treasure token.
+  FDN Corsair Captain: Other Pirates you control get +1/+1.
+  FDN Courageous Goblin: Whenever this creature attacks while you control a creature with power 4 or greater, this creature gets +1/+0 and gains menace until end of turn.
+  FDN Crackling Cyclops: Whenever you cast a noncreature spell, this creature gets +3/+0 until end of turn.
+  FDN Crawling Barrens: {4}: Put two +1/+1 counters on this land.
+  FDN Crawling Barrens: Then you may have it become a 0/0 Elemental creature until end of turn.
+  FDN Crawling Barrens: It's still a land.
+  FDN Crossway Troublemakers: Attacking Vampires you control have deathtouch and lifelink.
+  FDN Crossway Troublemakers: Whenever a Vampire you control dies, you may pay 2 life.
+  FDN Crossway Troublemakers: If you do, draw a card.
+  FDN Crow of Dark Tidings: When this creature enters or dies, mill two cards.
+  FDN Crusader of Odric: Crusader of Odric's power and toughness are each equal to the number of creatures you control.
+  FDN Crystal Barricade: Prevent all noncombat damage that would be dealt to other creatures you control.
+  FDN Darksteel Colossus: If Darksteel Colossus would be put into a graveyard from anywhere, reveal Darksteel Colossus and shuffle it into its owner's library instead.
+  FDN Day of Judgment: Destroy all creatures.
+  FDN Dazzling Angel: Whenever another creature you control enters, you gain 1 life.
+  FDN Deadly Brew: Each player sacrifices a creature or planeswalker of their choice.
+  FDN Deadly Brew: If you sacrificed a permanent this way, you may return another permanent card from your graveyard to your hand.
+  FDN Deadly Plot: Choose one —
+  FDN Deadly Plot: • Destroy target creature or planeswalker.
+  FDN Deadly Plot: • Return target Zombie creature card from your graveyard to the battlefield tapped.
+  FDN Deadly Riposte: Deadly Riposte deals 3 damage to target tapped creature and you gain 2 life.
+  FDN Deathmark: Destroy target green or white creature.
+  FDN Demolition Field: {2}, {T}, Sacrifice this land: Destroy target nonbasic land an opponent controls.
+  FDN Demolition Field: That land's controller may search their library for a basic land card, put it onto the battlefield, then shuffle.
+  FDN Demolition Field: You may search your library for a basic land card, put it onto the battlefield, then shuffle.
+  FDN Demonic Pact: • This enchantment deals 4 damage to any target and you gain 4 life.
+  FDN Demonic Pact: • Target opponent discards two cards.
+  FDN Demonic Pact: • Draw two cards.
+  FDN Demonic Pact: • You lose the game.
+  FDN Divine Resilience: Target creature you control gains indestructible until end of turn.
+  FDN Dragonmaster Outcast: At the beginning of your upkeep, if you control six or more lands, create a 5/5 red Dragon creature token with flying.
+  FDN Dread Summons: Each player mills X cards.
+  FDN Dreadwing Scavenger: Whenever this creature enters or attacks, draw a card, then discard a card.
+  FDN Dreadwing Scavenger: Threshold — This creature gets +1/+1 and has deathtouch as long as there are seven or more cards in your graveyard.
+  FDN Driver of the Dead: When this creature dies, return target creature card with mana value 2 or less from your graveyard to the battlefield.
+  FDN Dropkick Bomber: Other Goblins you control get +1/+1.
+  FDN Dropkick Bomber: {R}: Until end of turn, another target Goblin you control gains flying and "When this creature deals combat damage, sacrifice it."
+  FDN Dryad Militant: If an instant or sorcery card would be put into a graveyard from anywhere, exile it instead.
+  FDN Dwynen's Elite: When this creature enters, if you control another Elf, create a 1/1 green Elf Warrior creature token.
+  FDN Dwynen, Gilt-Leaf Daen: Other Elf creatures you control get +1/+1.
+  FDN Dwynen, Gilt-Leaf Daen: Whenever Dwynen attacks, you gain 1 life for each attacking Elf you control.
+  FDN Eager Trufflesnout: Whenever this creature deals combat damage to a player, create a Food token.
+  FDN Elenda, Saint of Dusk: Lifelink, hexproof from instants
+  FDN Elfsworn Giant: Landfall — Whenever a land you control enters, create a 1/1 green Elf Warrior creature token.
+  FDN Elspeth's Smite: Elspeth's Smite deals 3 damage to target attacking or blocking creature.
+  FDN Elspeth's Smite: If that creature would die this turn, exile it instead.
+  FDN Elvish Archdruid: Other Elf creatures you control get +1/+1.
+  FDN Elvish Archdruid: {T}: Add {G} for each Elf you control.
+  FDN Essence Scatter: Counter target creature spell.
+  FDN Exemplar of Light: Whenever you put one or more +1/+1 counters on this creature, draw a card.
+  FDN Expedition Map: {2}, {T}, Sacrifice this artifact: Search your library for a land card, reveal it, put it into your hand, then shuffle.
+  FDN Exsanguinate: Each opponent loses X life.
+  FDN Faebloom Trick: When you do, tap target creature an opponent controls.
+  FDN Fake Your Own Death: Until end of turn, target creature gets +2/+0 and gains "When this creature dies, return it to the battlefield tapped under its owner's control and you create a Treasure token." (It's an artifact
+  FDN Fanatical Firebrand: {T}, Sacrifice this creature: It deals 1 damage to any target.
+  FDN Feed the Swarm: You lose life equal to that permanent's mana value.
+  FDN Feldon's Cane: {T}, Exile this artifact: Shuffle your graveyard into your library.
+  FDN Felidar Cub: Sacrifice this creature: Destroy target enchantment.
+  FDN Felidar Retreat: Landfall — Whenever a land you control enters, choose one —
+  FDN Felidar Retreat: • Create a 2/2 white Cat Beast creature token.
+  FDN Felidar Retreat: • Put a +1/+1 counter on each creature you control.
+  FDN Felidar Retreat: Those creatures gain vigilance until end of turn.
+  FDN Felling Blow: Then that creature deals damage equal to its power to target creature an opponent controls.
+  FDN Fiendish Panda: When this creature dies, return another target non-Bear creature card with mana value less than or equal to this creature's power from your graveyard to the battlefield.
+  FDN Fiery Annihilation: Exile up to one target Equipment attached to that creature.
+  FDN Fiery Annihilation: If that creature would die this turn, exile it instead.
+  FDN Finale of Revelation: Draw X cards.
+  FDN Finale of Revelation: Exile Finale of Revelation.
+  FDN Firespitter Whelp: Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.
+  FDN Fishing Pole: If you do, create a 1/1 blue Fish creature token.
+  FDN Flamewake Phoenix: This creature attacks each combat if able.
+  FDN Flamewake Phoenix: Ferocious — At the beginning of combat on your turn, if you control a creature with power 4 or greater, you may pay {R}.
+  FDN Flamewake Phoenix: If you do, return this card from your graveyard to the battlefield.
+  FDN Flashfreeze: Counter target red or green spell.
+  FDN Fleeting Flight: Put a +1/+1 counter on target creature.
+  FDN Fleeting Flight: It gains flying until end of turn.
+  FDN Fleeting Flight: Prevent all combat damage that would be dealt to it this turn.
+  FDN Fog Bank: Prevent all combat damage that would be dealt to and dealt by this creature.
+  FDN Frenzied Goblin: If you do, target creature can't block this turn.
+  FDN Fumigate: Destroy all creatures.
+  FDN Fumigate: You gain 1 life for each creature destroyed this way.
+  FDN Garna, Bloodfist of Keld: Whenever another creature you control dies, draw a card if it was attacking.
+  FDN Garna, Bloodfist of Keld: Otherwise, Garna deals 1 damage to each opponent.
+  FDN Gate Colossus: Affinity for Gates (This spell costs {1} less to cast for each Gate you control.)
+  FDN Gate Colossus: This creature can't be blocked by creatures with power 2 or less.
+  FDN Gate Colossus: Whenever a Gate you control enters, you may put this card from your graveyard on top of your library.
+  FDN Gatekeeper of Malakir: When this creature enters, if it was kicked, target player sacrifices a creature of their choice.
+  FDN Gateway Sneak: Whenever a Gate you control enters, this creature can't be blocked this turn.
+  FDN Gateway Sneak: Whenever this creature deals combat damage to a player, draw a card.
+  FDN Genesis Wave: Reveal the top X cards of your library.
+  FDN Genesis Wave: You may put any number of permanent cards with mana value X or less from among them onto the battlefield.
+  FDN Genesis Wave: Then put all cards revealed this way that weren't put onto the battlefield into your graveyard.
+  FDN Ghitu Lavarunner: As long as there are two or more instant and/or sorcery cards in your graveyard, this creature gets +1/+0 and has haste.
+  FDN Giada, Font of Hope: Each other Angel you control enters with an additional +1/+1 counter on it for each Angel you already control.
+  FDN Giada, Font of Hope: Spend this mana only to cast an Angel spell.
+  FDN Gilded Lotus: {T}: Add three mana of any one color.
+  FDN Goblin Surprise: Choose one —
+  FDN Goblin Surprise: • Creatures you control get +2/+0 until end of turn.
+  FDN Goblin Surprise: • Create two 1/1 red Goblin creature tokens.
+  FDN Good-Fortune Unicorn: Whenever another creature you control enters, put a +1/+1 counter on that creature.
+  FDN Gorehorn Raider: Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.
+  FDN Grow from the Ashes: Search your library for a basic land card, put it onto the battlefield, then shuffle.
+  FDN Grow from the Ashes: If this spell was kicked, instead search your library for two basic land cards, put them onto the battlefield, then shuffle.
+  FDN Gutless Plunderer: You may put one of those cards back on top of your library.
+  FDN Gutless Plunderer: Put the rest into your graveyard.
+  FDN Guttersnipe: Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.
+  FDN Halana and Alena, Partners: At the beginning of combat on your turn, put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power.
+  FDN Halana and Alena, Partners: That creature gains haste until end of turn.
+  FDN Harbinger of the Tides: When this creature enters, you may return target tapped creature an opponent controls to its owner's hand.
+  FDN Harmless Offering: Target opponent gains control of target permanent you control.
+  FDN Hedron Archive: {2}, {T}, Sacrifice this artifact: Draw two cards.
+  FDN Heroes' Bane: This creature enters with four +1/+1 counters on it.
+  FDN Heroes' Bane: {2}{G}{G}: Put X +1/+1 counters on this creature, where X is its power.
+  FDN Heroic Reinforcements: Until end of turn, creatures you control get +1/+1 and gain haste.
+  FDN High-Society Hunter: Whenever this creature attacks, you may sacrifice another creature.
+  FDN High-Society Hunter: If you do, put a +1/+1 counter on this creature.
+  FDN High-Society Hunter: Whenever another nontoken creature dies, draw a card.
+  FDN Hinterland Sanctifier: Whenever another creature you control enters, you gain 1 life.
+  FDN Hoarding Dragon: When this creature enters, you may search your library for an artifact card, exile it, then shuffle.
+  FDN Hoarding Dragon: When this creature dies, you may put the exiled card into its owner's hand.
+  FDN Icewind Elemental: When this creature enters, draw a card, then discard a card.
+  FDN Immersturm Predator: Whenever this creature becomes tapped, exile up to one target card from a graveyard and put a +1/+1 counter on this creature.
+  FDN Immersturm Predator: Sacrifice another creature: This creature gains indestructible until end of turn.
+  FDN Immersturm Predator: Tap it.
+  FDN Imprisoned in the Moon: Enchant creature, land, or planeswalker
+  FDN Infernal Vessel: It's a Demon in addition to its other types.
+  FDN Infestation Sage: When this creature dies, create a 1/1 black and green Insect creature token with flying.
+  FDN Ingenious Leonin: {3}{W}: Put a +1/+1 counter on another target attacking creature you control.
+  FDN Ingenious Leonin: If that creature is a Cat, it gains first strike until end of turn.
+  FDN Inspiration from Beyond: Mill three cards, then return an instant or sorcery card from your graveyard to your hand.
+  FDN Inspiring Call: Draw a card for each creature you control with a +1/+1 counter on it.
+  FDN Inspiring Call: Those creatures gain indestructible until end of turn.
+  FDN Inspiring Overseer: When this creature enters, you gain 1 life and draw a card.
+  FDN Inspiring Paladin: During your turn, this creature has first strike.
+  FDN Inspiring Paladin: During your turn, creatures you control with +1/+1 counters on them have first strike.
+  FDN Involuntary Employment: Create a Treasure token.
+  FDN Jazal Goldmane: {3}{W}{W}: Attacking creatures you control get +X/+X until end of turn, where X is the number of attacking creatures.
+  FDN Joust Through: Joust Through deals 3 damage to target attacking or blocking creature.
+  FDN Juggernaut: This creature attacks each combat if able.
+  FDN Juggernaut: This creature can't be blocked by Walls.
+  FDN Kaito, Cunning Infiltrator: Whenever a creature you control deals combat damage to a player, put a loyalty counter on Kaito.
+  FDN Kaito, Cunning Infiltrator: [+1]: Up to one target creature you control can't be blocked this turn.
+  FDN Kaito, Cunning Infiltrator: Draw a card, then discard a card.
+  FDN Kaito, Cunning Infiltrator: [−9]: You get an emblem with "Whenever a player casts a spell, you create a 2/1 blue Ninja creature token."
+  FDN Kalastria Highborn: Whenever this creature or another Vampire you control dies, you may pay {B}.
+  FDN Kalastria Highborn: If you do, target player loses 2 life and you gain 2 life.
+  FDN Kargan Dragonrider: As long as you control a Dragon, this creature has flying.
+  FDN Kellan, Planar Trailblazer: {1}{R}: If Kellan is a Scout, it becomes a Human Faerie Detective and gains "Whenever Kellan deals combat damage to a player, exile the top card of your library.
+  FDN Kellan, Planar Trailblazer: {2}{R}: If Kellan is a Detective, it becomes a 3/2 Human Faerie Rogue and gains double strike.
+  FDN Kiora, the Rising Tide: When Kiora enters, draw two cards, then discard two cards.
+  FDN Kiora, the Rising Tide: Threshold — Whenever Kiora attacks, if there are seven or more cards in your graveyard, you may create Scion of the Deep, a legendary 8/8 blue Octopus creature token.
+  FDN Knight of Grace: Hexproof from black (This creature can't be the target of black spells or abilities your opponents control.)
+  FDN Knight of Grace: This creature gets +1/+0 as long as any player controls a black permanent.
+  FDN Knight of Malice: Hexproof from white (This creature can't be the target of white spells or abilities your opponents control.)
+  FDN Knight of Malice: This creature gets +1/+0 as long as any player controls a white permanent.
+  FDN Krenko, Mob Boss: {T}: Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.
+  FDN Kykar, Zephyr Awakener: Whenever you cast a noncreature spell, choose one —
+  FDN Kykar, Zephyr Awakener: • Exile another target creature you control.
+  FDN Kykar, Zephyr Awakener: • Create a 1/1 white Spirit creature token with flying.
+  FDN Lathliss, Dragon Queen: Whenever another nontoken Dragon you control enters, create a 5/5 red Dragon creature token with flying.
+  FDN Lathliss, Dragon Queen: {1}{R}: Dragons you control get +1/+0 until end of turn.
+  FDN Lathril, Blade of the Elves: Whenever Lathril deals combat damage to a player, create that many 1/1 green Elf Warrior creature tokens.
+  FDN Lathril, Blade of the Elves: {T}, Tap ten untapped Elves you control: Each opponent loses 10 life and you gain 10 life.
+  FDN Leonin Vanguard: At the beginning of combat on your turn, if you control three or more creatures, this creature gets +1/+1 until end of turn and you gain 1 life.
+  FDN Liliana, Dreadhorde General: Whenever a creature you control dies, draw a card.
+  FDN Liliana, Dreadhorde General: [−4]: Each player sacrifices two creatures of their choice.
+  FDN Linden, the Steadfast Queen: Whenever a white creature you control attacks, you gain 1 life.
+  FDN Loot, Exuberant Explorer: You may play an additional land on each of your turns.
+  FDN Loot, Exuberant Explorer: {4}{G}{G}, {T}: Look at the top six cards of your library.
+  FDN Loot, Exuberant Explorer: You may reveal a creature card with mana value less than or equal to the number of lands you control from among them and put it onto the battlefield.
+  FDN Loot, Exuberant Explorer: Put the rest on the bottom in a random order.
+  FDN Lyra Dawnbringer: Other Angels you control get +1/+1 and have lifelink.
+  FDN Macabre Waltz: Return up to two target creature cards from your graveyard to your hand, then discard a card.
+  FDN Make Your Move: Destroy target artifact, enchantment, or creature with power 4 or greater.
+  FDN Make a Stand: Creatures you control get +1/+0 and gain indestructible until end of turn.
+  FDN Maze's End: {3}, {T}, Return this land to its owner's hand: Search your library for a Gate card, put it onto the battlefield, then shuffle.
+  FDN Mentor of the Meek: Whenever another creature you control with power 2 or less enters, you may pay {1}.
+  FDN Mentor of the Meek: If you do, draw a card.
+  FDN Micromancer: When this creature enters, you may search your library for an instant or sorcery card with mana value 1, reveal it, put it into your hand, then shuffle.
+  FDN Midnight Reaper: Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.
+  FDN Midnight Snack: Raid — At the beginning of your end step, if you attacked this turn, create a Food token.
+  FDN Midnight Snack: {2}{B}, Sacrifice this enchantment: Target opponent loses X life, where X is the amount of life you gained this turn.
+  FDN Mild-Mannered Librarian: {3}{G}: This creature becomes a Werewolf.
+  FDN Mild-Mannered Librarian: Put two +1/+1 counters on it and you draw a card.
+  FDN Mindsparker: Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.
+  FDN Mischievous Mystic: Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.
+  FDN Mischievous Pup: When this creature enters, return up to one other target permanent you control to its owner's hand.
+  FDN Mocking Sprite: Instant and sorcery spells you cast cost {1} less to cast.
+  FDN Mold Adder: Whenever an opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.
+  FDN Mossborn Hydra: This creature enters with a +1/+1 counter on it.
+  FDN Mossborn Hydra: Landfall — Whenever a land you control enters, double the number of +1/+1 counters on this creature.
+  FDN Mystical Teachings: Search your library for an instant card or a card with flash, reveal it, put it into your hand, then shuffle.
+  FDN Needletooth Pack: Morbid — At the beginning of your end step, if a creature died this turn, put two +1/+1 counters on target creature you control.
+  FDN Nessian Hornbeetle: At the beginning of combat on your turn, if you control another creature with power 4 or greater, put a +1/+1 counter on this creature.
+  FDN New Horizons: Enchanted land has "{T}: Add two mana of any one color."
+  FDN Niv-Mizzet, Visionary: Whenever a source you control deals noncombat damage to an opponent, you draw that many cards.
+  FDN Offer Immortality: Target creature gains deathtouch and indestructible until end of turn.
+  FDN Ordeal of Nylea: Whenever enchanted creature attacks, put a +1/+1 counter on it.
+  FDN Ordeal of Nylea: Then if it has three or more +1/+1 counters on it, sacrifice this Aura.
+  FDN Ordeal of Nylea: When you sacrifice this Aura, search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.
+  FDN Overrun: Creatures you control get +3/+3 and gain trample until end of turn.
+  FDN Ovika, Enigma Goliath: Whenever you cast a noncreature spell, create X 1/1 red Phyrexian Goblin creature tokens, where X is the mana value of that spell.
+  FDN Ovika, Enigma Goliath: They gain haste until end of turn.
+  FDN Phyrexian Arena: At the beginning of your upkeep, you draw a card and lose 1 life.
+  FDN Prayer of Binding: When this enchantment enters, exile up to one target nonland permanent an opponent controls until this enchantment leaves the battlefield.
+  FDN Predator Ooze: Whenever this creature attacks, put a +1/+1 counter on it.
+  FDN Predator Ooze: Whenever a creature dealt damage by this creature this turn dies, put a +1/+1 counter on this creature.
+  FDN Preposterous Proportions: Creatures you control get +10/+10 and gain vigilance until end of turn.
+  FDN Prime Speaker Zegana: Prime Speaker Zegana enters with X +1/+1 counters on it, where X is the greatest power among other creatures you control.
+  FDN Prime Speaker Zegana: When Prime Speaker Zegana enters, draw cards equal to its power.
+  FDN Primeval Bounty: Whenever you cast a creature spell, create a 3/3 green Beast creature token.
+  FDN Primeval Bounty: Whenever you cast a noncreature spell, put three +1/+1 counters on target creature you control.
+  FDN Primeval Bounty: Landfall — Whenever a land you control enters, you gain 3 life.
+  FDN Progenitus: Protection from everything
+  FDN Progenitus: If Progenitus would be put into a graveyard from anywhere, reveal Progenitus and shuffle it into its owner's library instead.
+  FDN Pulse Tracker: Whenever this creature attacks, each opponent loses 1 life.
+  FDN Quick-Draw Katana: During your turn, equipped creature gets +2/+0 and has first strike.
+  FDN Quilled Greatwurm: Whenever a creature you control deals combat damage during your turn, put that many +1/+1 counters on it.
+  FDN Ramos, Dragon Engine: Whenever you cast a spell, put a +1/+1 counter on Ramos for each of that spell's colors.
+  FDN Ramos, Dragon Engine: Remove five +1/+1 counters from Ramos: Add {W}{W}{U}{U}{B}{B}{R}{R}{G}{G}.
+  FDN Rampaging Baloths: Landfall — Whenever a land you control enters, create a 4/4 green Beast creature token.
+  FDN Ravenous Giant: At the beginning of your upkeep, this creature deals 1 damage to you.
+  FDN Reassembling Skeleton: {1}{B}: Return this card from your graveyard to the battlefield tapped.
+  FDN Reclamation Sage: When this creature enters, you may destroy target artifact or enchantment.
+  FDN Redcap Gutter-Dweller: When this creature enters, create two 1/1 black Rat creature tokens with "This token can't block."
+  FDN Redcap Gutter-Dweller: At the beginning of your upkeep, you may sacrifice another creature.
+  FDN Redcap Gutter-Dweller: If you do, put a +1/+1 counter on this creature and exile the top card of your library.
+  FDN Refute: Draw a card, then discard a card.
+  FDN Revenge of the Rats: Create a tapped 1/1 black Rat creature token for each creature card in your graveyard.
+  FDN Rise of the Dark Realms: Put all creature cards from all graveyards onto the battlefield under your control.
+  FDN Rite of Replication: If this spell was kicked, create five of those tokens instead.
+  FDN Rite of the Dragoncaller: Whenever you cast an instant or sorcery spell, create a 5/5 red Dragon creature token with flying.
+  FDN River's Rebuke: Return all nonland permanents target player controls to their owner's hand.
+  FDN Rogue's Passage: {4}, {T}: Target creature can't be blocked this turn.
+  FDN Ruby, Daring Tracker: Whenever Ruby attacks while you control a creature with power 4 or greater, Ruby gets +2/+2 until end of turn.
+  FDN Run Away Together: Return those creatures to their owners' hands.
+  FDN Rune-Scarred Demon: When this creature enters, search your library for a card, put it into your hand, then shuffle.
+  FDN Sanguine Syphoner: Whenever this creature attacks, each opponent loses 1 life and you gain 1 life.
+  FDN Savage Ventmaw: Whenever this creature attacks, add {R}{R}{R}{G}{G}{G}.
+  FDN Scrawling Crawler: At the beginning of your upkeep, each player draws a card.
+  FDN Scrawling Crawler: Whenever an opponent draws a card, that player loses 1 life.
+  FDN Seeker's Folly: Choose one —
+  FDN Seeker's Folly: • Target opponent discards two cards.
+  FDN Seeker's Folly: • Creatures your opponents control get -1/-1 until end of turn.
+  FDN Seismic Rupture: Seismic Rupture deals 2 damage to each creature without flying.
+  FDN Seize the Spoils: Draw two cards and create a Treasure token.
+  FDN Skyknight Squire: Whenever another creature you control enters, put a +1/+1 counter on this creature.
+  FDN Skyknight Squire: As long as this creature has three or more +1/+1 counters on it, it has flying and is a Knight in addition to its other types.
+  FDN Slagstorm: Choose one —
+  FDN Slagstorm: • Slagstorm deals 3 damage to each creature.
+  FDN Slagstorm: • Slagstorm deals 3 damage to each player.
+  FDN Slumbering Cerberus: This creature doesn't untap during your untap step.
+  FDN Slumbering Cerberus: Morbid — At the beginning of each end step, if a creature died this turn, untap this creature.
+  FDN Snakeskin Veil: It gains hexproof until end of turn.
+  FDN Soul-Guide Lantern: When this artifact enters, exile target card from a graveyard.
+  FDN Soul-Guide Lantern: {T}, Sacrifice this artifact: Exile each opponent's graveyard.
+  FDN Soul-Guide Lantern: {1}, {T}, Sacrifice this artifact: Draw a card.
+  FDN Soul-Shackled Zombie: When this creature enters, exile up to two target cards from a single graveyard.
+  FDN Soul-Shackled Zombie: If at least one creature card was exiled this way, each opponent loses 2 life and you gain 2 life.
+  FDN Soulstone Sanctuary: It's still a land.
+  FDN Sower of Chaos: {2}{R}: Target creature can't block this turn.
+  FDN Springbloom Druid: When this creature enters, you may sacrifice a land.
+  FDN Springbloom Druid: If you do, search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.
+  FDN Squad Rallier: {2}{W}: Look at the top four cards of your library.
+  FDN Squad Rallier: You may reveal a creature card with power 2 or less from among them and put it into your hand.
+  FDN Squad Rallier: Put the rest on the bottom of your library in a random order.
+  FDN Stromkirk Noble: This creature can't be blocked by Humans.
+  FDN Stromkirk Noble: Whenever this creature deals combat damage to a player, put a +1/+1 counter on it.
+  FDN Strongbox Raider: Raid — When this creature enters, if you attacked this turn, exile the top two cards of your library.
+  FDN Strongbox Raider: Choose one of them.
+  FDN Sun-Blessed Healer: When this creature enters, if it was kicked, return target nonland permanent card with mana value 2 or less from your graveyard to the battlefield.
+  FDN Swiftfoot Boots: Equipped creature has hexproof and haste.
+  FDN Sylvan Scavenging: At the beginning of your end step, choose one —
+  FDN Sylvan Scavenging: • Put a +1/+1 counter on target creature you control.
+  FDN Sylvan Scavenging: • Create a 3/3 green Raccoon creature token if you control a creature with power 4 or greater.
+  FDN Taurean Mauler: Whenever an opponent casts a spell, you may put a +1/+1 counter on this creature.
+  FDN Tempest Djinn: This creature gets +1/+0 for each basic Island you control.
+  FDN Terror of Mount Velus: When this creature enters, creatures you control gain double strike until end of turn.
+  FDN Tolarian Terror: This spell costs {1} less to cast for each instant and sorcery card in your graveyard.
+  FDN Tragic Banshee: Morbid — When this creature enters, target creature an opponent controls gets -1/-1 until end of turn.
+  FDN Tragic Banshee: If a creature died this turn, that creature gets -13/-13 until end of turn instead.
+  FDN Tribute to Hunger: Target opponent sacrifices a creature of their choice.
+  FDN Tribute to Hunger: You gain life equal to that creature's toughness.
+  FDN Trygon Predator: Whenever this creature deals combat damage to a player, you may destroy target artifact or enchantment that player controls.
+  FDN Twinblade Blessing: Enchanted creature has double strike.
+  FDN Uncharted Haven: As it enters, choose a color.
+  FDN Valkyrie's Call: It has flying and is an Angel in addition to its other types.
+  FDN Valorous Stance: Choose one —
+  FDN Valorous Stance: • Target creature gains indestructible until end of turn.
+  FDN Vampire Gourmand: Whenever this creature attacks, you may sacrifice another creature.
+  FDN Vampire Gourmand: If you do, draw a card and this creature can't be blocked this turn.
+  FDN Vampire Neonate: {2}, {T}: Each opponent loses 1 life and you gain 1 life.
+  FDN Vampire Soulcaller: When this creature enters, return target creature card from your graveyard to your hand.
+  FDN Vampiric Rites: {1}{B}, Sacrifice a creature: You gain 1 life and draw a card.
+  FDN Vengeful Bloodwitch: Whenever this creature or another creature you control dies, target opponent loses 1 life and you gain 1 life.
+  FDN Venom Connoisseur: Alliance — Whenever another creature you control enters, this creature gains deathtouch until end of turn.
+  FDN Viashino Pyromancer: When this creature enters, it deals 2 damage to target player or planeswalker.
+  FDN Vile Entomber: When this creature enters, search your library for a card, put that card into your graveyard, then shuffle.
+  FDN Vizier of the Menagerie: You may cast creature spells from the top of your library.
+  FDN Voracious Greatshark: When this creature enters, counter target artifact or creature spell.
+  FDN Wardens of the Cycle: Morbid — At the beginning of your end step, if a creature died this turn, choose one —
+  FDN Wardens of the Cycle: • You draw a card and you lose 1 life.
+  FDN Wildborn Preserver: Whenever another non-Human creature you control enters, you may pay {X}.
+  FDN Wildborn Preserver: When you do, put X +1/+1 counters on this creature.
+  FDN Wildheart Invoker: {8}: Target creature gets +5/+5 and gains trample until end of turn.
+  FDN Wilt-Leaf Liege: Other green creatures you control get +1/+1.
+  FDN Wilt-Leaf Liege: Other white creatures you control get +1/+1.
+  FDN Wishclaw Talisman: An opponent gains control of this artifact.
+  FDN Wishclaw Talisman: Activate only during your turn.
+  FDN Youthful Valkyrie: Whenever another Angel you control enters, put a +1/+1 counter on this creature.
+  FDN Zimone, Paradox Sculptor: At the beginning of combat on your turn, put a +1/+1 counter on each of up to two target creatures you control.
