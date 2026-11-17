@@ -198,10 +198,11 @@ class ExecCtx:
     # your hand" divides the found cards), not among every card in the zone
     # that passes the filter. None when no partition search has run.
     search_found: tuple[Handle, ...] | None = None
-    # The journal clock at which the resolving ability went on the stack (its stack object's
-    # ``declared_clock``): the life of its source it came from, which the source may have
-    # ended since (CR 113.7a, 607.2a: "exiled with ~"). 0 outside a resolution: the source now.
-    declared_clock: int = 0
+    # The journal clock of the moment the resolving ability came from: a triggered ability's
+    # event, an activated ability's activation (its stack object's ``declared_clock``). Which
+    # life of its source it belongs to, a life the source may have ended since (CR 113.7a,
+    # 607.2a: "exiled with ~"). 0 outside a resolution: the source now.
+    origin_clock: int = 0
     # The cards LOOK_AT/REVEAL showed THIS resolution, top-first (Track
     # Down, See the Truth): the compiler's register convention for the
     # following sentence (templates_b5b._build_if_it_type_then: "Conditional
@@ -512,7 +513,8 @@ class LastKnown(NamedTuple):
     (a granted "When this creature dies" looks back at its death, CR 603.10a); ``identity`` its
     printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
     ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
-    "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped."""
+    "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped; ``left``
+    the clock of the journal row of that departure, the one this snapshot answers for."""
 
     power: int | None
     toughness: int | None
@@ -527,6 +529,7 @@ class LastKnown(NamedTuple):
     identity: CardIdentity | None = None
     attached: tuple[Handle, ...] = ()
     tapped: bool = False
+    left: int = 0
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -559,7 +562,10 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
 
 def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKnown | None:
     """:func:`departed_lki` for a caller that holds the event but no context (the binder
-    choosing the controller of the departed object's own trigger, CR 603.3a)."""
+    choosing the controller of the departed object's own trigger, CR 603.3a). The snapshot of
+    that departure, also once the card has come back as a new object (an attacker that died and
+    was returned before Garna, Bloodfist of Keld's trigger resolves was attacking); None once a
+    later departure has replaced it."""
     if event is None or ex is None or getattr(event, "subject", None) != handle:
         return None
     kind = getattr(event, "kind", None)
@@ -570,9 +576,8 @@ def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKno
             return None
     elif kind != KIND_CREATURE_DIES:
         return None
-    if handle in ex.world.cards and ex.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-        return None
-    return ex.departed_lki.get(handle)
+    snap = ex.departed_lki.get(handle)
+    return snap if snap is not None and snap.left <= event.clock else None
 
 
 def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -1719,11 +1724,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are
         # objects. The exile is the card's last arrival there (a card that left exile and came
         # back is a new object), made in the life of the source the reading ability came from:
-        # from the source's last entry onto the battlefield before that ability went on the stack
-        # (``ExecCtx.declared_clock``; outside a resolution, now) to its next entry. A returned
-        # Bag of Holding returns none of the cards its earlier life exiled; a Hoarding Dragon's
-        # dies trigger returns its own life's card though a new Dragon has entered since. A
-        # source that never entered reads every exile it made.
+        # from the source's last entry onto the battlefield before that ability triggered or was
+        # activated (``ExecCtx.origin_clock``; outside a resolution, now) to its next entry. A
+        # returned Bag of Holding returns none of the cards its earlier life exiled; a Hoarding
+        # Dragon's dies trigger returns its own life's card though a new Dragon has entered
+        # since. A source that never entered reads every exile it made. (An exile is placed in
+        # the life it arrived in, not the life of the ability that made it: BACKLOG.)
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1745,7 +1751,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 arrival = e
         if arrival is None or arrival.cause != ctx.source:
             return False
-        moment = ctx.declared_clock or jrn.clock
+        moment = ctx.origin_clock or jrn.clock
         begun = max((c for c in entries if c <= moment), default=0)
         ended = min((c for c in entries if c > begun), default=None)
         return begun < arrival.clock and (ended is None or arrival.clock < ended)

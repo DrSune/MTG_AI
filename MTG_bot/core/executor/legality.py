@@ -2192,7 +2192,7 @@ def resolve_activated(executor: Executor, obj) -> str:
         decisions=obj.decisions,
         slot_designations=slot_designations,
         x_value=obj.x_value,
-        declared_clock=obj.declared_clock,
+        origin_clock=obj.declared_clock,
     )
     return "resolved"
 

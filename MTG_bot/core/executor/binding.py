@@ -1771,14 +1771,14 @@ class TriggerBinder:
         targets = (target,) if isinstance(target, Handle) else tuple(target or ())
         per_slot = dict(ctx.slot_designations or {})  # several slots (_designate_slots)
         selectors = self._designation_slots(node)[0] if designated and not per_slot else []
-        ctx.declared_clock = self.executor.journal.clock
+        ctx.origin_clock = payload.event.clock  # the moment it triggered (CR 603.2)
         return StackObject(
             handle=self.executor.ability_handles.allocate(),
             node=node,
             controller=payload.controller,
             spell_kind="TRIGGERED",
             declared_targets=tuple(sorted(t for t in targets if isinstance(t, Handle))),
-            declared_clock=ctx.declared_clock,
+            declared_clock=self.executor.journal.clock,
             slot_designations=per_slot,
             source=payload.source,
             event=event,

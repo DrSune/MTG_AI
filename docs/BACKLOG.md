@@ -309,6 +309,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   COUNTER_PLACED row; one put onto the battlefield by an effect is seeded during the binder's
   lifecycle, after its boundary closed, and writes none. No verified trigger reads a loyalty
   placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement.
+- **"Exiled with ~" places an exile in the life it arrived in, not the life of the ability that
+  made it** (2026-11-17, wave E1's review; latent, CR 607.2a, 400.7). `IS_EXILED_WITH_SOURCE`
+  reads the life of the reading ability (`ExecCtx.origin_clock`: its trigger event or its
+  activation), but the journal's exile row names only the source's handle, so an exile made by
+  an ability of an earlier life that resolved after the source came back counts for the new
+  life: a Bag of Holding returned while its discard trigger waited lets the new Bag return that
+  card. Also a delayed trigger reads the life at its own event, not its creator's (CR 603.7d),
+  and `dataclasses.replace(ctx, source=...)` (fight, lifelink, replacement actions) carries one
+  ability's origin onto another source. No verified card reaches these. Fix: the exile row
+  carries the origin of the ability that made it.
 - **An Equipment unattached by a state-based action is not attached to a creature that dies in
   the same check** (2026-11-17, the audit of handle-keyed state after the attachment fix; not
   live in the verified pools). The CR 704.5n lane of `Executor._state_checks` pops the edge

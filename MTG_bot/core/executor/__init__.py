@@ -529,9 +529,10 @@ class Executor:
         # damage a sacrificed source deals with its granted
         # deathtouch (CR 113.7a), "its controller" and "that player" (CR 608.2h),
         # the controller of its own dies trigger (CR 603.3a, 603.10a), and a token
-        # that has ceased to exist (CR 704.5d). Dropped when the card re-enters (a new
-        # object, CR 400.7). Derived state replayed from the same departures, NOT in
-        # the fingerprint.
+        # that has ceased to exist (CR 704.5d). The card's next departure replaces it;
+        # a card back on the battlefield is a new object (CR 400.7), read live except by
+        # what looks back at the departure the snapshot is of (``LastKnown.left``).
+        # Derived state replayed from the same departures, NOT in the fingerprint.
         self.departed_lki: dict[Handle, LastKnown] = {}
         # Each seat's starting life, snapshotted at construction: GameWorld
         # takes ``start_life`` as a parameter but does not store it.
@@ -724,7 +725,7 @@ class Executor:
         decisions: Sequence[str] = (),
         slot_designations: dict[str, tuple[Handle, ...]] | None = None,
         x_value: int | None = None,
-        declared_clock: int = 0,
+        origin_clock: int = 0,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         known tree in ask order, and every demand it cannot serve reaches
@@ -739,8 +740,8 @@ class Executor:
         rebinding) and DelayedTrigger is scheduled on the binder; any other
         node (Repeat) raises ``NotImplementedError``. ``x_value`` is an
         activated ability's announced X (CR 107.3a; ``legality.activate``'s
-        X lane), None for every effect with no X; ``declared_clock`` the
-        journal clock its stack object was pushed at (``ExecCtx.declared_clock``)."""
+        X lane), None for every effect with no X; ``origin_clock`` its
+        activation's journal clock (``ExecCtx.origin_clock``)."""
         if not isinstance(
             effect,
             (
@@ -764,7 +765,7 @@ class Executor:
             decisions=decisions,
             x_value=x_value,
         )
-        ctx.declared_clock = declared_clock
+        ctx.origin_clock = origin_clock
         if slot_designations:
             # An activation's per-target designations (legality.activate), the
             # same per-slot map the cast lane sets on a multi-target spell.
@@ -1048,6 +1049,7 @@ class Executor:
                 source=ctx.source,
                 controller=ctx.controller,
                 bindings=ctx.bindings,
+                origin_clock=ctx.origin_clock,
             )
             done = False
             if (
@@ -1151,7 +1153,7 @@ class Executor:
                         x_value=ctx.x_value,
                     )
                     inner.decision_idx = ctx.decision_idx
-                    inner.declared_clock = ctx.declared_clock
+                    inner.origin_clock = ctx.origin_clock
                     self._run_effect(effect.effect, inner)
                     ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
@@ -1219,6 +1221,7 @@ class Executor:
                     # before the binder's leave-detach prunes the table
                     tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
                     state.tapped,  # before it is untapped below
+                    event.clock,
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1227,8 +1230,6 @@ class Executor:
                 # are cut. The snapshot above answers for the old object.
                 self.ledger.forget(event.subject)
                 self.layers.forget_materialized(event.subject)
-            elif event.zone_move[1] == ZONE_BATTLEFIELD:
-                self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to

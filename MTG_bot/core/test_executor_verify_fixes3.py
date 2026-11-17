@@ -71,6 +71,7 @@ from MTG_bot.core.executor import Executor
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -716,12 +717,14 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
 
 
 class TestWasAttackingIsLastKnown(FixerCase):
-    def test_draw_a_card_if_it_was_attacking(self):
-        # FDN Garna, Bloodfist of Keld's shape: "Whenever another creature you control dies,
-        # <A> if it was attacking. Otherwise, <B>." "It" is the creature that died (a bare
-        # Conditional's object test), judged as it last existed: it left combat as it left the
-        # battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a,
-        # 608.2h; known_bugs/2026-11-17/garna_was_attacking).
+    """FDN Garna, Bloodfist of Keld's shape: "Whenever another creature you control dies, <A> if
+    it was attacking. Otherwise, <B>." (+3 life, else +1 here.) "It" is the creature that died (a
+    bare Conditional's object test), judged as it last existed: it left combat as it left the
+    battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a, 608.2h;
+    known_bugs/2026-11-17/garna_was_attacking). Raider attacks."""
+
+    def setUp(self):
+        super().setUp()
         from MTG_bot.core.ability_tree import (
             Conditional,
             CreatureDiesEvent,
@@ -744,18 +747,95 @@ class TestWasAttackingIsLastKnown(FixerCase):
         )
         oid = self.world.cards[self.alpha].identity.oracle_id
         self.ex.attach_card(self.alpha, record_of([trigger], oid=oid))
-        raider = self.world.add_card(card_id("Raider", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.raider = self.world.add_card(card_id("Raider", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.ex.attackers.append(self.raider)  # the attack record of a declaration
+        self.ex.attacked[self.raider] = self.p1
+
+    def kill(self, card):
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(5)),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": [card]},
+        )
+
+    def test_draw_a_card_if_it_was_attacking(self):
         homebody = self.world.add_card(card_id("Homebody", "2", "2"), self.p0, ZONE_BATTLEFIELD)
-        self.ex.attackers.append(raider)  # the attack record of a declaration
-        self.ex.attacked[raider] = self.p1
-        for dead in (raider, homebody):
-            self.ex.execute(
-                atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(5)),
-                source=self.beta,
-                controller=self.p1,
-                bindings={"target": [dead]},
-            )
+        self.kill(self.raider)
+        self.kill(homebody)
         self.assertEqual(self.world.players[self.p0].life, 24)
+
+    def test_it_was_attacking_though_it_came_back_before_the_trigger_resolved(self):
+        # Its controller returned it to the battlefield first (FDN Fake Your Own Death's
+        # trigger ordered before Garna's): the trigger still reads the attacker that died (CR
+        # 603.10a, 608.2h), not the new object, which is not attacking.
+        from MTG_bot.core.test_executor_binding import enter
+
+        with self.ex.holding_priority():
+            self.kill(self.raider)
+            self.ex._priority_check()
+            self.ex.apply_effect(enter(Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)),
+                                 source=self.raider, controller=self.p0,
+                                 bindings={"cards": self.raider})
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.zone_of(self.raider).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+
+
+class TestExiledWithIsTheAbilitysLife(FixerCase):
+    def test_a_blinked_ring_returns_what_its_old_life_exiled(self):
+        # Oblivion Ring's shape, "When this enters, exile <a card>. When this leaves the
+        # battlefield, return the exiled card", blinked inside one effect (THB Flicker of Fate):
+        # the leaves trigger goes on the stack after the new object entered, but it is the old
+        # object's, the life it triggered in (CR 603.10a, 607.2a, 113.7a). It returns the card
+        # that object exiled; the card the new object exiles stays, whichever resolves first.
+        from MTG_bot.core.ability_tree import (
+            FAtom,
+            FAtomPred,
+            QUnbounded,
+            Selector,
+            SelectorMode,
+            Seq,
+            TriggeredAbility,
+            ZoneChangeEvent,
+        )
+        from MTG_bot.core.test_executor_binding import enter, record_of
+
+        def zone(kind, who=ControllerRef.ANY):
+            return Zone(kind, who)
+
+        is_source = FAtom(FAtomPred.IS_SOURCE)
+        exile_one = TriggeredAbility(
+            event=ZoneChangeEvent(zone(ZoneKind.ANY), zone(ZoneKind.BATTLEFIELD), subject=is_source),
+            condition=None,
+            effect=atom(Verb.MOVE_ZONE,
+                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                       zones=(zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+                        destination=zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+        )
+        give_back = TriggeredAbility(
+            event=ZoneChangeEvent(zone(ZoneKind.BATTLEFIELD), zone(ZoneKind.ANY), subject=is_source),
+            condition=None,
+            effect=atom(Verb.MOVE_ZONE,
+                        cards=Selector(QUnbounded(), SelectorMode.ALL,
+                                       FAtom(FAtomPred.IS_EXILED_WITH_SOURCE),
+                                       zones=(zone(ZoneKind.EXILE),)),
+                        destination=zone(ZoneKind.HAND, ControllerRef.OWNER)),
+        )
+        ring = self.world.add_card(card_id("Ring", type_line="Enchantment"), self.p0, ZONE_HAND)
+        first = self.world.add_card(card_id("First"), self.p0, ZONE_GRAVEYARD)
+        second = self.world.add_card(card_id("Second"), self.p0, ZONE_GRAVEYARD)
+        oid = self.world.cards[ring].identity.oracle_id
+        self.ex.attach_card(ring, record_of([exile_one, give_back], oid=oid))
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        to = Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)
+        self.ex.apply_effect(enter(to), source=ring, controller=self.p0, bindings={"cards": ring})
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_EXILE)
+        blink = Seq((enter(zone(ZoneKind.EXILE, ControllerRef.OWNER)), enter(to)))
+        self.ex.apply_effect(blink, source=self.alpha, controller=self.p0, bindings={"cards": ring})
+        self.assertEqual(self.world.zone_of(ring).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
+        self.assertEqual(self.world.zone_of(second).kind, ZONE_EXILE)
 
 
 class TestV29TargetDependentTax(unittest.TestCase):

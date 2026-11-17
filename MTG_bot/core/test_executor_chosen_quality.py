@@ -389,7 +389,9 @@ def test_a_source_that_left_answers_from_its_last_known_choice() -> None:
         eval_filter(_chosen("CREATURE_TYPE"), green, ctx)  # it chose no creature type
     runner.run_step({"op": "move", "key": "mare", "to": "hand"})
     runner.run_step({"op": "enter", "key": "mare", "decisions": ["B"]})
-    assert mare not in runner.ex.departed_lki
+    # re-pinned 2026-11-17: the old snapshot is kept for what looks back at that departure
+    # (LastKnown.left); the permanent reads the choice it made as it entered again.
+    assert runner.ex.name_choices[(mare, "COLOR")] == "B"
     assert not eval_filter(_chosen("COLOR"), green, ctx_for(runner.ex, source=mare,
                                                             controller=runner.p0))
 
