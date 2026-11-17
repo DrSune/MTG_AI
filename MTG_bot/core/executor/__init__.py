@@ -1700,6 +1700,11 @@ class Executor:
         self.drew_from_empty.clear()
         if self.lost_players and sum(p not in self.lost_players for p in players) <= 1:
             raise GameOver(", ".join(str(p) for p in self.lost_players))
+        # CR 800.4a: in a game that goes on, the effects that gave a player who lost (and so
+        # left the game) control of objects end. The rest of leaving is not modelled (BACKLOG,
+        # "A player who loses a game of three or more stays in it").
+        if any(entry[2] in self.lost_players for entry in self.control_entries):
+            self._expire_control(players=frozenset(self.lost_players))
 
     def _state_checks(self) -> int:
         """The state-based action check (CR 704.3), run at every settle
@@ -3375,9 +3380,11 @@ class Executor:
         creature: Handle | None = None,
         anchor: Handle | None = None,
         eot: bool = False,
+        players: frozenset[Handle] = frozenset(),
     ) -> bool:
-        """Drop matching entries and re-derive (leave expiry + EoT sweep).
-        Returns whether any effective controller changed."""
+        """Drop matching entries and re-derive (leave expiry, EoT sweep, and the entries
+        giving ``players`` control, CR 800.4a). Returns whether any effective controller
+        changed."""
         before = len(self.control_entries)
         self.control_entries = [
             entry
@@ -3386,6 +3393,7 @@ class Executor:
                 (creature is not None and entry[1] == creature)
                 or (anchor is not None and entry[4] == anchor)
                 or (eot and entry[3] == "Eot")
+                or entry[2] in players
             )
         ]
         return (

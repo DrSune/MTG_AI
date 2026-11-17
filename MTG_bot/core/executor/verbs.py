@@ -2452,19 +2452,18 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     existing, so that row alone is anchored to the SOURCE, and CR 704.5q's
     unattached-aura check is what physically ends it; any other row lasts
     its duration, CR 611.2a). ``UntilLeaves`` pairs its referent anchor
-    exactly like :func:`_apply_pt`. The controller slot is the STRICT YOU
-    of the corpus (CR 611.2a "you gain control"); any other ControllerRef
-    RAISES — flag, never guess. When the effective
+    exactly like :func:`_apply_pt`. The ``controller`` role is the one player
+    who gains control (:func:`selectors.role_player`; CR 110.2, layer 2 of CR
+    613.1b; the owner never changes, CR 108.3): "you" the ability's controller,
+    "target opponent" the player designated (FDN Harmless Offering), "an
+    opponent" the one opponent (FDN Wishclaw Talisman). With several opponents
+    "an opponent" is the controller's choice, which no ask makes: it raises
+    (B-108), never the first seat. When the effective
     controller actually changes mid-combat the creature leaves combat
     (CR 506.4a, applied inside :meth:`Executor.gain_control`)."""
     if ctx.executor is None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
-    ctrl = atom.args.get("controller")
-    if ctrl is not None and ctrl is not ControllerRef.YOU:
-        raise NotImplementedError(
-            f"executor: GAIN_CONTROL controller {ctrl!r} has no meaning "
-            "in this runtime (corpus vocabulary is YOU)"
-        )
+    recipient = role_player(ctx, atom)
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     if duration is not None and not isinstance(
@@ -2490,12 +2489,20 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
         and isinstance(target, Selector)
         and _names_the_attached(target.filter)
     ):
+        if atom.args.get("controller") is not ControllerRef.YOU:
+            # The entry follows the Aura's controller (Executor._recompute_control): it is
+            # "You control enchanted creature". Another player named there has no card to
+            # test its reading.
+            raise NotImplementedError(
+                "executor: GAIN_CONTROL of the enchanted permanent for a player other than "
+                "the Aura's controller has no reading here"
+            )
         anchor = ctx.source
     if isinstance(duration, DurationUntilLeaves):
         anchor = referent_handle(duration.source, ctx)
     gained: list[Handle] = []
     for card in role_handles(ctx, atom, "target"):
-        if ctx.executor.gain_control(card, ctx.controller, tag, anchor):
+        if ctx.executor.gain_control(card, recipient, tag, anchor):
             gained.append(card)
     if gained:
         ctx.executor.layers.recompute()  # "you control" scopes re-anchor NOW
