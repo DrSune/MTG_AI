@@ -436,3 +436,10 @@ Source: `look.py runs/selfplay/r28_stratified_ppo 1000`, the last row per update
   question.
 - The stall R3 found is the run's main result. Neither the opponent pool nor the length of
   training moves it. r29 (208) tries the next lever.
+
+**r28 ends at update 1845** (2026-11-17 13:57, stopped by hand after its save; the guard with it).
+- It has been flat since 1000.
+- The owner's rule (2026-11-17): no long self-play until the card sets are complete and a bug hunt
+  has ruled out exploitable faults.
+- Its registered reads are all made. Its saves and frozen versions stay in
+  `runs/selfplay/r28_stratified_ppo/`; v2 is pinned as `runs/r28_looks/r28_v2.pt`.

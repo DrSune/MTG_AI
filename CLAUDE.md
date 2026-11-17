@@ -12,25 +12,18 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Running since 2026-11-12 16:32:** r28 (`KNOWLEDGE/2026-11-12/199`): r27's configuration on the
-fixed trainer, every optimizer step a stratified sample of the batch (`KNOWLEDGE/2026-11-12/198`),
-from r27's v1. It runs as the transient user unit `mtg-r28` from the worktree
-`/home/sune/Desktop/MTG_AI-r28` pinned at 44a62d9 (do not edit it), into
-`runs/selfplay/r28_stratified_ppo/`. `systemctl --user stop mtg-r28` pauses it (the unit then goes
-away); `reports/r28_2026-11-12/start.sh` resumes it from its last save, also after a reboot. The
-guard `mtg-r28-guard` (`tools/selfplay/guard.py`) stops it on a mulligan runaway or a falling win
-rate against the heuristic (199 §3). r27 ended at update 165: its mulligan ran away (191 §8, 198).
-Window 1 is scored in `KNOWLEDGE/2026-11-11/192`, window 2 in notes 193-195, 192 §7.6 and 191 §8.
-Gate B did not run. At r28's read at 400, made late on 2026-11-14, its break-even rule put s* at
-0.555, above 0.53 (`KNOWLEDGE/2026-11-12/196` §10). H1′ and 195's confirming audit run instead in a
-pause of r28: `reports/r28_2026-11-12/at400.sh`, as the transient unit `mtg-read400`, into
-`runs/read400/`, from the worktree `/home/sune/Desktop/MTG_AI-gateb` (pinned at 8aabbc8, do not edit
-it). The same window repeats the per-kind split (199 §8), and r28 resumes when it ends. The plan after r27:
-`docs/PLAN_CEILING.md` §14-§15. The ceiling-read window (`KNOWLEDGE/2026-11-13/205`) ran 2026-11-13 04:52-08:08 as a pause
-in r28 (at update 195): package decks hold no extra one-turn search headroom (S1 falsified), so r29
-is not the package A/B; the held-out pool L is frozen (`reports/ceiling_window/pool_L.json`). r28
-resumed when it ended. r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11). One run at a time,
-and nothing else on the GPU beside it.
+**Nothing trains since 2026-11-17 13:57.** r28 (`KNOWLEDGE/2026-11-12/199`, r27's configuration on
+the fixed trainer, from r27's v1) ended at update 1845. It gained +39 Elo over its init (v1 at 352,
+v2 at 1000) and was flat after 1000 (199 §9). Its v2 is pinned as `runs/r28_looks/r28_v2.pt`. Gate
+B did not run at r28's read at 400 (`KNOWLEDGE/2026-11-12/196` §10), but its reopening rule is met
+now. **r29** (`KNOWLEDGE/2026-11-14/208`: training both seats, an A/B from v2 and a plateau test) is
+registered and red-teamed. It waits, by the owner's order (2026-11-17), until M21, M20 and FDN are
+complete (209) and a bug hunt has ruled out exploitable faults. r27 ended at update 165: its
+mulligan ran away (191 §8, 198). r26 stopped at update 1,002 (`KNOWLEDGE/2026-11-10/189` §11).
+Windows 1 and 2 are scored in `KNOWLEDGE/2026-11-11/192` and notes 193-195. The ceiling-read
+window (`KNOWLEDGE/2026-11-13/205`) found no extra search headroom in package decks, and froze the
+held-out pool L (`reports/ceiling_window/pool_L.json`), the yardstick every run is read on. The plan
+after r27: `docs/PLAN_CEILING.md` §14-§15. One run at a time, and nothing else on the GPU beside it.
 
 ## The King Goal, in one line
 
