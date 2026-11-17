@@ -2274,11 +2274,16 @@ def _mana_tap_options(
     ability can add mana. Free sources only (:func:`_source_tier` 0), or with
     ``costly`` the dearer ones too; eligible: an effect of one ADD_MANA atom
     (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
-    lands), and activatable by ``payer`` right now (ability_playable: so tapped
-    sources, summoning-sick creatures and locked abilities are out). Scans
-    printed and granted abilities like legal_activations, which this does not
-    call because it raises on cost kinds it cannot check."""
-    from MTG_bot.core.ability_tree import Choose
+    lands), or a Conditional over those, priced by the branch the state picks
+    now (M20 Leafkin Druid's "If you control four or more creatures, add {G}{G}
+    instead": a mana ability resolves at once, CR 605.3a-b, so its branch is
+    known as it is activated); and activatable by ``payer`` right now
+    (ability_playable: so tapped sources, summoning-sick creatures and locked
+    abilities are out). Scans printed and granted abilities like
+    legal_activations, which this does not call because it raises on cost
+    kinds it cannot check."""
+    from MTG_bot.core.ability_tree import Choose, Conditional
+    from MTG_bot.core.executor import _conditional_subject
     from MTG_bot.core.executor.query import choose_options
     from MTG_bot.core.executor.verbs import _ANY_COLOR_VOCAB
 
@@ -2313,6 +2318,10 @@ def _mana_tap_options(
             policy = executor.layers.this_mana_filter(handle)
             tags: tuple[Filter, ...] = (policy,) if policy is not None else ()
             effect = ability.effect
+            while isinstance(effect, Conditional):  # the executor's reading of it, _run_effect
+                subject = _conditional_subject(effect.pred, ctx)
+                holds = subject is not None and eval_filter(effect.pred, subject, ctx)
+                effect = effect.then_effect if holds else effect.else_effect
             taps: list[ManaTap] = []
             if isinstance(effect, Atom):
                 got = _mana_atom_output(effect, ctx)
