@@ -1223,8 +1223,9 @@ class Executor:
         "TriggerBinder._gathered_queued": "kept: keyed by the event too, which one life sees",
         "TriggerBinder._kw_nodes": "derived: the trigger node a keyword makes, alike for every life",
         "LayerRegistry.records": "departure: detach_source, forget_departed and "
-        "forget_materialized end the effects of and on the object; expired ones stay for the "
-        "fingerprint",
+        "forget_materialized end the effects of and on a permanent that leaves; a resolved "
+        "PERMIT knows the cards it named off the battlefield by its clock (permits._found, "
+        "moved_since); expired records stay for the fingerprint",
         "LayerRegistry._resolved": "departure: as records",
         "LayerRegistry._keywords": "derived: at every recompute",
         "LayerRegistry._granted": "derived: at every recompute",
@@ -1250,6 +1251,8 @@ class Executor:
         "departure hook clears its counters (CR 122.2) and tapped flag (CR 110.5d), and a token "
         "off the battlefield ceases (CR 704.5d)",
         "GameWorld._zone_cache": "derived: re-validated at every read (GameWorld.zone_of)",
+        "GameWorld.players": "kept: the zones, where each object is (CR 400.1), and a commander "
+        "designation, which the card keeps in every zone (CR 903.3)",
         "GameWorld.triggers": "kept: a waiting trigger exists apart from its source (CR 113.7a)",
     }
 

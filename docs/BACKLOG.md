@@ -282,20 +282,28 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   lifecycle, after its boundary closed, and writes none. No verified trigger reads a loyalty
   placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement.
   - Graded 2026-11-17 (the CR 400.7 audit, 212 §3): WEAKER, latent. A verified card can make the
-    missing row (M20 Brought Back returns a planeswalker that died this turn; M21 Ugin's -10 puts
-    one from a hand), but the only verified watchers of a placement (Mazemind Tome, Nine Lives,
-    Wildwood Scourge) read their own counters or +1/+1 counters, so no game plays differently.
-    A returned planeswalker is seeded with its printed loyalty as a new object, rightly.
-- **A delayed trigger reads "exiled with ~" in the life of its own event, not its creator's**
-  (2026-11-17, the residue of wave E1's review; latent, CR 603.7d, 607.2a). Since the CR 400.7
+    missing row (M20 Brought Back returns a planeswalker that died this turn; M21 Ugin's -10,
+    unverified on main a7b7ac35, puts one from a hand), but the only verified watchers of a
+    placement (Mazemind Tome, Nine Lives, Wildwood Scourge) read their own counters or +1/+1
+    counters, so no game plays differently. A returned planeswalker is seeded with its printed
+    loyalty as a new object, rightly.
+- **Three moments "exiled with ~" still reads wrong** (2026-11-17, the residue of wave E1's
+  review and of the CR 400.7 audit's fresh-eyes review; latent, CR 603.7d, 607.2a). Since the
   audit an exile row carries the moment its ability came from (`GameEvent.origin`), and
   `IS_EXILED_WITH_SOURCE` places the exile in the life of that moment: a Bag of Holding that
   died and was Brought Back while its discard trigger waited no longer returns that card (pack
   `bag_of_holding_returned_while_its_trigger_waits_keeps_out_that_card`; STRONGER, reachable in
-  the M20 pool). A delayed trigger's moment is its own event, so one created by an earlier life
-  that exiles after the source came back would place its exile in the new life. No delayed
-  trigger of the 19 sets exiles "with" its source. Fix: a delayed trigger carries its creator's
-  origin (`TriggerBinder.schedule_delayed`).
+  the M20 pool). Left, none reached by a card of the 19 sets (Bag of Holding is the one
+  verified reader):
+  - a delayed trigger's moment is its own event, so one an earlier life created that exiles
+    after the source came back places its exile in the new life (fix: it carries its creator's
+    origin, `TriggerBinder.schedule_delayed`);
+  - a trigger of the source on an object that entered in the same event as the source takes
+    that object's row, which can come before the source's own entry row, so its exile falls
+    in the life before (fix: compare lives by the event, `GameEvent.batch`, not the row);
+  - a cost an effect asks for inside a resolution (`legality.pay_costs` through `apply_effect`)
+    runs with no origin, so its exile is placed when it arrived (fix: pass the resolving
+    context's origin).
 - **An Equipment unattached by a state-based action is not attached to a creature that dies in
   the same check** (2026-11-17, the audit of handle-keyed state after the attachment fix; not
   live in the verified pools). The CR 704.5n lane of `Executor._state_checks` pops the edge

@@ -27,51 +27,64 @@ from MTG_bot.core.executor.games import (
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
-#: The games, by set and seed: between them they fill every container that 40 random games per
-#: set filled on 2026-11-17 (a greedy cover: 38 containers).
-GAMES = {"M21": (19, 29, 5, 26), "M20": (8, 1, 34), "FDN": (30,)}
+#: The games, by set and seed: a greedy cover of the 40 containers 40 random games per set filled
+#: on 2026-11-17, main a7b7ac35 merged (reports/guards_400_7_2026-11-17/seeds.py). Engine changes
+#: move what a seed's game does; MIN_FILLED says when the cover has worn too thin to trust.
+GAMES = {"M21": (20, 35, 6, 33), "M20": (36, 5), "FDN": (32,)}
+MIN_FILLED = 34
 BEHAVIOURS = ("departure", "lki", "stack", "derived", "kept")
-_ENGINE = ("MTG_bot.core.executor", "MTG_bot.core.state", "MTG_bot.core.identity")
+#: Compiled card text: it names no object of a game, so it is not walked.
+_IR = ("MTG_bot.core.ability_tree", "MTG_bot.core.compiler")
 
 
 def _engine_object(value: object) -> bool:
-    """An object of the engine's own classes (not a handle): a helper to walk, or a record."""
+    """An object of the project's own classes, compiled card text and handles aside."""
+    module = type(value).__module__
     return (
-        type(value).__module__.startswith(_ENGINE)
+        module.startswith("MTG_bot.")
+        and not module.startswith(_IR)
         and hasattr(value, "__dict__")
         and not isinstance(value, (type, Handle))
     )
 
 
-def _holds_card(value: object, depth: int = 3) -> bool:
+def _holds_card(value: object, seen: set[int]) -> bool:
     """Does ``value`` hold a card's handle: itself, or as a key, an element or a record's field,
-    up to ``depth`` levels down? A player's handle is not an object that changes zones."""
+    however deep? ``seen`` holds the objects not to enter: those already entered, and the helpers,
+    which are walked on their own. A player's handle is not an object that changes zones."""
     if isinstance(value, Handle):
         return value.namespace == "card"
-    if depth == 0:
+    if isinstance(value, (str, bytes, int, float)) or value is None or id(value) in seen:
         return False
+    seen.add(id(value))
     if isinstance(value, dict):
-        return any(_holds_card(k, depth - 1) or _holds_card(v, depth - 1) for k, v in value.items())
+        return any(_holds_card(k, seen) or _holds_card(v, seen) for k, v in value.items())
     if isinstance(value, (list, tuple, set, frozenset, deque)):
-        return any(_holds_card(v, depth - 1) for v in value)
+        return any(_holds_card(v, seen) for v in value)
     if _engine_object(value):
-        return any(_holds_card(v, depth - 1) for v in vars(value).values())
+        return any(_holds_card(v, seen) for v in vars(value).values())
     return False
 
 
-def tables(obj: object, found: set[str], names: set[str], seen: set[int]) -> None:
-    """Walk ``obj`` and the engine objects its attributes hold (the executor's helpers: the
-    binder, the registries, the journal, the stack, the world): every attribute goes into
-    ``names`` as ``Class.attr``, and each one that holds a card's handle into ``found``."""
-    seen.add(id(obj))
-    for attr, value in vars(obj).items():
-        key = f"{type(obj).__name__}.{attr}"
-        names.add(key)
-        if _engine_object(value):
-            if id(value) not in seen:
-                tables(value, found, names, seen)
-        elif key not in found and not callable(value) and _holds_card(value):
-            found.add(key)
+def tables(root: object, found: set[str], names: set[str]) -> None:
+    """Walk ``root`` and the helpers it reaches through attributes that hold one of the project's
+    objects (the binder, the registries, the journal, the stack, the world): every attribute goes
+    into ``names`` as ``Class.attr``, and each one that holds a card's handle into ``found``."""
+    helpers: dict[int, object] = {}
+    todo = [root]
+    while todo:
+        obj = todo.pop()
+        if id(obj) not in helpers:
+            helpers[id(obj)] = obj
+            todo.extend(v for v in vars(obj).values() if _engine_object(v))
+    for obj in helpers.values():
+        for attr, value in vars(obj).items():
+            key = f"{type(obj).__name__}.{attr}"
+            names.add(key)
+            if key in found or _engine_object(value) or callable(value):
+                continue
+            if _holds_card(value, set(helpers)):
+                found.add(key)
 
 
 @pytest.fixture(scope="module")
@@ -87,7 +100,7 @@ def walked() -> tuple[set[str], set[str]]:
         now = (len(g.executor.journal.events), len(g.executor.stack.frames))
         if now != last[0]:
             last[0] = now
-            tables(g.executor, found, names, set())
+            tables(g.executor, found, names)
         return False
 
     for code, seeds in GAMES.items():
@@ -99,7 +112,7 @@ def walked() -> tuple[set[str], set[str]]:
                 _play(game, RandomPolicy(seed), game.world.player_order, TURN_CAP, stop_after=walk)
             except GameOver:
                 pass
-            tables(game.executor, found, names, set())
+            tables(game.executor, found, names)
     return found, names
 
 
@@ -112,6 +125,14 @@ def test_every_container_holding_a_card_declares_its_zone_change_behaviour(walke
     )
 
 
+def test_the_games_still_fill_most_of_the_registry(walked) -> None:
+    found, _names = walked
+    assert len(found) >= MIN_FILLED, (
+        f"the games fill {len(found)} of {len(Executor.OBJECT_TABLES)} registry containers: the "
+        "seeds have drifted; pick GAMES again (reports/guards_400_7_2026-11-17/seeds.py)"
+    )
+
+
 def test_every_registry_entry_is_a_container_and_names_its_behaviour(walked) -> None:
     _found, names = walked
     assert sorted(set(Executor.OBJECT_TABLES) - names) == []  # no stale name
@@ -120,15 +141,25 @@ def test_every_registry_entry_is_a_container_and_names_its_behaviour(walked) -> 
 
 
 def test_the_walk_finds_a_table_a_helper_gains() -> None:
-    """The check can fail: a new table on a helper, a card handle in a record's field, and a
-    scalar handle are found; a table of players' handles is not."""
+    """The check can fail: a new table on a helper, a handle deep in a record or a nested
+    container, and a scalar handle are found; a table of players' handles is not, nor one that
+    only refers to a helper."""
     ex = Executor(GameWorld())
     card = Handle("card", 0)
+    player = ex.world.player_order[0]
     ex.binder.probe_table = {card: 1}
     ex.returns.probe_rows = [ex.binder.probe_table]
     ex.layers.probe_last = card
-    ex.step_actions[ex.world.player_order[0]] = 1
+    ex.journal.probe_deep = {player: {"k": [frozenset({(card,)})]}}
+    ex.ledger.probe_helper = [ex.binder]
+    ex.step_actions[player] = 1
     found: set[str] = set()
-    tables(ex, found, set(), set())
-    assert {"TriggerBinder.probe_table", "ReturnRegistry.probe_rows", "LayerRegistry.probe_last"} <= found
+    tables(ex, found, set())
+    assert {
+        "TriggerBinder.probe_table",
+        "ReturnRegistry.probe_rows",
+        "LayerRegistry.probe_last",
+        "EventJournal.probe_deep",
+    } <= found
     assert "Executor.step_actions" not in found
+    assert "DurationLedger.probe_helper" not in found
