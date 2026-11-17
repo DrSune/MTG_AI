@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "viashino_pyromancer_two_damage_to_a_planeswalker",
+ "notes": "M4 mapper. Printed: 'When this creature enters, it deals 2 damage to target player or planeswalker.' Seat 1 controls a planeswalker with 2 loyalty. Viashino Pyromancer enters and its trigger targets the planeswalker: 2 damage removes 2 loyalty and it is put into its owner's graveyard. Neither player loses life.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "via", "real": "Viashino Pyromancer", "zone": "hand", "controller": 0},
+  {"key": "walker", "name": "Opp Walker", "type": "Legendary Planeswalker — Test", "loyalty": 2, "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "walker", "set": 2},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "key": "via", "controller": 0, "decisions": ["walker"]}
+ ],
+ "expect": {
+  "zone": {"via": "battlefield", "walker": "graveyard", "obear": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

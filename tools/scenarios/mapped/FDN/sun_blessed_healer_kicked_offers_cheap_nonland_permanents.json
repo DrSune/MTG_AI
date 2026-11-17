@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "sun_blessed_healer_kicked_offers_cheap_nonland_permanents",
+ "notes": "M4 mapper. Printed: 'When this creature enters, if it was kicked, return target nonland permanent card with mana value 2 or less from your graveyard to the battlefield.' Seat 0 casts Sun-Blessed Healer kicked. Its graveyard holds a mana value 3 creature card, a Forest (a land), a mana value 2 artifact card, a sorcery card and a mana value 1 enchantment card; seat 1's graveyard a mana value 1 creature card. The trigger's target ask offers the artifact and the enchantment only. The step stops at that ask (no decision word), so it pins its vocabulary.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "healer", "real": "Sun-Blessed Healer", "zone": "hand", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "graveyard", "controller": 0},
+  {"key": "relic", "name": "Grave Relic", "type": "Artifact", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "sorc", "name": "Grave Sorcery", "type": "Sorcery", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "charm", "name": "Grave Charm", "type": "Enchantment", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "oone", "name": "Opp Grave One", "type": "Creature — Ogre", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "healer", "controller": 0, "kicked": true, "expect_raise": "needs a decision from ('card:3', 'card:5')"}
+ ],
+ "expect": {}
+}

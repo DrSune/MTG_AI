@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "ashroot_animist_shares_its_power_and_trample",
+ "notes": "M4 mapper. Printed: 'Trample. Whenever this creature attacks, another target creature you control gains trample and gets +X/+X until end of turn, where X is this creature's power.' Ashroot Animist has a +1/+1 counter (5/5). It attacks with seat 0's Bear and targets the Bear: +5/+5 (7/7) and trample. Seat 1's 1/1 Cub blocks the Bear: 1 is lethal to it, 6 tramples over (answer [0]); the Animist is unblocked: seat 1 takes 5 + 6 = 11.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ashroot", "real": "Ashroot Animist", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ocub", "name": "Opp Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ashroot": true, "bear": true}, "decisions": ["bear"], "block": {"ocub": "bear"}, "trample": {"bear": [0]}}
+ ],
+ "expect": {
+  "power": {"bear": 7, "ashroot": 5},
+  "toughness": {"bear": 7},
+  "blocked": {"bear": ["ocub"]},
+  "zone": {"ocub": "graveyard", "bear": "battlefield"},
+  "life": {"0": 20, "1": 9},
+  "damage": {"bear": 1}
+ }
+}

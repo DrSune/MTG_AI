@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "courageous_goblin_bonus_and_menace_end_with_the_turn",
+ "notes": "M4 mapper. Printed: 'Whenever this creature attacks while you control a creature with power 4 or greater, this creature gets +1/+0 and gains menace until end of turn.' Seat 0 controls a 4/4: the Goblin attacks, is 3/2 with menace, and seat 1's 0/3 Wall does not block; seat 1 takes 3. Two turns later the 4/4 has left seat 0's battlefield (back to its owner's hand) and the Goblin attacks again: no trigger, and both the +1/+0 and menace are gone, so the Wall blocks it alone and takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "goblin", "real": "Courageous Goblin", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Your Big", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "owall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"goblin": true, "big": false}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "move", "key": "big", "to": "hand"},
+  {"op": "combat", "seat": 0, "attack": {"goblin": true}, "block": {"owall": "goblin"}}
+ ],
+ "expect": {
+  "attackers": {"goblin": true},
+  "blocked": {"goblin": ["owall"]},
+  "power": {"goblin": 2},
+  "zone": {"goblin": "battlefield", "owall": "battlefield", "big": "hand"},
+  "damage": {"owall": 2},
+  "life": {"0": 20, "1": 17}
+ }
+}

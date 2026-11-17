@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "alesha_raid_returns_the_chosen_creature",
+ "notes": "M4 mapper. Printed: 'Raid — At the beginning of your end step, if you attacked this turn, return target creature card with mana value less than or equal to Alesha's power from your graveyard to the battlefield.' Alesha attacks (her attack trigger's counter makes her 3/3); at seat 0's end step the raid trigger returns the chosen Grave Three (mana value 3) from seat 0's graveyard to the battlefield under seat 0's control. Grave Two and Grave Four stay in the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "alesha", "real": "Alesha, Who Laughs at Fate", "zone": "battlefield", "controller": 0},
+  {"key": "two", "name": "Grave Two", "type": "Creature — Ogre", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "four", "name": "Grave Four", "type": "Creature — Ogre", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"alesha": true}},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["three"]}
+ ],
+ "expect": {
+  "zone": {"alesha": "battlefield", "three": "battlefield", "two": "graveyard", "four": "graveyard"},
+  "controller": {"three": 0},
+  "counters": {"alesha": {"PLUS_1_PLUS_1": 1}},
+  "life": {"0": 20, "1": 17}
+ }
+}

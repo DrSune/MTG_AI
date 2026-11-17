@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "bloodthirsty_conqueror_and_blight_priest_drain_loop",
+ "notes": "M4 mapper probe of a printed two-card loop. Bloodthirsty Conqueror ('Whenever an opponent loses life, you gain that much life.') with FDN Marauding Blight-Priest ('Whenever you gain life, each opponent loses 1 life.'). Seat 1's Bear dies with FDN Massacre Wurm out: seat 1 loses 2, seat 0 gains 2, then every gain makes seat 1 lose 1 and every loss gains seat 0 1, until seat 1 has no life left and loses the game (CR 704.5a).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "conq", "real": "Bloodthirsty Conqueror", "zone": "battlefield", "controller": 0},
+  {"key": "priest", "real": "Marauding Blight-Priest", "zone": "battlefield", "controller": 0},
+  {"key": "wurm", "real": "Massacre Wurm", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "obear", "amount": 2}
+ ],
+ "expect": {
+  "lost": {"1": true}
+ }
+}

@@ -1,0 +1,186 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5d96840e-f9b3-4c86-8f59-f12e5736318f",
+ "name": "Voracious Greatshark",
+ "text_sha": "232eb201d32c75de2c6f90ec554f4e32681a76028076a33a2c58c4f7355f5394",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLASH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "COUNTER_SPELL"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Artifact",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "STACK_KIND_EQ"
+            },
+            "string_value": "SPELL",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "STACK"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Voracious Greatshark: \"When this creature enters, counter target artifact or creature\n# spell.\"  The compiler's B13-etb+B5a-counter-spell with FDN Essence Scatter's type filter\n# widened to artifact or creature.\nsnap = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.COUNTER_SPELL, {\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value='SPELL'),\n                    FOr(\n                        children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [snap, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, counter target artifact or creature spell.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler's B13-etb+B5a-counter-spell with Essence Scatter's type filter widened to artifact or creature. Packs: tools/scenarios/mapped/FDN/voracious_greatshark_counters_a_creature_spell.json, tools/scenarios/mapped/FDN/voracious_greatshark_counters_an_artifact_spell.json, tools/scenarios/mapped/FDN/voracious_greatshark_cannot_counter_an_instant.json, tools/scenarios/mapped/FDN/voracious_greatshark_counters_only_its_target.json."
+ },
+ "probe": {
+  "sha": "97fb28696ecbaf4c000b3bebf9e863997d7954aa7529ae2960a30c244ff2c93e"
+ }
+}
