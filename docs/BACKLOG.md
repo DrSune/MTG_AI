@@ -1544,6 +1544,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     finished games, used by the search's determinisation and possibly as policy input (section 5).
   - Matchup blocks: many games on the same decks with fresh shuffles, both seats, as a learning test
     and a curriculum; measure on unseen matchups against memorisation (section 7).
+- **Prioritized past opponents against strategy cycles** (owner question, 2026-11-17; 208 §7).
+  - The past share (`--p-past`) samples older frozen versions uniformly (`learner.py`
+    `curriculum_job`), and nothing replays old experience. PPO is on-policy, so old experience
+    would need off-policy corrections (V-trace and the like).
+  - The standard anti-cycle tool is the opponent pool, sampled by how often the learner loses to
+    each member: AlphaStar's prioritized fictitious self-play, with a weight like (1 - p)^2.
+  - Cheap to add, as a weight from the eval rows of each version's games.
+  - Use it when 208's B9 flags non-transitivity, or before a long self-play run whose versions
+    pile up. Uniform sampling then dilutes the opponents that still beat the learner.
 - **Teacher that drafts decks and matchups** (owner idea, 2026-11-06; long horizon): a trained teacher
   builds decks and picks matchups (student vs a chosen frozen version) that teach the student what it
   is weak at, balancing niche and meta play and unfair matchups against the two players' strength, so

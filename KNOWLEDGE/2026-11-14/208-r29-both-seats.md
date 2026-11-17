@@ -177,3 +177,26 @@ The reviewer agreed to the switch from u685 to v2 on four conditions. All four a
 - INIT is changed everywhere;
 - the bands are re-derived from v2's era;
 - r28's 32 gates against v2 serve as B8's long control.
+
+## 7. Added before any data (2026-11-17): a cycle check
+
+The owner asked whether strategy cycles would show up as Elo gain.
+
+**On the run's own measures, they would.**
+- A gate plays only the newest frozen version.
+- The run's ladder rates each new version only against random, the heuristic and its
+  predecessor (`learner.py:1072-1073`). So it is a chain: v2 > v1 > v0 reads as steady gain even
+  when v2 loses to v0.
+- Self games make a cycle more likely than r28's mix did. That mix was 70% against one frozen
+  version; B's is 55% against itself.
+- The anchors stay: 15% each against older versions, the heuristic and the newest frozen
+  version.
+
+**B9 (a check, not confirmatory), read at each of B's reads (the A/B's end, 300, 500):**
+1. **B's latest save is rated on L**, as B2. A cycle shows as gates rising while L stays flat.
+2. **A round robin among all of B's frozen versions and v2**, 500 fixed deals per pair (deals
+   1,140,000 onward). A later version scoring below 0.50 against an earlier one, beyond 2 se, is
+   flagged as non-transitive.
+
+**If B9 flags a cycle:** the remedy is prioritized past opponents (BACKLOG), registered as a
+change before it is used.
