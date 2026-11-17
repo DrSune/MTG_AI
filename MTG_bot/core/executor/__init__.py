@@ -3204,7 +3204,12 @@ class Executor:
             )
         if aura == host:
             raise ValueError(f"attach_aura: {aura} cannot attach to itself")
-        self.attachments[aura] = host
+        if self.attachments.get(aura) != host:  # CR 701.3b: to its own host, nothing happens
+            self.attachments[aura] = host
+            # CR 613.7e, 701.3c: it receives a new timestamp as it becomes attached, and so do
+            # its static abilities' effects (613.7a): the Hammer's "loses flying" applies after
+            # an Aura's flying granted before it was attached.
+            self.layers.restamp(aura)
         self.layers.recompute()  # "equipped creature" scopes re-read the table
 
     # ------------------------------------------------ CR 702.26 phasing

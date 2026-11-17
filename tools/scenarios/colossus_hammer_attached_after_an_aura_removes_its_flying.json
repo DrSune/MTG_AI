@@ -1,0 +1,26 @@
+{
+ "name": "colossus_hammer_attached_after_an_aura_removes_its_flying",
+ "set": "M20",
+ "notes": "Bug hunt 2026-11-17 (hunt3). Angelic Gift ('Enchanted creature has flying') enchants the bear after Colossus Hammer entered; then the Hammer is equipped to the bear. An Equipment receives a new timestamp as it becomes attached (CR 613.7e, 701.3c), and its static abilities' effects with it (613.7a), so its 'loses flying' applies after the Gift's flying (613.7, the example under 613.7a is this Hammer): the bear does not fly and the ground 2/2 is offered the block. Failed before the fix: the Hammer kept the timestamp it entered with, before the Gift's.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "hand", "controller": 0},
+  {"key": "gift", "real": "Angelic Gift", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "lib", "name": "Library Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "grd", "name": "Ground Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 8, "W": 2}},
+ "steps": [
+  {"op": "enter", "key": "hammer"},
+  {"op": "cast", "key": "gift", "real": "Angelic Gift", "targets": ["bear"]},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "attached": {"hammer": "bear", "gift": "bear"},
+  "power": {"bear": 12},
+  "block_asks": {"grd": "<bear>,NONE"},
+  "life": {"0": 20, "1": 8}
+ }
+}

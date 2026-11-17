@@ -1158,6 +1158,10 @@ def _apply_pt(ctx: ExecCtx, atom: Atom, kind: str) -> None:
         leaves_anchor = referent_handle(duration.source, ctx)
     p_delta, t_delta, p_set, t_set = pt_atom_delta(atom, ctx)
     cards = role_handles(ctx, atom, "target")
+    # The timestamp (CR 613.7b) is the journal's clock, the one a static's entries are stamped
+    # with (layers._materialize_static), so the two order on one timeline. A bare context has
+    # no journal and no statics: its entries keep their order of record.
+    clock = ctx.journal.clock if ctx.journal is not None else 0
     for card in cards:
         identity = ctx.world.cards[card].identity
         change = ctx.ledger.record(
@@ -1169,7 +1173,7 @@ def _apply_pt(ctx: ExecCtx, atom: Atom, kind: str) -> None:
             power_set=p_set,
             toughness_set=t_set,
             tag=tag,
-            clock=len(ctx.events),
+            clock=clock,
             duration=duration,
             source=ctx.source,
             controller=ctx.controller,
