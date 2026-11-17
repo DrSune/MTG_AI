@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "mold_adder_may_decline",
+ "notes": "M5 mapper. Printed: '... you may put a +1/+1 counter on this creature.' Seat 1 casts Opt (blue); seat 0 declines the offer ('skip'): no counter, Mold Adder stays 1/1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adder", "real": "Mold Adder", "zone": "battlefield", "controller": 0},
+  {"key": "opt1", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Opt", "key": "opt1", "controller": 1, "decisions": ["skip", "top"]}
+ ],
+ "expect": {
+  "counters": {"adder": {}},
+  "power": {"adder": 1},
+  "toughness": {"adder": 1},
+  "zone": {"opt1": "graveyard"}
+ }
+}

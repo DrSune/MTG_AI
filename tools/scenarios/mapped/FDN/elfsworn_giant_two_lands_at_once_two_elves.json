@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "elfsworn_giant_two_lands_at_once_two_elves",
+ "notes": "M5 mapper. Printed: 'Landfall — Whenever a land you control enters, create a 1/1 green Elf Warrior creature token.' Seat 0 casts Grow from the Ashes kicked: a Forest and an Island enter at once, one trigger each (it is not 'one or more'): two Elf Warrior tokens.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "giant", "real": "Elfsworn Giant", "zone": "battlefield", "controller": 0},
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "real": "Grow from the Ashes", "controller": 0, "kicked": true, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"forest": "battlefield", "island": "battlefield"},
+  "tokens": {"Elf Warrior": 2}
+ }
+}

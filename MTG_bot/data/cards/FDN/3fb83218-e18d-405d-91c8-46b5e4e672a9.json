@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3fb83218-e18d-405d-91c8-46b5e4e672a9",
+ "name": "Garna, Bloodfist of Keld",
+ "text_sha": "3bfff6fe3239da56f5acf316de2d05179810042f693f0ca318ff9d9e4a0bf0d8",
+ "needs_atom": {
+  "missing": "ENGINE: 'draw a card if it was attacking. Otherwise, Garna deals 1 damage to each opponent' reads the dying creature's attacking status as it last existed (CR 608.2h, 506.4). IS_ATTACKING reads only the live attack record (quantity.py: handle in executor.attackers), which the dead creature has already left (Executor._remove_from_combat), never LastKnown.attacking; and a bare Conditional judges a non-characteristic predicate such as IS_ATTACKING on the source, not on the event's object (executor._conditional_subject). Both trees the IR allows deal 1 damage to each opponent when an attacker dies and never draw: tools/scenarios/known_bugs/2026-11-17/garna_was_attacking/ (draft_conditional.py: one CreatureDiesEvent with Conditional(IS_ATTACKING, draw, else the damage); draft_split.py: two CreatureDiesEvent triggers split on IS_ATTACKING / FNot(IS_ATTACKING), a shape no ruling covers; pack_attacker_dies_draws.json fails on both). Needs IS_ATTACKING read from the departure LKI on a dies event, and a Conditional judged on the event's object (or a ruling for the split).",
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17"
+ }
+}

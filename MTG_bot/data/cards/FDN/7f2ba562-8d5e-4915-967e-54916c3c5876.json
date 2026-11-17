@@ -1,0 +1,217 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7f2ba562-8d5e-4915-967e-54916c3c5876",
+ "name": "Eager Trufflesnout",
+ "text_sha": "6423b23025611291e3007bad453ca150960161447543bfa6ab89189d87193dcc",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_PERMANENT"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "source": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "combat": true
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Food",
+         "type_line": "Artifact — Food",
+         "types": [
+          "Artifact"
+         ],
+         "subtypes": [
+          "Food"
+         ],
+         "power": null,
+         "toughness": null,
+         "keywords": [],
+         "abilities": [
+          {
+           "tag": "ActivatedAbility",
+           "cost": {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostManaGeneric",
+              "amount": {
+               "tag": "QConst",
+               "value": 2
+              }
+             },
+             {
+              "tag": "CostSacrifice",
+              "target": {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "BATTLEFIELD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "ANY"
+                 }
+                }
+               ]
+              }
+             },
+             {
+              "tag": "CostTap",
+              "target": null
+             }
+            ]
+           },
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "GAIN_LIFE"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "amount",
+               {
+                "tag": "QConst",
+                "value": 3
+               }
+              ],
+              [
+               "controller",
+               {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Eager Trufflesnout: \"Trample. Whenever this creature deals combat damage to a player, create a\n# Food token.\"\n# Event: M21 Jeskai Elder's verified combat-damage-to-a-player trigger; effect: the one Food\n# (MAPPER_GUIDE R_FOOD, templates.food_token()), mandatory. Trample is compiled.\n# R_FOOD\nFOOD = TokenSpec(\n    name='Food', type_line='Artifact — Food', types=('Artifact',), subtypes=('Food',),\n    power=None, toughness=None, keywords=(),\n    abilities=(ActivatedAbility(\n        cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(\n            target=Selector(\n                count=QConst(value=1), mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))))),\n        effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU})),),\n)\ncreate_food = A(Verb.CREATE_TOKEN, {'count': QConst(value=1), 'tokens': FOOD})\ntrigger = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n        source=FAtom(pred=FAtomPred.IS_SOURCE),\n        combat=True,\n    ),\n    condition=None,\n    effect=create_food,\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Trample (This creature can deal excess combat damage to the player or planeswalker it's attacking.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever this creature deals combat damage to a player, create a Food token.",
+    "ir": "abilities[0] (templates.food_token())"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Jeskai Elder's verified combat-damage-to-a-player trigger; the one Food (R_FOOD). Trample compiled. packs in tools/scenarios/mapped/FDN/: eager_trufflesnout_trample_damage_makes_a_food (trampled-over damage counts; the Food gains 3)."
+ },
+ "probe": {
+  "sha": "406afd6d3c6962febf2d7282056fc45faf69e81ae0403ee1ea6848d58f9360f6"
+ }
+}

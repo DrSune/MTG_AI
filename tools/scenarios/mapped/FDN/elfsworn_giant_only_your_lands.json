@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "elfsworn_giant_only_your_lands",
+ "notes": "M5 mapper. Printed: 'Landfall — Whenever a land you control enters, create a 1/1 green Elf Warrior creature token.' On seat 1's turn seat 1 plays a Swamp: not seat 0's land, no token. On seat 0's next turn seat 0 plays a Forest: exactly one 1/1 Elf Warrior.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "giant", "real": "Elfsworn Giant", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 1},
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "swamp", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "forest"}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "forest": "battlefield"},
+  "tokens": {"Elf Warrior": 1},
+  "battlefield_pt": {"Elf Warrior": [1, 1]}
+ }
+}
