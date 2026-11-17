@@ -1,0 +1,45 @@
+{
+ "schema": 1,
+ "set": "ZNR",
+ "oracle_id": "c2898bbd-82a4-4d26-b6ee-169b0ebe71b4",
+ "name": "Into the Roil",
+ "text_sha": "609ff4720ed3f89c10862e3f9593b3424491549ffeaafa4af72cd0077d9b0a7e",
+ "verified": {
+  "tree_sha": "251425a73539f61c7cea211a7142293559f63bacd9dad9cc3cc54131e76a127f",
+  "probe_sha": "a06a5997da431466ec5705e1cd6420a3ca6092c670be7aec28bdd30d20177cc9",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Kicker {1}{U} (You may pay an additional {1}{U} as you cast this spell.)",
+    "status": "OK",
+    "evidence": "Every [cast kicked targets=...] variant pays U-2 W-2 ({1}{U} + kicker {1}{U}), journalled 'you casts card kicked'; unkicked U-1 W-1. Pack into_the_roil_1: the kicked cast is payable from exactly {U}{U} + 2 generic, pool empty after.",
+    "issue": ""
+   },
+   {
+    "clause": "Return target nonland permanent to its owner's hand.",
+    "status": "OK",
+    "evidence": "Target slot (cast and kicked): creatures, artifacts and enchantments of both seats, no lands (you_land/opp_land are on the board); each target moves battlefield -> its owner's hand (opp: hand 2 -> 3).",
+    "issue": ""
+   },
+   {
+    "clause": "If this spell was kicked, draw a card.",
+    "status": "OK",
+    "evidence": "[cast kicked ...]: you draws you:Library 5#1; the unkicked casts draw nothing.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/into_the_roil_1.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/steps/0/args/cards/filter"
+   ]
+  },
+  "reprint_of": "FDN"
+ }
+}

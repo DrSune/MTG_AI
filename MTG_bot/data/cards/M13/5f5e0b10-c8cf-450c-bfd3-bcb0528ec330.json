@@ -1,0 +1,233 @@
+{
+ "schema": 1,
+ "set": "M13",
+ "oracle_id": "5f5e0b10-c8cf-450c-bfd3-bcb0528ec330",
+ "name": "Pacifism",
+ "text_sha": "c774ef200c4d4e01838370a5a7129d20da6ee5a693a38f5700fe592099e6fed0",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ATTACHED_TO_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DeclareAttackersEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ATTACHED_TO_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DeclareBlockersEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "2f82453d3c9a089e0d8c300b5f89d8ae323e3db583de26a56f5ea81921a7dea7",
+  "probe_sha": "94314b26afcab76c555c1b2635474737bb7b6383725c18e8fc66e1f549d2e4aa",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "cast: 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' - creatures only (no relic, charm, land or player); each [cast targets=[...]] puts the Aura on the battlefield; the enters-on-their-turn stimulus asks 'enchant' over the same six creatures; keyword ENCHANT params TYPE_EQ Creature",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature can't attack or block.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the probe never attaches the Aura in a combat stimulus (its snapshot has no attachment lane). Packs: pacifism_enchanted_cant_attack.json PASS (enchanted opp Bear never asked to attack, Giant attacks for 4); pacifism_enchanted_cant_block.json PASS (enchanted Bear never asked to block, 2 to the opponent); pacifism_other_creature_still_blocks.json PASS (an unenchanted Wall still blocks). Wrong variants fail. Tree: two static PREVENT_EFFECTs (DeclareAttackersEvent / DeclareBlockersEvent, IS_ATTACHED_TO_SOURCE and Creature), the Faith's Fetters shape",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/pacifism_1.json",
+   "tools/scenarios/cards/M20/pacifism_2.json",
+   "tools/scenarios/cards/M20/pacifism_3.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 1,
+   "score": 0.14285714285714285,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/event/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/event/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/event/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

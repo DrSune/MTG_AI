@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "41c15160-ee8c-42e3-bc6c-593b8c8ae335",
+ "name": "Crash Through",
+ "text_sha": "3e98d82aadc291d502f09e7227066efe2a4cc3f8f92d1f4b19a961cf66570c22",
+ "verified": {
+  "tree_sha": "16d8395066c7a976c6aa6375f38b31a9d952012ec3def989bc34381652c7956f",
+  "probe_sha": "d70a0b1e4c3aba36bb25186e75422c5b441f7c175438b222464f5366c73b1561",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Creatures you control gain trample until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear and you_giant keywords +TRAMPLE (no opposing creature changes); after the turn ends: both -TRAMPLE; you: mana R-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "[cast]: you:Library 5#1 moves library -> hand (by card/DRAW), you: library 6 -> 5.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

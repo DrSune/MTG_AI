@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "9645c1cb-2305-4bc0-89d0-a50815e91573",
+ "name": "Show of Valor",
+ "text_sha": "9e1c22b71aee19136e2bcf71cf3c0fb5eea369dc990784ec75c447320a64482b",
+ "verified": {
+  "tree_sha": "fa234606778f3b2b491228082f690b8b4c70ee6e32d8877295c003452a2931f7",
+  "probe_sha": "7037e5cfc021d08f7b4fdd73e168edc854ed4bb8fc0d0329bb56bc433d922e9f",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target creature gets +2/+4 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of the six creatures; [cast targets=['you_bear']] 2/2 -> 4/6, after the turn ends -> 2/2; the same +2/+4 on each other target only; cost W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

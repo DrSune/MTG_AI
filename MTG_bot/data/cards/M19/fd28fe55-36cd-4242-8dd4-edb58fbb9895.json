@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "fd28fe55-36cd-4242-8dd4-edb58fbb9895",
+ "name": "Exclusion Mage",
+ "text_sha": "76687af6f884afcef1895bc14b5a996a59c84ad7ad3873e4ff7b3f12afa48f2e",
+ "verified": {
+  "tree_sha": "1cc5bf3dbffaa6d3c9db321e57834f745823ce6f1e31b2b3a28d94c3d83f8b41",
+  "probe_sha": "f60f77bab35a646ef05641044bf2811ab6cccc2cecfd1eca3ef6d1b81bc5bc08",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "When this creature enters, return target creature an opponent controls to its owner's hand.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (the opponent's creatures only); each pick 'moves battlefield -> hand (by card/MOVE_ZONE)', 'opp: hand 2 -> 3'. Also fires when it enters on the opponent's turn. Not triggered by other creatures entering.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "M15",
+ "oracle_id": "0ddb3fa0-447c-40c5-928a-541f3d543014",
+ "name": "Netcaster Spider",
+ "text_sha": "d30e8fcda07e87c0cbfe6a54c42b4eb5417ba8e40e015eb2ecdfef6f87f7cb29",
+ "verified": {
+  "tree_sha": "8524cb08e0994eb027fdc6a55b47a5f043d72ee8537aa828c9ac02dcc75dacad",
+  "probe_sha": "7c9904edf9cc2fe2c6e162436f7f9bf6547e5081101cb4c3f6a28ff2ebab867c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace shows only 'keywords +REACH'; nothing attacks it. Pack netcaster_spider_blocks_flyer_pumps (PASS): its block ask is '<drake>,NONE' against a 2/3 flier and it blocks.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature blocks a creature with flying, this creature gets +2/+0 until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe never blocks with it. Tree equals the compiler's parse. Packs (PASS): netcaster_spider_blocks_flyer_pumps (4/3 after the block, the 2/3 Drake dies, the Spider takes 2, seat 0 stays 20); netcaster_spider_pump_ends_with_turn (deals 4 to a 2/5 flier, back to 2/3 when the turn ends); netcaster_spider_blocks_nonflyer_no_pump (blocking a 2/3 non-flier: stays 2/3, deals 2). Each fails against its wrong twin (no pump / permanent pump / pump on a non-flier).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/netcaster_spider_1.json",
+   "tools/scenarios/cards/M20/netcaster_spider_2.json",
+   "tools/scenarios/cards/M20/netcaster_spider_3.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

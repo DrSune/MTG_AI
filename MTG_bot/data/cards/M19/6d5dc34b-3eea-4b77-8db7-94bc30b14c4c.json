@@ -1,0 +1,262 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "6d5dc34b-3eea-4b77-8db7-94bc30b14c4c",
+ "name": "Rabid Bite",
+ "text_sha": "84dceaddc25f8242b222567d5a740a3793003b9fe9a6b585866c660d46a4478b",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QProp",
+         "referent": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         },
+         "field": {
+          "tag": "QPropField",
+          "name": "POWER"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "dealer",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "52994ccf5017503b407067371fdef2dee6df3250d482cc8d2907ac6094148e9a",
+  "probe_sha": "135a19b37602a0d6d9a6cf4479a203552f3e90d22abd9e41771be772785140d9",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target creature you control deals damage equal to its power to target creature you don't control.",
+    "status": "OK",
+    "evidence": "target slots 1..1 of [you_bear, you_giant] and 1..1 of [opp_flier, opp_tapped, opp_bear, opp_giant]; [cast targets=['you_bear', 'opp_giant']]: opp_giant is dealt 2 damage (by you_bear); [cast targets=['you_giant', 'opp_giant']]: dealt 4 (by you_giant), dies; cost G-1 W-1 = {1}{G}",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

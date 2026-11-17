@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "7d00fb28-ea6c-49a9-b4af-ffb38860a9a7",
+ "name": "Cancel",
+ "text_sha": "0a01df8f6a8d4b850d50b3c234f94c0bab70fb83f3df3c36213e056ffbbf223a",
+ "verified": {
+  "tree_sha": "7f9a93c5e78c508a3b06fa4f7f869f399e32e9207aa3a179a7f3133a1fcee3e0",
+  "probe_sha": "3c46bcbaa37b8c9dc6649049ced208aaef5c24c343a1ad7e6141e36ef3d47b00",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Counter target spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack; consistent with one TARGET over STACK_KIND_EQ SPELL). Pack cancel_counters_creature_spell.json PASSES: seat 0 casts Highborn Vampire, the response window offers seat 1 ['PASS','cancel'], Cancel counters it: Vampire to its owner's graveyard (never enters), Cancel to graveyard, seat 1's {1}{U}{U} spent. Wrong twin (Vampire on the battlefield) fails.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/cancel_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

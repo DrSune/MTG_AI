@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M15",
+ "oracle_id": "85bde6ac-3dd4-4946-8b57-24f57e3eae2b",
+ "name": "Plummet",
+ "text_sha": "1af45d2e05636645562b0a6cb0b1516f765020d7a4670b26e2acba8bddd7972a",
+ "verified": {
+  "tree_sha": "1c8ed248b64f62388c14fb9b7001e4404523096bb1ae26166789620126b8530e",
+  "probe_sha": "3f41e0bd39c051728fe50d0572d1e63e86b6c5b41f976e037f2fee2f19079680",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Destroy target creature with flying.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [opp_flier] (non-fliers not offered); [cast targets=['opp_flier']]: opp_flier moves battlefield -> graveyard (by card/DESTROY), dies. Instant, {1}{G}: mana G-1 W-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

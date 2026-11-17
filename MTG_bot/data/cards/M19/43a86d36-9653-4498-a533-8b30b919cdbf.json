@@ -1,0 +1,282 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "43a86d36-9653-4498-a533-8b30b919cdbf",
+ "name": "Gift of Paradise",
+ "text_sha": "2a42e517bf92cf504ddabef1b0b1077f91f9b03391b5e98769ae01501670f77e",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Land",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "ActivatedAbility",
+         "cost": {
+          "tag": "Cost",
+          "parts": [
+           {
+            "tag": "CostTap",
+            "target": null
+           }
+          ]
+         },
+         "effect": {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "ADD_MANA"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 2
+             }
+            ],
+            [
+             "color",
+             {
+              "tag": "String",
+              "value": "ANY"
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ]
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACHED_TO_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "9b3159801cae31a8c46aecc9a72935fc83668c6c0d9c511604fe67d5e9414a4e",
+  "probe_sha": "4d4e80a0e3e6c89c2fdc4119f40d2a0895a3fcc8465d950cb84c09159d700259",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Enchant land",
+    "status": "OK",
+    "evidence": "cast target slot 1..1 of [you_land, opp_land] (lands only); keywords +ENCHANT",
+    "issue": ""
+   },
+   {
+    "clause": "When this Aura enters, you gain 3 life.",
+    "status": "OK",
+    "evidence": "[cast targets=['you_land']] and [targets=['opp_land']]: triggered ability [0], you gains 3 life (20 -> 23); cost G-1 W-2 = {2}{G}",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted land has \"{T}: Add two mana of any one color.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "the granted ability is never activated in the trace. Packs gift_of_paradise_two_mana_one_color.json (P0 taps its enchanted Forest choosing U: pool exactly U 2, Forest tapped) and gift_of_paradise_opponents_land.json (on P1's Forest: P1 taps it for R 2 into P1's pool, P0's pool empty, P0 still gains 3) PASS on live and this tree; a 3-mana mutant FAILS both.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/gift_of_paradise_1.json",
+   "tools/scenarios/cards/M20/gift_of_paradise_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 5,
+   "score": 0.45454545454545453,
+   "survived": [
+    "drop cost part 0 (CostTap) at 1/1/effect/args/ability/cost",
+    "amount+1 at 1/1/effect/args/ability/effect/args/amount",
+    "amount-1 at 1/1/effect/args/ability/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/ability/effect/args/controller",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

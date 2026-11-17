@@ -1,0 +1,43 @@
+{
+ "schema": 1,
+ "set": "THB",
+ "oracle_id": "e521322b-0e83-458c-8936-7021a80ee279",
+ "name": "Temple of Plenty",
+ "text_sha": "c2195aa991cb157e1a83d1b2eff7dcc90c85435e19763aa0e6bf5d6089dbf2cb",
+ "verified": {
+  "tree_sha": "3fe4daf1883c052876ae0dcc153232b833826f0bb2e8f16711159e7474bcb1a5",
+  "probe_sha": "023c7b00fb5382e56d3f9b85177047a37a3b6bc1ca4344d6fc95d5f28163566c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: card zone hand -> battlefield; tapped False -> True. Also tapped when it enters by MOVE_ZONE ([from your hand, the card enters during the opponent's turn]).",
+    "issue": ""
+   },
+   {
+    "clause": "When this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: [play land] shows the trigger and one 'ask scry: [top, bottom]' (both answers), but a G1 trace never shows library order (known tool limit). Pack temple_of_plenty_scry_bottom.json PASS: Lib High (top) goes under the whole library, Lib Low is the new top, the opponent's library is untouched, the land is tapped; its wrong twin (expects the unchanged order) fails.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {W}.",
+    "status": "OK",
+    "evidence": "[activate [2] from battlefield]: ask choose [0, 1] -> 0: card becomes tapped, mana G+1; [| ask 1 -> 1]: card becomes tapped, mana W+1. Exactly the two printed colours, tap cost paid.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/temple_of_plenty_1.json"
+  ],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

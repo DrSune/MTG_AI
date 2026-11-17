@@ -165,6 +165,15 @@ an agent's messages).
 - The dry run of the new path, records written to a scratch directory: **402 of the 404** would
   be stamped. The other 2 (ZNR Spitfire Lagac, DOM Tatyova, Benthic Druid, both verified in FDN)
   carry round 10's "each occurrence" mutant, which their FDN packs predate (ontology §14).
+- **The wave, stamped 2026-11-14** (`reports/card_lessons_2026-11-14/reprint_stamp.py`, log
+  `reprint_stamp.out`, reviewer `reprint-wave-2026-11-14`): **408 of 410** candidates verified,
+  the dry run's 402 plus FDN's 6 cards verified only in M20. The same 2 failed.
+  - Per set: M19 66, M14 31, M10 30, M13 30, M11 28, M12 27, M15 26, IKO 24, ORI 24, 10E 23,
+    WAR 22, DOM 18, THB 16, ELD 14, ZNR 14, KHM 9, FDN 6.
+  - By home: FDN 207, M20 153, M21 48. 69 carry their home's `ir`.
+  - 54 stamps record 0 mutants. Most are vanilla creatures. Some enter tapped, so G3 made none for
+    them (the G3 fault round 11 found, `gates.py`). They are re-checked once that fix is merged.
+  - `test_reprint_stamps_follow_their_home_record` holds every one of them to its home.
 
 **Near-reuse (slots).** 7,597 rules sentences of the 3,799 unverified cards with text in those 16
 sets, reprints left out, compared with the 812 sentences of the verified cards. The name is `~`;

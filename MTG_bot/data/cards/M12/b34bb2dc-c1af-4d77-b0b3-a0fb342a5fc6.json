@@ -1,0 +1,28 @@
+{
+ "schema": 1,
+ "set": "M12",
+ "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+ "name": "Forest",
+ "text_sha": "e1d41b999f6b6076862e784fba0a49a8fcf5843d59bf9df49ac5cdc65b9b2863",
+ "verified": {
+  "tree_sha": "06a95859d71cacbc1b038e7d3bbe38f57caba5ce9e2f5fcb63a781533f5f8b83",
+  "probe_sha": "ed7c55fcc3530c9b6263f4c8066ede3ce58c9f04ba8dfcac7bfd25065b61b249",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "({T}: Add {G}.)",
+    "status": "OK",
+    "evidence": "activate [0] from battlefield: card becomes tapped; you: mana G+1; no other effect; plays as a land drop"
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

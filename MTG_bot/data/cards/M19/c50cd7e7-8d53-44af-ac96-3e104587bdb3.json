@@ -1,0 +1,180 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "c50cd7e7-8d53-44af-ac96-3e104587bdb3",
+ "name": "Serra's Guardian",
+ "text_sha": "20cf376fa2fcb458653c9be1b150e83597d2000be2bdcc2b0fd6169b31bff448",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "VIGILANCE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "d6f958417cc597aa71bdb28189d717a34c0933011046995703b9dec7926cd892",
+  "probe_sha": "968e206f5c5c7b60b4ea0a38e575a3e00464b6fa49742efb9889c5c056ae3218",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS, opp is dealt 5 combat damage (the non-flying 4/4 cannot block); [cast] keywords +FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "[this creature attacks alone, unblocked]: DECLARE_ATTACKERS card 1 with no 'card becomes tapped' event (compare any non-vigilant attacker).",
+    "issue": ""
+   },
+   {
+    "clause": "Other creatures you control have vigilance.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear, you_giant keywords +VIGILANCE, no opp_ creature changes; Raise the Alarm Soldier tokens and Yoked Ox enter with VIGILANCE, the opponent's entering creature does not; [another creature you control (you_bear) attacks]: no tap event; [this card is dealt lethal damage]: -VIGILANCE on you_bear/you_giant.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

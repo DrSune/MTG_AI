@@ -1,0 +1,156 @@
+{
+ "schema": 1,
+ "set": "10E",
+ "oracle_id": "1a2030cc-d7ee-4059-b2d7-fb95ea8e267b",
+ "name": "Gravedigger",
+ "text_sha": "f27b5a4cd1971fa6e0ff4b1250b7c839f8e1fae4a4e78839e1704a3dca3a18b8",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "16583a38720db8fe7e171f3c9521060379e3d4e59ef66512e140fbf7d03dc673",
+  "probe_sha": "4c3f6fc4c84b1589a451481e270e7f4d4437111efab1f0ee75bde8c02ae6e820",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may return target creature card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask may: [fire, skip]', fire: 'you_fallen is targeted', 'moves graveyard -> hand' (the only creature card in your graveyard; you_used and opp_fallen not taken); [cast | ask 1 -> skip]: stays; same on [enters during the opponent's turn].",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

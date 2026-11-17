@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M15",
+ "oracle_id": "d465a3d6-5830-456c-8e7a-908b464db846",
+ "name": "Inspired Charge",
+ "text_sha": "2b2c36b919d231794395d16a2b76b3ed0a0cdccdae3413f0dee6879dce0484f4",
+ "verified": {
+  "tree_sha": "b114764c909fb1406761a390997e297b94e5f78a14f4398fadb5369ce7dfff97",
+  "probe_sha": "0d3bef41f482cfb03a3eaf313045271af8a60a3623bb55673ce944f4d3567e79",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +2/+1 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear 2/2 -> 4/3, you_giant 4/4 -> 6/5, no opponent creature changes; both revert 'after the turn ends'; paid W-4 ({2}{W}{W}).",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

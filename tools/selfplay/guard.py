@@ -5,8 +5,10 @@
 Every ``--every`` seconds it reads the last row per update of ``RUN_DIR/metrics.jsonl``. On a
 breach it writes the reason to ``RUN_DIR/guard.log`` and stops the systemd user unit ``UNIT``,
 then exits. A paused run (gate B's pause) is no breach: the guard waits for new updates.
-- The learner's mulligan declarations per game above ``--mull-max`` (1.80: r27's runaway, 198)
-  over the last 10 updates, pooled (declarations over games).
+- The learner's mulligan declarations per learner seat above ``--mull-max`` (1.80: r27's runaway,
+  198) over the last 10 updates, pooled (declarations over seats). A self game (learner --p-self)
+  has two learner seats, so a rate per game would double with no change in play; rows without
+  ``learner_seats`` (r28's and older) had one learner seat a game and are read per game.
 - The training win rate against the heuristic, in a mean of 50 updates, more than 0.05 below its
   mean over updates 1-50 (191 §5).
 """
@@ -36,9 +38,9 @@ def breach(rows: list[dict], mull_max: float = 1.8) -> str | None:
     if len(rows) >= 10:  # pooled: an update's own games swing (1,192-3,280 in r28's first 3)
         last = rows[-10:]
         m = sum(r.get("kinds", {}).get("mulligan", {}).get("n", 0) for r in last) / max(
-            sum(r["games"] for r in last), 1)
+            sum(r.get("learner_seats", r["games"]) for r in last), 1)
         if m > mull_max:
-            return f"mulligan declarations per game {m:.3f} over updates {rows[-10]['it']}-{rows[-1]['it']} > {mull_max}"
+            return f"mulligan declarations per learner seat {m:.3f} over updates {rows[-10]['it']}-{rows[-1]['it']} > {mull_max}"
     first = [r["win"]["heuristic"] for r in rows if r["it"] <= 50 and "heuristic" in r.get("win", {})]
     recent = [r["win"]["heuristic"] for r in rows[-50:] if "heuristic" in r.get("win", {})]
     if len(first) >= 50 and len(rows) >= 100 and len(recent) >= 50:

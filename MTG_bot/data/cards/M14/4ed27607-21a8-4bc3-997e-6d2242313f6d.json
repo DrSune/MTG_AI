@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "4ed27607-21a8-4bc3-997e-6d2242313f6d",
+ "name": "Coral Merfolk",
+ "text_sha": "dc2c0781daeab96a395131d5d035c9dc913516861c78416a38325a20a850c749",
+ "verified": {
+  "tree_sha": "5f0bf165d768e0bdf85fcd1e679e0c6b96f1774df0dc11ef918c54cd3ad1f922",
+  "probe_sha": "e21c9d7b862e50755dccf5729289e23b25ac822021b0c745a355e4d3bebdd6ee",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla creature, {1}{U}, 2/1)",
+    "status": "OK",
+    "evidence": "[cast] card moves hand -> stack -> battlefield, P/T - -> 2/1, you: mana U-1 W-1; [attacks alone, unblocked] opp life 20 -> 18; [opp_giant blocks] card dies, opp_giant damage 0 -> 2; no triggered ability; every other stimulus 'same as on the board without the card'.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

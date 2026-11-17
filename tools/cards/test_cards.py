@@ -180,6 +180,24 @@ def test_a_reprint_carries_its_home_stamp_through_verify(tmp_path, monkeypatch, 
     assert cardtool.main(["verify", code, name, "--reprint-of", "ZNR", "--reviewer", "t"]) == 1
 
 
+def test_reprint_stamps_follow_their_home_record() -> None:
+    """A reprint's stamp stands on its home set's review (``verify --reprint-of``), and a mapped
+    reprint holds a copy of the home ``ir``. So it must follow that record: the home is still
+    verified with the same tree bytes and the same ``ir``. A later fix to the home record fails
+    here until each of its reprints is stamped again from it."""
+    from MTG_bot.core.compiler import card_records
+
+    for folder in sorted(p for p in card_records.RECORDS_DIR.iterdir() if p.is_dir()):
+        for oid, rec in card_records.load_records(folder.name).items():
+            home = rec.get("verified", {}).get("reprint_of")
+            if home is None:
+                continue
+            hrec = card_records.load_records(home).get(oid, {})
+            where = f"{folder.name} {rec.get('name')} from {home}: run verify --reprint-of again"
+            assert hrec.get("verified", {}).get("tree_sha") == rec["verified"]["tree_sha"], where
+            assert hrec.get("ir") == rec.get("ir"), where
+
+
 def _verdict(tmp_path: Path, **over: object) -> Path:
     v = {"id": "A00", "verdict": "OK", "probe_sha": "sha-the-reviewer-read",
          "clauses": [{"clause": "{T}: Scry 1.", "status": "OK", "evidence": "variant activate [0]", "issue": ""}],

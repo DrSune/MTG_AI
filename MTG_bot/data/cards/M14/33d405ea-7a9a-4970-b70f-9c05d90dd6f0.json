@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "33d405ea-7a9a-4970-b70f-9c05d90dd6f0",
+ "name": "Duress",
+ "text_sha": "42e705d21a23530af4e00d70670eabb6fadf742de8b8f3c5694c20b9d1edb9d4",
+ "verified": {
+  "tree_sha": "d5829e3a5887ae82c131a49d207dbca774e020857cd0ed8bedd076ea58250040",
+  "probe_sha": "e6b5312c6ea63bbcc4f97475300651192e41b4c3fe7c0a4fb8416b7c3a8eced3",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target opponent reveals their hand.",
+    "status": "OK",
+    "evidence": "Cast target slot: 1..1 of [opp] (the caster is never offered); 'opp is targeted'. The REVEAL is the engine's recorded no-op (information only). Pack duress_you_choose_the_card.json: designating seat 0 is refused.",
+    "issue": ""
+   },
+   {
+    "clause": "You choose a noncreature, nonland card from it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: the opponent's hand is opp_spare (creature) and opp_trick (instant): only opp_trick qualifies, auto-picked, so no choice is visible. Packs PASS: duress_offers_only_legal_cards.json (hand instant, sorcery, creature, land: the choice offers exactly the instant and the sorcery) and duress_you_choose_the_card.json (the caster's pick, the sorcery, is the one discarded). Wrong twins (pick the instant; pick the creature: not offered) fail.",
+    "issue": ""
+   },
+   {
+    "clause": "That player discards that card.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp']]: 'opp_trick moves hand -> graveyard', 'opp: hand 2 -> 1'; Duress to the graveyard, mana B-1. Pack duress_you_choose_the_card.json: only the chosen card goes to seat 1's graveyard.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/duress_1.json",
+   "tools/scenarios/cards/FDN/duress_2.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  },
+  "reprint_of": "FDN"
+ }
+}

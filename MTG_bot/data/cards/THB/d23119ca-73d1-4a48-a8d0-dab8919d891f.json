@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "THB",
+ "oracle_id": "d23119ca-73d1-4a48-a8d0-dab8919d891f",
+ "name": "Infuriate",
+ "text_sha": "b5180d8b2b259135686ee1018e6eb362fec50b4061d5e5bed0adda956f994696",
+ "verified": {
+  "tree_sha": "de1e3def741334f63fc268f5735606adeda4c021b30631b13c14e2cd5d755585",
+  "probe_sha": "7471ba04b625d8e0b189e241e996042ab9d7f6dc52960205d3494fa93edc45a6",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target creature gets +3/+2 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): all six creatures; [cast targets=['you_bear']]: you_bear 2/2 -> 5/4, after the turn ends 5/4 -> 2/2 (every target alike, e.g. opp_giant 4/4 -> 7/6 -> 4/4). Instant, {R}: mana R-1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

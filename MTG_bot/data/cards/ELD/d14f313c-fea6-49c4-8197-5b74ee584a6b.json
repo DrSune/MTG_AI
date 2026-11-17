@@ -1,0 +1,52 @@
+{
+ "schema": 1,
+ "set": "ELD",
+ "oracle_id": "d14f313c-fea6-49c4-8197-5b74ee584a6b",
+ "name": "Scorching Dragonfire",
+ "text_sha": "ead86aec46f421f0e2cbace318524103e6f2b635d5e32e0a2d301001eee782df",
+ "verified": {
+  "tree_sha": "c736d03b4f764352bec3d6adbfcf43af503cc0d3dcb3b5d890538de43d15c4f7",
+  "probe_sha": "8b6e0530e1a65952f0c7f9d3c2bb2a6b0589c61ffbe699268d40339e3e46650c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Scorching Dragonfire deals 3 damage to target creature",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of the six creatures; [cast targets=['you_giant']] you_giant is dealt 3 damage (damage 0 -> 3), same for opp_giant; mana R-1 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "... or planeswalker",
+    "status": "NOT_EXERCISED",
+    "evidence": "No planeswalker on the probe board. Pack scorching_dragonfire_4: the opponent's Vivien Reid (loyalty 3) is a legal target, loses 3 loyalty.",
+    "issue": ""
+   },
+   {
+    "clause": "If that creature or planeswalker would die this turn, exile it instead (dying from this spell's damage).",
+    "status": "OK",
+    "evidence": "[cast targets=['you_bear']]: you_bear is dealt 3, card moves stack -> graveyard, you_bear moves battlefield -> exile (by card/MOVE_ZONE); likewise opp_flier, opp_tapped, opp_bear; the 4/4s survive with 3 damage.",
+    "issue": ""
+   },
+   {
+    "clause": "(... would die THIS TURN from any source; only THAT creature or planeswalker)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Packs: scorching_dragonfire_1 (the surviving 4/4 dealt 1 more by another source the same turn: exiled, not in the graveyard), scorching_dragonfire_2 (next turn the 4/4 dies: graveyard), scorching_dragonfire_3 (an untargeted creature dying the same turn: graveyard), scorching_dragonfire_4 (planeswalker at 0 loyalty: exiled).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/scorching_dragonfire_1.json",
+   "tools/scenarios/cards/FDN/scorching_dragonfire_2.json",
+   "tools/scenarios/cards/FDN/scorching_dragonfire_3.json",
+   "tools/scenarios/cards/FDN/scorching_dragonfire_4.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

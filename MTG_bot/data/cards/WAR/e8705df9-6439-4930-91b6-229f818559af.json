@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "set": "WAR",
+ "oracle_id": "e8705df9-6439-4930-91b6-229f818559af",
+ "name": "Simic Guildgate",
+ "text_sha": "254cde87b448038ad39c3a39d4784af45393630730f2b798c78cab06b451808c",
+ "verified": {
+  "tree_sha": "f7bd2679c853b1d3c530edb2fabd8e2a7c2981bc749736c7525017d7f7c42c0f",
+  "probe_sha": "f3547674e5773f7116cf25d2eb300b0ee8dd8c68429af2535937f9728e166811",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: tapped False -> True; also on the entry during the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {G} or {U}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: ask choose [0, 1] -> 0: tapped, you: mana G+1; [... | ask 1 -> 1]: tapped, you: mana U+1.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

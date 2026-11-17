@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "10E",
+ "oracle_id": "e3886fe8-9b76-4613-8891-4ec74657c087",
+ "name": "Glorious Anthem",
+ "text_sha": "fac4dde247edccb718aa1d4f20c8e10583f97c722edc8b06648ca6c2b8db244e",
+ "verified": {
+  "tree_sha": "a437fba70bc6b5a8df06c7f182a292fd582ccb82130c4cfe0d8ca8e1b928fe5c",
+  "probe_sha": "0435e44767e87064625507aff73d3e4bdbd18aa76afc7ef6a0e87b7f79d29f55",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[cast]: you_bear 2/2 -> 3/3, you_giant 4/4 -> 5/5, opponent's creatures unchanged; 'a creature enters under your control': you_spare enters 4/4 (continuous, applies to later arrivals); 'a creature enters under the opponent's control' unchanged; 'you cast a creature (Staunch Shieldmate)' enters 2/4; Static section lists only your two creatures. Paid W-3 for {1}{W}{W}. Tree identical to the compiler's parse.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 5,
+   "killed": 4,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M21"
+ }
+}

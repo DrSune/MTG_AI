@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M14",
+ "oracle_id": "a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d",
+ "name": "Shock",
+ "text_sha": "167d797523e0a8c9bb3282293fc0ccf564b3d2e6fd3cfe5af0a5db34920267e1",
+ "verified": {
+  "tree_sha": "fa437a14e957ade86c4efe88137ca2dd2eb0ee0780675888654ea317fb8e5011",
+  "probe_sha": "b675be975d8cf857d45e2b18656bbb32537082d1bd87c23e44f21ea835e37d38",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Shock deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of the six creatures, you and opp (no artifact, enchantment or land); 2 damage each: you_bear, opp_flier, opp_bear die; you_giant, opp_tapped, opp_giant damage 0 -> 2 (cleared after the turn); you 20 -> 18; opp 20 -> 18; cost R-1. No planeswalker on the board: pack shock_1 PASS (opponent's Ajani 5 -> 3 loyalty, no damage marks, no life loss); it fails against amount 3 and a target filter without planeswalkers.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/shock_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "6dc534e8-e22b-4e3c-aa30-c6e4c84f698c",
+ "name": "Frilled Sea Serpent",
+ "text_sha": "50d2f53170c5c10828f720d35edd1ed21c2948892e79875ac3c53db1f6ced70c",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "U",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "U",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 5
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "verified": {
+  "tree_sha": "93127e811b2652a9c2172b5d7fec56721e1f374d803f898f97bb982892bfa505",
+  "probe_sha": "f817df1c3bda6d704fe7c4b5ff9b6e5454aff549b00e92b9e3578a73d17dc90a",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "{5}{U}{U}: This creature can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "G1: [activate [0]] pays U-2 W-5 (seven, two blue) but no combat follows. Packs frilled_sea_serpent_1 (the Wall may block only the other attacker; 4 damage through; exactly {5}{U}{U} spent) and frilled_sea_serpent_2 (blockable again next turn) pass; twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/frilled_sea_serpent_1.json",
+   "tools/scenarios/cards/M20/frilled_sea_serpent_2.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/args/duration"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

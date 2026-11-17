@@ -1,0 +1,29 @@
+{
+ "schema": 1,
+ "set": "DOM",
+ "oracle_id": "3912d21e-1ebc-4a81-9dc9-f404248d564a",
+ "name": "Fire Elemental",
+ "text_sha": "66911976704a2fd179461d473079254c5eb9c602115f8ce01afffbae916c0ab6",
+ "verified": {
+  "tree_sha": "31ce52579d73d4b3672404f257c9611ad9e85f43bb67bd7aff8715f940bd29d3",
+  "probe_sha": "f3a6563b607912ad67eea76aa29441ee52ebe7561c85bd87bba20c11b80a26cd",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "(no rules text: vanilla Creature - Elemental 5/4 for {3}{R}{R})",
+    "status": "OK",
+    "evidence": "tree: only SpellAbility(CREATURE). [cast]: P/T 5/4, you: mana R-2 W-3; [stimulus: attacks alone, unblocked]: opp 20 -> 15.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  },
+  "reprint_of": "FDN"
+ }
+}

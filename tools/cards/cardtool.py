@@ -84,11 +84,14 @@ def _state(sc: corpus.SetCompile, oid: str) -> str:
 
 def reprint_sources(sc: corpus.SetCompile, oids: Any) -> dict[str, str]:
     """oracle id -> another set holding a verified record of the same printed card (same
-    ``text_sha``): candidates for ``verify --reprint-of``, which checks the tree bytes."""
+    ``text_sha``): candidates for ``verify --reprint-of``, which checks the tree bytes. A home is
+    a set whose own review stands: a reprint's stamp is never a home, since its packs run only in
+    the set it came from."""
     homes = {}
     for folder in sorted(p for p in card_records.RECORDS_DIR.iterdir() if p.is_dir() and p.name != sc.code):
         for oid, rec in card_records.load_records(folder.name).items():
-            if oid in oids and "verified" in rec and rec.get("text_sha") == card_records.text_sha(sc.raw[oid]):
+            if (oid in oids and "verified" in rec and not rec["verified"].get("reprint_of")
+                    and rec.get("text_sha") == card_records.text_sha(sc.raw[oid])):
                 homes.setdefault(oid, folder.name)
     return homes
 

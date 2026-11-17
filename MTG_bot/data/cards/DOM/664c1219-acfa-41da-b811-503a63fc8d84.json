@@ -1,0 +1,35 @@
+{
+ "schema": 1,
+ "set": "DOM",
+ "oracle_id": "664c1219-acfa-41da-b811-503a63fc8d84",
+ "name": "Befuddle",
+ "text_sha": "052fb64cb9af7f41916b4b54dd0acc89a85acf9f9f3da2d2f1312e3f486b0a47",
+ "verified": {
+  "tree_sha": "4a1848244b32fb54ac7e13c8ae73262f208e8e37aa5a037d0695ad7bf18ce47b",
+  "probe_sha": "e6ae3487b4575c7d04545fc5bbad4ff9b12fee08d5d4210c1f7f2706bb999b2a",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Target creature gets -4/-0 until end of turn.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of the six creatures; you_giant 4/4 -> 0/4, you_bear 2/2 -> -2/2, opp_flier 1/1 -> -3/1, opp_tapped 3/3 -> -1/3 (toughness unchanged); 'after the turn ends' each returns (0/4 -> 4/4, ...). mana U-1 W-2.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card.",
+    "status": "OK",
+    "evidence": "every variant: you:Library 5#1 moves library -> hand (by card/DRAW); you draws; you: library 6 -> 5.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

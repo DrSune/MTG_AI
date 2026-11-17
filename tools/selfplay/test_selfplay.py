@@ -771,6 +771,125 @@ def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> 
     assert not deals(1) & deals(2)
 
 
+def test_without_self_games_the_job_stream_is_as_before(tmp_path, monkeypatch) -> None:
+    """--p-self 0 issues every training job, seed and opponent draw that the learner issued
+    before the option existed: the digest is main's stream at 1d5e4164, over the teacher stage
+    and the self-play stage with one version (the past share falls through to the newest) and
+    with three (the past share draws an older one), with mixed sets."""
+    import hashlib
+    import json
+
+    lr = _small_learner(monkeypatch, tmp_path)
+    a = lr.args
+    a.p_heuristic, a.p_past, a.mix_sets, a.mix_share = 0.15, 0.15, "M20,FDN", 0.25
+    jobs = []
+    for stage, versions in (("teacher", []), ("selfplay", ["v0"]), ("selfplay", ["v0", "v1", "v2"])):
+        lr.stage, lr.versions = stage, versions
+        jobs += [lr.curriculum_job() for _ in range(300)]
+    assert {j["group"] for j in jobs[300:600]} == {"heuristic", "frozen"}
+    assert {j["group"] for j in jobs[600:]} == {"heuristic", "frozen", "past"}
+    stream = json.dumps([jobs, lr.rng.getstate()], sort_keys=True)
+    assert hashlib.sha256(stream.encode()).hexdigest() == (
+        "541a56f60f68bfd09314bf149b24d49aedb98739100e5fdb1ecfbd720c76b224")
+
+
+class _LearnerSlot:
+    """A worker's slot whose every request is one message to the learner's inference."""
+
+    def __init__(self, lr) -> None:
+        self.lr = lr
+        self.asked: Counter = Counter()  # (network key, seat) of each request
+
+    def send(self, msg) -> None:  # the learner answers on the worker's connection
+        self.answer = msg[2][0]
+
+    def infer(self, req):
+        self.asked[req[2], req[1]] += 1
+        self.lr.infer([(self, 0, [req])])
+        return self.answer
+
+
+def test_a_self_game_trains_both_seats_on_their_own_results(tmp_path, monkeypatch) -> None:
+    """--p-self 1: a self-play job seats the learner twice and records both seats. Played
+    through the learner's inference, both seats ask the learner's network, and every decision of
+    each seat reaches the trainer's batch with that seat's own result and its seat; a decided
+    self game gives the winner +1 and the loser -1."""
+    from tools.selfplay.actor import Worker
+    from tools.selfplay.ppo import pack_buffer
+
+    lr = _small_learner(monkeypatch, tmp_path, "--p-heuristic", "0", "--p-past", "0",
+                        "--p-self", "1", "--gamma", "1", "--lam", "1")
+    lr.stage, lr.versions = "selfplay", ["v0"]
+    job = lr.curriculum_job()
+    assert (job["seats"], job["record"], job["group"]) == (["learner"] * 2, [True] * 2, "self")
+    slot = _LearnerSlot(lr)
+    res = Worker(0, None, 1, lr.table.to_json()).play(job, slot)
+    lr.on_done([res])
+    assert not lr.traj and set(slot.asked) == {("learner", 0), ("learner", 1)}
+    seat = np.array([b[9] for b in lr.buffer])
+    ret = pack_buffer(lr.buffer)["ret"]
+    for s in (0, 1):
+        assert (seat == s).sum() == slot.asked["learner", s]
+        assert ret[seat == s] == pytest.approx(lr.reward(res["outcome"], res["winner"], s))
+    lr.buffer, lr.train_results = [], []
+    lr.traj[(7, 0)] = [("f0", 0, -0.5, 0.1), ("f1", 1, -0.7, 0.3)]
+    lr.traj[(7, 1)] = [("g0", 0, -0.2, -0.4)]
+    lr.on_done([{"kind": "train", "gid": 7, "seed": 3, "deck_mode": "coherent", "set_code": "M21",
+                 "seats": ["learner", "learner"], "group": "self", "outcome": "win", "winner": 1,
+                 "turns": 12}])
+    assert [(b[0], b[6], b[7], b[8], b[9]) for b in lr.buffer] == [
+        ("f0", 7, 0, 2, 0), ("f1", 7, 1, 2, 0), ("g0", 7, 0, 1, 1)]
+    assert [b[5] for b in lr.buffer] == pytest.approx([-1.0, -1.0, 1.0])
+    assert lr.train_results == [("self", [-1.0, 1.0], 12, "M21")]
+    with pytest.raises(SystemExit):  # beside the default 0.25 and 0.1: shares summing above 1
+        _small_learner(monkeypatch, tmp_path, "--p-self", "0.7")
+
+
+def test_the_iter_row_keeps_self_games_apart(tmp_path, monkeypatch) -> None:
+    """A self game is a win and a loss for the learner. Its results go to their own group,
+    "self" (0.5 over decided games by construction: a crediting check, never strength, METRICS
+    ST-8), never into "heuristic", "frozen" or "past", nor into a set's win rate; it counts as
+    one game, with two learner seats, and its turns once."""
+    import json
+
+    lr = _small_learner(monkeypatch, tmp_path, "--iters", "1", "--teacher-iters", "0")
+    lr.serve = lambda *_, **__: None  # one update on the results below, without workers
+    lr.update = dict  # its statistics: none
+    deal = {"kind": "train", "seed": 1, "deck_mode": "coherent", "outcome": "win"}
+    lr.on_done([{**deal, "gid": g, "seats": s, "group": gr, "winner": w, "turns": t, "set_code": c}
+                for g, s, gr, w, t, c in (
+                    (1, ["learner", "heuristic"], "heuristic", 0, 10, "M21"),
+                    (2, ["v0", "learner"], "frozen", 0, 12, "M20"),
+                    (3, ["learner", "learner"], "self", 1, 8, "M20"),
+                    (4, ["learner", "learner"], "self", 0, 14, "M21"))])
+    lr.curriculum()
+    row = next(json.loads(x) for x in (tmp_path / "metrics.jsonl").read_text().splitlines()
+               if '"event": "iter"' in x)
+    assert row["win"] == {"heuristic": 1.0, "frozen": 0.0, "self": 0.5}
+    assert row["win_set"] == {"M21": 1.0, "M20": 0.0}
+    assert (row["games"], row["learner_seats"], row["turns"]) == (4, 6, 11.0)
+
+
+def test_the_guard_reads_the_mulligan_per_learner_seat() -> None:
+    """With self games an update's games have more learner seats than games, and a rate per
+    game would double with no change in play: the guard divides by the iter row's
+    learner_seats. A row without it (r28's format, one learner seat a game) reads per game, as
+    before the field existed."""
+    from tools.selfplay.guard import breach
+
+    def row(it: int, mull: float, seats: int | None) -> dict:  # 1,000 games; r28's keys
+        r = {"it": it, "games": 1000, "win": {"heuristic": 0.7, "frozen": 0.52},
+             "kinds": {"mulligan": {"n": round(mull * (seats or 1000))}}}
+        return r if seats is None else {**r, "learner_seats": seats}
+
+    calm = [row(i, 1.35, 1700) for i in range(1, 121)]  # 700 self games: 2,295 declarations
+    assert breach(calm) is None
+    assert "per learner seat 2.000" in breach(calm[:-10] + [row(i, 2.0, 1700) for i in range(111, 121)])
+    r28 = [row(i, 1.35, None) for i in range(1, 121)]
+    assert breach(r28) is None
+    assert "1.900 over updates 111-120" in breach(r28[:-10] + [row(i, 1.9, None) for i in range(111, 121)])
+
+
 def test_every_training_game_is_logged_with_its_deal(table, tmp_path, monkeypatch) -> None:
     """train_rows.jsonl gets one row per finished training game, a void one included: the deal
     (seed, deck mode, set), who played and the result, from which the deck critic rebuilds both

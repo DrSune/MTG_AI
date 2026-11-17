@@ -511,6 +511,8 @@ no fp32 path, and 183's check compared the same two bf16 paths.
   on the verified pool, deals 900,000-900,299 with both seats, fp32 with no autocast, paired by
   deal with window 1's `heur_raw`. It has the same prediction and falsifier as H1, and runs at
   r27's next pause (gate B's queue).
+  - **Scored 2026-11-14 (196 §10): met.** fp32 − bf16 = −0.003 [−0.012, +0.005] over the 300
+    deals.
 - A CPU measurement from the hunt, u1000 on 2,120 positions from 12 heuristic games: fp32 and
   bf16 autocast choose a different greedy option at 9 positions (0.4%). These are CPU kernels,
   not CUDA.

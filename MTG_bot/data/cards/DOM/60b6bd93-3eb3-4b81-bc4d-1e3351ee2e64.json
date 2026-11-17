@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "DOM",
+ "oracle_id": "60b6bd93-3eb3-4b81-bc4d-1e3351ee2e64",
+ "name": "Soul Salvage",
+ "text_sha": "0f7e65a4fabd38254b6356cc54a8fb0f36c9bf0226f2cdd2a7228dfc0a7577f3",
+ "verified": {
+  "tree_sha": "93ff4b4c5bf70012b9e709aafc7ac39e37252a69eab6c9efb4831aa701dc4b56",
+  "probe_sha": "e484977225013101469d6072b882d29163738893833e7842c75382c204e1904c",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Return up to two target creature cards from your graveyard to your hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Shown: target slot (cast) 0..1 of [you_fallen] (your only creature card; not you_used, not opp_fallen); [cast targets=['you_fallen']] moves it graveyard -> hand; [cast] with no target resolves and moves nothing. Not shown: the bound of two (one candidate). Tree equals the compiler's parse (QAtMost 2, TARGET). Pack soul_salvage_returns_two_of_three (PASS): three targets refused (count_above_max:3>2), a sorcery card and the opponent's creature card refused (off_population); two of three creature cards return, the third stays; {2}{B} spent exactly. Fails if all three are expected back.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/soul_salvage_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  },
+  "reprint_of": "M20"
+ }
+}

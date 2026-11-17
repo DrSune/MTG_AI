@@ -1,0 +1,31 @@
+{
+ "schema": 1,
+ "set": "M19",
+ "oracle_id": "c60b8edd-aa3f-48ea-b202-d10599f91d9d",
+ "name": "Take Vengeance",
+ "text_sha": "c642125488bc50da5da972c0fe04ed53bec4b9d28fbbc2756f2d57f2a2c5f8eb",
+ "verified": {
+  "tree_sha": "2bd07cf43a2a47055b8520dc741b97d304383028d3840377f2e5f51eb34ec04b",
+  "probe_sha": "1d1345a6a2b2491ad50a164e2bc7959abb00e463341f0a2f1e8e91b86e39ba6e",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Destroy target tapped creature.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [opp_tapped] (no untapped creature, no noncreature offered); [cast targets=['opp_tapped']]: opp_tapped moves battlefield -> graveyard (by card/DESTROY), opp_tapped dies; card stack -> graveyard. Sorcery, {1}{W}: you: mana W-2.",
+    "issue": ""
+   }
+  ],
+  "packs": [],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}

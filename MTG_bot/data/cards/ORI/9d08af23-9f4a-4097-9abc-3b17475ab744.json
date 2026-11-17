@@ -1,0 +1,46 @@
+{
+ "schema": 1,
+ "set": "ORI",
+ "oracle_id": "9d08af23-9f4a-4097-9abc-3b17475ab744",
+ "name": "Act of Treason",
+ "text_sha": "e59583eb9f5605e04cf774b887f1b4d9eca2638503a5712e9ac65c4ab69b49a2",
+ "verified": {
+  "tree_sha": "9e8e7b99011ca2f365de57e0a3f2978b17b7cb4f640a9cf741a3409246717d7c",
+  "probe_sha": "0b321e6f194168ccc1d63adf0139d3d99da8742eb3cd03c5ea62ed798a6f8b33",
+  "date": "2026-11-14",
+  "reviewer": "reprint-wave-2026-11-14",
+  "clauses": [
+   {
+    "clause": "Gain control of target creature until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "target slot (cast): 1..1 of the six creatures, but no control change can show in the trace: the probe snapshot reads world.controller_of, the zone owner (tools/cards/probe.py:303), not the GAIN_CONTROL overlay. Packs PASS (also against this packet's tree): act_of_treason_1 (seat 0 controls the stolen tapped Ogre, it is untapped and attacks its owner for 3 the same turn) and act_of_treason_2 (after the turn ends seat 1 controls it again, no haste). They fail against the until-end-of-turn->permanent and dropped-haste mutants.",
+    "issue": ""
+   },
+   {
+    "clause": "Untap that creature.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_tapped']]: opp_tapped becomes untapped (by card/UNTAP); tapped True -> False.",
+    "issue": ""
+   },
+   {
+    "clause": "It gains haste until end of turn.",
+    "status": "OK",
+    "evidence": "Every target: keywords +HASTE, and after the turn ends -HASTE (only the target).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/act_of_treason_1.json",
+   "tools/scenarios/cards/M20/act_of_treason_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 7,
+   "score": 0.875,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/steps/0/args/duration"
+   ]
+  },
+  "reprint_of": "M20"
+ }
+}
