@@ -1284,6 +1284,46 @@ def test_a_hung_game_is_voided_and_its_worker_goes_on(table, monkeypatch) -> Non
     assert done[0]["seed"] == 901 and [r["outcome"] for r in done[1::2]] == ["win", "win"]
 
 
+def test_every_game_a_worker_plays_comes_back_once(table, monkeypatch) -> None:
+    """r29 (2026-11-17): a slot took the worker's outbox as its game began (``outbox.append(
+    self._play(job))`` reads ``outbox`` before it plays), and the worker replaces the outbox each
+    time it sends results, so a game that ended after another game of its worker had been sent
+    left its result in a list nobody read. 3,905 of the 35,068 games r29 issued in 30 minutes came
+    back, the batch waited for the first lost one, and no update ran. The worker's slots run games
+    side by side: one game pauses at its decisions while another ends and is sent."""
+    import multiprocessing as mp
+    import threading
+    import time
+
+    from tools.selfplay import actor
+
+    def play_game(seed, agents, **kw) -> dict:  # the network seat decides ``seed`` times
+        for _ in range(seed):
+            agents[0].slot.infer(("decide",))
+        return {"seed": seed, "outcome": "win", "winner": 0, "turns": seed}
+
+    monkeypatch.setattr(actor, "play_game", play_game)
+    mine, theirs = mp.Pipe(duplex=True)
+    worker = actor.Worker(0, theirs, 2, table.to_json(), n_groups=1)
+    loop = threading.Thread(target=worker.loop, daemon=True)
+    loop.start()
+    mine.send(("jobs", [{"gid": g, "kind": "train", "seed": seed, "deck_mode": "coherent",
+                         "set_code": "M21", "pool_mode": "verified",
+                         "seats": ["learner", "heuristic"], "greedy": [False, False],
+                         "record": [True, False]} for g, seed in ((1, 3), (2, 1))]))
+    done, t0 = [], time.monotonic()
+    while len(done) < 2 and time.monotonic() - t0 < 5:
+        if mine.poll(0.1):
+            msg = mine.recv()
+            if msg[0] == "infer":  # the learner's answers
+                mine.send(("ans", msg[2], [0] * len(msg[3])))
+            elif msg[0] == "done":
+                done += msg[2]
+    mine.send(("stop",))
+    loop.join(timeout=5)
+    assert [r["gid"] for r in done] == [2, 1]  # the short game is sent while the long one plays
+
+
 def test_keeping_a_hand_is_the_mulligans_pass() -> None:
     """The per-kind statistics' "pass" is the share of decisions that declined to act. The
     mulligan's decline, "keep", was not among them, so its share read 0 whatever the network did

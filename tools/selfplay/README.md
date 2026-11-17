@@ -212,7 +212,7 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (140 tests in five files on 2026-11-17; `test_selfplay.py` holds 100): hidden-information
+`.venv/bin/python -m pytest tools/selfplay -q` (144 tests in five files on 2026-11-17; `test_selfplay.py` holds 104): hidden-information
 metamorphic test (rewriting the opponent's hand and both libraries leaves the encoding
 byte-identical), encoding consistency over whole games, heuristic vs uniform random,
 option-permutation equivariance, batch-padding invariance and save/load round-trip, packed
@@ -232,7 +232,9 @@ they were issued; a refused job request counts once; a hung game is voided and i
 on; "keep" is the mulligan's pass; an ability target and a source's second trigger encode apart
 (and r28's v2 computes bitwise what it did on every other ask, when its file is present); the
 heuristic reads an aura by what it does to what it enchants, and never destroys its own Nine
-Lives.
+Lives. Every game a worker plays comes back once: r29's first start (2026-11-17) never trained,
+because a slot took the worker's outbox as its game began and the worker replaces it at every
+send, so nine in ten results went into lists nobody read (fails on c13165e9).
 
 `test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
 rewriting every hidden card and both libraries' order leaves the simulator's input and output
