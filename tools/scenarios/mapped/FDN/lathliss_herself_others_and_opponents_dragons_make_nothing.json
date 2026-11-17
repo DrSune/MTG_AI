@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "lathliss_herself_others_and_opponents_dragons_make_nothing",
+ "notes": "M8 mapper. Printed: 'Whenever another nontoken Dragon you control enters, ...' Lathliss enters (not another), then a 2/2 Bear under seat 0's control (no Dragon), then a 2/2 Dragon under seat 1's control (not yours): no Dragon token.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathliss",
+   "real": "Lathliss, Dragon Queen",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "odrake",
+   "name": "Opp Whelp",
+   "type": "Creature — Dragon",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "lathliss"
+  },
+  {
+   "op": "enter",
+   "key": "bear"
+  },
+  {
+   "op": "enter",
+   "key": "odrake"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Dragon": 0
+  },
+  "zone": {
+   "lathliss": "battlefield",
+   "bear": "battlefield",
+   "odrake": "battlefield"
+  }
+ }
+}

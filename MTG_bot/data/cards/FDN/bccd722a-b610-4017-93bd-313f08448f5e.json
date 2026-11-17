@@ -1,0 +1,162 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "bccd722a-b610-4017-93bd-313f08448f5e",
+ "name": "Heroes' Bane",
+ "text_sha": "49db42112f05f71010a43fa4c49b55e503c246e8e3bc50435c00349994af7805",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": false,
+    "initial_counters": [
+     [
+      {
+       "tag": "CounterKind",
+       "name": "PLUS_1_PLUS_1"
+      },
+      {
+       "tag": "QConst",
+       "value": 4
+      }
+     ]
+    ]
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "G",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "G",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QProp",
+         "referent": "source",
+         "field": {
+          "tag": "QPropField",
+          "name": "POWER"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1), mode=SelectorMode.CHOOSE, filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))\n# This creature enters with four +1/+1 counters on it.  (M21 Malefic Scythe's EtBState form)\nenters_with = EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(value=4)),))\n# {2}{G}{G}: Put X +1/+1 counters on this creature, where X is its power.\n# \"its power\" is the source's power as the ability resolves: QProp('source', POWER).\ndouble_up = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaColor(color='G', amount=QConst(value=1)),\n        CostManaColor(color='G', amount=QConst(value=1)),\n        CostManaGeneric(amount=QConst(value=2)),\n    )),\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QProp(referent='source', field=QPropField.POWER),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': SELF,\n    }),\n)\nabilities = [enters_with, double_up, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature enters with four +1/+1 counters on it.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}{G}{G}: Put X +1/+1 counters on this creature, where X is its power.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. Probe gap: the probe puts a 0/0 that enters with counters on the battlefield as 'not a creature' (M21 Wildwood Scourge too), so ability [1] is never probed; the packs play it. Packs: tools/scenarios/mapped/FDN/heroes_bane_*.json."
+ },
+ "probe": {
+  "sha": "0631ac574691deee30240e218977be0ad58cbfafbc1519c57208d1d4dd17616a"
+ }
+}

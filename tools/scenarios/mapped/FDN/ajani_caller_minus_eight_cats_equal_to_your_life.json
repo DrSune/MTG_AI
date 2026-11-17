@@ -1,0 +1,47 @@
+{
+ "set": "FDN",
+ "name": "ajani_caller_minus_eight_cats_equal_to_your_life",
+ "notes": "M8 mapper. Printed: '[-8]: Create X 2/2 white Cat creature tokens, where X is your life total.' Seat 0 is at 7 life and seat 1 at 20. Ajani (8 loyalty) makes seven Cat tokens and goes to its owner's graveyard with no loyalty left.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ajani",
+   "real": "Ajani, Caller of the Pride",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 7
+  },
+  {
+   "op": "loyalty",
+   "key": "ajani",
+   "set": 8
+  },
+  {
+   "op": "activate",
+   "key": "ajani",
+   "idx": 2,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Cat": 7
+  },
+  "zone": {
+   "ajani": "graveyard"
+  },
+  "life": {
+   "0": 7,
+   "1": 20
+  }
+ }
+}

@@ -1,0 +1,103 @@
+{
+ "set": "FDN",
+ "name": "jazal_goldmane_attackers_get_x_for_three_attackers",
+ "notes": "M8 mapper. Printed: '{3}{W}{W}: Attacking creatures you control get +X/+X until end of turn, where X is the number of attacking creatures.' Jazal (4/4 first strike) and two 2/2 Raiders attack; seat 0's Guard stays home. With the attackers declared seat 0 pays {3}{W}{W}: X = 3, so Jazal is 7/7 and the Raiders 5/5; the Guard and seat 1's creature stay 2/2. Nothing blocks: 7 + 5 + 5 = 17 damage (20 -> 3).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "jazal",
+   "real": "Jazal Goldmane",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Your Raider One",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "a2",
+   "name": "Your Raider Two",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "home",
+   "name": "Your Guard",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "opp",
+   "name": "Opp Watcher",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "jazal": true,
+    "a1": true,
+    "a2": true,
+    "home": false
+   },
+   "respond": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "mana",
+      "seat": 0,
+      "add": {
+       "W": 2,
+       "C": 3
+      }
+     },
+     {
+      "op": "activate",
+      "key": "jazal",
+      "idx": 0,
+      "seat": 0
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "jazal": 7,
+   "a1": 5,
+   "a2": 5,
+   "home": 2,
+   "opp": 2
+  },
+  "toughness": {
+   "jazal": 7,
+   "a1": 5,
+   "a2": 5,
+   "home": 2,
+   "opp": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 3
+  }
+ }
+}

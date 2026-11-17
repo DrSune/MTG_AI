@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9b568c34-ba0a-44a7-a0ee-bee3a37b3396",
+ "name": "Lathril, Blade of the Elves",
+ "text_sha": "f52e59abaa5d4e6794e1328e5604c7331b3b097f2c70fad64c5abef86d7d4139",
+ "needs_atom": {
+  "missing": "ENGINE: a cost with {T} and a tap-another part never taps its source. '{T}, Tap ten untapped Elves you control' is Cost(CostTap(), CostTap(target = 10 untapped Elves you control, FNot(IS_SOURCE))); legality.pay_costs replaces the plan's taps (the source among them) with _ask_cost_choices' picks whenever the plan records tap_options, so the {T} is never paid: Lathril drains 10 and stays untapped, free to attack, block or activate again (stronger than printed). And the tap lane offers the source itself to the tap-another part: without FNot(IS_SOURCE), Lathril and nine other Elves paid it (CR 601.2h, 602.2b: tapped for {T}, she is not one of the ten untapped Elves). The combat-damage trigger plays right. Draft and packs: tools/scenarios/known_bugs/2026-11-17/lathril_tap_cost_never_taps_its_source/ (lathril_ten_other_elves_drain_ten and lathril_new_elves_can_be_tapped_for_the_cost fail today: tapped[lathril] False).",
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17"
+ }
+}

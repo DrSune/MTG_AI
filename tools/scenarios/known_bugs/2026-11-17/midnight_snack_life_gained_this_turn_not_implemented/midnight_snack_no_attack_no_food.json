@@ -1,0 +1,76 @@
+{
+ "set": "FDN",
+ "name": "midnight_snack_no_attack_no_food",
+ "notes": "M8 mapper. Printed: 'Raid — At the beginning of your end step, if you attacked this turn, create a Food token.' Seat 0 does not attack; at its end step there is no Food token. On seat 1's turn seat 1 attacks, and at seat 1's end step still none (it is not seat 0's end step). No record (needs-atom): run it with `cardtool.py runpack FDN <this pack> --card 'Midnight Snack' --draft draft.py` (the draft beside it); it passes today.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "snack",
+   "real": "Midnight Snack",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "raider",
+   "name": "Opp Raider",
+   "type": "Creature — Human",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "END_TURN",
+   "decisions": [
+    "DECLINE"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "raider": true
+   },
+   "block": {
+    "bear": null
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Food": 0
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  }
+ }
+}

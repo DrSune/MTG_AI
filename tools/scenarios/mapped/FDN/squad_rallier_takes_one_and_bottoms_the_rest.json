@@ -1,0 +1,107 @@
+{
+ "set": "FDN",
+ "name": "squad_rallier_takes_one_and_bottoms_the_rest",
+ "notes": "M8 mapper. Printed: '... put it into your hand. Put the rest on the bottom of your library in a random order.' Seat 0 takes Small Squire: it goes to the hand, and the other three looked at go to the bottom, so Deep Squire (fifth) is now the top card.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "rallier",
+   "real": "Squad Rallier",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "deep",
+   "name": "Deep Squire",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "big",
+   "name": "Big Knight",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "3",
+   "toughness": "3"
+  },
+  {
+   "key": "land",
+   "name": "Plain Field",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "small",
+   "name": "Small Squire",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "tiny",
+   "name": "Tiny Squire",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "rallier",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "small"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "small": "hand",
+   "tiny": "library",
+   "land": "library",
+   "big": "library",
+   "deep": "library"
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Deep Squire",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}
