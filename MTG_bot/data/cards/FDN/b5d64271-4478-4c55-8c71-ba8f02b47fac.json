@@ -161,32 +161,6 @@
             "inner_filter": null
            },
            {
-            "tag": "FAtom",
-            "pred": {
-             "tag": "FAtomPred",
-             "name": "CMC_LE"
-            },
-            "string_value": null,
-            "color": null,
-            "colors": [],
-            "count": {
-             "tag": "QProp",
-             "referent": "source",
-             "field": {
-              "tag": "QPropField",
-              "name": "POWER"
-             },
-             "agg": {
-              "tag": "QAgg",
-              "name": "FIRST"
-             }
-            },
-            "counter_kind": null,
-            "keyword": null,
-            "who": null,
-            "inner_filter": null
-           },
-           {
             "tag": "FNot",
             "inner": {
              "tag": "FAtom",
@@ -220,6 +194,50 @@
              "keyword": null,
              "who": null,
              "inner_filter": null
+            }
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QBin",
+              "op": {
+               "tag": "QBinOp",
+               "name": "ADD"
+              },
+              "left": {
+               "tag": "QProp",
+               "referent": "source",
+               "field": {
+                "tag": "QPropField",
+                "name": "POWER"
+               },
+               "agg": {
+                "tag": "QAgg",
+                "name": "FIRST"
+               }
+              },
+              "right": {
+               "tag": "QConst",
+               "value": 1
+              }
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "MANA_VALUE"
+             }
             }
            }
           ]
@@ -269,7 +287,7 @@
  "mapping": {
   "author": "claude-mapper-m3",
   "date": "2026-11-17",
-  "draft_py": "# FDN Fiendish Panda: \"Whenever you gain life, put a +1/+1 counter on this creature. When this\n# creature dies, return another target non-Bear creature card with mana value less than or equal\n# to this creature's power from your graveyard to the battlefield.\"\n# compiled[0] is the lifegain counter trigger (B9-gain-life-counter-self), kept. The dies trigger\n# is M20 Cavalier of Night's verified \"When this creature dies, return target creature card with\n# mana value 3 or less from your graveyard to the battlefield.\" with the target narrowed:\n#   another: FNot(IS_SOURCE) (the Panda itself is in the graveyard by then);\n#   non-Bear creature card: TYPE_EQ 'Creature' and FNot(SUBTYPE_EQ 'Bear');\n#   mana value less than or equal to this creature's power: CMC_LE with the quantity\n#   QProp('source', POWER), the source's power as it last existed on the battlefield (CR 608.2h,\n#   quantity.last_known for the ability's own source, counters included).\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Bear')),\n                FAtom(pred=FAtomPred.CMC_LE, count=QProp(referent='source', field=QPropField.POWER)),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [compiled[0], dies, compiled[1]]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),\n        condition=None,\n        effect=A(Verb.PUT_COUNTER, {\n            'count': QConst(value=1),\n            'counter_kind': CounterKind.PLUS_1_PLUS_1,\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n    # [1]\n    TriggeredAbility(\n        event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n        condition=None,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        FNot(inner=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Bear')),\n                        FNot(\n                            inner=FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QBin(\n                                    op=QBinOp.ADD,\n                                    left=QProp(referent='source', field=QPropField.POWER),\n                                    right=QConst(value=1),\n                                ),\n                                field=QPropField.MANA_VALUE,\n                            ),\n                        ),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n        }),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
@@ -277,11 +295,11 @@
    },
    {
     "clause": "When this creature dies, return another target non-Bear creature card with mana value less than or equal to this creature's power from your graveyard to the battlefield.",
-    "ir": "abilities[1] (CreatureDiesEvent IS_SOURCE; MOVE_ZONE TARGET another non-Bear creature card from your graveyard with CMC_LE this creature's last-known power, to the battlefield)"
+    "ir": "abilities[1] (CreatureDiesEvent IS_SOURCE; MOVE_ZONE TARGET another non-Bear creature card from your graveyard with negated comparison of MANA_VALUE (at_most) this creature's last-known power, to the battlefield)"
    }
   ],
   "g0_warnings": [],
-  "notes": "Cavalier of Night's verified dies trigger with the target narrowed: another (FNot(IS_SOURCE)), non-Bear creature card (FNot(SUBTYPE_EQ Bear)), CMC_LE QProp('source', POWER): the Panda's power as it last existed on the battlefield (CR 608.2h, quantity.last_known for the ability's source), +1/+1 counters included. The lifegain counter trigger is the compiler's, kept. Packs: tools/scenarios/mapped/FDN/fiendish_panda_offers_no_bear_no_six_not_itself.json, tools/scenarios/mapped/FDN/fiendish_panda_reads_its_last_power_counters_included.json."
+  "notes": "Cavalier of Night's verified dies trigger with the target narrowed: another (FNot(IS_SOURCE)), non-Bear creature card (FNot(SUBTYPE_EQ Bear)), negated comparison of MANA_VALUE (at_most) QProp('source', POWER): the Panda's power as it last existed on the battlefield (CR 608.2h, quantity.last_known for the ability's source), +1/+1 counters included. The lifegain counter trigger is the compiler's, kept. Packs: tools/scenarios/mapped/FDN/fiendish_panda_offers_no_bear_no_six_not_itself.json, tools/scenarios/mapped/FDN/fiendish_panda_reads_its_last_power_counters_included.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "b2cb0d83dd5e4fcedd0903443fefc1567ce81d21b246b8ce1c202e5aa239787c"

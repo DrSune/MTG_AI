@@ -1,9 +1,10 @@
 """The life family (2026-11-13, ontology round R8, gate round 8): a life-total threshold, "for the
 first time each turn" on life events, and a replaced gain's amount.
 
-- ``FAtomPred.LIFE_TOTAL_GE(who, count)``: your life total now is at least ``count`` (CR 119.1),
-  whatever it started at (CR 103.4). "N or less life" is FNot(LIFE_TOTAL_GE(N + 1)), never a
-  second predicate; ``who`` is YOU, the only reading printed.
+- Your life total now is at least ``count`` (CR 119.1), whatever it started at (CR 103.4): since
+  ontology round R12 the one comparison (``FAtomPred.QTY_GE`` over ``QProp("controller", LIFE)``),
+  which replaced R8's LIFE_TOTAL_GE. "N or less life" is its FNot at N + 1, never a second form;
+  no ``who``: another player's life comes with the card that prints it.
 - ``LifeGainedEvent.ordinal`` / ``LifeLostEvent.ordinal``: the Nth gain or loss of that player
   this turn, CardDrawnEvent.ordinal's contract, counted by the trigger binder. One loss is one
   source's damage to the player at once, or one effect's or payment's loss (CR 120.3a, 119.3,
@@ -44,6 +45,7 @@ from MTG_bot.core.executor.legality import ctx_for
 from MTG_bot.core.executor.quantity import eval_filter
 from MTG_bot.core.state import ZONE_BATTLEFIELD, GameWorld
 from MTG_bot.core.test_executor_binding import card_id, record_of, referent_sel
+from MTG_bot.core.compiler.conditions import life_over_start
 from tools.audit import ontology_conformance as oc
 from tools.run_scenarios import ScenarioRunner
 
@@ -51,8 +53,11 @@ YOU = ControllerRef.YOU
 YOU_ARE = FAtom(FAtomPred.CONTROLLER_IS, who=YOU)
 
 
-def life_ge(n: int, who=YOU) -> FAtom:
-    return FAtom(FAtomPred.LIFE_TOTAL_GE, who=who, count=QConst(n))
+LIFE = at.QProp("controller", at.QPropField.LIFE)
+
+
+def life_ge(n: int, who=None) -> FAtom:
+    return at.at_least(n, quantity=LIFE, who=who)
 
 
 def _world(start_life: int = 20):
@@ -89,7 +94,7 @@ def _plus_counters(r: ScenarioRunner, key: str) -> int:
     return r.world.cards[r.handles[key]].counters.get("PLUS_1_PLUS_1", 0)
 
 
-# ------------------------------------------------------------------- LIFE_TOTAL_GE
+# ------------------------------------------------------------------- your life total
 
 
 def test_life_total_reads_one_players_life_now_both_ways_through_fnot() -> None:
@@ -105,18 +110,19 @@ def test_life_total_reads_one_players_life_now_both_ways_through_fnot() -> None:
         assert eval_filter(at_most_24, alpha, ctx) is le24, life
         assert eval_filter(at_most_25, alpha, ctx) is le25, life
     world.players[p0].life = -3  # a life total can be negative (CR 119.6 ends the game later)
-    assert eval_filter(FNot(life_ge(0)), alpha, ctx)
-    assert not eval_filter(life_ge(0), alpha, ctx)
+    assert eval_filter(FNot(life_ge(1)), alpha, ctx)  # "0 or less life"
+    assert not eval_filter(life_ge(1), alpha, ctx)
 
 
 def test_life_total_is_not_the_lead_over_the_starting_life() -> None:
-    """Not a second encoding of LIFE_LEAD_OVER_START_GE: in Commander (40 starting life, CR
+    """Not the lead over the starting life total (ledger F11, settled by round R12: the lead is
+    the comparison with the starting life total plus N): in Commander (40 starting life, CR
     103.4c) "25 or more life" holds at the start, a 5-life lead does not (Angel of Vitality's
     ruling: "In formats where your life total doesn't start at 20, ... still applies if your
     life total is 25 or more")."""
     world, ex, p0, _p1, alpha, _beta = _world(start_life=40)
     ctx = ctx_for(ex, source=alpha, controller=p0)
-    lead_5 = FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(5))
+    lead_5 = life_over_start(5)
     assert eval_filter(life_ge(25), alpha, ctx) and not eval_filter(lead_5, alpha, ctx)
     world.players[p0].life = 45
     assert eval_filter(life_ge(25), alpha, ctx) and eval_filter(lead_5, alpha, ctx)
@@ -127,30 +133,32 @@ def test_life_total_is_not_the_lead_over_the_starting_life() -> None:
 @pytest.mark.parametrize(
     ("make", "message"),
     [
-        (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, who=YOU), "requires slot 'count'"),
-        (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, count=QConst(25)), "requires slot 'who'"),
-        (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, who=YOU, count=QConst(-1)), "negative"),
-        (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, who=YOU, count=QConst(25), string_value="x"),
+        (lambda: FAtom(FAtomPred.QTY_GE, quantity=LIFE), "requires slot 'count'"),
+        (lambda: FAtom(FAtomPred.QTY_GE, count=QConst(25)), "exactly one of"),
+        (lambda: life_ge(-1), "negative"),
+        (lambda: FAtom(FAtomPred.QTY_GE, quantity=LIFE, count=QConst(25), string_value="x"),
          "does not take slot 'string_value'"),
-        (lambda: FAtom(FAtomPred.LIFE_TOTAL_GE, who=YOU, count=QConst(25), inner_filter=YOU_ARE),
+        (lambda: FAtom(FAtomPred.QTY_GE, quantity=LIFE, count=QConst(25), inner_filter=YOU_ARE),
          "does not take slot 'inner_filter'"),
-        # YOU is the only reading printed (gate round 8, M1). Several players would make "N or
+        # Your life only (gate round 8, M1, kept by round R12). Several players would make "N or
         # less" through FNot read "each"; TARGET_PLAYER, TARGET_OPPONENT and a referent "target"
         # read one binding (three byte forms of one meaning), and a TARGET_* in a filter
-        # designates nothing; "source" and "controller" are you again (CR 113.8).
+        # designates nothing; YOU is the absent `who` again. Some opponent's count of cards is
+        # the one reading `who` has (Thieves' Guild Enforcer), and not over a life total.
         *[
-            (lambda ref=ref: life_ge(10, ref), "who must be YOU")
-            for ref in (ControllerRef.OPPONENT, ControllerRef.ANY, ControllerRef.ALL_OPPONENTS,
+            (lambda ref=ref: life_ge(10, ref), "who must be one of")
+            for ref in (ControllerRef.YOU, ControllerRef.ANY, ControllerRef.ALL_OPPONENTS,
                         ControllerRef.DEFENDING_PLAYER, ControllerRef.OWNER,
                         ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT)
         ],
+        (lambda: life_ge(10, ControllerRef.OPPONENT), "who reads a count of cards"),
         *[
-            (lambda referent=referent: life_ge(10, referent_sel(referent)), "who must be YOU")
+            (lambda referent=referent: life_ge(10, referent_sel(referent)), "who must be one of")
             for referent in ("target", "event", "result", "source", "controller")
         ],
         (lambda: life_ge(10, at.Selector(QConst(1), at.SelectorMode.CHOOSE, YOU_ARE,
                                           zones=(at.Zone(at.ZoneKind.BATTLEFIELD, YOU),))),
-         "who must be YOU"),
+         "who must be one of"),
     ],
 )
 def test_life_total_refuses_what_has_no_meaning(make, message) -> None:
@@ -161,7 +169,7 @@ def test_life_total_refuses_what_has_no_meaning(make, message) -> None:
 def test_life_total_round_trips_and_is_a_subject_free_qualifier() -> None:
     atom = life_ge(25)
     assert at.from_dict("FAtom", at.to_dict(atom)) == atom
-    assert FAtomPred.LIFE_TOTAL_GE in oc.SUBJECT_FREE
+    assert at.reads_no_subject(atom)
     draw = Atom(Verb.DRAW, AtomArgs(pairs=(("amount", QConst(1)), ("controller", YOU))))
 
     def trig(event):
@@ -171,7 +179,7 @@ def test_life_total_round_trips_and_is_a_subject_free_qualifier() -> None:
     good = LifeLostEvent(actor=at.FAnd((YOU_ARE, atom)))
     assert oc.misplaced_qualifiers(trig(good)) == []
     bad = at.CastSpellEvent(filter=at.FAnd(()), actor=at.FAnd((YOU_ARE, atom)))
-    assert oc.misplaced_qualifiers(trig(bad)) == ["CastSpellEvent.actor: LIFE_TOTAL_GE"]
+    assert oc.misplaced_qualifiers(trig(bad)) == ["CastSpellEvent.actor: QTY_GE"]
 
 
 # ------------------------------------------------------------------ the ordinal: the IR
@@ -479,7 +487,10 @@ def _one(registry, sentence: str):
     from MTG_bot.core.compiler.frames import compose
 
     matches = registry.match(sentence) or compose(sentence, registry)
-    assert len(matches) == 1, [m.template.tid for m in matches]
+    # one reading: a specific template and a general one (B14) may both read a sentence, the
+    # specific first (registry.match's priority order), and then they agree byte for byte
+    assert matches and all(m.outcome == matches[0].outcome for m in matches), [
+        m.template.tid for m in matches]
     return matches[0]
 
 

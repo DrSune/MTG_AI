@@ -304,8 +304,9 @@ def test_r1b_fields_are_canonicalised_and_operator_fields_untouched():
     )
     # additional_costs sorted at construction
     assert spell.additional_costs == (at.Cost((generic,)), at.Cost((tap,)))
-    params = at.KeywordAbility(keyword=at.Keyword.SCRY, params=(at.QConst(1),))
-    assert params.params == (at.QConst(1),)
+    red = at.FAtom(pred=at.FAtomPred.COLOR_HAS, color="R")
+    params = at.KeywordAbility(keyword=at.Keyword.PROTECTION, params=(red,))
+    assert params.params == (red,)
 
 
 # --------------------------------------------------------------------------

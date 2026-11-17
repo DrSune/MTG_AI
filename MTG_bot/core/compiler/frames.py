@@ -30,6 +30,7 @@ from dataclasses import replace
 from typing import Any, Final
 
 from MTG_bot.core.ability_tree import (
+    CastSpellEvent,
     Conditional,
     ControllerRef,
     DeclareAttackersEvent,
@@ -73,6 +74,27 @@ _INTERVENING_IF: Final[re.Pattern[str]] = re.compile(r"if (?P<cond>[^,]+), (?P<c
 _TRAILING: Final[re.Pattern[str]] = re.compile(
     r"(?P<clause>.+) (?P<word>if|unless) (?P<cond>[^,]+)\."
 )
+
+
+#: What "a spell that targets <it>" names (CR 115.1, 601.2c: the spell's chosen targets, which
+#: TARGETS reads of the cast spell).
+_TARGETED: Final[dict[str, Any]] = {
+    "this creature": FAtom(pred=FAtomPred.IS_SOURCE),
+    "a creature you control": FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        )
+    ),
+}
+
+
+def _cast_targeting(m: re.Match[str]) -> CastSpellEvent:
+    """You cast a spell one of whose targets is the named object (Gnarlback Rhino's head)."""
+    return CastSpellEvent(
+        filter=FAtom(pred=FAtomPred.TARGETS, inner_filter=_TARGETED[m.group("what")]),
+        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+    )
 
 
 def _never_alone(m: re.Match[str]) -> SentenceOutcome:
@@ -165,6 +187,13 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
             rf"{templates_b17.CHOSEN_CAST_RE}, (?P<clause>.+)"),
      lambda m, effect, condition: templates_b2a._ability(
          templates_b17.chosen_cast_event(m), effect, condition)),
+    # "Whenever you cast a spell that targets this creature|a creature you control, <clause>"
+    # (Gnarlback Rhino, the THB heroes, Season of Growth).
+    (_frame("B13-cast-targets",
+            "whenever you cast a spell that targets this creature|a creature you control, <clause>",
+            r"Whenever you cast a spell that targets (?P<what>this creature|a creature you "
+            r"control), (?P<clause>.+)"),
+     lambda m, effect, condition: templates_b2a._ability(_cast_targeting(m), effect, condition)),
     # The targeting trigger with its actor (Thorn Lieutenant).
     (_frame("B13-targeted",
             "whenever this creature becomes the target of a spell or ability an opponent controls, "

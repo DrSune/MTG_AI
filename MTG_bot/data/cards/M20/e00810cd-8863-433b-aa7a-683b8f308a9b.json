@@ -71,7 +71,7 @@
         "tag": "FAtom",
         "pred": {
          "tag": "FAtomPred",
-         "name": "ZONE_COUNT_GE"
+         "name": "QTY_GE"
         },
         "string_value": null,
         "color": null,
@@ -82,38 +82,51 @@
         },
         "counter_kind": null,
         "keyword": null,
-        "who": {
-         "tag": "ControllerRef",
-         "name": "YOU"
-        },
-        "inner_filter": {
-         "tag": "FAtom",
-         "pred": {
-          "tag": "FAtomPred",
-          "name": "NAME_CHOSEN"
-         },
-         "string_value": null,
-         "color": null,
-         "colors": [],
-         "count": null,
-         "counter_kind": null,
-         "keyword": null,
-         "who": null,
-         "inner_filter": null
-        },
-        "zone": {
-         "tag": "Zone",
-         "kind": {
-          "tag": "ZoneKind",
-          "name": "LIBRARY"
-         },
-         "controller": {
-          "tag": "ControllerRef",
-          "name": "YOU"
-         },
-         "position": {
-          "tag": "ZonePosition",
-          "name": "TOP"
+        "who": null,
+        "inner_filter": null,
+        "quantity": {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "NAME_CHOSEN"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "position": {
+             "tag": "ZonePosition",
+             "name": "TOP"
+            }
+           }
+          ]
          }
         }
        },
@@ -223,7 +236,7 @@
  "mapping": {
   "author": "m8-mapper-opus",
   "date": "2026-11-17",
-  "draft_py": "SELF = Selector(\n    count=QConst(value=1), mode=SelectorMode.CHOOSE, filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))\n# {1}, {T}: Choose a card name, then reveal the top card of your library. If that card has the chosen\n# name, sacrifice this artifact and draw three cards. Activate only as a sorcery.\n# The choice is Necromentia's CHOOSE_NAME at resolution; \"that card\" is the revealed top card, read as\n# \"the top card of your library has the chosen name\" (ZONE_COUNT_GE over the TOP position, Conspicuous\n# Snoop's form), which the Conditional judges with no subject of its own.\nlockbox = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=1)), CostTap())),\n    effect=Seq(steps=(\n        A(Verb.CHOOSE_NAME, {}),\n        A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n        Conditional(\n            pred=FAtom(\n                pred=FAtomPred.ZONE_COUNT_GE,\n                count=QConst(value=1),\n                who=ControllerRef.YOU,\n                inner_filter=FAtom(pred=FAtomPred.NAME_CHOSEN),\n                zone=Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP)),\n            then_effect=Seq(steps=(\n                A(Verb.SACRIFICE, {'target': SELF}),\n                A(Verb.DRAW, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n            )),\n        ),\n    )),\n    timing=ActivationWindow.SORCERY,\n)\nabilities = [lockbox, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(parts=(CostManaGeneric(amount=QConst(value=1)), CostTap())),\n        effect=Seq(\n            steps=(\n                A(Verb.CHOOSE_NAME, {}),\n                A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                Conditional(\n                    pred=FAtom(\n                        pred=FAtomPred.QTY_GE,\n                        count=QConst(value=1),\n                        quantity=QCount(\n                            selector=Selector(\n                                count=QUnbounded(),\n                                mode=SelectorMode.ALL,\n                                filter=FAtom(pred=FAtomPred.NAME_CHOSEN),\n                                zones=(\n                                    Zone(\n                                        kind=ZoneKind.LIBRARY,\n                                        controller=ControllerRef.YOU,\n                                        position=ZonePosition.TOP,\n                                    ),\n                                ),\n                            ),\n                        ),\n                    ),\n                    then_effect=Seq(\n                        steps=(\n                            A(Verb.SACRIFICE, {\n                                'target': Selector(\n                                    count=QConst(value=1),\n                                    mode=SelectorMode.CHOOSE,\n                                    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                                    zones=(\n                                        Zone(\n                                            kind=ZoneKind.BATTLEFIELD,\n                                            controller=ControllerRef.ANY,\n                                        ),\n                                    ),\n                                ),\n                            }),\n                            A(Verb.DRAW, {\n                                'amount': QConst(value=3),\n                                'controller': ControllerRef.YOU,\n                            }),\n                        ),\n                    ),\n                ),\n            ),\n        ),\n        timing=ActivationWindow.SORCERY,\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.ARTIFACT),\n]\n",
   "clauses": [
    {
     "clause": "{1}, {T}: Choose a card name, then reveal the top card of your library.",
@@ -239,7 +252,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "M8 mapper. Refused whole by the compiler's sorcery-gate fault; mapped whole. 'That card' is the revealed top card: ZONE_COUNT_GE over Zone(LIBRARY, YOU, TOP) with NAME_CHOSEN (Conspicuous Snoop's top-card form). A bare NAME_CHOSEN Conditional would judge the Lockbox itself (executor._conditional_subject), which naming 'Diviner's Lockbox' would satisfy. Packs: tools/scenarios/mapped/M20/diviners_lockbox_*.json."
+  "notes": "M8 mapper. Refused whole by the compiler's sorcery-gate fault; mapped whole. 'That card' is the revealed top card: comparison over number_in(<zone>) over Zone(LIBRARY, YOU, TOP) with NAME_CHOSEN (Conspicuous Snoop's top-card form). A bare NAME_CHOSEN Conditional would judge the Lockbox itself (executor._conditional_subject), which naming 'Diviner's Lockbox' would satisfy. Packs: tools/scenarios/mapped/M20/diviners_lockbox_*.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "5499c43b68bb89ebc12e89b36bb2d2a14f2527d40334137c01cbde1561353453"

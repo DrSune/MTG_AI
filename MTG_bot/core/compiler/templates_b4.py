@@ -629,11 +629,11 @@ def _build_stormwing_cost(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
     """Spells your opponents cast that target this creature cost an
-    additional N life to cast.  The TARGETS_SOURCE filter selects the
-    affected spells; controller_ref scopes whose."""
+    additional N life to cast.  The TARGETS filter (a target that is the
+    source) selects the affected spells; controller_ref scopes whose."""
     n = int(m.group("n"))
     modifier = CostModifier(
-        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        filter=_TARGETS_THIS,
         controller_ref=ControllerRef.OPPONENT,
         delta=CostDeltaIncreaseLife(amount=QConst(n)),
     )
@@ -641,15 +641,34 @@ def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_opponent_spell_cost_mana(m: re.Match[str]) -> SentenceOutcome:
-    """Spells your opponents cast that target this creature cost {N} more
-    to cast."""
+    """Spells your opponents cast that target this creature (Pursued Whale) or a creature or
+    planeswalker you control (Kasmina) cost {N} more to cast."""
     n = int(m.group("n"))
     modifier = CostModifier(
-        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        filter=_TARGETS_THIS if m.group("what") == "this creature" else _TARGETS_YOURS,
         controller_ref=ControllerRef.OPPONENT,
         delta=CostDeltaIncreaseGeneric(amount=QConst(n)),
     )
     return AbilityOutcome(ability=modifier)
+
+
+#: "that target this creature": one of the judged spell's targets is the source (CR 115.1).
+_TARGETS_THIS = FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE))
+#: "that target a creature or planeswalker you control".
+_TARGETS_YOURS = FAtom(
+    pred=FAtomPred.TARGETS,
+    inner_filter=FAnd(
+        children=(
+            FOr(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                )
+            ),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        )
+    ),
+)
 
 
 def _build_enters_tapped(m: re.Match[str]) -> SentenceOutcome:
@@ -1499,11 +1518,12 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B4-opponent-spell-cost-mana",
-        name="opponent spells targeting this creature cost {N} more",
+        name="opponent spells targeting this creature or a creature or planeswalker you control "
+        "cost {N} more",
         bucket=_BUCKET,
         pattern=re.compile(
-            r"^Spells your opponents cast that target this creature cost "
-            r"\{(?P<n>\d+)\} more to cast\.$"
+            r"^Spells your opponents cast that target (?P<what>this creature|a creature or "
+            r"planeswalker you control) cost \{(?P<n>\d+)\} more to cast\.$"
         ),
         priority=_PRIORITY,
         build=_build_opponent_spell_cost_mana,

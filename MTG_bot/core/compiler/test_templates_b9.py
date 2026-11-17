@@ -12,7 +12,6 @@ import unittest
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
-    canonical_json,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -36,6 +35,7 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QConst,
     QCount,
+    QPropField,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -46,6 +46,8 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_most,
+    canonical_json,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
@@ -312,9 +314,9 @@ class TestB9Trees(unittest.TestCase):
         self.assertNotIn("duration", pairs)
         cond = ab.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         self.assertEqual(cond.count, QConst(1))
-        inner = cond.inner_filter
+        inner = cond.quantity.selector.filter
         assert isinstance(inner, FAnd)
         # "Another" keeps its self-exclusion, inside the per-candidate inner filter.
         self.assertIsInstance(inner.children[-1], FNot)
@@ -441,11 +443,11 @@ class TestB9Trees(unittest.TestCase):
     def test_if_wizard_conditional(self):
         cond = _effect(S_WIZARD)
         self.assertIsInstance(cond, Conditional)
-        self.assertIs(cond.pred.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred.pred, FAtomPred.QTY_GE)
         self.assertEqual(cond.pred.count, QConst(1))
         self.assertIn(
             FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Wizard"),
-            cond.pred.inner_filter.children,
+            cond.pred.quantity.selector.filter.children,
         )
         self.assertIs(cond.else_effect, None)
         self.assertIs(cond.then_effect.verb, Verb.DRAW)
@@ -466,8 +468,8 @@ class TestB9Trees(unittest.TestCase):
         self.assertEqual(neg.inner.string_value, "Creature")
 
     def test_cant_blocked_self_ok_has_no_self_exclusion(self):
-        # "Target creature" with no "another": the blocked side keeps the printed POWER_LE
-        # bound and has no IS_SOURCE negation.
+        # "Target creature" with no "another": the blocked side keeps the printed power
+        # bound ("2 or less": not 3 or greater) and has no IS_SOURCE negation.
         ab = _ability(S_CANT_BLOCK)
         assert isinstance(ab, ActivatedAbility)
         self.assertEqual(ab.cost.parts, (CostManaGeneric(QConst(2)), CostTap()))
@@ -479,12 +481,7 @@ class TestB9Trees(unittest.TestCase):
         preds = [n.pred for n in blocked.children if isinstance(n, FAtom)]
         self.assertIn(FAtomPred.IS_ANY_TARGET, preds)
         self.assertNotIn(FAtomPred.IS_SOURCE, preds)  # the source may target itself
-        power = next(
-            n
-            for n in blocked.children
-            if isinstance(n, FAtom) and n.pred is FAtomPred.POWER_LE
-        )
-        self.assertEqual(power.count, QConst(2))
+        self.assertIn(at_most(2, field=QPropField.POWER), blocked.children)
         self.assertIsInstance(pairs["duration"], DurationEot)
 
 

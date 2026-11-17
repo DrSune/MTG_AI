@@ -171,7 +171,7 @@ def _ugin_exile_dynamic() -> at.ActivatedAbility:
     return at.ActivatedAbility(
         cost=at.Cost(parts=(at.CostLoyalty(at.QX()),)),
         effect=at.Atom(
-            at.Verb.EXILE,
+            at.Verb.MOVE_ZONE,
             at.AtomArgs(
                 pairs=(
                     (
@@ -181,16 +181,14 @@ def _ugin_exile_dynamic() -> at.ActivatedAbility:
                             at.SelectorMode.ALL,
                             at.FAnd(
                                 (
-                                    at.FAtom(at.FAtomPred.CMC_LE, count=at.QX()),
-                                    at.FAtom(
-                                        at.FAtomPred.COLOR_COUNT_GE,
-                                        count=at.QConst(2),
-                                    ),
+                                    at.at_most(at.QX(), field=at.QPropField.MANA_VALUE),
+                                    at.at_least(2, field=at.QPropField.COLOR),
                                 )
                             ),
                             zones=(_BF_YOU,),
                         ),
                     ),
+                    ("destination", at.Zone(at.ZoneKind.EXILE, at.ControllerRef.OWNER)),
                 )
             ),
         ),
@@ -256,8 +254,8 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
     ),
     (
         "qthis_turn",
-        lambda: at.QThisTurn(at.ThisTurnKind.LIFE_GAINED, at.ControllerRef.YOU),
-        "f041066bc5249c4ec4a1e1ade8586936742d70656fa733790bec97876d5c4744",
+        lambda: at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.YOU),
+        "f7e24a1c4a3bd4420f2cbe9e5348cc1c78386134c0c09c8586918ef8f7058ece",  # re-pinned by round R12: LIFE_GAINED was a dead member
     ),
 ]
 
@@ -335,7 +333,7 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
         "fatom_cards_drawn_qthis",
         lambda: at.FAtom(
             at.FAtomPred.CARDS_DRAWN_THIS_TURN_GE,
-            count=at.QThisTurn(at.ThisTurnKind.CARDS_DRAWN, at.ControllerRef.OPPONENT),
+            count=at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.OPPONENT),
             who=at.ControllerRef.OPPONENT,
         ),
     ),
@@ -690,9 +688,9 @@ def test_ugin_dynamic_loyalty_item6() -> None:
     node = _ugin_exile_dynamic()
     # The ability's FAnd children are sorted at construction
     # (docs/DESIGN_ATOM_ONTOLOGY.md §3): the bytes follow canonical order,
-    # not printed order.
+    # not printed order. Re-pinned by round R12: the comparison, and the exile a MOVE_ZONE.
     assert at.fingerprint(node) == (
-        "65b7cd4f308a8a48bab9258ac85cdc219cd7d863d23b88387619dbd55949fb5f"
+        "0d16d6521b87010580f050a8d044fd24e2abd8b489709c4be6d50e994ca89b37"
     )
     back = at.from_dict("ActivatedAbility", at.to_dict(node))
     assert back == node

@@ -4,9 +4,281 @@
  "oracle_id": "aa959340-c869-4caa-92c7-572bd8d23eef",
  "name": "Field of the Dead",
  "text_sha": "9299c8f01630ff791e8ae46464c768a0324a18c46e5edbdb56070d600054a60d",
- "needs_atom": {
-  "missing": "'if you control seven or more lands with different names': no distinct-NAME count. NAME_PARTITION_COUNT_GE measures the largest same-name group (the opposite question), QDistinctColorCount counts colours, QCount counts objects. Needs a distinct-name count over a filter (lands you control) usable in the intervening-if condition (e.g. a QDistinctNameCount quantity or a NAME_DISTINCT_COUNT_GE predicate). The trigger itself ('this land or another land you control enters') and the Zombie token are expressible.",
-  "author": "claude-mapper-m20-6",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": true,
+    "initial_counters": []
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "C"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "QTY_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 7
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QDistinct",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Land",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      },
+      "field": {
+       "tag": "QPropField",
+       "name": "NAME"
+      }
+     }
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Zombie",
+         "type_line": "Creature — Zombie",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Zombie"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "B"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = []\n_lands_you_control = Selector(\n    QUnbounded(), SelectorMode.ALL,\n    FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    # [0] This land enters tapped.\n    EtBState(tapped=True),\n    # [1] {T}: Add {C}.\n    compiled[1],\n    # [2] Whenever this land or another land you control enters, if you control seven or more lands\n    # with different names, create a 2/2 black Zombie creature token.\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            )),\n        ),\n        condition=at_least(7, quantity=QDistinct(_lands_you_control, QPropField.NAME)),\n        effect=A(Verb.CREATE_TOKEN, {\n            'count': QConst(value=1),\n            'tokens': TokenSpec(\n                name='Zombie', type_line='Creature — Zombie', types=('Creature',),\n                subtypes=('Zombie',), power=QConst(value=2), toughness=QConst(value=2),\n                keywords=(), abilities=(), colors=('B',),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "ir": "abilities[0]: EtBState(tapped)"
+   },
+   {
+    "clause": "{T}: Add {C}.",
+    "ir": "abilities[1]: the compiler's ADD_MANA C"
+   },
+   {
+    "clause": "Whenever this land or another land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.",
+    "ir": "abilities[2]: ZoneChangeEvent(to BATTLEFIELD YOU, subject FAnd(CONTROLLER_IS YOU, TYPE_EQ Land)), itself included; condition at_least(7, QDistinct(lands you control, NAME)): seven lands with pairwise different names exist iff there are seven different names among the lands you control (CR 201.2); an intervening if (CR 603.4); CREATE_TOKEN one 2/2 black Zombie"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Ontology round R12: the needs_atom note (no distinct-name count) is met by QDistinct(lands you control, NAME) under the one comparison; mapped, waits for verification."
+ },
+ "probe": {
+  "sha": "15cf0cd8d8a72d21bf33f4bf437421abcbe119234caa0517678d3b3910f6c7ca"
  }
 }

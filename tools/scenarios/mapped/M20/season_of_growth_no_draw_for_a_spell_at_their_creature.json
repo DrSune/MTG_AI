@@ -1,0 +1,13 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12 (TARGETS over a filter). Seat 0 casts Titanic Growth at the opponent's Bear: the spell targets no creature seat 0 controls, so Season of Growth draws nothing (hand 1 -> 0).",
+ "cards": [
+  {"key": "season", "real": "Season of Growth", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [{"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["theirs"]}],
+ "expect": {"zone": {"tg": "graveyard"}, "hand": {"0": 0}, "power": {"theirs": 6}}
+}

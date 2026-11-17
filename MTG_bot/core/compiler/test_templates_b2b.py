@@ -69,6 +69,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_least,
     canonical_json,
     fingerprint,
 )
@@ -816,9 +817,7 @@ class TestB2bTriggerEvents(unittest.TestCase):
         assert isinstance(event.subject, FAnd)
         self._assert_has_type_eq_creature(event.subject)
         self._assert_has_controller_you(event.subject)
-        power = _find_atom(event.subject, FAtomPred.POWER_GE)
-        assert isinstance(power.count, QConst)
-        self.assertEqual(power.count.value, 4)
+        self.assertIn(at_least(4, field=QPropField.POWER), event.subject.children)
 
     def test_mangara_is_cast_spell_opponent_second(self) -> None:
         ability = _ability(
@@ -1027,14 +1026,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         cond = ability.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         # "a creature with power 4 or greater" means one or more: count 1, with
-        # the threshold only in the POWER_GE filter.
+        # the threshold only in the power comparison of the counted filter.
         self.assertEqual(cond.count, QConst(1))
-        assert isinstance(cond.inner_filter, FAnd)
-        self._assert_has_type_eq_creature(cond.inner_filter)
-        power = _find_atom(cond.inner_filter, FAtomPred.POWER_GE)
-        self.assertEqual(power.count, QConst(4))
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        self._assert_has_type_eq_creature(inner)
+        self.assertIn(at_least(4, field=QPropField.POWER), inner.children)
 
     def test_historian_attack_teferi_condition(self) -> None:
         ability = _ability(
@@ -1050,12 +1049,13 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
         cond = ability.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         self.assertEqual(cond.count, QConst(1))
-        assert isinstance(cond.inner_filter, FAnd)
-        pw = _find_atom(cond.inner_filter, FAtomPred.TYPE_EQ)
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        pw = _find_atom(inner, FAtomPred.TYPE_EQ)
         self.assertEqual(pw.string_value, "Planeswalker")
-        name = _find_atom(cond.inner_filter, FAtomPred.NAME_CONTAINS)
+        name = _find_atom(inner, FAtomPred.NAME_CONTAINS)
         self.assertEqual(name.string_value, "Teferi")
 
     def test_ornery_attack_power_condition(self) -> None:
@@ -1073,14 +1073,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
         self.assertIs(event.filter.pred, FAtomPred.IS_SOURCE)
         cond = ability.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         # "a creature with power 4 or greater" is an existence claim: one such
-        # creature (the threshold lives only in the POWER_GE filter).
+        # creature (the threshold lives only in the counted filter's power comparison).
         self.assertEqual(cond.count, QConst(1))
-        assert isinstance(cond.inner_filter, FAnd)
-        self._assert_has_type_eq_creature(cond.inner_filter)
-        power = _find_atom(cond.inner_filter, FAtomPred.POWER_GE)
-        self.assertEqual(power.count, QConst(4))
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        self._assert_has_type_eq_creature(inner)
+        self.assertIn(at_least(4, field=QPropField.POWER), inner.children)
 
     def test_tide_skimmer_attack_two_flying(self) -> None:
         ability = _ability(
@@ -1100,13 +1100,14 @@ class TestB2bTriggerEvents(unittest.TestCase):
         # attackers are declared: not the condition (an intervening "if",
         # read again on resolution, CR 603.4).
         self.assertIsNone(ability.condition)
-        cond = _find_atom(event.filter, FAtomPred.CONTROLLER_COUNT_GE)
+        cond = _find_atom(event.filter, FAtomPred.QTY_GE)
         self.assertEqual(cond.count, QConst(2))
-        assert isinstance(cond.inner_filter, FAnd)
-        self._assert_has_type_eq_creature(cond.inner_filter)
-        self._assert_has_controller_you(cond.inner_filter)
-        self._assert_has_keyword_flying(cond.inner_filter)
-        _find_atom(cond.inner_filter, FAtomPred.IS_ATTACKING)
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        self._assert_has_type_eq_creature(inner)
+        self._assert_has_controller_you(inner)
+        self._assert_has_keyword_flying(inner)
+        _find_atom(inner, FAtomPred.IS_ATTACKING)
 
     def test_vito_gain_life_event(self) -> None:
         ability = _ability(
@@ -1464,9 +1465,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         self.assertIs(search.verb, Verb.SEARCH)
         sel = _selector(search, "cards")
         assert isinstance(sel.filter, FAnd)
-        cmc_atom = _find_atom(sel.filter, FAtomPred.CMC_GE)
-        assert isinstance(cmc_atom.count, QConst)
-        self.assertEqual(cmc_atom.count.value, 6)
+        self.assertIn(at_least(6, field=QPropField.MANA_VALUE), sel.filter.children)
 
     def test_teferis_tutelage_etb_draw_then_discard(self) -> None:
         ability = _ability(

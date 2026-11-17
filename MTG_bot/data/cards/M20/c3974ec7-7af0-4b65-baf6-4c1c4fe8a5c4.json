@@ -346,19 +346,50 @@
       "tag": "FAtom",
       "pred": {
        "tag": "FAtomPred",
-       "name": "LIFE_LEAD_OVER_START_GE"
+       "name": "QTY_GE"
       },
       "string_value": null,
       "color": null,
       "colors": [],
       "count": {
-       "tag": "QConst",
-       "value": 15
+       "tag": "QBin",
+       "op": {
+        "tag": "QBinOp",
+        "name": "ADD"
+       },
+       "left": {
+        "tag": "QProp",
+        "referent": "controller",
+        "field": {
+         "tag": "QPropField",
+         "name": "STARTING_LIFE"
+        },
+        "agg": {
+         "tag": "QAgg",
+         "name": "FIRST"
+        }
+       },
+       "right": {
+        "tag": "QConst",
+        "value": 15
+       }
       },
       "counter_kind": null,
       "keyword": null,
       "who": null,
-      "inner_filter": null
+      "inner_filter": null,
+      "quantity": {
+       "tag": "QProp",
+       "referent": "controller",
+       "field": {
+        "tag": "QPropField",
+        "name": "LIFE"
+       },
+       "agg": {
+        "tag": "QAgg",
+        "name": "FIRST"
+       }
+      }
      },
      "then_effect": {
       "tag": "Atom",
@@ -503,9 +534,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05",
-  "draft_py": "# Ajani, Strength of the Pride\n# s1 [+1]: You gain life equal to the number of creatures you control plus the\n#          number of planeswalkers you control.\n# s2 [−2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate\n#          with \"Whenever you gain life, put a +1/+1 counter on this token.\"\n# s3 [0]:  If you have at least 15 life more than your starting life total, exile\n#          Ajani and each artifact and creature your opponents control.\ndef _you_control(type_name):\n    return QCount(selector=Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value=type_name),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ))\n\nplus1 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(op=QBinOp.ADD, left=_you_control('Creature'), right=_you_control('Planeswalker')),\n        'controller': ControllerRef.YOU,\n    }),\n)\n\npridemate_trigger = TriggeredAbility(\n    event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nminus2 = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-2),)),\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name=\"Ajani's Pridemate\",\n            type_line='Creature — Cat Soldier',\n            types=('Creature',),\n            subtypes=('Cat', 'Soldier'),\n            power=QConst(value=2),\n            toughness=QConst(value=2),\n            keywords=(),\n            abilities=(pridemate_trigger,),\n            colors=('W',),\n        ),\n    }),\n)\n\nzero = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=0),)),\n    effect=Conditional(\n        pred=FAtom(pred=FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(value=15)),\n        then_effect=A(Verb.MOVE_ZONE, {\n            'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.IS_SOURCE),\n                    FAnd(children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                        FOr(children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        )),\n                    )),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n)\nabilities = [plus1, minus2, zero, *compiled]\n",
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=1),)),\n        effect=A(Verb.GAIN_LIFE, {\n            'amount': QBin(\n                op=QBinOp.ADD,\n                left=QCount(\n                    selector=Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n                right=QCount(\n                    selector=Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n            ),\n            'controller': ControllerRef.YOU,\n        }),\n    ),\n    # [1]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=-2),)),\n        effect=A(Verb.CREATE_TOKEN, {\n            'count': QConst(value=1),\n            'tokens': TokenSpec(\n                name=\"Ajani's Pridemate\",\n                type_line='Creature — Cat Soldier',\n                types=('Creature',),\n                subtypes=('Cat', 'Soldier'),\n                power=QConst(value=2),\n                toughness=QConst(value=2),\n                keywords=(),\n                abilities=(\n                    TriggeredAbility(\n                        event=LifeGainedEvent(\n                            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        ),\n                        condition=None,\n                        effect=A(Verb.PUT_COUNTER, {\n                            'count': QConst(value=1),\n                            'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                            'target': Selector(\n                                count=QConst(value=1),\n                                mode=SelectorMode.CHOOSE,\n                                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                                zones=(\n                                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                                ),\n                            ),\n                        }),\n                    ),\n                ),\n                colors=('W',),\n            ),\n        }),\n    ),\n    # [2]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=0),)),\n        effect=Conditional(\n            pred=FAtom(\n                pred=FAtomPred.QTY_GE,\n                count=QBin(\n                    op=QBinOp.ADD,\n                    left=QProp(referent='controller', field=QPropField.STARTING_LIFE),\n                    right=QConst(value=15),\n                ),\n                quantity=QProp(referent='controller', field=QPropField.LIFE),\n            ),\n            then_effect=A(Verb.MOVE_ZONE, {\n                'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FOr(\n                        children=(\n                            FAnd(\n                                children=(\n                                    FOr(\n                                        children=(\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                        ),\n                                    ),\n                                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                                ),\n                            ),\n                            FAtom(pred=FAtomPred.IS_SOURCE),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n        ),\n    ),\n    # [3]\n    SpellAbility(kind=SpellKind.PLANESWALKER),\n]\n",
   "clauses": [
    {
     "clause": "[+1]: You gain life equal to the number of creatures you control plus the number of planeswalkers you control.",
@@ -521,63 +552,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-05 by claude-verifiers-m20v1 tree, same meaning; it waits for re-verification."
  },
  "probe": {
-  "sha": "e9342ff77f75ef94696e1852a8405262e2b006d0a217bb404296e6a514f76091"
- },
- "verified": {
-  "tree_sha": "ef2a177a4c278c553eee1297a1332546b8866062b0bf86f9c4daa66fd750daad",
-  "probe_sha": "e9342ff77f75ef94696e1852a8405262e2b006d0a217bb404296e6a514f76091",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
-  "clauses": [
-   {
-    "clause": "[+1]: You gain life equal to the number of creatures you control plus the number of planeswalkers you control.",
-    "status": "OK",
-    "evidence": "activate [0] from battlefield: LOYALTY 5 -> 6; 'you gains 3 life' (you_bear + you_giant + Ajani itself = 3), life 20 -> 23; tree counts CONTROLLER_IS YOU creatures + planeswalkers",
-    "issue": ""
-   },
-   {
-    "clause": "[-2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate",
-    "status": "OK",
-    "evidence": "activate [1] from battlefield: LOYALTY 5 -> 3; '+ you:Ajani's Pridemate (battlefield, you, 2/2)', exactly one token; tree TokenSpec Creature - Cat Soldier, colors ('W',)",
-    "issue": ""
-   },
-   {
-    "clause": "with \"Whenever you gain life, put a +1/+1 counter on this token.\"",
-    "status": "NOT_EXERCISED",
-    "evidence": "no life gain after the token exists in the trace; pack ajani_pridemate_gains_counter.json PASS: opponent's lifelink gain adds nothing, your lifelink gain adds exactly one counter (2/2 -> 3/3); fails against a 4/4 expectation G3 pack ajani_pridemate_only_your_life_gain_counts.json PASS (the opponent gains life twice, you once: one counter, Pridemate 3/3); FAILS on the controller YOU->OPPONENT mutant of the token trigger (4/4).",
-    "issue": ""
-   },
-   {
-    "clause": "[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.",
-    "status": "NOT_EXERCISED",
-    "evidence": "trace: activate [2] at 20 life does nothing (condition false, consistent; loyalty stays 5). True branch only in packs: ajani_zero_exiles_at_fifteen_over.json PASS (life 35: Ajani, opp creature, opp artifact, opp artifact creature exiled; opp enchantment/land and your bear/relic stay); ajani_zero_nothing_at_fourteen_over.json PASS (life 34: nothing); wrong variants (charm exiled, graveyard instead of exile, exile at 34) fail",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_1.json",
-   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_2.json",
-   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_3.json",
-   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_4.json"
-  ],
-  "mutation": {
-   "mutants": 23,
-   "killed": 14,
-   "score": 0.6086956521739131,
-   "survived": [
-    "widen filter (drop part 0) at 1/0/effect/args/amount/right/selector/filter",
-    "controller YOU->OPPONENT at 1/1/effect/args/tokens/abilities/0/event/actor/who",
-    "amount+1 at 1/1/effect/args/tokens/abilities/0/effect/args/count",
-    "amount+1 at 1/2/effect/pred/count",
-    "amount-1 at 1/2/effect/pred/count",
-    "zone EXILE->GRAVEYARD at 1/2/effect/then_effect/args/destination",
-    "widen filter (drop part 0) at 1/2/effect/then_effect/args/target/filter/children/0",
-    "widen filter (drop part 1) at 1/2/effect/then_effect/args/target/filter/children/0",
-    "controller OPPONENT->YOU at 1/2/effect/then_effect/args/target/filter/children/0/children/1/who"
-   ]
-  }
+  "sha": "25e23e7827e6ae0dc07b9df947057df369126a24316ee29d4a25fe75e1b35eb4"
  }
 }

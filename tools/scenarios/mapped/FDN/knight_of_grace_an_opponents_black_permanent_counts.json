@@ -1,0 +1,11 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12 (the comparison over a battlefield count of any controller). Printed: 'This creature gets +1/+0 as long as any player controls a black permanent.' The opponent controls a black creature: Knight of Grace (white) is 3/2.",
+ "cards": [
+  {"key": "knight", "real": "Knight of Grace", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Night Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["B"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {"power": {"knight": 3}, "toughness": {"knight": 2}}
+}

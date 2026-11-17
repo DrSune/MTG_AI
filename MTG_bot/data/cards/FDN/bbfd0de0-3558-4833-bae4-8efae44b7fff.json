@@ -458,7 +458,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "ZONE_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -469,23 +469,36 @@
      },
      "counter_kind": null,
      "keyword": null,
-     "who": {
-      "tag": "ControllerRef",
-      "name": "YOU"
-     },
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": []
-     },
-     "zone": {
-      "tag": "Zone",
-      "kind": {
-       "tag": "ZoneKind",
-       "name": "GRAVEYARD"
-      },
-      "controller": {
-       "tag": "ControllerRef",
-       "name": "YOU"
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": []
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
       }
      }
     }
@@ -502,7 +515,7 @@
  "mapping": {
   "author": "claude-mapper-fdn-m5",
   "date": "2026-11-17",
-  "draft_py": "# FDN Dreadwing Scavenger: \"Flying. Whenever this creature enters or attacks, draw a card, then\n# discard a card. Threshold — This creature gets +1/+1 and has deathtouch as long as there are seven\n# or more cards in your graveyard.\"\n# [0], [1]: MAPPER_GUIDE R_TWOEVENTS, \"enters or attacks\": the compiler's \"When this creature enters\"\n# event, then Library Larcenist's DeclareAttackersEvent(IS_SOURCE), one byte-equal effect: M21\n# Obsessive Stitcher's verified loot (\"Draw a card, then discard a card\").\n# [2]: M21 Thieves' Guild Enforcer's verified self static (+N/+N and deathtouch, the \"as long as\" in\n# StaticAbility.condition, D22), its ZONE_COUNT_GE read over your own graveyard at seven.\nloot = Seq(\n    steps=(\n        A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\n# R_TWOEVENTS\nenters = TriggeredAbility(event=ZoneChangeEvent(\n    from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n    to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n    subject=FAtom(pred=FAtomPred.IS_SOURCE)), condition=None, effect=loot)\nattacks = TriggeredAbility(event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n                           condition=None, effect=loot)\nthis_creature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nthreshold = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                'target': this_creature,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.DEATHTOUCH),\n                'target': this_creature,\n            }),\n        ),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.ZONE_COUNT_GE,\n        count=QConst(value=7),\n        who=ControllerRef.YOU,\n        inner_filter=FAnd(children=()),\n        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    ),\n)\nabilities = [enters, attacks, threshold, *compiled]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FLYING),\n]\nabilities = [\n    # [0] , [1]: MAPPER_GUIDE R_TWOEVENTS, \"enters or attacks\": the compiler's \"When this creature enters\"\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=None,\n        effect=Seq(\n            steps=(\n                A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n                    ),\n                    'controller': ControllerRef.YOU,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n            ),\n        ),\n    ),\n    # [1]\n    TriggeredAbility(\n        event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n        condition=None,\n        effect=Seq(\n            steps=(\n                A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n                    ),\n                    'controller': ControllerRef.YOU,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n            ),\n        ),\n    ),\n    # [2] : M21 Thieves' Guild Enforcer's verified self static (+N/+N and deathtouch, the \"as long as\" in\n    StaticAbility(\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.DEATHTOUCH),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=7),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                ),\n            ),\n        ),\n    ),\n    # [3]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Flying",
@@ -518,7 +531,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "MAPPER_GUIDE R_TWOEVENTS 'enters or attacks': the enters trigger and DeclareAttackersEvent(IS_SOURCE), byte-equal effects, Obsessive Stitcher's verified loot; Threshold as Thieves' Guild Enforcer's verified self static (+1/+1 and deathtouch, StaticAbility.condition ZONE_COUNT_GE 7 over your graveyard). packs in tools/scenarios/mapped/FDN/: dreadwing_scavenger_threshold_seven_cards, dreadwing_scavenger_six_cards_no_threshold."
+  "notes": "MAPPER_GUIDE R_TWOEVENTS 'enters or attacks': the enters trigger and DeclareAttackersEvent(IS_SOURCE), byte-equal effects, Obsessive Stitcher's verified loot; Threshold as Thieves' Guild Enforcer's verified self static (+1/+1 and deathtouch, StaticAbility.condition at_least(7, quantity=number_in(...)) over your graveyard). packs in tools/scenarios/mapped/FDN/: dreadwing_scavenger_threshold_seven_cards, dreadwing_scavenger_six_cards_no_threshold. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "1b17333ec8bfcbee7172dbf39e9c80913d96ba4bc257734fa9aadda7aa87f78e"

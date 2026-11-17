@@ -34,6 +34,12 @@ from MTG_bot.core.test_ability_tree_r8 import _raw_card, _template
 
 _UNIVERSAL = at.FAnd(())
 _TWO = at.QConst(2)
+_NONLAND_NONTOKEN = at.FAnd(
+    (
+        at.FNot(at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Land")),
+        at.FNot(at.FAtom(at.FAtomPred.IS_TOKEN)),
+    )
+)
 _GATE_COND = at.FAtom(at.FAtomPred.DIED_THIS_TURN)
 _ACT_SENT = "{T}: Draw a card."
 _ACT_TIMED_SENT = "{2}, Tap: Draw a card."
@@ -67,11 +73,18 @@ _T_2TAP = at.Cost(parts=(at.CostManaGeneric(at.QConst(2)), at.CostTap()))
 
 _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
-        "name_partition",
-        lambda: at.FAtom(
-            at.FAtomPred.NAME_PARTITION_COUNT_GE, count=_TWO, inner_filter=_UNIVERSAL
+        "two_share_a_name",
+        # round R12: "two or more ... with the same name as one another" is the comparison of
+        # their number with their different names plus one
+        lambda: at.at_least(
+            at.QBin(
+                at.QBinOp.ADD,
+                at.QDistinct(at.number_you_control(_NONLAND_NONTOKEN).selector, at.QPropField.NAME),
+                at.QConst(1),
+            ),
+            quantity=at.number_you_control(_NONLAND_NONTOKEN),
         ),
-        "60de197a7971203ed4ac3b8aea1299a864fac97d88579404442f63cfe88dccc8",
+        "84fd0805ed39ed00076889e5cc9adaab1afa89fadeb3bab4947d1b1c917666ca",
     ),
     (
         "attack_against",
@@ -103,19 +116,17 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
 _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     # A gate with neither window nor condition is a template bug.
     ("gate_both_none", lambda: ActivationGateOutcome()),
-    # inner_filter required, no other slots (as CONTROLLER_COUNT_GE); an
-    # unset count is not enforced, as for every FAtom: the template
-    # supplies it.
+    # a name is no number: QDistinct counts names, QProp refuses one (round R12)
     (
-        "name_partition_missing_inner",
-        lambda: at.FAtom(at.FAtomPred.NAME_PARTITION_COUNT_GE, count=_TWO),
+        "qprop_name_is_no_number",
+        lambda: at.QProp("source", at.QPropField.NAME),
     ),
     (
-        "name_partition_extra_slot",
+        "comparison_extra_slot",
         lambda: at.FAtom(
-            at.FAtomPred.NAME_PARTITION_COUNT_GE,
+            pred=at.FAtomPred.QTY_GE,
             count=_TWO,
-            inner_filter=_UNIVERSAL,
+            quantity=at.number_you_control(_NONLAND_NONTOKEN),
             string_value="Chrome Anchor",
         ),
     ),
@@ -366,10 +377,6 @@ def test_r11_table_members() -> None:
     assert (
         at._SCOPE_VOCAB_BY_VERB[at.Verb.DAMAGE_ASSIGN_POLICY]
         is at._DAMAGE_ASSIGN_SCOPES
-    )
-    assert at._FATOM_RULES[at.FAtomPred.NAME_PARTITION_COUNT_GE] == (
-        frozenset({"inner_filter", "count"}),
-        frozenset({"inner_filter", "count"}),
     )
     assert at._FATOM_RULES[at.FAtomPred.ATTACK_AGAINST_COUNT_GE] == (
         frozenset({"count", "inner_filter"}),

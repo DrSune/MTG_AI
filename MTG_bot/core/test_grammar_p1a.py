@@ -20,7 +20,6 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 
-
 GY_YOU = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
 LIB_YOU = Zone(ZoneKind.LIBRARY, ControllerRef.YOU)
 UNIV = FAnd(())
@@ -70,8 +69,9 @@ def test_closed_vocab_and_object_axis_raise() -> None:
 
 
 def test_legacy_move_shapes_still_construct() -> None:
-    # The move-shape twins have no executor handler (MOVE_ZONE carries
-    # them), but their atoms stay constructible.
+    # DISCARD, the move-shape twin kept (B-48), has no executor handler
+    # (MOVE_ZONE carries it), but its atom stays constructible. Round R12
+    # removed the EXILE and MILL twins.
     Atom(
         verb=Verb.DISCARD,
         args=AtomArgs(
@@ -89,15 +89,12 @@ def test_legacy_move_shapes_still_construct() -> None:
             )
         ),
     )
-    Atom(
-        verb=Verb.MILL,
-        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", QConst(2)))),
-    )
 
 
 def test_mill_journal_requires_top_pop():
     """MILL without pop_order TOP must RAISE, not fall through to another lane."""
     import pytest
+
     from MTG_bot.core.ability_tree import AtomArgs
 
     with pytest.raises(ValueError):

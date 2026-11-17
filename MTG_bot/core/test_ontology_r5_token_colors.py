@@ -16,8 +16,10 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     QConst,
+    QPropField,
     TokenSpec,
     Verb,
+    at_least,
     from_dict,
     to_dict,
 )
@@ -87,7 +89,7 @@ def test_the_weird_compiles_blue_and_red() -> None:
 class TestMulticolouredToken(ExecutorCase):
     def test_both_colours_reach_filters_and_protection(self) -> None:
         # CR 105.2/111.4: the token is every colour its spec prints. COLOR_HAS
-        # sees each, COLOR_COUNT_GE 2 makes it multicoloured, and an attacker
+        # sees each, two or more colours make it multicoloured, and an attacker
         # with protection from multicolored can't be blocked by it (702.16f).
         before = set(self.world.players[self.p1].zone(ZONE_BATTLEFIELD).entries)
         self.ex.execute(
@@ -102,7 +104,7 @@ class TestMulticolouredToken(ExecutorCase):
             self.assertEqual(
                 eval_filter(FAtom(FAtomPred.COLOR_HAS, color=colour), token, ctx), has
             )
-        multicoloured = FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(2))
+        multicoloured = at_least(2, field=QPropField.COLOR)
         self.assertTrue(eval_filter(multicoloured, token, ctx))
         self.assertIsNone(block_pair_blocked_reason(self.ex, token, self.alpha))
         self.ex.apply_effect(

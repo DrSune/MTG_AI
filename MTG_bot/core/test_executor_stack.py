@@ -795,11 +795,11 @@ class TestCastTriggerFeed(StackCase):
 
     def test_a_spell_that_targets_the_watcher_fires_it(self):
         # M20 Gnarlback Rhino: "Whenever you cast a spell that targets this creature, ..." is
-        # a CastSpellEvent whose filter is TARGETS_SOURCE. The matcher reads the cast spell's
+        # a CastSpellEvent whose filter is TARGETS(IS_SOURCE). The matcher reads the cast spell's
         # declared targets, not the trigger's own target bindings.
         watcher = self.watch(
             CastSpellEvent(
-                FAtom(pred=FAtomPred.TARGETS_SOURCE),
+                FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE)),
                 actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         )

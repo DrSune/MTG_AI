@@ -7,9 +7,20 @@ after one (frames.py, templates_b14), and the relative clause of a target noun p
 (templates_b11). ``PATTERN`` is the grammar as a regex and ``condition`` builds the Filter of a
 phrase it matches, from the same table, so a template can never match a phrase it cannot encode.
 
-"You have N or more life" (Twinblade Paladin, Angel of Vitality, Serra Ascendant) reads
-``FAtomPred.LIFE_TOTAL_GE``, your life total now (CR 119.1); "N or less life" is the same atom
-negated at N + 1, never a second predicate.
+The phrases that read the game now are the one comparison (``FAtomPred.QTY_GE``, ontology round
+R12) of a measure of the game with a number; "N or less" is the same comparison negated at N + 1,
+never a second form (CR 107.1: the numbers are integers):
+- "you have N or more|less life" (Twinblade Paladin, Angel of Vitality): your life total (CR 119.1);
+- your life total against your starting life total (CR 103.4, :func:`life_over_start`): "is greater
+  than [or equal to]", "is less than", "is at least N greater than", "you have at least N life more
+  than";
+- "you control N or more <creatures|lands|artifacts|enchantments>", "you control a|another creature
+  with power N or greater" (ferocious), "creatures you control have total power N or greater"
+  (formidable): counts and a sum over the permanents you control;
+- "there are N or more [creature|land|instant and/or sorcery] cards in your graveyard" (threshold,
+  spell mastery), "you have N or more cards in hand": counts of your zones (divergence D28);
+- "an opponent has N or more cards in their graveyard": the count of "your" graveyard read for
+  each opponent in turn (``FAtom.who``), true when one of them has it.
 
 Most phrases read the one turn-history atom, ``FAtomPred.EVENT_THIS_TURN`` over an EventSpec:
 - "<you|an opponent|a player> lost [N or more] life this turn" (Savage Gorger, Knight of the Ebon
@@ -43,8 +54,20 @@ from MTG_bot.core.ability_tree import (
     FNot,
     FOr,
     LifeLostEvent,
+    QAgg,
+    QBin,
+    QBinOp,
     QConst,
+    QProp,
+    QPropField,
+    Quantity,
     QUnbounded,
+    Zone,
+    ZoneKind,
+    at_least,
+    at_most,
+    number_in,
+    number_you_control,
 )
 
 _NUMBERS: Final[dict[str, int]] = {
@@ -60,7 +83,7 @@ _WHO: Final[dict[str, ControllerRef]] = {"you": ControllerRef.YOU, "an opponent"
 
 #: Ability words that open a condition-bearing ability in the corpus. CR 207.2c: an ability word
 #: has no rules meaning, so it is dropped.
-ABILITY_WORD: Final[str] = r"(?:(?:Raid|Morbid) — )?"
+ABILITY_WORD: Final[str] = r"(?:(?:Raid|Morbid|Threshold|Ferocious|Formidable|Spell mastery) — )?"
 
 #: "creature that was dealt damage this turn": the judged object was dealt damage, any amount,
 #: from any source, combat or not, as the object it is now (CR 400.7).
@@ -144,11 +167,84 @@ def _life_gained(m: re.Match[str]) -> Filter:
     )
 
 
+#: Your life total now (CR 119.1) and your starting life total (CR 103.4: 20, 40 in Commander).
+LIFE: Final[QProp] = QProp(referent="controller", field=QPropField.LIFE, agg=QAgg.FIRST)
+STARTING_LIFE: Final[QProp] = QProp(
+    referent="controller", field=QPropField.STARTING_LIFE, agg=QAgg.FIRST
+)
+
+
+def life_over_start(n: int) -> FAtom:
+    """"Your life total is at least N greater than your starting life total" (and "you have at least
+    N life more than your starting life total", Speaker of the Heavens): your life total is at least
+    your starting life total plus N (ledger F11: never a predicate of its own, which would differ
+    in Commander, where the start is 40)."""
+    start: Quantity = STARTING_LIFE if n == 0 else QBin(QBinOp.ADD, STARTING_LIFE, QConst(n))
+    return at_least(start, quantity=LIFE)
+
+
 def _life_total(m: re.Match[str]) -> Filter:
     n = _number(m.group("lt_n"))
     if m.group("lt_dir") == "more":
-        return FAtom(pred=FAtomPred.LIFE_TOTAL_GE, who=ControllerRef.YOU, count=QConst(n))
-    return FNot(FAtom(pred=FAtomPred.LIFE_TOTAL_GE, who=ControllerRef.YOU, count=QConst(n + 1)))
+        return at_least(n, quantity=LIFE)
+    return at_most(n, quantity=LIFE)
+
+
+def _life_against_start(m: re.Match[str]) -> Filter:
+    if m.group("ls_less"):
+        return FNot(life_over_start(0))
+    if m.group("ls_ge"):
+        return life_over_start(0)
+    n = m.group("ls_n") or m.group("lm_n")
+    return life_over_start(1 if n is None else _number(n))
+
+
+def _type(name: str) -> FAtom:
+    return FAtom(pred=FAtomPred.TYPE_EQ, string_value=name)
+
+
+#: The cards a graveyard count reads: "cards", "creature cards", "instant and/or sorcery cards".
+_CARD_KINDS: Final[dict[str, Filter | None]] = {
+    "": None,
+    "creature ": _type("Creature"),
+    "land ": _type("Land"),
+    "instant and/or sorcery ": FOr((_type("Instant"), _type("Sorcery"))),
+}
+_PERMANENTS: Final[dict[str, str]] = {
+    "creatures": "Creature", "lands": "Land", "artifacts": "Artifact", "enchantments": "Enchantment",
+}
+
+
+def _graveyard_count(m: re.Match[str]) -> Filter:
+    cards = number_in(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU), _CARD_KINDS[m.group("gy_kind") or ""])
+    return at_least(_number(m.group("gy_n")), quantity=cards)
+
+
+def _opponent_graveyard_count(m: re.Match[str]) -> Filter:
+    cards = number_in(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+    return at_least(_number(m.group("og_n")), quantity=cards, who=ControllerRef.OPPONENT)
+
+
+def _hand_count(m: re.Match[str]) -> Filter:
+    return at_least(_number(m.group("hc_n")), quantity=number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)))
+
+
+def _you_control_count(m: re.Match[str]) -> Filter:
+    permanents = number_you_control(_type(_PERMANENTS[m.group("cc_noun")]))
+    return at_least(_number(m.group("cc_n")), quantity=permanents)
+
+
+def _you_control_power(m: re.Match[str]) -> Filter:
+    parts: list[Filter] = [_type("Creature"), at_least(_number(m.group("cp_n")), field=QPropField.POWER)]
+    if m.group("cp_det") == "another":
+        parts.append(FNot(FAtom(pred=FAtomPred.IS_SOURCE)))
+    return at_least(1, quantity=number_you_control(FAnd(tuple(parts))))
+
+
+def _total_power(m: re.Match[str]) -> Filter:
+    yours = number_you_control(_type("Creature")).selector
+    total = QProp(referent=yours, field=QPropField.POWER, agg=QAgg.SUM)
+    return at_least(_number(m.group("tp_n")), quantity=total)
 
 
 #: (phrase, builder). Group names are unique across the table, so PATTERN can join them.
@@ -163,6 +259,19 @@ _PHRASES: Final[tuple[tuple[str, Callable[[re.Match[str]], Filter]], ...]] = (
     (r"a creature died this turn", _creature_died),
     (rf"you(?:'ve)? gained (?:(?P<lg_n>{_N}) or more )?life this turn", _life_gained),
     (rf"you have (?P<lt_n>{_N}) or (?P<lt_dir>more|less) life", _life_total),
+    ((r"your life total is (?:(?P<ls_less>less than)|greater than(?P<ls_ge> or equal to)?|at least "
+      rf"(?P<ls_n>{_N}) greater than) your starting life total"
+      rf"|you have at least (?P<lm_n>{_N}) life more than your starting life total"),
+     _life_against_start),
+    (rf"there are (?P<gy_n>{_N}) or more (?P<gy_kind>creature |land |instant and/or sorcery )?cards "
+     r"in your graveyard", _graveyard_count),
+    (rf"an opponent has (?P<og_n>{_N}) or more cards in their graveyard", _opponent_graveyard_count),
+    (rf"you have (?P<hc_n>{_N}) or more cards in hand", _hand_count),
+    (rf"you control (?P<cc_n>{_N}) or more (?P<cc_noun>creatures|lands|artifacts|enchantments)",
+     _you_control_count),
+    (rf"you control (?P<cp_det>a|another) creature with power (?P<cp_n>{_N}) or greater",
+     _you_control_power),
+    (rf"creatures you control have total power (?P<tp_n>{_N}) or greater", _total_power),
 )
 _COMPILED: Final = tuple((re.compile(p), build) for p, build in _PHRASES)
 

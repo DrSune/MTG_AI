@@ -1,0 +1,11 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12. Printed: 'This creature gets +1/+0 as long as any player controls a white permanent.' Any player includes you: your own white creature makes Knight of Malice (black) 3/2.",
+ "cards": [
+  {"key": "knight", "real": "Knight of Malice", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "Dawn Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [],
+ "expect": {"power": {"knight": 3}, "toughness": {"knight": 2}}
+}

@@ -198,19 +198,50 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "LIFE_LEAD_OVER_START_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
      "colors": [],
      "count": {
-      "tag": "QConst",
-      "value": 1
+      "tag": "QBin",
+      "op": {
+       "tag": "QBinOp",
+       "name": "ADD"
+      },
+      "left": {
+       "tag": "QProp",
+       "referent": "controller",
+       "field": {
+        "tag": "QPropField",
+        "name": "STARTING_LIFE"
+       },
+       "agg": {
+        "tag": "QAgg",
+        "name": "FIRST"
+       }
+      },
+      "right": {
+       "tag": "QConst",
+       "value": 1
+      }
      },
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QProp",
+      "referent": "controller",
+      "field": {
+       "tag": "QPropField",
+       "name": "LIFE"
+      },
+      "agg": {
+       "tag": "QAgg",
+       "name": "FIRST"
+      }
+     }
     }
    },
    {
@@ -301,19 +332,50 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "LIFE_LEAD_OVER_START_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
      "colors": [],
      "count": {
-      "tag": "QConst",
-      "value": 10
+      "tag": "QBin",
+      "op": {
+       "tag": "QBinOp",
+       "name": "ADD"
+      },
+      "left": {
+       "tag": "QProp",
+       "referent": "controller",
+       "field": {
+        "tag": "QPropField",
+        "name": "STARTING_LIFE"
+       },
+       "agg": {
+        "tag": "QAgg",
+        "name": "FIRST"
+       }
+      },
+      "right": {
+       "tag": "QConst",
+       "value": 10
+      }
      },
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QProp",
+      "referent": "controller",
+      "field": {
+       "tag": "QPropField",
+       "name": "LIFE"
+      },
+      "agg": {
+       "tag": "QAgg",
+       "name": "FIRST"
+      }
+     }
     }
    },
    {
@@ -328,7 +390,7 @@
  "mapping": {
   "author": "claude-mapper-m6",
   "date": "2026-11-17",
-  "draft_py": "# Elenda, Saint of Dusk (FDN), a legendary 4/4 Vampire Knight for {2}{W}{B}.\n# \"Lifelink, hexproof from instants\n#  As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has\n#  menace. Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than\n#  your starting life total.\"\n# Keywords: the compiled LIFELINK, and \"hexproof from instants\" as M21 Garruk's Harbinger's\n#   verified \"Hexproof from black\" (HEXPROOF with a Filter param, CR 702.11d) with the card-type\n#   quality TYPE_EQ 'Instant': legality._hexproof_vetoes_target reads the row over the targeting\n#   source, so an opponent's instant spell cannot target Elenda and every other source can.\n#   Keywords sorted by name (HEXPROOF, LIFELINK), the compiler's order.\n# [0] \"As long as\" is the StaticAbility's condition (D22; M11 Serra Ascendant's verified B14-as-\n#     long-as-self \"As long as you have 30 or more life, this creature gets +5/+5 and has flying.\").\n#     \"Your life total is greater than your starting life total\" is a lead of at least 1 over the\n#     start: LIFE_LEAD_OVER_START_GE 1 (M21 Speaker of the Heavens' verified gate reads life minus\n#     the starting life; MAPPER_GUIDE: the starting-life reading, never LIFE_TOTAL_GE). The menace\n#     grant follows the P/T step, as Serra Ascendant's flying does.\n# [1] \"an additional +5/+5 as long as your life total is at least 10 greater\": a second static,\n#     LIFE_LEAD_OVER_START_GE 10; it adds to [0]'s +1/+1 (both apply at a lead of 10 or more).\nself_sel = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nkeywords = [\n    KeywordAbility(\n        keyword=Keyword.HEXPROOF,\n        params=(FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),),\n    ),\n    *compiled_keywords,\n]\nahead = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                'target': self_sel,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.MENACE),\n                'target': self_sel,\n            }),\n        ),\n    ),\n    condition=FAtom(pred=FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(value=1)),\n)\nfar_ahead = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n        'target': self_sel,\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n    }),\n    condition=FAtom(pred=FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(value=10)),\n)\nabilities = [ahead, far_ahead, *compiled]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(\n        keyword=Keyword.HEXPROOF,\n        params=(FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),),\n    ),\n    KeywordAbility(keyword=Keyword.LIFELINK),\n]\nabilities = [\n    # [0] \"As long as\" is the StaticAbility's condition (D22; M11 Serra Ascendant's verified B14-as-\n    StaticAbility(\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.MENACE),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QBin(\n                op=QBinOp.ADD,\n                left=QProp(referent='controller', field=QPropField.STARTING_LIFE),\n                right=QConst(value=1),\n            ),\n            quantity=QProp(referent='controller', field=QPropField.LIFE),\n        ),\n    ),\n    # [1] \"an additional +5/+5 as long as your life total is at least 10 greater\": a second static,\n    StaticAbility(\n        effect=A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=5)),\n        }),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QBin(\n                op=QBinOp.ADD,\n                left=QProp(referent='controller', field=QPropField.STARTING_LIFE),\n                right=QConst(value=10),\n            ),\n            quantity=QProp(referent='controller', field=QPropField.LIFE),\n        ),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Lifelink, hexproof from instants",
@@ -336,17 +398,17 @@
    },
    {
     "clause": "As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has menace.",
-    "ir": "abilities[0] (condition LIFE_LEAD_OVER_START_GE 1)"
+    "ir": "abilities[0] (condition comparison of your LIFE with STARTING_LIFE + N 1)"
    },
    {
     "clause": "Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.",
-    "ir": "abilities[1] (condition LIFE_LEAD_OVER_START_GE 10)"
+    "ir": "abilities[1] (condition comparison of your LIFE with STARTING_LIFE + N 10)"
    }
   ],
   "g0_warnings": [
    "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['HEXPROOF_FROM']"
   ],
-  "notes": "'Hexproof from instants' is M21 Garruk's Harbinger's HEXPROOF with a Filter param, here TYPE_EQ Instant, judged on the targeting source (legality._hexproof_vetoes_target). 'As long as' is StaticAbility.condition (D22) with LIFE_LEAD_OVER_START_GE 1 and 10 (M21 Speaker of the Heavens' starting-life gate). Packs: tools/scenarios/mapped/FDN/elenda_one_life_over_the_start_is_5_5.json, tools/scenarios/mapped/FDN/elenda_nine_life_over_the_start_is_5_5.json, tools/scenarios/mapped/FDN/elenda_ten_life_over_the_start_is_10_10.json, tools/scenarios/mapped/FDN/elenda_hexproof_from_instants_only.json."
+  "notes": "'Hexproof from instants' is M21 Garruk's Harbinger's HEXPROOF with a Filter param, here TYPE_EQ Instant, judged on the targeting source (legality._hexproof_vetoes_target). 'As long as' is StaticAbility.condition (D22) with comparison of your LIFE with STARTING_LIFE + N 1 and 10 (M21 Speaker of the Heavens' starting-life gate). Packs: tools/scenarios/mapped/FDN/elenda_one_life_over_the_start_is_5_5.json, tools/scenarios/mapped/FDN/elenda_nine_life_over_the_start_is_5_5.json, tools/scenarios/mapped/FDN/elenda_ten_life_over_the_start_is_10_10.json, tools/scenarios/mapped/FDN/elenda_hexproof_from_instants_only.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "41295a591783abec29325037e9a98fb9c0432eab7174bf8a8242c48f063d31b0"

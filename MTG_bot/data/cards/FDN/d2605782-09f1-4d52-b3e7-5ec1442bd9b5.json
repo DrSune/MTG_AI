@@ -118,7 +118,7 @@
                "tag": "FAtom",
                "pred": {
                 "tag": "FAtomPred",
-                "name": "CMC_GE"
+                "name": "QTY_GE"
                },
                "string_value": null,
                "color": null,
@@ -130,25 +130,36 @@
                "counter_kind": null,
                "keyword": null,
                "who": null,
-               "inner_filter": null
+               "inner_filter": null,
+               "field": {
+                "tag": "QPropField",
+                "name": "MANA_VALUE"
+               }
               },
               {
-               "tag": "FAtom",
-               "pred": {
-                "tag": "FAtomPred",
-                "name": "CMC_LE"
-               },
-               "string_value": null,
-               "color": null,
-               "colors": [],
-               "count": {
-                "tag": "QConst",
-                "value": 1
-               },
-               "counter_kind": null,
-               "keyword": null,
-               "who": null,
-               "inner_filter": null
+               "tag": "FNot",
+               "inner": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "QTY_GE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": {
+                 "tag": "QConst",
+                 "value": 2
+                },
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null,
+                "field": {
+                 "tag": "QPropField",
+                 "name": "MANA_VALUE"
+                }
+               }
               }
              ]
             },
@@ -252,7 +263,7 @@
  "mapping": {
   "author": "claude-mapper-m3",
   "date": "2026-11-17",
-  "draft_py": "# FDN Micromancer: \"When this creature enters, you may search your library for an instant or\n# sorcery card with mana value 1, reveal it, put it into your hand, then shuffle.\"\n# M21 Fierce Empath's verified sentence (B2b-fierce-empath-etb: OptionalEffect(Seq(SEARCH to your\n# hand, REVEAL 1, SHUFFLE))) with the searched kind \"instant or sorcery card\" (FDN Mocking Sprite's\n# FOr of TYPE_EQ) and \"mana value 1\" as mana value at least 1 and at most 1 (CMC_GE 1 and CMC_LE 1,\n# the two existing thresholds; a mana value is an integer, CR 202.3).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FOr(\n                                    children=(\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n                                    ),\n                                ),\n                                FAtom(pred=FAtomPred.CMC_GE, count=QConst(value=1)),\n                                FAtom(pred=FAtomPred.CMC_LE, count=QConst(value=1)),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n            ),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=None,\n        effect=OptionalEffect(\n            inner=Seq(\n                steps=(\n                    A(Verb.SEARCH, {\n                        'cards': Selector(\n                            count=QConst(value=1),\n                            mode=SelectorMode.CHOOSE,\n                            filter=FAnd(\n                                children=(\n                                    FOr(\n                                        children=(\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n                                        ),\n                                    ),\n                                    FAtom(\n                                        pred=FAtomPred.QTY_GE,\n                                        count=QConst(value=1),\n                                        field=QPropField.MANA_VALUE,\n                                    ),\n                                    FNot(\n                                        inner=FAtom(\n                                            pred=FAtomPred.QTY_GE,\n                                            count=QConst(value=2),\n                                            field=QPropField.MANA_VALUE,\n                                        ),\n                                    ),\n                                ),\n                            ),\n                            zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                        ),\n                        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                    }),\n                    A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                    A(Verb.SHUFFLE, {\n                        'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n                    }),\n                ),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "When this creature enters, you may search your library for an instant or sorcery card with mana value 1, reveal it, put it into your hand, then shuffle.",
@@ -260,7 +271,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Fierce Empath's verified search (OptionalEffect(Seq(SEARCH to hand, REVEAL 1, SHUFFLE))) for an instant or sorcery card (FOr TYPE_EQ) with mana value 1 as CMC_GE 1 and CMC_LE 1 (mana value is an integer, CR 202.3; no exact-value predicate exists). Packs: tools/scenarios/mapped/FDN/micromancer_finds_a_mana_value_one_instant.json, tools/scenarios/mapped/FDN/micromancer_finds_no_mana_value_zero_or_two.json."
+  "notes": "Fierce Empath's verified search (OptionalEffect(Seq(SEARCH to hand, REVEAL 1, SHUFFLE))) for an instant or sorcery card (FOr TYPE_EQ) with mana value 1 as mana value 1 or greater (at_least(1, field=MANA_VALUE)) and mana value 1 or less (at_most(1, field=MANA_VALUE)) (mana value is an integer, CR 202.3; no exact-value predicate exists). Packs: tools/scenarios/mapped/FDN/micromancer_finds_a_mana_value_one_instant.json, tools/scenarios/mapped/FDN/micromancer_finds_no_mana_value_zero_or_two.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "53b00e48e588128e40c9157afde01afc173993ce263e19af8107ea94c198517f"

@@ -14,7 +14,8 @@ one row per family (``EVENTS``, ``PREDICATES``, ``_static_shapes``, ``_count_sha
 | permanent | ZoneChangeEvent(to your battlefield, F); DeclareAttack-  | a permanent card, or a   |
 |           | ersEvent(F, yours); AbilityTriggerEvent(F, yours); a     | token it creates, F      |
 |           | static's MODIFY_PT / GRANT_ABILITY over Sel[ALL F,       | holds for (a basic land  |
-|           | yours]; CONTROLLER_COUNT_GE(F); QCount(F, yours)         | is in every deck)        |
+|           | yours]; "you control N or more F" (QTY_GE); QCount(F,    | is in every deck)        |
+|           | yours)                                                   |                          |
 | life      | LifeGainedEvent(by you); LIFE_GAINED_THIS_TURN_GE(you)   | GAIN_LIFE for you;       |
 |           |                                                          | LIFELINK                 |
 | draw      | CardDrawnEvent(by you); CARDS_DRAWN_THIS_TURN_GE(you)    | DRAW for you             |
@@ -24,7 +25,7 @@ one row per family (``EVENTS``, ``PREDICATES``, ``_static_shapes``, ``_count_sha
 | counter   | CounterPlacedEvent(+1/+1, yours); HAS_COUNTER(+1/+1)     | PUT_COUNTER(+1/+1)       |
 | burn      | DamageDealtEvent(to an opponent, noncombat)              | DEAL_DAMAGE that can hit |
 |           |                                                          | an opponent              |
-| mill      | ZONE_COUNT_GE(an opponent's graveyard)                   | MOVE_ZONE MILL by an     |
+| mill      | QTY_GE(an opponent's graveyard, who OPPONENT)            | MOVE_ZONE MILL by an     |
 |           |                                                          | opponent                 |
 
 "You" is the ability's controller, except inside EachPlayer over the opponents. A trigger on the
@@ -86,6 +87,7 @@ from MTG_bot.core.ability_tree import (
     LifeGainedEvent,
     QConst,
     QCount,
+    QPropField,
     ReplacementAbility,
     SacrificeEvent,
     Selector,
@@ -160,9 +162,12 @@ def token_obj(spec: TokenSpec) -> Obj:
                frozenset(kw), _int(spec.power), 0, True)
 
 
-def _cmp(value: int | None, q: Any, ge: bool) -> bool | None:
-    n = _int(q)
-    return None if value is None or n is None else (value >= n if ge else value <= n)
+def _at_least(a: Any, o: Obj) -> bool | None:
+    """The comparison of a printed characteristic (QTY_GE's ``field``; "N or less" is its FNot,
+    which ``holds`` reads); a measured quantity is a predicate of the game state, unknown."""
+    value = {QPropField.POWER: o.power, QPropField.MANA_VALUE: o.mana_value}.get(a.field)
+    n = _int(a.count)
+    return None if value is None or n is None else value >= n
 
 
 #: The predicates of printed characteristics; any other one is unknown (None). A producer is
@@ -173,10 +178,7 @@ _READ = {
     P.SUPERTYPE_EQ: lambda a, o: a.string_value in o.words,
     P.COLOR_HAS: lambda a, o: a.color in o.colors,
     P.KEYWORD_HAS: lambda a, o: a.keyword in o.keywords,
-    P.POWER_GE: lambda a, o: _cmp(o.power, a.count, True),
-    P.POWER_LE: lambda a, o: _cmp(o.power, a.count, False),
-    P.CMC_GE: lambda a, o: _cmp(o.mana_value, a.count, True),
-    P.CMC_LE: lambda a, o: _cmp(o.mana_value, a.count, False),
+    P.QTY_GE: _at_least,
     P.IS_TOKEN: lambda a, o: o.token,
     P.IS_PERMANENT: lambda a, o: o.permanent,
     P.IS_SOURCE: lambda a, o: False,
@@ -263,13 +265,26 @@ PREDICATES = {
     P.CARDS_DRAWN_THIS_TURN_GE: lambda a: ("draw", None) if a.who is YOU else None,
     P.INSTANT_OR_SORCERY_CAST_THIS_TURN: lambda a: (
         ("spell", _INSTANT_OR_SORCERY) if a.who is YOU else None),
-    P.CONTROLLER_COUNT_GE: lambda a: ("permanent", a.inner_filter),
+    P.QTY_GE: lambda a: _compared_shape(a),
     P.HAS_COUNTER: lambda a: ("counter", None) if a.counter_kind is CounterKind.PLUS_1_PLUS_1
     else None,
-    P.ZONE_COUNT_GE: lambda a: ("mill", None) if (
-        a.who is OPPONENT and a.zone.kind is ZoneKind.GRAVEYARD) else None,
     P.EVENT_THIS_TURN: lambda a: event_shape(a.event),
 }
+
+
+def _compared_shape(a: FAtom) -> Shape | None:
+    """A comparison's consumer: "you control N or more F" (a count of your permanents) reads F,
+    "an opponent has N or more cards in their graveyard" (the count of "your" graveyard read for
+    an opponent) a mill; any other comparison none."""
+    q = a.quantity
+    if not isinstance(q, QCount):
+        return None
+    zones = {(z.kind, z.controller) for z in q.selector.zones}
+    if a.who is OPPONENT:
+        return ("mill", None) if zones == {(ZoneKind.GRAVEYARD, YOU)} else None
+    if zones == {(ZoneKind.BATTLEFIELD, ANY)} and _names(q.selector.filter, P.CONTROLLER_IS, YOU):
+        return "permanent", q.selector.filter
+    return None
 
 
 def _count_shape(q: QCount) -> Shape | None:
@@ -322,10 +337,14 @@ def shapes(ability: Any) -> set[Shape]:
         out.add(KEYWORDS.get(ability.keyword))
     own = list(_own(ability))
     negated = {id(x) for n in own if isinstance(n, FNot) for x in walk(n.inner)}
+    # a comparison's quantities, both sides, are read by the comparison (_compared_shape), not as
+    # counts the ability wants
+    compared = {id(x) for n in own if isinstance(n, FAtom) and n.pred is P.QTY_GE
+                for side in (n.quantity, n.count) if side is not None for x in walk(side)}
     for n in own:
         if isinstance(n, FAtom) and n.pred in PREDICATES and id(n) not in negated:
             out.add(PREDICATES[n.pred](n))
-        elif isinstance(n, QCount):
+        elif isinstance(n, QCount) and id(n) not in compared:
             out.add(_count_shape(n))
         elif isinstance(n, Atom) and isinstance(ability, StaticAbility):
             out.add(_static_shapes(n))

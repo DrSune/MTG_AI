@@ -26,6 +26,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     OptionalEffect,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     Seq,
@@ -33,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.query import MAY_VOCAB, optional_offer
@@ -406,16 +408,11 @@ class CompilerMergeTest(unittest.TestCase):
             assert isinstance(first, TriggeredAbility)
             cond = first.condition
             assert isinstance(cond, FAtom)
-            self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+            self.assertIs(cond.pred, FAtomPred.QTY_GE)
             self.assertEqual(cond.count, QConst(1))
-            inner = cond.inner_filter
+            inner = cond.quantity.selector.filter
             self.assertTrue(isinstance(inner, FAnd) and len(inner.children) >= 1)
-            power = [
-                c
-                for c in (inner.children if isinstance(inner, FAnd) else ())
-                if isinstance(c, FAtom) and c.pred is FAtomPred.POWER_GE
-            ]
-            self.assertEqual(power[0].count, QConst(4))
+            self.assertIn(at_least(4, field=QPropField.POWER), inner.children)
 
 
 if __name__ == "__main__":

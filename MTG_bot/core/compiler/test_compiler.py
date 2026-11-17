@@ -59,7 +59,9 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_least,
     canonical_json,
+    number_you_control,
     walk,
 )
 from MTG_bot.core.compiler.compiler import (
@@ -2245,16 +2247,13 @@ def _gate_dead_filter() -> Filter:
 
 def _gate_flying_filter() -> Filter:
     """Gate condition: you control at least one creature with flying."""
-    return FAtom(
-        pred=FAtomPred.CONTROLLER_COUNT_GE,
-        count=QConst(1),
-        inner_filter=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-            )
-        ),
+    flier = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+            FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+        )
     )
+    return at_least(1, quantity=number_you_control(flier))
 
 
 def _activation_gate_templates(reg: TemplateRegistry) -> None:

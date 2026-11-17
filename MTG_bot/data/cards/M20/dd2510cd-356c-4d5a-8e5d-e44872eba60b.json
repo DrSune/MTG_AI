@@ -62,7 +62,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -74,76 +74,103 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": [
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "CONTROLLER_IS"
-        },
-        "string_value": null,
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": {
-         "tag": "ControllerRef",
-         "name": "YOU"
-        },
-        "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "NAME_EQ"
-        },
-        "string_value": "Faerie Miscreant",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "TYPE_EQ"
-        },
-        "string_value": "Creature",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
-       },
-       {
-        "tag": "FNot",
-        "inner": {
-         "tag": "FAtom",
-         "pred": {
-          "tag": "FAtomPred",
-          "name": "IS_SOURCE"
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
          },
-         "string_value": null,
-         "color": null,
-         "colors": [],
-         "count": null,
-         "counter_kind": null,
-         "keyword": null,
-         "who": null,
-         "inner_filter": null
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "NAME_EQ"
+          },
+          "string_value": "Faerie Miscreant",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
         }
-       }
-      ]
+       ]
+      }
      }
     },
     "effect": {
@@ -183,9 +210,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-0",
-  "date": "2026-11-05",
-  "draft_py": "# Faerie Miscreant (M20). \"When this creature enters, if you control another creature named Faerie\n# Miscreant, draw a card.\" Turret Ogre's intervening-if (\"if you control another creature with\n# ...\", B2a-turret-ogre) with the power test replaced by NAME_EQ (Frantic Inventory's \"named\"),\n# and Llanowar Visionary's ETB draw (B2a-etb-draw-one) as the effect.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=1),\n        inner_filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.NAME_EQ, string_value='Faerie Miscreant'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [etb, *compiled]\n",
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FLYING),\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.NAME_EQ, string_value='Faerie Miscreant'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Flying",
@@ -197,47 +224,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "G1's board has no second Miscreant, so the draw is never exercised there. Packs: /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/faerie_miscreant/pack_second_draws.json (a second Miscreant you control draws), /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m0/faerie_miscreant/pack_opponents_does_not_count.json (an opponent's Miscreant does not)."
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-05 by claude-verifiers-m20v1 tree, same meaning; it waits for re-verification."
  },
  "probe": {
-  "sha": "115f4ff8465b49dd021cb1aa5c79bd0fdd3112528142f0a1599ec9189b134417"
- },
- "verified": {
-  "tree_sha": "5a3f193a72210acb055b30a68888796ab70a14fa7ce837cc393620af85de7890",
-  "probe_sha": "29ee3ed49929f91dd32d38bd396d993d7f88b58200952f96f221e95a190a4c3e",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
-  "clauses": [
-   {
-    "clause": "Flying",
-    "status": "OK",
-    "evidence": "[this creature attacks and opp_giant blocks it]: no block, opp is dealt 1.",
-    "issue": ""
-   },
-   {
-    "clause": "When this creature enters, if you control another creature named Faerie Miscreant, draw a card.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: [cast] alone draws nothing (correct). Packs: faerie_miscreant_second_copy_draws (a second Miscreant draws: hand 1), faerie_miscreant_opponents_copy_no_draw (the opponent's Miscreant does not count); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/faerie_miscreant_1.json",
-   "tools/scenarios/cards/M20/faerie_miscreant_2.json"
-  ],
-  "mutation": {
-   "mutants": 10,
-   "killed": 3,
-   "score": 0.3,
-   "survived": [
-    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
-    "amount+1 at 1/0/condition/count",
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 2) at 1/0/condition/inner_filter",
-    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
-    "amount+1 at 1/0/effect/args/amount",
-    "controller YOU->OPPONENT at 1/0/effect/args/controller"
-   ]
-  }
+  "sha": "8486577bc8920c8f485911d34ee48533a40e1316129c11ffd45c4019415b1c2a"
  }
 }

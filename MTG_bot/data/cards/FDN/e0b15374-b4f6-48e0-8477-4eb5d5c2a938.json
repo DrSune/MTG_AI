@@ -129,22 +129,29 @@
                  "inner_filter": null
                 },
                 {
-                 "tag": "FAtom",
-                 "pred": {
-                  "tag": "FAtomPred",
-                  "name": "POWER_LE"
-                 },
-                 "string_value": null,
-                 "color": null,
-                 "colors": [],
-                 "count": {
-                  "tag": "QConst",
-                  "value": 2
-                 },
-                 "counter_kind": null,
-                 "keyword": null,
-                 "who": null,
-                 "inner_filter": null
+                 "tag": "FNot",
+                 "inner": {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "QTY_GE"
+                  },
+                  "string_value": null,
+                  "color": null,
+                  "colors": [],
+                  "count": {
+                   "tag": "QConst",
+                   "value": 3
+                  },
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null,
+                  "field": {
+                   "tag": "QPropField",
+                   "name": "POWER"
+                  }
+                 }
                 }
                ]
               },
@@ -274,7 +281,7 @@
  "mapping": {
   "author": "m8-mapper-opus",
   "date": "2026-11-17",
-  "draft_py": "# {2}{W}: Look at the top four cards of your library. You may reveal a creature card with power 2 or\n# less from among them and put it into your hand. Put the rest on the bottom of your library in a\n# random order.  (M21 Garruk's Harbinger's look / reveal-one / rest form)\nTOP = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\nrally = ActivatedAbility(\n    cost=Cost(parts=(CostManaColor(color='W', amount=QConst(value=1)), CostManaGeneric(amount=QConst(value=2)))),\n    effect=Seq(steps=(\n        A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n        OptionalEffect(inner=Seq(steps=(\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1), mode=SelectorMode.ONE_OF,\n                    filter=FAnd(children=(\n                        FAtom(pred=FAtomPred.POWER_LE, count=QConst(value=2)),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    )),\n                    zones=TOP),\n                'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n        ))),\n        A(Verb.MOVE_ZONE, {\n            'arrange': 'RANDOM',\n            'cards': Selector(count=QConst(value=1), mode=SelectorMode.REST, filter=FAnd(children=()), zones=TOP),\n            'destination': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.BOTTOM),\n        }),\n    )),\n)\nabilities = [rally, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(\n            parts=(\n                CostManaColor(color='W', amount=QConst(value=1)),\n                CostManaGeneric(amount=QConst(value=2)),\n            ),\n        ),\n        effect=Seq(\n            steps=(\n                A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n                OptionalEffect(\n                    inner=Seq(\n                        steps=(\n                            A(Verb.REVEAL, {\n                                'controller': ControllerRef.YOU,\n                                'count': QConst(value=1),\n                            }),\n                            A(Verb.MOVE_ZONE, {\n                                'cards': Selector(\n                                    count=QConst(value=1),\n                                    mode=SelectorMode.ONE_OF,\n                                    filter=FAnd(\n                                        children=(\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                            FNot(\n                                                inner=FAtom(\n                                                    pred=FAtomPred.QTY_GE,\n                                                    count=QConst(value=3),\n                                                    field=QPropField.POWER,\n                                                ),\n                                            ),\n                                        ),\n                                    ),\n                                    zones=(\n                                        Zone(\n                                            kind=ZoneKind.LIBRARY,\n                                            controller=ControllerRef.YOU,\n                                            position=ZonePosition.TOP,\n                                        ),\n                                    ),\n                                ),\n                                'destination': Zone(\n                                    kind=ZoneKind.HAND,\n                                    controller=ControllerRef.YOU,\n                                ),\n                            }),\n                        ),\n                    ),\n                ),\n                A(Verb.MOVE_ZONE, {\n                    'arrange': 'RANDOM',\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.REST,\n                        filter=FAnd(children=()),\n                        zones=(\n                            Zone(\n                                kind=ZoneKind.LIBRARY,\n                                controller=ControllerRef.YOU,\n                                position=ZonePosition.TOP,\n                            ),\n                        ),\n                    ),\n                    'destination': Zone(\n                        kind=ZoneKind.LIBRARY,\n                        controller=ControllerRef.YOU,\n                        position=ZonePosition.BOTTOM,\n                    ),\n                }),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "{2}{W}: Look at the top four cards of your library.",
@@ -290,7 +297,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "M8 mapper. Garruk's Harbinger's look / reveal-one / rest form. Packs: tools/scenarios/mapped/FDN/squad_rallier_*.json."
+  "notes": "M8 mapper. Garruk's Harbinger's look / reveal-one / rest form. Packs: tools/scenarios/mapped/FDN/squad_rallier_*.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "090ea0b0103230d6bcbb69d00d28fcd2140cb63009b699e9a975d46a80771e8c"

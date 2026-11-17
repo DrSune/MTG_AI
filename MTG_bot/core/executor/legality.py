@@ -794,7 +794,7 @@ def build_payment_plan(
     # ``FAtom(IS_SOURCE)`` folds ("activated abilities … cost less" describes
     # the host's OWN ability, Sanctum of Tranquil Light), so no cast-lane
     # reduction (Vryn/Watcher's blanket auras, Discontinuity's conditional
-    # window, TARGETS_SOURCE/IS_ANY_TARGET spell filters) can leak into an
+    # window, TARGETS/IS_ANY_TARGET spell filters) can leak into an
     # activation.
     judge = mana_use if mana_use is not None else activation
     if (

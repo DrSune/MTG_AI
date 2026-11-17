@@ -790,8 +790,9 @@ def check_trigger_timing(sets) -> list[str]:
 # ---------------------------------------------------------------------------
 #: Filter predicates that read the game, not the object they are asked about (quantity.py
 #: answers them the same for every handle). In an EventSpec they qualify the event itself
-#: ("during an opponent's turn", "while you control six or more Shrines"). The one list lives in
-#: the IR (``ability_tree.SUBJECT_FREE``), which also reads it for a gathered trigger's condition.
+#: ("during an opponent's turn", "while you control six or more Shrines"). The one rule lives in
+#: the IR (``ability_tree.reads_no_subject``: ``SUBJECT_FREE`` and the comparison of a measured
+#: quantity), which also reads it for a gathered trigger's condition.
 SUBJECT_FREE = at.SUBJECT_FREE
 
 
@@ -831,7 +832,7 @@ def misplaced_qualifiers(abilities) -> list[str]:
             if f.name == slot:
                 continue
             for atom in _top_atoms(getattr(node, f.name)):
-                if atom.pred in SUBJECT_FREE:
+                if at.reads_no_subject(atom):
                     out.append(f"{type(node).__name__}.{f.name}: {atom.pred.name}")
     return out
 
