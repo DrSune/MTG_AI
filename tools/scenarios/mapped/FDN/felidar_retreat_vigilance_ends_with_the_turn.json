@@ -1,0 +1,24 @@
+{
+ "name": "felidar_retreat_vigilance_ends_with_the_turn",
+ "set": "FDN",
+ "note": "Felidar Retreat's second mode: '... Those creatures gain vigilance until end of turn.' The counter stays, the vigilance does not: P0 plays a Plains on turn 1 and chooses the counters; on P0's next turn (no land played, so no new trigger) its Bear attacks and taps.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "retreat", "real": "Felidar Retreat", "zone": "battlefield", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "plains", "decisions": ["1"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+  "tapped": {"bear": true},
+  "life": {"0": 20, "1": 17}
+ }
+}

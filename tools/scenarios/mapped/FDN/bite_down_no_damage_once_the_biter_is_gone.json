@@ -1,0 +1,20 @@
+{
+ "name": "bite_down_no_damage_once_the_biter_is_gone",
+ "set": "FDN",
+ "note": "Bite Down: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' P0 casts it with its 3/3 Wolf and the opponent's 4/4 Giant as targets; before it resolves the Wolf is returned to P0's hand. The Wolf is an illegal target, so it deals no damage (CR 608.2b; the card's ruling: if either target is illegal, the creature you control won't deal damage): the Giant is dealt nothing and no damage is marked anywhere. Bite Down resolves for its legal target and goes to the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bite", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature — Giant", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 1}},
+  {"op": "cast", "real": "Bite Down", "key": "bite", "controller": 0, "targets": ["wolf", "giant"], "hold": true},
+  {"op": "move", "key": "wolf", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"bite": "graveyard", "wolf": "hand", "giant": "battlefield"},
+  "damage_received": {"giant": 0}
+ }
+}

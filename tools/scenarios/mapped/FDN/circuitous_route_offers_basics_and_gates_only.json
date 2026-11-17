@@ -1,0 +1,19 @@
+{
+ "name": "circuitous_route_offers_basics_and_gates_only",
+ "set": "FDN",
+ "note": "Circuitous Route: 'Search your library for up to two basic land cards and/or Gate cards, ...'. The search's first pick offers the Forest, the Plains and the Azorius Guildgate, plus NONE ('up to two': zero is allowed), and never the Evolving Wilds (a nonbasic land that is no Gate) or the creature card. The step stops at that ask (no decision word), so it pins its vocabulary.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cr", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "library", "controller": 0},
+  {"key": "wilds", "real": "Evolving Wilds", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "power": "3", "toughness": "3", "type": "Creature — Beast", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 3}},
+  {"op": "cast", "real": "Circuitous Route", "key": "cr", "controller": 0, "expect_raise": "needs a decision from ('card:1', 'card:2', 'card:3', 'NONE')"}
+ ],
+ "expect": {}
+}

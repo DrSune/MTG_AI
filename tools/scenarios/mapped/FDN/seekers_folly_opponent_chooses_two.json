@@ -1,0 +1,21 @@
+{
+ "name": "seekers_folly_opponent_chooses_two",
+ "set": "FDN",
+ "note": "Seeker's Folly, first mode: 'Target opponent discards two cards.' The opponent holds three cards; the discarding player chooses which (CR 701.9b): the opponent discards the two it picks and keeps the third, and P0's own hand is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "folly", "real": "Seeker's Folly", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Card", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "oa", "name": "Opp Card A", "type": "Sorcery", "zone": "hand", "controller": 1},
+  {"key": "ob", "name": "Opp Card B", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "oc", "name": "Opp Card C", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 2}},
+  {"op": "cast", "real": "Seeker's Folly", "key": "folly", "controller": 0, "decisions": ["0", "oc", "oa"], "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"folly": "graveyard", "oa": "graveyard", "oc": "graveyard", "ob": "hand", "mine": "hand"},
+  "hand": {"0": 1, "1": 1}
+ }
+}

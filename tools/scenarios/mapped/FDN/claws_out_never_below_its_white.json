@@ -1,0 +1,24 @@
+{
+ "name": "claws_out_never_below_its_white",
+ "set": "FDN",
+ "note": "Claws Out: 'Affinity for Cats (This spell costs {1} less to cast for each Cat you control.)' Affinity reduces only the generic part (CR 702.41a, 601.2f): with four Cats P0 pays {W}{W} for {3}{W}{W}, not less. With exactly {W}{W} in the pool the cast succeeds and the pool is empty; with one W and colourless mana it could not be cast (the second step is refused).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "cat1", "name": "Cat A", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "cat2", "name": "Cat B", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "cat3", "name": "Cat C", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "cat4", "name": "Cat D", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 4}, "hold": true},
+  {"op": "cast", "real": "Claws Out", "key": "claws", "controller": 0, "expect_raise": "illegal cast: cost:mana:W"},
+  {"op": "mana", "seat": 0, "add": {"W": 1}, "hold": true},
+  {"op": "cast", "real": "Claws Out", "key": "claws", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"claws": "graveyard"},
+  "mana_pool": {"0": {"C": 4}},
+  "power": {"cat1": 3, "cat4": 3}
+ }
+}

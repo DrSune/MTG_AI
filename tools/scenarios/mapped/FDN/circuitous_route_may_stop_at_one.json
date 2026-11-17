@@ -1,0 +1,20 @@
+{
+ "name": "circuitous_route_may_stop_at_one",
+ "set": "FDN",
+ "note": "Circuitous Route: 'Search your library for up to two basic land cards and/or Gate cards, put them onto the battlefield tapped, then shuffle.' 'Up to two': P0 takes the Plains and then stops (NONE) although a Forest and a Gate are left. Only the Plains enters, tapped; the rest stay in the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cr", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 3}},
+  {"op": "cast", "real": "Circuitous Route", "key": "cr", "controller": 0, "decisions": ["plains", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"cr": "graveyard", "plains": "battlefield", "forest": "library", "gate": "library"},
+  "tapped": {"plains": true}
+ }
+}

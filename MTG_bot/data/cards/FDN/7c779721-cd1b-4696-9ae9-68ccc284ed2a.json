@@ -1,0 +1,122 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7c779721-cd1b-4696-9ae9-68ccc284ed2a",
+ "name": "Aetherize",
+ "text_sha": "da83dcc4bb27ed2e93bd03ad4533490b32068bb6ee846c89b0a66f8f2762c34e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ATTACKING"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Aetherize (FDN): \"Return all attacking creatures to their owner's hand.\"\n# MOVE_ZONE to Zone(HAND, OWNER) (Unsummon's bounce) over an ALL selector (QUnbounded: every one,\n# no choice) of attacking creatures (IS_ATTACKING, Warded Battlements' filter), any controller.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.IS_ATTACKING),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Return all attacking creatures to their owner's hand.",
+    "ir": "abilities[0].effect (MOVE_ZONE of ALL attacking creatures to Zone(HAND, OWNER))"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Unsummon's bounce to Zone(HAND, OWNER) over an ALL (QUnbounded) selector of IS_ATTACKING creatures. packs in tools/scenarios/mapped/FDN/: aetherize_returns_only_the_attackers."
+ },
+ "probe": {
+  "sha": "c17c1df9707bc1f9f6188673667d3983ba979f05f7c2239c5eab7cd32a52ee94"
+ }
+}

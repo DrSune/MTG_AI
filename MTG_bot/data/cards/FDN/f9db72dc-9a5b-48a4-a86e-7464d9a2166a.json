@@ -1,0 +1,167 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f9db72dc-9a5b-48a4-a86e-7464d9a2166a",
+ "name": "Abrade",
+ "text_sha": "7816efbd9ca481b32676ac7490c122591cb810d87fdeee5ec6e945947fb69124",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Artifact",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Abrade (FDN) -- Choose one --\n#  * Abrade deals 3 damage to target creature.     (Turn to Slag's B5c-turn-to-slag atom, 3)\n#  * Destroy target artifact.                       (compiled bullet, kept)\n# Modal shape: M21 Destructive Tampering / M20 Reckless Air Strike's Choose(count 1).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Choose(\n            count=QConst(value=1),\n            options=(\n                A(Verb.DEAL_DAMAGE, {\n                    'amount': QConst(value=3),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n                compiled[0].effect,\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect (Choose count 1)"
+   },
+   {
+    "clause": "• Abrade deals 3 damage to target creature.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Destroy target artifact.",
+    "ir": "abilities[0].effect.options[1] (the compiled bullet)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Modal shape of M21 Destructive Tampering; damage atom of Turn to Slag (3); the compiled artifact bullet kept. The probe plays both modes."
+ },
+ "probe": {
+  "sha": "1f7ee703f66bb965401b7774d86d6410d7268d0b55b946e7a46c0424490b16d4"
+ }
+}

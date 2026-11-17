@@ -1,0 +1,157 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "07792d72-d5db-41b9-871c-e720e12ce659",
+ "name": "Cemetery Recruitment",
+ "text_sha": "6cb6e960dd9f0efbd32b4e5785832776a4c7f5edf8c0a5bdce98e680f529abda",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Zombie",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "DRAW"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "amount",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Cemetery Recruitment (FDN).\n# \"Return target creature card from your graveyard to your hand.\" -- M20 Disentomb's verified\n#   record, word for word.\n# \"If it's a Zombie card, draw a card.\" -- M21 Track Down's B5b-if-it-type-then Conditional (judged\n#   on \"it\", the card the move just acted on: the result register), SUBTYPE_EQ Zombie.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                Conditional(\n                    pred=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Zombie'),\n                    then_effect=A(Verb.DRAW, {\n                        'amount': QConst(value=1),\n                        'controller': ControllerRef.YOU,\n                    }),\n                ),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to your hand.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "If it's a Zombie card, draw a card.",
+    "ir": "abilities[0].effect.steps[1] (Conditional on the returned card)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M20 Disentomb's verified return, then Track Down's 'If it's a ... card, draw a card.' Conditional (judged on the returned card) with SUBTYPE_EQ Zombie. packs in tools/scenarios/mapped/FDN/: cemetery_recruitment_non_zombie_draws_nothing, cemetery_recruitment_zombie_draws_one."
+ },
+ "probe": {
+  "sha": "0849affc9bb3bfe04dc9c22cd80770da4a9f9a9a74d863f969c62c0f8b15e69c"
+ }
+}
