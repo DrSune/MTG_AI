@@ -554,3 +554,14 @@ def test_a_fight_partner_made_illegal_before_primal_might_resolves_is_not_fought
     assert game.world.zone_of(crab).kind == ZONE_BATTLEFIELD
     assert game.executor.damage == {}
     assert game.executor.ledger.effective_pt(game.world.cards[corpse].identity, corpse, {})[0] == 4
+
+
+def test_a_card_a_permission_offers_from_the_top_of_the_library_is_named() -> None:
+    """Conspicuous Snoop's "You may cast Goblin spells from the top of your library" (ontology
+    round R13): the row exists only because the seat may cast that card, so its label names the
+    card and where it is cast from, never "an unrevealed card" (the fresh-eyes review, finding 5)."""
+    game, supply = _arranged(hand0=("Goblin Arsonist",), field0=("Conspicuous Snoop",), pool0={"R": 1})
+    gob = _handle(game, "Goblin Arsonist", zone=ZONE_HAND)
+    game.world.move_to_zone(gob, P0, ZONE_LIBRARY)  # on top
+    option, _row = _menu(_router(game, supply), game)[f"cast:{gob}"]
+    assert "Goblin Arsonist" in option.label and "from your library (its top card)" in option.label

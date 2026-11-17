@@ -160,8 +160,20 @@ def own_permits(record: object) -> list[tuple[StaticAbility, Atom]]:
 
 
 def paths(executor: Executor, seat: Handle, card: Handle) -> list[Path]:
-    """Every way ``seat`` may play ``card`` now through a permission, one per cost path
-    (:attr:`Path.key`): an uncounted permission before a counted one, then the oldest."""
+    """Every way ``seat`` may cast ``card`` now through a permission, one per cost path
+    (:attr:`Path.key`): an uncounted permission before a counted one, then the oldest. A land's
+    play is :func:`land_path`'s (a cast permission sharing a cost path never stands for it)."""
+    best: dict[tuple, Path] = {}
+    for path in _found(executor, seat, card):
+        held = best.get(path.key)
+        if held is None or _better(path, held):
+            best[path.key] = path
+    return sorted(best.values(), key=_order)
+
+
+def _found(executor: Executor, seat: Handle, card: Handle) -> list[Path]:
+    """Every permission that lets ``seat`` play ``card`` now, before :func:`paths` keeps one per
+    cost path."""
     from MTG_bot.core.executor.legality import ctx_for, spell_record
 
     state = _zone_state(executor, seat, card)
@@ -197,12 +209,7 @@ def paths(executor: Executor, seat: Handle, card: Handle) -> list[Path]:
         found.append(Path(card, card, atom, None))
     if state == ZONE_HAND:  # the rules' own path is the plain one (CR 117.1a)
         found = [p for p in found if p.alternative is not None]
-    best: dict[tuple, Path] = {}
-    for path in found:
-        held = best.get(path.key)
-        if held is None or _better(path, held):
-            best[path.key] = path
-    return sorted(best.values(), key=_order)
+    return found
 
 
 def _better(a: Path, b: Path) -> bool:
@@ -226,7 +233,7 @@ def land_path(executor: Executor, seat: Handle, card: Handle) -> Path | None:
     116.2a), or None. A land play has no cost, so any one serves: an uncounted one first."""
     if executor.world.zone_of(card).kind == ZONE_HAND:
         return None
-    lands = [p for p in paths(executor, seat, card) if p.lands]
+    lands = [p for p in _found(executor, seat, card) if p.lands]
     if not lands:
         return None
     return min(lands, key=lambda p: (p.counted, _seq(p)))
@@ -249,7 +256,7 @@ def playable(executor: Executor, seat: Handle) -> list[Handle]:
         if zone is None or not zone.entries:
             continue
         cards = [zone.entries[-1]] if state == ZONE_LIBRARY else list(zone.entries)
-        out.extend(c for c in cards if paths(executor, seat, c))
+        out.extend(c for c in cards if _found(executor, seat, c))
     return out
 
 

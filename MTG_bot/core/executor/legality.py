@@ -81,7 +81,6 @@ from MTG_bot.core.ability_tree import (
     CostDeltaIncreaseLife,
     CostDeltaReduceGeneric,
     CostDeltaReduceMana,
-    CostDeltaWaiveMana,
     CostDiscard,
     CostExile,
     CostLife,
@@ -780,10 +779,8 @@ def build_payment_plan(
     # zero — a discount never spills across colour or kind. Amounts
     # resolve in the modifier's coordinates, which is what Volcanic
     # Salvo's QProp (total power of ITS controller's creatures) requires.
-    # ``CostDeltaWaiveMana`` is skipped by design, not by oversight: the
-    # waiver is a PERMISSION the caster MAY take ("you may cast … without
-    # paying its mana cost"), and paying the printed cost is always a
-    # legal play the fold may conservatively plan.
+    # A free cast ("you may cast ... without paying its mana cost") is no
+    # delta: it is a permission's alternative cost (permits.Path).
     color_add: dict[str, int] = {}
     color_cut: dict[str, int] = {}
     generic_add = 0
@@ -863,8 +860,6 @@ def build_payment_plan(
                         ) + resolve(delta.amount, mod_ctx)
                     elif isinstance(delta, CostDeltaIncreaseLife):
                         extra_life += resolve(delta.amount, mod_ctx)
-                    elif isinstance(delta, CostDeltaWaiveMana):
-                        continue
                     else:  # pragma: no cover - CostDelta is a closed union
                         raise NotImplementedError(
                             f"executor: cost delta {type(delta).__name__} "
@@ -1666,8 +1661,9 @@ def spell_castable(
         alternative = path.alternative
         if path.additional is not None:
             additional = tuple(additional) + (path.additional,)
-        if alternative is not None and x:
-            # CR 107.3b: the mana cost is not paid, so the only legal X is 0
+        if alternative is not None and x and not _cost_has_x(alternative):
+            # CR 107.3b: neither the mana cost nor an alternative cost with X is paid, so the only
+            # legal X is 0 (a "flashback {X}" cost would carry its own X)
             return f"cast:x_unpaid:{handle}", None, None, None
     cost = spell_cost(record, additional, alternative)
     if _cost_has_x(cost) and x is None:

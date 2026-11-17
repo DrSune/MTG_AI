@@ -24,7 +24,6 @@ from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
     Atom,
     ControllerRef,
-    Cost,
     FAnd,
     FAtom,
     FAtomPred,

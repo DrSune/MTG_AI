@@ -2850,18 +2850,14 @@ class CostDeltaIncreaseLife:
             )
 
 
-@dataclass(frozen=True)
-class CostDeltaWaiveMana:
-    """Waive the cost's mana component entirely ("you may cast spells from
-    your hand without paying their mana costs")."""
-
-
+#: "You may cast spells from your hand without paying their mana costs" is no cost delta: it is the
+#: static PERMIT over the hand with ``alternative=Cost()`` (DESIGN_ATOM_ONTOLOGY §17; the delta that
+#: wrote it, CostDeltaWaiveMana, was retired with ontology round R13 as its second byte form).
 CostDelta = (
     CostDeltaReduceGeneric
     | CostDeltaIncreaseGeneric
     | CostDeltaReduceMana
     | CostDeltaIncreaseLife
-    | CostDeltaWaiveMana
 )
 
 
@@ -3326,13 +3322,42 @@ def spell_riders() -> tuple[ReplacementAbility, ...]:
 
 
 def _requires_card_type(filter_: object, word: str, negated: bool = False) -> bool:
-    """Does ``filter_`` admit only objects of card type ``word`` (a TYPE_EQ conjunct), or with
-    ``negated`` only objects without it (an FNot(TYPE_EQ) conjunct)?"""
+    """Does ``filter_`` admit only objects of card type ``word`` (a TYPE_EQ conjunct, or every
+    branch of a disjunction one), or with ``negated`` only objects without it (FNot(TYPE_EQ))?"""
     atom = FAtom(pred=FAtomPred.TYPE_EQ, string_value=word)
     want = FNot(inner=atom) if negated else atom
     if filter_ == want:
         return True
-    return isinstance(filter_, FAnd) and want in filter_.children
+    if isinstance(filter_, FAnd):
+        return any(_requires_card_type(c, word, negated) for c in filter_.children)
+    if isinstance(filter_, FOr):
+        return bool(filter_.children) and all(
+            _requires_card_type(c, word, negated) for c in filter_.children
+        )
+    return False
+
+
+def _named_card_types(filter_: object, positive: bool = True) -> set[str]:
+    """The card types a filter names as a TYPE_EQ reached through an even number of negations
+    ("instant and sorcery", "nonland" names none)."""
+    if isinstance(filter_, FAtom):
+        if positive and filter_.pred is FAtomPred.TYPE_EQ and filter_.string_value:
+            return {filter_.string_value}
+        return set()
+    if isinstance(filter_, (FAnd, FOr)):
+        return {t for c in filter_.children for t in _named_card_types(c, positive)}
+    if isinstance(filter_, FNot):
+        return _named_card_types(filter_.inner, not positive)
+    return set()
+
+
+def _count_limit(quantity: object) -> int | None:
+    """The most objects a designation's count names (QConst n, QAtMost n), else None."""
+    if isinstance(quantity, QConst) and isinstance(quantity.value, int):
+        return quantity.value
+    if isinstance(quantity, QAtMost):
+        return quantity.n
+    return None
 
 
 def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
@@ -3349,8 +3374,15 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
         )
     if verb is not Verb.PERMIT:
         sel = roles.get("source")
-        if isinstance(sel, Selector) and _requires_card_type(sel.filter, "Land"):
-            return "a land is never cast (CR 305.9): a CAST of lands casts nothing"
+        if not isinstance(sel, Selector):
+            return None
+        if "Land" in _named_card_types(sel.filter):
+            return "a land is never cast (CR 305.9): a CAST names no land"
+        if any(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones):
+            return (
+                "a CAST casts a card (CR 601.2a): a permanent or a spell is never cast, so its "
+                "`source` names no battlefield or stack"
+            )
         return None
     if roles.get("lands") is False:
         return "`lands` is True (\"play\") or absent (\"cast\"); False is a second form of absent"
@@ -3366,7 +3398,18 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
     sel = roles["source"]
     if not isinstance(sel, Selector):
         return "`source` names the cards with a Selector"
-    if sel.referent is None:
+    if sel.referent is not None:
+        if sel.referent != "result":
+            return (
+                "a referent `source` is the cards the instruction before the PERMIT moved "
+                f"(`result`), not {sel.referent!r}"
+            )
+        if sel.filter != FAnd(()):
+            return (
+                "the `result` register is the cards the permission covers, every one: a filter "
+                "on it is not read"
+            )
+    else:
         if sel.mode is SelectorMode.ALL:
             if not isinstance(sel.count, QUnbounded):
                 return "an ALL `source` is a population: its count is QUnbounded"
@@ -3383,11 +3426,24 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
             )
         if any(z.kind is ZoneKind.HAND for z in sel.zones) and "alternative" not in roles:
             return "casting from your hand needs no permission (CR 117.1a) unless the cost changes"
+        if sel.mode is SelectorMode.TARGET:
+            if any(z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND) for z in sel.zones):
+                return (
+                    "a card in a library or a hand is never designated (CR 400.2): the top card, "
+                    "or a hand's cards, are a population"
+                )
+            limit = _count_limit(sel.count)
+            if count is not None and limit is not None and count.value >= limit:
+                return (
+                    f"a designation of at most {limit} plays each once (CR 400.7): a `count` of "
+                    f"{count.value} limits nothing"
+                )
     lands = roles.get("lands") is True
-    if not lands and _requires_card_type(sel.filter, "Land"):
+    named = _named_card_types(sel.filter)
+    if not lands and "Land" in named:
         return "a land is never cast (CR 305.9): \"play lands\" is `lands` True"
-    if lands and _requires_card_type(sel.filter, "Land", negated=True):
-        return "playing only nonland cards is casting spells: leave `lands` out"
+    if lands and (_requires_card_type(sel.filter, "Land", negated=True) or (named and "Land" not in named)):
+        return "playing only cards that are never lands is casting spells: leave `lands` out"
     if rider is not None and _requires_card_type(sel.filter, "Land"):
         return "a land played never uses the stack (CR 305.1): `replace` means nothing here"
     if ("alternative" in roles or "additional" in roles) and _requires_card_type(sel.filter, "Land"):
@@ -4576,7 +4632,6 @@ _COST_DELTA_CLASSES = (
     CostDeltaIncreaseGeneric,
     CostDeltaReduceMana,
     CostDeltaIncreaseLife,
-    CostDeltaWaiveMana,
 )
 
 
@@ -5166,7 +5221,6 @@ _DATACLASSES: tuple[type, ...] = (
     CostDeltaIncreaseGeneric,
     CostDeltaReduceMana,
     CostDeltaIncreaseLife,
-    CostDeltaWaiveMana,
     AtomArgs,
     Atom,
     Seq,
@@ -5357,7 +5411,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CostDeltaIncreaseGeneric": (("amount", "quantity"),),
     "CostDeltaReduceMana": (("color", "str"), ("amount", "quantity")),
     "CostDeltaIncreaseLife": (("amount", "quantity"),),
-    "CostDeltaWaiveMana": (),
     "AtomArgs": (("pairs", "atom_pairs"),),
     "Atom": (("verb", "enum:Verb"), ("args", "atom_args")),
     "Seq": (("steps", "tup:effect"),),
@@ -5512,7 +5565,6 @@ _COST_DELTA_TAGS = frozenset(
         "CostDeltaIncreaseGeneric",
         "CostDeltaReduceMana",
         "CostDeltaIncreaseLife",
-        "CostDeltaWaiveMana",
     }
 )
 _DURATION_TAGS = frozenset(

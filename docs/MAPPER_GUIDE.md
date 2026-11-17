@@ -126,7 +126,8 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   filter. "you control" or "an opponent controls" adds `FAtom(pred=FAtomPred.CONTROLLER_IS,
   who=ControllerRef.YOU|OPPONENT)` in an `FAnd`.
   - See `parse "Destroy target creature an opponent controls."`.
-- **"you may ..."** is `OptionalEffect(inner=...)`.
+- **"you may ..."** is `OptionalEffect(inner=...)`, except "you may play/cast ... from ..." (a
+  permission: "Playing a card from another zone" below).
 - **"Whenever this creature becomes the target of a spell or ability an opponent controls"**
   (ontology R5-6) is `TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE),
   actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))`: `filter` reads the
@@ -178,6 +179,34 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   another permanent says `CONTROLLER_IS YOU` in its filter over `Zone(BATTLEFIELD, ANY)`, a card
   comes from `Zone(GRAVEYARD, YOU)` or `Zone(HAND, YOU)`, one zone per selector; and one cost holds
   one `CostExile` and one `CostRemoveCounter` of a kind (divergence D26).
+- **Playing a card from another zone** (ontology R13, DESIGN_ATOM_ONTOLOGY §17; `parse` the
+  sentence first: templates_b19 reads most wordings). "You may play/cast X from Z" is
+  `Verb.PERMIT`, never a CAST and never a free activation:
+  - `source` names the cards and the zone: `Selector(QUnbounded(), ALL, <filter>, zones=(Z,))`
+    with Z your graveyard, exile, the top of your library (`ZonePosition.TOP`) or your hand; a
+    TARGET over a graveyard or exile ("target instant card in your graveyard ... this turn"); or
+    "them", "that card", "cards exiled this way": the `result` selector with no filter.
+  - "play" is `lands=True`; "cast" leaves `lands` out. "Play lands" is `lands=True` over
+    `TYPE_EQ 'Land'`.
+  - "without paying its mana cost" is `alternative=Cost()`; another cost instead of the mana cost
+    ("for its flashback cost") `alternative=<that cost>`; "by paying 3 life and discarding a card
+    in addition to paying its other costs" `additional=<those parts>`.
+  - "a creature spell" (one play) is `count=QConst(1)`; "this turn" `DurationEot()`, "until the
+    end of your next turn" `DurationUntilEndOfNextTurn()`, "for as long as it remains exiled"
+    `DurationPermanent()`.
+  - In a static ability (Conspicuous Snoop, Omniscience, "you may cast this card from your
+    graveyard") the PERMIT has no duration and no count, and lasts while the static functions; a
+    card's own permission names its card with `FAtom(IS_SOURCE)`. In a spell or an activated,
+    loyalty or triggered ability (Chandra, Heart of Fire's [+1], Golos) the duration is required.
+  - Never under `OptionalEffect`: the "you may" is the permission's use.
+  - "If that spell would be put into your graveyard, exile it instead" and flashback's exile are
+    the cast verb's `replace` role, `ability_tree.spell_rider(Zone(GRAVEYARD, YOU))` or
+    `spell_rider(Zone(ANY, ANY))`, never a ReplacementAbility of the card.
+  - "You may cast target ... card from your graveyard" with no duration is the one-shot
+    `OptionalEffect(CAST(...))`: the card is cast as the ability resolves (CR 608.2g; Chandra,
+    Flame's Catalyst's [-2]); with "this turn" it is a PERMIT over the target (Jace, Telepath
+    Unbound's [-3]). "Flashback {cost}" is the card's own static PERMIT with `alternative` and
+    `spell_rider(Zone(ANY, ANY))` (B19-flashback).
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
@@ -405,6 +434,9 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       - cast a card from another zone: `{"op": "test_permission_cast", "key": k, "from":
         "graveyard"}`, as though a permission let you, at the card's own timing and full cost.
         The CAST row records the zone (`"kick_rows": {k: {"from": "graveyard"}}`).
+      - play through a card's real permission (ontology R13): the `act` op's words
+        `land:<key>` and `cast:<key>[:via:<source key>]`, the `via` when the permission changes
+        the cost or adds a rider (flashback is `cast:<key>:via:<key>`).
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.

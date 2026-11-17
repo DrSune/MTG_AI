@@ -91,7 +91,6 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     count_semantics,
-    is_loyalty_ability,
     own_nodes,
     walk,
 )

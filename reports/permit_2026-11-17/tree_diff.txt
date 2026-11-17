@@ -1,0 +1,155 @@
+compiler trees changed (35):
+   10E Crucible of Worlds
+   DOM Precognition Field
+   DOM Squee, the Immortal
+   FDN Bulk Up
+   FDN Electroduplicate
+   FDN Inspiration from Beyond
+   FDN Mystical Teachings
+   FDN Omniscience
+   FDN Revenge of the Rats
+   FDN Self-Reflection
+   FDN Sphinx of Forgotten Lore
+   FDN Think Twice
+   FDN Vizier of the Menagerie
+   FDN Zul Ashur, Lich Lord
+   IKO Vivien, Monsters' Advocate
+   M12 Garruk's Horde
+   M13 Omniscience
+   M14 Garruk's Horde
+   M19 Crucible of Worlds
+   M19 Liliana, Untouched by Death
+   M19 Omniscience
+   M20 Chandra, Acolyte of Flame
+   M20 Mystic Forge
+   M21 Chandra, Flame's Catalyst
+   M21 Chandra, Heart of Fire
+   M21 Conspicuous Snoop
+   M21 Demonic Embrace
+   M21 Idol of Endurance
+   M21 Radha, Heart of Keld
+   ORI Jace, Vryn's Prodigy // Jace, Telepath Unbound
+   WAR Bolas's Citadel
+   WAR Dreadhorde Arcanist
+   ZNR Ancient Greenwarden
+   ZNR Coveted Prize
+   ZNR Valakut Exploration
+trees with records applied changed (36):
+   10E Crucible of Worlds compiler -> compiler unverified
+   DOM Precognition Field compiler -> compiler unverified
+   DOM Squee, the Immortal compiler -> compiler unverified
+   FDN Bulk Up compiler -> compiler unverified
+   FDN Electroduplicate compiler -> compiler unverified
+   FDN Inspiration from Beyond compiler -> compiler unverified
+   FDN Mystical Teachings compiler -> compiler unverified
+   FDN Omniscience compiler -> compiler unverified
+   FDN Revenge of the Rats compiler -> compiler unverified
+   FDN Self-Reflection compiler -> compiler unverified
+   FDN Sphinx of Forgotten Lore compiler -> compiler unverified
+   FDN Think Twice compiler -> compiler unverified
+   FDN Vizier of the Menagerie compiler -> compiler unverified
+   FDN Zul Ashur, Lich Lord compiler -> compiler unverified
+   IKO Vivien, Monsters' Advocate compiler -> compiler unverified
+   M12 Garruk's Horde compiler -> compiler unverified
+   M13 Omniscience compiler -> compiler unverified
+   M14 Garruk's Horde compiler -> compiler unverified
+   M19 Crucible of Worlds compiler -> compiler unverified
+   M19 Liliana, Untouched by Death compiler -> compiler unverified
+   M19 Omniscience compiler -> compiler unverified
+   M20 Chandra, Acolyte of Flame needs-atom record -> needs-atom record unverified
+   M20 Golos, Tireless Pilgrim needs-atom record -> record unverified
+   M20 Mystic Forge needs-atom record -> record unverified
+   M21 Chandra, Flame's Catalyst compiler -> compiler unverified
+   M21 Chandra, Heart of Fire compiler -> compiler unverified
+   M21 Conspicuous Snoop compiler -> compiler unverified
+   M21 Demonic Embrace compiler -> compiler unverified
+   M21 Idol of Endurance compiler -> compiler verified
+   M21 Radha, Heart of Keld compiler -> compiler unverified
+   ORI Jace, Vryn's Prodigy // Jace, Telepath Unbound compiler -> compiler unverified
+   WAR Bolas's Citadel compiler -> compiler unverified
+   WAR Dreadhorde Arcanist compiler -> compiler unverified
+   ZNR Ancient Greenwarden compiler -> compiler unverified
+   ZNR Coveted Prize compiler -> compiler unverified
+   ZNR Valakut Exploration compiler -> compiler unverified
+compiler: fewer unparsed sentences (26):
+   10E Crucible of Worlds 1 -> 0
+   DOM Precognition Field 3 -> 1
+   DOM Squee, the Immortal 1 -> 0
+   FDN Bulk Up 2 -> 1
+   FDN Electroduplicate 2 -> 1
+   FDN Inspiration from Beyond 2 -> 1
+   FDN Mystical Teachings 2 -> 1
+   FDN Omniscience 1 -> 0
+   FDN Revenge of the Rats 2 -> 1
+   FDN Self-Reflection 2 -> 1
+   FDN Sphinx of Forgotten Lore 2 -> 0
+   FDN Think Twice 1 -> 0
+   FDN Vizier of the Menagerie 3 -> 1
+   FDN Zul Ashur, Lich Lord 2 -> 1
+   IKO Vivien, Monsters' Advocate 4 -> 2
+   M12 Garruk's Horde 1 -> 0
+   M13 Omniscience 1 -> 0
+   M14 Garruk's Horde 1 -> 0
+   M19 Crucible of Worlds 1 -> 0
+   M19 Liliana, Untouched by Death 4 -> 3
+   M19 Omniscience 1 -> 0
+   M20 Mystic Forge 3 -> 1
+   ORI Jace, Vryn's Prodigy // Jace, Telepath Unbound 4 -> 3
+   WAR Bolas's Citadel 4 -> 3
+   ZNR Ancient Greenwarden 2 -> 1
+   ZNR Valakut Exploration 2 -> 1
+compiler: newly compiling whole (10): [('10E', 'Crucible of Worlds'), ('DOM', 'Squee, the Immortal'), ('FDN', 'Omniscience'), ('FDN', 'Sphinx of Forgotten Lore'), ('FDN', 'Think Twice'), ('M12', "Garruk's Horde"), ('M13', 'Omniscience'), ('M14', "Garruk's Horde"), ('M19', 'Crucible of Worlds'), ('M19', 'Omniscience')]
+verified cards leaving the verified pool (1): [('M21', 'Idol of Endurance')]
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (50):
+   10E Cancel ['counter']
+   FDN Cancel ['counter']
+   FDN Negate ['counter']
+   FDN Spinner of Souls ['exile-top-selector']
+   FDN Vivien Reid ['exile-top-selector']
+   IKO Anticipate ['exile-top-selector']
+   IKO Convolute ['counter']
+   M10 Cancel ['counter']
+   M10 Negate ['counter']
+   M11 Cancel ['counter']
+   M11 Negate ['counter']
+   M12 Cancel ['counter']
+   M12 Negate ['counter']
+   M13 Negate ['counter']
+   M13 Rewind ['counter']
+   M14 Cancel ['counter']
+   M14 Negate ['counter']
+   M15 Cancel ['counter']
+   M15 Negate ['counter']
+   M19 Anticipate ['exile-top-selector']
+   M19 Bone to Ash ['counter']
+   M19 Cancel ['counter']
+   M19 Vivien Reid ['exile-top-selector']
+   M20 Anticipate ['exile-top-selector']
+   M20 Bone to Ash ['counter']
+   M20 Brightwood Tracker ['exile-top-selector']
+   M20 Cavalier of Thorns ['exile-top-selector']
+   M20 Convolute ['counter']
+   M20 Drawn from Dreams ['exile-top-selector']
+   M20 Goblin Ringleader ['exile-top-selector']
+   M20 Icon of Ancestry ['exile-top-selector']
+   M20 Negate ['counter']
+   M20 Sage's Row Denizen ['pop-lane']
+   M20 Tale's End ['counter']
+   M20 Vivien, Nature's Avenger ['exile-top-selector']
+   M21 Azusa, Lost but Seeking ['wrapped-permission']
+   M21 Cancel ['counter']
+   M21 Carrion Grub ['pop-lane']
+   M21 Chromatic Orrery ['wrapped-permission']
+   M21 Garruk's Harbinger ['exile-top-selector']
+   M21 Lofty Denial ['counter']
+   M21 Miscast ['counter']
+   M21 Rewind ['counter']
+   M21 Teferi's Tutelage ['pop-lane']
+   M21 Teferi, Master of Time ['wrapped-permission']
+   M21 Thieves' Guild Enforcer ['pop-lane']
+   M21 Waker of Waves ['exile-top-selector']
+   ORI Bone to Ash ['counter']
+   ORI Negate ['counter']
+   ZNR Negate ['counter']
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '193->193', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '279->279', 'M21': '275->274', 'ORI': '24->24', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}

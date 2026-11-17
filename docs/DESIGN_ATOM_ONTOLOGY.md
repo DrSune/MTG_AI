@@ -153,6 +153,8 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostExile, one per cost (`target`: a CHOOSE selector, a literal count, one zone: `Zone(BATTLEFIELD, ANY)` for the source or a permanent the payer controls, the payer's graveyard or hand; the source is `IS_SOURCE` alone, count 1): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostRemoveCounter, one per kind per cost (`counter_kind` but LOYALTY, `target` the source or a permanent the payer controls, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
+| 2026-11-17, gate round 13 (pending, §17) | Verb.PERMIT x `source` (ALL over your graveyard, exile, library top or hand; TARGET over a graveyard or exile; the `result` register whole, no filter) x `lands` (True or absent) x `alternative` / `additional` (Costs) x `replace` (`spell_riders()`) x `count` (a literal, resolving only) x `duration` (Eot, UntilEndOfNextTurn, Permanent; required when resolving, absent in a static) | templates_b19 (15 templates): M21 Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace, both Chandras, Idol of Endurance (b3); FDN Omniscience, Think Twice and the flashback cards, Sphinx of Forgotten Lore, Zul Ashur; records: M20 Golos, Mystic Forge | 33 PERMIT atoms in the 19 sets, records applied (`reports/permit_2026-11-17/`) |
+| 2026-11-17, gate round 13 (pending, §17) | Verb.CAST x `alternative` / `additional` (the old `cost` role split) x `replace` (the rider) | M21 Chandra, Flame's Catalyst's [-2]; ZNR Coveted Prize (b8) | 2 CAST atoms |
 
 ## 6. Identity + conformance
 
@@ -771,6 +773,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     13 record trees, 0 verified cards in or out of 1,144; 600 seeded heuristic games (200 each,
     M21, M20, FDN; 275, 277 and 190 deckable): 600/600 identical replay digests, journal dumps and
     raw event logs, 0 crashes either side (`replay_4da972f1.txt`).
+- R13 round 13 (adversarial, pending): Verb.PERMIT, CAST's cost roles and the spell's rider (§17), branch `worktree-agent-a4af16b825120dda1` with main fba0ea20 merged. A fresh-eyes review of the code diff (one reviewer, 2026-11-17) found 3 MAJOR, 3 MINOR and 1 NIT, fixed but one MINOR (logged): §17, "The fresh-eyes review".
 - BINDING STATE: rounds 1–11 complete; further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
@@ -794,6 +797,7 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 | R5-11 `TokenSpec.colors` | **implemented** (lane r5b) |
 | `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
 | R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
+| R5-2, R5-3, R5-12's rider | **built as ontology round R13** (§17, 2026-11-17): one verb, PERMIT, with `lands`; the rider a cast verb's `replace` role; gate round 13 pending |
 | R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` **implemented, round 4 GO** (1cac720, fixes 844c315): count = the revealed cards that pass `until`; `until=FAnd(())` and an unbounded count with `until` refused. Transmogrify's "that creature's controller" is the majority referent Selector, and `EachPlayer.ref` takes it |
 | `Verb.ATTACK_POLICY` (scope `AS_NO_DEFENDER`, CR 609.4; BACKLOG B-80) | **implemented, round 4 GO** (1cac720): Drowsing Tyrannodon keeps defender and attacks as though it had none; ledger F9 |
 | R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | **implemented, round 4 FIX-THEN-GO** (6f020b8, fixes 3ece400): `once_per_event` (True or absent) on TriggeredAbility and DelayedTrigger; absent = once per occurrence (CR 603.2c); refused where the subject does not gather occurrences (IS_SOURCE, IS_ATTACHED_TO_SOURCE), on non-combat damage and with no dealer; checked as triggers queue |
@@ -2021,3 +2025,168 @@ CostExile clause cannot fire today; it stays for the card whose exile cost takes
 Re-run on 586fa91a with the gate's fixes each undone in turn (the source in one form, the payer's
 permanents, one whole zone, one exile and one removal of a kind per cost, the raise on a short
 segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
+
+
+## 17. Round R13 — PERMIT and REPLACE: playing a card from another zone (2026-11-17; gate round 13 pending)
+
+KNOWLEDGE 209 §6-§7's first package for M21, M20 and FDN: "permission to cast or play a card from
+another zone" (28 cards of the three sets, 19 needing only it; `reports/completion_2026-11-17/
+worklist.json`), and the "exile it instead" paired with it. §10's R5-2 v3 (PERMIT_CAST), R5-3
+(play_lands) and R5-12's rider were designed and never built; gate rounds 2-4's findings on them
+stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main fba0ea20 merged.
+Scripts and outputs: `reports/permit_2026-11-17/`.
+
+**How plays were legal before (the root cause).** `legality.spell_castable` cast only from the
+hand and `stack.land_playable` played only from the hand. A permission compiled as a free
+activated ability whose `OptionalEffect(CAST)` cast the card as the ability resolved (Radha, Heart
+of Keld; Conspicuous Snoop; Demonic Embrace's costed row): it cast at instant speed until a timing
+patch (`query.permission_cast`), never played a land (B-100), needed a phantom screen
+(`query.inert_row`) and kept the card out of the act menu. Duration permissions (both Chandras,
+Furious Rise, Valakut Exploration) were suppressed at assembly; "If that spell would be put into
+your graveyard, exile it instead" compiled as a static of the card over "any target" (B-99); the
+CAST atom had no target channel and cast with X = 0.
+
+**R13-1 `Verb.PERMIT`** (`ability_tree.py:184`; roles `_cast_roles_fault` :3363; placement
+`permission_fault` :4203, `_cast_verb_misplaced` :4272). The seat may play the cards `source`
+names from the zone it names (CR 601.3, 305.1).
+- `source`: ALL over a zone (a population, read whenever a card would be played), TARGET over a
+  graveyard or exile (designated as the ability resolves), or the `result` register whole (the
+  cards the instruction before it moved, no filter). The zones: your graveyard, exile, the top of
+  your library, your hand (with `alternative` only: the hand's own path is the rules', CR 117.1a).
+- `lands`: True is "play" (lands are played, CR 305.1; spells cast); absent is "cast". A land is
+  never cast (CR 305.9): a cast's filter names no land, and `lands` over cards that are never lands
+  is refused.
+- `alternative`: a Cost paid instead of the mana cost (CR 118.9; `Cost()` is "without paying its
+  mana cost"); `additional`: a Cost added (CR 601.2f; never empty). Neither on lands only (a land
+  play is a special action with no cost, CR 116.2a).
+- `replace`: the spell's rider (R13-3). `count`: plays allowed (Idol of Endurance's "a creature
+  spell"); never on a static, never as large as a designation (each designated card plays once,
+  CR 400.7).
+- `duration`: DurationEot, DurationUntilEndOfNextTurn, DurationPermanent ("for as long as it
+  remains exiled": a designated object leaves the permission when it changes zones, CR 400.7).
+- In a static ability it is the static's continuous effect, live while the static functions (CR
+  604.2, 611.3a): a population, no duration, no count. A card's own permission (`IS_SOURCE`)
+  functions from the zone it names (CR 113.6f): flashback (CR 702.34a), Demonic Embrace, Squee.
+  In a resolving ability it is the effect the ability creates (CR 611.2a): the duration is
+  required, and it outlives its source.
+- Refused as second encodings: an OptionalEffect around it (the "you may" is the permission's
+  use: a phantom ask), a granted static PERMIT ("each legendary card in your graveyard gains
+  'You may play this card from your graveyard'" is a resolving PERMIT), EachPlayer or Repeat
+  around it.
+
+**R13-2 CAST, the one-shot cast** (CR 608.2g: cast while its ability resolves, ignoring timing).
+Roles `source`, `alternative`, `additional`, `replace`: the old `cost` role (empty: a waiver; with
+parts: added) split into the two PERMIT has, one meaning each. Refused: CAST in a static, in a free
+activation (the old permission row), of its own card in an activation (the old Demonic Embrace
+row, which CR 113.6m would make a graveyard activation at instant speed), of a land, of a permanent
+or a spell. `CostDeltaWaiveMana`, Omniscience's second byte form, which the engine skipped, is
+retired: Omniscience is the static PERMIT over the hand with `alternative=Cost()`.
+
+**R13-3 REPLACE: the spell's rider** (`spell_rider` :3281). "If that spell would be put into your
+graveyard, exile it instead" (CR 614.1a, 614.6) and flashback's "exile it instead of putting it
+anywhere else any time it would leave the stack" are a cast verb's `replace` role, exactly the two
+values `spell_riders()` returns. The engine applies the frame's rider wherever the spell leaves the
+stack (`stack.exit_zone` :294: resolution, a fizzle, COUNTER_SPELL). A card-level replacement of a
+zone change from the stack is refused (B-99's tree). No `Verb.REPLACE`: a rider exists only on the
+spell its verb casts; R5-12's resolving replacements (Chandra, Awakened Inferno's die-to-exile) stay
+their own piece.
+
+**R13-4 The engine.**
+- `executor/permits.py`: `paths` (:162), every way a seat may cast a card now, one per cost path
+  (R5-2 v3 point 6; an uncounted permission first, then the older): live "permit" layer records (a
+  static's from its source's statics, a resolving one's from `layers.register_permit` :454), then
+  the card's own permissions; a designation drops an object that moved since it resolved
+  (`returns.moved_since`, CR 400.7). A land's play is `land_path` (:231) over every permission,
+  never lost to a cast permission sharing its cost path.
+- The menu (`menu.py:113`): `land:<card>` from any permitted zone; `cast:<card>[:via:<source>]`,
+  with `via` only for a path that is not plain (another cost, a rider). Timing is the card's
+  (`legality.card_window_reason`): a permission changes where from and at what cost, never when
+  (CR 601.3).
+- A land played from another zone is the turn's land play (CR 305.2a; `stack.land_playable` :259,
+  `play_land` :1285). A cast through a path (`stack.cast` :714) pays the path's cost
+  (`legality.spell_castable` :1582; X is 0 unless the alternative has an X, CR 107.3b), uses one of
+  its plays (`permits.use`) and journals the zone it came from.
+- `stack.cast_card` (:1080), CAST's lane: asks the caster for X (:1224) and for each target (:1250)
+  as the spell is cast (CR 601.2b-c), prices a target-dependent cost after its targets; the
+  may-offer is offered only for a card whose targets can be chosen and whose cost can be paid
+  (`query._cast_option_payable`).
+- `verbs._v_permit` (:1991). The library pop (`pop_order` TOP) writes `result` (`verbs.py:228`):
+  "exile the top three cards ... you may play them" reads all three.
+
+**R13-5 What the network sees.** A permission's play is a land or cast row: the card's entity
+carries the zone it is played from (the top of a library joins the entities as an offered card),
+and `:via:<source>` points the option's second entity at the permission's source
+(`tools/selfplay/features.py:464`). No new ask kind, option type or column; the bench names the
+card (`bench/router.py`). Old checkpoints compute the same (below).
+
+**CR basis**: 601.2a-i, 601.3, 305.1, 305.2a, 305.9, 116.2a, 117.1a, 113.6f, 113.6m, 118.9,
+107.3b, 604.2, 608.2g, 611.2a, 611.2c, 611.3a, 400.7, 614.1a, 614.6, 702.34a.
+
+**Rejected.**
+- R5-2's PERMIT_CAST and R5-3's play_lands as two verbs: "play" is one permission over lands and
+  spells (CR 305.1, 601.3; Chandra, Heart of Fire's "play cards exiled this way"), so one verb
+  with `lands`.
+- A `Verb.REPLACE` atom for the rider (R5-12's route): it would be a second encoding of the role, or
+  a rider with no spell.
+- A filter on the `result` register ("cast a creature spell from among them") and other registers:
+  refused until a card brings them; the engine reads the register whole.
+- "As though it had flash" in the same verb (KNOWLEDGE 209 §7): it changes when, not where; its
+  round decides. A card's own optional alternative cost (M20 Sephara) is a SpellAbility piece.
+- A set fixed at resolution for a resolving population (Kethis: "gains" changes characteristics,
+  CR 611.2c): waits for its card.
+- Keeping `CostDeltaWaiveMana`.
+
+**Census** (19 sets, records applied): 33 PERMIT atoms (ALL over a graveyard 12,
+over the top of a library 8, over the hand 4, over exile 1, over exile and a graveyard 1; the
+`result` register 4; TARGET over a graveyard 3) and 2 CASTs (ZNR Coveted Prize's ONE_OF over the
+hand with `alternative`; M21 Chandra, Flame's Catalyst's TARGET over the graveyard with the rider).
+
+**Blast radius** (`tree_dump.py`, `tree_diff.py` against main fba0ea20):
+- 35 compiler trees change in 11 sets, and 2 M20 records are mapped (Golos, Tireless Pilgrim;
+  Mystic Forge; unverified). 10 cards newly compile whole (10E and M19 Crucible of Worlds, DOM
+  Squee, FDN Omniscience, Sphinx of Forgotten Lore, Think Twice, M12 and M14 Garruk's Horde, M13
+  and M19 Omniscience); 26 have fewer unparsed sentences. 4 have one more, each a sentence that was
+  wrong or suppressed: M21 and THB Furious Rise (an event-ended window, B-100), M20 Chandra,
+  Acolyte of Flame and WAR Dreadhorde Arcanist (a rider whose cast sentence does not parse).
+- Verified: M21 Idol of Endurance leaves (its tree changes: the activation's permission is a
+  PERMIT); none joins; every other stamp matches (1,149 → 1,148).
+- Deal pools: M21 engine and castable 280 → 283 (the two Chandras, Demonic Embrace; dropping them
+  reproduces the stress-pile hash); M21 compiled loses Furious Rise; FDN compiled 193 → 196.
+- 300 seeded heuristic games on the verified pools (100 each of M21, M20, FDN; 274, 279 and 193
+  deckable, the stale Idol out on both sides): 300/300 identical replay digests, journal dumps and
+  raw event logs, 0 crashes either side, no cast or land play through a permission (none dealt).
+- Old networks: a checkpoint made under main and loaded under the branch reads 128 decisions of
+  six M21 and FDN games (15 ask kinds) to bitwise-equal encodings, tokens, logits and values.
+- Soak (`soak_coverage.py`: `tools/cards/soak.py`'s games and abuse screen, 1,100 random games:
+  M21 300, FDN 200, M20 200 with the unverified records, ZNR, M19, DOM, M12 100 each): 0 crashes;
+  permissions resolved 107 times, casts through a permission 70, land plays 40, riders 12;
+  abuse screen: no repeatable activation, no trigger loop, two win-rate outliers, both low and
+  neither a permission card (M21 Discontinuity, Spirit of Malevolence). D6 flagged a resolved
+  permission live at game end over exiled cards (4 games): D6 now knows a resolved permission
+  outlives its source and covers cards off the battlefield (CR 611.2a, 601.3; a test).
+
+**Tests and packs.** `test_ability_tree_permit.py` (20 cases: accepted shapes, zones, durations,
+static rules, roles, one encoding of "may play", refusals), `test_executor_permit.py` (18:
+impulse until end of turn then gone, a resolving permission outliving its source, a card that
+moves leaving it, the land drop, flashback and a countered flashback exiled, Chandra's recast with
+its target and rider, Demonic Embrace's costs, a static ending with its source, timing, Idol's one
+cast, Omniscience's two paths, the land path, X with an alternative cost), one each in
+`test_selfplay.py`, `test_router.py`, `test_detectors.py`. Packs: 9 new (four that fail on main
+for the brief's behaviours, Chandra's targeted recast out of `known_bugs`, four mapped M20), 14
+rewritten from the old rows. The V4' CHOOSE baseline moves for exactly six cards and V5' registers
+Idol's population over exile (`reports/ontology_census_2026-11-17_permit_post_full.json`).
+
+**The fresh-eyes review** (one reviewer on the code diff, 2026-11-17): 3 MAJOR, 3 MINOR, 1 NIT,
+all fixed but one MINOR. MAJOR: `CostDeltaWaiveMana` was a second encoding (retired); a referent
+`source` was not checked (a filter on `result` ignored, a `source` register a crash: refused); roles
+that limit or add nothing were accepted (`lands` over non-lands, a count as large as a designation,
+a designation in a library or a hand, a CAST of a permanent: refused). MINOR: a cast permission
+sharing a cost path hid a land play (`land_path` over every permission); the bench did not name a
+card offered from the top of a library (named); Valakut Exploration plays stronger than printed in
+the partial pools (logged, BACKLOG: its end-step sentence is the fix). NIT: an alternative cost
+with X announces X (CR 107.3b).
+
+**Limits, logged** (BACKLOG, "The permission lane still blocked"; "What the network sees"): Furious
+Rise's event-ended window; Kethis's set fixed at resolution; another player's cards (Etali,
+Tinybones); a permission shows only as the rows it offers; divergences D31 (the two forms of
+"exile the top card") and D32 (permission-like atoms still wrapped in OptionalEffect).

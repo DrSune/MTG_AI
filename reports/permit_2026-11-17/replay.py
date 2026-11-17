@@ -72,8 +72,6 @@ if hasattr(stack, "exit_zone"):
 
     if hasattr(verbs, "exit_zone"):
         verbs.exit_zone = counting_exit
-if hasattr(stack, "permits"):
-    pass
 try:
     from MTG_bot.core.executor import permits  # noqa: E402
 

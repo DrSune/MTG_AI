@@ -37,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FNot,
+    FOr,
     OptionalEffect,
     QConst,
     QUnbounded,
@@ -307,3 +308,54 @@ def test_a_permission_on_a_verb_that_cannot_carry_it() -> None:
     with pytest.raises(ValueError, match="under EachPlayer"):
         card(triggered(EachPlayer(ref=ControllerRef.ALL_OPPONENTS,
                                   effect=permit(result(), duration=DurationEot()))))
+
+
+# ------------------------------------------------------------------------------ 5. the review's
+
+
+def test_a_free_cast_from_the_hand_has_one_encoding() -> None:
+    """"You may cast spells from your hand without paying their mana costs" (Omniscience) is the
+    static PERMIT over the hand with an empty `alternative`; the cost delta that also wrote it,
+    CostDeltaWaiveMana (skipped by the engine), is gone (fresh-eyes review, finding 1)."""
+    assert not hasattr(at, "CostDeltaWaiveMana")
+    card(StaticAbility(effect=permit(every(FAnd(()), HAND), alternative=Cost())))
+
+
+def test_a_referent_source_is_the_result_register_whole() -> None:
+    """A PERMIT reads the whole `result` register (the cards the instruction before it moved): a
+    filter on it would not be read, and another register is never written before it (review,
+    finding 2: a filtered `result` played stronger than printed, a `source` register crashed)."""
+    with pytest.raises(ValueError, match="a filter on it is not read"):
+        permit(Selector(QConst(1), SelectorMode.CHOOSE, CREATURE, zones=(ANY,), referent="result"),
+               duration=DurationEot())
+    for name in ("source", "controller", "event"):
+        with pytest.raises(ValueError, match="not '" + name + "'"):
+            permit(Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(ANY,), referent=name),
+                   duration=DurationEot())
+
+
+def test_roles_that_limit_or_add_nothing_are_refused() -> None:
+    """Review, finding 3: `lands` over cards that are never lands is casting (CR 305.9); a count
+    as large as a designation limits nothing (each designated card plays once, CR 400.7); a card
+    in a library or a hand is never designated (CR 400.2); a CAST of a permanent or a spell casts
+    nothing (CR 601.2a); a lands-only filter written as a disjunction is still lands only."""
+    instants = FOr(children=(FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
+                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Sorcery")))
+    with pytest.raises(ValueError, match="never lands is casting"):
+        permit(every(instants, GY), lands=True)
+    permit(every(instants, GY))  # the same permission, cast
+    permit(every(FOr(children=(LAND, CREATURE)), TOP), lands=True)  # play lands, cast creatures
+    with pytest.raises(ValueError, match="limits nothing"):
+        permit(target(), count=QConst(1), duration=DurationEot())
+    permit(Selector(QConst(2), SelectorMode.TARGET, CREATURE, zones=(GY,)), count=QConst(1),
+           duration=DurationEot())
+    for zone in (TOP, HAND):
+        with pytest.raises(ValueError, match="never designated"):
+            permit(Selector(QConst(1), SelectorMode.TARGET, CREATURE, zones=(zone,)),
+                   alternative=Cost(), duration=DurationEot())
+    for kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK):
+        with pytest.raises(ValueError, match="never cast"):
+            cast(Selector(QConst(1), SelectorMode.TARGET, CREATURE,
+                          zones=(Zone(kind, ControllerRef.ANY),)))
+    with pytest.raises(ValueError, match="a land is never cast"):
+        cast(target(FOr(children=(LAND, CREATURE))))

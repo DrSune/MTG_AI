@@ -464,14 +464,6 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
             at.CostDeltaIncreaseLife(at.QConst(2)),
         ),
     ),
-    (
-        "costmod_waive",
-        lambda: at.CostModifier(
-            at.FAnd(()),
-            at.ControllerRef.ANY,
-            at.CostDeltaWaiveMana(),
-        ),
-    ),
     # L) EmblemSpec
     ("emblem_triggered", _emblem_triggered),
     (
@@ -706,7 +698,7 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
             lambda: at.CostModifier(
                 flying,
                 "you",  # type: ignore[arg-type]
-                at.CostDeltaWaiveMana(),
+                at.CostDeltaIncreaseLife(at.QConst(1)),
             ),
         ),
         (
@@ -985,7 +977,6 @@ def test_new_nodes_in_closed_tables() -> None:
         "CostDeltaIncreaseGeneric",
         "CostDeltaReduceMana",
         "CostDeltaIncreaseLife",
-        "CostDeltaWaiveMana",
         "EachPlayer",
         "CostModifier",
         "EtBState",

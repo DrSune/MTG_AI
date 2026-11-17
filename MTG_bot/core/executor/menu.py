@@ -131,8 +131,8 @@ def _cast_rows(
     path: Any = None,
 ) -> list[Row]:
     """One row per payable declaration of a spell, in hand or through ``path`` (a
-    ``permits.Path``): base and kicked, and one per X (an alternative cost pays no X, CR
-    107.3b)."""
+    ``permits.Path``): base and kicked, and one per X (an alternative cost pays an X only when it
+    has one, CR 107.3b)."""
     record = spell_record(executor, handle)
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
     if node is None:

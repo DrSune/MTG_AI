@@ -1436,7 +1436,8 @@ class LayerRegistry:
                 ),
                 tuple(sorted((str(h), rid) for h, rid in layer.ledger_ids.items())),
             )
-            # a permit's remaining plays and clock (every other kind keeps its row's bytes)
-            + ((layer.uses, layer.since) if layer.kind == "permit" else ())
+            # a permit's remaining plays, clock and whether a resolving ability made it (every
+            # other kind keeps its row's bytes)
+            + ((layer.uses, layer.since, layer.resolved) if layer.kind == "permit" else ())
             for layer in sorted(self.records, key=lambda l: l.seq)
         )

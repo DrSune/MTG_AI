@@ -158,6 +158,36 @@ def test_a_spell_on_top_is_not_played_through_a_lands_permission() -> None:
     assert not any("top" in w for w in _rows(r))
 
 
+def test_a_land_play_is_not_lost_to_an_older_cast_permission_with_the_same_cost() -> None:
+    """A cast permission that also covers a land (Mystic Forge's "colorless spells": a land is
+    colorless) offers the same plain cost path as Radha's "play lands"; one option per cost path is
+    a cast's rule (R5-2 v3 point 6), so the land on top is still played through Radha's, though
+    the Forge's permission is the older (the fresh-eyes review, finding 4)."""
+    from MTG_bot.core.ability_tree import (
+        AtomArgs, Atom, ControllerRef, FAtom, FAtomPred, FNot, QConst, QUnbounded, Selector,
+        SelectorMode, StaticAbility, Verb, Zone, ZoneKind, ZonePosition,
+    )
+    from MTG_bot.core.executor import permits
+    from MTG_bot.core.test_executor_binding import record_of
+
+    r = _runner("M21", [{"key": "forge", "name": "Forge", "type": "Artifact", "zone": "battlefield",
+                         "controller": 0},
+                        _real("radha", "Radha, Heart of Keld", zone="hand"),
+                        _real("top", "Mountain", zone="library")])
+    colorless = Selector(QUnbounded(), SelectorMode.ALL,
+                         FNot(inner=FAtom(pred=FAtomPred.COLOR_COUNT_GE, count=QConst(1))),
+                         zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),))
+    forge = r.handles["forge"]
+    r.ex.attach_card(forge, record_of(
+        [StaticAbility(effect=Atom(verb=Verb.PERMIT, args=AtomArgs(pairs=(("source", colorless),))))],
+        oid=r.world.cards[forge].identity.oracle_id))
+    r.run_step({"op": "enter", "key": "radha"})  # Radha's permission is the newer
+    path = permits.land_path(r.ex, r.seats[0], r.handles["top"])
+    assert path is not None and path.source == r.handles["radha"]
+    _act(r, "land:top")
+    assert _zone(r, "top") == ZONE_BATTLEFIELD
+
+
 # ------------------------------------------------------------------------------ the graveyard
 
 
@@ -296,3 +326,33 @@ def test_omniscience_adds_a_free_path_beside_the_hand_path() -> None:
     _act(r, "cast:bolt:via:omni", "player:1")
     assert r.world.players[r.seats[0]].mana_pool == {"R": 1}  # nothing paid
     assert r.world.players[r.seats[1]].life == 18
+
+
+def test_an_alternative_cost_with_x_announces_x() -> None:
+    """CR 107.3b: X is 0 only when neither the mana cost nor an alternative cost with an X is paid.
+    Primal Might ({X}{G}) cast from the graveyard through a permission for "{X}" announces X; for
+    nothing at all, X is 0 (the fresh-eyes review, finding 7; no card of the 19 sets has such a
+    cost yet)."""
+    from MTG_bot.core.ability_tree import (
+        Atom, AtomArgs, ControllerRef, Cost, CostManaGeneric, DurationEot, FAtom, FAtomPred, QUnbounded,
+        QX, Selector, SelectorMode, Verb, Zone, ZoneKind,
+    )
+    from MTG_bot.core.executor import permits
+    from MTG_bot.core.executor.legality import spell_castable
+
+    r = _runner("M21", [_real("pm", "Primal Might", zone="graveyard")], {"0": {"C": 3}})
+    seat, pm = r.seats[0], r.handles["pm"]
+    own = Selector(QUnbounded(), SelectorMode.ALL, FAtom(pred=FAtomPred.IS_SOURCE),
+                   zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),))
+    for alternative, reason in ((Cost(parts=(CostManaGeneric(QX()),)), None),
+                                (Cost(), "cast:x_unpaid")):
+        atom = Atom(verb=Verb.PERMIT, args=AtomArgs(pairs=(
+            ("source", own), ("alternative", alternative), ("duration", DurationEot()))))
+        layer = r.ex.layers.register_permit(pm, seat, atom, (), DurationEot(), None)
+        (path,) = [p for p in permits.cast_paths(r.ex, seat, pm) if p.layer is layer]
+        got = spell_castable(r.ex, seat, pm, x=2, path=path)[0]
+        if reason is None:
+            assert got is None, got
+        else:
+            assert got is not None and got.startswith(reason), got
+        layer.status = "expired"

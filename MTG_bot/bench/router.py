@@ -206,7 +206,9 @@ class SeatRouter:
         return out
 
     def _label(self, executor: Any, lens: SeatLens, row: Row) -> str:
-        name = lens.describe(executor, row.handle)
+        # an offered object may be named (SeatLens.describe): the menu offers only cards the seat
+        # may play, a library's top card only through a permission, which comes with its look
+        name = lens.describe(executor, row.handle, offered=True)
         zone = executor.world.zone_of(row.handle).kind
         # a permission's play from another zone says where from (CR 601.3, 305.1)
         where = "" if zone == "hand" else f" from your {'library (its top card)' if zone == 'library' else zone}"
@@ -316,7 +318,9 @@ def _path_words(path: Any) -> str:
     if path.additional is not None:
         words.append("paying its additional cost too")
     if path.rider is not None:
-        words.append("then exiled instead of leaving the stack elsewhere")
+        to_graveyard = path.rider.event.to_zone.kind.name == "GRAVEYARD"
+        words.append("exiled instead of going to your graveyard" if to_graveyard
+                     else "exiled whenever it would leave the stack")
     return f" ({'; '.join(words)})" if words else ""
 
 
