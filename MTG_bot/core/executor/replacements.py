@@ -101,6 +101,7 @@ from MTG_bot.core.executor.selectors import (
     controller_matches,
 )
 from MTG_bot.core.identity import Handle
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only
     from MTG_bot.core.compiler.compiler import CardRecord
@@ -794,33 +795,78 @@ class ReplacementRegistry:
             return rec
         return None
 
-    def replacement_for_death(self, card: Handle) -> ReplacementRecord | None:
-        """Scorching Dragonfire: the state-check interceptor for a
-        CREATURE-DIES event — the die lane mirrors the damage/life hooks
-        (replacement before apply): the SBA loop consults this BEFORE
-        moving the creature to the graveyard, and a match consumes the
-        death (no graveyard move, no CREATURE_DIES journal row — see the
-        documented gap in the executor's state-check drain).
+    def _endpoint_matches(
+        self,
+        zone_ir: Zone | None,
+        state_kind: str | None,
+        zone_player: Handle | None,
+        ctx: ExecCtx,
+    ) -> bool:
+        """One ZoneChangeEvent endpoint vs the about-to-happen move — the
+        binding-side ``_zone_matches`` convention, so the trigger lane and
+        the replacement lane read endpoints alike: ANY matches, and a zone's
+        controller ref scopes the player whose zone it is (``zone_player``:
+        a card's own zones are its owner's, CR 400.3, so "an opponent's
+        graveyard" is the graveyard of the moving card's owner; OWNER is that
+        player by construction)."""
+        if zone_ir is None or zone_ir.kind is ZoneKind.ANY:
+            return True
+        want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
+        if want is None or state_kind is None or want != state_kind:
+            return False
+        ref = zone_ir.controller
+        if ref is ControllerRef.ANY or ref is ControllerRef.OWNER:
+            return True
+        return zone_player is not None and controller_matches(ref, zone_player, ctx)
 
-        Both dying lanes of the SBA sweep consult it, the lethal
-        creature AND the zero-loyalty planeswalker (CR 704.5i: both are put
-        into a graveyard from the battlefield, which is dying, CR 700.4).
-        The record's filter decides which dying object it covers, e.g.
-        Obliterating Bolt's "that creature or planeswalker" (IS_ANY_TARGET).
+    def replacement_for_zone_change(
+        self,
+        card: Handle,
+        to_state: str,
+        to_player: Handle,
+        replaced_seq: frozenset[int] = frozenset(),
+    ) -> ReplacementRecord | None:
+        """The replacement for ``card`` moving from the zone it is in into
+        ``to_player``'s ``to_state`` zone, or None: the one interceptor every
+        zone move consults before it happens (CR 614.1a, 614.6), wherever
+        the card is ("If a card would be put into a graveyard from
+        anywhere", CR 614.1a). The move paths that ask: every verb's move
+        (``verbs._replaced_move``), the state-based actions
+        (``Executor._state_checks``), a spell's put off the stack
+        (``stack._put_off_the_stack``) and the end-of-turn exile of the stack
+        (``Executor._exile_the_stack``). A match consumes the move: the card
+        stays where it is, and the record's action runs after the move with
+        the card bound as ``event``, as part of the same event
+        (``Executor.replace_move``).
+
+        Two event shapes: a ZoneChangeEvent by its endpoints and subject
+        (Containment Priest's enter: ANY -> BATTLEFIELD; FDN Dryad Militant's
+        "an instant or sorcery card ... into a graveyard from anywhere"), and
+        a CreatureDiesEvent by its filter for a move from the battlefield to
+        a graveyard, which is dying (CR 700.4: Scorching Dragonfire's "If
+        that creature would die this turn, exile it instead", whether it
+        dies of damage, is destroyed or is sacrificed). The first live match
+        in record order applies (the life-gain lane's order; CR 616.1's
+        choice among several is not asked).
 
         CONTROLLER RULE as in the other lanes: every predicate is judged
-        in the RECORD's coordinates (the ``_rec_ctx`` convention). The
-        spell-sourced record's anaphora ("that creature" — IS_ANY_TARGET)
-        reads the designation snapshot the record carries, and the dead
-        card is bound as ``event`` so the replacement's ACTION (EXILE
-        referent=event) resolves. A Permanent-sourced record must still be
-        on the battlefield; the Eot half is exempt (the spell has
+        in the RECORD's coordinates, the spell-sourced record's anaphora
+        ("that creature" — IS_ANY_TARGET) reading the designation snapshot
+        the record carries. The WAS_CAST_THIS_TURN condition reads the
+        journalled CR 601.2h CAST rows, so a spell that cast its way onto the
+        battlefield is spared and a put-onto creature is not. The CR 614.5
+        chain guard rides ``replaced_seq``; a Permanent-sourced record must
+        still be on the battlefield, the Eot half is exempt (the spell has
         resolved)."""
+        src = self.world.zone_of(card)
+        dies = src.kind == ZONE_BATTLEFIELD and to_state == ZONE_GRAVEYARD
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
-            if not isinstance(event, CreatureDiesEvent):
+            if not isinstance(event, ZoneChangeEvent) and not (
+                dies and isinstance(event, CreatureDiesEvent)
+            ):
                 continue
-            if rec.status != "live":
+            if rec.status != "live" or rec.seq in replaced_seq:
                 continue
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
@@ -830,78 +876,13 @@ class ReplacementRegistry:
                 bindings={"target": list(rec.designated), "event": [card]},
                 decisions=(),
             )
-            if not eval_filter(event.filter, card, rec_ctx):
-                continue
-            if not self._condition_holds(rec, card, rec_ctx):
-                continue
-            return rec
-        return None
-
-    def _endpoint_matches(
-        self,
-        zone_ir: Zone | None,
-        state_kind: str | None,
-        card: Handle,
-        ctx: ExecCtx,
-    ) -> bool:
-        """One ZoneChangeEvent endpoint vs the about-to-happen move — the
-        binding-side ``_zone_matches`` convention, so the trigger lane and
-        the replacement lane read endpoints alike:
-        ANY matches, a created object's missing ``from`` matches ANY, and
-        OWNER scopes to the card's owner (who in this frozen model is
-        exactly the zone owner)."""
-        if zone_ir is None or zone_ir.kind is ZoneKind.ANY:
-            return True
-        want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
-        if want is None or state_kind is None or want != state_kind:
-            return False
-        ref = zone_ir.controller
-        if ref is ControllerRef.ANY or ref is ControllerRef.OWNER:
-            return True
-        return controller_matches(ref, self.world.controller_of(card), ctx)
-
-    def replacement_for_zone_change(
-        self,
-        card: Handle,
-        from_state: str | None,
-        to_state: str,
-        replaced_seq: frozenset[int] = frozenset(),
-    ) -> ReplacementRecord | None:
-        """Containment Priest: the apply-pipeline interceptor for a
-        ZONE-CHANGE event — the enter lane mirrors the death hook
-        (replacement before apply): ``_v_move_zone`` consults this
-        BEFORE the battlefield move, and a match consumes the enter (no
-        battlefield placement; the action — EXILE referent=event — runs
-        through the pending-replacement drain with the moving card bound
-        as ``event``, exactly like the die lane).
-
-        CONTROLLER RULE as in the other lanes: every predicate is judged
-        in the RECORD's coordinates. The WAS_CAST_THIS_TURN condition
-        reads the journalled CR 601.2h CAST rows, so a spell that cast its
-        way onto the battlefield is spared and a put-onto creature (which
-        never touched the stack) is not. The CR 614.4a chain guard rides
-        ``replaced_seq``; a Permanent-sourced record must still be on the
-        battlefield, the Eot half is exempt."""
-        for rec in sorted(self.replacements, key=lambda r: r.seq):
-            event = rec.event
-            if not isinstance(event, ZoneChangeEvent):
-                continue
-            if rec.status != "live" or rec.seq in replaced_seq:
-                continue
-            if rec.tag == "Permanent" and not self._source_alive(rec.source):
-                continue
-            rec_ctx = self.executor._ctx(
-                source=rec.source,
-                controller=rec.controller,
-                bindings={"event": [card]},
-                decisions=(),
-            )
-            if not self._endpoint_matches(event.to_zone, to_state, card, rec_ctx):
-                continue
-            if not self._endpoint_matches(event.from_zone, from_state, card, rec_ctx):
-                continue
-            if event.subject is not None and not eval_filter(
-                event.subject, card, rec_ctx
+            if isinstance(event, CreatureDiesEvent):
+                if not eval_filter(event.filter, card, rec_ctx):
+                    continue
+            elif not (
+                self._endpoint_matches(event.to_zone, to_state, to_player, rec_ctx)
+                and self._endpoint_matches(event.from_zone, src.kind, src.controller, rec_ctx)
+                and (event.subject is None or eval_filter(event.subject, card, rec_ctx))
             ):
                 continue
             if not self._condition_holds(rec, card, rec_ctx):

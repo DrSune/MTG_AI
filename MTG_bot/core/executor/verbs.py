@@ -112,18 +112,40 @@ _ANY_COLOR_VOCAB = ("W", "U", "B", "R", "G")
 # ------------------------------------------------------------------- handlers
 
 
+def _replaced_move(ctx: ExecCtx, card: Handle, player: Handle, kind: str) -> bool:
+    """Replacement before apply for ``card`` moving into ``player``'s ``kind`` zone from
+    wherever it is (CR 614.1a, 614.6: Containment Priest's enter, FDN Dryad Militant's "into a
+    graveyard from anywhere", Scorching Dragonfire's death by any cause). A live replacement
+    consumes the move: the card stays put, an audit row says so, and the record's action runs
+    after this atom with the card bound as ``event`` (``Executor._run_effect``'s drain), within
+    the same event. Every move a verb makes asks this first. Returns whether it was replaced."""
+    if ctx.replacements is None:
+        return False
+    repl = ctx.replacements.replacement_for_zone_change(card, kind, player, ctx.replaced_seq)
+    if repl is None:
+        return False
+    ctx.pending_replacements.append((repl, card))
+    ctx.events.append((len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source)))
+    return True
+
+
 def _move_to(
     ctx: ExecCtx,
     card: Handle,
     player: Handle,
     kind: str,
     journal_kind: str = "MOVE",
-) -> None:
+) -> bool:
+    """Move ``card`` into ``player``'s ``kind`` zone, unless a replacement replaces the move
+    (:func:`_replaced_move`); returns whether it moved."""
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
+    if _replaced_move(ctx, card, player, kind):
+        return False
     src = ctx.world.zone_of(card)
     ctx.world.move_to_zone(card, player, kind)
     ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+    return True
 
 
 def _hand_picks(ctx: ExecCtx, sel: Selector, player: Handle, discard: bool) -> list[Handle]:
@@ -210,9 +232,10 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         n = amount(ctx, atom, "amount")
         lib = ctx.world.players[player].zone(ZONE_LIBRARY)
         dest_zone = ctx.world.players[player].zone(dest_kind)
-        for _ in range(min(n, len(lib.entries))):
-            card = lib.entries.pop()  # top of library, zone order
-            dest_zone.entries.append(card)
+        for card in list(reversed(lib.entries))[:n]:  # the top n, top first (zone order)
+            if _replaced_move(ctx, card, player, dest_kind):
+                continue
+            ctx.world.move_card(card, dest_zone)
             ctx.events.append(
                 (
                     len(ctx.events),
@@ -269,9 +292,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     f"executor: MOVE_ZONE discard card {card} is not in the hand of "
                     f"{', '.join(str(p) for p in players) or 'any discarding player'}"
                 )
-            # CR 701.9a: from its owner's hand to that player's graveyard.
-            _move_to(ctx, card, owner, dest_kind, journal_kind)
-            if bottom:
+            # CR 701.9a: from its owner's hand to that player's graveyard. A discard a
+            # replacement sends elsewhere is still a discard (Leyline of the Void's ruling).
+            if _move_to(ctx, card, owner, dest_kind, journal_kind) and bottom:
                 entries = ctx.world.players[owner].zone(dest_kind).entries
                 entries.remove(card)
                 entries.insert(0, card)
@@ -337,13 +360,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         ):
             owner = zone_owner(ctx, dest_ir, owner=ctx.controller)
             lib = ctx.world.players[owner].zone(ZONE_LIBRARY)
-            n = min(n, len(lib.entries))
-            if owner == ctx.controller:
-                ctx.world.draw(ctx.controller, n)  # top = last entry, zone order
-            else:
-                for _ in range(n):
-                    card = lib.entries.pop()
-                    ctx.world.players[owner].zone(ZONE_HAND).entries.append(card)
+            for card in list(reversed(lib.entries))[:n]:  # the top n, top first (zone order)
+                if _replaced_move(ctx, card, owner, ZONE_HAND):
+                    continue
+                ctx.world.move_card(card, ctx.world.players[owner].zone(ZONE_HAND))
+                if owner != ctx.controller:
                     ctx.events.append(
                         (len(ctx.events), "MOVE", str(card), "library->hand")
                     )
@@ -374,26 +395,12 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
+        # Replacement before apply for the move itself: a replaced enter never makes a
+        # permanent (no placement, no tapped_on_enter stamp: Containment Priest), a replaced
+        # move into a graveyard never reaches it (Dryad Militant).
+        if _replaced_move(ctx, card, target_player, dest_kind):
+            continue
         if dest_kind == ZONE_BATTLEFIELD:
-            # Replacement before apply for the ENTER move itself (Containment
-            # Priest): a live ZoneChangeEvent replacement consumes the ETB (the
-            # permanent never becomes a permanent, no battlefield placement, no
-            # tapped_on_enter stamp), and the action (EXILE referent=event) runs
-            # as a journalled nested effect with the moving card bound, as in
-            # the life lane.
-            repl = (
-                ctx.replacements.replacement_for_zone_change(
-                    card, src.kind, dest_kind, ctx.replaced_seq
-                )
-                if ctx.replacements is not None
-                else None
-            )
-            if repl is not None:
-                ctx.pending_replacements.append((repl, card))
-                ctx.events.append(
-                    (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
-                )
-                continue
             # CR 303.4f: the player the Aura enters under chooses its host, which
             # is the controller when that is not the owner (whose zone it joins).
             enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
@@ -1781,6 +1788,8 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
         src = ctx.world.zone_of(card)
         host: Handle | None = None
+        if _replaced_move(ctx, card, target_player, dest_kind):
+            continue
         if dest_kind == ZONE_BATTLEFIELD:
             # CR 303.4f: the player an Aura enters under (the controller if not the owner)
             # chooses its host.

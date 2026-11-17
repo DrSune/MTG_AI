@@ -72,6 +72,7 @@ from MTG_bot.core.state import (
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.executor import Executor
+    from MTG_bot.core.executor.replacements import ReplacementRecord
 
 # Where a resolved spell's card goes (CR 601.2j + 400.7). INSTANT/SORCERY
 # are the only non-permanent kinds; PLANESWALKER enters with its printed
@@ -881,13 +882,16 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
             # the stack and put into its owner's graveyard (an Aura too, CR 608.3b).
             before_put = executor.journal.snapshot()
             start_put = len(executor.events)
-            world.move_to_zone(handle, seat, ZONE_GRAVEYARD)
+            repl = _put_off_the_stack(executor, handle, seat, ZONE_GRAVEYARD)
             executor.events.append(
                 (len(executor.events), "NO_LEGAL_TARGETS", str(handle), "stack->graveyard")
             )
-            executor.journal.record_atom(
+            put = executor.journal.record_atom(
                 before_put, handle, "CAST", list(executor.events[start_put:])
             )
+            if repl is not None:
+                with executor._one_event(put):  # CR 614.6: part of the put's event
+                    executor.replace_move(repl, handle)
             return "no_targets"
         targets = legal_now
         if kept is not None:
@@ -960,14 +964,16 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
     # graveyard. The SPELL_PUT row stays (the cast DID put the spell, its
     # effect just chose where it landed).
     cur_kind = world.zone_of(handle).kind
+    repl = None
     if cur_kind != ZONE_STACK:
         dest = cur_kind
     else:
-        world.move_to_zone(handle, seat, dest)
-    executor.events.append(
-        (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
-    )
-    if dest == ZONE_BATTLEFIELD:
+        repl = _put_off_the_stack(executor, handle, seat, dest)
+    if repl is None:
+        executor.events.append(
+            (len(executor.events), "SPELL_PUT", str(handle), f"stack->{dest}")
+        )
+    if repl is None and dest == ZONE_BATTLEFIELD:
         # Wildwood Scourge, CR 614.1c: the cast-declared X rides to this
         # permanent's ETB firings — recorded as the spell enters, the
         # binder consumes it for THIS entry only. The IR compiles "enters
@@ -990,6 +996,13 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
     entered = executor.journal.record_atom(
         before_put, handle, "CAST", list(executor.events[start_put:])
     )
+    if repl is not None:
+        # The replaced put did not happen (no permanent, no Aura effect); what the
+        # replacement does instead is part of its event (CR 614.6).
+        with executor._one_event(entered):
+            executor._on_zone_changes(entered)
+            executor.replace_move(repl, handle)
+        return "resolved"
     # CR 614.1c: the cast entry runs the SAME zone-change hooks as the land
     # drop runs — the compiled EtBState node (Malefic Scythe's "enters with
     # a soul counter", the corpus' entered-tapped idiom) is stamped HERE, as
@@ -999,6 +1012,24 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
     if aura and node.effect is not None:
         executor._run_guarded_effect(node.effect, ctx, "cast")
     return "resolved"
+
+
+def _put_off_the_stack(
+    executor: Executor, handle: Handle, seat: Handle, dest: str
+) -> ReplacementRecord | None:
+    """Put the spell ``handle`` from the stack into ``seat``'s ``dest`` zone (CR 608.2n,
+    608.3), unless a replacement replaces the move, as every move asks first (CR 614.6: FDN
+    Dryad Militant exiles an instant or sorcery card instead; Containment Priest spares a cast
+    creature). Returns that record; its action is the caller's to run once the put's boundary
+    is journalled (:meth:`Executor.replace_move`)."""
+    repl = executor.replacements.replacement_for_zone_change(handle, dest, seat)
+    if repl is None:
+        executor.world.move_to_zone(handle, seat, dest)
+    else:
+        executor.events.append(
+            (len(executor.events), "ZONE_REPLACED", str(handle), str(repl.source))
+        )
+    return repl
 
 
 def _face_cast_msg(name: str) -> str:
