@@ -322,3 +322,27 @@ wrote an iter row.
 - A relaunch needs:
   - the fix, with a GPU smoke at r29's real flags that reaches 2 iter rows;
   - fresh run directories.
+
+**The cause** (found 2026-11-17 23:10):
+- **The fault.** T1 wrote a worker slot's last line as `outbox.append(self._play(job))`, and
+  Python reads the outbox before the game runs. The worker sends and replaces its outbox whenever
+  any game ends, so the result of every game that outlived such a send was lost.
+- **Its size.** About nine in ten results were lost (3,317 played, 395 received). The lost games
+  held `_release` behind them for good.
+- **What it spared.** Only the short games survived, so a batch that had filled would have been a
+  biased sample.
+- **Evaluations.** The same fault made any evaluation with more than one slot per worker unable to
+  finish. That is why the queue's B2 runs hung.
+- **The fix** computes the result before appending it (`tools/selfplay/actor.py`). The test
+  `test_every_game_a_worker_plays_comes_back_once` fails on c13165e9.
+- **The smokes.** A GPU smoke with arm A's real flags wrote two iter rows: 206.7 s an update,
+  about 1,650 games, 12.5 games a second (r28's median 213.8 s, 1,751). An arm B smoke wrote two as
+  well.
+- **The 2.2 games a second** of launch 1 were the survivors of about 19.8 played.
+- **Why the CPU smoke missed it.** It ran two slots and 2,048-row batches, so a long game rarely
+  outlived a send.
+- **One number to watch in launch 2:** the learner's asks answered by the fallback (`overflow`) ran
+  at about 0.08 a game in the smoke, against r28's 0.01.
+
+**Launch 2:** from the commit that adds this paragraph, with fresh run directories. The rest of the
+registration is unchanged.
