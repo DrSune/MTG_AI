@@ -1,0 +1,196 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1e6a24be-8281-41c1-a5ba-b68f0ef1d7b8",
+ "name": "Snakeskin Veil",
+ "text_sha": "fd99bda11366ec608b55294a37f29cd5788dd36a7a28722d74faa08cff843532",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "HEXPROOF"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Snakeskin Veil: \"Put a +1/+1 counter on target creature you control. It gains hexproof until\n# end of turn.\"\n# compiled[0] holds the first sentence (B5b-put-counter), kept. \"It gains hexproof until end of\n# turn.\" is the compiler's B5b-it-gains-kw-eot (\"It gains indestructible until end of turn.\", M21\n# Basri Ket's verified +1 after \"Put a +1/+1 counter on up to one target creature.\") with\n# HEXPROOF: GRANT_ABILITY, DurationEot, over the `result` referent, the creature the counter went\n# on. The two sentences are one spell effect, a Seq in printed order.\nspell = compiled[0]\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                spell.effect,\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.HEXPROOF),\n                    'duration': DurationEot(),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                        referent='result',\n                    ),\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature you control.",
+    "ir": "abilities[0].effect.steps[0] (the compiler's PUT_COUNTER on a TARGET creature you control)"
+   },
+   {
+    "clause": "It gains hexproof until end of turn.",
+    "ir": "abilities[0].effect.steps[1] (GRANT_ABILITY hexproof, DurationEot, the result referent)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiled PUT_COUNTER kept; 'It gains hexproof until end of turn.' is B5b-it-gains-kw-eot (Basri Ket's verified +1, after a PUT_COUNTER) with HEXPROOF: GRANT_ABILITY DurationEot over the `result` referent. One spell effect, a Seq in printed order. Packs: tools/scenarios/mapped/FDN/snakeskin_veil_counter_and_hexproof.json, tools/scenarios/mapped/FDN/snakeskin_veil_hexproof_ends_with_the_turn.json, tools/scenarios/mapped/FDN/snakeskin_veil_one_counter_on_your_creature.json."
+ },
+ "probe": {
+  "sha": "f5957b8dca2ff94b05f1b1b969e8cb8364654eb992a5bd7533cb77992793f555"
+ }
+}

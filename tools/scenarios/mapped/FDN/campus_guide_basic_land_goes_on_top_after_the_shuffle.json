@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "campus_guide_basic_land_goes_on_top_after_the_shuffle",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you may search your library for a basic land card, reveal it, then shuffle and put that card on top.' Seat 0's library holds, under the six filler cards, a Forest, a nonbasic Desert and a creature. Campus Guide enters; seat 0 searches and picks the Forest: after the shuffle the Forest is the top card of the library, and every other card is still in the library (nine cards). The opponent's library is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "guide", "real": "Campus Guide", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "desert", "name": "Odd Desert", "type": "Land — Desert", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "guide", "decisions": ["fire", "forest"]}
+ ],
+ "expect": {
+  "zone": {"guide": "battlefield", "forest": "library", "desert": "library", "beast": "library"},
+  "hand": {"0": 0},
+  "library": {
+   "0": ["Forest", "*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

@@ -1,0 +1,219 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "311e9368-696a-47e7-aa2f-3ef1b1a92e2b",
+ "name": "Prime Speaker Zegana",
+ "text_sha": "3a44a7e0d6e76e9d049e3fbcb48eeb7d3d9430902ebd0e3819321ed033ff07cd",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": false,
+    "initial_counters": [
+     [
+      {
+       "tag": "CounterKind",
+       "name": "PLUS_1_PLUS_1"
+      },
+      {
+       "tag": "QProp",
+       "referent": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QUnbounded"
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "ALL"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          {
+           "tag": "FNot",
+           "inner": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       },
+       "field": {
+        "tag": "QPropField",
+        "name": "POWER"
+       },
+       "agg": {
+        "tag": "QAgg",
+        "name": "MAX"
+       }
+      }
+     ]
+    ]
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QProp",
+         "referent": "source",
+         "field": {
+          "tag": "QPropField",
+          "name": "POWER"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Prime Speaker Zegana: \"Prime Speaker Zegana enters with X +1/+1 counters on it, where X is\n# the greatest power among other creatures you control. When Prime Speaker Zegana enters, draw\n# cards equal to its power.\"\n# The counters: EtBState's initial_counters (B14's \"enters with\" form, FDN Goblin Boarders), X as\n# M21 Carrion Grub's QProp(Selector, POWER, MAX) over other creatures you control. The draw: the\n# ETB trigger with M21 Conclave Mentor's \"equal to its power\", QProp('source', POWER).\nenters_with = EtBState(\n    initial_counters=(\n        (\n            CounterKind.PLUS_1_PLUS_1,\n            QProp(\n                referent=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n                field=QPropField.POWER,\n                agg=QAgg.MAX,\n            ),\n        ),\n    ),\n)\ndraw = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.DRAW, {\n        'amount': QProp(referent='source', field=QPropField.POWER),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [enters_with, draw, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Prime Speaker Zegana enters with X +1/+1 counters on it, where X is the greatest power among other creatures you control.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "When Prime Speaker Zegana enters, draw cards equal to its power.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "EtBState initial_counters with X = Carrion Grub's QProp(Selector, POWER, MAX) over other creatures you control; ETB draw of QProp('source', POWER) (Conclave Mentor's 'its power'). Packs: tools/scenarios/mapped/FDN/prime_speaker_zegana_counts_your_other_creatures.json, tools/scenarios/mapped/FDN/prime_speaker_zegana_alone_draws_one.json."
+ },
+ "probe": {
+  "sha": "9f7b77eae8597d2e184480a02ce064ebffc5b143754e16b95970005263f1d3c4"
+ }
+}

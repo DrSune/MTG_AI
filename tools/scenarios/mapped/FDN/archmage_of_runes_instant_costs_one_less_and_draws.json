@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "archmage_of_runes_instant_costs_one_less_and_draws",
+ "notes": "M4 mapper. Printed: 'Instant and sorcery spells you cast cost {1} less to cast. Whenever you cast an instant or sorcery spell, draw a card.' With Archmage of Runes on the battlefield, seat 0 casts Quick Study ({2}{U}, an instant: draw two cards) with only {1}{U} in its pool: the pool is empty, Archmage's trigger draws one and Quick Study two: three cards in hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "archmage", "real": "Archmage of Runes", "zone": "battlefield", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "study", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"study": "graveyard", "archmage": "battlefield"},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {}}
+ }
+}

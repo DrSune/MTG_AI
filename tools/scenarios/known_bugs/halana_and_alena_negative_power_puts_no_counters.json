@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "halana_and_alena_negative_power_puts_no_counters",
+ "notes": "KNOWN BUG, fails today (M5 mapper, 2026-11-17). Run it on the FDN record with `cardtool.py runpack FDN <this pack>` (tools/run_scenarios.py plays verified trees only). Printed: 'At the beginning of combat on your turn, put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power.' CR 107.1b: a negative X is 0. verbs._v_put_counter adds the computed count as it is, so a negative count removes counters (or leaves a negative count). Halana and Alena (2/3) get +0/+3 (Dive Down) and -2/-2 twice (two Stabs): -2/2. At the beginning of combat the trigger targets the Bear, which has three +1/+1 counters: expected, no counter put and three kept; today two are removed (one left). Weaker than printed (it only targets a creature its controller controls).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ha", "real": "Halana and Alena, Partners", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 3}},
+  {"key": "dive", "real": "Dive Down", "zone": "hand", "controller": 0},
+  {"key": "stab1", "real": "Stab", "zone": "hand", "controller": 0},
+  {"key": "stab2", "real": "Stab", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "B": 2}},
+ "steps": [
+  {"op": "cast", "real": "Dive Down", "key": "dive", "controller": 0, "targets": ["ha"]},
+  {"op": "cast", "real": "Stab", "key": "stab1", "controller": 0, "targets": ["ha"]},
+  {"op": "cast", "real": "Stab", "key": "stab2", "controller": 0, "targets": ["ha"]},
+  {"op": "combat", "seat": 0, "attack": {"ha": false, "bear": false}, "decisions": ["bear"]}
+ ],
+ "expect": {
+  "power": {"ha": -2},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 3}}
+ }
+}

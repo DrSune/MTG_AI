@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "icewind_elemental_draws_then_discards_the_drawn_card",
+ "notes": "M3 mapper. Printed: 'When this creature enters, draw a card, then discard a card.' Seat 0 holds Kept Card; its library has Card A on top. Icewind Elemental enters: seat 0 draws Card A first, then discards a card of its choice: the card it just drew, which is only possible because the draw comes first. Kept Card stays in hand.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "elemental", "real": "Icewind Elemental", "zone": "hand", "controller": 0},
+  {"key": "kept", "name": "Kept Card", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elemental", "decisions": ["a"]}
+ ],
+ "expect": {
+  "zone": {"elemental": "battlefield", "a": "graveyard", "kept": "hand"},
+  "hand": {"0": 1},
+  "graveyard": {"0": ["Card A"]}
+ }
+}

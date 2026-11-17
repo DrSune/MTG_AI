@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "name": "chandras_outrage_third_seat_takes_the_two",
+ "notes": "M3 mapper. Printed: 'Chandra's Outrage deals 4 damage to target creature and 2 damage to that creature's controller.' Three players: seat 0 targets seat 2's 2/2, which dies; seat 2, its controller, is dealt 2. Seat 1, the other opponent, is dealt nothing (not 'each opponent'), and its own 2/2 is untouched.",
+ "world": {"life": 20, "seed": 1, "players": 3},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "bear", "zone": "battlefield", "controller": 1, "name": "Bear", "power": 2, "toughness": 2, "type": "Creature"},
+  {"key": "victim", "zone": "battlefield", "controller": 2, "name": "Victim", "power": 2, "toughness": 2, "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["victim"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 20, "2": 18}, "zone": {"victim": "graveyard", "bear": "battlefield"}}
+}

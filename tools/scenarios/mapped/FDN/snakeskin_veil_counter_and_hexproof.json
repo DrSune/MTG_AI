@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "snakeskin_veil_counter_and_hexproof",
+ "notes": "M3 mapper. Printed: 'Put a +1/+1 counter on target creature you control. It gains hexproof until end of turn.' Seat 0 casts Snakeskin Veil on its 2/2. The opponent then tries to cast Scorching Dragonfire at that creature: it has hexproof, so it is no legal target of a spell an opponent controls (CR 702.11b), and the cast is refused (the creature, card:1, is off the target population).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "veil", "real": "Snakeskin Veil", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "fire", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["bear"]},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "fire", "controller": 1, "targets": ["bear"], "expect_raise": "illegal target selection: selection:off_population:card:1"}
+ ],
+ "expect": {}
+}

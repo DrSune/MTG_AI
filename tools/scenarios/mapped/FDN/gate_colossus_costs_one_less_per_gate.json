@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "gate_colossus_costs_one_less_per_gate",
+ "notes": "M5 mapper. Printed: 'Affinity for Gates (This spell costs {1} less to cast for each Gate you control.)' Seat 0 controls two Guildgates (seat 1's Guildgate does not count): Gate Colossus ({8}) costs {6}. With five mana the cast is refused; with a sixth it resolves.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "colossus", "real": "Gate Colossus", "zone": "hand", "controller": 0},
+  {"key": "g1", "real": "Azorius Guildgate", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "g2", "real": "Dimir Guildgate", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "og", "real": "Boros Guildgate", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 5}, "hold": true},
+  {"op": "cast", "real": "Gate Colossus", "key": "colossus", "controller": 0, "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": true},
+  {"op": "cast", "real": "Gate Colossus", "key": "colossus", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"colossus": "battlefield"},
+  "mana_pool": {"0": {}}
+ }
+}

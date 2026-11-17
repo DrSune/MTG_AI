@@ -1,0 +1,174 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "28045b32-4c1a-40e5-a15d-524d0f8fe6ec",
+ "name": "Archmage of Runes",
+ "text_sha": "a01419660fe5cd379142dcfcfd53431786eaa9b815580e51b27834e8dee16c63",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FOr",
+     "children": [
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TYPE_EQ"
+       },
+       "string_value": "Instant",
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      },
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TYPE_EQ"
+       },
+       "string_value": "Sorcery",
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     ]
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FOr",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Instant",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Sorcery",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Archmage of Runes.\n# \"Instant and sorcery spells you cast cost {1} less to cast.\"  FDN Mocking Sprite's CostModifier\n# (M7 record; M21 Watcher of the Spheres' B4-cost-modifier-watcher form).\n# \"Whenever you cast an instant or sorcery spell, draw a card.\"  ZNR Umara Mystic's cast event\n# (B10) over instants and sorceries; M21 Twinblade Assassins' \"draw a card\".\ndiscount = CostModifier(\n    filter=FOr(\n        children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n        ),\n    ),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n)\nstudy = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FOr(\n            children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n            ),\n        ),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [discount, study, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Instant and sorcery spells you cast cost {1} less to cast.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever you cast an instant or sorcery spell, draw a card.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Mocking Sprite's CostModifier (M7); cast trigger over instants and sorceries you cast (Umara Mystic's event) drawing one. Packs: tools/scenarios/mapped/FDN/archmage_of_runes_instant_costs_one_less_and_draws.json, tools/scenarios/mapped/FDN/archmage_of_runes_nothing_for_creatures_or_opponents.json."
+ },
+ "probe": {
+  "sha": "c4e0837c97bda724b7e2f7a636305153532646dcc717a2740f6091d14f425d57"
+ }
+}

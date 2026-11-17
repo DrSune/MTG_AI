@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "dwynens_elite_itself_and_their_elf_do_not_count",
+ "notes": "M3 mapper. Printed: 'When this creature enters, if you control another Elf, create a 1/1 green Elf Warrior creature token.' Dwynen's Elite is itself an Elf, and the opponent controls an Elf; seat 0 controls no other Elf (its Bear is none). Dwynen's Elite enters: no token.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elite", "real": "Dwynen's Elite", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "their_elf", "name": "Their Elf", "type": "Creature — Elf Warrior", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elite"}
+ ],
+ "expect": {
+  "zone": {"elite": "battlefield"},
+  "tokens": {"Elf Warrior": 0}
+ }
+}

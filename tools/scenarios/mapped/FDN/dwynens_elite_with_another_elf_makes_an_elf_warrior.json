@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "dwynens_elite_with_another_elf_makes_an_elf_warrior",
+ "notes": "M3 mapper. Printed: 'When this creature enters, if you control another Elf, create a 1/1 green Elf Warrior creature token.' Seat 0 controls an Elf Druid. Dwynen's Elite enters: one 1/1 Elf Warrior token.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elite", "real": "Dwynen's Elite", "zone": "hand", "controller": 0},
+  {"key": "druid", "name": "My Druid", "type": "Creature — Elf Druid", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elite"}
+ ],
+ "expect": {
+  "zone": {"elite": "battlefield"},
+  "tokens": {"Elf Warrior": 1}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "gate_colossus_small_creatures_cannot_block",
+ "notes": "M5 mapper. Printed: 'This creature can't be blocked by creatures with power 2 or less.' Gate Colossus attacks: Opp Bear (power 2) is never offered the block; Opp Ogre (power 3) is offered it and declines. Seat 1 takes 8.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "colossus", "real": "Gate Colossus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"colossus": true}, "block": {"bear": null, "ogre": null}}
+ ],
+ "expect": {
+  "attackers": {"colossus": true},
+  "not_asked_to_block": ["bear"],
+  "block_asks": {"ogre": "<colossus>,NONE"},
+  "life": {"1": 12}
+ }
+}

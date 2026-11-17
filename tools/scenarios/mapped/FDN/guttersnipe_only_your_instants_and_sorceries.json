@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "guttersnipe_only_your_instants_and_sorceries",
+ "notes": "M5 mapper. Printed: 'Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.' Seat 0 controls Guttersnipe. Seat 1 casts Opt (an opponent's instant): nothing. Seat 0 casts Opt: seat 1 takes 2; seat 0 takes nothing. Seat 1 18, seat 0 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snipe", "real": "Guttersnipe", "zone": "battlefield", "controller": 0},
+  {"key": "opt0", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "opt1", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Opt", "key": "opt1", "controller": 1, "decisions": ["top"]},
+  {"op": "cast", "real": "Opt", "key": "opt0", "controller": 0, "decisions": ["top"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18}
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "springbloom_druid_trades_a_land_for_two_basics_tapped",
+ "notes": "M4 mapper. Printed: 'When this creature enters, you may sacrifice a land. If you do, search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.' Seat 0 controls two Forests and sacrifices one of them (the other stays). Its library holds Evolving Wilds (a nonbasic land), a Forest and a Plains; the search takes the first legal card twice: the Wilds is no basic land card, so the Forest and the Plains come, both tapped. The Wilds stays in the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "druid", "real": "Springbloom Druid", "zone": "hand", "controller": 0},
+  {"key": "land", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "land2", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "wilds", "real": "Evolving Wilds", "zone": "library", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 2}},
+  {"op": "cast", "key": "druid", "controller": 0, "decisions": ["fire", "land", "first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "zone": {"druid": "battlefield", "land": "graveyard", "land2": "battlefield", "forest": "battlefield", "plains": "battlefield", "wilds": "library"},
+  "tapped": {"forest": true, "plains": true, "land2": false}
+ }
+}

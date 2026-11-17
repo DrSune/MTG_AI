@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "angelic_destiny_enchanted_creature_is_an_angel",
+ "notes": "M4 mapper. Printed: 'Enchanted creature gets +4/+4, has flying and first strike, and is an Angel in addition to its other types.' Support card: FDN Lyra Dawnbringer ('Other Angels you control get +1/+1 and have lifelink.'; an M7 record, unverified when this pack was written). Seat 0's 2/2 Bear is enchanted: +4/+4 from the Aura and, being an Angel now, +1/+1 from Lyra: 7/7. The Bear attacks unblocked: it deals 7 (seat 1 to 13) and, with Lyra's lifelink, seat 0 gains 7.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "destiny", "real": "Angelic Destiny", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "lyra", "real": "Lyra Dawnbringer", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "destiny", "controller": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "lyra": false}}
+ ],
+ "expect": {
+  "power": {"bear": 7, "lyra": 5},
+  "toughness": {"bear": 7},
+  "attackers": {"bear": true},
+  "life": {"0": 27, "1": 13}
+ }
+}

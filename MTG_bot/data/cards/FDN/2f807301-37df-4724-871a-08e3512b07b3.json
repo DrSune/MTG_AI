@@ -1,0 +1,164 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2f807301-37df-4724-871a-08e3512b07b3",
+ "name": "Burglar Rat",
+ "text_sha": "1a7d9d03aef8edbe9740f0a4ce6ed11b50273ce0e7d854fa809b6de7b2561213",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "EachPlayer",
+     "ref": {
+      "tag": "ControllerRef",
+      "name": "ALL_OPPONENTS"
+     },
+     "effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "CHOOSE"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "GRAVEYARD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ],
+        [
+         "from",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Burglar Rat: \"When this creature enters, each opponent discards a card.\"\n# Event: the compiler's \"When this creature enters\". Effect: M20 Yarok's Fenlurker's verified\n# \"each opponent exiles a card from their hand\" (EachPlayer(ALL_OPPONENTS, the hand move with the\n# inner effect YOU-relative: the rotated opponent chooses from their own hand) with the discard's\n# destination, the graveyard (Teferi's Tutelage's \"discard a card\": hand to graveyard, the chooser\n# the controller). Not Bad Deal's plural `controller` role: with one card the canonicalizer makes\n# that pick a ONE_OF over every hand, asked of the caster (compiler.PICK_ASK_FORCE_SILENT's L-27),\n# which the probe showed raising \"not in the hand of player:1\" when it offered your own cards.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=EachPlayer(\n        ref=ControllerRef.ALL_OPPONENTS,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, each opponent discards a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Each opponent discards a card: Yarok's Fenlurker's verified EachPlayer(ALL_OPPONENTS, hand move, the rotated opponent choosing from its own hand) to the graveyard. Not Bad Deal's plural `controller` role: with one card the canonicalizer makes it a ONE_OF over every hand asked of the caster (PICK_ASK_FORCE_SILENT, L-27); the probe of that form raised 'not in the hand of player:1' when it offered your own cards. Packs: tools/scenarios/mapped/FDN/burglar_rat_each_opponent_discards_in_three_seats.json."
+ },
+ "probe": {
+  "sha": "cb4762ae60642e7a4478909c8b5a5f3c271aa402187d5e3888a7178574357467"
+ }
+}

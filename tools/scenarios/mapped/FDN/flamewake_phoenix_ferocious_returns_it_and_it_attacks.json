@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "flamewake_phoenix_ferocious_returns_it_and_it_attacks",
+ "notes": "M5 mapper. Printed: 'Flying, haste. This creature attacks each combat if able. Ferocious — At the beginning of combat on your turn, if you control a creature with power 4 or greater, you may pay {R}. If you do, return this card from your graveyard to the battlefield.' Flamewake Phoenix is in seat 0's graveyard and seat 0 controls a 4/4 Ogre and one Mountain. At the beginning of combat seat 0 takes the offer and pays {R} with the Mountain: the Phoenix returns under seat 0's control, and with haste it must attack: it is declared without an attack answer (the Ogre is told to stay home) and deals 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "phoenix", "real": "Flamewake Phoenix", "zone": "graveyard", "controller": 0},
+  {"key": "ogre", "name": "Big Ogre", "type": "Creature — Ogre", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ogre": false}, "may": {"phoenix": true}}
+ ],
+ "expect": {
+  "zone": {"phoenix": "battlefield"},
+  "controller": {"phoenix": 0},
+  "tapped": {"mountain": true},
+  "attackers": {"phoenix": true, "ogre": false},
+  "life": {"0": 20, "1": 18}
+ }
+}

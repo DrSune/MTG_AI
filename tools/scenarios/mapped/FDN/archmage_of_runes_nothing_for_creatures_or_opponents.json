@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "archmage_of_runes_nothing_for_creatures_or_opponents",
+ "notes": "M4 mapper. Printed: 'Instant and sorcery spells you cast cost {1} less to cast. Whenever you cast an instant or sorcery spell, draw a card.' Seat 0 controls Archmage of Runes. Seat 0's creature spell is not reduced: Gleaming Barrier ({2}) cannot be cast with {1}. Seat 1's Quick Study ({2}{U}) is not reduced: refused with {1}{U}; with {2}{U} seat 1 casts it and draws two, and seat 0 draws nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "archmage", "real": "Archmage of Runes", "zone": "battlefield", "controller": 0},
+  {"key": "barrier", "real": "Gleaming Barrier", "zone": "hand", "controller": 0},
+  {"key": "opp_study", "real": "Quick Study", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "cast", "key": "barrier", "controller": 0, "expect_raise": "illegal cast: cost:mana_generic:1<2"},
+  {"op": "mana", "seat": 1, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "opp_study", "controller": 1, "expect_raise": "illegal cast: cost:mana_generic:1<2"},
+  {"op": "mana", "seat": 1, "add": {"C": 1}},
+  {"op": "cast", "key": "opp_study", "controller": 1}
+ ],
+ "expect": {
+  "zone": {"barrier": "hand", "opp_study": "graveyard"},
+  "hand": {"0": 1, "1": 2}
+ }
+}
