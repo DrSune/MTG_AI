@@ -405,6 +405,16 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       - cast a card from another zone: `{"op": "test_permission_cast", "key": k, "from":
         "graveyard"}`, as though a permission let you, at the card's own timing and full cost.
         The CAST row records the zone (`"kick_rows": {k: {"from": "graveyard"}}`).
+    - Since 2026-11-17 (KNOWLEDGE/2026-11-17/212 §3, the tool guards):
+      - A step's words answer its asks in order; once they are used up the next ask raises with
+        its words (a kickback ask takes PASS), so `expect_raise` can pin an ask after a may-offer.
+        In a combat step an ask no map or word claims (a trigger's target, the order of two
+        triggers) raises too. A held cast resolves in a later step, whose words answer it.
+      - Refused: `activate` of a mana ability (pay with it: `"tap": true` or `act`) and
+        `hold_triggers` (use `"hold": true`).
+      - New: `"controlled_by": N` on a battlefield card (seat N controls what another seat owns),
+        the `revealed` lane (whose cards a REVEAL showed), the `tap` op (a tap by another effect;
+        its key may be an effect-made object's handle, `"card:14"`).
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.
@@ -588,6 +598,18 @@ A scenario pack (format: the docstring of `tools/run_scenarios.py`) sets up the 
 the step, and states the expected outcome from the printed text. Put `"set": "<SET>"` at the top
 level.
 - Write the expectation from the text, never from the trace.
+- **Take the game's own path** (the menu with `act`, a cast paid with `"tap": true`, a real
+  attack with `combat`), never a runner shortcut where the game has a path, and use the printed
+  card for the property under test: printed flying, not flying an effect granted. The "loses
+  flying" packs used granted flying and missed the layer fault on printed flying; Leafkin Druid's
+  packs activated a mana ability no game activates (the runner now refuses that step).
+- **An effect that makes an event other cards watch** (counters put, tokens made, life gained,
+  a card exiled with something) gets a pack with a watcher that reacts to it: Wildwood Scourge
+  never saw counters an entering creature got, because every pack checked the counters, none the
+  event (KNOWLEDGE/2026-11-17/212 §3).
+- **To act in response to a trigger**, put `"hold": true` on the step that causes it: the trigger
+  then waits on the stack for the next steps. Without it the trigger resolves first and the later
+  step tests nothing (mapper M6 got a false pass this way).
 - Check it with `cardtool.py runpack SET pack.json`, which runs it against the tree under review.
   `tools/run_scenarios.py` sees verified trees only.
 - The orchestrator's `cardtool.py verify` runs your packs again, against the tree and against every

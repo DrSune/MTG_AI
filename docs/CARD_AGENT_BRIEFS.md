@@ -65,7 +65,14 @@ mistakes", "Verifier workflow (gate G2)", "Spec packs (gate G4)"), the docstring
    - Check each: `cardtool.py runpack <SET> <pack>` passes on the live tree; it fails a
      deliberately wrong expectation once.
    - Supporting cards are VERIFIED cards (a `verified` block in `MTG_bot/data/cards/<SET>/`) or
-     synthetic: the suite plays verified cards only.
+     synthetic: the suite plays verified cards only (`verify` refuses a pack that plays another).
+   - A pack takes the game's own path (the menu with `act`, a cast with `"tap": true`, a real
+     attack), never a runner shortcut, and uses the printed card for the property under test
+     (printed flying, not flying an effect granted).
+   - An effect that makes an event other cards watch (counters put, tokens made, life gained, a
+     card exiled with something) gets a pack with a watcher that reacts to it.
+   - To act in response to a trigger, the step that causes it needs `"hold": true`; without it the
+     trigger resolves first and the later step tests nothing.
 3. Last, for each OK card: `cardtool.py survivors <SET> "<card>" --verdict <file>`. Its first run
    locks your judgments; then write a pack for every survivor it lists, add it to "packs", and run
    it again until it lists nothing. Change no status after the lock.
@@ -101,7 +108,12 @@ sentences; `parse` and `similar` for the canonical structure; a draft; `try` it,
 and fix every G0 failure (its lints check who acts, costs, numbers and the cast carrier); a
 clauses file covering every printed sentence; then `write`, or `needs-atom` with the precise
 missing piece ("ENGINE: ..." when the engine would play it stronger than printed). Never
-approximate. Make each pack fail against a deliberately wrong draft once.
+approximate. Make each pack fail against a deliberately wrong draft once. Packs take the game's
+own path (the menu with `act`, a cast with `"tap": true`, a real attack), never a runner
+shortcut, with the printed card for the property under test (printed flying, not granted); an
+effect that makes an event other cards watch (counters put, tokens made, life gained, a card
+exiled with something) gets a pack with a watcher; to act in response to a trigger, the step that
+causes it needs `"hold": true`, or the trigger resolves first and the later step tests nothing.
 
 Lessons from the last wave (save yourself the time): <the pack-runner quirks and tool limits it
 found>. Engine faults already reported (do not spend time on these; report anything new): <list>.
