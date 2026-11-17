@@ -251,28 +251,37 @@ class _Slot(threading.Thread):
 
     def _play(self, job: dict) -> dict:
         """The job's one result: its game's, or a void when it crashed or the watchdog found it
-        hung (GameTimeout)."""
-        self.job, self.mark = job, time.monotonic()
-        try:
-            self._playing(True)
-            result = self.worker.play(job, self)
-        except (Exception, GameTimeout) as error:  # noqa: BLE001 - reported, never hidden
-            result = {"gid": job["gid"], "kind": job["kind"],
-                      "outcome": "void-timeout" if isinstance(error, GameTimeout) else "void-worker",
-                      "winner": None, "crash": f"{type(error).__name__}: {error}",
-                      "trace": traceback.format_exc()[-2000:],
-                      # the deal, so an eval voids the seat-swapped pair
-                      "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
-                      "seats": job.get("seats"), "a_seat": job.get("a_seat"),
-                      "opp": job.get("opp"), "set_code": job.get("set_code")}
-        while True:  # out of its game's code: a raise that lands meanwhile changes nothing
+        hung (GameTimeout). The slot leaves its game's code before it does anything else, so the
+        watchdog's one raise, wherever it lands (in the game, as it ends, in a crash's handler),
+        leaves one result."""
+        self.job, self.mark, outcome = job, time.monotonic(), None
+        while True:
             try:
+                if outcome is None:
+                    try:
+                        self._playing(True)
+                        outcome = self.worker.play(job, self)
+                    except (Exception, GameTimeout) as error:  # noqa: BLE001 - reported below
+                        outcome = error
                 self._playing(False)
                 break
-            except GameTimeout:
-                pass
+            except GameTimeout as error:  # it landed as the game ended: the game's result stands
+                outcome = error if outcome is None else outcome
         self.job = None
-        return result
+        if not isinstance(outcome, BaseException):
+            return outcome
+        timeout = isinstance(outcome, GameTimeout)
+        if timeout:
+            print(f"worker {self.worker.wid}: game {job['gid']} (seed {job.get('seed')}) held the "
+                  f"worker {HANG_S:g} s: voided", file=sys.stderr, flush=True)
+        return {"gid": job["gid"], "kind": job["kind"],
+                "outcome": "void-timeout" if timeout else "void-worker",
+                "winner": None, "crash": f"{type(outcome).__name__}: {outcome}",
+                "trace": "".join(traceback.format_exception(outcome))[-2000:],
+                # the deal, so an eval voids the seat-swapped pair
+                "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
+                "seats": job.get("seats"), "a_seat": job.get("a_seat"),
+                "opp": job.get("opp"), "set_code": job.get("set_code")}
 
 
 class Worker:
@@ -374,10 +383,8 @@ class Worker:
         slot.mark = time.monotonic()
         slot.go.release()
         while not self.main_wake.acquire(timeout=HANG_S):
-            with slot.lock:  # only inside its game's code (_Slot._playing), and once: not
-                if slot.playing and time.monotonic() - slot.mark >= HANG_S:  # in the handler
-                    print(f"worker {self.wid}: game {slot.job['gid']} (seed {slot.job.get('seed')})"
-                          f" held the worker {HANG_S:.0f} s: voided", file=sys.stderr, flush=True)
+            with slot.lock:  # only inside its game's code (_Slot._playing), and once
+                if slot.playing and time.monotonic() - slot.mark >= HANG_S:
                     slot.playing = False
                     ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_ulong(slot.ident),
                                                                ctypes.py_object(GameTimeout))

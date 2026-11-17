@@ -124,8 +124,9 @@ teacher inter-play stage and must use the run's `--pool` (state files from befor
 `--init`, `--refresh-table` and `--extend-sets` make a run's first table only (before 2026-11-17
 a restart rebuilt it from them and the compile of the moment, changing rows under the same
 weights); a new table is a new run's `--init <run>/last.pt --refresh-table`, logged as
-`refresh_table`, and a resume naming other table flags than the run's first start (its
-`manifest.json`) is refused. A frozen version, like `--opp-ckpt`, keeps its own card rows. PPO's AdamW
+`refresh_table`, and a resume asking for a table change its start did not make (`--refresh-table`,
+`--mask-names`, a new `--extend-sets` set; the start's flags travel in the commit) is refused. A
+frozen version, like `--opp-ckpt`, keeps its own card rows. PPO's AdamW
 moments restart. An evaluation that ended is committed at once, and never played again; the one
 running at the commit starts again, and queued ones run.
 

@@ -92,9 +92,16 @@ GATE_STRIDE = 1000
 # the blocks they were frozen on (r28's v2 was selected on block 39, which every run from v2
 # replayed at its 40th gate). Before 2026-11-17 the gate blocks ignored --seed.
 RUN_STRIDE = 1_000_000_000
+#: what makes a run's card table, at its start only (a resume continues the committed table)
+TABLE_FLAGS = ("refresh_table", "extend_sets", "mask_names")
 TRAIN_SEED0 = 10_000_000
 BC_SEED0 = 5_000_000
 CAPTURE_SEED0 = 30_000_000  # + 1,000,000 x --seed: each capture run deals its own games
+
+
+def _sets(text: str) -> list[str]:
+    """A comma list of set codes (--extend-sets, --mix-sets)."""
+    return [code for code in text.split(",") if code]
 
 
 def table_records(sets: list[str]) -> dict[str, Any]:
@@ -274,23 +281,28 @@ class Learner:
         torch.manual_seed(args.seed)
         self.np_rng = np.random.default_rng(args.seed)  # BC's steps (ppo.steps)
         self.rng = random.Random(args.seed)
+        self.table_flags = {f: getattr(args, f) for f in TABLE_FLAGS}  # the run's start's
         if args.resume:
             # the run's own network and card table, as its last commit holds them: the rows are
             # part of what the network computes (197 C4), and --init, --refresh-table and
             # --extend-sets made the run's first table only. Rebuilt from them and the compile of
             # the moment, the rows changed under the same weights at a restart, silently (a
             # refresh of r28's v2 rebuilds 118). A new table is a new run's act (refresh_table)
-            self.model, self.table, _ = M.load(str(Path(args.resume) / "last.pt"), self.device)
-            # so a resume that names other table flags than the run's start is refused: it would
-            # believe it changed the table (a new --mix-sets set dealt as unknown cards)
-            path = Path(args.resume) / "manifest.json"
-            start = json.loads(path.read_text())[0]["args"] if path.exists() else {}
-            moved = [f for f in ("refresh_table", "extend_sets", "mask_names")
-                     if start.get(f, getattr(args, f)) != getattr(args, f)]
-            if moved:
-                raise ValueError(f"--resume {args.resume}: {moved} act at a run's start, which "
-                                 f"had {[start[f] for f in moved]}; a new table is a new run: "
-                                 f"--init {Path(args.resume) / 'last.pt'} with them")
+            self.model, self.table, extra = M.load(str(Path(args.resume) / "last.pt"), self.device)
+            # so a resume asking for a table change its start did not make is refused, never
+            # ignored (a new --mix-sets set would deal cards the table lacks, as the unknown card).
+            # The start's flags travel in the commit; a commit from before 2026-11-17 has none
+            start = (extra.get("state") or {}).get("table_flags")
+            if start:
+                asked = [f for f in ("refresh_table", "mask_names") if getattr(args, f)
+                         and not start[f]]
+                if set(_sets(args.extend_sets)) - set(_sets(start["extend_sets"])):
+                    asked.append("extend_sets")
+                if asked:
+                    raise ValueError(f"--resume {args.resume}: {asked} act at a run's start, "
+                                     f"which had {[start[f] for f in asked]}; a new table is a new "
+                                     f"run: --init {Path(args.resume) / 'last.pt'} with them")
+                self.table_flags = start
         elif args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init,
@@ -850,7 +862,9 @@ class Learner:
         skewed sample of games around every gate. A batch is the run of games issued after the
         last batch's, to --steps decisions, its last game whole. A game still playing holds the
         ones issued after it until a full batch has ended behind it: then it is late (hung, or
-        its result lost) and joins the batch it ends in, so no game stalls the training."""
+        its result lost) and joins the batch it ends in, so no game stalls the training. At r28's
+        sizes (about 27k decisions in flight, 139k a batch) only the far tail is ever late; a
+        smoke run whose games in flight hold a batch's decisions sees it often."""
         while self.held and len(self.buffer) < self.args.steps:
             gid, game = next(iter(self.held.items()))
             if game is None and self.held_rows < self.args.steps:
@@ -1271,12 +1285,13 @@ class Learner:
     def run_state(self) -> dict:
         """Everything --resume needs besides the weights and the versions' files: the stage, the
         version list, the rating games, the job ids (training seeds), the opponent draws, the
-        gate deal blocks, and the evaluations: the running one first (it starts again), then
-        the queued ones."""
+        gate deal blocks, the evaluations (the running one first: it starts again; then the
+        queued ones), and the flags its card table was made with at its start."""
         return {"it": self.it, "stage": self.stage, "versions": list(self.versions),
                 "elo_games": list(self.elo_games), "pool": self.args.pool, "gid": self.gid,
                 "rng": self.rng.getstate(), "n_gates": self.n_gates,
-                "eval_queue": [self.eval_spec] * bool(self.eval_spec) + list(self.eval_queue)}
+                "eval_queue": [self.eval_spec] * bool(self.eval_spec) + list(self.eval_queue),
+                "table_flags": dict(self.table_flags)}
 
     def checkpoint(self) -> None:
         """The run's commit (module docstring): last.pt with the learner's weights and the run

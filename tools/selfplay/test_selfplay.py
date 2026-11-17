@@ -1212,8 +1212,9 @@ def test_a_batch_takes_games_in_the_order_they_were_issued(tmp_path, monkeypatch
     lr._release()
     assert lr.buffer == []  # the third game still plays: the fourth waits for it
     later = [lr.curriculum_job() for _ in range(2)]
-    end(later[1], 5)  # a full batch ended behind the third game: it is late (hung?), as is the
-    assert [b[6] for b in lr.buffer] == [gids[3]] + [later[1]["gid"]] * 5  # fifth: no stall
+    # a full batch ends behind the third game (hung?) and the fifth: both are late, no stall
+    end(later[1], 5)
+    assert [b[6] for b in lr.buffer] == [gids[3]] + [later[1]["gid"]] * 5
     end(jobs[2], 2)  # a late game joins the batch it ends in
     lr.buffer = []
     lr._release()
@@ -1238,7 +1239,9 @@ def test_a_hung_game_is_voided_and_its_worker_goes_on(table, monkeypatch) -> Non
     """Hunt 4: nothing bounded a game. A worker's slots pass one baton, so a hung engine call
     stopped every game of its worker, and an evaluation waiting for one of them never ended: the
     gates stopped, silently. A game that keeps the baton HANG_S seconds is voided (outcome
-    void-timeout, and the crash says why) and the worker plays its next game."""
+    void-timeout, and the crash says why) and the worker plays its next game. A crash whose
+    report outlasts HANG_S is a void of its own: the watchdog raises only in a game's code, so
+    nothing lands in its handler (the review found the slot thread killed there)."""
     import multiprocessing as mp
     import threading
     import time
@@ -1247,10 +1250,17 @@ def test_a_hung_game_is_voided_and_its_worker_goes_on(table, monkeypatch) -> Non
 
     monkeypatch.setattr(actor, "HANG_S", 0.3, raising=False)
 
+    class SlowToSay(Exception):
+        def __str__(self) -> str:
+            time.sleep(1.0)
+            return "a crash slow to report"
+
     def play_game(seed, agents, **kw) -> dict:  # the first game hangs in a pure-Python loop
         end = time.monotonic() + (10 if seed == 901 else 0)
         while time.monotonic() < end:
             pass
+        if seed == 903:
+            raise SlowToSay
         return {"seed": seed, "outcome": "win", "winner": 0, "turns": 1}
 
     monkeypatch.setattr(actor, "play_game", play_game)
@@ -1261,16 +1271,17 @@ def test_a_hung_game_is_voided_and_its_worker_goes_on(table, monkeypatch) -> Non
     mine.send(("jobs", [{"gid": g, "kind": "eval", "seed": 900 + g, "deck_mode": "coherent",
                          "set_code": "M21", "pool_mode": "verified", "opp": "heuristic",
                          "a_seat": 0, "seats": ["heuristic", "heuristic"],
-                         "greedy": [True, True], "record": [False, False]} for g in (1, 2)]))
+                         "greedy": [True, True], "record": [False, False]} for g in (1, 2, 3, 4)]))
     done, t0 = [], time.monotonic()
-    while len(done) < 2 and time.monotonic() - t0 < 8:
+    while len(done) < 4 and time.monotonic() - t0 < 8:
         if mine.poll(0.1) and (msg := mine.recv())[0] == "done":
             done += msg[2]
     mine.send(("stop",))
     loop.join(timeout=15)
-    assert [r["gid"] for r in done] == [1, 2]
+    assert [r["gid"] for r in done] == [1, 2, 3, 4]
     assert done[0]["outcome"] == "void-timeout" and done[0]["crash"].startswith("GameTimeout")
-    assert done[0]["seed"] == 901 and not done[1]["outcome"].startswith("void")
+    assert done[2]["outcome"] == "void-worker" and done[2]["crash"].startswith("SlowToSay")
+    assert done[0]["seed"] == 901 and [r["outcome"] for r in done[1::2]] == ["win", "win"]
 
 
 def test_keeping_a_hand_is_the_mulligans_pass() -> None:
