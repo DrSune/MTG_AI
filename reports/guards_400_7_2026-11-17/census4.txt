@@ -1,0 +1,7 @@
+M21 GRANT_TYPE 2 ['Dub', 'Riddleform']
+M21 equipment 2 ['Malefic Scythe', 'Short Sword']
+M21 protection 5 ['Baneslayer Angel', 'Feat of Resistance', 'Feline Sovereign', 'Runed Halo', 'Sparkhunter Masticore']
+M20 GRANT_TYPE 1 ['Wakeroot Elemental']
+M20 equipment 6 ['Ancestral Blade', 'Colossus Hammer', 'Heart-Piercer Bow', "Marauder's Axe", 'Mask of Immolation', "Wolfrider's Saddle"]
+M20 protection 5 ['Apostle of Purifying Light', 'Blightbeetle', 'Gods Willing', 'Shifting Ceratops', 'Unchained Berserker']
+FDN equipment 4 ['Adventuring Gear', 'Fireshrieker', 'Goldvein Pick', "Pirate's Cutlass"]

@@ -1,0 +1,4 @@
+FAIL
+  bag_of_holding_returned_while_its_trigger_waits_keeps_out_that_card.json
+  zone[spare_a]: expected exile, got hand
+  hand[0]: expected 2, got 3

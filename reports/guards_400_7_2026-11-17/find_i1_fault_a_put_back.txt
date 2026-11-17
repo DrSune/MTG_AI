@@ -1,0 +1,5 @@
+M21 7  ['token Goblin Wizard in graveyard']
+M21 82  ['token Saproling in graveyard']
+FDN 91  ['token Cat in graveyard']
+FDN 99  ['token Cat in graveyard']
+games 450

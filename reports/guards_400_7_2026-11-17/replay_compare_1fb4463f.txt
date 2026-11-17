@@ -1,0 +1,4 @@
+M21: games 200; identical digests 200; identical journals 200; identical event logs 200; crashes 0 (base) / 0 (branch)
+M20: games 200; identical digests 200; identical journals 200; identical event logs 200; crashes 0 (base) / 0 (branch)
+FDN: games 200; identical digests 200; identical journals 200; identical event logs 200; crashes 0 (base) / 0 (branch)
+games whose journal or play differs: 0 of 600
