@@ -1368,37 +1368,33 @@ class TestTriggerTrailing(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Activation-tail capture, OPT(CAST)-permission exemption
+# Activation-tail capture; a resolving permission is a step (ontology R13)
 # ---------------------------------------------------------------------------
 
 
-def _cast_permission_effect() -> Effect:
-    """The B4-cast-them-this-turn permission idiom's compiled shape: an
-    empty-cost ActivatedAbility whose whole effect is OPT(CAST, cost=empty).
-    (Chandra, Heart of Fire's "You may cast them this turn.")"""
-    return OptionalEffect(
-        inner=Atom(
-            verb=Verb.CAST,
-            args=AtomArgs(
-                pairs=(
-                    ("cost", Cost(parts=())),
-                    (
-                        "source",
-                        Selector(
-                            count=QUnbounded(),
-                            mode=SelectorMode.CHOOSE,
-                            filter=FAnd(()),
-                            zones=(
-                                Zone(
-                                    kind=ZoneKind.GRAVEYARD,
-                                    controller=ControllerRef.YOU,
-                                ),
-                            ),
-                        ),
+def _permission_step() -> Effect:
+    """"You may cast them this turn." as templates_b19 builds it: a PERMIT over the ``result``
+    register with its duration (DESIGN_ATOM_ONTOLOGY §17), a step of the ability printed above
+    it, never OptionalEffect-wrapped (the permission is its own "may")."""
+    from MTG_bot.core.ability_tree import DurationEot
+
+    return Atom(
+        verb=Verb.PERMIT,
+        args=AtomArgs(
+            pairs=(
+                (
+                    "source",
+                    Selector(
+                        count=QConst(1),
+                        mode=SelectorMode.CHOOSE,
+                        filter=FAnd(()),
+                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
+                        referent="result",
                     ),
-                )
-            ),
-        )
+                ),
+                ("duration", DurationEot()),
+            )
+        ),
     )
 
 
@@ -1406,8 +1402,9 @@ class TestActivationTrailing(unittest.TestCase):
     """Plain sentences printed under a PLAIN activated ability are that
     ability's ACTIVATION tail (Tavern Swindler, Seasoned Hallowblade), not
     the card-level SpellAbility. Boundaries as in the trigger/loyalty tail;
-    the empty-cost OPT(CAST) permission row is transparent and
-    loyalty-costed abilities stay owned by the loyalty chain."""
+    a resolving permission ("You may cast them this turn.") is a step of the
+    ability above it (CR 611.2a), its "may" unwrapped, and loyalty-costed
+    abilities stay owned by the loyalty chain."""
 
     @staticmethod
     def _reg(
@@ -1469,10 +1466,10 @@ class TestActivationTrailing(unittest.TestCase):
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)
 
-    def test_permission_row_is_transparent_boundary(self) -> None:
-        """The exemption: activation / OPT(CAST) permission / bare tail ->
-        the tail skips the permission row and joins the ACTIVATION (a
-        permission is never an action's owner)."""
+    def test_a_permission_is_a_step_of_the_activation(self) -> None:
+        """Activation / "You may cast them this turn." / bare tail: the permission joins the
+        activation as a mandatory step (the IR refuses an OptionalEffect around a PERMIT) and the
+        tail follows it."""
         raw = _raw_card(
             "P",
             72,
@@ -1487,35 +1484,23 @@ class TestActivationTrailing(unittest.TestCase):
         )
         reg = self._reg(
             ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=_draw_atom(1)),
-            {"You draw another card.": _draw_atom(2)},
-            permission_sentence="You may cast them this turn.",
-            permission=ActivatedAbility(
-                cost=Cost(parts=()), effect=_cast_permission_effect()
-            ),
+            {"You may cast them this turn.": _permission_step(), "You draw another card.": _draw_atom(2)},
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
-        # "this turn" makes the row a permission created by the
-        # activation's resolution (CR 611.2a), so it is suppressed at assembly
-        # instead of standing as a free ability. The tail still skipped it.
         activation, carrier = res.card.abilities  # + the cast carrier
         assert isinstance(activation, ActivatedAbility)
         assert isinstance(carrier, SpellAbility)
         self.assertIsNone(carrier.effect)
-        # The activation owns the tail…
-        self.assertEqual(activation.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
-        # …and the permission row is gone from the tree, announced as a gap.
-        self.assertTrue(
-            any("You may cast them this turn." in gap for gap in res.known_gaps),
-            res.known_gaps,
+        self.assertEqual(
+            activation.effect, Seq(steps=(_draw_atom(1), _permission_step(), _draw_atom(2)))
         )
+        self.assertEqual(res.known_gaps, ())
 
     def test_loyalty_tail_never_routes_through_this_mechanism(self) -> None:
-        """Chandra boundary, synthetic: loyalty bullet / permission row /
-        bare tail. The loyalty EXCLUSION keeps this mechanism out, and the
-        tail never joins the permission row: the loyalty chain sees through
-        the row, so the bullet owns its tail (Chandra, Heart of Fire's "Add
-        six {R}."). The row itself states a duration and is suppressed."""
+        """Chandra boundary, synthetic: loyalty bullet / permission / bare tail. The loyalty
+        EXCLUSION keeps this mechanism out: the bullet owns the permission and the tail after
+        it (Chandra, Heart of Fire's [−9]: "You may cast them this turn. Add six {R}.")."""
         raw = _raw_card(
             "C",
             73,
@@ -1529,29 +1514,24 @@ class TestActivationTrailing(unittest.TestCase):
         )
         reg = self._reg(
             ActivatedAbility(cost=Cost(parts=(CostLoyalty(1),)), effect=_draw_atom(1)),
-            {"You draw another card.": _draw_atom(2)},
-            permission_sentence="You may cast them this turn.",
-            permission=ActivatedAbility(
-                cost=Cost(parts=()), effect=_cast_permission_effect()
-            ),
+            {"You may cast them this turn.": _permission_step(), "You draw another card.": _draw_atom(2)},
             loyalty=True,
         )
         res = compile_card(raw, reg)
         self.assertEqual(res.unparsed, ())
         act, carrier = res.card.abilities
         assert isinstance(act, ActivatedAbility)
-        # The loyalty bullet owns the tail; nothing is left for the cast.
-        self.assertEqual(act.effect, Seq(steps=(_draw_atom(1), _draw_atom(2))))
+        self.assertEqual(act.effect, Seq(steps=(_draw_atom(1), _permission_step(), _draw_atom(2))))
         self.assertEqual(carrier, SpellAbility(kind=SpellKind.PLANESWALKER))
 
 
-class TestDurationPermissionRows(unittest.TestCase):
-    """A cast permission that lasts "until end of turn" or "this turn" is part
-    of the ability whose resolution creates it (CR 611.2a), never a free,
-    repeatable activation of its own (Chandra, Flame's Catalyst). CAST has
-    no duration role yet, so the row is suppressed and the card is
-    engine-unsupported. A static permission (Conspicuous Snoop) states no
-    duration and stays."""
+class TestPermissionsCompile(unittest.TestCase):
+    """The M21 permissions (ontology round R13, DESIGN_ATOM_ONTOLOGY §17). A permission a
+    resolving ability makes ("until end of turn", "this turn") is a PERMIT step of that ability
+    with its duration (CR 611.2a), never a free, repeatable activation (Chandra, Flame's
+    Catalyst [−8], Chandra, Heart of Fire); a static's (Conspicuous Snoop) is a StaticAbility;
+    a card's own permission to cast itself from its graveyard (Demonic Embrace) is its static,
+    which works from there (CR 113.6f). No card is engine-unsupported for it any more."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -1572,8 +1552,12 @@ class TestDurationPermissionRows(unittest.TestCase):
             ab for ab in card.abilities if isinstance(ab, ActivatedAbility) and not ab.cost.parts
         ]
 
-    def test_catalyst_has_no_free_activation_and_is_unsupported(self) -> None:
-        res = self._compile("Chandra, Flame's Catalyst")
+    @staticmethod
+    def _permits(node: object) -> list[Atom]:
+        return [n for n in walk(node) if isinstance(n, Atom) and n.verb is Verb.PERMIT]
+
+    def test_catalyst_minus_eight_makes_the_free_cast_permission(self) -> None:
+        res = self._compile("Chandra, Flame's Catalyst", gated=True)
         self.assertEqual(self._free_activations(res.card), [])
         loyalty = [
             next(p.delta for p in ab.cost.parts if isinstance(p, CostLoyalty))
@@ -1581,12 +1565,14 @@ class TestDurationPermissionRows(unittest.TestCase):
             if isinstance(ab, ActivatedAbility)
         ]
         self.assertEqual(loyalty, [1, -2, -8])
-        self.assertEqual(res.card.abilities[-1], SpellAbility(kind=SpellKind.PLANESWALKER))
-        self.assertTrue(any("Until end of turn, you may cast" in g for g in res.known_gaps))
-        self.assertFalse(self._compile("Chandra, Flame's Catalyst", gated=True).legality.engine_supported)
+        minus_eight = res.card.abilities[2]
+        (permit,) = self._permits(minus_eight)
+        self.assertEqual(permit.args.get("alternative"), Cost())
+        self.assertEqual(res.unparsed, ())
+        self.assertTrue(res.legality.engine_supported)
 
-    def test_heart_of_fire_minus_nine_owns_its_mana_and_the_cast_adds_none(self) -> None:
-        res = self._compile("Chandra, Heart of Fire")
+    def test_heart_of_fire_minus_nine_owns_its_permission_and_its_mana(self) -> None:
+        res = self._compile("Chandra, Heart of Fire", gated=True)
         self.assertEqual(self._free_activations(res.card), [])
         (minus_nine,) = [
             ab
@@ -1594,57 +1580,28 @@ class TestDurationPermissionRows(unittest.TestCase):
             if isinstance(ab, ActivatedAbility) and CostLoyalty(-9) in ab.cost.parts
         ]
         verbs = [n.verb for n in walk(minus_nine) if isinstance(n, Atom)]
-        self.assertIn(Verb.ADD_MANA, verbs)  # "Add six {R}." is the [−9]'s
+        self.assertEqual(verbs[-2:], [Verb.PERMIT, Verb.ADD_MANA])  # "Add six {R}." is the [−9]'s
         (spell,) = [ab for ab in res.card.abilities if isinstance(ab, SpellAbility)]
         self.assertIsNone(spell.effect)  # casting her adds no mana
-        self.assertEqual(len([g for g in res.known_gaps if "cast permission" in g]), 2)
-        self.assertFalse(self._compile("Chandra, Heart of Fire", gated=True).legality.engine_supported)
-
-    def test_static_permission_stays_an_ability(self) -> None:
-        res = self._compile("Conspicuous Snoop", gated=True)
-        (row,) = self._free_activations(res.card)
-        assert isinstance(row.effect, OptionalEffect) and isinstance(row.effect.inner, Atom)
-        self.assertIs(row.effect.inner.verb, Verb.CAST)
-        self.assertIsNone(row.effect.inner.args.get("cost"))  # costs are paid
+        self.assertEqual(len(self._permits(res.card)), 2)
         self.assertTrue(res.legality.engine_supported)
 
+    def test_snoops_permission_is_its_static(self) -> None:
+        res = self._compile("Conspicuous Snoop", gated=True)
+        self.assertEqual(self._free_activations(res.card), [])
+        statics = [ab for ab in res.card.abilities if isinstance(ab, StaticAbility)]
+        self.assertTrue(any(self._permits(ab) for ab in statics))
+        self.assertTrue(res.legality.engine_supported)
 
-class TestSelfCastPermissionRows(unittest.TestCase):
-    """"You may cast this card from your graveyard by paying 3 life and discarding a card
-    in addition to paying its other costs." (Demonic Embrace) is a permission to cast the
-    card from its graveyard (CR 601.3), not an activated ability: that is activated while
-    the card is on the battlefield, so it could never cast it. The IR has no permission
-    lane yet (BACKLOG B-100), so the row is refused and the card is engine-unsupported:
-    it leaves the castable pool."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        from MTG_bot.core.executor import SUPPORTED_VERBS_V2
-
-        pool = ingest_pool(_M21_PATH)
-        cls.reg = build_full_registry()
-        cls.raw = {raw.identity.name: raw for raw in pool.values()}
-        cls.gated_verbs = set(SUPPORTED_VERBS_V2)
-
-    def test_demonic_embrace_graveyard_cast_is_refused(self) -> None:
-        res = compile_card(self.raw["Demonic Embrace"], self.reg)
+    def test_demonic_embrace_casts_itself_from_its_graveyard(self) -> None:
+        res = self._compile("Demonic Embrace", gated=True)
         self.assertEqual(
-            [ab for ab in res.card.abilities if isinstance(ab, ActivatedAbility)], []
+            [type(ab).__name__ for ab in res.card.abilities],
+            ["StaticAbility", "StaticAbility", "SpellAbility"],
         )
-        self.assertEqual(
-            [type(ab).__name__ for ab in res.card.abilities], ["StaticAbility", "SpellAbility"]
-        )
-        self.assertTrue(any("from your graveyard" in g for g in res.known_gaps), res.known_gaps)
-        gated = compile_card(self.raw["Demonic Embrace"], self.reg, supported_verbs=self.gated_verbs)
-        self.assertFalse(gated.legality.engine_supported)
-
-    def test_demonic_embrace_leaves_the_castable_pool(self) -> None:
-        from MTG_bot.core.executor.games import get_supply
-
-        names = {m.name for oid, m in get_supply("castable", "M21").metas.items()
-                 if oid in get_supply("castable", "M21").deckable}
-        self.assertNotIn("Demonic Embrace", names)
-        self.assertIn("Dub", names)  # an Aura with no permission sentence stays
+        (permit,) = self._permits(res.card.abilities[1])
+        self.assertIsNotNone(permit.args.get("additional"))
+        self.assertTrue(res.legality.engine_supported)
 
 
 class TestDynamicLoyaltyCostGate(unittest.TestCase):
@@ -1720,36 +1677,20 @@ class TestRound14fFidelity(unittest.TestCase):
         cls.reg = build_full_registry()
         cls.pc = compile_pool(cls.pool, cls.reg)
 
-    def test_cast_them_row_compiles_the_exiled_with_population(self) -> None:
-        raw = _raw_card(
-            "Permission Fixture",
-            791,
-            sentences=("You may cast them this turn.",),
-        )
-        res = compile_card(raw, self.reg)
-        self.assertEqual(res.unparsed, ())
-        # The row states a duration, so compile_card suppresses it (a
-        # permission created by a resolving ability, CR 611.2a). The fidelity
-        # this test pins is the template's own row, read from the registry.
-        self.assertEqual(res.card.abilities, ())
-        self.assertEqual(len(res.known_gaps), 1)
+    def test_cast_them_is_a_permission_over_the_result_register(self) -> None:
+        """"You may cast them this turn." (Chandra, Heart of Fire [−9]) is a PERMIT step over the
+        ``result`` register, "them" being the cards the [−9]'s search exiled, until end of turn
+        (ontology round R13: the permission is made as the ability resolves, so the register is
+        still there; the base read IS_EXILED_WITH_SOURCE, every card Chandra ever exiled)."""
         (match,) = self.reg.match("You may cast them this turn.")
-        assert isinstance(match.outcome, AbilityOutcome)
-        ability = match.outcome.ability
-        assert isinstance(ability, ActivatedAbility)
-        self.assertEqual(ability.cost, Cost())  # the empty-cost permission
-        assert isinstance(ability.effect, OptionalEffect)
-        cast_atom = ability.effect.inner
-        assert isinstance(cast_atom, Atom)
-        self.assertIs(cast_atom.verb, Verb.CAST)
-        selector = cast_atom.args.get("source")
+        assert isinstance(match.outcome, EffectOutcome)
+        atom = match.outcome.effect
+        assert isinstance(atom, Atom)
+        self.assertIs(atom.verb, Verb.PERMIT)
+        selector = atom.args.get("source")
         assert isinstance(selector, Selector)
-        self.assertIsNone(selector.referent)  # no register hop
-        self.assertIsInstance(selector.count, QUnbounded)  # plural "them"
-        self.assertIs(selector.mode, SelectorMode.CHOOSE)
-        self.assertEqual(selector.zones[0].kind, ZoneKind.EXILE)
-        self.assertIs(selector.zones[0].controller, ControllerRef.YOU)
-        self.assertEqual(selector.filter, FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE))
+        self.assertEqual(selector.referent, "result")
+        self.assertIsNone(atom.args.get("lands"))  # "cast": spells only
 
     def test_corpus_scope_of_the_two_rows(self) -> None:
         # Each fidelity touches EXACTLY the named card in the M21 pool.
@@ -3161,10 +3102,10 @@ class TestDanglingContinuation(unittest.TestCase):
 
 
 class TestCastCostWaiver(unittest.TestCase):
-    """CAST's ``cost`` role set to the empty Cost means "without paying its mana cost"
-    (verbs._v_cast -> stack.cast_card, CR 118.9), and a mapper copies template shapes through
-    ``similar``. Every template sentence of the corpus that compiles a CAST is listed here: the
-    waiver compiles exactly when the sentence prints one."""
+    """The cast verbs' ``alternative`` role set to the empty Cost means "without paying its mana
+    cost" (CR 118.9; CAST: stack.cast_card, PERMIT: executor/permits.py), and a mapper copies
+    template shapes through ``similar``. Every template sentence of the corpus that compiles a
+    CAST or a PERMIT is listed here: the waiver compiles exactly when the sentence prints one."""
 
     SENTENCES = (
         "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled "
@@ -3175,7 +3116,6 @@ class TestCastCostWaiver(unittest.TestCase):
         "You may cast them this turn.",
         "You may look at the top card of your library any time, and you may play lands from the "
         "top of your library.",
-        "You may play that card until you exile another card with this enchantment.",
         "[\u22122]: You may cast target red instant or sorcery card from your graveyard.",
         "Until end of turn, you may play cards exiled this way.",
         "Until end of turn, you may cast spells from your hand without paying their mana costs.",
@@ -3191,11 +3131,11 @@ class TestCastCostWaiver(unittest.TestCase):
             casts = [
                 node
                 for node in walk(matches[0].outcome)
-                if isinstance(node, Atom) and node.verb is Verb.CAST
+                if isinstance(node, Atom) and node.verb in (Verb.CAST, Verb.PERMIT)
             ]
             self.assertTrue(casts, sentence)
             for atom in casts:
-                waived = atom.args.get("cost") == Cost(parts=())
+                waived = atom.args.get("alternative") == Cost(parts=())
                 self.assertEqual(waived, "without paying" in sentence, sentence)
 
 

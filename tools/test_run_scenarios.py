@@ -214,17 +214,18 @@ def _cast_row(r: ScenarioRunner, key: str) -> tuple:
 
 
 def test_a_test_permission_cast_records_the_zone_as_a_real_permission_does() -> None:
-    """Idol of Endurance's real permission casts one Walking Corpse from exile; the test
-    permission casts another from exile. Both are cast (on the stack, paid or waived), journalled
-    the same way, and resolve onto the battlefield."""
+    """Idol of Endurance's real permission casts one Walking Corpse from exile (its menu row); the
+    test permission casts another from exile. Both are cast through a permission's path (on the
+    stack, paid or waived), journalled the same way, and resolve onto the battlefield."""
     r = _runner({"cards": [_card("idol", "Idol of Endurance", "hand"),
                            _card("wc1", "Walking Corpse", "graveyard"), _card("wc2", "Walking Corpse", "exile")]})
     for step in ({"op": "enter", "key": "idol"}, {"op": "mana", "seat": 0, "add": {"W": 1, "C": 1}},
-                 {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire", "wc1"]},
+                 {"op": "activate", "key": "idol", "idx": 1, "seat": 0},
+                 {"op": "act", "seat": 0, "words": ["cast:wc1:via:idol"]},
                  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 1}},
                  {"op": "test_permission_cast", "key": "wc2", "from": "exile"}):
         r.run_step(step)
-    assert _cast_row(r, "wc1") == _cast_row(r, "wc2") == (r.p0, "CREATURE", "exile", 0, False)
+    assert _cast_row(r, "wc1") == _cast_row(r, "wc2") == (r.p0, "CREATURE", "exile", None, False)
     assert [r.world.zone_of(r.handles[k]).kind for k in ("wc1", "wc2")] == ["battlefield", "battlefield"]
     assert not any(r.world.players[r.p0].mana_pool.values())  # wc2's {1}{B} was paid
 
@@ -251,7 +252,7 @@ STT = {**PERMIT, "key": "stt"}
     ([STT_MANA, {"op": "mana", "seat": 0, "add": {"R": 1}},
       {"op": "cast", "key": "shock", "targets": ["p1"], "hold": True}, STT], "illegal cast: window:stack_nonempty"),
     # and so is a cast whose costs are not paid in full (CR 601.2h)
-    ([STT], "illegal cast: cost: its total cost cannot be paid"),
+    ([STT], "illegal cast: cost:mana:U:0<1"),
     # the card is the caster's own and in the zone the permission names, a library's top card
     ([STT_MANA, {**STT, "from": "exile"}], "the card is in seat 0's graveyard, not the caster's exile"),
     ([STT_MANA, {**STT, "controller": 1}], "the card is in seat 0's graveyard, not the caster's graveyard"),

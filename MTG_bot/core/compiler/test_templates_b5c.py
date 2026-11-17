@@ -3,11 +3,12 @@
 Covers all 91 distinct concrete sentences in
 ``/tmp/opencode/phase1_buckets/B5c.json``:
 
-- 87 sentences template-covered by 86 templates
+- 85 sentences template-covered by 84 templates
   (``B5c-bullet-gain-life`` matches both "You gain 3 life." and
   "You gain 4 life.")
-- 4 sentences UNCOVERED (recorded in UNCOVERED): the phase-in prevention and the three emblem
-  rows are compiler built-ins (``compiler._emblem_sentences`` compiles an emblem's quote)
+- 6 sentences UNCOVERED (recorded in UNCOVERED): the phase-in prevention and the three emblem
+  rows are compiler built-ins (``compiler._emblem_sentences`` compiles an emblem's quote), and
+  the two permission sentences templates_b19 reads (ontology round R13)
 - 0 rule-reminder shapes (B5c has no RR category)
 
 Every concrete sentence fullmatches at most one template.
@@ -144,16 +145,9 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "COVERED",
         "B5c-pt-swap",
     ),
-    (
-        "Until end of turn, you may cast spells from your hand without paying their mana costs.",
-        "COVERED",
-        "B5c-waive-cast-from-hand",
-    ),
-    (
-        "Until end of turn, you may play cards exiled this way.",
-        "COVERED",
-        "B5c-play-cards-exiled-this-way",
-    ),
+    # the two permissions: templates_b19 (ontology round R13, Verb.PERMIT)
+    ("Until end of turn, you may cast spells from your hand without paying their mana costs.", "UNCOV", ""),
+    ("Until end of turn, you may play cards exiled this way.", "UNCOV", ""),
     ("Until the end of your next turn, they can't phase in.", "UNCOV", ""),
     (
         "Vigilance (Attacking doesn't cause this creature to tap.)",
@@ -566,11 +560,7 @@ for _t in _EXPECTED_ETB:
 for _t in _EXPECTED_ACTIVATED:
     EXPECTED_KIND_BY_TID[_t] = "activated"
 # Four more ActivatedAbility rows + the Sanctum CostModifier sibling.
-for _t in (
-    "B5c-loyalty-soldier-attack-tokens",
-    "B5c-waive-cast-from-hand",
-    "B5c-play-cards-exiled-this-way",
-):
+for _t in ("B5c-loyalty-soldier-attack-tokens",):
     EXPECTED_KIND_BY_TID[_t] = "activated"
 EXPECTED_KIND_BY_TID["B5c-shrine-activation-cost"] = "ability:CostModifier"
 # Frost Breath's instant-folded PREVENT (effect) + Subira's delayed-draw
@@ -849,8 +839,8 @@ def _find_atom(node: Any, pred: FAtomPred) -> Any:
 class TestB5cInventory(unittest.TestCase):
     """Verify the B5c template collection is well-formed."""
 
-    def test_87_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 86)
+    def test_84_templates(self) -> None:
+        self.assertEqual(len(TEMPLATES), 84)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -865,10 +855,10 @@ class TestB5cInventory(unittest.TestCase):
             self.assertEqual(t.priority, 100, f"{t.tid} has priority {t.priority}")
 
     def test_registry_accepts_all(self) -> None:
-        self.assertEqual(len(_REG), 86)
+        self.assertEqual(len(_REG), 84)
 
-    def test_uncovered_has_4_rows(self) -> None:
-        self.assertEqual(len(UNCOVERED), 4)
+    def test_uncovered_has_6_rows(self) -> None:
+        self.assertEqual(len(UNCOVERED), 6)
 
 
 # ---------------------------------------------------------------------------
@@ -890,17 +880,17 @@ class TestB5cShapeTable(unittest.TestCase):
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
         rr = sum(1 for s in SHAPES if s[1] == "RR")
-        self.assertEqual(covered, 87, f"COVERED count {covered} != 87")
-        self.assertEqual(uncov, 4, f"UNCOV count {uncov} != 4")
+        self.assertEqual(covered, 85, f"COVERED count {covered} != 85")
+        self.assertEqual(uncov, 6, f"UNCOV count {uncov} != 6")
         self.assertEqual(rr, 0, f"B5c has no rule-reminder shapes, got {rr}")
 
-    def test_covered_tids_valid_and_unique_86(self) -> None:
+    def test_covered_tids_valid_and_unique_84(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
             len(unique_tids),
-            86,
-            f"expected 86 unique tids, got {len(unique_tids)}",
+            84,
+            f"expected 84 unique tids, got {len(unique_tids)}",
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5c-"), f"bad tid: {tid}")
@@ -984,7 +974,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
     def test_kind_table_is_complete(self) -> None:
         covered_tids = {t for _s, c, t in SHAPES if c == "COVERED"}
         self.assertEqual(set(EXPECTED_KIND_BY_TID), covered_tids)
-        self.assertEqual(len(EXPECTED_KIND_BY_TID), 86)
+        self.assertEqual(len(EXPECTED_KIND_BY_TID), 84)
 
     def test_all_kinds_match(self) -> None:
         for tid, expected in EXPECTED_KIND_BY_TID.items():
@@ -1000,7 +990,7 @@ class TestB5cOutcomeKind(unittest.TestCase):
         self.assertEqual(kinds.count("effect"), 28)
         self.assertEqual(kinds.count("keyword"), 5)
         self.assertEqual(kinds.count("static"), 1)
-        self.assertEqual(kinds.count("activated"), 50)
+        self.assertEqual(kinds.count("activated"), 48)
         self.assertEqual(kinds.count("ability:EtBState"), 1)
         self.assertEqual(kinds.count("ability:CostModifier"), 1)
 
@@ -1261,10 +1251,16 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(amount.right.selector.zones[0].kind, ZoneKind.GRAVEYARD)
 
     def test_loyalty_search_exile_seq(self) -> None:
+        # one search over the graveyard and the library (ontology round R13): "them" is every
+        # card it exiled, the ``result`` the permission after it reads
         seq = _as_seq(_activated_effect("B5c-loyalty-search-exile"))
         self.assertEqual(
             [s.verb for s in _seq_steps_as_atoms(seq)],
-            [Verb.SEARCH, Verb.SEARCH, Verb.SHUFFLE],
+            [Verb.SEARCH, Verb.SHUFFLE],
+        )
+        search = _seq_steps_as_atoms(seq)[0]
+        self.assertEqual(
+            {z.kind for z in _pairs(search)["cards"].zones}, {ZoneKind.GRAVEYARD, ZoneKind.LIBRARY}
         )
 
     def test_loyalty_extra_turns(self) -> None:
@@ -1291,12 +1287,12 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(
             _pairs(exile)["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER)
         )
-        target = _pairs(exile)["target"]
-        self.assertIs(target.mode, SelectorMode.TARGET)
-        self.assertEqual(target.count, QConst(3))
-        self.assertIs(target.zones[0].kind, ZoneKind.LIBRARY)
-        self.assertIs(target.zones[0].controller, ControllerRef.YOU)
-        self.assertIs(target.zones[0].position, ZonePosition.TOP)
+        # the library pop of three, no target (ontology round R13; it was a TARGET of three
+        # over the library's one-card top zone, never activatable)
+        self.assertEqual(_pairs(exile)["amount"], QConst(3))
+        self.assertEqual(_pairs(exile)["pop_order"], "TOP")
+        self.assertEqual(_pairs(exile)["from"], Zone(ZoneKind.LIBRARY, ControllerRef.YOU))
+        self.assertNotIn("target", _pairs(exile))
 
     def test_loyalty_top_owner_library(self) -> None:
         atom = _as_atom(_activated_effect("B5c-loyalty-top-owner-library"))
@@ -1582,8 +1578,8 @@ class TestB5cCanonicalStability(unittest.TestCase):
             seen.add(tid)
         self.assertEqual(
             len(seen),
-            86,
-            f"only {len(seen)} unique tids tested, expected 86",
+            84,
+            f"only {len(seen)} unique tids tested, expected 84",
         )
 
 
@@ -1639,7 +1635,7 @@ class TestB5cJsonCrossCheck(unittest.TestCase):
             for k, pairs in self.json_data.items()
             if any(_REG.match(sent) for _c, sent in pairs)
         }
-        self.assertEqual(len(covered), 86)
+        self.assertEqual(len(covered), 84)
 
 
 class TestB5cRound7BTopUps(unittest.TestCase):

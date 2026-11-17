@@ -111,7 +111,7 @@ class CastPayabilityCase(unittest.TestCase):
             or Selector(QConst(1) if count is None else count, mode, UNIV, zones=(LIB_YOU,))
         }
         if cost is not None:
-            roles["cost"] = cost
+            roles["additional" if cost.parts else "alternative"] = cost  # ontology R13's two roles
         may = OptionalEffect(inner=atom(Verb.CAST, **roles))
         return optional_offer(self.ex, may, source=self.src, controller=self.p0)
 
@@ -225,16 +225,22 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.world.zone_of(land).kind, "library")
 
     def test_zero_carrier_filter_registers_the_gap_loudly(self):
-        # Radha's shape — the selector's filter admits ZERO spell designees
-        # (PLAY_LAND miscompiled to a CAST filtered TYPE_EQ Land). The skip
+        # A selector whose filter admits ZERO spell designees here. The skip
         # is honest (a land is never a castable designee) but NEVER silent:
-        # the mis-shapen atom goes into executor.unresolved_effects
-        # (deduped, counted, queryable) as the COMPILER-lane handoff.
+        # the atom goes into executor.unresolved_effects (deduped, counted,
+        # queryable) as the COMPILER-lane handoff. Radha's old shape, a CAST
+        # filtered TYPE_EQ Land, is refused by the IR itself since ontology
+        # round R13 ("a land is never cast", CR 305.9); a filter that admits
+        # only lands without saying so still reaches this ledger.
         self.world.add_card(card_id("Island", type_line="Land"), self.p0, ZONE_LIBRARY)
         self.world.add_card(
             card_id("Mountain", type_line="Land"), self.p0, ZONE_LIBRARY
         )
-        land_only = FAnd((FAtom(FAtomPred.TYPE_EQ, string_value="Land"),))
+        with self.assertRaisesRegex(ValueError, "a land is never cast"):
+            atom(Verb.CAST, source=Selector(
+                QConst(1), SelectorMode.CHOOSE,
+                FAnd((FAtom(FAtomPred.TYPE_EQ, string_value="Land"),)), zones=(LIB_YOU,)))
+        land_only = FAnd((FAtom(FAtomPred.NAME_CONTAINS, string_value="n"),))  # the two lands
         may = OptionalEffect(
             inner=atom(
                 Verb.CAST,
@@ -288,7 +294,7 @@ class CastPayabilityCase(unittest.TestCase):
         cast_atom = atom(
             Verb.CAST,
             source=Selector(QUnbounded(), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
-            cost=Cost(()),
+            alternative=Cost(()),
         )
         may = OptionalEffect(inner=cast_atom)
         self.assertEqual(
@@ -400,10 +406,9 @@ class CastPayabilityCase(unittest.TestCase):
         self.assertEqual(self.offer(cost=_cost()), MAY_VOCAB)
 
     def test_real_cost_role_replaces_the_printed_cost(self):
-        # A CAST cost role WITH parts is an additional cost on top of the
-        # printed cost (CR 601.2f; the convention documented in
-        # verbs._v_cast), never a replacement; only an EMPTY Cost waives the
-        # mana cost. Printed {1} with role {5} owes {6}: NOT payable at
+        # A CAST ``additional`` role is an additional cost on top of the
+        # printed cost (CR 601.2f), never a replacement; an ``alternative``
+        # replaces the mana cost (an EMPTY one waives it, CR 118.9). Printed {1} with role {5} owes {6}: NOT payable at
         # {C:1}; printed {5} with role {1} owes {6}: NOT payable at {C:1}
         # either; printed {5} with role {1} IS payable at {C:6}.
         self.spell_in_library("Cheap Print", _cost(1))
@@ -430,7 +435,7 @@ class CastPayabilityCase(unittest.TestCase):
             inner=atom(
                 Verb.CAST,
                 source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(LIB_YOU,)),
-                cost=_cost(1),
+                additional=_cost(1),
             )
         )
         self.assertEqual(

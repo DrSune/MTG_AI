@@ -55,13 +55,13 @@
   {
    "op": "activate",
    "key": "cf",
-   "idx": 3,
+   "idx": 2,
    "seat": 0
   },
   {
    "op": "activate",
    "key": "cf",
-   "idx": 4,
+   "idx": 3,
    "seat": 0,
    "decisions": [
     "fire"
@@ -86,5 +86,5 @@
    }
   }
  },
- "notes": "B-49 follow-up #1 twin (was the skip twin of branch02). The [-8] at idx 3 resolves as compiled: discard your hand (Crash Through to the graveyard), then draw seven. Its suppressed permission leaves no free activation behind: idx 4 is refused. Seeded at 9 loyalty, Chandra stays on the battlefield with 1."
+ "notes": "The [-8] at idx 2 resolves: discard your hand (Crash Through to the graveyard), then draw seven; seeded at 9 loyalty, Chandra stays on the battlefield with 1. Its permission is a PERMIT of the resolved ability (ontology round R13), never an activation: idx 3 is the cast carrier and is refused. (Before R13 the permission was a free activation, then suppressed.)"
 }

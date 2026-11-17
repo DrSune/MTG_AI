@@ -26,12 +26,10 @@
  },
  "steps": [
   {
-   "op": "activate",
-   "key": "snoop",
-   "idx": 1,
+   "op": "act",
    "seat": 0,
-   "decisions": [
-    "fire"
+   "words": [
+    "cast:gob"
    ]
   }
  ],
@@ -40,5 +38,5 @@
    "gob": "battlefield"
   }
  },
- "notes": "Control for conspicuous_snoop_cast_from_top_follows_timing: in its controller's main phase the permission row casts the Goblin from the top of the library for its cost ({R})."
+ "notes": "Control for conspicuous_snoop_cast_from_top_follows_timing: in its controller's main phase the menu offers the Goblin on top through Snoop's permission, for its cost ({R})."
 }

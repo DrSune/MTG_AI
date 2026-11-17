@@ -26,11 +26,13 @@ def m21():
 
 
 def test_the_default_deal_is_the_stress_pile_byte_for_byte(m21) -> None:
-    # Hash of the M21 deals for seeds 1-5 (280 deckable cards). It moves whenever the castable
+    # Hash of the M21 deals for seeds 1-5 (283 deckable cards). It moves whenever the castable
     # M21 pool changes; before re-pinning, check that dropping the changed cards from the old
     # supply reproduces the old hash.
     deals = [deal_decks(seed, 1409, m21) for seed in range(1, 6)]
-    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "2eee0b1b533f0ef2"
+    # R13: 2eee0b1b533f0ef2 -> a1f93553ae44f555 (the two Chandras and Demonic Embrace joined;
+    # dropping them reproduces the old hash).
+    assert hashlib.sha256(repr(deals).encode()).hexdigest()[:16] == "a1f93553ae44f555"
     assert deals == [deal_decks(seed, 1409, m21, "stress") for seed in range(1, 6)]
 
 

@@ -1,0 +1,4 @@
+M21: deckable 245 (base) / 245 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'effect_casts': (0, 0), 'path_casts': (0, 0), 'path_lands': (0, 0), 'riders': (0, 0)}; crashes 0 (base) / 0 (branch)
+M20: deckable 264 (base) / 264 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'effect_casts': (0, 0), 'path_casts': (0, 0), 'path_lands': (0, 0), 'riders': (0, 0)}; crashes 0 (base) / 0 (branch)
+FDN: deckable 184 (base) / 184 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'effect_casts': (0, 0), 'path_casts': (0, 0), 'path_lands': (0, 0), 'riders': (0, 0)}; crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 300

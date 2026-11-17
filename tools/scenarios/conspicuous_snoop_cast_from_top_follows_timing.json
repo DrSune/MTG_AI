@@ -31,13 +31,12 @@
    }
   },
   {
-   "op": "activate",
-   "key": "snoop",
-   "idx": 1,
+   "op": "act",
    "seat": 0,
-   "decisions": [
-    "fire"
-   ]
+   "words": [
+    "cast:gob"
+   ],
+   "expect_raise": "words no ask took: ['cast:card:1']"
   }
  ],
  "expect": {
@@ -45,5 +44,5 @@
    "gob": "library"
   }
  },
- "notes": "Conspicuous Snoop: 'You may cast Goblin spells from the top of your library.' A permission changes where a card is cast from, not when (CR 601.3); Goblin Arsonist is a creature (CR 302.1: own main phase, empty stack), so on the opponent's turn it stays on top. The compiled permission row used to cast it at instant speed."
+ "notes": "Conspicuous Snoop: 'You may cast Goblin spells from the top of your library.' A permission changes where a card is cast from, not when (CR 601.3); Goblin Arsonist is a creature (CR 302.1: own main phase, empty stack), so on the opponent's turn the menu does not offer it and it stays on top. The base's permission row cast it at instant speed until a timing check was added to the row; since ontology round R13 the menu judges it like any cast."
 }

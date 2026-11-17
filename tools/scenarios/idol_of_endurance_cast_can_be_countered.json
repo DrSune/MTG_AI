@@ -1,20 +1,74 @@
 {
  "set": "M21",
- "world": {"life": 20, "seed": 7},
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "i", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
-  {"key": "wc", "real": "Walking Corpse", "zone": "graveyard", "controller": 0},
-  {"key": "cancel", "real": "Cancel", "zone": "hand", "controller": 1}
+  {
+   "key": "i",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  }
  ],
- "mana": {"0": {"W": 1, "C": 1}, "1": {"U": 3}},
+ "mana": {
+  "0": {
+   "W": 1,
+   "C": 1
+  },
+  "1": {
+   "U": 3
+  }
+ },
  "steps": [
-  {"op": "enter", "key": "i"},
-  {"op": "activate", "key": "i", "idx": 1, "seat": 0, "hold": true},
-  {"op": "resolve", "decisions": ["fire"]},
-  {"op": "cast", "key": "cancel", "real": "Cancel", "controller": 1, "targets": ["wc"], "tap": true}
+  {
+   "op": "enter",
+   "key": "i"
+  },
+  {
+   "op": "activate",
+   "key": "i",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:wc:via:i"
+   ],
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "cancel",
+   "real": "Cancel",
+   "controller": 1,
+   "targets": [
+    "wc"
+   ],
+   "tap": true
+  }
  ],
  "expect": {
-  "zone": {"i": "battlefield", "wc": "graveyard", "cancel": "graveyard"}
+  "zone": {
+   "i": "battlefield",
+   "wc": "graveyard",
+   "cancel": "graveyard"
+  }
  },
- "notes": "Idol of Endurance's permission ('you may cast a creature spell from among cards exiled with this artifact without paying its mana cost') casts Walking Corpse as a spell cast from hand is cast: it goes on the stack and the opponent gets the same counter window before it resolves (CR 601.2i, 117.3c, 608.1). Cancel counters it, so it goes to its owner's graveyard (CR 701.6a). The engine used to resolve it at once and never offered Cancel (2026-11-06). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the response window is gone, so the answer is a spell cast while the first waits on the stack (\"hold\")."
+ "notes": "Idol of Endurance's permission ('you may cast a creature spell from among cards exiled with this artifact without paying its mana cost') lets Walking Corpse be cast as a spell from hand is: it goes on the stack and the opponent can answer before it resolves (CR 601.2i, 117.3c, 608.1). Cancel counters it, so it goes to its owner's graveyard (CR 701.6a). Ontology round R13: the activation makes a PERMIT; the cast is a menu row through it (cast:<card>:via:<idol>)."
 }

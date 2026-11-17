@@ -189,13 +189,8 @@ class LedgerGroundTruth(unittest.TestCase):
                 ]
                 self.assertEqual(len(picks), want_count["value"], (key, picks))
                 continue
-            if key == ("M21", "Demonic Embrace"):
-                # The ledger row is the discard cost of the activated row the graveyard-cast
-                # permission compiled to. That row is refused (CR 601.3: an activated ability
-                # cannot cast the card from its graveyard; there is no permission lane), so
-                # the live IR carries no such choice and the card is engine-unsupported.
-                self.assertEqual([s for s in shapes if s[2] == tuple(n["zones"])], [], key)
-                continue
+            # Demonic Embrace's row (the discard of its graveyard cast) is the PERMIT's
+            # `additional` cost since ontology round R13, a CostDiscard again: the general check.
             want = want_count["value"]
             if key == ("M21", "Kinetic Augur"):
                 # "discard up to two" is QAtMost(2) in the IR (the player's

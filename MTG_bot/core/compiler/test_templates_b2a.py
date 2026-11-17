@@ -2229,42 +2229,31 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(token.colors, ())
 
 
-class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
-    """Furious Rise's "you may play that card" phantom ActivatedAbility is
-    suppressed at assembly with a known-gap note.
-
-    ``compiler._is_result_anaphoric_cast_permission`` drops the empty-cost
-    OptionalEffect(CAST referent='result') node that b4's
-    ``_build_play_that_card_until`` emits for the card's second sentence. The
-    card prints no activated ability: the play window is a permission created
-    by the end-step trigger's exile, and the engine has no play-permission
-    lane. The sentence stays matched; only the node is dropped, announced
-    once in ``known_gaps``."""
+class TestC5FuriousRisePlayPermissionUnread(unittest.TestCase):
+    """Furious Rise's "You may play that card until you exile another card with this enchantment."
+    is left unparsed (ontology round R13): its window ends on an event, the next exile by this
+    enchantment, which no duration carries, and "until the end of your next turn" would be
+    stronger than printed in that end step (gate round 3 on R5-8). The trigger compiles; the card
+    plays weaker than printed (the exiled card is never playable), never stronger."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.pool = ingest_pool(_M21_PATH)
         cls.registry = build_full_registry()
 
-    def test_furious_rise_compiles_to_one_trigger_no_activation(self) -> None:
-        """One printed ability, a TriggeredAbility, and no ActivatedAbility.
-        The enchantment also trails its effect-less cast carrier, so it is
-        castable; the carrier is not a printed ability."""
+    def test_furious_rise_compiles_its_trigger_and_leaves_the_permission_unparsed(self) -> None:
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
-        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            [s for s, _hint in res.unparsed],
+            ["You may play that card until you exile another card with this enchantment."],
+        )
         (ability, carrier) = res.card.abilities
         self.assertIsInstance(ability, TriggeredAbility)
         self.assertEqual(carrier, SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertFalse(
             any(isinstance(a, ActivatedAbility) for a in res.card.abilities)
         )
-
-    def test_furious_rise_play_permission_known_gap_announced_once(self) -> None:
-        """known_gaps carries exactly one note, naming the missing 'play
-        permission' lane."""
-        res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
-        self.assertEqual(len(res.known_gaps), 1)
-        self.assertIn("play permission", res.known_gaps[0])
+        self.assertEqual(res.known_gaps, ())
 
 
 if __name__ == "__main__":

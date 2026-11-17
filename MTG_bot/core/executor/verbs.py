@@ -102,6 +102,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
+    ZONE_STACK,
 )
 
 # "One mana of any color" is one of the five colors (CR 105.1, 106.1a); colorless is
@@ -136,15 +137,53 @@ def _replaced_moves(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -
     return replaced
 
 
+def _off_the_stack(
+    ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]
+) -> list[tuple[Handle, Handle, str]]:
+    """The moves of one event with every spell among them taken off the stack first, as a spell
+    leaves it whatever moves it (Unsubstantiate's return to hand, an exile, a library): its frame
+    ends, so it never resolves (the card it becomes is a new object, CR 400.7), and its rider
+    replaces the move (flashback's exile from the stack to anywhere, CR 702.34a;
+    ``stack.exit_zone``). A countered or resolving spell's frame has left the stack already."""
+    ex = ctx.executor
+    if ex is None or not ex.stack.frames:
+        return list(moves)
+    from MTG_bot.core.executor.stack import exit_zone
+
+    out: list[tuple[Handle, Handle, str]] = []
+    for card, player, kind in moves:
+        frame = next((f for f in ex.stack.frames if f.handle == card), None)
+        if frame is not None and ctx.world.zone_of(card).kind == ZONE_STACK:
+            ex.stack.frames.remove(frame)
+            kind = exit_zone(frame, kind)
+        out.append((card, player, kind))
+    return out
+
+
+def _spells_leave_the_stack(
+    ctx: ExecCtx, cards: Sequence[Handle], dest_kind: str, journal_kind: str
+) -> list[Handle]:
+    """``cards``, every spell among them taken off the stack (:func:`_off_the_stack`) before a
+    lane that moves cards itself moves them to ``dest_kind``: a spell its rider sends elsewhere
+    (flashback's exile) moves there now, through :func:`_move_all`; the rest are returned."""
+    moves = _off_the_stack(ctx, [(card, ctx.world.controller_of(card), dest_kind) for card in cards])
+    diverted = [move for move in moves if move[2] != dest_kind]
+    if diverted:
+        _move_all(ctx, diverted, journal_kind)
+    return [card for card, _player, kind in moves if kind == dest_kind]
+
+
 def _move_all(
     ctx: ExecCtx,
     moves: Sequence[tuple[Handle, Handle, str]],
     journal_kind: str = "MOVE",
 ) -> list[Handle]:
     """Move each ``(card, player, kind)`` of one event, in order, but the moves a replacement
-    replaced (:func:`_replaced_moves`); returns the cards that moved."""
+    replaced (:func:`_replaced_moves`); returns the cards that moved. A spell among them leaves
+    the stack first (:func:`_off_the_stack`)."""
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
+    moves = _off_the_stack(ctx, moves)
     replaced = _replaced_moves(ctx, moves)
     moved: list[Handle] = []
     for card, player, kind in moves:
@@ -240,7 +279,10 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         player = role_player(ctx, atom)
         n = amount(ctx, atom, "amount")
         top = list(reversed(ctx.world.players[player].zone(ZONE_LIBRARY).entries))[:n]
-        _move_all(ctx, [(card, player, dest_kind) for card in top], journal_kind)  # top first
+        moved = _move_all(ctx, [(card, player, dest_kind) for card in top], journal_kind)  # top first
+        # The moved cards are the result register, as in every other lane: "Exile the top three
+        # cards of your library. Until end of turn, you may play cards exiled this way."
+        ctx.bindings["result"] = sorted(moved)
         return
     if isinstance(frm, Zone) and frm.kind is ZoneKind.HAND:
         # The discard shape: EVERY player the controller role denotes discards
@@ -386,6 +428,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         placing = sorted(cards) if bottom_dest else list(cards)
     stayed: set[Handle] = set()
     order = list(reversed(placing) if bottom_dest else placing)
+    # A spell among them leaves the stack first (Unsubstantiate's "target spell"): its frame ends
+    # and its rider may send it elsewhere.
+    order = _spells_leave_the_stack(ctx, order, dest_kind, journal_kind)
     # The owner's zone always (CR 400.3); a battlefield controller other than
     # the owner becomes a control entry below, never a zone (CR 108.3).
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in order}
@@ -1988,36 +2033,66 @@ def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_cast(ctx: ExecCtx, atom: Atom) -> None:
-    """CAST: the CAST atom is NOT a permission ledger entry. Every compiled
-    row is the effect verb "cast the designated card" — OptionalEffect("you
-    may cast") wrapped, ``source`` a Selector designating the card(s) (the
-    'result' referent of a preceding exile/reveal, top-of-library, the
-    IS_SOURCE self-cast), and the OPTIONAL ``cost`` role carrying either an
-    EMPTY Cost (the cost-waiver idiom, "without paying its mana cost",
-    CR 498.2) or a real Cost (additional cost). So the handler delegates to
-    :func:`stack.cast_card`: designate, park, pay (or not — empty Cost),
-    push, resolve, put — and the CAST EVENT fires, so "whenever you cast"
-    triggers see effect-casts too (CR 601.2m).
+    """CAST: cast the designated card NOW, as the ability that says so resolves (CR 608.2g),
+    ignoring the timing its card type sets: "You may cast target red instant or sorcery card from
+    your graveyard" (Chandra, Flame's Catalyst [-2], OptionalEffect-wrapped). A permission to cast
+    later is PERMIT (:func:`_v_permit`). ``alternative`` / ``additional`` change the cost (CR
+    118.9, 601.2f), ``replace`` is the spell's rider (``ability_tree.spell_rider``). The handler
+    delegates to :func:`stack.cast_card`, which designates the spell's targets and announces its X
+    as the caster casts it (CR 601.2b-c), pays, and puts it on the stack; the CAST event fires, so
+    "whenever you cast" triggers see it (CR 601.2i).
 
-    Designation: bindings first (role ``source``), else the Selector
-    (CHOOSE-mode deterministic first-n stand-in; the may-decision upstream
-    already covered the whole atom).
-    A designated card WITHOUT a SpellAbility (a land, an unregistered
-    card) RAISES — the honest per-card flag, never a silent skip that
-    would fake a cast."""
+    A designated card WITHOUT a SpellAbility (a land, an unregistered card) RAISES — the honest
+    per-card flag, never a silent skip that would fake a cast."""
     from MTG_bot.core.executor.stack import cast_card
 
     executor = _executor_or_raise(ctx, atom.verb.name)
     cards = role_handles(ctx, atom, "source")
-    cost = atom.args.get("cost")  # None = the spell's own printed cost
     for card in cards:
-        cast_card(
-            executor,
-            ctx.controller,
-            card,
-            cost_override=cost,
-            x=ctx.x_value if ctx.x_value is not None else 0,
+        cast_card(executor, ctx.controller, card, atom=atom)
+
+
+def _v_permit(ctx: ExecCtx, atom: Atom) -> None:
+    """PERMIT made by a resolving ability (CR 611.2a): its controller may play the cards it names
+    for its duration, from where they lie, at their own timing (executor/permits.py).
+
+    A designation (a target, the ``result`` of the instruction before: "cards exiled this way") is
+    fixed now, each object leaving the permission when it changes zones (CR 400.7). A population
+    ("Until end of turn, you may cast spells from your hand without paying their mana costs") is
+    read whenever a card is played: the effect changes the rules of the game, not the
+    characteristics of objects, so it reaches cards that arrive later (CR 611.2c)."""
+    layers = _layers_or_raise(ctx, atom.verb.name)
+    sel = atom.args.get("source")
+    assert isinstance(sel, Selector)  # role table: source is a Selector
+    population = sel.referent is None and sel.mode is SelectorMode.ALL
+    if population:
+        objects: tuple[Handle, ...] = ()
+    elif sel.referent is not None:
+        # "cards exiled this way", "them", "that card": every object the register holds, as
+        # it holds them (a referent is bound, never chosen: no count slices it)
+        bound = ctx.binding_handles(sel.referent)
+        if bound is None:
+            raise ValueError(
+                f"executor: PERMIT reads the {sel.referent!r} register, which no instruction "
+                "before it wrote"
+            )
+        objects = tuple(sorted(bound))
+    else:
+        objects = tuple(role_handles(ctx, atom, "source"))  # the designated targets
+    count = atom.args.get("count")
+    uses = resolve(count, ctx) if isinstance(count, Quantity) else None
+    duration = atom.args.get("duration")
+    assert isinstance(duration, Duration)  # permission_fault: a resolving PERMIT has one
+    layers.register_permit(ctx.source, ctx.controller, atom, objects, duration, uses)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            "population" if population else tuple(str(h) for h in objects),
+            duration_tag(duration),
         )
+    )
 
 
 def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
@@ -2674,10 +2749,13 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         # so there is no COUNTER row.
         ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
         return
-    ex.stack.frames.remove(frame)  # CR 701.6a-b: a countered spell or ability leaves the stack
+    if ability:  # CR 701.6a-b: a countered ability leaves the stack and ceases to exist
+        ex.stack.frames.remove(frame)
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
-    if not ability:  # a spell goes to its owner's graveyard; an ability ceases to exist
+    if not ability:
+        # a countered spell goes to its owner's graveyard, leaving the stack as any moved spell
+        # does (_off_the_stack: its frame ends, its rider exiles it instead)
         _move_all(ctx, [(spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)])
     ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
 
@@ -2718,6 +2796,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # The cast-side verbs.
     Verb.PAY: _v_pay,
     Verb.CAST: _v_cast,
+    Verb.PERMIT: _v_permit,
     Verb.CHOOSE: _v_choose,
     Verb.CHOOSE_NAME: _v_choose_name,
     Verb.MANA_POLICY: _v_mana_policy,

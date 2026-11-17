@@ -1,0 +1,58 @@
+{
+ "games": 300,
+ "crashed": 0,
+ "crashes": [],
+ "detector_hits": [
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (18, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (14, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "2 replacement records for one event \"DamageDealtEvent(amount=QUnbounded(), filter=FAtom(pr",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (17, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (26, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "2 replacement records for one event \"DamageDealtEvent(amount=QX(), filter=FAnd(children=()",
+   "games": 1
+  }
+ ],
+ "outliers": [
+  {
+   "card": "Traitorous Greed",
+   "mana_value": 4,
+   "cast_games": 33,
+   "win_rate": 0.485,
+   "same_mv_win_rate": 0.734,
+   "z": -3.12
+  }
+ ],
+ "repeatable_activations": [],
+ "trigger_loops": [],
+ "cards_cast": 257,
+ "set": "M21",
+ "mode": "castable",
+ "unverified_records": false,
+ "deck_mode": "stress",
+ "seeds": [
+  1,
+  300
+ ]
+}

@@ -116,7 +116,7 @@ class LookThenConditionTest(unittest.TestCase):
             cast(self.ex, self.p0, spell)
         else:
             with self.ex.holding_priority():
-                cast_card(self.ex, self.p0, spell, cost_override=None)
+                cast_card(self.ex, self.p0, spell)  # its mana cost (no CAST atom's cost roles)
             self.ex.fire_triggers()  # both players pass: it resolves
 
     def _hand(self) -> list[str]:

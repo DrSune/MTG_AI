@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "s", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "u", "real": "Unsubstantiate", "zone": "hand", "controller": 0},
+  {"key": "bear", "real": "Walking Corpse", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "U": 1, "C": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:s", "bear"], "hold": true},
+  {"op": "act", "seat": 0, "words": ["cast:u", "s"]}
+ ],
+ "expect": {"zone": {"s": "hand", "u": "graveyard", "bear": "battlefield"}, "life": {"1": 20}},
+ "notes": "A bug-hunt fault (gate round 13, KNOWLEDGE 212), EXPLOITABLE: through the menu, as a dealt game asks it, Shock at the opponent's Walking Corpse, then Unsubstantiate ('Return target spell or creature to its owner's hand') on the Shock. The Shock has left the stack: the card in hand is a new object (CR 400.7) and the spell never resolves, so the Corpse lives and no damage is marked. Before the fix the move left the Shock's stack frame behind and it resolved anyway: 2 damage, with the card back in hand to cast again."
+}

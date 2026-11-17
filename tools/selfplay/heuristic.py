@@ -197,7 +197,8 @@ def deals_damage(executor: Any, handle: Handle | None) -> bool:
 
 
 def cast_token(token: str) -> tuple[Handle | None, bool, int]:
-    """``cast:<card>[:k][:x<N>]`` (the router's cast row) -> (card, kicked, X)."""
+    """``cast:<card>[:via:<source>][:k][:x<N>]`` (the router's cast row) -> (card, kicked, X); a
+    permission's ``:via:`` (executor/menu.py) is read past by ``_handle``, which keeps the card."""
     rest, x = token[5:], 0
     head, sep, tail = rest.rpartition(":x")
     if sep and tail.isdigit():

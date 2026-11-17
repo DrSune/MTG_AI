@@ -1,0 +1,75 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "real": "Leafkin Druid",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "U": 1,
+   "B": 1,
+   "R": 1,
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "golos",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn",
+    "cast:shock:via:golos",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mtn": "battlefield",
+   "shock": "graveyard",
+   "bear": "exile"
+  },
+  "life": {
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Golos, Tireless Pilgrim: '{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library. You may play them this turn without paying their mana costs.' The ability exiles Mountain, Shock and Leafkin Druid (the library pop, no target), and the permission covers the three for the turn (CR 611.2a): the Mountain is played from exile (the turn's land play, CR 305.2a), Shock cast from exile without paying its mana cost (CR 118.9; the pool is empty after the activation's seven mana) at the opponent. Leafkin Druid stays in exile, unplayed."
+}

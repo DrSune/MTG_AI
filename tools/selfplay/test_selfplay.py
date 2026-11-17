@@ -1772,6 +1772,45 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
     assert FT._parse_option("card:12@player:1") == (FT.OPT_INDEX["cast_at"], c, p1, 0, 0.0, 0.0)
 
 
+def test_a_permission_cast_reaches_the_encoding_with_its_zone_and_source(table) -> None:
+    """A cast through a permission (executor/permits.py, ontology round R13) is a cast row whose
+    card entity carries the zone it is cast from, and, when the permission changes its cost or adds
+    a rider, a ``:via:<source>`` the parser points the option's second entity at: two cost paths
+    of one card are two options the network tells apart. Demonic Embrace from the graveyard pays 3
+    life and a discard on top of its mana cost (via itself); Conspicuous Snoop's Goblin on top of
+    the library is a plain cast, the hidden card joining the entities as an offered one."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.menu import menu
+    from MTG_bot.core.state import ZONE_GRAVEYARD
+    from tools.run_scenarios import ScenarioRunner
+
+    c, s = Handle("card", 12), Handle("card", 30)
+    assert FT._parse_option("cast:card:12:via:card:30") == (FT.OPT_INDEX["cast"], c, s, 0, 0.0, 0.0)
+    assert FT._parse_option("cast:card:12:via:card:30:k:x2") == (
+        FT.OPT_INDEX["cast_kicked"], c, s, 0, 2.0, 1.0)
+    pack = {"set": "M21", "world": {"life": 20, "seed": 7, "library_top": True}, "steps": [],
+            "mana": {"0": {"B": 2, "C": 1, "R": 1}},
+            "cards": [{"key": "embrace", "real": "Demonic Embrace", "zone": "graveyard", "controller": 0},
+                      {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield", "controller": 0},
+                      {"key": "gob", "real": "Goblin Arsonist", "zone": "library", "controller": 0},
+                      {"key": "junk", "name": "Junk", "type": "Sorcery", "zone": "hand", "controller": 0}]}
+    r = ScenarioRunner(pack, get_supply("all", "M21"))
+    embrace, gob = r.handles["embrace"], r.handles["gob"]
+    via, plain = f"cast:{embrace}:via:{embrace}", f"cast:{gob}"
+    tokens = ["PASS", *(row.token for row in menu(r.ex, r.seats[0]))]
+    assert via in tokens and plain in tokens, tokens
+    ask = Ask(seat=0, kind="act", site="act", prompt="", options=tuple(Option(t, t) for t in tokens))
+    f = FT.encode(r.ex, 0, ask, table)
+    oi, ci = f["opts_i"], f["cards_i"]
+    card, source = (int(oi[tokens.index(via), k]) - 3 for k in (1, 2))  # refs: 3+ are cards
+    assert card == source >= 0  # its own permission: both pointers at the card
+    assert int(ci[card, 1]) == FT.ZONE_INDEX[ZONE_GRAVEYARD]
+    assert int(ci[card, 0]) == table.row(r.world.cards[embrace].identity.oracle_id)
+    top = int(oi[tokens.index(plain), 1]) - 3
+    assert top >= 0 and int(oi[tokens.index(plain), 2]) == 0  # a plain path names no source
+    assert int(ci[top, 1]) == FT.ZONE_INDEX[ZONE_LIBRARY]
+
+
 class _OldOptions(dict):
     """The option parse before hunt 4 for the two forms it could not tell apart: an ability
     target read as "other" with no entity, and a source's second waiting trigger as its first."""

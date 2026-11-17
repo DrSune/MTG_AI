@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "loyalty", "key": "cf", "set": 4, "seat": 0},
+  {"op": "activate", "key": "cf", "idx": 1, "seat": 0, "targets": ["shock"], "decisions": ["fire", "bear"]}
+ ],
+ "expect": {"zone": {"bear": "graveyard", "shock": "exile"}, "life": {"1": 20}},
+ "notes": "Chandra, Flame's Catalyst's -2: 'You may cast target red instant or sorcery card from your graveyard. If that spell would be put into your graveyard, exile it instead.' It recasts Shock as the ability resolves (CR 608.2g), and Shock's caster chooses its target as it is cast (CR 601.2c): here the Bear, which dies. Shock resolves and its rider exiles it instead of putting it into the graveyard (CR 614.1a). Moved from known_bugs by ontology round R13: before it the CAST atom had no target channel (the cast raised 'illegal target selection: selection:count_below_min:0<1', voiding a dealt game) and the rider was a static of Chandra that never applied (B-99)."
+}

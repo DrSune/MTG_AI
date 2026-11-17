@@ -800,7 +800,7 @@ class TestLoyaltyLedger(LibraryCase):
 
     def test_second_loyalty_ability_same_turn_is_gated(self):
         self.minus_two()
-        self.assertEqual(self.playable(3), "window:loyalty:once_per_turn")
+        self.assertEqual(self.playable(2), "window:loyalty:once_per_turn")  # the −8
 
     def test_next_turn_clears_the_once_per_turn_clock(self):
         self.minus_two()
@@ -810,13 +810,13 @@ class TestLoyaltyLedger(LibraryCase):
         self.assertIsNone(self.playable(1))
 
     def test_minus_eight_legality_tracks_the_ledger(self):
-        self.assertEqual(self.playable(3), "cost:loyalty:5<8")
+        self.assertEqual(self.playable(2), "cost:loyalty:5<8")
         self.world.cards[self.pw].counters[CounterKind.LOYALTY.name] = 8
-        self.assertEqual(self.playable(3), None)
+        self.assertEqual(self.playable(2), None)
 
     def test_zero_loyalty_sends_the_pw_to_the_graveyard(self):
         self.world.cards[self.pw].counters[CounterKind.LOYALTY.name] = 8
-        self.activate_pw(3)  # −8: DISCARD hand + DRAW 7
+        self.activate_pw(2)  # −8: DISCARD hand + DRAW 7 (index 2 since the −2 holds its rider)
         self.assertEqual(self.world.zone_of(self.pw).kind, ZONE_GRAVEYARD)
         dies = [e for e in self.journal_rows("CREATURE_DIES") if e.subject == self.pw]
         self.assertEqual(len(dies), 1)
@@ -1158,7 +1158,7 @@ class TestReplayDeterminism(unittest.TestCase):
 
 class TestCapabilitySurface(unittest.TestCase):
     def test_v2_size(self):
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 46)  # + ATTACK_POLICY (2026-11-12)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 47)  # + ATTACK_POLICY (2026-11-12), + PERMIT (R13)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()

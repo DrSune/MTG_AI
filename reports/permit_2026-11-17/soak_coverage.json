@@ -1,0 +1,299 @@
+[
+ {
+  "set": "M21",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 300,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [
+   {
+    "detector": "d6_lifecycle",
+    "detail": "2 replacement records for one event \"DamageDealtEvent(amount=QUnbounded(), filter=FAtom(pr",
+    "games": 2
+   },
+   {
+    "detector": "d6_lifecycle",
+    "detail": "delayed trigger still pending at game end (never drained, never expired): (6, 'Eot', 'card",
+    "games": 1
+   },
+   {
+    "detector": "d6_lifecycle",
+    "detail": "live layer #9 kind=permit tag=Eot bound to card:88 ended in 'exile'",
+    "games": 1
+   },
+   {
+    "detector": "d6_lifecycle",
+    "detail": "live layer #9 kind=permit tag=Eot bound to card:95 ended in 'exile'",
+    "games": 1
+   },
+   {
+    "detector": "d6_lifecycle",
+    "detail": "live layer #9 kind=permit tag=Eot bound to card:114 ended in 'exile'",
+    "games": 1
+   }
+  ],
+  "outliers": [
+   {
+    "card": "Discontinuity",
+    "mana_value": 6,
+    "cast_games": 31,
+    "win_rate": 0.548,
+    "same_mv_win_rate": 0.839,
+    "z": -3.31
+   },
+   {
+    "card": "Spirit of Malevolence",
+    "mana_value": 2,
+    "cast_games": 33,
+    "win_rate": 0.364,
+    "same_mv_win_rate": 0.633,
+    "z": -3.16
+   }
+  ],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Chandra, Flame's Catalyst",
+   "Chandra, Heart of Fire",
+   "Conspicuous Snoop",
+   "Demonic Embrace",
+   "Idol of Endurance",
+   "Radha, Heart of Keld"
+  ],
+  "games_cast_in": {
+   "Idol of Endurance": 25,
+   "Demonic Embrace": 18,
+   "Chandra, Heart of Fire": 14,
+   "Radha, Heart of Keld": 13,
+   "Conspicuous Snoop": 11,
+   "Chandra, Flame's Catalyst": 8
+  },
+  "permits_resolved": {
+   "Idol of Endurance": 73,
+   "Chandra, Heart of Fire": 16
+  },
+  "casts_through_a_permission": {
+   "Demonic Embrace": 12,
+   "Vryn Wingmare": 2,
+   "Indulging Patrician": 2,
+   "Falconer Adept": 1,
+   "Goblin Arsonist": 1,
+   "Silversmote Ghoul": 1,
+   "Liliana's Standard Bearer": 1,
+   "Drowsing Tyrannodon": 1,
+   "Barrin, Tolarian Archmage": 1,
+   "Finishing Blow": 1,
+   "Burlfist Oak": 1,
+   "Short Sword": 1,
+   "Warden of the Woods": 1,
+   "Vito, Thorn of the Dusk Rose": 1,
+   "Heartfire Immolator": 1,
+   "Rambunctious Mutt": 1,
+   "Runed Halo": 1,
+   "Pridemalkin": 1,
+   "Staunch Shieldmate": 1,
+   "Onakke Ogre": 1,
+   "Griffin Aerie": 1,
+   "Legion's Judgment": 1,
+   "Celestial Enforcer": 1,
+   "Azusa, Lost but Seeking": 1,
+   "Liliana's Devotee": 1,
+   "Pack Leader": 1,
+   "Spirit of Malevolence": 1,
+   "Deathbloom Thallid": 1,
+   "Alchemist's Gift": 1,
+   "Scorching Dragonfire": 1
+  },
+  "land_plays_through_a_permission": 32,
+  "rider_moves": 0
+ },
+ {
+  "set": "FDN",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 200,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [
+   {
+    "detector": "d6_lifecycle",
+    "detail": "live layer #14 kind=mandate_block tag=Eot bound to card:103 ended in 'graveyard'",
+    "games": 1
+   },
+   {
+    "detector": "d6_lifecycle",
+    "detail": "live layer #13 kind=permit tag=Eot bound to card:110 ended in 'graveyard'",
+    "games": 1
+   }
+  ],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Omniscience",
+   "Sphinx of Forgotten Lore",
+   "Think Twice",
+   "Vizier of the Menagerie",
+   "Zul Ashur, Lich Lord"
+  ],
+  "games_cast_in": {
+   "Think Twice": 13,
+   "Zul Ashur, Lich Lord": 9,
+   "Vizier of the Menagerie": 5,
+   "Sphinx of Forgotten Lore": 4
+  },
+  "permits_resolved": {
+   "Sphinx of Forgotten Lore": 8
+  },
+  "casts_through_a_permission": {
+   "Think Twice": 10,
+   "Into the Roil": 1,
+   "Faebloom Trick": 1,
+   "Highborn Vampire": 1,
+   "Vanguard Seraph": 1
+  },
+  "land_plays_through_a_permission": 0,
+  "rider_moves": 12
+ },
+ {
+  "set": "M20",
+  "mode": "castable",
+  "unverified_records": true,
+  "games": 200,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Golos, Tireless Pilgrim",
+   "Mystic Forge"
+  ],
+  "games_cast_in": {
+   "Mystic Forge": 11,
+   "Golos, Tireless Pilgrim": 8
+  },
+  "permits_resolved": {
+   "Golos, Tireless Pilgrim": 5
+  },
+  "casts_through_a_permission": {
+   "Gift of Paradise": 1,
+   "Immortal Phoenix": 1,
+   "Might of the Masses": 1,
+   "Scorch Spitter": 1,
+   "Steel Overseer": 1,
+   "Heart-Piercer Bow": 1
+  },
+  "land_plays_through_a_permission": 5,
+  "rider_moves": 0
+ },
+ {
+  "set": "ZNR",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 100,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Ancient Greenwarden",
+   "Coveted Prize",
+   "Valakut Exploration"
+  ],
+  "games_cast_in": {
+   "Coveted Prize": 6,
+   "Valakut Exploration": 2,
+   "Ancient Greenwarden": 2
+  },
+  "permits_resolved": {
+   "Valakut Exploration": 2
+  },
+  "casts_through_a_permission": {
+   "Nahiri, Heir of the Ancients": 1,
+   "Cleric of Chill Depths": 1
+  },
+  "land_plays_through_a_permission": 3,
+  "rider_moves": 0
+ },
+ {
+  "set": "M19",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 100,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Crucible of Worlds",
+   "Liliana, Untouched by Death",
+   "Omniscience"
+  ],
+  "games_cast_in": {
+   "Crucible of Worlds": 13,
+   "Liliana, Untouched by Death": 5
+  },
+  "permits_resolved": {
+   "Liliana, Untouched by Death": 3
+  },
+  "casts_through_a_permission": {},
+  "land_plays_through_a_permission": 0,
+  "rider_moves": 0
+ },
+ {
+  "set": "DOM",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 100,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Precognition Field",
+   "Squee, the Immortal"
+  ],
+  "games_cast_in": {
+   "Squee, the Immortal": 5,
+   "Precognition Field": 3
+  },
+  "permits_resolved": {},
+  "casts_through_a_permission": {
+   "Squee, the Immortal": 4,
+   "Charge": 1
+  },
+  "land_plays_through_a_permission": 0,
+  "rider_moves": 0
+ },
+ {
+  "set": "M12",
+  "mode": "castable",
+  "unverified_records": false,
+  "games": 100,
+  "crashed": 0,
+  "crashes": [],
+  "detector_hits": [],
+  "outliers": [],
+  "repeatable_activations": [],
+  "trigger_loops": [],
+  "dealt": [
+   "Garruk's Horde"
+  ],
+  "games_cast_in": {
+   "Garruk's Horde": 3
+  },
+  "permits_resolved": {},
+  "casts_through_a_permission": {},
+  "land_plays_through_a_permission": 0,
+  "rider_moves": 0
+ }
+]

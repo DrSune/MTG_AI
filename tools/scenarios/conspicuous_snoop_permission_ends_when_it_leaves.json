@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield", "controller": 0},
+  {"key": "gob2", "real": "Goblin Arsonist", "zone": "library", "controller": 0},
+  {"key": "gob1", "real": "Goblin Arsonist", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:gob1"]},
+  {"op": "move", "key": "snoop", "to": "graveyard"},
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "act", "seat": 0, "words": ["cast:gob2"], "expect_raise": "words no ask took: ['cast:card:1']"}
+ ],
+ "expect": {"zone": {"gob1": "battlefield", "gob2": "library", "snoop": "graveyard"}},
+ "notes": "Conspicuous Snoop's 'You may cast Goblin spells from the top of your library' is a static ability: its permission exists only while Snoop is on the battlefield (CR 604.2, 611.3a). With Snoop out, the Goblin on top is cast from the library for its {R}; once Snoop is gone the next Goblin on top is not offered. Contrast chandra_flame_s_catalyst_branch02: a permission a resolved ability made outlives its source (CR 611.2a). On the base the permission was a free activation, never a cast row."
+}
