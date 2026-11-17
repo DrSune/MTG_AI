@@ -12,14 +12,21 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Nothing trains (2026-11-17, evening).** The exploitability probe (`KNOWLEDGE/2026-11-17/211`, part
-of the bug hunt) ran 4 machine-hours to update 60 and stopped. Its gates against v2 stayed at
-0.50-0.53, below the 0.60 flag. The bug hunt's fixes are on main (`KNOWLEDGE/2026-11-17/212`).
-r29 waits for:
-- verification waves 3 and 4 (the mapped M21/M20/FDN cards, and the stamps round 12 changed), run
-  from the pinned checkouts `/home/sune/Desktop/MTG_AI-verify3` and `-verify4` (do not edit them);
-- gate round 13;
-- the two recurrence-guard waves.
+**Running since 2026-11-17 20:21: r29** (`KNOWLEDGE/2026-11-14/208`, §9 the pre-launch record),
+its A/B first.
+- **How it runs.** The queue is the transient unit `mtg-r29`, from the worktree
+  `/home/sune/Desktop/MTG_AI-r29`, pinned at launch commit c13165e9 (do not edit it).
+  - Both pre-flights run first. Then arm A (`--p-self 0`), then arm B (`--p-self 0.55`), each
+    5.5 machine-hours from r28's v2, as `mtg-r29a`/`mtg-r29b` with guards. Then the reads B1 and B2,
+    and `decide.py`, which resumes A or B as the main run.
+  - Logs: `runs/r29_ab/queue.log`. Run directories: `runs/selfplay/r29{a_pself0,b_pself055}`.
+  - **No CPU-heavy agent work during the arms** (208 §4).
+- **What came before.** The bug hunt's fixes are on main (`KNOWLEDGE/2026-11-17/212`). The
+  exploitability probe (211) raised no flag.
+- **What comes after B8** (B's update 300): FDN joins as the next segment, together with two open
+  engine faults' fixes (208 §9).
+- **Still to do in the card work:** FDN's remaining verification (wave 3 batches I-P, wave 4
+  batches A-C), from the pinned checkouts `/home/sune/Desktop/MTG_AI-verify3` and `-verify4`.
 
 r28 (`KNOWLEDGE/2026-11-12/199`, r27's configuration on
 the fixed trainer, from r27's v1) ended at update 1845. It gained +39 Elo over its init (v1 at 352,
