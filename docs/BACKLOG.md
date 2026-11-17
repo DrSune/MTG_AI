@@ -1019,13 +1019,26 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   counts the same card against coverage. One card in ZNR, two in M20, three in KHM.
 
 ### Records to map or re-verify
-- **Two FDN stamps whose packs predate round 10's "each occurrence" mutant** (2026-11-14,
-  KNOWLEDGE 207 §4): Spitfire Lagac and Tatyova, Benthic Druid hold their FDN stamps (tree bytes
-  unchanged), but their reprints in ZNR and DOM fail G3 today. A critical "each occurrence -> once
-  per event" mutant survives every pack. Each needs one pack with two lands entering at once and
-  the number of triggers pinned. Then stamp the reprints (`cardtool verify ZNR "Spitfire Lagac"
-  --reprint-of FDN`, and DOM's).
-
+- **27 home stamps whose packs no longer kill every critical G3 mutant** (2026-11-17, gate round 11's
+  review; the same on main and on the round's merge). The stamps still hold, since their tree bytes
+  are unchanged, but a re-verification today would fail G3. Each needs a pack for its survivor; then
+  stamp it again, and its reprints with it (`cardtool survivors` gives a pack hint per survivor;
+  evidence in the gate-11 scratch `g3_all_summary.txt`).
+  - "each occurrence -> once per event" (round 10's operator; one event holding two objects, and
+    the number of triggers pinned): FDN Adventuring Gear, Garruk's Uprising, Impact Tremors,
+    Spitfire Lagac, Tatyova, Benthic Druid; M20 Bag of Holding, Bishop of Wings, Dread Presence,
+    Omnath, Locus of the Roil, Risen Reef, Sage's Row Denizen, Starfield Mystic, Waterkin Shaman;
+    M21 Basri, Devoted Paladin, Garruk's Uprising, Subira, Tulzidi Caravanner, Thieves' Guild
+    Enforcer, Watcher of the Spheres.
+  - amount+1 on a toughness: FDN Goblin Oriflamme, M20 Unchained Berserker, M21 Warded
+    Battlements. amount-1 on a count: M21 Gadrak, the Crown-Scourge.
+  - trigger scope "your turn -> each turn": M21 Griffin Aerie, Indulging Patrician, Twinblade
+    Assassins.
+  - controller YOU -> OPPONENT: M21 Basri's Lieutenant. target -> all: M21 Chandra's Incinerator.
+  - Their reprints in other sets (ZNR Spitfire Lagac and DOM Tatyova were refused in the reprint
+    wave) wait on the same packs.
+- **M21 Sanctum of Calm Waters: its probe raises GameOver at setup** (2026-11-17, the same review),
+  so G1 cannot read it today.
 - **The other "one or more" zone-change cards** (2026-11-13, ontology round R10; out of the
   trained sets). KHM Elvish Warmaster needs "This ability triggers only once each turn", a
   once-per-turn limit no component expresses; its head ("one or more other Elves you control
