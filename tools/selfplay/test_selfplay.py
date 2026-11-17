@@ -436,6 +436,28 @@ def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
     assert net.ir_table.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)
 
 
+def test_refresh_table_rebuilds_the_rows_of_every_dealt_set(table, tmp_path, monkeypatch) -> None:
+    """--refresh-table rebuilds the rows of M21 and of every --extend-sets set from the current
+    compile. An init extended with M20 before an M20 card was mapped whole otherwise keeps that
+    card's stale row (gate round 11's review: 42 of M20's verified cards from r28's u685)."""
+    from tools.selfplay import learner as L
+
+    m20, m21 = ({oid: r.card for oid, r in get_supply("castable", code).pool.results.items()}
+                for code in ("M20", "M21"))
+    base = table.extend(m20, add_tokens=True)[0]  # an init extended with M20
+    row = next(i for i, oid in enumerate(base.oracle_ids) if oid in m20 and oid not in m21
+               and len(base.ir[i]) > 3)
+    stale = FT.CardTable(base.oracle_ids, base.names, base.ir_vocab,
+                         [ids[:2] if i == row else ids for i, ids in enumerate(base.ir)],
+                         base.max_ir)
+    M.save(str(tmp_path / "init.pt"), M.build(stale, d=32, layers=1, heads=4, ff=64), stale)
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    lr = L.Learner(L.parse(["--run", str(tmp_path / "run"), "--device", "cpu", "--init",
+                            str(tmp_path / "init.pt"), "--refresh-table", "--extend-sets", "M20",
+                            "--mix-sets", "M20"]))
+    assert lr.table.ir[row] == base.ir[row] != stale.ir[row]
+
+
 class _CounterProbe:
     """Heuristic seat that, at its first act ask with a creature of its own on the battlefield,
     puts the engine's own counter kinds on its creatures and records the encoding."""

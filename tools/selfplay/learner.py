@@ -89,6 +89,16 @@ BC_SEED0 = 5_000_000
 CAPTURE_SEED0 = 30_000_000  # + 1,000,000 x --seed: each capture run deals its own games
 
 
+def table_records(sets: list[str]) -> dict[str, Any]:
+    """The current compile of the castable cards of ``sets``, by oracle id, for the card table's
+    rows; a card in several sets takes the tree of the first set that has it."""
+    records: dict[str, Any] = {}
+    for code in sets:
+        for oid, r in get_supply("castable", code).pool.results.items():
+            records.setdefault(oid, r.card)
+    return records
+
+
 def deal_interval(deal_scores: list[float], z: float = 1.96) -> tuple[float, float]:
     """95% normal interval of the mean score over deals, each deal the mean of its two
     seat-swapped games. Between two networks the games of a deal are anti-correlated (-0.48 to
@@ -260,23 +270,21 @@ class Learner:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init,
                       "extra": {k: v for k, v in extra.items() if k != "state"}})
+            extend = [code for code in args.extend_sets.split(",") if code]
             if args.refresh_table:
                 # the saved table describes the trees as compiled when it was built; rebuild
-                # its rows from the current compile (FT.CardTable.refresh)
-                records = {oid: r.card for oid, r in
-                           get_supply("castable", "M21").pool.results.items()}
-                self.table, ref = self.table.refresh(records)
+                # the rows of every set the run deals from the current compile
+                # (FT.CardTable.refresh): a card of --extend-sets mapped since keeps a stale row
+                # otherwise (42 of M20's verified cards from r28's u685, gate round 11's review)
+                self.table, ref = self.table.refresh(table_records([TRAIN_SET, *extend]))
                 M.extend_cards(self.model, self.table)
                 self.log({"event": "refresh_table", **ref})
-            if args.extend_sets:
+            if extend:
                 # cards of other sets the network never trained on: rows in its component
                 # vocabulary, names unknown (FT.CardTable.extend, M.extend_cards); when it will
                 # train on them (--mix-sets), their unseen components become learnable tokens
-                records = {}
-                for code in args.extend_sets.split(","):
-                    records.update({oid: r.card for oid, r in
-                                    get_supply("castable", code).pool.results.items()})
-                self.table, ext = self.table.extend(records, add_tokens=bool(args.mix_sets))
+                self.table, ext = self.table.extend(table_records(extend),
+                                                    add_tokens=bool(args.mix_sets))
                 M.extend_cards(self.model, self.table)
                 self.log({"event": "extend_sets", "sets": args.extend_sets, **ext})
             if args.mask_names:
@@ -1354,8 +1362,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--opp-ckpt", default="", help="eval-only: checkpoint to play as 'snap:opp'")
     # curriculum (teacher inter-play -> vs teacher -> gated frozen self-play)
     p.add_argument("--refresh-table", action="store_true",
-                   help="rebuild the --init card table's rows from the current compile (after "
-                        "an engine/compiler change re-compiled cards); new components learnable")
+                   help="rebuild the --init card table's rows of M21 and every --extend-sets set "
+                        "from the current compile (after an engine/compiler change re-compiled "
+                        "cards, or cards were mapped); new components learnable")
     p.add_argument("--extend-sets", default="",
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")
