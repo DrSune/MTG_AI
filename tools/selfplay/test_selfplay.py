@@ -892,6 +892,30 @@ def test_the_iter_row_keeps_self_games_apart(tmp_path, monkeypatch) -> None:
     assert (row["games"], row["learner_seats"], row["turns"]) == (4, 6, 11.0)
 
 
+def test_a_resume_runs_to_the_iters_given_now(tmp_path, monkeypatch) -> None:
+    """--iters is the resuming command's, not the saved run's: r29's arm A runs to 120 in the A/B
+    and on to 6000 if it goes on (KNOWLEDGE/2026-11-14/208 §1). A resume with no update left to
+    run commits the update it resumed at: it committed 0 before, and the next resume replayed the
+    run from update 1 on the later weights."""
+    import json
+
+    def run(iters: str, *extra: str) -> list[int]:
+        lr = _small_learner(monkeypatch, tmp_path, "--iters", iters, "--teacher-iters", "0",
+                            "--save-every", "1", *extra)
+        lr.serve = lambda *_, **__: None  # no workers: each update on an empty batch
+        lr.update = dict
+        n = len((tmp_path / "metrics.jsonl").read_text().splitlines()) if extra else 0
+        lr.curriculum()
+        rows = [json.loads(x) for x in (tmp_path / "metrics.jsonl").read_text().splitlines()[n:]]
+        assert pickle.loads((tmp_path / "state.pkl").read_bytes())["it"] == lr.it
+        return [r["it"] for r in rows if r["event"] == "iter"]
+
+    assert run("1") == [1]
+    assert run("3", "--resume", str(tmp_path)) == [2, 3]
+    assert run("3", "--resume", str(tmp_path)) == []
+    assert pickle.loads((tmp_path / "state.pkl").read_bytes())["it"] == 3
+
+
 def test_the_guard_reads_the_mulligan_per_learner_seat() -> None:
     """With self games an update's games have more learner seats than games, and a rate per
     game would double with no change in play: the guard divides by the iter row's

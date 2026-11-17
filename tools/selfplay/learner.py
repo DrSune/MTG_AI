@@ -1128,6 +1128,9 @@ class Learner:
         start = 1
         if a.resume:  # the optimiser moments are not saved: the trainer restarts them
             st = self.load_state(a.resume)
+            # the update the loop below continues from; with no update left under this --iters,
+            # the commit after it keeps this one (not __init__'s 0)
+            self.it = st["it"]
             start = st["it"] + 1
             self.log({"event": "resume", "from": a.resume, "it": st["it"], "stage": self.stage,
                       "versions": self.versions, "gid": self.gid,
