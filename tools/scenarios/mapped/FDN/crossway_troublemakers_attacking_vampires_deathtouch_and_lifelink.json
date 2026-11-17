@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "crossway_troublemakers_attacking_vampires_deathtouch_and_lifelink",
+ "notes": "M5 mapper. Printed: 'Attacking Vampires you control have deathtouch and lifelink. Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' Seat 0 attacks with Crossway Troublemakers (5/5, unblocked), a Vampire (2/2) blocked by Opp Giant (5/5) and a Bear (2/2, not a Vampire) blocked by Opp Ox (3/3). The Vampire's 2 damage kills the Giant (deathtouch) and gains 2 (lifelink); the Troublemakers gain 5; the Bear neither kills the Ox nor gains life. The Vampire dies: seat 0 pays 2 life and draws a card. The Bear dies too, not a Vampire: nothing. Seat 0: 20 + 5 + 2 - 2 = 25; seat 1: 15.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tm", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"tm": true, "vamp": true, "bear": true},
+   "block": {"giant": "vamp", "ox": "bear"}, "may": {"tm": true}}
+ ],
+ "expect": {
+  "blocked": {"vamp": ["giant"], "bear": ["ox"]},
+  "zone": {"giant": "graveyard", "vamp": "graveyard", "bear": "graveyard", "ox": "battlefield", "tm": "battlefield"},
+  "damage": {"ox": 2},
+  "life": {"0": 25, "1": 15},
+  "hand": {"0": 1}
+ }
+}

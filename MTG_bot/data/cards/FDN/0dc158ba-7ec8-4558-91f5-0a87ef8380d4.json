@@ -1,0 +1,357 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "0dc158ba-7ec8-4558-91f5-0a87ef8380d4",
+ "name": "High-Society Hunter",
+ "text_sha": "db89aed6a2c8f03db952131b5d60ec327597ad2b5ac853c8c5caae17e1dcb8d7",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SACRIFICE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FNot",
+               "inner": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "PUT_COUNTER"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "counter_kind",
+           {
+            "tag": "CounterKind",
+            "name": "PLUS_1_PLUS_1"
+           }
+          ],
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_TOKEN"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN High-Society Hunter: \"Flying. Whenever this creature attacks, you may sacrifice another\n# creature. If you do, put a +1/+1 counter on this creature. Whenever another nontoken creature\n# dies, draw a card.\"\n# [0]: \"Whenever this creature attacks\" (Library Larcenist's DeclareAttackersEvent over the source);\n# effect: M21 Dire Fleet Warmonger's verified \"you may sacrifice another creature. If you do, ...\"\n# with Lorescale Coatl's counter on this creature.\n# [1]: a CreatureDiesEvent over any player's nontoken creature but this one (FNot(IS_TOKEN),\n# FNot(IS_SOURCE)); \"draw a card\" (Crash Through).\nattacks = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.SACRIFICE, {\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=A(Verb.PUT_COUNTER, {\n                    'count': QConst(value=1),\n                    'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n    ),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [attacks, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever this creature attacks, you may sacrifice another creature.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "If you do, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "Whenever another nontoken creature dies, draw a card.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Library Larcenist's attack trigger with Dire Fleet Warmonger's verified 'you may sacrifice another creature. If you do, ...' and a counter on this creature; a CreatureDiesEvent over any other nontoken creature draws. Flying compiled. packs in tools/scenarios/mapped/FDN/: high_society_hunter_declined_sacrifice_no_counter."
+ },
+ "probe": {
+  "sha": "01ed6483d5388f8f4f38cc9df3101f534947cddaa8cae489e29606ed339e5415"
+ }
+}

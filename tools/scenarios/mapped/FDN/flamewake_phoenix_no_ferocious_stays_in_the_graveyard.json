@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "flamewake_phoenix_no_ferocious_stays_in_the_graveyard",
+ "notes": "M5 mapper. Printed: 'Ferocious — At the beginning of combat on your turn, if you control a creature with power 4 or greater, you may pay {R}. If you do, return this card from your graveyard to the battlefield.' Seat 0 controls only a 3/3 Bear and an untapped Mountain; seat 1 controls a 5/5 Giant (an opponent's creature does not count). At seat 0's beginning of combat nothing triggers: the combat would take the offer ('may') and pay with the Mountain, yet the Phoenix stays in the graveyard and the Mountain untapped. On seat 1's turn, not seat 0's combat: still nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "phoenix", "real": "Flamewake Phoenix", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": false}, "may": {"phoenix": true}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"giant": false}, "may": {"phoenix": true}}
+ ],
+ "expect": {
+  "zone": {"phoenix": "graveyard"},
+  "tapped": {"mountain": false},
+  "life": {"0": 20, "1": 20}
+ }
+}

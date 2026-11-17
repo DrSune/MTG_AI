@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "kalastria_highborn_only_your_vampires",
+ "notes": "M5 mapper. Printed: 'Whenever this creature or another Vampire you control dies, you may pay {B}. If you do, target player loses 2 life and you gain 2 life.' Seat 0's Bear (not a Vampire) dies, then seat 1's Opp Vampire dies: neither is this creature or a Vampire seat 0 controls, so nothing is offered (an offer would raise here: no step carries a decision) and seat 0's {B} stays in its pool.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "kal", "real": "Kalastria Highborn", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ovamp", "name": "Opp Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1}, "hold": true},
+  {"op": "move", "key": "bear", "to": "graveyard"},
+  {"op": "move", "key": "ovamp", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "ovamp": "graveyard", "kal": "battlefield"},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {"B": 1}}
+ }
+}

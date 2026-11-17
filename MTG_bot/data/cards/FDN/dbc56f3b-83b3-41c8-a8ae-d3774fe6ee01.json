@@ -1,0 +1,134 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "dbc56f3b-83b3-41c8-a8ae-d3774fe6ee01",
+ "name": "Linden, the Steadfast Queen",
+ "text_sha": "8645feda21993681f28c5aa55367809dc22185057c976c861d9b29476a0a43bf",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "COLOR_HAS"
+        },
+        "string_value": null,
+        "color": "W",
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Linden, the Steadfast Queen: \"Vigilance. Whenever a white creature you control attacks, you\n# gain 1 life.\"\n# M21 Hooded Blightfang's verified per-attacker trigger (\"a creature you control with deathtouch\n# attacks\", no once_per_event: once for each such attacker), the filter's keyword read as the colour.\ntrigger = TriggeredAbility(\n    event=DeclareAttackersEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever a white creature you control attacks, you gain 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Hooded Blightfang's verified per-attacker trigger with a COLOR_HAS W filter (once per white attacker). Vigilance compiled. packs in tools/scenarios/mapped/FDN/: linden_gains_for_each_white_attacker_you_control."
+ },
+ "probe": {
+  "sha": "01f5207ed084e890c06887d24280e051182312c19b25e1dfa6668f0fc91d2414"
+ }
+}

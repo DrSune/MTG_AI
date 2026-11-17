@@ -1,0 +1,27 @@
+{
+ "set": "FDN",
+ "name": "mischievous_mystic_only_your_second_draw",
+ "notes": "M5 mapper. Printed: 'Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.' Turn 1: seat 0 casts Quick Study (draw two; seat 0 skipped its first draw step): its second draw makes one Faerie. Turn 2 (seat 1's): seat 1 draws for the turn and casts Quick Study, its second and third cards: not seat 0's draws, no Faerie; seat 0 casts Opt, its first card that turn: no Faerie. One Faerie in all.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mystic", "real": "Mischievous Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "study0", "real": "Quick Study", "zone": "hand", "controller": 0},
+  {"key": "opt0", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "study1", "real": "Quick Study", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Quick Study", "key": "study0", "controller": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"U": 1, "C": 2}, "hold": true},
+  {"op": "cast", "real": "Quick Study", "key": "study1", "controller": 1},
+  {"op": "mana", "seat": 0, "add": {"U": 1}, "hold": true},
+  {"op": "cast", "real": "Opt", "key": "opt0", "controller": 0, "decisions": ["top"]}
+ ],
+ "expect": {
+  "tokens": {"Faerie": 1},
+  "battlefield_pt": {"Faerie": [1, 1]},
+  "battlefield_keywords": {"Faerie": ["FLYING"]}
+ }
+}

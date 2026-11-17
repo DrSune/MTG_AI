@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "leonin_vanguard_three_creatures_pump_ends_with_the_turn",
+ "notes": "M5 mapper. Printed: 'At the beginning of combat on your turn, if you control three or more creatures, this creature gets +1/+1 until end of turn and you gain 1 life.' Seat 0 controls Leonin Vanguard and two Bears: at the beginning of combat the Vanguard becomes 2/2 and seat 0 gains 1; the Vanguard attacks alone for 2. On seat 1's turn (turn 2: not seat 0's combat) it is a 1/1 again and nothing more is gained.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vanguard", "real": "Leonin Vanguard", "zone": "battlefield", "controller": 0},
+  {"key": "bear1", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Bear Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vanguard": true, "bear1": false, "bear2": false}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {}}
+ ],
+ "expect": {
+  "life": {"0": 21, "1": 18},
+  "power": {"vanguard": 1},
+  "toughness": {"vanguard": 1}
+ }
+}
