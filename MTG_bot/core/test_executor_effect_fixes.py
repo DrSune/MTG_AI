@@ -100,6 +100,55 @@ def leave_and_return(r, key):
     r.run_step({"op": "enter", "key": key})
 
 
+class TestPreventionScope(unittest.TestCase):
+    """Engine wave E2 (found mapping FDN Fleeting Flight, whose record rightly scopes its
+    prevention to its target): a prevention whose condition names neither the ability's targets
+    (IS_ANY_TARGET) nor what the instruction before it acted on (IS_RESULT) modifies the rules
+    (CR 611.2c), covering what its condition matches when the event happens. It was locked onto
+    the spell's targets, so a targeted spell's "creatures you control" protected its target only,
+    and the effect ended when that target left (``forget_departed``: Tectonic Rift's "Creatures
+    without flying can't block this turn" once a regenerated target land left)."""
+
+    def cast(self, r, prevention):
+        # "Target creature gets +1/+0 until end of turn. <prevention>": a constructed tree.
+        creature = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+        pump = Atom(Verb.MODIFY_PT, AtomArgs((
+            ("duration", DurationEot()), ("power", PtDelta(PtDirection.INCREASE, QConst(1))),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, creature, zones=(BF_ANY,))),
+        )))
+        r.ex.apply_effect(Seq(steps=(pump, prevention)), source=r.handles["spell"], controller=r.p0,
+                     bindings={"target": [r.handles["bear"]]})
+
+    def test_a_targeted_spell_prevents_damage_to_every_creature_its_condition_names(self):
+        r = runner([bear("bear", 0), bear("other", 0), bear("theirs", 1),
+                    {"key": "spell", "name": "Spell", "type": "Instant", "zone": "graveyard",
+                     "controller": 0}])
+        yours = FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                      FAtom(FAtomPred.TYPE_EQ, string_value="Creature")))
+        self.cast(r, Atom(Verb.PREVENT_EFFECT, AtomArgs((
+            ("condition", yours), ("duration", DurationEot()),
+            ("event", DamageDealtEvent(amount=QUnbounded(), filter=yours)),
+        ))))
+        ctx = r.ex._ctx(source=r.handles["theirs"], controller=r.p1, bindings=None, decisions=())
+        prevented = {k: r.ex.replacements.prevented_card_damage(ctx, r.handles[k], combat=False)
+                     is not None for k in ("bear", "other", "theirs")}
+        self.assertEqual(prevented, {"bear": True, "other": True, "theirs": False})
+
+    def test_the_effect_stays_when_the_target_leaves(self):
+        r = runner([bear("bear", 0), bear("runner", 0), bear("giant", 1),
+                    {"key": "spell", "name": "Spell", "type": "Sorcery", "zone": "graveyard",
+                     "controller": 0}])
+        nonflyer = FAnd((FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                         FNot(FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING))))
+        self.cast(r, Atom(Verb.PREVENT_EFFECT, AtomArgs((
+            ("condition", UNIV), ("duration", DurationEot()),
+            ("event", DeclareBlockersEvent(filter=nonflyer)),
+        ))))
+        r.run_step({"op": "move", "key": "bear", "to": "hand"})
+        self.assertTrue(r.ex.replacements.prevents_block_declaration(
+            r.handles["giant"], r.handles["runner"]))
+
+
 class TestCR4007NewObject(unittest.TestCase):
     def test_pump_does_not_follow_the_creature_back(self):
         # Titanic Growth: "Target creature gets +4/+4 until end of turn." Bounced and replayed

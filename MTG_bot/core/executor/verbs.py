@@ -1284,7 +1284,7 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
     # as the ability resolves; the creatures that pass are locked in, and the
     # record reads only that set afterwards (replacements._slot_holds), so a
     # pump after resolution does not undo "can't be blocked this turn".
-    from MTG_bot.core.executor.query import combat_target_filters, names_pred
+    from MTG_bot.core.executor.query import combat_target_filters, designation_bound, names_pred
 
     register = "result" if names_pred(condition, FAtomPred.IS_RESULT) else "target"
     designated = ctx.binding_handles(register)
@@ -1295,6 +1295,14 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
         )
     designated = designated or []
     bound = combat_target_filters(event)
+    if register == "target" and not designation_bound(condition) and not bound:
+        # CR 611.2c: naming neither the ability's targets nor what the instruction before it
+        # acted on ("Prevent all damage that would be dealt to creatures you control this
+        # turn", Tectonic Rift's "Creatures without flying can't block this turn" after its
+        # "Destroy target land"), it modifies the rules: it covers whatever its condition
+        # matches when the event would happen, never the spell's targets alone (an empty
+        # set: judged live, as a static carrier is).
+        designated = []
     targets = tuple(
         h
         for h in designated
