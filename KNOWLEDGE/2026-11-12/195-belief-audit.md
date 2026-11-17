@@ -138,3 +138,30 @@ of the real future:
   then scored +1, and its guard against undefined cases could never fire (KNOWLEDGE 197).
 - **Read:** nothing. The true worlds pinned unseen cards, and copies of a card decided "best" by
   noise (§5). The confirming run, the last step of gate B's queue on fresh deals, decides.
+
+## 7. The confirming run's scores (2026-11-14 13:01-14:34; 196 §10)
+
+`audit195` ran in r28's read-400 window, from gate B's worktree at 8aabbc8, on deals
+965,000-965,099, as §5 fixed it. Score: `reports/window2_2026-11-12/score/audit_b.py
+runs/read400/audit195/audits.jsonl`. It audited 1,938 decisions over 100 deals, with no game
+logged twice.
+
+| # | Measure | Score | Registered | Verdict |
+|---|---|---|---|---|
+| B1 | A(`true2`), the ceiling | 0.723 | 0.55-0.80 | **Met** |
+| B2 | A(`sim`) − A(`uniform`) | +0.002 [−0.024, +0.028] | +0.02 to +0.08; falsifier at or below 0 with the upper bound under +0.02 | **Neither met nor falsified**: the upper bound is +0.028 |
+| B3 | A(`uniform`) | 0.664 | 0.40-0.70, below the ceiling | **Met** |
+
+- **The search's agreement with the truth:**
+  - the network's own top move matches the true worlds' best 0.509 of the time;
+  - the search in uniform worlds raises that to 0.664, and in the simulator's worlds to 0.666;
+  - the true worlds, sampled twice, agree 0.723 of the time.
+- **Rank correlations with the truth:** uniform 0.528, sim 0.520, true2 0.618.
+- **What it means (§4):**
+  - The simulator's beliefs pick no closer to the truth than uniform worlds do, within about
+    ±0.025. That is at horizon 1, with 8 worlds and a leaf that cannot read beliefs.
+  - Hidden information does matter to the comparison: the ceiling stands 0.06 above uniform.
+    The simulator's beliefs do not capture it measurably at this horizon.
+  - B2 is formally undecided. Its interval rules out a gain of +0.03 or more, so it leans to §4's
+    falsified reading: beliefs can pay only at a longer horizon or with a leaf that reads them.
+    That is a design question for the search, not a fault of the simulator.

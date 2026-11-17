@@ -400,3 +400,39 @@ rows; the full update 143 s; output `runs/read400/split685.out`):
   undoing itself. They fit a signal per update that is too small, or advantages too noisy, to move
   greedy play: priority, the most frequent decision, has the smallest Δlog p of all (0.017).
   That is the case for more on-policy decisions per game (r29).
+
+## 9. The read at 1,000, and after (2026-11-17)
+
+**The registered read (§4): updates 901-1000 against 1-100, and the gates ending there.**
+Source: `look.py runs/selfplay/r28_stratified_ppo 1000`, the last row per update.
+
+| Quantity | 1-100 | 901-1000 |
+|---|---|---|
+| The mulligan per game, pooled per block of 25 | 1.326, 1.288, 1.278, 1.280 | 1.397, 1.379, 1.415, 1.405 |
+| Entropy, per block | 0.255, 0.248, 0.243, 0.247 | 0.315, 0.303, 0.300, 0.271 |
+| Training win rate against the heuristic, per block (sampled) | 0.715-0.730 | 0.732-0.740 |
+| `kl`, median | 0.0064 | 0.0047 |
+| `ev`, median | 0.371 | 0.370 |
+| Lowest MemAvailable | 20.8 GiB (199 §7) | 49.0 GiB |
+
+- **The gates ending there,** against v1:
+  - at 952, 0.550;
+  - at 977, 0.521;
+  - at 1002, **0.555 [0.538, 0.572], which froze v2**.
+- **The ladder at 1004:** v0 654.1, v1 679.5, v2 692.8, the heuristic 462.0. So v2 is +13 Elo over
+  v1, and +39 over r28's init.
+
+**After 1,000 (not registered; described only, to update 1824 on 2026-11-17).**
+- The 32 gates against v2 at 1027-1802 average 0.50 (0.476 to 0.517). Each is about ±0.016.
+- No later version froze.
+- The mulligan per block stays at 1.28-1.46, with no runaway. Entropy is 0.22-0.30, and `kl`'s
+  median is 0.0035 over 1725-1824.
+
+**What r28 shows, whole.**
+- It learned +39 Elo over its init: +27 by update 350, and +13 more by 1000, the second at half
+  the rate.
+- Since 1000 it has not moved in 800 updates.
+- **The trainer fix held for 1,800 updates:** the mulligan never ran away, which was R1's
+  question.
+- The stall R3 found is the run's main result. Neither the opponent pool nor the length of
+  training moves it. r29 (208) tries the next lever.

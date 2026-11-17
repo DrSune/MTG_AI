@@ -433,3 +433,7 @@ made here, by §9's rule, before any of this window's data.
   in bf16, 2 in fp32).
 - **H1′ is met** (192 §7.6: within ±0.03; the falsifier, +0.04 with its lower bound above 0, is
   not met). bf16 inference costs no strength, so every bf16 evaluation since 183 stands.
+
+**195's confirming audit scored** (2026-11-14 13:01-14:34): B1 and B3 met, B2 undecided at
++0.002 [−0.024, +0.028]. The simulator's worlds pick no closer to the truth than uniform worlds
+(195 §7). The window ended at 14:34, and r28 resumed by itself.
