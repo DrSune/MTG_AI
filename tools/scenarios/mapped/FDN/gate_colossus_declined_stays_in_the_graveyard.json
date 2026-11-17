@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "gate_colossus_declined_stays_in_the_graveyard",
+ "notes": "M5 mapper. Printed: 'Whenever a Gate you control enters, you may put this card from your graveyard on top of your library.' Gate Colossus is in seat 0's graveyard; seat 0 plays Azorius Guildgate and declines ('skip'): the Colossus stays in the graveyard and the library is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "colossus", "real": "Gate Colossus", "zone": "graveyard", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "gate", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"colossus": "graveyard", "gate": "battlefield"},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

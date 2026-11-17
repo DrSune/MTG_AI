@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "name": "infestation_sage_dies_into_a_flying_insect",
+ "notes": "M3 mapper. Printed: 'When this creature dies, create a 1/1 black and green Insect creature token with flying.' Infestation Sage dies: one Insect token, under seat 0's control.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sage", "real": "Infestation Sage", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "sage", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"sage": "graveyard"},
+  "tokens": {"Insect": 1}
+ }
+}

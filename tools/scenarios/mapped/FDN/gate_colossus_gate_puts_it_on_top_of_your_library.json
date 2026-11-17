@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "name": "gate_colossus_gate_puts_it_on_top_of_your_library",
+ "notes": "M5 mapper. Printed: 'Whenever a Gate you control enters, you may put this card from your graveyard on top of your library.' Gate Colossus is in seat 0's graveyard. On seat 1's turn seat 1 plays a Guildgate: not seat 0's, nothing is offered (an offer would raise: the step answers nothing). On seat 0's next turn (its draw took Lib C) seat 0 plays Azorius Guildgate and takes the offer ('fire'): the Colossus goes from the graveyard to the top of seat 0's library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "colossus", "real": "Gate Colossus", "zone": "graveyard", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "hand", "controller": 0},
+  {"key": "ogate", "real": "Boros Guildgate", "zone": "hand", "controller": 1},
+  {"key": "l1", "name": "Lib A", "type": "Land", "zone": "library", "controller": 0},
+  {"key": "l2", "name": "Lib B", "type": "Land", "zone": "library", "controller": 0},
+  {"key": "l3", "name": "Lib C", "type": "Land", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "ogate", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "gate", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"colossus": "library", "gate": "battlefield", "ogate": "battlefield"},
+  "library": {"0": ["Gate Colossus", "Lib B", "Lib A", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

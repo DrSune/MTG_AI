@@ -1,0 +1,249 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "77e319da-d782-4258-bf0e-626755e5adc9",
+ "name": "Kalastria Highborn",
+ "text_sha": "aef067d6f3924069ab900829c8d2db880c998fc3eebbd5dedf27a6f81abaaf49",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FOr",
+      "children": [
+       {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Vampire",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         }
+        ]
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "IS_SOURCE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "PAY"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cost",
+           {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostManaColor",
+              "color": "B",
+              "amount": {
+               "tag": "QConst",
+               "value": 1
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "LOSE_LIFE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 2
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "GAIN_LIFE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 2
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Kalastria Highborn: \"Whenever this creature or another Vampire you control dies, you may pay\n# {B}. If you do, target player loses 2 life and you gain 2 life.\"\n# Event: M21 Thieves' Guild Enforcer's verified \"this creature or another Rogue you control\" subject,\n# a Vampire, on a CreatureDiesEvent; effect: M21 Ghostly Pilferer's verified \"you may pay {2}. If you\n# do, ...\" at {B}, then Spirit of Malevolence's \"loses N life and you gain N life\" with Sublime\n# Epiphany's \"target player\" (TARGET_PLAYER, chosen as the trigger goes on the stack).\ntrigger = TriggeredAbility(\n    event=CreatureDiesEvent(\n        filter=FOr(\n            children=(\n                FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Vampire'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                    ),\n                ),\n                FAtom(pred=FAtomPred.IS_SOURCE),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.PAY, {\n                    'cost': Cost(parts=(CostManaColor(color='B', amount=QConst(value=1)),)),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=Seq(\n                    steps=(\n                        A(Verb.LOSE_LIFE, {\n                            'amount': QConst(value=2),\n                            'controller': ControllerRef.TARGET_PLAYER,\n                        }),\n                        A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n                    ),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever this creature or another Vampire you control dies, you may pay {B}.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "If you do, target player loses 2 life and you gain 2 life.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Thieves' Guild Enforcer's 'this creature or another <type> you control' on a CreatureDiesEvent; Ghostly Pilferer's may-pay at {B}; 'target player loses 2 life' as LOSE_LIFE(TARGET_PLAYER), then you gain 2. ENGINE, weaker than printed: in a dies trigger the binder pre-binds the designated player to the dead creature (TriggerBinder._put, Massacre Wurm's anaphora), so the target is never asked and you lose 2 and gain 2 (known bug pack tools/scenarios/known_bugs/kalastria_highborn_target_player_never_designated.json). packs in tools/scenarios/mapped/FDN/: kalastria_highborn_only_your_vampires."
+ },
+ "probe": {
+  "sha": "6ad3006ac90f4518a82e9597a793b6fd12f68cd1374d48399910c9c09dd79fed"
+ }
+}

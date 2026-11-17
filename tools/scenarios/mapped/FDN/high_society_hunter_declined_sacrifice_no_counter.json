@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "high_society_hunter_declined_sacrifice_no_counter",
+ "notes": "M5 mapper. Printed: 'Whenever this creature attacks, you may sacrifice another creature. If you do, put a +1/+1 counter on this creature.' High-Society Hunter attacks; seat 0 declines the sacrifice ('skip'): the Bear stays, no counter, and the Hunter deals 5. Then seat 1's Soldier token dies: 'another nontoken creature dies' does not see a token, so no card is drawn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hunter", "real": "High-Society Hunter", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "soldier", "name": "Soldier", "type": "Creature — Soldier", "power": "1", "toughness": "1", "token": true, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hunter": true, "bear": false}, "block": {"soldier": null}, "may": {"hunter": false}},
+  {"op": "move", "key": "soldier", "to": "graveyard"}
+ ],
+ "expect": {
+  "attackers": {"hunter": true, "bear": false},
+  "zone": {"bear": "battlefield", "soldier": "ceased"},
+  "counters": {"hunter": {}},
+  "life": {"0": 20, "1": 15},
+  "hand": {"0": 0}
+ }
+}

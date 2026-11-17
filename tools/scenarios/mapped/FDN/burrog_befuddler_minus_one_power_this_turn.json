@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "burrog_befuddler_minus_one_power_this_turn",
+ "notes": "M3 mapper. Printed: 'When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.' Burrog Befuddler enters; seat 0 targets the opponent's 3/3, which becomes 2/3 (power only).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "frog", "real": "Burrog Befuddler", "zone": "hand", "controller": 0},
+  {"key": "brute", "name": "Their Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "frog", "decisions": ["brute"]}
+ ],
+ "expect": {
+  "power": {"brute": 2},
+  "toughness": {"brute": 3}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "linden_gains_for_each_white_attacker_you_control",
+ "notes": "M5 mapper. Printed: 'Whenever a white creature you control attacks, you gain 1 life.' Seat 0 attacks with Linden (white), White Knight (white) and Green Bear (green): two triggers, +2 life (once per white attacker, not once per attack). Seat 1 takes 3 + 2 + 2. On seat 1's turn its own white creature attacks seat 0 unblocked: Linden does not trigger, seat 0 takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "linden", "real": "Linden, the Steadfast Queen", "zone": "battlefield", "controller": 0},
+  {"key": "knight", "name": "White Knight", "type": "Creature — Knight", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 0},
+  {"key": "oknight", "name": "Opp White Knight", "type": "Creature — Knight", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"linden": true, "knight": true, "bear": true}, "block": {"oknight": null}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oknight": true}, "block": {"linden": null, "knight": null, "bear": null}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 13}
+ }
+}

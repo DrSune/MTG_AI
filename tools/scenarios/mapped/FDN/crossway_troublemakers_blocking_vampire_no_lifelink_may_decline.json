@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "crossway_troublemakers_blocking_vampire_no_lifelink_may_decline",
+ "notes": "M5 mapper. Printed: 'Attacking Vampires you control have deathtouch and lifelink. Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' On seat 1's turn Opp Ogre (3/3) attacks and seat 0's Vampire (2/2) blocks: a blocking Vampire is not attacking, so it has neither lifelink (seat 0 gains nothing) nor deathtouch (the Ogre survives with 2 damage marked). The Vampire dies; seat 0 declines to pay ('skip'): no life paid, no card. Seat 1's own Vampire is then destroyed: not seat 0's, no offer at all.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tm", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "ovamp", "name": "Opp Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ogre": true, "ovamp": false}, "block": {"vamp": "ogre", "tm": null}, "may": {"tm": false}},
+  {"op": "move", "key": "ovamp", "to": "graveyard"}
+ ],
+ "expect": {
+  "blocked": {"ogre": ["vamp"]},
+  "zone": {"vamp": "graveyard", "ogre": "battlefield", "ovamp": "graveyard"},
+  "damage": {"ogre": 2},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 0, "1": 1}
+ }
+}

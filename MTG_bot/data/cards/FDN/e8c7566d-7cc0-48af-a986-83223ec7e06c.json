@@ -1,0 +1,178 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e8c7566d-7cc0-48af-a986-83223ec7e06c",
+ "name": "Midnight Reaper",
+ "text_sha": "e95ea7f388edf7bb37befa4e0c732c3549a5f843106fbdae9c2c5aaa447d0ff1",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_TOKEN"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Midnight Reaper: \"Whenever a nontoken creature you control dies, this creature deals 1 damage\n# to you and you draw a card.\"\n# Event: a CreatureDiesEvent over your nontoken creatures (Basri's Lieutenant's \"creature you\n# control dies\", Gadrak's FNot(IS_TOKEN) for \"nontoken\"); it is a leaves-the-battlefield trigger, so\n# Midnight Reaper's own death triggers it too (CR 603.10a). Effect: the each-opponent damage shape\n# over your own player zone (1), then M21 Dread Presence's \"you draw a card\".\ntrigger = TriggeredAbility(\n    event=CreatureDiesEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.DEAL_DAMAGE, {\n                'amount': QConst(value=1),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.YOU),),\n                ),\n            }),\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "A CreatureDiesEvent over your nontoken creatures (its own death included, CR 603.10a); 1 damage to you (the each-opponent damage shape over your own player zone), then draw. packs in tools/scenarios/mapped/FDN/: midnight_reaper_token_death_does_nothing."
+ },
+ "probe": {
+  "sha": "a5b448621f77e0a6d2cec434cbcc7d2c1f15999d7cde1ab29947304af58e121f"
+ }
+}

@@ -1,0 +1,289 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b5d64271-4478-4c55-8c71-ba8f02b47fac",
+ "name": "Fiendish Panda",
+ "text_sha": "33f12370513e5a6f66fea711df521a257a2de82ea3a13d90652bccc821ef13f9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeGainedEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CMC_LE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": {
+             "tag": "QProp",
+             "referent": "source",
+             "field": {
+              "tag": "QPropField",
+              "name": "POWER"
+             },
+             "agg": {
+              "tag": "QAgg",
+              "name": "FIRST"
+             }
+            },
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "SUBTYPE_EQ"
+             },
+             "string_value": "Bear",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Fiendish Panda: \"Whenever you gain life, put a +1/+1 counter on this creature. When this\n# creature dies, return another target non-Bear creature card with mana value less than or equal\n# to this creature's power from your graveyard to the battlefield.\"\n# compiled[0] is the lifegain counter trigger (B9-gain-life-counter-self), kept. The dies trigger\n# is M20 Cavalier of Night's verified \"When this creature dies, return target creature card with\n# mana value 3 or less from your graveyard to the battlefield.\" with the target narrowed:\n#   another: FNot(IS_SOURCE) (the Panda itself is in the graveyard by then);\n#   non-Bear creature card: TYPE_EQ 'Creature' and FNot(SUBTYPE_EQ 'Bear');\n#   mana value less than or equal to this creature's power: CMC_LE with the quantity\n#   QProp('source', POWER), the source's power as it last existed on the battlefield (CR 608.2h,\n#   quantity.last_known for the ability's own source, counters included).\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Bear')),\n                FAtom(pred=FAtomPred.CMC_LE, count=QProp(referent='source', field=QPropField.POWER)),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [compiled[0], dies, compiled[1]]\n",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0] (the compiler's lifegain counter trigger)"
+   },
+   {
+    "clause": "When this creature dies, return another target non-Bear creature card with mana value less than or equal to this creature's power from your graveyard to the battlefield.",
+    "ir": "abilities[1] (CreatureDiesEvent IS_SOURCE; MOVE_ZONE TARGET another non-Bear creature card from your graveyard with CMC_LE this creature's last-known power, to the battlefield)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Cavalier of Night's verified dies trigger with the target narrowed: another (FNot(IS_SOURCE)), non-Bear creature card (FNot(SUBTYPE_EQ Bear)), CMC_LE QProp('source', POWER): the Panda's power as it last existed on the battlefield (CR 608.2h, quantity.last_known for the ability's source), +1/+1 counters included. The lifegain counter trigger is the compiler's, kept. Packs: tools/scenarios/mapped/FDN/fiendish_panda_offers_no_bear_no_six_not_itself.json, tools/scenarios/mapped/FDN/fiendish_panda_reads_its_last_power_counters_included.json."
+ },
+ "probe": {
+  "sha": "b2cb0d83dd5e4fcedd0903443fefc1567ce81d21b246b8ce1c202e5aa239787c"
+ }
+}

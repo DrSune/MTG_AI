@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "flamewake_phoenix_declined_or_opponents_turn_stays",
+ "notes": "M5 mapper. Printed: 'Ferocious — At the beginning of combat on your turn, if you control a creature with power 4 or greater, you may pay {R}. If you do, return this card from your graveyard to the battlefield.' Flamewake Phoenix is in seat 0's graveyard; seat 0 controls a 4/4 Ogre and one Mountain. At seat 0's beginning of combat seat 0 declines ('may' false): the Phoenix stays and the Mountain stays untapped. On seat 1's turn, with the Ogre still there, the combat would take an offer, but it is not seat 0's combat: nothing triggers, the Phoenix stays in the graveyard and the Mountain untapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "phoenix", "real": "Flamewake Phoenix", "zone": "graveyard", "controller": 0},
+  {"key": "ogre", "name": "Big Ogre", "type": "Creature — Ogre", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ogre": false}, "may": {"phoenix": false}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bear": false}, "may": {"phoenix": true}}
+ ],
+ "expect": {
+  "zone": {"phoenix": "graveyard"},
+  "tapped": {"mountain": false},
+  "life": {"0": 20, "1": 20}
+ }
+}

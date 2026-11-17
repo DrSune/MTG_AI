@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "mentor_of_the_meek_pays_for_each_small_creature",
+ "notes": "M5 mapper. Printed: 'Whenever another creature you control with power 2 or less enters, you may pay {1}. If you do, draw a card.' Seat 0 casts Dragon Fodder: two 1/1 Goblins enter at once, two triggers; seat 0 pays {1} for each ('fire', 'fire'): two cards. Then Savannah Lions (power 2) enters: pay {1}, one more card. Hand: Fodder and Lions cast, three cards drawn; no mana left.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mentor", "real": "Mentor of the Meek", "zone": "battlefield", "controller": 0},
+  {"key": "fodder", "real": "Dragon Fodder", "zone": "hand", "controller": 0},
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Dragon Fodder", "key": "fodder", "controller": 0, "decisions": ["first-legal", "fire", "fire"]},
+  {"op": "cast", "real": "Savannah Lions", "key": "lions", "controller": 0, "decisions": ["fire"]}
+ ],
+ "expect": {
+  "tokens": {"Goblin": 2},
+  "zone": {"lions": "battlefield"},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {}}
+ }
+}

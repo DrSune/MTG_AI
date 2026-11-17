@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "micromancer_finds_a_mana_value_one_instant",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you may search your library for an instant or sorcery card with mana value 1, reveal it, put it into your hand, then shuffle.' Seat 0's library holds an instant of mana value 1, a sorcery of mana value 1, an instant of mana value 2 and a creature of mana value 1. Micromancer enters; seat 0 searches and takes the mana value 1 sorcery: it goes to seat 0's hand (one card), every other card stays in the library.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "micro", "real": "Micromancer", "zone": "hand", "controller": 0},
+  {"key": "jolt", "name": "Lib Jolt", "type": "Instant", "cmc": 1, "zone": "library", "controller": 0},
+  {"key": "spark", "name": "Lib Spark", "type": "Sorcery", "cmc": 1, "zone": "library", "controller": 0},
+  {"key": "blast", "name": "Lib Blast", "type": "Instant", "cmc": 2, "zone": "library", "controller": 0},
+  {"key": "imp", "name": "Lib Imp", "type": "Creature — Imp", "power": "1", "toughness": "1", "cmc": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "micro", "decisions": ["fire", "spark"]}
+ ],
+ "expect": {
+  "zone": {"micro": "battlefield", "spark": "hand", "jolt": "library", "blast": "library", "imp": "library"},
+  "hand": {"0": 1}
+ }
+}

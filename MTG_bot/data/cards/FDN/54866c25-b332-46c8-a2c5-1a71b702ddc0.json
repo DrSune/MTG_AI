@@ -1,0 +1,236 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "54866c25-b332-46c8-a2c5-1a71b702ddc0",
+ "name": "Mindsparker",
+ "text_sha": "e223fce7ee655adf6e015b2c76d5b547750051e72138c713b0ed8873ed70b5f1",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FIRST_STRIKE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FOr",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "COLOR_HAS"
+          },
+          "string_value": null,
+          "color": "U",
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "COLOR_HAS"
+          },
+          "string_value": null,
+          "color": "W",
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       {
+        "tag": "FOr",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Instant",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Sorcery",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       }
+      ]
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "OPPONENT"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "event"
+          },
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Mindsparker: \"First strike. Whenever an opponent casts a white or blue instant or sorcery spell,\n# this creature deals 2 damage to that player.\"\n# Event: Ghostly Pilferer's opponent cast, filtered to white or blue (COLOR_HAS in an FOr, never\n# COLOR_IN) instants or sorceries. \"That player\" is the caster, the triggering spell's controller:\n# MAPPER_GUIDE R_ITSCONTROLLER, the 'event' referent read through CONTROLLER_IS over the players.\ntrigger = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAnd(\n            children=(\n                FOr(\n                    children=(\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='U'),\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                    ),\n                ),\n                FOr(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n                    ),\n                ),\n            ),\n        ),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n    ),\n    condition=None,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAtom(\n                pred=FAtomPred.CONTROLLER_IS,\n                who=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                    referent='event',\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "First strike (This creature deals combat damage before creatures without first strike.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Ghostly Pilferer's opponent cast filtered to white or blue (COLOR_HAS) instants or sorceries; 'that player' is the triggering spell's controller, MAPPER_GUIDE R_ITSCONTROLLER's 'event' referent read through CONTROLLER_IS over the players. First strike compiled. packs in tools/scenarios/mapped/FDN/: mindsparker_white_or_blue_instants_and_sorceries, mindsparker_damages_only_the_caster (three players)."
+ },
+ "probe": {
+  "sha": "30a17f3c3eebb2da1ad2f3cf2aee38a537cb8021d0d798b320199a737f3f3d35"
+ }
+}

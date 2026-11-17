@@ -1,0 +1,27 @@
+{
+ "set": "FDN",
+ "name": "gateway_sneak_unblockable_only_this_turn",
+ "notes": "M5 mapper. Printed: 'Whenever a Gate you control enters, this creature can't be blocked this turn.' Seat 0 plays Azorius Guildgate on turn 1 and does not attack. On seat 0's next turn (turn 3) Gateway Sneak attacks with no Gate entering that turn: Opp Bear is offered the block and takes it ('this turn' ended with turn 1). The Sneak (1/3) survives the Bear and deals no damage to seat 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sneak", "real": "Gateway Sneak", "zone": "battlefield", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "gate"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"sneak": true}, "block": {"bear": "sneak"}}
+ ],
+ "expect": {
+  "attackers": {"sneak": true},
+  "blocked": {"sneak": ["bear"]},
+  "block_asks": {"bear": "<sneak>,NONE"},
+  "life": {"0": 20, "1": 20},
+  "zone": {"sneak": "battlefield", "bear": "battlefield"},
+  "damage": {"sneak": 2, "bear": 1}
+ }
+}

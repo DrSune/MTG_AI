@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "mentor_of_the_meek_may_decline",
+ "notes": "M5 mapper. Printed: '... you may pay {1}. If you do, draw a card.' Savannah Lions enters; seat 0 declines ('skip'): no card, and the {1} stays in the pool.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mentor", "real": "Mentor of the Meek", "zone": "battlefield", "controller": 0},
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Savannah Lions", "key": "lions", "controller": 0, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"lions": "battlefield"},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}
