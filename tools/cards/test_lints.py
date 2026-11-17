@@ -26,16 +26,19 @@ import lints
 from irpy import A
 
 from MTG_bot.core.ability_tree import (
+    Choose,
     Conditional,
     ControllerRef,
     DamageDealtEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
+    DurationEot,
     EachPlayer,
     FAnd,
     FAtom,
     FAtomPred,
     Keyword,
+    KeywordAbility,
     QConst,
     QProp,
     QPropField,
@@ -292,6 +295,50 @@ def test_damage_to_its_controller_has_one_form() -> None:
                   A(Verb.DEAL_DAMAGE, {"amount": QConst(2), "target": ref}),          # the creature again
                   EachPlayer(ref=ref, effect=A(Verb.DEAL_DAMAGE, {"amount": QConst(2), "target": you}))):
         assert lints.its_controller(raw, outrage(wrong)), wrong
+
+
+YOUR_CREATURES = Selector(QUnbounded(), SelectorMode.ALL,
+                          FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                                FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+                          zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+HEXPROOF_ALL = A(Verb.GRANT_ABILITY, {"ability": KeywordAbility(keyword=Keyword.HEXPROOF),
+                                      "duration": DurationEot(), "target": YOUR_CREATURES})
+
+
+def test_a_population_beside_a_designation_is_flagged() -> None:
+    """Mapper M6's repro: FDN Celestial Armor's enters trigger ("attach it to target creature you
+    control") with "creatures you control gain hexproof" after it, an ALL in the target role,
+    which the engine resolves to the designated creature alone (the pin below). A "choose one"
+    keeps each mode's designation to itself (FDN Boros Charm's indestructible mode); modes chosen
+    together share it."""
+    raw, armor = _card("FDN", "Celestial Armor")
+    etb = armor.abilities[0]
+    grant = dataclasses.replace(etb, effect=Seq(steps=(*etb.effect.steps, HEXPROOF_ALL)))
+    assert lints.designation(raw, armor) == []
+    assert lints.designation(raw, dataclasses.replace(armor, abilities=(grant, *armor.abilities[1:])))
+    raw, charm = _card("FDN", "Boros Charm")
+    spell = next(a for a in charm.abilities if isinstance(a, SpellAbility))
+    assert isinstance(spell.effect, Choose) and spell.effect.count == QConst(1)
+    assert lints.designation(raw, charm) == []
+    two = dataclasses.replace(spell, effect=dataclasses.replace(spell.effect, count=QConst(2)))
+    assert lints.designation(raw, dataclasses.replace(charm, abilities=(two,)))
+
+
+def test_the_engine_reads_a_designation_for_a_population_beside_it() -> None:
+    """What the designation lint guards, pinned so the day the engine changes this test fails and
+    the lint is retired: with a designation bound, selectors.role_handles gives a referent-free
+    ALL in the target role the designation, not its population (the payments' all_bf() idiom)."""
+    from run_scenarios import ScenarioRunner
+
+    from MTG_bot.core.executor.games import get_supply
+
+    bear = {"type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+    pack = {"set": "M21", "world": {"life": 20, "seed": 7}, "steps": [], "expect": {},
+            "cards": [{"key": "a", "name": "A", **bear}, {"key": "b", "name": "B", **bear}]}
+    r = ScenarioRunner(pack, get_supply("all", "M21"))
+    r.ex.execute(HEXPROOF_ALL, source=r.handles["a"], controller=r.p0, bindings={"target": [r.handles["a"]]})
+    r.ex.layers.recompute()
+    assert [k for k in "ab" if r.ex.layers.keyword_of(r.handles[k], Keyword.HEXPROOF)] == ["a"]
 
 
 def test_its_controller_names_a_target_only_where_its_ability_chooses_one() -> None:
