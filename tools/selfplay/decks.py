@@ -27,6 +27,7 @@ import json
 import os
 import subprocess
 import sys
+from array import array
 from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
@@ -86,7 +87,8 @@ def _rebuild_here(out: str, pool: str, commit: str, rows_paths: list[str]) -> No
 
     deals = deals_in(rows_paths)
     supplies, rarity, cards, meta = {}, {}, {}, []
-    off, idx, cnt = [0], [], []
+    # typed buffers, not lists: a whole run's log (r28: 3.25M deals) holds ~200M entries
+    off, idx, cnt = array("q", [0]), array("h"), array("b")
     for seed, mode, set_code in deals:
         if set_code not in supplies:
             supplies[set_code] = get_supply(pool, set_code)
