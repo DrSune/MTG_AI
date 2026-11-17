@@ -30,7 +30,7 @@ are neutral; each one is teaching the agent something.
 | **10 actions per player per step** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; 10 in each main phase from 2026-11-06, B-74; per player and step since 2026-11-11, when the loop gave priority in every step, DESIGN_PRIORITY §2.6) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`_play_turns`; `Executor.acted` counts); the pack runner's `act` op | A rail, not a rule: CR 117 sets no limit on how often a player who keeps priority acts. It makes a player who never passes pass after its tenth action in a step (a free ability activated forever), recorded as any pass is. Priority did not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
 | **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later step adds the mana at that step, standing in for the lands the player taps there. Since 2026-11-11 a cast step may instead tap real lands with `"tap": true` (the menu's automatic payment, the row above); the op stays as the short form. Remove when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
-| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics): since 2026-11-13 (ontology R9) a creature-type `quality` ask in the M20 and M21 pools too (69 and 74 types; FDN's 47 fit), Icon of Ancestry's choice, which the heuristic then makes (`HeuristicAgent._quality`: the type most of its own visible cards share). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
+| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10)** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's; the third, 128 IR tokens per card, went 2026-11-17 with N1, KNOWLEDGE/2026-11-17/210 §8) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics): since 2026-11-13 (ontology R9) a creature-type `quality` ask in the M20 and M21 pools too (69 and 74 types; FDN's 47 fit), Icon of Ancestry's choice, which the heuristic then makes (`HeuristicAgent._quality`: the type most of its own visible cards share). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value; multi-slot rows hidden until 2026-11-06, now one target question per slot; one act window per main phase until 2026-11-11, now a decision at every priority point) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each is a harness simplification. Remove with tool mode (`notes` memory). An LLM seat now pays one call per priority point it can act at, so its clock is measured (DESIGN_PRIORITY §3.6). |
 | **Decision-time search budget: k candidates (3-4), d sampled worlds (2), at most 6 attack or block plans, search skipped where the network's top option >= skip_p, 400 decisions per simulation, leaf = the next own turn's value** (2026-11-03/04) | `tools/selfplay/search.py` (`Searcher`, `plan_attacks`, `plan_blocks`, `MAX_SIM_DECISIONS`) | Compute budgets, not strategy rules, but they decide which moves can ever be found (a move outside the network's top k is never searched). Replace with a budgeted tree search whose breadth follows the visit statistics (PUCT/MCTS) once the engine is fast enough; measure the plan caps by raising them. |
@@ -219,6 +219,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   partition journals) splits the batch in the binder's drain, which groups an event's rows by
   contiguity: the gathered counts stay right, but a permanent that moved in the first part no
   longer sees the second (Yarok's Fenlurker in a game of three or more, where nothing watches it).
+  The replacements are asked player by player too (2026-11-17, review of engine wave C1): when
+  "each player sacrifices a creature" takes a replacement's source from the first player, the
+  next player's creature goes to the graveyard where the rules exile it (CR 614.6: the event is
+  replaced as a whole). Latent: no source of a zone-change replacement in the 19 sets is moved by
+  an EachPlayer beside another player's card (the dies records are a spell's, which no move ends).
+  The fix is the one above: every player chooses, then the moves happen and ask together
+  (`verbs._replaced_moves`).
 - **An effect finds every object it moved itself, a hidden zone included** (2026-11-13, the
   one-event fix). `TriggerBinder._gone` judges "it"/"they" as the trigger begins to resolve (CR
   400.7), so a later instruction of the same effect finds an object an earlier one moved: right
@@ -303,14 +310,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   round R10). The referent form is CHOOSE/QConst(1) (convention C2), and `resolve_selector`'s
   CHOOSE fold slices it to one handle, whatever its register holds: a GRANT_ABILITY, MOVE_ZONE,
   DESTROY, PUT_COUNTER or TAP over `Selector(referent='result')` bound to two objects acts on one.
-  See the Truth's "put each of those cards into your hand" is one case (above). Round R10 makes
+  See the Truth's "put each of those cards into your hand" was one case (fixed 2026-11-17: an ALL
+  over the looked-at cards, as Goblin Ringleader's). Round R10 makes
   the `event` referent name every object bound (a gathered event's), in `resolve_selector` and in
   MOVE_ZONE's own count clamp (`verbs._v_move_zone`, which still moved the first of "them" until
   gate round 10's fixes); `result` and `target` keep the slice until their plural reads are
   audited, card by card.
 - **The life-gain replacement lane applies records in record order and never asks** (2026-11-13):
   `ReplacementRegistry.replacement_for_life_gained` returns the first live record, where CR 616.1
-  lets the gaining player choose the order (the damage lane asks, `_choose`). Two Angels of
+  lets the gaining player choose the order (the damage lane asks, `_choose`). The zone-change lane
+  does the same (`replacement_for_zone_change`, every move since 2026-11-17): with Leyline of the
+  Void and Dryad Militant both live the first in record order exiles (both exile: no difference
+  in the 19 sets; Darksteel Colossus's shuffle beside an exile would differ). Two Angels of
   Vitality commute, so nothing compiled today is affected; a "+1" beside "twice that much" (Rhox
   Faithmender, Alhammarret's Archive) does not (3 life: 8 or 7). Ask the order before compiling
   "twice that much life".
@@ -363,9 +374,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   whose host has protection from it (V44), not one whose host stops matching (an "Enchant
   creature" Aura on a permanent that stops being a creature). The cast-time host filter is fixed
   (ENCHANT carries the filter).
-- **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
-  (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
-  the same turn, goes to the graveyard instead of exile. Weaker than printed.
 - **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
   (CR 610.3) are built; what is left.**
   - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
@@ -377,10 +385,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     ("up to one target", ready for a mapper now), Seal Away ("tapped creature"), Glass Casket
     ("with mana value 3 or less"), Sigrid, Colossal Whale, Glorious Protector, Grasping Giant,
     Hixus, Constricting Sliver, Valki.
-  - **A return to a zone other than the battlefield consults no replacement effect.** The move
-    path asks `replacement_for_zone_change` only for battlefield entries (`verbs._v_move_zone`), so
-    Leyline of the Void would not exile Idol of Endurance's returning cards (B-72 family; general,
-    not specific to returns).
   - **Simultaneity is per destination zone.** One MOVE_ZONE per zone, in the fixed order
     battlefield, hand, graveyard, exile; within a zone every object moves at once. V32 chooses
     each entering Aura's host inside the move loop, so an Aura returning in the same batch as a
@@ -414,6 +418,27 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   sacrifice, but the marking is not fixed).
 - **The reveal record of "reveals their hand" lists the library, not the hand** (verbs.py ~1485;
   round-3 verification, 2026-11-06); nothing reads it today.
+- **Zone moves that do not ask the replacements yet** (2026-11-17, engine wave C1; review of
+  the wave): every verb that moves a card, the state-based actions, a spell's put off the stack
+  and the end-of-turn exile ask `ReplacementRegistry.replacement_for_zone_change`, the moves of
+  one event all before any happens. Not yet: a draw (its own CardDrawnEvent lane), a cast (hand to
+  stack), a land drop (`stack.play_land`, hand to battlefield) and a token's creation. No compiled
+  replacement in the 19 sets reads one of them (Containment Priest's enter spares tokens and casts;
+  a land creature played under it would enter). Two conventions to revisit with the first card that
+  needs them: an endpoint's player is the zone's owner (the trigger lane's convention), so "enters
+  under an opponent's control" cannot be told; and a replaced move's card stays in the `result`
+  register ("Return it to the battlefield. It gains haste" after an enter replacement points at
+  the exiled card), as the enter lane did before. Separately, a resolved or countered spell goes
+  to its caster's graveyard (`stack.resolve_top`, `verbs._v_counter_spell`), its owner's only
+  while nobody casts another player's card (CR 400.3).
+- **A replacement that moves its own card "from anywhere" works only while the card is on the
+  battlefield** (2026-11-17, engine wave C1): every move asks the zone-change replacements since
+  then, but a permanent's records live while their source is on the battlefield
+  (`ReplacementRegistry._source_alive`). FDN Darksteel Colossus and Progenitus ("If ~ would be put
+  into a graveyard from anywhere, reveal ~ and shuffle it into its owner's library instead") also
+  replace their discard or mill (the cards' rulings: the ability works from a hand or a library).
+  For round B13 (ZONEREPLACE with SHUFFLEIN): a record whose event's subject is its own source
+  and whose origin is ANY lives in every zone.
 
 ### Mana and payment
 
@@ -457,6 +482,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       `role_players` does.
     - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
       ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
+      GAIN_CONTROL's recipient reads it too since 2026-11-17 (FDN Wishclaw Talisman's "An
+      opponent gains control of this artifact": its controller chooses the opponent).
   - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`. Scenario packs may
     have three or more seats since 2026-11-13 (`"world": {"players": N}`;
     `tools/scenarios/teferis_ageless_insight_three_players.json`).
@@ -464,14 +491,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   records the loser and ends the game only when one player is left, but the player does not
   leave it (CR 800.4a: its objects leave, its turns are skipped; `next_turn_seat` still gives it
   turns). The pack runner fails a three-or-more-seat pack whose loser its `lost` lane does not
-  name, so no pack passes over it.
-- **A printed "target opponent" read without a TARGET selector still takes a trigger's
-  pre-bind** (2026-11-12): `binding._put` binds the dealer of a DAMAGE firing, or the dead
-  creature of a DIES firing, for an effect that reads a designated player and prints no TARGET
-  slot. That serves the "that player" anaphora (TARGET_PLAYER, D18, Massacre Wurm), but a
-  TARGET_OPPONENT read is always a printed target: with several opponents its controller must be
-  asked (CR 603.3d). No compiled tree in the 19 sets has one; lift the pre-bind for
-  TARGET_OPPONENT when one appears.
+  name, so no pack passes over it. Since 2026-11-17 one part of 800.4a is done: the control
+  effects that gave the loser control of objects end (`Executor._expire_control(players=...)`;
+  `test_executor_give_control.py`); its own objects still stay.
 - **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
   With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
   `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
@@ -612,28 +634,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
   mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
   emblem with a verb the supply reads is compiled; none of the 6 emblem trees has one.
-- **"N damage to that creature's controller": two answers, one of them stale** (2026-11-13,
-  analysis only; a decision for the next gate round).
-  - MAPPER_GUIDE ("has no encoding yet ... Mark such a card needs-atom (M20 Chandra's Outrage)")
-    and Chandra's Outrage's needs-atom note reject a TARGET selector over the PLAYER zone (a slot
-    of its own), a referent Selector in `target` (the creature itself), ALL over Zone(PLAYER,
-    TARGET_PLAYER) (a phantom player slot) and DEAL_DAMAGE `recipient` (raises). None of these is
-    the verified M20 Chandra, Flame's Fury's −2: `DEAL_DAMAGE(target=Selector(ALL, QUnbounded,
-    FAtom(CONTROLLER_IS, who=Selector(referent="target")), zones=(Zone(PLAYER, ANY),)))`.
-  - That form opens no designation (AGENTS §10), never names TARGET_PLAYER (D18), and reuses the
-    canonical "its controller" referent Selector as CONTROLLER_IS's `who`, as filters already read
-    "that creature's controller" (M21 Feline Sovereign, `who=Selector(referent="event")`). By the
-    identity law it is the one encoding for the wording: the guide's line is stale.
-  - One engine fault first: `selectors.controller_matches` reads a referent's current controller
-    (`controller_of`), not the one it last had (CR 608.2h), which `role_players` reads
-    (`last_known_controller`). Probed 2026-11-13: "destroy target artifact; 3 damage to that
-    artifact's controller" on a stolen artifact hits its owner. Exact today for damage dealt while
-    the object is still there (Chandra's two, Searing Barrage, Ravaging Blaze, Synchronized
-    Spellcraft) or on the stack (ELD Bonecrusher Giant's "that spell's controller"); wrong for
-    10E Cryoclasm, ORI Smash to Smithereens and THB Impending Doom.
-  - Then: the guide's line, and the cards: Chandra's Outrage (M20, M11, M12, M14), Bonecrusher
-    Giant (referent "event"), Searing Barrage, Ravaging Blaze, Cryoclasm, Smash to Smithereens,
-    Impending Doom, Synchronized Spellcraft (X).
+- **"N damage to that creature's controller": settled 2026-11-17** (KNOWLEDGE/2026-11-17/209
+  R_ITSCONTROLLER; MAPPER_GUIDE "That creature's controller", lint `its_controller`). The one form
+  is M20 Chandra, Flame's Fury's verified −2; `selectors.controller_matches` now reads the
+  referent's last known controller (CR 608.2h), so Cryoclasm, Smash to Smithereens and Impending
+  Doom are exact too (`test_damage_to_a_destroyed_creatures_controller_hits_the_thief`). The
+  2026-11-13 reading of ELD Bonecrusher Giant was wrong: a targeting event's `'event'` is the
+  targeted object, so "that spell's controller" has no referent (needs-atom, 209's TARGETS), as
+  M12 Belltower Sphinx's "that source's controller" in a damage trigger has none.
+- **Treasure's TokenSpec writes its artifact type as a keyword** (2026-11-17, R_FOOD). Gadrak's
+  template (`templates_b2a._treasure_token`) builds `type_line='Artifact'`, no subtype and
+  `Keyword.TREASURE`, so SUBTYPE_EQ 'Treasure' finds no Treasure: KHM Gilded Assault Cart's and
+  Magda's "Sacrifice ... Treasures", Goldspan Dragon's "Treasures you control" would read nothing.
+  Food takes the CR's form (CR 205.3g: an artifact type is a subtype; `templates.food_token()`).
+  Fold: the Treasure spec takes `type_line='Artifact — Treasure'`, `subtypes=('Treasure',)` and no
+  keyword, re-verifying its 6 verified trees (M21 Gadrak, M20 and FDN Rapacious Dragon, KHM and
+  FDN Goldvein Pick, FDN Gleaming Barrier) before a card that reads Treasures is mapped; retiring
+  `Keyword.TREASURE` itself is an IR change.
 - **"Whenever you discard a card" has two encodings in waiting** (2026-11-13, analysis only).
   - M20 Bag of Holding (verified) triggers on `ZoneChangeEvent(HAND YOU -> GRAVEYARD YOU)`; M20
     Glint-Horn Buccaneer's needs-atom note asks for a discard event (B-48).
@@ -776,13 +793,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     prints "can block as though".
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
-  - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
-    hand, put each of those cards into your hand instead" runs as an extra step that returns one
-    card, not all three. No compiled card lets you cast it from elsewhere (Chandra, Flame's
-    Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On), replacing the
-    one-and-rest split. A pack casts it from the graveyard since 2026-11-13 (the runner's test
-    permission): `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
-    fails today (Records, "See the Truth's ... branch compiles wrong").
+  - Significant, fixed 2026-11-17: See the Truth's "If this spell was cast from anywhere other
+    than your hand, put each of those cards into your hand instead" ran as an extra step that
+    returned one card; it is the conditional "instead" arm now (as Life Goes On), pack
+    `tools/scenarios/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`.
   - Not significant, kept: Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
     Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
@@ -1024,6 +1038,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   counts the same card against coverage. One card in ZNR, two in M20, three in KHM.
 
 ### Records to map or re-verify
+- **Unblocked by engine wave C1 (2026-11-17), to map** (records are the coordinator's):
+  - FDN Gatekeeper of Malakir: its needs-atom note is stale. Run Afoul's shape under its WAS_KICKED
+    enters trigger (EachPlayer(TARGET_PLAYER, SACRIFICE a creature that player controls)) plays:
+    G1 targets a player, who chooses the creature (`cardtool try` on a scratch draft).
+  - FDN Harmless Offering: GAIN_CONTROL(target permanent you control, controller
+    TARGET_OPPONENT) plays (G1 shows nothing of it: Probe blind spots, "A control change").
+  - FDN Dryad Militant: its replacement plays from every zone; it needs its sentence mapped
+    (ReplacementAbility over ZoneChangeEvent(ANY -> GRAVEYARD ANY, instant or sorcery), "exile it
+    instead" on the event referent, Containment Priest's action).
+  - M21 See the Truth: its tree changed (the "instead" arm); it goes to blind verification.
+  - M21 Mangara, the Diplomat: the S5 pack kills its inner-filter survivor (Gates, below).
 - **27 home stamps whose packs no longer kill every critical G3 mutant** (2026-11-17, gate round 11's
   review; the same on main and on the round's merge). The stamps still hold, since their tree bytes
   are unchanged, but a re-verification today would fail G3. Each needs a pack for its survivor; then
@@ -1108,8 +1133,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - FDN Drake Hatcher, Myojin of Night's Reach, Wishclaw Talisman (and ELD's), Ramos, Dragon
     Engine: counter kinds the IR lacks (incubation, divinity, wish) and other clauses ("put that
     many incubation counters on it", "if you cast it from your hand", "has indestructible as long
-    as ...", "An opponent gains control of this artifact", "Activate only during your turn",
-    "Activate only once each turn", "for each of that spell's colors").
+    as ...", "Activate only during your turn", "Activate only once each turn", "for each of that
+    spell's colors"). "An opponent gains control of this artifact" plays since 2026-11-17
+    (GAIN_CONTROL's `controller` OPPONENT; with several opponents it raises, B-108).
   - Other kinds the IR lacks: wish (Djinn of Wishes x3, Ring of Three Wishes), gold (Dragon's
     Hoard), foreshadow (Ominous Seas), pressure (Hellion Crucible), storage (Mage-Ring Network).
     Amounts no lane pays: X (M15 Cruel Sadist), "all" (ZNR Relic Amulet), "any number" (Mage-Ring
@@ -1183,23 +1209,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     cast triggers of Diamond Knight, Diamond Mare and Prism Ring ("a spell of the chosen color"),
     like every single-atom filter. Their packs cast a spell of another colour. An anthem's read
     has one: its widen drops the choice with it (`gates._without_unread_choices`).
-- **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
-  verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
-  - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
-    into your hand instead."
-  - The tree runs the normal outcome first (one card to hand, the rest to the bottom), then a
-    Conditional moving a count-1 CHOOSE over `result` to hand. So it gives one card, not three, and
-    never "instead".
-  - Unreachable in games: no compiled card casts it from elsewhere. M20 Chandra, Acolyte of
-    Flame's −2 would, but it needs an atom.
-  - The fix is a compiler one: an "instead" clause on a look chooses between the two outcomes,
-    Conditional(not from hand, all looked-at cards to hand, else the normal pair).
-  - Its pack (2026-11-13, the runner's test permission casts it from the graveyard):
-    `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
-    expects all three cards in hand and no choice. It fails today at the first ask (`one_of`,
-    which card goes to the hand); answered, the tree ends with two cards in hand and one on the
-    bottom. With the fix it passes and moves to `tools/scenarios/`.
-  - See the Truth stays unverified until then; its main branch was judged OK.
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
   - **Battalion Foot Soldier** and **Cavalier of Flame**: "any number of" took every candidate with no
@@ -1298,8 +1307,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     "target->all" survivors now differ from the card where a pack can show it, and
     `reports/g3_equivalence_2026-11-13/packs/A05_*.json` does (Gates, below).
     M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
-    re-read now counts a departed attacker by its last attack (its ruling). One survivor is live
-    only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: their G3
+    re-read now counts a departed attacker by its last attack (its ruling). Its one live survivor
+    is killed by an S5 pack since 2026-11-17 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: their G3
     survivors are killed since 2026-11-13 by packs the runner can now run (Gates, "G3 survivors
     no 2-seat same-set pack can kill"); both cards go to blind verification with them.
   - FDN Battlesong Berserker and Searslicer Goblin lost their documented equivalent mutants;
@@ -1460,11 +1469,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     a verifier; or one more pass of priority resolves it instead of ending the main phase. M21
     Mangara's inner-filter mutant differs only when an attacked planeswalker changes control while
     the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws).
-    A pack can respond while the trigger waits since 2026-11-13 (the combat op's
-    `respond_to_triggers`), but no M21 card changes a planeswalker's control at instant speed and
-    the runner has no op that does, so S5 is still unstaged: the window's Mangara pack
-    (`mangara_counts_an_attacker_destroyed_while_its_trigger_waits.json`, an attacker destroyed,
-    S6) plays the same with both mutants. Its event-filter mutant is equivalent
+    No M21 card changes a planeswalker's control at instant speed; since 2026-11-17 the runner's
+    `gain_control` op does it in the combat op's `respond_to_triggers` window, and
+    `tools/scenarios/mangara_no_draw_when_the_attacked_planeswalker_changes_control.json` stages
+    S5 and kills the mutant (seat 0 draws with it). Its event-filter mutant is equivalent
     (`proof_mangara.py`) but its shape is that one card's, so no rule.
   - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
@@ -1487,6 +1495,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Gales): the snapshot keeps each library's size only (`probe.py` `snapshot`), an ask shows its
     kind without its player (`probe.py:121`), and SCRY writes no journal row. Its G3 survivor
     needed a pack answering "bottom" and pinning both libraries.
+  - A control change is invisible (2026-11-17, engine wave C1): the snapshot's controller is
+    `world.controller_of`, the zone's owner, not the effective controller
+    (`Executor.controller_of`), and GAIN_CONTROL writes a raw event row, no journal row. So G1
+    shows FDN Harmless Offering's and Wishclaw Talisman's gift, and the verified Act of Treason
+    family's steal, as nothing. Read `ex.controller_of` in the snapshot (it changes the trace sha
+    of every card whose probe changes control: re-verify those verdicts' traces).
 - **Regenerate the wave-1 packets whose G1 trace changed** (2026-11-12): combat stimuli now show
   the asks a combat makes (a trigger's target, a may-offer, a mode), which the pack runner's
   combat op used to answer unseen with their first word; packet A15 (Feline Sovereign) showed a
@@ -1695,9 +1709,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   goes to the fallback agent (`actor.NetAgent.decide`). Icon of Ancestry's menu in the M20 and
   M21 pools (69 and 74 types) is over `MAX_OPTIONS`, so the heuristic chooses there (the
   observation caps' scaffold). The bench's seat view (`bench/view.py`) shows no chosen value
-  either. Fix with a name embedding on the chooser and a two-stage or wider ask. Icon of
-  Ancestry's tree is 172 IR tokens, past `CardTable.max_ir`'s 128: its choice and its reads fall
-  in the first 128. `C_CHOSEN` holds one value per permanent (gate round 9, n2): an object that
+  either. Fix with a name embedding on the chooser and a two-stage or wider ask. `C_CHOSEN`
+  holds one value per permanent (gate round 9, n2): an object that
   chooses two qualities ("choose a color and a creature type", Riptide Replicator; none in the 19
   sets, and the IR allows one choice per quality, not one per object) would show only one of
   them. Widen the column to one per quality, or refuse the pair, with that card.

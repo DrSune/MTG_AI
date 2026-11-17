@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "faebloom_trick_taps_an_opponents_creature",
+ "notes": "Printed: 'Create two 1/1 blue Faerie creature tokens with flying. When you do, tap target creature an opponent controls.' Seat 0 casts Faebloom Trick (no target as it is cast); it makes two Faeries, and the reflexive trigger then targets seat 1's 3/3 Ogre (chosen as the trigger goes on the stack) and taps it. Seat 0's own 2/2 is not a legal target and stays untapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "trick", "real": "Faebloom Trick", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "trick", "real": "Faebloom Trick", "controller": 0, "decisions": ["ogre"]}
+ ],
+ "expect": {
+  "zone": {"trick": "graveyard"},
+  "tokens": {"Faerie": 2},
+  "tapped": {"ogre": true, "wolf": false, "bear": false},
+  "mana_pool": {"0": {}}
+ }
+}

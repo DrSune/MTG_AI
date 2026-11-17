@@ -1,0 +1,77 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sph",
+   "real": "Sphinx of the Final Word",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Opp Giant",
+   "power": "4",
+   "toughness": "4",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "flier",
+   "name": "Opp Flier",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sph": true
+   },
+   "block": {
+    "giant": "sph",
+    "flier": "sph"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "sph": true
+  },
+  "not_asked_to_block": [
+   "giant"
+  ],
+  "block_asks": {
+   "flier": "<sph>,NONE"
+  },
+  "blocked": {
+   "sph": [
+    "flier"
+   ]
+  },
+  "life": {
+   "1": 20
+  },
+  "zone": {
+   "flier": "graveyard",
+   "giant": "battlefield",
+   "sph": "battlefield"
+  },
+  "damage": {
+   "sph": 1
+  }
+ },
+ "notes": "FDN Sphinx of the Final Word, printed: 'Flying'. Attacking, the 5/5 Sphinx can be blocked only by a creature with flying or reach: the opponent's ground 4/4 is never offered the block, the 1/1 flier is offered the Sphinx (or no block) and, blocking, dies to it."
+}

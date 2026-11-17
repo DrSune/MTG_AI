@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b89d912a-65a0-4bc9-9e1d-ff8317458a72",
+ "name": "Knight of Malice",
+ "text_sha": "154981b033fca667ae4d925c3000f7f5a7880638cc2febadd53b5abbd24cb611",
+ "needs_atom": {
+  "missing": "A battlefield-wide existence condition, 'This creature gets +1/+0 as long as any player controls a white permanent': CONTROLLER_COUNT_GE counts only the ability controller's permanents (it has no who slot), and ZONE_COUNT_GE has no battlefield reading (a who=ANY draft over Zone(BATTLEFIELD) plays in the probe, but it would count phased-out permanents, CR 702.26b, and be a second encoding of a permanent count). Wants round 12's quantity comparison over a battlefield count (QCount of white permanents, any controller, >= 1) or a who slot on CONTROLLER_COUNT_GE. The rest maps: 'Hexproof from white' is KeywordAbility(HEXPROOF, params=(COLOR_HAS 'W',)) (M21 Garruk's Harbinger's form), First strike compiles.",
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17"
+ }
+}

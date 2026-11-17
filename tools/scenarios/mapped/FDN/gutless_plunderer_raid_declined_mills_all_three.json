@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "gutless_plunderer_raid_declined_mills_all_three",
+ "notes": "M7 mapper. Printed: 'You may put one of those cards back on top of your library. Put the rest into your graveyard.' Seat 0 attacked this turn, so the raid trigger looks at the top three (Card C, Card B, Card A); seat 0 declines to keep one, so 'the rest' is all three: they go to the graveyard, Card X stays on top.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "plunderer", "real": "Gutless Plunderer", "zone": "hand", "controller": 0},
+  {"key": "x", "name": "Card X", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "c", "name": "Card C", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "enter", "key": "plunderer", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"plunderer": "battlefield", "a": "graveyard", "b": "graveyard", "c": "graveyard", "x": "library"},
+  "graveyard": {"0": ["Card A", "Card B", "Card C"]},
+  "library": {"0": ["Card X", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

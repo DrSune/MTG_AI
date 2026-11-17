@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "cloudblazer_gains_two_and_draws_two",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you gain 2 life and draw two cards.' Seat 0's library holds Card A on top of Card B on top of the fillers. Cloudblazer enters: seat 0 gains 2 life and draws two cards, A and B; the opponent draws nothing and gains nothing.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "blazer", "real": "Cloudblazer", "zone": "hand", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blazer"}
+ ],
+ "expect": {
+  "life": {"0": 22, "1": 20},
+  "zone": {"blazer": "battlefield", "a": "hand", "b": "hand"},
+  "hand": {"0": 2, "1": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

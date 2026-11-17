@@ -1,0 +1,74 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "troll",
+   "real": "Barkhide Troll",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2,
+   "C": 1
+  },
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Barkhide Troll",
+   "key": "troll"
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "controller": 1,
+   "targets": [
+    "troll"
+   ],
+   "hold": true
+  },
+  {
+   "op": "activate",
+   "key": "troll",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "troll": "battlefield",
+   "shock": "graveyard"
+  },
+  "counters": {
+   "troll": {}
+  },
+  "power": {
+   "troll": 2
+  },
+  "toughness": {
+   "troll": 2
+  },
+  "damage": {},
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ },
+ "notes": "M20 Barkhide Troll, printed: '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' In response to an opponent's Shock aimed at the Troll, the activation resolves first: the Troll has hexproof, so the Shock's target is no longer legal (it did target the Troll while it could) and the spell does nothing: no damage anywhere. The counter was removed when the ability was activated, so the Troll is 2/2."
+}

@@ -1,0 +1,162 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f6abdf34-cfdc-465c-b067-cdebb659406e",
+ "name": "Elfsworn Giant",
+ "text_sha": "006596e579d4b4b7227e3e283293a8e4104db0efcd01dddee650830e9db0ae50",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "REACH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Elf Warrior",
+         "type_line": "Creature — Elf Warrior",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Elf",
+          "Warrior"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "G"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Elfsworn Giant: \"Reach. Landfall — Whenever a land you control enters, create a 1/1 green Elf\n# Warrior creature token.\"\n# ZNR Scute Swarm's landfall trigger; KHM Skemfar Elderhall's Elf Warrior TokenSpec, count 1.\ntrigger = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Elf Warrior',\n            type_line='Creature — Elf Warrior',\n            types=('Creature',),\n            subtypes=('Elf', 'Warrior'),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(),\n            abilities=(),\n            colors=('G',),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Landfall — Whenever a land you control enters, create a 1/1 green Elf Warrior creature token.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Scute Swarm's landfall trigger with Skemfar Elderhall's Elf Warrior TokenSpec, count 1. Reach compiled. packs in tools/scenarios/mapped/FDN/: elfsworn_giant_only_your_lands, elfsworn_giant_two_lands_at_once_two_elves."
+ },
+ "probe": {
+  "sha": "a160226df5748ec80d9d7fd1b4e38b93e02ec39f7cabf5851ec58711b787a21c"
+ }
+}

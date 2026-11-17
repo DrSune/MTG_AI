@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "gateway_sneak_gate_makes_it_unblockable",
+ "notes": "M5 mapper. Printed: 'Whenever a Gate you control enters, this creature can't be blocked this turn. Whenever this creature deals combat damage to a player, draw a card.' Seat 0 plays Azorius Guildgate: Gateway Sneak can't be blocked this turn, so Opp Bear is never asked to block it; it deals 1 combat damage to seat 1 and seat 0 draws a card (hand: the Guildgate played, then one card drawn).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sneak", "real": "Gateway Sneak", "zone": "battlefield", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "gate"},
+  {"op": "combat", "seat": 0, "attack": {"sneak": true}, "block": {"bear": "sneak"}}
+ ],
+ "expect": {
+  "attackers": {"sneak": true},
+  "not_asked_to_block": ["bear"],
+  "life": {"0": 20, "1": 19},
+  "hand": {"0": 1},
+  "zone": {"gate": "battlefield"}
+ }
+}

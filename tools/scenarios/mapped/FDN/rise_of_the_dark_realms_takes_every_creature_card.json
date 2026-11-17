@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "rise_of_the_dark_realms_takes_every_creature_card",
+ "notes": "Printed: 'Put all creature cards from all graveyards onto the battlefield under your control.' Seat 0's graveyard holds a creature card and a sorcery card; seat 1's holds two creature cards and a land card. All three creature cards enter under seat 0's control (no choice); the sorcery and the land stay.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rise", "real": "Rise of the Dark Realms", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Ghoul", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "mysorc", "name": "My Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "theirs1", "name": "Their Wolf", "type": "Creature — Wolf", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1},
+  {"key": "theirs2", "name": "Their Ogre", "type": "Creature — Ogre", "power": "4", "toughness": "4", "zone": "graveyard", "controller": 1},
+  {"key": "theirland", "name": "Their Land", "type": "Land", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 7}},
+ "steps": [
+  {"op": "cast", "key": "rise", "real": "Rise of the Dark Realms", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"rise": "graveyard", "mine": "battlefield", "theirs1": "battlefield", "theirs2": "battlefield", "mysorc": "graveyard", "theirland": "graveyard"},
+  "controller": {"mine": 0, "theirs1": 0, "theirs2": 0},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "hare_apparent_a_rabbit_for_each_other_hare_you_control",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a number of 1/1 white Rabbit creature tokens equal to the number of other creatures you control named Hare Apparent.' Seat 0 controls two Hare Apparents, the opponent one. A third Hare Apparent enters under seat 0: two Rabbits (the other two Hares seat 0 controls; the entering one and the opponent's do not count).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hare", "real": "Hare Apparent", "zone": "hand", "controller": 0},
+  {"key": "h1", "real": "Hare Apparent", "zone": "battlefield", "controller": 0},
+  {"key": "h2", "real": "Hare Apparent", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "real": "Hare Apparent", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hare"}
+ ],
+ "expect": {
+  "zone": {"hare": "battlefield"},
+  "tokens": {"Rabbit": 2}
+ }
+}

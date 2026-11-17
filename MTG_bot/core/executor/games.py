@@ -59,6 +59,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 import sys
 import time
 import traceback
@@ -129,6 +130,14 @@ DECK_SIZE = 60
 OPENING_HAND = 7
 TURN_CAP = 60
 MAX_COPIES = 4
+#: A card's own deck-construction rule beats the four-copy limit (CR 100.2a; the card wins, CR
+#: 101.1): "A deck can have any number of cards named ~." (FDN Hare Apparent, DOM Rat Colony,
+#: Relentless Rats, M14 Shadowborn Apostle) or "... up to seven ..." (ELD Seven Dwarves). It has no
+#: in-game meaning, so no ability tree holds it (docs/MAPPER_GUIDE.md, "Labelled sentences"): the
+#: deck builders read it off the printed sentence, :func:`deck_rule_copies`.
+_DECK_RULE = re.compile(r"A deck can have (?:(any number) of|up to (\w+)) cards named (.+)\.")
+_COPY_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+               "nine": 9, "ten": 10}
 MIN_MANA_SOURCES = 10
 #: At most this many actions by one player in one step (CR 117: a player who acts keeps
 #: priority, so one who never passes would never let a step end); a rail, not a rule, registered
@@ -164,11 +173,30 @@ PRIORITY_PASS_P = 0.9
 _BASICS = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 
 
+def deck_rule_copies(sentence: str, name: str) -> int | None:
+    """The copies of the card ``name`` a deck may hold by ``sentence``, when it is that card's own
+    deck-construction rule (``_DECK_RULE``): :data:`DECK_SIZE` for "any number" (no deck holds
+    more), N for "up to N". None for any other sentence."""
+    m = _DECK_RULE.fullmatch(sentence.strip())
+    if m is None or m.group(3) != name:
+        return None
+    if m.group(1):
+        return DECK_SIZE
+    word = m.group(2).lower()
+    if word.isdigit():
+        return int(word)
+    if word not in _COPY_WORDS:
+        raise ValueError(f"{name}: a deck rule this reader cannot count: {sentence!r}")
+    return _COPY_WORDS[word]
+
+
 # ----------------------------------------------------------------- pool side
 @dataclass(frozen=True)
 class CardMeta:
     """Deck-construction view of one compiled card, flattened once per process
-    so a 100-seed run compiles the pool exactly once."""
+    so a 100-seed run compiles the pool exactly once. ``max_copies`` is the most copies of it a
+    deck may hold: :data:`MAX_COPIES`, unless the card prints its own deck rule
+    (:func:`deck_rule_copies`)."""
 
     oracle_id: str
     name: str
@@ -179,6 +207,7 @@ class CardMeta:
     has_spell_node: bool
     engine_supported: bool
     is_basic: bool
+    max_copies: int = MAX_COPIES
 
     @property
     def mana_capable(self) -> bool:
@@ -347,6 +376,11 @@ def compile_supply(
             ),
             engine_supported=oid in engine_ids,
             is_basic=record.name in _BASICS,
+            max_copies=min(
+                (n for s in raw[oid].sentences
+                 if (n := deck_rule_copies(s, record.name)) is not None),
+                default=MAX_COPIES,
+            ),
         )
     playable_engine = frozenset(
         oid for oid, meta in metas.items() if meta.engine_supported and meta.playable
@@ -439,7 +473,8 @@ def build_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
     decks): the first :data:`MIN_MANA_SOURCES` slots are mana sources — the
     basics, one each in pool order, then the other mana-capable cards shuffled —
     so every deck can pay for *something*; the rest is a uniform seeded sample
-    of the dealt pool; at most :data:`MAX_COPIES` of any card; duplicates are
+    of the dealt pool; at most :data:`MAX_COPIES` of any card (a card's own deck
+    rule, ``CardMeta.max_copies``, excepted); duplicates are
     otherwise encouraged, because a 60-card deck drawn out of ~300 cards makes
     each game exercise a different slice of the corpus."""
     rng = random.Random(deck_seed)
@@ -459,7 +494,7 @@ def build_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
     for oid in basics + others:
         if len(deck) >= MIN_MANA_SOURCES:
             break
-        if copies.get(oid, 0) < MAX_COPIES:
+        if copies.get(oid, 0) < metas[oid].max_copies:
             take(oid)
     if len(deck) < MIN_MANA_SOURCES:
         # Loud, not a silently dealt deck that cannot pay for anything: only a
@@ -470,7 +505,7 @@ def build_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
         )
     while len(deck) < DECK_SIZE:
         oid = supply.deckable[rng.randrange(len(supply.deckable))]
-        if copies.get(oid, 0) < MAX_COPIES:
+        if copies.get(oid, 0) < metas[oid].max_copies:
             take(oid)
     rng.shuffle(deck)
     return tuple(deck)
@@ -1525,7 +1560,8 @@ DECK_MODES = ("stress", "coherent")
 def build_coherent_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
     """A seeded 60-card two-colour deck: :data:`COHERENT_LANDS` basics split evenly between its
     two colours, and the rest a uniform seeded sample of the dealt pool's non-land cards whose
-    colour identity lies within the pair (colourless included), at most :data:`MAX_COPIES` each.
+    colour identity lies within the pair (colourless included), at most ``CardMeta.max_copies``
+    each (:data:`MAX_COPIES`, or the card's own deck rule).
 
     The opt-in alternative to :func:`build_deck`'s five-colour stress piles (13.4 lands of 60 on
     average). Like them it is a uniform sample: no curve and no card choice beyond colour, so it
@@ -1546,7 +1582,7 @@ def build_coherent_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
         if not metas[oid].is_land
         and set(supply.pool.results[oid].card.color_identity) <= set(pair)
     ]
-    if len(spells) * MAX_COPIES < DECK_SIZE - COHERENT_LANDS:
+    if sum(metas[oid].max_copies for oid in spells) < DECK_SIZE - COHERENT_LANDS:
         raise ValueError(
             f"coherent deck {deck_seed}: only {len(spells)} {''.join(pair)} cards in the pool "
             f"(pool_mode={supply.mode!r}), need {(DECK_SIZE - COHERENT_LANDS) // MAX_COPIES}"
@@ -1555,7 +1591,7 @@ def build_coherent_deck(deck_seed: int, supply: Supply) -> tuple[str, ...]:
     copies: dict[str, int] = {}
     while len(deck) < DECK_SIZE:
         oid = spells[rng.randrange(len(spells))]
-        if copies.get(oid, 0) < MAX_COPIES:
+        if copies.get(oid, 0) < metas[oid].max_copies:
             copies[oid] = copies.get(oid, 0) + 1
             deck.append(oid)
     rng.shuffle(deck)

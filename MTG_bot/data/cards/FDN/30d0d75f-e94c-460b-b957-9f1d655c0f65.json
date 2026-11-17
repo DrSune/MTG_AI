@@ -1,0 +1,341 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "30d0d75f-e94c-460b-b957-9f1d655c0f65",
+ "name": "Dwynen, Gilt-Leaf Daen",
+ "text_sha": "a7c40d79d16097156d62dc740faca052a264b882d2d266bf2fd2f92a1968e41b",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "REACH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Elf",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "MUL"
+         },
+         "left": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "right": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACKING"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUBTYPE_EQ"
+              },
+              "string_value": "Elf",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Dwynen, Gilt-Leaf Daen: \"Reach. Other Elf creatures you control get +1/+1. Whenever Dwynen\n# attacks, you gain 1 life for each attacking Elf you control.\"\n# [0]: M21 Pack Leader's verified \"Other Dogs you control get +1/+1.\" with Elf.\n# [1]: Library Larcenist's \"Whenever this creature attacks\"; effect: M21 Aven Gagglemaster's verified\n# \"you gain 2 life for each creature you control with flying\" at 1, counting your attacking Elves\n# (IS_ATTACKING, Warded Battlements; Dwynen is one and counts itself). Reach is compiled.\nanthem = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\nattacks = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=1),\n            right=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.IS_ATTACKING),\n                            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [anthem, attacks, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Reach (This creature can block creatures with flying.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Other Elf creatures you control get +1/+1.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever Dwynen attacks, you gain 1 life for each attacking Elf you control.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Pack Leader's verified 'Other Dogs you control get +1/+1' with Elf; Library Larcenist's attack trigger with Aven Gagglemaster's 'gain N life for each' counting your attacking Elves (Dwynen included). Reach compiled. packs in tools/scenarios/mapped/FDN/: dwynen_other_elves_and_attacking_elves."
+ },
+ "probe": {
+  "sha": "3d243668d1506c73a8ca2c359ddaa2625180f39f75fda629519bd8374a9241dc"
+ }
+}

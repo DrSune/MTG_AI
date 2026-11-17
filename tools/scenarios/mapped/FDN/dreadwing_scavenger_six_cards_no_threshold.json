@@ -1,0 +1,30 @@
+{
+ "set": "FDN",
+ "name": "dreadwing_scavenger_six_cards_no_threshold",
+ "notes": "M5 mapper. Printed: 'Threshold — This creature gets +1/+1 and has deathtouch as long as there are seven or more cards in your graveyard.' Seat 0 has six cards in its graveyard and seat 1 has seven: Dreadwing Scavenger stays a 2/2 with flying and without deathtouch (the opponent's graveyard does not count).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dread", "real": "Dreadwing Scavenger", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "real": "Swamp", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "real": "Swamp", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "real": "Swamp", "zone": "graveyard", "controller": 0},
+  {"key": "g4", "real": "Swamp", "zone": "graveyard", "controller": 0},
+  {"key": "g5", "real": "Island", "zone": "graveyard", "controller": 0},
+  {"key": "g6", "real": "Island", "zone": "graveyard", "controller": 0},
+  {"key": "o1", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o2", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o3", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o4", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o5", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o6", "real": "Plains", "zone": "graveyard", "controller": 1},
+  {"key": "o7", "real": "Plains", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"dread": 2},
+  "toughness": {"dread": 2},
+  "battlefield_keywords": {"Dreadwing Scavenger": ["FLYING"]}
+ }
+}

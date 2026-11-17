@@ -1,0 +1,234 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b94c233e-11d3-4556-a1da-bd193e58b663",
+ "name": "Tempest Djinn",
+ "text_sha": "b552111600dfc7c26c8803db8e447d0366c80cb3034001d26e31e1d8e0b6abe6",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QBin",
+          "op": {
+           "tag": "QBinOp",
+           "name": "MUL"
+          },
+          "left": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "right": {
+           "tag": "QCount",
+           "selector": {
+            "tag": "Selector",
+            "count": {
+             "tag": "QUnbounded"
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "ALL"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "SUBTYPE_EQ"
+               },
+               "string_value": "Island",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "SUPERTYPE_EQ"
+               },
+               "string_value": "Basic",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          }
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nBASIC_ISLANDS = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Island'),\n            FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\npump = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(\n            direction=PtDirection.INCREASE,\n            magnitude=QBin(op=QBinOp.MUL, left=QConst(value=1), right=QCount(selector=BASIC_ISLANDS)),\n        ),\n        'target': SELF,\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n    }),\n)\nabilities = [pump, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "This creature gets +1/+0 for each basic Island you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Malefic Scythe's QBin(MUL, 1, count) magnitude over your basic Islands. Packs: tools/scenarios/mapped/FDN/tempest_djinn_two_basic_islands.json, tools/scenarios/mapped/FDN/tempest_djinn_counts_your_basic_islands.json."
+ },
+ "probe": {
+  "sha": "1d4f285425240b11ec360a32536a31cde5cff869095bbdcf54c62d2ec2abde80"
+ }
+}

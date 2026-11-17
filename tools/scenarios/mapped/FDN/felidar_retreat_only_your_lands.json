@@ -1,0 +1,24 @@
+{
+ "name": "felidar_retreat_only_your_lands",
+ "set": "FDN",
+ "note": "Felidar Retreat: 'Landfall -- Whenever a land you control enters, choose one -- * Create a 2/2 white Cat Beast creature token. ...' On the opponent's turn the opponent plays a Swamp: it is not P0's land, so nothing triggers (no mode is asked, no token). On P0's next turn P0 plays a Forest and takes the first mode: exactly one 2/2 Cat Beast token.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "retreat", "real": "Felidar Retreat", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 1},
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "swamp", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "forest", "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "forest": "battlefield"},
+  "tokens": {"Cat Beast": 1},
+  "battlefield_pt": {"Cat Beast": [2, 2]}
+ }
+}

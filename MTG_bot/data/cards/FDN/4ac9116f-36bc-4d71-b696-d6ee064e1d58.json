@@ -1,0 +1,185 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4ac9116f-36bc-4d71-b696-d6ee064e1d58",
+ "name": "Juggernaut",
+ "text_sha": "45d7c80dfab7eeb2f1b7f3d1ea80e687f45c3b88e3f2dfd4248ebce8b62e3327",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MANDATE_ATTACK"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Wall",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nattacks_each_combat = StaticAbility(\n    effect=A(Verb.MANDATE_ATTACK, {'cards': SELF}),\n)\nno_walls = StaticAbility(\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n        'event': DeclareBlockersEvent(\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Wall'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            blocked=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n    }),\n)\nabilities = [attacks_each_combat, no_walls, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature attacks each combat if able.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "This creature can't be blocked by Walls.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "MANDATE_ATTACK over this creature; Stalking Tiger's block prevention with a Wall blocker filter. Pack: tools/scenarios/mapped/FDN/juggernaut_must_attack_walls_cannot_block.json."
+ },
+ "probe": {
+  "sha": "e3997bf2df933c95d9bad281c8f846cb80d7dbb33e2664d97eb82ab67ff083da"
+ }
+}

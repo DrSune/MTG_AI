@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "beast_kin_ranger_two_tokens_two_triggers",
+ "notes": "M4 mapper. Printed: 'Whenever another creature you control enters, this creature gets +1/+0 until end of turn.' Support card: FDN Dragon Fodder (verified; 'Create two 1/1 red Goblin creature tokens.'). The two Goblins enter at the same time: each is another creature entering, so the Ranger triggers twice (once per creature, not once for the event): 5/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ranger", "real": "Beast-Kin Ranger", "zone": "battlefield", "controller": 0},
+  {"key": "fodder", "real": "Dragon Fodder", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "key": "fodder", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"fodder": "graveyard"},
+  "tokens": {"Goblin": 2},
+  "power": {"ranger": 5},
+  "toughness": {"ranger": 3}
+ }
+}

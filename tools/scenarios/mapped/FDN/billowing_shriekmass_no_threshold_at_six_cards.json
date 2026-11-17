@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "billowing_shriekmass_no_threshold_at_six_cards",
+ "notes": "M3 mapper. Printed: 'When this creature enters, mill three cards. Threshold — This creature gets +2/+1 as long as there are seven or more cards in your graveyard.' Seat 0's graveyard holds three cards and the opponent's five. Billowing Shriekmass enters and mills three: six cards in seat 0's graveyard, one short, so it stays 2/3 (the opponent's graveyard does not count).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shriek", "real": "Billowing Shriekmass", "zone": "hand", "controller": 0},
+  {"key": "g1", "name": "Old One", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Old Two", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "name": "Old Three", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "o1", "name": "Their One", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "o2", "name": "Their Two", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "o3", "name": "Their Three", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "o4", "name": "Their Four", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "o5", "name": "Their Five", "type": "Instant", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "shriek"}
+ ],
+ "expect": {
+  "zone": {"shriek": "battlefield"},
+  "power": {"shriek": 2},
+  "toughness": {"shriek": 3}
+ }
+}

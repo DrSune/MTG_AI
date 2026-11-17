@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "voracious_greatshark_cannot_counter_an_instant",
+ "notes": "M4 mapper. Printed: 'When this creature enters, counter target artifact or creature spell.' Seat 1 casts Giant Growth on its Bear and holds priority; in response seat 0 flashes in Voracious Greatshark. An instant is no legal target: the trigger has none and does nothing, and Giant Growth then resolves (the Bear is 5/5). (Both pools are filled before Giant Growth is cast: a mana step passes priority.)",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shark", "real": "Voracious Greatshark", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 3}},
+  {"op": "mana", "seat": 1, "add": {"G": 1}},
+  {"op": "cast", "key": "gg", "controller": 1, "targets": ["obear"], "hold": true},
+  {"op": "cast", "key": "shark", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"shark": "battlefield", "gg": "graveyard"},
+  "power": {"obear": 5},
+  "toughness": {"obear": 5}
+ }
+}

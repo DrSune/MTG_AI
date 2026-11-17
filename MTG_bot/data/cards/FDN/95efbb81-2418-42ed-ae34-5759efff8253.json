@@ -1,0 +1,254 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "95efbb81-2418-42ed-ae34-5759efff8253",
+ "name": "Inspiring Paladin",
+ "text_sha": "22c6a912d0de54eb46625cf29dc4809a2169aa6760c7e64b8eeb6aada3998ee4",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FIRST_STRIKE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TURN_OF"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FIRST_STRIKE"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "HAS_COUNTER"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "counter_kind": {
+             "tag": "CounterKind",
+             "name": "PLUS_1_PLUS_1"
+            },
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "TURN_OF"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nYOUR_TURN = FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU)\nself_first_strike = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n        'target': SELF,\n    }),\n    condition=YOUR_TURN,\n)\ncountered_first_strike = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(\n                        pred=FAtomPred.HAS_COUNTER,\n                        count=QConst(value=1),\n                        counter_kind=CounterKind.PLUS_1_PLUS_1,\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n    condition=YOUR_TURN,\n)\nabilities = [self_first_strike, countered_first_strike, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "During your turn, this creature has first strike.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "During your turn, creatures you control with +1/+1 counters on them have first strike.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Radha's TURN_OF condition on both statics. Packs: tools/scenarios/mapped/FDN/inspiring_paladin_your_turn_countered_creatures_strike_first.json, tools/scenarios/mapped/FDN/inspiring_paladin_no_first_strike_on_opponents_turn.json."
+ },
+ "probe": {
+  "sha": "8cbaa28baaee4c000ac0957443d7c3fd61ddfaf6ec16024dc1cc23f1a2683746"
+ }
+}

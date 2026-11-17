@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "corsair_captain_other_pirates_you_control_and_a_treasure",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a Treasure token. Other Pirates you control get +1/+1.' Corsair Captain (a 2/2 Human Pirate) enters: one Treasure. Seat 0's other Pirate is 3/3; the Captain itself stays 2/2 ('other'), seat 0's non-Pirate Bear stays 2/2, and the opponent's Pirate stays 2/2 ('you control').",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "captain", "real": "Corsair Captain", "zone": "hand", "controller": 0},
+  {"key": "deckhand", "name": "My Deckhand", "type": "Creature — Human Pirate", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "rival", "name": "Their Pirate", "type": "Creature — Human Pirate", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "captain"}
+ ],
+ "expect": {
+  "zone": {"captain": "battlefield"},
+  "power": {"captain": 2, "deckhand": 3, "bear": 2, "rival": 2},
+  "toughness": {"captain": 2, "deckhand": 3, "bear": 2, "rival": 2},
+  "tokens": {"Treasure": 1}
+ }
+}

@@ -33,7 +33,7 @@ from tools.selfplay import features as FT
 
 
 class PolicyValueNet(nn.Module):
-    def __init__(self, n_cards: int, n_ir: int, ir_table: np.ndarray, d: int = 256,
+    def __init__(self, n_cards: int, n_ir: int, ir_counts: np.ndarray, d: int = 256,
                  layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1,
                  mask_names: bool = False):
         super().__init__()
@@ -46,8 +46,9 @@ class PolicyValueNet(nn.Module):
         self.name_dropout = name_dropout
         self.name_emb = nn.Embedding(n_cards, d)
         self.ir_emb = nn.Embedding(n_ir, d, padding_idx=0)
-        self.register_buffer("ir_table", torch.as_tensor(ir_table, dtype=torch.long),
-                             persistent=False)
+        # the card table's rows as token counts (FT.CardTable.ir_counts), rebuilt from the
+        # table on every load, so a checkpoint holds the table, not this
+        self.register_buffer("ir_counts", torch.as_tensor(ir_counts), persistent=False)
         self.zone_emb = nn.Embedding(len(FT.ZONES), d)
         self.ctrl_emb = nn.Embedding(3, d)
         self.owner_emb = nn.Embedding(3, d)
@@ -95,15 +96,20 @@ class PolicyValueNet(nn.Module):
         self.config["mask_names"] = bool(on)
 
     def card_table_emb(self) -> torch.Tensor:
-        ids = self.ir_table
-        emb = self.ir_emb(ids)  # [N, L, d]
-        mask = (ids > 0).unsqueeze(-1).to(emb.dtype)
-        return (emb * mask).sum(1) / mask.sum(1).clamp(min=1.0)
+        """Every table row's component vector: the mean of the embeddings of all its component
+        tokens, as counts times the embedding table ([N, vocab] @ [vocab, d]; KNOWLEDGE 210, N1:
+        nothing is cut, and no [N, tokens, d] gather). In fp32 under autocast too, as the
+        gather was, then in the weights' dtype."""
+        w = self.ir_emb.weight
+        with torch.autocast(w.device.type, enabled=False):
+            c = self.ir_counts.float()
+            return ((c @ w.float()) / c.sum(1, keepdim=True).clamp(min=1.0)).to(w.dtype)
 
     def value_emb(self, ids: torch.Tensor) -> torch.Tensor:
-        """A chosen value's component token, id 0 (none) a zero vector. Masked, as in
-        ``card_table_emb``: ``_init`` and every checkpoint give the padding row random values,
-        so a term that read it would move every token of an older network."""
+        """A chosen value's component token, id 0 (none) a zero vector. Masked, as
+        ``card_table_emb`` never counts the padding token: ``_init`` and every checkpoint give
+        the padding row random values, so a term that read it would move every token of an
+        older network."""
         return self.ir_emb(ids) * (ids > 0).unsqueeze(-1).to(self.ir_emb.weight.dtype)
 
     def tokens(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -165,7 +171,7 @@ class PolicyValueNet(nn.Module):
 def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
     """Grow ``net`` to an extended or refreshed table (FT.CardTable.extend/refresh): new name
     rows start as the unknown-card embedding (what name dropout trained), new component rows at
-    zero, and the component table is rebuilt."""
+    zero, and the rows' token counts are rebuilt."""
     old = net.name_emb.weight.data
     n = len(table.oracle_ids)
     if n > old.shape[0]:
@@ -183,8 +189,7 @@ def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
         emb.weight.data[: old_ir.shape[0]] = old_ir
         net.ir_emb = emb
         net.config["n_ir"] = n_ir
-    net.ir_table = torch.as_tensor(table.ir_array(), dtype=torch.long,
-                                   device=net.ir_table.device)
+    net.ir_counts = torch.as_tensor(table.ir_counts(), device=net.ir_counts.device)
     net.config["n_cards"] = n
     return net
 
@@ -341,7 +346,7 @@ class LocalSlot:
 
 
 def build(table: FT.CardTable, **kw: Any) -> PolicyValueNet:
-    return PolicyValueNet(len(table.oracle_ids), len(table.ir_vocab), table.ir_array(), **kw)
+    return PolicyValueNet(len(table.oracle_ids), len(table.ir_vocab), table.ir_counts(), **kw)
 
 
 def grow(model: PolicyValueNet, table: FT.CardTable, layers: int | None = None,
@@ -433,10 +438,12 @@ def upgraded(state: dict, model: nn.Module, prefix: str = "") -> dict:
 
 
 def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet, FT.CardTable, dict]:
+    """A checkpoint's network in eval mode, its card table and its extra. An older checkpoint's
+    table rows are read as saved (before 2026-11-17 cut at 128 tokens: FT.CardTable)."""
     ck = torch.load(path, map_location="cpu", weights_only=False)
     table = FT.CardTable.from_json(ck["table"])
     cfg = dict(ck["config"])
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
-    model = PolicyValueNet(n_cards, n_ir, table.ir_array(), **cfg)
+    model = PolicyValueNet(n_cards, n_ir, table.ir_counts(), **cfg)
     model.load_state_dict(upgraded(ck["state"], model))
     return model.to(device).eval(), table, ck.get("extra", {})

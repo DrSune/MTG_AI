@@ -1,0 +1,57 @@
+other	ZNR	Synchronized Spellcraft	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	M20	Chandra's Outrage	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	KHM	Resplendent Marshal	two_events: "When this creature enters or dies, you may exile another cre": two triggered abilities, adjacent and in printed order, 
+other	10E	Cryoclasm	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	10E	Fog Elemental	two_events: "When this creature attacks or blocks, sacrifice it at end of": two triggered abilities, adjacent and in printed order, 
+other	M11	Inferno Titan	two_events: "Whenever this creature enters or attacks, it deals 3 damage ": two triggered abilities, adjacent and in printed order, 
+other	M11	Chandra's Outrage	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	M11	Frost Titan	two_events: "Whenever this creature enters or attacks, tap target permane": two triggered abilities, adjacent and in printed order, 
+other	M11	Primeval Titan	two_events: "Whenever this creature enters or attacks, you may search you": two triggered abilities, adjacent and in printed order, 
+other	M11	Sun Titan	two_events: "Whenever this creature enters or attacks, you may return tar": two triggered abilities, adjacent and in printed order, 
+other	M11	Grave Titan	two_events: "Whenever this creature enters or attacks, create two 2/2 bla": two triggered abilities, adjacent and in printed order, 
+other	M12	Inferno Titan	two_events: "Whenever this creature enters or attacks, it deals 3 damage ": two triggered abilities, adjacent and in printed order, 
+other	M12	Chandra's Outrage	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	M12	Frost Titan	two_events: "Whenever this creature enters or attacks, tap target permane": two triggered abilities, adjacent and in printed order, 
+other	M12	Primeval Titan	two_events: "Whenever this creature enters or attacks, you may search you": two triggered abilities, adjacent and in printed order, 
+other	M12	Sun Titan	two_events: "Whenever this creature enters or attacks, you may return tar": two triggered abilities, adjacent and in printed order, 
+other	M12	Grave Titan	two_events: "Whenever this creature enters or attacks, create two 2/2 bla": two triggered abilities, adjacent and in printed order, 
+other	M14	Chandra's Outrage	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	ORI	Ravaging Blaze	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	ORI	Smash to Smithereens	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	M19	Stitcher's Supplier	two_events: "When this creature enters or dies, mill three cards.": two triggered abilities, adjacent and in printed order, with one
+other	DOM	Howling Golem	two_events: "Whenever this creature attacks or blocks, each player draws ": two triggered abilities, adjacent and in printed order, 
+other	FDN	Bake into a Pie	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	FDN	Midnight Snack	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	FDN	Wary Thespian	two_events: "When this creature enters or dies, surveil 1.": two triggered abilities, adjacent and in printed order, with one condit
+other	FDN	Cat Collector	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	FDN	Eager Trufflesnout	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	FDN	Crow of Dark Tidings	two_events: "When this creature enters or dies, mill two cards.": two triggered abilities, adjacent and in printed order, with one c
+other	FDN	Dreadwing Scavenger	two_events: "Whenever this creature enters or attacks, draw a card, then ": two triggered abilities, adjacent and in printed order, 
+other	ELD	Trail of Crumbs	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Bake into a Pie	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Searing Barrage	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+other	ELD	Gluttonous Troll	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Foreboding Fruit	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Bartered Cow	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Giant Opportunity	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Wildwood Tracker	two_events: "Whenever this creature attacks or blocks, if you control ano": two triggered abilities, adjacent and in printed order, 
+other	ELD	Savvy Hunter	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Savvy Hunter	two_events: "Whenever this creature attacks or blocks, create a Food toke": two triggered abilities, adjacent and in printed order, 
+other	ELD	Oko, Thief of Crowns	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Feasting Troll King	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Tempting Witch	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Witch's Oven	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Korvold, Fae-Cursed King	two_events: "Whenever ~ enters or attacks, sacrifice another permanent.": two triggered abilities, adjacent and in printed order, wi
+other	ELD	Giant's Skewer	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Fierce Witchstalker	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Wolf's Quarry	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Fell the Pheasant	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Turn into a Pumpkin	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Loch Dragon	two_events: "Whenever this creature enters or attacks, you may discard a ": two triggered abilities, adjacent and in printed order, 
+other	ELD	Fortifying Provisions	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Gilded Goose	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Taste of Death	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	ELD	Gingerbread Cabin	food: the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food
+other	THB	Kroxa, Titan of Death's Hunger	two_events: "Whenever ~ enters or attacks, each opponent discards a card,": two triggered abilities, adjacent and in printed order, 
+other	THB	Impending Doom	its_controller: 1 "damage to that creature's controller" in the text, 0 in the tree: DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_
+trees: {'verified': 1144, 'other': 4259}; findings: food 0 verified / 24 other, two_events 0 verified / 22 other, its_controller 0 verified / 10 other

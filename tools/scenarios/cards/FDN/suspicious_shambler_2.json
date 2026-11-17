@@ -1,0 +1,31 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sham", "real": "Suspicious Shambler", "zone": "graveyard", "controller": 0},
+  {"key": "baron", "real": "Death Baron", "zone": "battlefield", "controller": 0},
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "elf", "name": "Elf", "power": "1", "toughness": "1", "type": "Creature", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "activate", "key": "sham", "idx": 0, "seat": 0, "expect_raise": "cost:mana_generic:3<4"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 5}},
+  {"op": "activate", "key": "sham", "idx": 0, "seat": 0, "expect_raise": "cost:mana:B:0<1"},
+  {"op": "mana", "seat": 0, "add": {"B": 1}},
+  {"op": "activate", "key": "sham", "idx": 0, "seat": 0},
+  {"op": "mana", "seat": 0, "add": {"W": 2}},
+  {"op": "act", "seat": 0, "words": ["cast:dd", "elf"], "expect_raise": "does not offer 'card:3'"},
+  {"op": "act", "seat": 0, "words": ["cast:dd", "card:16", "top"]}
+ ],
+ "expect": {
+  "zone": {"sham": "exile", "dd": "graveyard", "elf": "battlefield"},
+  "tokens": {"Zombie": 1},
+  "battlefield_pt": {"Zombie": [3, 3]},
+  "battlefield_keywords": {"Zombie": ["DEATHTOUCH"]},
+  "turn_seats": [0, 1, 0]
+ },
+ "notes": "FDN Suspicious Shambler, printed: '{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens.' The cost is the whole {4}{B}{B} plus the exile: five mana (B B + three) is refused, six mana with one B is refused, seven mana with two B pays it and the card leaves the graveyard for exile. The two tokens: Devout Decree ('black or red') can take a token and not the green Elf, so a token is black or red (the colour cannot be told from red with a verified FDN card); the one token left is a Zombie 2/2 (3/3 deathtouch under Death Baron, 'other Zombies you control get +1/+1 and have deathtouch')."
+}

@@ -276,5 +276,60 @@
  },
  "probe": {
   "sha": "a93c7e996132b5563292096dba096fb48aed460804bb79e9e96d3be0dab621f8"
+ },
+ "verified": {
+  "tree_sha": "7dbfb7184220a469878f7a0282bd2d9d102169ca8120a01361b8a4e6f9fe445c",
+  "probe_sha": "a93c7e996132b5563292096dba096fb48aed460804bb79e9e96d3be0dab621f8",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave2",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] change: card: keywords +FLYING; [stimulus: this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS row, 'opp is dealt 1 damage (combat)': the ground Giant could not block.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, create a 1/1 Spirit creature token with flying.",
+    "status": "OK",
+    "evidence": "[cast] event: card's triggered ability [0] triggers; you:Spirit moves new -> battlefield (by card/CREATE_TOKEN); change: + you:Spirit (battlefield, you, 1/1, FLYING); the flash-in variant on the opponent's turn makes it too, under my control.",
+    "issue": ""
+   },
+   {
+    "clause": "The Spirit token is white",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace prints no colour (the tree says colors=('W',)). Pack A05_2: Noxious Grasp ('green or white') and Fry ('white or blue') each destroy one of two Spirits.",
+    "issue": ""
+   },
+   {
+    "clause": "{3}{W}",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield] change: you: mana C-3 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Exile this creature",
+    "status": "OK",
+    "evidence": "[activate [1]] event: card moves battlefield -> exile (by card/MOVE_ZONE) before ABILITY_ACTIVATED: a cost, not an effect step; the source is gone before the target is exiled. Pack A05_1 pins that nothing can respond to it on the battlefield. Pack A05_3: a stolen Executioner is exiled to its owner's exile (the controller lane reads the owner off the battlefield).",
+    "issue": ""
+   },
+   {
+    "clause": "Exile target creature",
+    "status": "OK",
+    "evidence": "[activate [1] targets=...] target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, card]: every creature of either side, no non-creature; each variant ends with 'X moves battlefield -> exile'; with the source as its own target it is simply exiled (as a cost).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/hanged_executioner_1.json",
+   "tools/scenarios/cards/M20/hanged_executioner_2.json",
+   "tools/scenarios/cards/M20/hanged_executioner_3.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 14,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "joust_through_hits_a_blocker_not_a_bystander",
+ "notes": "Printed: '... target attacking or BLOCKING creature. You gain 1 life.' Seat 0's 2/2 attacks; seat 1's 3/3 Wolf blocks it and its 3/3 Wall stays home. After blocks Joust Through targets the blocking Wolf: it dies (graveyard), the 2/2 stays blocked and deals no damage, the Wall is untouched, and seat 0 gains 1 life.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jt", "real": "Joust Through", "zone": "hand", "controller": 0},
+  {"key": "knight", "name": "Knight", "type": "Creature — Human Knight", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Wall", "type": "Creature — Wall", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"knight": true},
+   "block": {"wolf": "knight"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "jt", "real": "Joust Through", "controller": 0, "targets": ["wolf"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"jt": "graveyard", "wolf": "graveyard", "wall": "battlefield", "knight": "battlefield"},
+  "damage_received": {"wolf": 3},
+  "life": {"0": 21, "1": 20}
+ }
+}

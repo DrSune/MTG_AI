@@ -1,0 +1,17 @@
+{"set": "FDN", "name": "grow_from_the_ashes_finds_only_basic_lands",
+ "notes": "Printed: 'Search your library for a BASIC LAND card ...' Unkicked, with only a nonbasic land (a Desert) and a creature card in the library besides the fillers: nothing can be found, and nothing enters the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "desert", "name": "Desert", "type": "Land — Desert", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "real": "Grow from the Ashes", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"gfta": "graveyard", "desert": "library", "beast": "library"},
+  "mana_pool": {"0": {}}
+ }
+}

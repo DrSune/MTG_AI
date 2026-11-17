@@ -1,0 +1,23 @@
+{
+ "name": "deadly_plot_returns_only_your_zombie_tapped",
+ "set": "FDN",
+ "note": "Deadly Plot, second mode: 'Return target Zombie creature card from your graveyard to the battlefield tapped.' A non-Zombie creature card in P0's graveyard and a Zombie in the opponent's graveyard are not legal targets (each cast is refused); P0's own Zombie card returns to the battlefield, tapped, under P0's control.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "plot", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "elf", "name": "Fallen Elf", "power": "2", "toughness": "2", "type": "Creature — Elf", "zone": "graveyard", "controller": 0},
+  {"key": "ozombie", "name": "Opp Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "graveyard", "controller": 1},
+  {"key": "zombie", "name": "My Zombie", "power": "3", "toughness": "3", "type": "Creature — Zombie Warrior", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 3}, "hold": true},
+  {"op": "cast", "real": "Deadly Plot", "key": "plot", "controller": 0, "decisions": ["1"], "targets": ["elf"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Deadly Plot", "key": "plot", "controller": 0, "decisions": ["1"], "targets": ["ozombie"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Deadly Plot", "key": "plot", "controller": 0, "decisions": ["1"], "targets": ["zombie"]}
+ ],
+ "expect": {
+  "zone": {"plot": "graveyard", "zombie": "battlefield", "elf": "graveyard", "ozombie": "graveyard"},
+  "tapped": {"zombie": true},
+  "controller": {"zombie": 0}
+ }
+}

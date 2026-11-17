@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troll", "real": "Barkhide Troll", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 1}, "1": {"R": 2}},
+ "steps": [
+  {"op": "cast", "real": "Barkhide Troll", "key": "troll"},
+  {"op": "activate", "key": "troll", "idx": 1, "seat": 0},
+  {"op": "cast", "real": "Shock", "key": "shock", "controller": 1, "targets": ["troll"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Shock", "key": "shock2", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"troll": "battlefield", "bear": "graveyard", "shock": "hand", "shock2": "graveyard"},
+  "counters": {"troll": {}},
+  "mana_pool": {"0": {}, "1": {"R": 1}}
+ },
+ "notes": "M20 Barkhide Troll, printed: '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' Only the Troll gains hexproof: with it active, the opponent's Shock cannot target the Troll but can target my other creature (the Bear), which dies."
+}

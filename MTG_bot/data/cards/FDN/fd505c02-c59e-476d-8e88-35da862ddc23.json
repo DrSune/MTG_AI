@@ -1,0 +1,117 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fd505c02-c59e-476d-8e88-35da862ddc23",
+ "name": "Bloodthirsty Conqueror",
+ "text_sha": "91d4c2f6382eb236915ef8c9d5c617f183decc74f33a95c9d98d2dfd454ee796",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "DEATHTOUCH"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeLostEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "OPPONENT"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QProp",
+         "referent": "event",
+         "field": {
+          "tag": "QPropField",
+          "name": "AMOUNT"
+         },
+         "agg": {
+          "tag": "QAgg",
+          "name": "FIRST"
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Bloodthirsty Conqueror: \"Whenever an opponent loses life, you gain that much life.\"\n# M21 Vito, Thorn of the Dusk Rose's B2b-gain-life-target-opponent (verified) mirrored:\n# LifeLostEvent (LifeGainedEvent's twin) with an opponent actor, GAIN_LIFE of the event's AMOUNT.\ndrain = TriggeredAbility(\n    event=LifeLostEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QProp(referent='event', field=QPropField.AMOUNT),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [drain, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying, deathtouch",
+    "ir": "keywords[1], keywords[0]"
+   },
+   {
+    "clause": "Whenever an opponent loses life, you gain that much life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): ability TriggeredAbility on LifeLostEvent"
+  ],
+  "notes": "Vito's form mirrored: LifeLostEvent with an opponent actor, GAIN_LIFE of the event's AMOUNT (a TriggeredAbility on LifeLostEvent is a shape no compiled card has: combat damage in the probe, a plain loss and the Blight-Priest loop in the packs). Packs: tools/scenarios/mapped/FDN/bloodthirsty_conqueror_gains_only_from_opponents_losses.json, tools/scenarios/mapped/FDN/bloodthirsty_conqueror_and_blight_priest_drain_loop.json."
+ },
+ "probe": {
+  "sha": "14748fd8d914b470c80c55f50b871640e97bcd25f06b77f75812cffe201cbbf1"
+ }
+}

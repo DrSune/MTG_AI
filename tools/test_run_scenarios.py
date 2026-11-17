@@ -1,6 +1,7 @@
 """The scenario-pack runner's newer capabilities (tools/run_scenarios.py), each shown working and
-shown refusing what it must refuse: a response window while a combat trigger waits, worlds of
-three or more players, and a test permission to cast a card from a zone other than the hand.
+shown refusing what it must refuse: a response window while a combat trigger waits, a control
+change by another effect, worlds of three or more players, and a test permission to cast a card
+from a zone other than the hand.
 A runner op that lets a pack pass wrongly is worse than a missing one, so the refusals are the
 point, and the silent-pass guards (an expect lane the runner never reads, a decision word no ask
 offers) are checked on the new ops too."""
@@ -108,6 +109,37 @@ def test_a_combat_window_refuses_what_it_cannot_apply(tmp_path, windows, error) 
     without its response), a window where no trigger waits (it responds to nothing) and one at
     a step the combat never reaches each fail the pack."""
     fails = _run(tmp_path, _mangara(**windows))
+    assert _fails_with(fails, error), fails
+
+
+WALKER = {"key": "pw", "name": "Walker", "type": "Legendary Planeswalker — Test", "loyalty": "5",
+          "counters": {"LOYALTY": 5}, "zone": "battlefield", "controller": 0}
+STEAL_PW = [{"op": "gain_control", "key": "pw", "seat": 1}]
+
+
+@pytest.mark.parametrize(("windows", "hand"), [({}, 1), ({"respond_to_triggers": {"DECLARE_ATTACKERS": STEAL_PW}}, 0)])
+def test_a_control_change_while_the_trigger_waits(tmp_path, windows, hand) -> None:
+    """The gain_control op: seat 1 attacks Mangara's controller with a and seat 0's planeswalker
+    with b. Untouched, two of those creatures attack seat 0 or a planeswalker seat 0 controls:
+    seat 0 draws. With the planeswalker taken by seat 1 while the trigger waits, the "if" read
+    again as it resolves (CR 603.4) finds one: no card, and b attacks nothing (CR 506.4c)."""
+    combat = {"op": "combat", "seat": 1, "attack": {"a": True, "b": "pw"}, **windows}
+    expect = {"hand": {"0": hand}, "controller": {"pw": 1 if hand == 0 else 0},
+              "counters": {"pw": {"LOYALTY": 5 if hand == 0 else 3}}}
+    pack = {"cards": [MANGARA, WALKER, _creature("a", 1), _creature("b", 1)],
+            "steps": [*THEIR_TURN, combat], "expect": expect}
+    assert _run(tmp_path, pack) == []
+
+
+@pytest.mark.parametrize(("step", "error"), [
+    ({"op": "gain_control", "key": "shock", "seat": 1}, "only a permanent has a controller to change"),
+    ({"op": "gain_control", "key": "pw", "seat": 2}, "gain_control: no seat 2"),
+    ({"op": "gain_control", "key": "pw"}, "KeyError: 'seat'"),
+])
+def test_a_control_change_refuses_what_it_cannot_apply(tmp_path, step, error) -> None:
+    """A card off the battlefield has no controller to change (CR 108.4), and the seat that
+    gains control is named and is the world's."""
+    fails = _run(tmp_path, {"cards": [WALKER, _card("shock", "Shock", "hand")], "steps": [step]})
     assert _fails_with(fails, error), fails
 
 

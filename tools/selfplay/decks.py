@@ -27,6 +27,7 @@ import json
 import os
 import subprocess
 import sys
+from array import array
 from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
@@ -86,7 +87,8 @@ def _rebuild_here(out: str, pool: str, commit: str, rows_paths: list[str]) -> No
 
     deals = deals_in(rows_paths)
     supplies, rarity, cards, meta = {}, {}, {}, []
-    off, idx, cnt = [0], [], []
+    # typed buffers, not lists: a whole run's log (r28: 3.25M deals) holds ~200M entries
+    off, idx, cnt = array("q", [0]), array("h"), array("b")
     for seed, mode, set_code in deals:
         if set_code not in supplies:
             supplies[set_code] = get_supply(pool, set_code)
@@ -287,16 +289,19 @@ def cross_validate(x: np.ndarray, y: np.ndarray, seeds: np.ndarray, lams: tuple[
 
 
 def swap(deck: Counter, value: dict[str, float], spells: list[str], k: int,
-         ok: Callable[[Counter], bool] | None = None) -> Counter:
+         ok: Callable[[Counter], bool] | None = None,
+         cap: Callable[[str], int] | None = None) -> Counter:
     """k swaps on a deck (PLAN_DRAFTER §5): each removes the least valuable spell copy and adds
-    the most valuable spell of ``spells`` with a copy free, the best gain first among the pairs
-    that keep ``ok(deck)``; it stops early when no swap gains. Deterministic: ties go to the
-    oracle id that sorts first."""
+    the most valuable spell of ``spells`` with a copy free (below ``cap(oid)``, the card's copy
+    limit: 4 unless it prints its own deck rule), the best gain first among the pairs that keep
+    ``ok(deck)``; it stops early when no swap gains. Deterministic: ties go to the oracle id that
+    sorts first."""
     deck = Counter(deck)
+    limit = cap or (lambda _c: 4)
     for _ in range(k):
         have = sorted((c for c in deck if c in value and deck[c] > 0 and c in spells),
                       key=lambda c: (value[c], c))
-        free = sorted((c for c in spells if deck[c] < 4), key=lambda c: (-value[c], c))
+        free = sorted((c for c in spells if deck[c] < limit(c)), key=lambda c: (-value[c], c))
         moves = sorted(((value[i] - value[o], o, i) for o in have for i in free
                         if i != o and value[i] > value[o]), key=lambda m: (-m[0], m[1], m[2]))
         for _gain, o, i in moves:
@@ -312,8 +317,9 @@ def swap(deck: Counter, value: dict[str, float], spells: list[str], k: int,
 
 
 def deck_stats(deck: Counter, meta: Callable[[str], tuple]) -> tuple[float, int, int]:
-    """A deck's mean spell mana value, its creatures and the most copies of one non-basic card.
-    ``meta(oid)`` gives (mana value, creature, land, basic)."""
+    """A deck's mean spell mana value, its creatures and the most copies of one card the
+    four-copy limit caps. ``meta(oid)`` gives (mana value, creature, land, uncapped): uncapped is
+    a basic land, or a card whose own deck rule lifts the limit (``CardMeta.max_copies``)."""
     spells = [(meta(c), n) for c, n in deck.items() if not meta(c)[2]]
     total = sum(n for _, n in spells)
     mv = sum(m[0] * n for m, n in spells) / max(total, 1)
@@ -346,7 +352,7 @@ def drafted_decks(seed: int, deck_mode: str, a_seat: int | None, supply: Any,
     - ``drafted``: both decks, each at its dealt seat.
     - ``versus``: seat 0's dealt deck only, and it goes to the evaluated seat ``a_seat``, so a
       deal's two games swap the decks: with one network on both seats, a pure deck comparison."""
-    from MTG_bot.core.executor.games import _BASIC_COLOR, deal_decks
+    from MTG_bot.core.executor.games import _BASIC_COLOR, MAX_COPIES, deal_decks
 
     kind, k, sha = deck_mode.split(":")
     if kind not in ("drafted", "versus") or critic["sha256"][:8] != sha:
@@ -355,7 +361,8 @@ def drafted_decks(seed: int, deck_mode: str, a_seat: int | None, supply: Any,
 
     def meta(c: str) -> tuple:
         m = metas[c]
-        return m.mana_value, "Creature" in m.type_line, m.is_land, m.is_basic
+        return (m.mana_value, "Creature" in m.type_line, m.is_land,
+                m.is_basic or m.max_copies > MAX_COPIES)
 
     bd = critic["band"][set_code]
 
@@ -369,7 +376,8 @@ def drafted_decks(seed: int, deck_mode: str, a_seat: int | None, supply: Any,
         pair = {_BASIC_COLOR[metas[c].name] for c in deck if metas[c].is_basic}
         spells = [c for c in supply.deckable if not metas[c].is_land and c in critic["value"]
                   and set(supply.pool.results[c].card.color_identity) <= pair]
-        return tuple(sorted(swap(Counter(deck), critic["value"], spells, int(k), ok).elements()))
+        return tuple(sorted(swap(Counter(deck), critic["value"], spells, int(k), ok,
+                                 cap=lambda c: metas[c].max_copies).elements()))
 
     dealt = deal_decks(seed, DEAL_SEED, supply, "coherent")
     if kind == "drafted":

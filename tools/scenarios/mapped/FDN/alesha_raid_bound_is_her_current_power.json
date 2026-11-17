@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "alesha_raid_bound_is_her_current_power",
+ "notes": "M4 mapper. Printed: 'Raid — At the beginning of your end step, if you attacked this turn, return target creature card with mana value less than or equal to Alesha's power from your graveyard to the battlefield.' Seat 0 attacks with its bear only (raid holds; Alesha does not attack, so she gets no counter and her power stays 2). At the end step the raid trigger's target ask offers the creature cards of mana value 1 and 2, not the mana value 3 one. The step stops at that ask (no decision word), so it pins its vocabulary.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "alesha", "real": "Alesha, Who Laughs at Fate", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "one", "name": "Grave One", "type": "Creature — Ogre", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "two", "name": "Grave Two", "type": "Creature — Ogre", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "alesha": false}},
+  {"op": "to_step", "step": "END_TURN", "expect_raise": "needs a decision from ('card:2', 'card:3')"}
+ ],
+ "expect": {
+  "attackers": {"bear": true, "alesha": false},
+  "power": {"alesha": 2},
+  "life": {"0": 20, "1": 18}
+ }
+}

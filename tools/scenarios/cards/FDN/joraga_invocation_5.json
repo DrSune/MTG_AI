@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jor", "real": "Joraga Invocation", "zone": "hand", "controller": 0},
+  {"key": "a1", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "veh", "name": "My Wagon", "power": "3", "toughness": "3", "type": "Artifact — Vehicle", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Opp Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Joraga Invocation", "key": "jor"}
+ ],
+ "expect": {
+  "zone": {"jor": "graveyard", "a1": "battlefield", "veh": "battlefield", "b1": "battlefield"},
+  "power": {"a1": 5, "veh": 3, "b1": 3},
+  "toughness": {"a1": 5, "veh": 3, "b1": 3}
+ },
+ "notes": "FDN Joraga Invocation, printed: 'Each creature you control gets +3/+3 until end of turn ...'. Only creatures I control: my Bear becomes 5/5, while my Vehicle (an artifact that is not a creature) and the opponent's Ogre keep their 3/3."
+}

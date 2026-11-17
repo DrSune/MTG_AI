@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "eager_trufflesnout_trample_damage_makes_a_food",
+ "notes": "M5 mapper. Printed: 'Trample. Whenever this creature deals combat damage to a player, create a Food token.' Eager Trufflesnout (4/2) attacks and Opp Bear (2/2) blocks: 2 to the Bear, the excess 2 tramples over to seat 1, so the trigger makes one Food. Seat 0 then pays {2}, {T} and sacrifices the Food: it gains 3 life and the Food is gone.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snout", "real": "Eager Trufflesnout", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"snout": true}, "block": {"bear": "snout"}},
+  {"op": "mana", "seat": 0, "add": {"C": 2}, "hold": true},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0"]}
+ ],
+ "expect": {
+  "blocked": {"snout": ["bear"]},
+  "life": {"0": 23, "1": 18},
+  "zone": {"bear": "graveyard", "snout": "graveyard"},
+  "tokens": {"Food": 0},
+  "mana_pool": {"0": {}}
+ }
+}

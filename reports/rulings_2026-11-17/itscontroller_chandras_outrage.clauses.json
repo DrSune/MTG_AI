@@ -1,0 +1,4 @@
+[
+ {"clause": "Chandra's Outrage deals 4 damage to target creature and 2 damage to that creature's controller.",
+  "ir": "abilities[0].effect.steps[0] (4 to the target), abilities[0].effect.steps[1] (2 to its controller)"}
+]

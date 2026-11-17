@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "ambush_wolf_may_exile_nothing",
+ "notes": "M3 mapper. Printed: 'When this creature enters, exile up to one target card from a graveyard.' 'Up to one' lets seat 0 choose no target (CR 115.6, 601.2c): it answers NONE and every graveyard card stays.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wolf", "real": "Ambush Wolf", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Relic", "type": "Artifact", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "wolf", "decisions": ["NONE"]}
+ ],
+ "expect": {
+  "zone": {"wolf": "battlefield", "theirs": "graveyard", "mine": "graveyard"}
+ }
+}

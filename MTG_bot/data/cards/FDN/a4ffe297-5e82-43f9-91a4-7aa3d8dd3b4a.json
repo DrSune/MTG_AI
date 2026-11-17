@@ -1,0 +1,250 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "a4ffe297-5e82-43f9-91a4-7aa3d8dd3b4a",
+ "name": "Crow of Dark Tidings",
+ "text_sha": "13846f3620966b0f35220114adbf6897f229e434e46318a892961b5a76027286",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "from",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "LIBRARY"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "journal_kind",
+        {
+         "tag": "String",
+         "value": "MILL"
+        }
+       ],
+       [
+        "pop_order",
+        {
+         "tag": "String",
+         "value": "TOP"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "from",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "LIBRARY"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "journal_kind",
+        {
+         "tag": "String",
+         "value": "MILL"
+        }
+       ],
+       [
+        "pop_order",
+        {
+         "tag": "String",
+         "value": "TOP"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Crow of Dark Tidings: \"Flying. When this creature enters or dies, mill two cards.\"\n# The ruling R_TWOEVENTS (MAPPER_GUIDE): two triggered abilities, the enters one first, one\n# effect; the effect is M21 Carrion Grub's verified mill (B2a-carrion-grub) with two. This is\n# the ruling's own worked draft (reports/rulings_2026-11-17/twoevents_crow_of_dark_tidings.py).\nmill_two = A(Verb.MOVE_ZONE, {\n    'amount': QConst(value=2),\n    'controller': ControllerRef.YOU,\n    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    'from': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n    'journal_kind': 'MILL',\n    'pop_order': 'TOP',\n})\nenters = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=mill_two,\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=mill_two,\n)\nabilities = [enters, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters or dies, mill two cards.",
+    "ir": "abilities[0] (enters), abilities[1] (dies): one effect, mill two"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The ruling R_TWOEVENTS's worked draft (MAPPER_GUIDE, reports/rulings_2026-11-17/twoevents_crow_of_dark_tidings.py): an enters trigger and a CreatureDiesEvent trigger, adjacent, one effect (Carrion Grub's mill with two). Flying compiles. Packs: tools/scenarios/mapped/FDN/crow_of_dark_tidings_a_bounce_is_no_death.json, tools/scenarios/mapped/FDN/crow_of_dark_tidings_mills_two_entering_and_two_dying.json."
+ },
+ "probe": {
+  "sha": "30f4c1fb8212a195b8fe3b7cc991cf6052fe2f6ab5440d35b444dcee1c21071b"
+ }
+}

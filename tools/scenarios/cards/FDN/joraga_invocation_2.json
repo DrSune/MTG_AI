@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jor", "real": "Joraga Invocation", "zone": "hand", "controller": 0},
+  {"key": "a1", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "My Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Opp Giant One", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "b2", "name": "Opp Giant Two", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Joraga Invocation", "key": "jor"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"a1": true, "a2": true}, "block": {"b1": null, "b2": null}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "zone": {"jor": "graveyard", "a1": "battlefield", "a2": "battlefield", "b1": "battlefield", "b2": "battlefield"},
+  "blocked": {"a1": [], "a2": []},
+  "block_asks": {"b1": "<a1>,<a2>,NONE", "b2": "<a1>,<a2>,NONE"},
+  "power": {"a1": 2, "a2": 3},
+  "toughness": {"a1": 2, "a2": 3},
+  "life": {"1": 15}
+ },
+ "notes": "FDN Joraga Invocation, printed: 'Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.' Both halves last this turn only. On my next turn my Bear and Ogre are 2/2 and 3/3 again and nobody has to block them: each Giant is offered both attackers and 'no block', and with no blocks the attackers deal 2 + 3 = 5."
+}

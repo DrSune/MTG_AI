@@ -1,0 +1,27 @@
+{
+ "set": "FDN",
+ "name": "burnished_hart_two_basics_enter_tapped",
+ "notes": "M7 mapper. Printed: '{3}, Sacrifice this creature: Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.' Seat 0's library holds a Forest and an Island (basic), a nonbasic Desert and a creature. Seat 0 pays {3}, sacrifices the Hart and picks the Forest and the Island: both enter tapped under seat 0's control; the Desert and the creature stay; seat 0's library is shuffled, the opponent's is untouched.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "hart", "real": "Burnished Hart", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "desert", "name": "Odd Desert", "type": "Land — Desert", "zone": "library", "controller": 0, "cmc": 0},
+  {"key": "lib_beast", "name": "Library Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "hart", "idx": 0, "seat": 0, "decisions": ["forest", "island"]}
+ ],
+ "expect": {
+  "zone": {"hart": "graveyard", "forest": "battlefield", "island": "battlefield", "desert": "library", "lib_beast": "library"},
+  "tapped": {"forest": true, "island": true},
+  "controller": {"forest": 0, "island": 0},
+  "mana_pool": {"0": {}},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

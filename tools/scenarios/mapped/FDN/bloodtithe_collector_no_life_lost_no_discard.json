@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "bloodtithe_collector_no_life_lost_no_discard",
+ "notes": "M3 mapper. Printed: 'When this creature enters, if an opponent lost life this turn, each opponent discards a card.' No player has lost life this turn: Bloodtithe Collector enters and nothing happens (the intervening 'if' is false, CR 603.4); the opponent keeps both cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "collector", "real": "Bloodtithe Collector", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Their Spare", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "hand", "controller": 1},
+  {"key": "keep", "name": "Their Keep", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "collector"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"collector": "battlefield", "spare": "hand", "keep": "hand"},
+  "hand": {"1": 2}
+ }
+}

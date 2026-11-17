@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "bloodthirsty_conqueror_gains_only_from_opponents_losses",
+ "notes": "M4 mapper. Printed: 'Whenever an opponent loses life, you gain that much life. (Damage causes loss of life.)' Support card: FDN Massacre Wurm (verified; 'Whenever a creature an opponent controls dies, that player loses 2 life.'). Seat 0 controls Bloodthirsty Conqueror and Massacre Wurm. Seat 1's Bear dies: the Wurm makes seat 1 lose 2 life (a loss with no damage) and the Conqueror gains seat 0 that much: seat 0 at 22, seat 1 at 18.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "conq", "real": "Bloodthirsty Conqueror", "zone": "battlefield", "controller": 0},
+  {"key": "wurm", "real": "Massacre Wurm", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "obear", "amount": 2}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "conq": "battlefield", "wurm": "battlefield"},
+  "life": {"0": 22, "1": 18}
+ }
+}

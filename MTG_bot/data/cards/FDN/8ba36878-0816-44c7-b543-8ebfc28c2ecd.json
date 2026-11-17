@@ -1,0 +1,517 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "8ba36878-0816-44c7-b543-8ebfc28c2ecd",
+ "name": "Angelic Destiny",
+ "text_sha": "ce69efbde115a9d42fdb16bea6a10fb5645de7b7ba10ee6e163fe7e0a8b8d3d4",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 4
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 4
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FIRST_STRIKE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_TYPE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "types",
+          {
+           "tag": "StringTuple",
+           "items": [
+            "Angel"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_ATTACHED_TO_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Angelic Destiny.\n# \"Enchanted creature gets +4/+4, has flying and first strike, and is an Angel in addition to its\n# other types.\"  M21 Dub's B5a-enchant-pt-firststrike-knight (verified) with +4/+4, the two\n# keyword grants sorted by name (divergence D23) and the Angel type.\n# \"When enchanted creature dies, return this card to its owner's hand.\"  CreatureDiesEvent over the\n# enchanted creature (IS_ATTACHED_TO_SOURCE, M21 Malefic Scythe's \"equipped creature\" dies form);\n# the Aura card, put into its owner's graveyard by CR 704.5m, is the source (IS_SOURCE) moved from\n# a graveyard to its owner's hand (Unsummon's owner hand).\nENCHANTED = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nanthem = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=4)),\n                'target': ENCHANTED,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=4)),\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n                'target': ENCHANTED,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'target': ENCHANTED,\n            }),\n            A(Verb.GRANT_TYPE, {\n                'target': ENCHANTED,\n                'types': ('Angel',),\n            }),\n        ),\n    ),\n)\ncome_back = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n        ),\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n    }),\n)\nabilities = [anthem, come_back, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Enchanted creature gets +4/+4, has flying and first strike, and is an Angel in addition to its other types.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "When enchanted creature dies, return this card to its owner's hand.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Static: Dub's form (verified) with +4/+4, the keyword grants sorted (D23) and the Angel type. Dies trigger: CreatureDiesEvent(IS_ATTACHED_TO_SOURCE), the Aura card (IS_SOURCE) moved from a graveyard to its owner's hand. ENGINE (weaker than printed): the trigger never fires. binding.functions_from_graveyard reads a trigger whose effect moves its own source out of a graveyard as working only from the graveyard (CR 113.6m) and misses the rule's Aura exception ('... or, if the object is an Aura, that the object it enchants leaves the battlefield'): the ability is bound only once the Aura is in the graveyard, after the creature's death was matched. With the move's zone written as ANY instead (a wider, stronger reading, not used) the same pack passes. Packs: tools/scenarios/mapped/FDN/angelic_destiny_enchanted_creature_is_an_angel.json (support: FDN Lyra Dawnbringer, an M7 record), tools/scenarios/known_bugs/angelic_destiny_aura_never_returns_when_its_creature_dies.json (fails today)."
+ },
+ "probe": {
+  "sha": "88707c2b8d1e7d234c93545cc27a8196e1528b25ef1b5f1f06c209b23d5299e5"
+ }
+}

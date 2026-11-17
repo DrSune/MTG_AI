@@ -1,0 +1,129 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "cf09b0af-3cf1-4486-8f65-8cfd2410314a",
+ "name": "Deathmark",
+ "text_sha": "2d8715296a3ca5d5481965befb4337a89a899292c444cfcd1d41ff5d54a9fddb",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DESTROY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "G",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "W",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Deathmark (FDN): \"Destroy target green or white creature.\"\n# Liliana's Scorn's DESTROY TARGET creature, the colour \"green or white\" an FOr of COLOR_HAS\n# (MAPPER_GUIDE: never COLOR_IN, a subset test).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FOr(\n                            children=(\n                                FAtom(pred=FAtomPred.COLOR_HAS, color='G'),\n                                FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                            ),\n                        ),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Destroy target green or white creature.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Liliana's Scorn's destroy, the filter FOr(COLOR_HAS G, COLOR_HAS W) + creature (never COLOR_IN). packs in tools/scenarios/mapped/FDN/: deathmark_green_or_white_multicolour_included."
+ },
+ "probe": {
+  "sha": "cf155b813dc5d0bc049803cf28fa5f4019195ae647da0b653833b97e85dee7c0"
+ }
+}

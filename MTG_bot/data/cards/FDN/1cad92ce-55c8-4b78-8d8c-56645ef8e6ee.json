@@ -1,0 +1,160 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1cad92ce-55c8-4b78-8d8c-56645ef8e6ee",
+ "name": "Firespitter Whelp",
+ "text_sha": "62eac28f73ba56d8f63bb3ef5145377269b15507bee7353823ca40c0720f766a",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FOr",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Dragon",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "TYPE_EQ"
+         },
+         "string_value": "Creature",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OPPONENT"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Firespitter Whelp: \"Flying. Whenever you cast a noncreature or Dragon spell, this creature\n# deals 1 damage to each opponent.\"\n# FDN Firebrand Archer's verified record (\"noncreature spell\", 1 to each opponent), the filter\n# widened by \"or Dragon spell\": Rockslide Sorcerer's \"Wizard spell\" is a bare SUBTYPE_EQ in an FOr.\ntrigger = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FOr(\n            children=(\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Dragon'),\n                FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')),\n            ),\n        ),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=1),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.OPPONENT),),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "FDN Firebrand Archer's verified record with the cast filter FOr(SUBTYPE_EQ Dragon, FNot(TYPE_EQ Creature)) (Rockslide Sorcerer's bare SUBTYPE_EQ for a tribal spell). Flying compiled. packs in tools/scenarios/mapped/FDN/: firespitter_whelp_dragon_spells_and_your_noncreature_spells."
+ },
+ "probe": {
+  "sha": "21738f973fcca363c469e42702d15ba4e3e6fa2f81f2603e52a2a94b9fa93bd8"
+ }
+}

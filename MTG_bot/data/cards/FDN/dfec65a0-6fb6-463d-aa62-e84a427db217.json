@@ -1,0 +1,363 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "dfec65a0-6fb6-463d-aa62-e84a427db217",
+ "name": "Arahbo, the First Fang",
+ "text_sha": "f119f00772f47645449ff6bc8fbe168c00e2245eb49062780533e8eb10085694",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Cat",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FOr",
+      "children": [
+       {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Cat",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_TOKEN"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         }
+        ]
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "IS_SOURCE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Cat",
+         "type_line": "Creature — Cat",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Cat"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "W"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Arahbo, the First Fang.\n# \"Other Cats you control get +1/+1.\"  M21 Feline Sovereign's anthem (B4-modify-pt-protect-other-\n# cats, verified) without its protection grant.\n# \"Whenever Arahbo or another nontoken Cat you control enters, create a 1/1 white Cat creature\n# token.\"  M21 Thieves' Guild Enforcer's \"this creature or another Rogue you control enters\"\n# (verified) over nontoken Cats (FNot(IS_TOKEN), Gadrak's \"nontoken\"); M21 Rin and Seri's Cat token\n# in white.\nOTHER_CATS = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Cat'),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n    ),\n)\nanthem = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=OTHER_CATS,\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\npride = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FOr(\n            children=(\n                FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Cat'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),\n                    ),\n                ),\n                FAtom(pred=FAtomPred.IS_SOURCE),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Cat',\n            type_line='Creature — Cat',\n            types=('Creature',),\n            subtypes=('Cat',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(),\n            abilities=(),\n            colors=('W',),\n        ),\n    }),\n)\nabilities = [anthem, pride, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Other Cats you control get +1/+1.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever Arahbo or another nontoken Cat you control enters, create a 1/1 white Cat creature token.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Anthem: Feline Sovereign's form without the protection grant. Trigger: Thieves' Guild Enforcer's 'this creature or another X you control enters' over nontoken Cats (FNot IS_TOKEN); Rin and Seri's Cat token in white. Packs: tools/scenarios/mapped/FDN/arahbo_another_nontoken_cat_makes_one_cat.json, tools/scenarios/mapped/FDN/arahbo_two_cats_returned_together_make_two_cats.json (support: FDN Raise the Past)."
+ },
+ "probe": {
+  "sha": "836dcc9d6e1498ffe027823380296b02e59aeda75742b35dbb8192128359818b"
+ }
+}

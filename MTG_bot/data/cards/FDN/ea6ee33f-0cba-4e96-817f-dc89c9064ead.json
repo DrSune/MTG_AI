@@ -1,0 +1,55 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ea6ee33f-0cba-4e96-817f-dc89c9064ead",
+ "name": "Suspicious Shambler",
+ "text_sha": "1d325753b01d4c23f7c865ea8c67b61633ca487da0d9a81eaa0594e1289e71b6",
+ "verified": {
+  "tree_sha": "a27487728408e4c4d231c84f663b94653c67442a7d18f17b1413bcf096bb9265",
+  "probe_sha": "b1c65af3ec29df8e8a642bd742a97a2c86df8ad9cbcd9b27ccc63fee2fab5075",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave2",
+  "clauses": [
+   {
+    "clause": "{4}{B}{B}",
+    "status": "OK",
+    "evidence": "[activate [0] from graveyard] change: you: mana B-2 C-4: BB and four more, six mana in all.",
+    "issue": ""
+   },
+   {
+    "clause": "Exile this card from your graveyard",
+    "status": "OK",
+    "evidence": "[activate [0] from graveyard] event: card moves graveyard -> exile (by card/MOVE_ZONE), journalled before ABILITY_ACTIVATED: paid as a cost. 'ability [0] not activatable from battlefield: window:not_in_graveyard': it works only from the graveyard.",
+    "issue": ""
+   },
+   {
+    "clause": "Create two 2/2 Zombie creature tokens",
+    "status": "OK",
+    "evidence": "[activate [0] from graveyard] events you:Zombie#1 and you:Zombie#2 move new -> battlefield (by card/CREATE_TOKEN); changes '+ you:Zombie#1 (battlefield, you, 2/2)' and '+ you:Zombie#2 (battlefield, you, 2/2)': two tokens, mine, 2/2, named Zombie.",
+    "issue": ""
+   },
+   {
+    "clause": "The tokens are black",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace prints no colour for the tokens (the tree says colors=('B',)). Pack A00_2: Devout Decree ('black or red') takes a token and not a green creature (the colour cannot be told from red with a verified FDN card).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe activates the ability once, in a main phase with an empty stack, and shows no refusal at any other time. Pack A00_1: refused on the opponent's turn, with a spell on the stack and in the combat phase; allowed in my main phase.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/suspicious_shambler_1.json",
+   "tools/scenarios/cards/FDN/suspicious_shambler_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

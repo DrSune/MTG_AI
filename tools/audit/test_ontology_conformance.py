@@ -513,6 +513,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # Tolarian Kraken's "When you do": a reflexive DelayedTrigger gated by
         # Conditional(MAY_DONE) (CR 603.12, the trigger-timing fix).
         "ontology_census_2026-11-12_triggertiming_post_full.json",
+        # See the Truth's "instead" (CR 608.2c): Conditional(cast and not from your
+        # hand, every looked-at card, else=the one-and-rest Seq) (engine wave C1).
+        "ontology_census_2026-11-17_seethetruth_post_full.json",
         # The one quantity comparison (ontology round R12): QTY_GE over a field or a
         # quantity, "N or less" as its FNot, TARGETS(filter), QDistinct.
         "ontology_census_2026-11-17_qtycmp_post_full.json",

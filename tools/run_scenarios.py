@@ -69,6 +69,15 @@ Pack vocabulary (all keys required as noted):
                                             exile) to the card's OWNER's
                                             zone; its settle drains held
                                             triggers after the move,
+             {"op": "gain_control", "key": k, "seat": N}
+                                            a control change by "another
+                                            effect": the player at seat N gains
+                                            control of the permanent for the
+                                            rest of the game (GAIN_CONTROL with
+                                            no duration, Mind Control's;
+                                            CR 110.2, 613.1b). In a combat
+                                            window it changes the side of an
+                                            attacked planeswalker (CR 506.4),
              {"op": "play", "key": k}       the REAL land drop (CR 305.1,
                                             legality + once-per-turn +
                                             EtBState entry hook),
@@ -785,6 +794,18 @@ class ScenarioRunner:
                 source=handle,
                 controller=self.world.controller_of(handle),
                 bindings={"cards": handle},
+            )
+        elif op == "gain_control":
+            # A control change by another effect (the steal stand-in): the seat gains control,
+            # as "Gain control of target permanent" resolving under that seat does.
+            handle = self.handles[step["key"]]
+            if self.world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+                raise PackError(f"gain_control {step['key']}: only a permanent has a controller to change")
+            self.ex.execute(
+                _atom(Verb.GAIN_CONTROL, target=_bf_target(), controller=ControllerRef.YOU),
+                source=handle,
+                controller=self._seat(step["seat"], op),
+                bindings={"target": handle},
             )
         elif op == "enchant":
             # A pack that DECLARES an aura on the battlefield meets the

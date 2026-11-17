@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "fleeting_flight_protects_only_its_target",
+ "notes": "Printed: 'Prevent all combat damage that would be dealt to it this turn.' 'It' is the target only. Seat 0 attacks with two 2/2s; seat 1 blocks each with a 4/4. After blocks Fleeting Flight targets the Duelist: the Duelist (3/3) takes no combat damage and survives, the Brawler, not targeted, takes 4 and dies. Each 4/4 is dealt its attacker's damage (3 and 2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "duelist", "name": "Duelist", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "brawler", "name": "Brawler", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "Wall One", "type": "Creature — Wall", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "wall2", "name": "Wall Two", "type": "Creature — Wall", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"duelist": true, "brawler": true},
+   "block": {"wall1": "duelist", "wall2": "brawler"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["duelist"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "duelist": "battlefield", "brawler": "graveyard", "wall1": "battlefield", "wall2": "battlefield"},
+  "damage": {"wall1": 3, "wall2": 2},
+  "damage_received": {"brawler": 4},
+  "life": {"0": 20, "1": 20}
+ }
+}

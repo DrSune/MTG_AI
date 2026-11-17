@@ -200,22 +200,39 @@ def value_token(quality: str, value: str) -> str:
 
 
 def card_tokens(rec: Any) -> list[str]:
-    """A compiled card's component tokens: face (types, subtypes, mana value) + its tree."""
+    """A compiled card's component tokens: face (types, subtypes, mana value) + its tree, every
+    one (the network pools them all: model.card_table_emb)."""
     tree = {"abilities": [to_dict(a) for a in rec.abilities],
             "keywords": [to_dict(k) for k in rec.keywords]}
     face = [f"type:{t}" for t in rec.types] + [f"sub:{t}" for t in rec.subtypes]
     face += [f"mv:{_bucket(rec.mana_value)}"]
-    return face + ir_tokens(tree)
+    return face + ir_tokens(tree, {rec.name, *rec.name.split(" // ")})
 
 
-def ir_tokens(node: Any) -> list[str]:
+#: A card name as a component token. A token named after one card is learned from that card
+#: alone, and it would show the card to a network whose names are masked (--mask-names), so
+#: no name is a token (KNOWLEDGE 210, N2): the card's own name ("cards named ~", NAME_EQ, the
+#: party template's NAME_CONTAINS) is SELF_NAME, another card's (a NAME_EQ, a LiteralName)
+#: OTHER_NAME.
+SELF_NAME, OTHER_NAME = "str:~", "str:<name>"
+
+
+def ir_tokens(node: Any, own: set[str] | frozenset[str] = frozenset()) -> list[str]:
     """Pre-order tokens of a ``to_dict`` tree: tags, enum values, roles, strings, bucketed
-    numbers. A card's own name never appears."""
+    numbers. No card name appears: a name is SELF_NAME when it is one of ``own`` (the card's
+    name and its faces'), else OTHER_NAME; a back face's name is left out (its BackFace tag
+    stays). A NAME_CONTAINS part that is no name stays ("a Garruk planeswalker", D29)."""
     out: list[str] = []
+
+    def name(value: str, whole: bool) -> str:
+        return SELF_NAME if value in own else OTHER_NAME if whole else f"str:{value}"
 
     def visit(value: Any) -> None:
         if isinstance(value, dict):
             tag = value.get("tag")
+            if tag == "LiteralName":  # "cards named Frantic Inventory" as data (card_spec)
+                out.extend((tag, name(value["name"], True)))
+                return
             if "name" in value and len(value) == 2 and tag:
                 out.append(f"{tag}.{value['name']}")
                 return
@@ -224,6 +241,7 @@ def ir_tokens(node: Any) -> list[str]:
                 return
             if tag:
                 out.append(tag)
+            pred = (value.get("pred") or {}).get("name") if tag == "FAtom" else None
             for key, child in value.items():
                 if key == "tag" or child in (None, [], {}, ""):
                     continue
@@ -232,9 +250,12 @@ def ir_tokens(node: Any) -> list[str]:
                         out.append(f"role:{role}")
                         visit(item)
                     continue
-                if key in ("name", "oracle_id", "type_line"):
+                if key in ("name", "oracle_id", "type_line", "face_name"):
                     continue
                 out.append(f"@{key}")
+                if key == "string_value" and pred in ("NAME_EQ", "NAME_CONTAINS"):
+                    out.append(name(child, pred == "NAME_EQ"))
+                    continue
                 visit(child)
         elif isinstance(value, list):
             for item in value:
@@ -254,16 +275,16 @@ def ir_tokens(node: Any) -> list[str]:
 class CardTable:
     """Card vocabulary (oracle id -> row) and each row's component tokens.
 
-    Row 0 is padding and row 1 the unknown card. ``ir`` holds each row's component-token ids
-    (truncated to ``max_ir``); the network embeds a card as name embedding + component bag, so
-    a card outside the vocabulary still has its components when the table is extended.
+    Row 0 is padding and row 1 the unknown card. ``ir`` holds each row's component-token ids,
+    all of them; the network embeds a card as name embedding + component bag, so a card outside
+    the vocabulary still has its components when the table is extended. A table saved before
+    2026-11-17 holds rows cut at 128 tokens and is read as it is: a refresh rebuilds them whole.
     """
 
     oracle_ids: list[str]
     names: list[str]
     ir_vocab: list[str]
     ir: list[list[int]]
-    max_ir: int = 128
     index: dict[str, int] = field(default_factory=dict)
     ir_index: dict[str, int] = field(default_factory=dict)
 
@@ -272,14 +293,13 @@ class CardTable:
         self.ir_index = {t: i for i, t in enumerate(self.ir_vocab)}
 
     @classmethod
-    def from_records(cls, records: dict[str, Any], max_ir: int = 128) -> CardTable:
+    def from_records(cls, records: dict[str, Any]) -> CardTable:
         oids = ["<pad>", "<unk>"] + sorted(records)
         names = ["<pad>", "<unk>"] + [records[o].name for o in oids[2:]]
         token_lists = [[], []] + [card_tokens(records[oid]) for oid in oids[2:]]
         vocab = ["<pad>"] + sorted({t for toks in token_lists for t in toks})
         vi = {t: i for i, t in enumerate(vocab)}
-        ir = [[vi[t] for t in toks][:max_ir] for toks in token_lists]
-        return cls(oids, names, vocab, ir, max_ir)
+        return cls(oids, names, vocab, [[vi[t] for t in toks] for toks in token_lists])
 
     def row(self, oracle_id: str) -> int:
         return self.index.get(oracle_id, UNK)
@@ -314,13 +334,13 @@ class CardTable:
             tokens += len(toks)
             oids.append(oid)
             names.append(records[oid].name)
-            ir.append(ids[: self.max_ir])
+            ir.append(ids)
             added += 1
         stats = {"added": added, "component_tokens": tokens, "known_share": round(
             known / max(tokens, 1), 4), "unseen_components": sorted(
             unseen.items(), key=lambda kv: -kv[1])[:20], "tokens_added": len(vocab) - len(
             self.ir_vocab)}
-        return CardTable(oids, names, vocab, ir, self.max_ir), stats
+        return CardTable(oids, names, vocab, ir), stats
 
     def refresh(self, records: dict[str, Any]) -> tuple[CardTable, dict]:
         """A copy whose rows are rebuilt from the CURRENT compile of ``records`` (cards absent
@@ -341,26 +361,29 @@ class CardTable:
                     vi[t] = len(vocab)
                     vocab.append(t)
                 ids.append(vi[t])
-            ids = ids[: self.max_ir]
             changed += ids != ir[row]
             ir[row] = ids
-        return (CardTable(list(self.oracle_ids), list(self.names), vocab, ir, self.max_ir),
+        return (CardTable(list(self.oracle_ids), list(self.names), vocab, ir),
                 {"rows_changed": changed, "tokens_added": len(vocab) - len(self.ir_vocab),
                  "new_tokens": vocab[len(self.ir_vocab):]})
 
-    def ir_array(self) -> np.ndarray:
-        out = np.zeros((len(self.ir), self.max_ir), dtype=np.int64)
+    def ir_counts(self) -> np.ndarray:
+        """[rows, vocabulary]: how often each component token is in each row (the padding
+        token never counts), the matrix model.card_table_emb pools by."""
+        out = np.zeros((len(self.ir), len(self.ir_vocab)), dtype=np.int32)
         for i, ids in enumerate(self.ir):
-            out[i, : len(ids)] = ids
+            np.add.at(out[i], ids, 1)
+        out[:, 0] = 0
         return out
 
     def to_json(self) -> dict[str, Any]:
         return {"oracle_ids": self.oracle_ids, "names": self.names, "ir_vocab": self.ir_vocab,
-                "ir": self.ir, "max_ir": self.max_ir}
+                "ir": self.ir}
 
     @classmethod
     def from_json(cls, d: dict[str, Any]) -> CardTable:
-        return cls(d["oracle_ids"], d["names"], d["ir_vocab"], d["ir"], d["max_ir"])
+        # a table saved before 2026-11-17 also holds "max_ir": 128, the cut its rows were built with
+        return cls(d["oracle_ids"], d["names"], d["ir_vocab"], d["ir"])
 
 
 # ------------------------------------------------------------------------------ encoder

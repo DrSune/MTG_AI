@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "elspeths_smite_survivor_dying_later_this_turn_is_exiled",
+ "notes": "Printed: '... deals 3 damage to target ATTACKING or blocking creature. If that creature would die THIS TURN, exile it instead.' Seat 0's 5/5 attacks and seat 1's 2/2 blocks. After blocks seat 0 casts Elspeth's Smite on its own ATTACKING 5/5: it survives the 3 damage, then takes 2 combat damage from the blocker and dies the same turn: it is exiled. The 2/2 blocker, never targeted, dies to the 5/5's damage and goes to the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 0},
+  {"key": "brute", "name": "Brute", "type": "Creature — Ogre", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"brute": true},
+   "block": {"bear": "brute"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 0, "targets": ["brute"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"smite": "graveyard", "brute": "exile", "bear": "graveyard"},
+  "damage_received": {"brute": 5, "bear": 5},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "name": "wardens_of_the_cycle_resolves_after_it_leaves",
+ "set": "FDN",
+ "note": "Wardens of the Cycle: 'Morbid -- At the beginning of your end step, if a creature died this turn, choose one -- * You gain 2 life. ...' The opponent's Bear died, so the ability triggers at P0's end step (P0 chooses the first mode); with it on the stack, Wardens is returned to P0's hand. The intervening 'if' is checked again on resolution (CR 603.4) and is about any creature, not Wardens: it is still true, so P0 gains 2 (22) though Wardens is gone.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wardens", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1},
+  {"key": "ogiant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature — Giant", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogiant", "target": "obear", "amount": 2},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "0"], "hold": true},
+  {"op": "move", "key": "wardens", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "wardens": "hand"},
+  "life": {"0": 22, "1": 20}
+ }
+}

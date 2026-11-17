@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "ambush_wolf_exiles_one_card_from_an_opponents_graveyard",
+ "notes": "M3 mapper. Printed: 'When this creature enters, exile up to one target card from a graveyard.' Ambush Wolf enters; seat 0 targets the opponent's graveyard card, which is exiled. The other card in that graveyard and seat 0's own graveyard card stay.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wolf", "real": "Ambush Wolf", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Relic", "type": "Artifact", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1},
+  {"key": "other", "name": "Their Charm", "type": "Enchantment", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "wolf", "decisions": ["theirs"]}
+ ],
+ "expect": {
+  "zone": {"wolf": "battlefield", "theirs": "exile", "other": "graveyard", "mine": "graveyard"}
+ }
+}

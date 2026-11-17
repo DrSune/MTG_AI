@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "kalastria_highborn_target_player_never_designated",
+ "notes": "KNOWN BUG, fails today (M5 mapper, 2026-11-17). Run it on the FDN record with `cardtool.py runpack FDN <this pack>` (tools/run_scenarios.py plays verified trees only). Printed: 'Whenever this creature or another Vampire you control dies, you may pay {B}. If you do, target player loses 2 life and you gain 2 life.' The record writes 'target player' as LOSE_LIFE(controller=TARGET_PLAYER), the canonical form (Sublime Epiphany's 'Target player draws a card'). In a dies trigger the binder pre-binds a designated player with no TARGET Selector to the dead creature (binding.TriggerBinder._put, Massacre Wurm's 'that player' anaphora, D18), so the target is never asked: it is the dying Vampire's controller, seat 0, who loses 2 and gains 2. Weaker than printed (one legal choice of the printed card, forced). Expected once fixed: seat 0's Vampire dies; the trigger targets seat 1 as it goes on the stack; seat 0 pays {B}: seat 1 loses 2, seat 0 gains 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "kal", "real": "Kalastria Highborn", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1}, "hold": true},
+  {"op": "move", "key": "vamp", "to": "graveyard", "decisions": ["player:1", "fire"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard"},
+  "life": {"0": 22, "1": 18},
+  "mana_pool": {"0": {}}
+ }
+}

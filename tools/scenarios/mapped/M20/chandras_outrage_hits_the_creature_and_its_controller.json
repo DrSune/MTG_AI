@@ -1,0 +1,15 @@
+{
+ "set": "M20",
+ "name": "chandras_outrage_hits_the_creature_and_its_controller",
+ "notes": "M3 mapper. Printed: 'Chandra's Outrage deals 4 damage to target creature and 2 damage to that creature's controller.' Seat 0 targets the opponent's 5/5: it is dealt 4 and survives, and its controller (seat 1) is dealt 2; seat 0 is dealt nothing.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "brute", "zone": "battlefield", "controller": 1, "name": "Brute", "power": 5, "toughness": 5, "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["brute"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 18}, "damage": {"brute": 4}, "zone": {"brute": "battlefield", "outrage": "graveyard"}}
+}

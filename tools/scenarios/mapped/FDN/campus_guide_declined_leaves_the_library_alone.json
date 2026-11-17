@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "campus_guide_declined_leaves_the_library_alone",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you may search your library for a basic land card, reveal it, then shuffle and put that card on top.' Seat 0 declines the search (the whole instruction is optional): no card moves and the library is not shuffled, so its order is exactly as set up (the Forest on top).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "guide", "real": "Campus Guide", "zone": "hand", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "guide", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"guide": "battlefield", "forest": "library", "beast": "library"},
+  "library": {"0": ["Forest", "Lib Beast", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

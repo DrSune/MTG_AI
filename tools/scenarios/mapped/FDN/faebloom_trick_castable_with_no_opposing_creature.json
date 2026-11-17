@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "faebloom_trick_castable_with_no_opposing_creature",
+ "notes": "Printed: '... When you do, tap target creature an opponent controls.' The target belongs to the reflexive trigger, not to the spell: with no creature on seat 1's side Faebloom Trick is still cast and makes its two Faeries; the trigger has no legal target and does nothing, so seat 0's own 2/2 and the Faeries stay untapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "trick", "real": "Faebloom Trick", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "trick", "real": "Faebloom Trick", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"trick": "graveyard"},
+  "tokens": {"Faerie": 2},
+  "tapped": {"bear": false},
+  "mana_pool": {"0": {}}
+ }
+}

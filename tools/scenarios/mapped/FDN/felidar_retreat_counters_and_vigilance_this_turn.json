@@ -1,0 +1,25 @@
+{
+ "name": "felidar_retreat_counters_and_vigilance_this_turn",
+ "set": "FDN",
+ "note": "Felidar Retreat: 'Landfall -- Whenever a land you control enters, choose one -- ... Put a +1/+1 counter on each creature you control. Those creatures gain vigilance until end of turn.' P0 plays a Plains and chooses the second mode: each of P0's two creatures gets one +1/+1 counter, the opponent's creature none, and no Cat Beast is created. P0's Bear then attacks and, having vigilance, stays untapped; it deals 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "retreat", "real": "Felidar Retreat", "zone": "battlefield", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "elk", "name": "Elk", "power": "3", "toughness": "3", "type": "Creature — Elk", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "plains", "decisions": ["1"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "elk": false}}
+ ],
+ "expect": {
+  "zone": {"plains": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "elk": {"PLUS_1_PLUS_1": 1}, "obear": {}},
+  "power": {"bear": 3, "elk": 4, "obear": 2},
+  "tapped": {"bear": false},
+  "tokens": {"Cat Beast": 0},
+  "life": {"0": 20, "1": 17}
+ }
+}

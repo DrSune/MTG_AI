@@ -304,3 +304,145 @@ rare components into anything.
 The new components of §5 (copy, the play permission, flashback, the opening hand) are separate gated
 rounds; each should take the shared forms above as it lands (a flashback permission is a CAST with a
 duration and an alternative cost, not a new cast verb; surveil is SCRY with a graveyard pile).
+
+## 8. N1 and N2 built (2026-11-17)
+
+Built in b364fe6b, on main 32e804ec; §0-§7 are unchanged. Evidence: `reports/n1n2_2026-11-17/`
+(its README maps scripts to numbers and holds the commands). r28's v2 was read only, on the CPU: a
+probe run held the GPU while this was measured.
+
+### 8.1 What changed
+- **N1.** A table row holds every token of its card: `CardTable.max_ir` and the cut are gone
+  (`features.py` `from_records`, `extend`, `refresh`). `CardTable.ir_counts()` (features.py:370) is
+  the [rows, vocabulary] count matrix (padding never counts). The network's buffer `ir_counts`
+  replaces `ir_table` (model.py:51): it is still built from the table at every load, never saved.
+  `card_table_emb` (model.py:98) computes `(counts @ ir_emb) / row length`. Under autocast it stays
+  in fp32, as the gather did, then casts to the weights' dtype. `extend_cards`, `build`, `load`, the
+  trainer process, the simulator and the workers read the table as before.
+- **N2.** `ir_tokens` (features.py:220) writes no card name. The census walk over every compiled
+  tree found these name paths:
+  - a back face's `@face_name` (87 trees): left out, since the `BackFace` tag still marks the face;
+  - NAME_EQ with the card's own name (7 trees), and the party template's NAME_CONTAINS with it
+    (3): `str:~`;
+  - NAME_EQ naming another card (14 cards): `str:<name>`;
+  - `LiteralName`, which no tree holds yet: the same rule, where it used to become
+    `LiteralName.<name>`.
+
+  TokenSpec names were already skipped. A NAME_CONTAINS fragment that names no card stays: "a
+  Garruk planeswalker" (D29) keeps `str:Garruk`, which SUBTYPE_EQ shares. `card_tokens` passes the
+  card's name and its faces' names as its own.
+- **Old checkpoints are read as saved, not converted.** An old table's JSON still holds rows cut at
+  128 and `"max_ir": 128`. `from_json` ignores the key, and the pool reads those rows.
+  `--refresh-table` rebuilds them whole and free of names. There is one pooling path.
+
+### 8.2 Before and after, on the cards (`census.txt`)
+The base commit's `card_tokens` (read from git) against the new one, on the review's populations:
+
+| | verified M21+M20+FDN (651) | every compiled tree, 19 sets (4,314) |
+|---|---|---|
+| cards past 128 tokens | 79 (12.1%) -> 0 | 116 (2.7%) -> 0 |
+| tokens the cut took | 3,736 -> 0 | 5,638 -> 0 |
+| verb / keyword a card lost outright (card-component pairs) | 33 / 39 -> 0 | 44 / 75 -> 0 |
+| cards with a name token | 17 (6 own, 11 another card's) -> 0 | 110 (87 back faces, 9 own, 14 another's) -> 0 |
+| distinct tokens | 610 -> 594 | 857 -> 747 |
+
+The two tokenisations differ only at the name tokens; the script asserts it card by card. No
+name is left, apart from the basic land types (`str:Island`), which are subtypes (CR 205.3i).
+
+### 8.3 r28's v2, old code against new (`compare.txt`, CPU fp32)
+- **v2's own table, read as saved.**
+  - Component vectors: max |diff| 1.12e-8. 13 of 613 rows are bitwise equal.
+  - 1,027 real decisions from 6 seeded heuristic games (M21, M20): encodings are bitwise equal;
+    logits max |diff| 1.43e-5 (median 1.9e-6); values 1.8e-6; 19 decisions bitwise; greedy choice
+    unchanged in all 1,027.
+  - 6 seeded games that v2 plays greedily (self-play and against the heuristic, 697 decisions):
+    the same games, decision for decision; max |dlogit| 2.0e-5.
+  - Not bitwise: the count matrix adds in another order than the gather did, about 1e-8 per vector
+    and about 1e-5 on a logit after 8 layers. Getting bitwise would mean keeping the [N, 128, d]
+    gather. That costs about 8x the pool's time (53 against 6.5 ms forward on 2 threads beside the
+    run, `precision_check.txt`), and its cost grows with the longest card.
+- **Refreshed as r28 and r29 build the table** (`--refresh-table --extend-sets M20 --mix-sets M20`).
+  - 82 of 613 rows have different tokens:
+    - 77 were past 128 and are whole now. They had lost 35 verb-card pairs: 3 emblems (Basri Ket;
+      Garruk, Unleashed; Liliana, Waker of the Dead), DAMAGE_ASSIGN_POLICY, TRIGGER_ADDITIONAL,
+      DESTROY, DRAW, and others.
+    - 17 held a card name.
+    - 12 are both.
+  - On v2's weights the changed rows move |dv| / |v| = 16% at the median (quartiles 12-29%). The
+    largest move is 51% (Rin and Seri, Inseparable, 128 -> 221 tokens); the smallest is 0%
+    (Battalion Foot Soldier, whose old and new name tokens both start at zero).
+  - The name rows move 11% at the median. `str:~` and `str:<name>` join at zero, as every new
+    token does.
+  - The other 531 rows move at most 1.12e-8.
+  - Decisions with no changed card visible (76 of 1,027): max |dlogit| 1.07e-5, no greedy change.
+  - Decisions with one (951): median |dlogit| 0.031, max 1.40; |dvalue| up to 0.040; 4 greedy
+    choices differ (0.4%).
+  - The 6 played games were still identical.
+- **bf16** (`precision_check.txt`). Under the trainer's autocast the pool stays fp32. Old against
+  new on 256 decisions is within bf16's own rounding:
+  - autocast: max |dlogit| 0.063, against 0.087 for the old code's autocast against fp32;
+  - the bf16 inference copy: 0.19 against 0.19;
+  - greedy choices equal in 255 and 254 of 256 (252 between the old code's bf16 and fp32).
+
+  So on the GPU's bf16 paths, an old checkpoint plays as it did up to bf16's rounding, and no
+  closer.
+
+### 8.4 The seven zero rows
+They are component embeddings, not card rows. No card row of v2 is empty or pools to zero, except
+padding and the unknown card.
+
+| token | the cards that carry it |
+|---|---|
+| `str:ACTIVATED`, `str:TRIGGERED` | Sublime Epiphany |
+| `sub:Advisor` | Kethis, the Hidden Hand |
+| `sub:Vivien` | Vivien, Arkbow Ranger; Vivien, Nature's Avenger |
+| `sub:Scarecrow` | Scuttlemutt |
+| `sub:Octopus` | Octoprophet |
+| `sub:Troll` | Barkhide Troll |
+
+- **How they joined.** Each token entered the table at zero (`extend_cards`). The `sub:` rows came
+  with r19's `--extend-sets M20`, which added 50 tokens (540 -> 590). The `str:` pair was already
+  zero in r18's init.
+- **Why they stayed zero.** Their cards are castable, so they have rows, but none was verified
+  when r19-r28 dealt from `--pool verified`:
+  - Sublime Epiphany has no record;
+  - Kethis, Vivien, Arkbow Ranger and Scuttlemutt are needs-atom;
+  - Vivien, Nature's Avenger, Octoprophet and Barkhide Troll were verified or mapped after r28
+    started.
+
+  No game dealt them and no quality choice named them, so no gradient reached the rows, and AdamW
+  leaves a zero row with no gradient at zero.
+- **Verdict: meant, not a bug.** Zero is the designed start of a new component: a neutral term
+  until a card that has it is played. The rows train once their cards are dealt. A refresh now also
+  puts the `str:` pair on Tale's End, which is verified.
+- **A related cut artifact, gone with N1.** 8 of v2's 590 tokens are in no row at all, because
+  they only ever stood past 128: `@right_inner_filter`, `AbilityTriggerEvent`,
+  `FAtomPred.COLOR_IN`, `LoyaltyActivatedEvent`, `QPropField.TOUGHNESS`,
+  `Verb.DAMAGE_ASSIGN_POLICY`, `Verb.TRIGGER_ADDITIONAL` and `str:AS_UNBLOCKED`. Their embeddings
+  are untrained in v2. Five are at the initial scale (norm 0.42-0.44); three were trained in an
+  earlier run (0.59-0.81). A refresh puts them back in their cards' means.
+
+### 8.5 Tests (`tools/selfplay/test_selfplay.py`)
+- `test_a_card_past_128_tokens_keeps_its_last_ones`: Basri Ket's GET_EMBLEM, token 138. Fails on
+  32e804ec, where the row is short by 88 tokens.
+- `test_no_card_name_is_a_component_token`: fails on 32e804ec, where the M21 vocabulary holds
+  `str:Alpine Watchdog`, `str:Frantic Inventory` and others.
+- `test_a_checkpoint_from_before_n1_is_read_as_saved_and_plays_as_before`:
+  - an old-format checkpoint pools to the old gather-and-mean (< 1e-6);
+  - a seeded game takes the same decisions and values both ways;
+  - a new checkpoint holds whole rows and no `max_ir`, and loads to the same outputs bitwise.
+
+  The old-checkpoint half passes on 32e804ec too. The zero rows need no test, because nothing was
+  fixed.
+
+### 8.6 For the next run
+- From an old checkpoint without `--refresh-table`, a run computes what it did, to fp32 summation
+  order.
+- With it (r29's flags), the long cards are whole and the name cards read `str:~` and
+  `str:<name>`. Those are 82 of v2's rows, in addition to the rows the recompile changes anyway.
+- r29's pinned worktree keeps its own code, so this changes r29 only if it is rebased.
+- A table refreshed by the base commit's code holds name tokens (from v2, `str:Battalion Foot
+  Soldier`), so its vocabulary is not a prefix of one this code refreshes from the same init.
+  `Learner._load_net` refuses such an opponent, as it must. Start from the old run's own
+  checkpoint instead.
+- The BACKLOG's observation-caps scaffold no longer lists the 128-token cut.

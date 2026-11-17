@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "crow_of_dark_tidings_mills_two_entering_and_two_dying",
+ "notes": "M3 mapper. Printed: 'When this creature enters or dies, mill two cards.' Seat 0 casts Crow of Dark Tidings: it enters and seat 0 mills two (Library 5, Library 4). The Crow then dies: seat 0 mills two more (Library 3, Library 2). Seat 0's graveyard: the Crow and four milled cards; the opponent mills nothing.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Crow of Dark Tidings", "key": "crow"},
+  {"op": "move", "key": "crow", "to": "graveyard"}
+ ],
+ "expect": {
+  "graveyard": {"0": ["Crow of Dark Tidings", "Library 2", "Library 3", "Library 4", "Library 5"], "1": []},
+  "zone": {"crow": "graveyard"}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "armasaur_guide_two_attackers_no_counter",
+ "notes": "M4 mapper. Printed: 'Whenever you attack with three or more creatures, put a +1/+1 counter on target creature you control.' Seat 0 attacks with Armasaur Guide and its Bear only (the Cub stays home): two attackers, no trigger, no counter anywhere. Seat 1 takes 4 + 2 = 6.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "guide", "real": "Armasaur Guide", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Your Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"guide": true, "bear": true, "cub": false}}
+ ],
+ "expect": {
+  "attackers": {"guide": true, "bear": true, "cub": false},
+  "counters": {"guide": {}, "bear": {}, "cub": {}},
+  "life": {"0": 20, "1": 14}
+ }
+}

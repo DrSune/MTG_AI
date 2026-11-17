@@ -1,0 +1,284 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ce45d6bd-74e3-401b-983d-028d3fb942da",
+ "name": "Billowing Shriekmass",
+ "text_sha": "0a1a686c8e16a5e3df72b308fd1b8a86d20e8999b092374bbe5f5fe145f3cd5b",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "from",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "LIBRARY"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "journal_kind",
+        {
+         "tag": "String",
+         "value": "MILL"
+        }
+       ],
+       [
+        "pop_order",
+        {
+         "tag": "String",
+         "value": "TOP"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "ZONE_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 7
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": {
+      "tag": "ControllerRef",
+      "name": "YOU"
+     },
+     "inner_filter": {
+      "tag": "FAnd",
+      "children": []
+     },
+     "zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "GRAVEYARD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Billowing Shriekmass: \"Flying. When this creature enters, mill three cards. Threshold —\n# This creature gets +2/+1 as long as there are seven or more cards in your graveyard.\"\n# Enters: M21 Carrion Grub's verified \"When this creature enters, mill four cards.\"\n# (B2a-carrion-grub) with three. Threshold (an ability word, no rules meaning, CR 207.2c): M20\n# Elvish Reclaimer's verified conditional static (the \"as long as\" is StaticAbility.condition,\n# D22) with FDN Crypt Feaster's verified threshold test, ZONE_COUNT_GE 7 over your graveyard\n# (any card), and the self pump +2/+1.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'amount': QConst(value=3),\n        'controller': ControllerRef.YOU,\n        'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n        'from': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n        'journal_kind': 'MILL',\n        'pop_order': 'TOP',\n    }),\n)\nthreshold = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n    condition=FAtom(\n        pred=FAtomPred.ZONE_COUNT_GE,\n        count=QConst(value=7),\n        who=ControllerRef.YOU,\n        inner_filter=FAnd(children=()),\n        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    ),\n)\nabilities = [etb, threshold, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, mill three cards.",
+    "ir": "abilities[0] (MOVE_ZONE journal_kind MILL, 3 from the top of your library)"
+   },
+   {
+    "clause": "Threshold — This creature gets +2/+1 as long as there are seven or more cards in your graveyard.",
+    "ir": "abilities[1] (StaticAbility: +2/+1 on this creature; condition ZONE_COUNT_GE 7 your graveyard)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Carrion Grub's verified mill with three; the threshold static is Elvish Reclaimer's verified StaticAbility.condition with Crypt Feaster's verified ZONE_COUNT_GE 7 over your graveyard, +2/+1 on the source. Flying compiles; Threshold is an ability word. Packs: tools/scenarios/mapped/FDN/billowing_shriekmass_no_threshold_at_six_cards.json, tools/scenarios/mapped/FDN/billowing_shriekmass_threshold_at_seven_cards.json."
+ },
+ "probe": {
+  "sha": "891d39da101e39bcf612fd415725e3334c3301a29af12198c89831160a03fe14"
+ }
+}

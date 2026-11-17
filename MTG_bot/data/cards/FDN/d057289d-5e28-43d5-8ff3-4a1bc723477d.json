@@ -1,0 +1,88 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d057289d-5e28-43d5-8ff3-4a1bc723477d",
+ "name": "Day of Judgment",
+ "text_sha": "dcc44c0095e4d5b142599ef85be970b95de1684430fc1ff622faaf4050a32077",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DESTROY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Day of Judgment (FDN): \"Destroy all creatures.\"\n# M20 Planar Cleansing's verified DESTROY over an ALL selector (QUnbounded), filter TYPE_EQ\n# Creature (Pestilent Haze's \"all creatures\"), any controller.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Destroy all creatures.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M20 Planar Cleansing's verified DESTROY over an ALL selector, filter TYPE_EQ Creature. The probe destroys every creature, nothing else."
+ },
+ "probe": {
+  "sha": "c0df3fe4a21557eeb7655dd699db69273b928b1019a8f851e36f1f0b165c2ccf"
+ }
+}

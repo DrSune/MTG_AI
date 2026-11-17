@@ -1,0 +1,13 @@
+# r28_v2.pt, 256 recorded decisions, cpu
+fp32, old against new: max |dlogit| 1.43e-05, max |dvalue| 1.10e-06, greedy choices equal 256/256
+bf16 autocast, old gather: the pool in torch.float32; ir_emb grad finite True, norm 2.2908e+02
+bf16 autocast, count matrix: the pool in torch.float32; ir_emb grad finite True, norm 2.2921e+02
+bf16 autocast, old against new: max |dlogit| 6.25e-02, max |dvalue| 3.64e-03, greedy choices equal 255/256
+  (bf16's own noise: the old code, autocast against fp32): max |dlogit| 8.73e-02, max |dvalue| 1.33e-02, greedy choices equal 252/256
+bf16 autocast: ir_emb grad relative diff 1.76e-03
+bf16 copy (the pool in torch.bfloat16, counts torch.int32), old against new: max |dlogit| 1.88e-01, max |dvalue| 6.81e-03, greedy choices equal 254/256
+  (bf16's own noise: the old code, the bf16 copy against fp32): max |dlogit| 1.93e-01, max |dvalue| 1.83e-02, greedy choices equal 252/256
+time, old gather, forward: 53.3 ms
+time, old gather, forward and backward: 58.6 ms
+time, count matrix, forward: 6.5 ms
+time, count matrix, forward and backward: 12.6 ms

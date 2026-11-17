@@ -1,0 +1,143 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c52cfb41-18f3-4e73-b5e7-d75baf74e578",
+ "name": "River's Rebuke",
+ "text_sha": "4c0f7dbd6f453a0a685f786e1219d06ca618e1b10d3628db9dcb97978836fb03",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "TARGET_PLAYER"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_PERMANENT"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Land",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# River's Rebuke: \"Return all nonland permanents target player controls to their owner's hand.\"\n# M21 Teferi, Timeless Voyager's [-8] \"Each creature target opponent controls\" (ALL over the\n# battlefield with CONTROLLER_IS TARGET_OPPONENT, which opens the player target) with \"target\n# player\" (TARGET_PLAYER) and \"nonland permanent\" (FAnd(IS_PERMANENT, FNot(TYPE_EQ Land)), ZNR\n# Into the Roil), moved to their owner's hand (Zone(HAND, OWNER), Unsummon's bounce).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER),\n                    FAtom(pred=FAtomPred.IS_PERMANENT),\n                    FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Return all nonland permanents target player controls to their owner's hand.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Teferi, Timeless Voyager's -8 shape (ALL with CONTROLLER_IS TARGET_PLAYER opens the player target) over nonland permanents (FAnd(IS_PERMANENT, FNot(TYPE_EQ Land))), to Zone(HAND, OWNER). G1 offers both players; lands stay."
+ },
+ "probe": {
+  "sha": "ab8bc434fceb4edca4881f679b759c621fa9ec4b42931d9403496050d4037e2c"
+ }
+}

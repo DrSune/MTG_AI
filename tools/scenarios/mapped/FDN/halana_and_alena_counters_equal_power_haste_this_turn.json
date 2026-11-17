@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "halana_and_alena_counters_equal_power_haste_this_turn",
+ "notes": "M5 mapper. Printed: 'At the beginning of combat on your turn, put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power. That creature gains haste until end of turn.' Halana and Alena (2/3) carry two +1/+1 counters, so their power is 4. Seat 0 casts Bear Cub this turn; at the beginning of combat the trigger targets it: four counters (a 6/6) and haste, so the summoning-sick Bear Cub attacks for 6. On seat 1's turn the haste is gone; the counters stay.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ha", "real": "Halana and Alena, Partners", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "cub", "real": "Bear Cub", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Bear Cub", "key": "cub", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {"cub": true, "ha": false}, "decisions": ["cub"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "attackers": {"cub": true, "ha": false},
+  "counters": {"cub": {"PLUS_1_PLUS_1": 4}, "ha": {"PLUS_1_PLUS_1": 2}},
+  "power": {"cub": 6, "ha": 4},
+  "life": {"0": 20, "1": 14},
+  "battlefield_keywords": {"Bear Cub": []}
+ }
+}

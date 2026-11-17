@@ -1,0 +1,204 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f2cf087a-d89a-4145-9394-945ce41c8cca",
+ "name": "Archway Angel",
+ "text_sha": "fa22fa40db661a4465e730015a5dc670d63851dacef83ad2a637df19c5b22f50",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QBin",
+         "op": {
+          "tag": "QBinOp",
+          "name": "MUL"
+         },
+         "left": {
+          "tag": "QConst",
+          "value": 2
+         },
+         "right": {
+          "tag": "QCount",
+          "selector": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUBTYPE_EQ"
+              },
+              "string_value": "Gate",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         }
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Archway Angel: \"Flying. When this creature enters, you gain 2 life for each Gate you\n# control.\"\n# M21 Aven Gagglemaster's verified \"you gain 2 life for each creature you control with flying\"\n# (B2a-aven-gagglemaster): GAIN_LIFE QBin(MUL, 2, QCount(ALL over the battlefield)) for you, with\n# the counted kind \"Gate you control\" written as FDN Blanchwood Armor's verified \"for each Forest\n# you control\" (CONTROLLER_IS YOU + SUBTYPE_EQ + the card type): Gate is a land type (CR 205.3i),\n# so SUBTYPE_EQ 'Gate' and TYPE_EQ 'Land'.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {\n        'amount': QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=2),\n            right=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Gate'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, you gain 2 life for each Gate you control.",
+    "ir": "abilities[0] (GAIN_LIFE 2 x the number of Gates you control)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Aven Gagglemaster's verified 'you gain 2 life for each ...' (QBin MUL 2, QCount) with 'Gate you control' written as Blanchwood Armor's verified 'Forest you control' (CONTROLLER_IS YOU, SUBTYPE_EQ, TYPE_EQ Land). Flying compiles. Packs: tools/scenarios/mapped/FDN/archway_angel_two_life_for_each_gate_you_control.json."
+ },
+ "probe": {
+  "sha": "72a3ab2a443b8a4c71af9591bec0706623dab24edcbbe8ef061290f3a8046384"
+ }
+}

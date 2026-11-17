@@ -1,0 +1,26 @@
+{
+ "name": "brass_bounty_a_treasure_per_land_you_control",
+ "set": "FDN",
+ "note": "Brass's Bounty: 'For each land you control, create a Treasure token.' P0 controls three lands (a Mountain, a Forest, a Plains) and the opponent two: P0 creates exactly three Treasures (the opponent's lands do not count), then casts Scorching Dragonfire ({1}{R}) at the opponent's Bear by sacrificing two of them (no other mana): the Treasures are P0's, and one is left.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bounty", "real": "Brass's Bounty", "zone": "hand", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "o1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "real": "Swamp", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1},
+  {"key": "sd", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 6}},
+  {"op": "cast", "real": "Brass's Bounty", "key": "bounty", "controller": 0},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "sd", "controller": 0, "targets": ["obear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"bounty": "graveyard", "sd": "graveyard", "obear": "exile"},
+  "tokens": {"Treasure": 1},
+  "mana_pool": {"0": {}}
+ }
+}

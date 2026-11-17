@@ -1,0 +1,17 @@
+{"set": "FDN", "name": "essence_scatter_counters_a_creature_spell",
+ "notes": "Printed: 'Counter target creature spell.' Seat 0 casts Llanowar Elves; seat 1 answers with Essence Scatter ({1}{U}) while it waits on the stack: the Elves are countered (graveyard, never on the battlefield).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elves", "real": "Llanowar Elves", "zone": "hand", "controller": 0},
+  {"key": "es", "real": "Essence Scatter", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "elves", "real": "Llanowar Elves", "hold": true},
+  {"op": "cast", "key": "es", "real": "Essence Scatter", "controller": 1, "targets": ["elves"]}
+ ],
+ "expect": {
+  "zone": {"elves": "graveyard", "es": "graveyard"},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

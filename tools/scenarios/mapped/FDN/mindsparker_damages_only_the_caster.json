@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "mindsparker_damages_only_the_caster",
+ "notes": "M5 mapper. Printed: '... this creature deals 2 damage to that player.' Three players; seat 0 controls Mindsparker. Seat 2 casts Opt (a blue instant): 'that player' is the caster, so seat 2 takes 2 and seat 1, the other opponent, takes nothing (not each opponent, not a target).",
+ "world": {"life": 20, "seed": 7, "players": 3},
+ "cards": [
+  {"key": "mind", "real": "Mindsparker", "zone": "battlefield", "controller": 0},
+  {"key": "opt2", "real": "Opt", "zone": "hand", "controller": 2}
+ ],
+ "mana": {"2": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Opt", "key": "opt2", "controller": 2, "decisions": ["top"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20, "2": 18}
+ }
+}

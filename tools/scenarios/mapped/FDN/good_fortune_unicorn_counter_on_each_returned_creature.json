@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "good_fortune_unicorn_counter_on_each_returned_creature",
+ "notes": "M5 mapper. Printed: 'Whenever another creature you control enters, put a +1/+1 counter on that creature.' Seat 0 casts Raise the Past: Savannah Lions and Bear Cub (both mana value 2 or less) return from the graveyard at once; each trigger puts its counter on its own creature (Lions 3/2, Bear Cub 3/3), none on the Unicorn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "unicorn", "real": "Good-Fortune Unicorn", "zone": "battlefield", "controller": 0},
+  {"key": "raise", "real": "Raise the Past", "zone": "hand", "controller": 0},
+  {"key": "lions", "real": "Savannah Lions", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "real": "Bear Cub", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Raise the Past", "key": "raise", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"lions": "battlefield", "bear": "battlefield"},
+  "counters": {"unicorn": {}, "lions": {"PLUS_1_PLUS_1": 1}, "bear": {"PLUS_1_PLUS_1": 1}},
+  "power": {"unicorn": 2, "lions": 3, "bear": 3}
+ }
+}
