@@ -733,7 +733,6 @@ def build_payment_plan(
     exile: list[Handle] = []
     exile_options: list[tuple[tuple[Handle, ...], int]] = []
     remove_counters: list[tuple[tuple[Handle, ...], int, str, int]] = []
-    removing: dict[tuple[Handle, str], int] = {}  # the witness's counters, per permanent and kind
     life = 0
     loyalty = 0
     remaining: dict[str, int] = dict(world.players[ctx.controller].mana_pool)
@@ -1014,17 +1013,19 @@ def build_payment_plan(
             counters.extend((h, part.counter_kind.name, n) for h in cands[:need])
         elif isinstance(part, CostExile):
             # CR 118.3: what is exiled must be there to exile, every object of it (CR 601.2h: no
-            # partial payment). An object another exile segment of this cost already takes is
-            # not there for this one. The source pays only a cost that names it ("Exile this
-            # card from your graveyard"): a spell is on the stack while its costs are paid, but
-            # the cast fold plans with it still in its zone, as CostDiscard's exclusion says.
-            from MTG_bot.core.executor.selectors import _filter_is_self_referential
+            # partial payment). The IR keeps to one exile part per cost and to the payer's own
+            # objects (ability_tree._check_cost_designation). The source pays only a cost that
+            # names it ("Exile this card from your graveyard"): a spell is on the stack while its
+            # costs are paid, but the cast fold plans with it still in its zone, as CostDiscard's
+            # exclusion says. Stricter than the rules for an ability of a card in a graveyard or
+            # hand whose cost exiles "a card" from that zone (it could pay with its own card); no
+            # card of the 19 sets has one.
+            from MTG_bot.core.executor.selectors import _filter_names_the_source
 
             cands = [
                 h
                 for h in enumerate_candidates(part.target, ctx)
-                if h not in exile
-                and (h != ctx.source or _filter_is_self_referential(part.target.filter))
+                if h != ctx.source or _filter_names_the_source(part.target.filter)
             ]
             need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
@@ -1034,11 +1035,12 @@ def build_payment_plan(
         elif isinstance(part, CostRemoveCounter):
             # CR 118.3: a permanent without that many counters of the kind can't pay ("Remove a
             # +1/+1 counter from this creature" with none on it): the ability is not activated.
+            # One removal of a kind per cost (the IR), so no other part of it spends these.
             kind, n = part.counter_kind.name, resolve(part.count, ctx)
             cands = [
                 h
                 for h in enumerate_candidates(part.target, ctx)
-                if world.cards[h].counters.get(kind, 0) - removing.get((h, kind), 0) >= n
+                if world.cards[h].counters.get(kind, 0) >= n
             ]
             need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
@@ -1046,8 +1048,6 @@ def build_payment_plan(
                     f"cost:remove_counter:{kind}:insufficient_candidates:{len(cands)}<{need}"
                 )
             remove_counters.append((tuple(cands), need, kind, n))
-            for h in cands[:need]:
-                removing[(h, kind)] = removing.get((h, kind), 0) + n
         elif isinstance(part, CostLife):
             amount = resolve(part.amount, ctx)
             payer = world.players[ctx.controller]
@@ -1714,15 +1714,22 @@ def _ask_cost_choices(
     controller: Handle,
 ) -> tuple[Handle, ...]:
     """The payer's picks from a plan's recorded (pool, need) segments, Handle-sorted. A
-    segment with no real choice (len(pool) <= need) is auto-filled; otherwise each pick is
+    segment with no real choice (len(pool) == need) is auto-filled; otherwise each pick is
     asked through the decision channel (ask key ``<lane>:<seat>:<source>:<digest>``,
-    vocabulary = the Handle strings)."""
+    vocabulary = the Handle strings). A segment that earlier picks of the same lane left short
+    raises: paying it would be a partial payment (CR 601.2h), and the plan said the cost could
+    be paid in full (two segments over one pool: divergence D26)."""
     ctx = ctx_for(executor, source=source, controller=controller)
     chosen: list[Handle] = []
     for pool, need in options:
         remaining = [h for h in pool if h not in chosen]
-        if len(remaining) <= need:
-            chosen.extend(remaining[:need])
+        if len(remaining) < need:
+            raise ValueError(
+                f"executor: the {lane} cost needs {need} of {len(remaining)} left after the "
+                f"payer's picks {sorted(map(str, chosen))}: a partial payment (CR 601.2h; D26)"
+            )
+        if len(remaining) == need:
+            chosen.extend(remaining)
             continue
         for _pick in range(need):
             vocab = tuple(str(h) for h in sorted(remaining))
@@ -1749,8 +1756,10 @@ def pay_costs(
     fire their journal events exactly like effect atoms (TapState,
     ZONE_CHANGE, SACRIFICE…). The counters come off before a sacrifice or an
     exile takes their permanent (Hellion Crucible's "Remove two pressure
-    counters from this land and sacrifice it": the payer pays in any order,
-    CR 601.2h, and only that order pays it all). Mana is the
+    counters from this land and sacrifice it": CR 601.2h's first step pays
+    the costs with no random element and no move from a library to a public
+    zone, these two among them, in any order the payer chooses, and only that
+    order pays it all). Mana is the
     deterministic pool subtraction (no verb spends mana) with a
     ``PAY_MANA`` audit row on the executor event log. Where the plan
     recorded a real choice (``tap_options``, ``sacrifice_options``,
@@ -1843,8 +1852,9 @@ def pay_costs(
         )
     if plan.exile:
         # WHICH cards are exiled is the payer's choice when a segment offers more than it needs
-        # (the exile ask, as the sacrifice lane asks); "this creature" is forced. Each goes to its
-        # owner's exile (CR 400.3), from wherever it is.
+        # (the exile ask, as the sacrifice lane asks); "this creature" is forced. Exile is one
+        # zone all players share (CR 400.1); the world files each card in its owner's slice of it
+        # (selectors.move_destination, whatever player the destination names).
         exiled = plan.exile
         if plan.exile_options:
             exiled = _ask_cost_choices(

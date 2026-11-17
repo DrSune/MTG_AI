@@ -170,7 +170,12 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   ability does nothing (CR 601.2h, 602.2b, 118.3, 608.2b). The IR refuses a TARGET or referent
   selector in them (costs never target, divergence D13), X, "all", "any number", LOYALTY (that is
   CostLoyalty) and a kind the payer picks ("Remove a counter from ...", WAR Soul Diviner): such a
-  card is a needs-atom until its piece comes with tests.
+  card is a needs-atom until its piece comes with tests. It also takes one form for each meaning
+  and only the payer's objects: the source is `IS_SOURCE` alone with `QConst(1)` (never
+  `FAnd(CONTROLLER_IS YOU, IS_SOURCE)` or a `Zone(BATTLEFIELD, YOU)` zone, divergence D25),
+  another permanent says `CONTROLLER_IS YOU` in its filter over `Zone(BATTLEFIELD, ANY)`, a card
+  comes from `Zone(GRAVEYARD, YOU)` or `Zone(HAND, YOU)`, one zone per selector; and one cost holds
+  one `CostExile` and one `CostRemoveCounter` of a kind (divergence D26).
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it

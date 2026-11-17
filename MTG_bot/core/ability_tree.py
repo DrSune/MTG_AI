@@ -1224,6 +1224,21 @@ def _filter_names(filter_: object, pred: FAtomPred) -> bool:
     return False
 
 
+def _filter_names_the_source(filter_: object, positive: bool = True) -> bool:
+    """Does the filter pin the source itself (an ``IS_SOURCE`` reached through an even number of
+    negations)? "This creature" is a self-designation, never a choice. ``FNot(IS_SOURCE)`` is
+    "another": a real menu (Dire Fleet Warmonger's "you may sacrifice another creature"), which
+    the polarity-blind ``executor.selectors._filter_is_self_referential`` (kept for its binding
+    and cost callers) counts as self-reference."""
+    if isinstance(filter_, FAtom):
+        return positive and filter_.pred is FAtomPred.IS_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_filter_names_the_source(c, positive) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _filter_names_the_source(filter_.inner, not positive)
+    return False
+
+
 # ---- Filters ----
 
 
@@ -2544,18 +2559,38 @@ class CostPutCounter:
             )
 
 
-#: The zones a cost may exile from: the source on the battlefield (Hanged Executioner), a card in
-#: a graveyard (Soul of Zendikar's own; Kethis's two legendary cards), a card in a hand. No exile
-#: cost of the 19 sets takes a card from a library, which would also unmake a mana ability (CR
-#: 605.1a), from the stack or from exile.
-_COST_EXILE_ZONES = frozenset({ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD, ZoneKind.HAND})
+#: The zone an exile cost takes its objects from, one of three, each whole: the battlefield (the
+#: source, Hanged Executioner; or a permanent the filter says the payer controls), the payer's own
+#: graveyard (Soul of Zendikar's own card; Kethis's two legendary cards) or hand. No exile cost of
+#: the 19 sets takes another player's card, nor a card from a library (which would also unmake a
+#: mana ability, CR 605.1a), the stack or exile. A removal takes its counters on the battlefield.
+_COST_EXILE_ZONES = (
+    Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+    Zone(ZoneKind.HAND, ControllerRef.YOU),
+)
+_COST_REMOVE_ZONES = (Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)
 
 
-def _check_cost_designation(part: str, sel: object, zones: frozenset[ZoneKind]) -> None:
+def _zone_words(zones: tuple[Zone, ...]) -> list[str]:
+    return [
+        f"{z.kind.name}/{z.controller.name}" + (f"/{z.position.name}" if z.position else "")
+        for z in zones
+    ]
+
+
+def _check_cost_designation(part: str, sel: object, zones: tuple[Zone, ...]) -> None:
     """A cost's objects are chosen by the payer as the cost is paid (CR 601.2h), never targeted
     (targets are chosen earlier, CR 601.2c) and never "it": a CHOOSE selector with a literal count
-    of one or more ("a", "two", "this creature"), no referent, over ``zones``. X, "all" and "any
-    number" are other amounts no printed cost of these parts has; each comes with its card."""
+    of one or more ("a", "two", "this creature"), no referent, over one of ``zones``. X, "all" and
+    "any number" are other amounts no printed cost of these parts has; each comes with its card.
+
+    One form for each meaning, and only the payer's own objects (gate round 11): the source is
+    ``FAtom(IS_SOURCE)`` alone with a count of 1 (D25's other forms, ``FAnd(CONTROLLER_IS YOU,
+    IS_SOURCE)`` and the source over ``Zone(BATTLEFIELD, YOU)``, are refused); another permanent
+    is one the payer controls, ``CONTROLLER_IS YOU`` as the filter or one of its conjuncts (the
+    sacrifice and tap lanes keep only the payer's, ``legality.build_payment_plan``); a card in a
+    hand or a graveyard is in the payer's own, which the zone says."""
     if not isinstance(sel, Selector):
         raise ValueError(f"{part}: target must be a Selector, got {type(sel).__name__}")
     if sel.mode is not SelectorMode.CHOOSE or sel.referent is not None:
@@ -2565,11 +2600,23 @@ def _check_cost_designation(part: str, sel: object, zones: frozenset[ZoneKind]) 
         )
     if not (isinstance(sel.count, QConst) and sel.count.value >= 1):
         raise ValueError(f"{part}: the count is a literal of 1 or more, got {sel.count!r}")
-    if any(zone.kind not in zones for zone in sel.zones):
+    if len(sel.zones) != 1 or sel.zones[0] not in zones:
         raise ValueError(
-            f"{part}: zones must be among {sorted(z.name for z in zones)}, got "
-            f"{[zone.kind.name for zone in sel.zones]}"
+            f"{part}: its zone is one of {_zone_words(zones)}, got {_zone_words(sel.zones)}"
         )
+    if _filter_names_the_source(sel.filter):
+        if sel.filter != FAtom(pred=FAtomPred.IS_SOURCE) or sel.count != QConst(1):
+            raise ValueError(
+                f"{part}: the source is FAtom(IS_SOURCE) alone with a count of 1 (divergence "
+                f"D25), got {sel.filter!r} with {sel.count!r}"
+            )
+    elif sel.zones[0].kind is ZoneKind.BATTLEFIELD:
+        yours = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        if sel.filter != yours and not (isinstance(sel.filter, FAnd) and yours in sel.filter.children):
+            raise ValueError(
+                f"{part}: another permanent is one the payer controls, CONTROLLER_IS YOU in the "
+                f"filter, got {sel.filter!r}"
+            )
 
 
 @dataclass(frozen=True)
@@ -2618,9 +2665,7 @@ class CostRemoveCounter:
                 "CostRemoveCounter: a loyalty ability's cost is CostLoyalty (CR 606.4), one "
                 "spelling for one cost"
             )
-        _check_cost_designation(
-            "CostRemoveCounter", self.target, frozenset({ZoneKind.BATTLEFIELD})
-        )
+        _check_cost_designation("CostRemoveCounter", self.target, _COST_REMOVE_ZONES)
         if not (isinstance(self.count, QConst) and self.count.value >= 1):
             raise ValueError(
                 f"CostRemoveCounter: count is a literal of 1 or more, got {self.count!r}"
@@ -2692,7 +2737,14 @@ class Cost:
     (``spell_cost``: printed ++ additional) pass through THIS constructor,
     so the kicker fold is sorted too. Duplicate parts ({W}{W}) are legal
     and the stable sort keeps them adjacent — Cost sorts, it never
-    dedups."""
+    dedups.
+
+    One cost holds at most one CostExile, and one CostRemoveCounter of a
+    kind (gate round 11): two such segments can draw on one pool, and then
+    paying both in full is a matching the plan's segment-by-segment witness
+    does not find, nor the payer's segment-by-segment asks keep (divergence
+    D26). No printed cost of the 19 sets has two; the card that does brings
+    the matching."""
 
     parts: tuple[CostPart, ...] = ()
 
@@ -2702,6 +2754,16 @@ class Cost:
                 raise ValueError(
                     f"Cost: part must be a CostPart, got {type(part).__name__}"
                 )
+        lanes = [
+            "exile" if isinstance(part, CostExile) else f"remove:{part.counter_kind.name}"
+            for part in self.parts
+            if isinstance(part, (CostExile, CostRemoveCounter))
+        ]
+        if len(lanes) != len(set(lanes)):
+            raise ValueError(
+                "Cost: two CostExile parts, or two CostRemoveCounter parts of one kind, in one "
+                f"cost (divergence D26), got {sorted(lanes)}"
+            )
         ordered = _set_sorted(self.parts)
         if ordered != self.parts:
             object.__setattr__(self, "parts", ordered)

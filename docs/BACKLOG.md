@@ -1067,7 +1067,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - **Re-verify:** Octoprophet (its 2026-11-06 blocker, scry order, is fixed by `arrange`).
   - **Later:**
     - the cost twins: exile and remove-counter costs. Built (ontology round R11,
-      DESIGN_ATOM_ONTOLOGY §15, gate round 11 pending): F3 ruled Keep, `CostExile` and
+      DESIGN_ATOM_ONTOLOGY §15, gate round 11 FIX-THEN-GO, fixed): F3 ruled Keep, `CostExile` and
       `CostRemoveCounter` join the cost union. M20 Hanged Executioner (re-mapped to the
       compiler's tree) and Barkhide Troll are mapped, not verified; FDN Suspicious Shambler
       compiles whole. The census counts 75 printed items on 72 names in the 19 sets (22 of them
@@ -1111,7 +1111,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Transmogrifying Wand's destroy lacks "Its controller creates a 2/4 white Ox creature token".
     Neither can pay its cost: their charge counters come from their own unparsed sentences, and
     no compiled card of the 19 sets puts a charge counter on another permanent
-    (`charge_sources.txt`). Dealt only by castable and all pools. The B13-activated frame has the
+    (`charge_sources.txt`); the tripwire
+    `test_only_relic_amulet_gives_a_charge_counter_and_only_to_itself` fails the day one does
+    (gate round 11). Dealt only by castable and all pools. The B13-activated frame has the
     same gap for any card; fix with the first card whose counters or cost can be paid: refuse a
     composed ability whose next sentence continues it ("Its controller ...", "Spend this mana
     only ...") and does not parse. M12 Pentavus (a 0/0 whose five counters are unparsed) and ELD
@@ -1120,6 +1122,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     (`legality.build_payment_plan`): a part another part of the same cost would make payable is not
     seen (a sacrifice whose card an exile of the same cost then takes from the graveyard), and the
     payer is never offered that order. No printed cost of the 19 sets has such a pair.
+  - Refused until a card brings them (gate round 11): two exile parts, or two removals of one
+    counter kind, in one cost (their pools can overlap, and paying both in full is a matching the
+    plan and the asks would need: divergence D26); an exile or a removal over another player's
+    objects. Stricter than the rules: an exile cost of an ability whose card is in the zone the
+    cost exiles from ("Exile a card from your graveyard" on a card in the graveyard) never takes
+    that card unless it names it; no card of the 19 sets has one.
 - **A quality chosen as a permanent enters: the cards one piece away** (2026-11-13, ontology R9;
   `reports/chosen_quality_2026-11-13/census.txt`). B17 reads the choice on 20 printings of 17
   cards; these still need one piece each, none small. Where a reader compiles the tree is partial

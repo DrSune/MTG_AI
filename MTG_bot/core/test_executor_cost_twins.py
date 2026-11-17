@@ -12,7 +12,10 @@ F3 ruled: a cost part stays its own closed union, never the verb atom it mirrors
   ``remove_counter`` asks) when a cost offers more than it needs.
 
 Every test here fails on the base, 1d5e4164, except the controls named in
-``reports/cost_twins_2026-11-14/base_runs.txt``.
+``reports/cost_twins_2026-11-14/base_runs.txt`` and gate round 11's charge-counter tripwire, which
+holds there too. Gate round 11 (2026-11-17) added the forms the IR refuses, one exile and one
+removal of a kind per cost, the raise on a segment left short, the count-3 frame test, the owner's
+exile and the tripwire (DESIGN_ATOM_ONTOLOGY §15).
 """
 
 from __future__ import annotations
@@ -56,8 +59,17 @@ from MTG_bot.core.test_executor_binding import BF_ANY, CREATURE, IS_SOURCE, UNIV
 from tools.run_scenarios import ScenarioRunner
 
 GY_YOU = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
-THIS = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(BF_ANY,))
-THIS_IN_GRAVEYARD = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(GY_YOU,))
+HAND_YOU = Zone(ZoneKind.HAND, ControllerRef.YOU)
+YOURS = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+
+
+def _sel(filt, *zones, count: int = 1) -> Selector:
+    return Selector(QConst(count), SelectorMode.CHOOSE, filt, zones=zones)
+
+
+THIS = _sel(IS_SOURCE, BF_ANY)
+THIS_IN_GRAVEYARD = _sel(IS_SOURCE, GY_YOU)
+MINE = _sel(FAnd((CREATURE, YOURS)), BF_ANY)  # "a creature you control"
 P1P1 = CounterKind.PLUS_1_PLUS_1
 
 
@@ -97,10 +109,43 @@ def test_the_payer_chooses_a_literal_number_of_objects(make, sel) -> None:
 
 @pytest.mark.parametrize("kind", [ZoneKind.LIBRARY, ZoneKind.STACK, ZoneKind.EXILE, ZoneKind.ANY])
 def test_an_exile_cost_takes_a_permanent_or_a_card_from_a_graveyard_or_hand(kind) -> None:
-    with pytest.raises(ValueError, match="zones must be among"):
-        _exile(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(Zone(kind, ControllerRef.YOU),)))
-    for ok in (ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD, ZoneKind.HAND):
-        _exile(Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(Zone(ok, ControllerRef.YOU),)))
+    with pytest.raises(ValueError, match="its zone is one of"):
+        _exile(_sel(UNIV, Zone(kind, ControllerRef.YOU)))
+    for ok in (THIS, THIS_IN_GRAVEYARD, _sel(IS_SOURCE, HAND_YOU), MINE, _sel(YOURS, BF_ANY),
+               _sel(FAnd((CREATURE, FNot(IS_SOURCE), YOURS)), BF_ANY),  # "another creature you control"
+               _sel(UNIV, GY_YOU), _sel(FNot(IS_SOURCE), GY_YOU, count=2), _sel(UNIV, HAND_YOU)):
+        _exile(ok)
+
+
+@pytest.mark.parametrize("make", [_exile, lambda s: _remove(sel=s)], ids=["exile", "remove"])
+@pytest.mark.parametrize("sel, why", [
+    (_sel(IS_SOURCE, BF_ANY, count=2), "the source is FAtom"),
+    (_sel(FAnd((YOURS, IS_SOURCE)), BF_ANY), "the source is FAtom"),
+    (_sel(IS_SOURCE, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)), "its zone is one of"),
+    (_sel(CREATURE, BF_ANY), "the payer controls"),
+    (_sel(FAnd((CREATURE, FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))), BF_ANY),
+     "the payer controls"),
+    (_sel(CREATURE, Zone(ZoneKind.BATTLEFIELD, ControllerRef.OPPONENT)), "its zone is one of"),
+    (_sel(CREATURE, BF_ANY, GY_YOU), "its zone is one of"),
+], ids=["this-twice", "d25-fand-form", "d25-zone-form", "any-creature", "their-creature",
+        "their-battlefield", "two-zones"])
+def test_a_cost_takes_the_payers_own_objects_in_one_form(make, sel, why) -> None:
+    """Gate round 11: the source is FAtom(IS_SOURCE) alone with a count of 1 (D25's other forms
+    and "this creature" twice are refused); another permanent is one the payer controls (a
+    creature of anyone's, or of an opponent's, would be paid for with the opponent's creature or
+    counter, which the sacrifice lane never does); one zone."""
+    with pytest.raises(ValueError, match=why):
+        make(sel)
+
+
+@pytest.mark.parametrize("zone", [Zone(ZoneKind.HAND, ControllerRef.OPPONENT),
+                                  Zone(ZoneKind.HAND, ControllerRef.ANY),
+                                  Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
+                                  Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)])
+def test_an_exile_cost_takes_cards_from_the_payers_own_hand_or_graveyard(zone) -> None:
+    for filt in (UNIV, IS_SOURCE):
+        with pytest.raises(ValueError, match="its zone is one of"):
+            _exile(_sel(filt, zone))
 
 
 def test_a_remove_counter_cost_is_one_kind_a_literal_amount_on_a_permanent() -> None:
@@ -109,10 +154,12 @@ def test_a_remove_counter_cost_is_one_kind_a_literal_amount_on_a_permanent() -> 
     for count in (QX(), QUnbounded(), QConst(0)):  # Cruel Sadist, Relic Amulet: no lane pays them
         with pytest.raises(ValueError, match="count is a literal"):
             at.CostRemoveCounter(counter_kind=P1P1, target=THIS, count=count)
-    with pytest.raises(ValueError, match="zones must be among"):
-        _remove(sel=THIS_IN_GRAVEYARD)
+    for sel in (THIS_IN_GRAVEYARD, _sel(IS_SOURCE, HAND_YOU)):
+        with pytest.raises(ValueError, match="its zone is one of"):
+            _remove(CounterKind.CHARGE, sel=sel)
     with pytest.raises(ValueError, match="CounterKind"):
         at.CostRemoveCounter(counter_kind="PLUS_1_PLUS_1", target=THIS)
+    _remove(sel=MINE)
 
 
 def test_an_exile_from_the_graveyard_keeps_a_mana_ability() -> None:
@@ -187,6 +234,12 @@ def test_the_frame_reads_a_removed_counter() -> None:
     assert _remove(CounterKind.PAGE) in tome.cost.parts and CostTap() in tome.cost.parts
 
 
+def test_the_frame_reads_how_many_counters_a_cost_removes() -> None:
+    """Gate round 11's mutant M17 read every count as 1 and lived: no frame test removed more."""
+    ab = _ability("{T}, Remove three charge counters from this artifact: Draw a card.")
+    assert sorted(ab.cost.parts, key=repr) == sorted((CostTap(), _remove(CounterKind.CHARGE, n=3)), key=repr)
+
+
 @pytest.mark.parametrize("sentence", [
     "{5}, {T}, Remove a wish counter from this artifact: Draw a card.",  # no WISH kind
     "Remove a +1/+1 counter from this creature: It deals 1 damage to any target.",  # a pronoun
@@ -248,19 +301,37 @@ def test_a_remove_counter_cost_without_the_counter_cannot_be_paid() -> None:
     assert w.plan(_remove())[0] is None  # the counter is gone: a second activation can't pay
 
 
-def test_one_cost_never_spends_a_counter_or_a_card_twice() -> None:
-    """Two parts of one cost compete for one counter or one card: the second finds it taken."""
+def test_one_cost_holds_one_exile_and_one_removal_of_a_kind() -> None:
+    """Two exile segments, or two removals of one kind, can draw on one pool. "Exile a card from
+    your graveyard" and "Exile a creature card from your graveyard" with a creature card and a land
+    card there can be paid (the land for the first), but a plan taking each segment's lowest
+    handles in turn refuses it, and the payer's answer to the first ask can leave the second
+    short, a partial payment (CR 118.3, 601.2h; gate round 11, divergence D26). No printed cost of
+    the 19 sets has two, so the IR refuses them; other kinds, and an exile beside a removal, are
+    other pools."""
+    with pytest.raises(ValueError, match="D26"):
+        Cost(parts=(_exile(_sel(UNIV, GY_YOU)), _exile(_sel(CREATURE, GY_YOU))))
+    with pytest.raises(ValueError, match="D26"):
+        Cost(parts=(_remove(), _remove(sel=MINE)))
+    with pytest.raises(ValueError, match="D26"):
+        at.from_dict("Cost", at.to_dict(Cost(parts=(_remove(),))) | {
+            "parts": [at.to_dict(_remove()), at.to_dict(_remove())]})
+    Cost(parts=(_remove(), _remove(CounterKind.CHARGE), _exile(THIS)))
+
+
+def test_a_segment_the_payers_picks_leave_short_raises() -> None:
+    """The payment's guard: a plan whose segments share a pool (built by hand; the IR refuses the
+    costs that would make one) raises when the payer's first pick takes what the second segment
+    needs, before anything moves, instead of paying part of the cost (CR 601.2h)."""
+    from MTG_bot.core.executor.legality import PaymentPlan
+
     w = _World()
-    w.world.cards[w.alpha].counters["PLUS_1_PLUS_1"] = 1
-    assert w.plan(_remove(), _remove())[1] == "cost:remove_counter:PLUS_1_PLUS_1:insufficient_candidates:0<1"
-    w.world.cards[w.alpha].counters["PLUS_1_PLUS_1"] = 2
-    assert w.plan(_remove(), _remove())[1] is None
-    creature_card = Selector(QConst(1), SelectorMode.CHOOSE, CREATURE, zones=(GY_YOU,))
-    two = Selector(QConst(2), SelectorMode.CHOOSE, CREATURE, zones=(GY_YOU,))
-    # Cost sorts its parts (canonical bytes): the one-card exile plans first and takes a card
-    assert w.plan(_exile(two), _exile(creature_card))[1] == "cost:exile:insufficient_candidates:1<2"
-    plan, why = w.plan(_exile(creature_card), _exile(creature_card))
-    assert why is None and plan.exile == tuple(sorted(w.dead))
+    plan = PaymentPlan(exile=tuple(w.dead), exile_options=((tuple(w.dead), 1), ((w.dead[0],), 1)))
+    with pytest.raises(ValueError, match="partial payment"):
+        w.pay(plan, answer=w.dead[0])
+    assert [w.world.zone_of(h).kind for h in w.dead] == [ZONE_GRAVEYARD, ZONE_GRAVEYARD]
+    w.pay(plan, answer=w.dead[1])
+    assert [w.world.zone_of(h).kind for h in w.dead] == [ZONE_EXILE, ZONE_EXILE]
 
 
 def test_the_payer_chooses_which_cards_a_cost_exiles() -> None:
@@ -291,16 +362,30 @@ def test_the_source_pays_an_exile_cost_only_when_the_cost_names_it() -> None:
     assert why is None and plan.exile == (w.alpha,)
 
 
+def test_a_permanent_exiled_as_a_cost_goes_to_its_owners_exile() -> None:
+    """Exile is one zone all players share (CR 400.1); the world files each card in its owner's
+    slice of it. p0 controls p1's Beta and pays its "Exile this creature": Beta lands in p1's
+    slice. The cost's MOVE_ZONE names its owner's exile, and ``selectors.move_destination`` files
+    a card leaving for any zone but the battlefield under its owner whatever player the
+    destination names, so gate round 11's mutant M9 (the payer's exile) plays the same."""
+    w = _World()
+    w.ex.gain_control(w.beta, w.p0, "Permanent")
+    plan, why = build_payment_plan(w.world, ctx_for(w.ex, source=w.beta, controller=w.p0),
+                                   Cost(parts=(_exile(THIS),)))
+    assert why is None and plan.exile == (w.beta,)
+    pay_costs(w.ex, plan, source=w.beta, controller=w.p0)
+    zone = w.world.zone_of(w.beta)
+    assert zone.kind == ZONE_EXILE and zone.controller == w.p1
+
+
 def test_the_payer_chooses_the_permanent_a_cost_removes_counters_from() -> None:
     """A cost removing a counter from "a creature you control" (no such printed cost of the 19
     sets has a kind; WAR Soul Diviner's "a counter" is refused) asks which creature, among those
     holding one."""
     w = _World()
-    mine = Selector(QConst(1), SelectorMode.CHOOSE,
-                    FAnd((CREATURE, FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))), zones=(BF_ANY,))
     for h in (w.gamma, w.delta, w.beta):
         w.world.cards[h].counters["PLUS_1_PLUS_1"] = 1
-    plan, why = w.plan(_remove(sel=mine))
+    plan, why = w.plan(_remove(sel=MINE))
     assert why is None and plan.remove_counters == ((tuple(sorted((w.gamma, w.delta))), 1, "PLUS_1_PLUS_1", 1),)
     w.pay(plan, answer=w.delta)
     (site, vocab), = w.asks
@@ -506,3 +591,28 @@ def test_suspicious_shambler_works_from_the_graveyard_as_a_sorcery() -> None:
     t.run_step({"op": "advance_turn"})
     with pytest.raises(ValueError, match="window:sorcery"):
         t.run_step({"op": "activate", "key": "sham", "idx": 0, "seat": 0})
+
+
+def test_only_relic_amulet_gives_a_charge_counter_and_only_to_itself() -> None:
+    """Tripwire (gate round 11). ZNR Throne of Makindi's two mana lack "Spend this mana only to
+    cast kicked spells" and M19 Transmogrifying Wand's destroy lacks "Its controller creates a 2/4
+    white Ox creature token": partial trees the castable and all pools deal, stronger than printed
+    once either holds a charge counter. Neither can: their own counters are in unparsed sentences,
+    and of the trees of every set (records applied, verified or not) only ZNR Relic Amulet's gives
+    a charge counter, to itself. When a tree gives one another way, this fails: then those two
+    cards need their missing sentences first, or to leave the pools."""
+    from pathlib import Path
+
+    givers = set()
+    for path in sorted((Path(__file__).resolve().parents[1] / "data").glob("*.json")):
+        for res in _supply(path.stem).pool.results.values():
+            for node in at.walk(res.card):
+                if isinstance(node, at.Atom) and node.verb is Verb.PUT_COUNTER:
+                    if node.args.get("counter_kind") in (CounterKind.CHARGE, None):
+                        own = node.args.get("target") == _sel(IS_SOURCE, BF_ANY)
+                        givers.add((path.stem, res.card.name, "on itself" if own else "PUT_COUNTER"))
+                elif isinstance(node, at.CostPutCounter) and node.counter_kind is CounterKind.CHARGE:
+                    givers.add((path.stem, res.card.name, "CostPutCounter"))
+                elif isinstance(node, at.EtBState) and CounterKind.CHARGE in dict(node.initial_counters):
+                    givers.add((path.stem, res.card.name, "EtBState"))
+    assert givers == {("ZNR", "Relic Amulet", "on itself")}

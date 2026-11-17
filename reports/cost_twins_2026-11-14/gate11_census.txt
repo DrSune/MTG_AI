@@ -1,0 +1,12 @@
+== (1) CostExile / CostRemoveCounter selector forms
+  3 | CostExile count=QConst(value=1) zones=(Zone(kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, position=None),) filter=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=None, color=None, colors=(), count=None, counter_kind=None, keyword=None, who=None, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, right_inner_filter=None, event=None)
+      ELD Inquisitive Puppet; M11 Brittle Effigy; M20 Hanged Executioner
+  2 | CostExile count=QConst(value=1) zones=(Zone(kind=<ZoneKind.GRAVEYARD: 'GRAVEYARD'>, controller=<ControllerRef.YOU: 'YOU'>, position=None),) filter=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=None, color=None, colors=(), count=None, counter_kind=None, keyword=None, who=None, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, right_inner_filter=None, event=None)
+      FDN Suspicious Shambler; M15 Soul of Zendikar
+  2 | CostExile count=QConst(value=1) zones=(Zone(kind=<ZoneKind.GRAVEYARD: 'GRAVEYARD'>, controller=<ControllerRef.YOU: 'YOU'>, position=None),) filter=FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counter_kind=None, keyword=None, who=None, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, right_inner_filter=None, event=None)
+      DOM Fungal Plots; KHM Egon, God of Death // Throne of Death
+  6 | CostRemoveCounter count=QConst(value=1) zones=(Zone(kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, position=None),) filter=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=None, color=None, colors=(), count=None, counter_kind=None, keyword=None, who=None, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, right_inner_filter=None, event=None) n=QConst(value=1)
+      ELD Steelbane Hydra; ELD Tome of Legends; M12 Pentavus; M19 Transmogrifying Wand; M20 Barkhide Troll; ZNR Throne of Makindi
+== (2) one Cost, two parts of one lane: 0
+== (3) trees that give a CHARGE counter or proliferate: 1
+   ZNR | Relic Amulet | PUT_COUNTER | CHARGE
