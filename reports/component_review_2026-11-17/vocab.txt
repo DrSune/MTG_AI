@@ -1,0 +1,298 @@
+# The vocabulary as the network sees it (features.card_tokens, untruncated unless said)
+populations: verified M21+M20+FDN 651 distinct cards; compiled trees of the 19 sets 4314 distinct cards (refused cards have no tree)
+
+## Verified cards of M21, M20 and FDN
+  vocabulary: 610 distinct tokens; 46995 token uses
+  by kind: face 133, string 100, field 78, filter predicate 50, verb 46, other 38, role 35, quantity 34, event 26, selector/zone 25, keyword 20, cost/counter 19, duration 6
+  cards 651; tokens per card mean 72.2, median 63, p90 135, p99 232, max 326
+  past max_ir 128: 79 cards (12.1%), 3736 tokens cut
+  cards per token:
+  used by        1 cards:   146 tokens
+  used by        2 cards:    62 tokens
+  used by      3-5 cards:    88 tokens
+  used by     6-10 cards:    61 tokens
+  used by    11-20 cards:    65 tokens
+  used by    21-50 cards:    71 tokens
+  used by   51-100 cards:    43 tokens
+  used by  101-500 cards:    63 tokens
+  used by     501+ cards:    11 tokens
+  tokens used by 1-2 cards: 208 (34% of the vocabulary), 318 uses (0.68% of all uses)
+    by kind: face 72, string 60, filter predicate 18, verb 13, quantity 12, event 10, field 7, cost/counter 7, role 4, duration 3, other 1, selector/zone 1
+    cards holding at least one such token: 192
+  tokens on >= 50% of cards: 29; their share of a card's (truncated) bag: mean 0.58, median 0.59
+  tokens on >= 25% of cards: 49; their share of a card's (truncated) bag: mean 0.71, median 0.72
+  tokens on >= 10% of cards: 93; their share of a card's (truncated) bag: mean 0.85, median 0.86
+  the 25 most widespread tokens (cards): @abilities 651, @kind 636, SpellAbility 610, Atom 574, @args 574, AtomArgs 574, @verb 574, @effect 571, FAtom 537, @pred 537, num:1 509, @controller 499, Zone 499, @count 496, @filter 489, ControllerRef.ANY 471, ControllerRef.YOU 460, ZoneKind.BATTLEFIELD 449, Selector 449, @zones 449, @mode 449, @string_value 388, SpellKind.CREATURE 381, type:Creature 381, FAtomPred.TYPE_EQ 367
+
+## Every compiled tree of the 19 sets
+  vocabulary: 857 distinct tokens; 126288 token uses
+  by kind: face 254, string 214, field 80, filter predicate 52, verb 48, other 39, role 35, quantity 35, event 26, selector/zone 25, cost/counter 22, keyword 20, duration 7
+  cards 4314; tokens per card mean 29.3, median 12, p90 71, p99 184, max 326
+  past max_ir 128: 116 cards (2.7%), 5640 tokens cut
+  cards per token:
+  used by        1 cards:   252 tokens
+  used by        2 cards:    59 tokens
+  used by      3-5 cards:    92 tokens
+  used by     6-10 cards:    93 tokens
+  used by    11-20 cards:    73 tokens
+  used by    21-50 cards:    86 tokens
+  used by   51-100 cards:    55 tokens
+  used by  101-500 cards:    97 tokens
+  used by     501+ cards:    50 tokens
+  tokens used by 1-2 cards: 311 (36% of the vocabulary), 416 uses (0.33% of all uses)
+    by kind: string 158, face 87, filter predicate 16, verb 13, quantity 12, cost/counter 7, event 7, field 6, role 2, duration 2, other 1
+    cards holding at least one such token: 323
+  tokens on >= 50% of cards: 5; their share of a card's (truncated) bag: mean 0.29, median 0.19
+  tokens on >= 25% of cards: 26; their share of a card's (truncated) bag: mean 0.52, median 0.57
+  tokens on >= 10% of cards: 56; their share of a card's (truncated) bag: mean 0.79, median 0.79
+  the 25 most widespread tokens (cards): @abilities 3834, @kind 3676, SpellAbility 3643, SpellKind.CREATURE 2376, type:Creature 2376, Atom 1677, @args 1677, AtomArgs 1677, @verb 1677, @effect 1670, num:1 1479, FAtom 1424, @pred 1424, @keyword 1412, KeywordAbility 1398, @keywords 1345, @controller 1246, Zone 1246, ControllerRef.YOU 1241, @filter 1213, @count 1205, ControllerRef.ANY 1179, ZoneKind.BATTLEFIELD 1121, Selector 1101, @zones 1101
+
+  tokens of the 19 sets not in the verified vocabulary: 247; cards holding one: 555 of 4314
+    by kind: face 121, string 114, cost/counter 3, verb 2, field 2, filter predicate 2, other 1, quantity 1, duration 1
+
+## Tokens used by 1-2 verified cards, by kind (cards; uses over the 19 sets' compiled trees)
+
+### face (72)
+  sub:Ajani                                     2  [19 sets: 8]  M20 Ajani, Inspiring Leader; M20 Ajani, Strength of the Pride
+  sub:Ally                                      1  [19 sets: 1]  FDN Tajuru Pathwarden
+  sub:Ape                                       1  [19 sets: 6]  M20 Silverback Shaman
+  sub:Artificer                                 1  [19 sets: 25]  M20 Master Splicer
+  sub:Assassin                                  1  [19 sets: 11]  M21 Twinblade Assassins
+  sub:Basri                                     2  [19 sets: 2]  M21 Basri Ket; M21 Basri, Devoted Paladin
+  sub:Bat                                       1  [19 sets: 7]  M20 Bartizan Bats
+  sub:Bear                                      1  [19 sets: 9]  FDN Bear Cub
+  sub:Boar                                      2  [19 sets: 10]  M20 Bristling Boar; M21 Trufflesnout
+  sub:Chandra                                   2  [19 sets: 12]  M20 Chandra, Flame's Fury; M20 Chandra, Novice Pyromancer
+  sub:Crab                                      2  [19 sets: 7]  M20 Fortress Crab; M21 Wishcoin Crab
+  sub:Crocodile                                 1  [19 sets: 5]  M20 Vivien's Crocodile
+  sub:Cyclops                                   1  [19 sets: 10]  M21 Bone Pit Brute
+  sub:Demon                                     2  [19 sets: 30]  M20 Vilis, Broker of Blood; M21 Goremand
+  sub:Dryad                                     1  [19 sets: 6]  M21 Quirion Dryad
+  sub:Dwarf                                     2  [19 sets: 19]  M20 Bastion Enforcer; M21 Staunch Shieldmate
+  sub:Elder                                     2  [19 sets: 10]  FDN Ghalta, Primal Hunger; FDN Zetalpa, Primal Dawn
+  sub:Elephant                                  2  [19 sets: 13]  M20 Aggressive Mammoth; M20 Siege Mastodon
+  sub:Elk                                       1  [19 sets: 8]  M20 Ethereal Elk
+  sub:Faerie                                    2  [19 sets: 28]  M20 Faerie Miscreant; M20 Metropolis Sprite
+  sub:Fish                                      2  [19 sets: 8]  M20 Moat Piranhas; M21 Mystic Skyfish
+  sub:Forest                                    1  [19 sets: 10]  M21 Forest
+  sub:Fungus                                    1  [19 sets: 10]  M21 Deathbloom Thallid
+  sub:Garruk                                    2  [19 sets: 7]  M21 Garruk, Savage Herald; M21 Garruk, Unleashed
+  sub:Giant                                     2  [19 sets: 58]  FDN Skyraker Giant; M20 Howling Giant
+  sub:Gremlin                                   1  [19 sets: 2]  FDN Brazen Scourge
+  sub:Hellion                                   1  [19 sets: 6]  M21 Chandra's Firemaw
+  sub:Horse                                     1  [19 sets: 12]  FDN Diamond Mare
+  sub:Hydra                                     2  [19 sets: 19]  M20 Voracious Hydra; M21 Wildwood Scourge
+  sub:Illusion                                  1  [19 sets: 13]  M20 Phantom Warrior
+  sub:Imp                                       1  [19 sets: 3]  M21 Fetid Imp
+  sub:Insect                                    2  [19 sets: 26]  M20 Blightbeetle; M21 Carrion Grub
+  sub:Island                                    1  [19 sets: 10]  M21 Island
+  sub:Kraken                                    1  [19 sets: 7]  M21 Tolarian Kraken
+  sub:Liliana                                   2  [19 sets: 7]  M21 Liliana, Death Mage; M21 Liliana, Waker of the Dead
+  sub:Lizard                                    2  [19 sets: 18]  FDN Spitfire Lagac; M21 Chandra's Pyreling
+  sub:Masticore                                 1  [19 sets: 2]  M21 Sparkhunter Masticore
+  sub:Minotaur                                  1  [19 sets: 22]  M20 Hostile Minotaur
+  sub:Mountain                                  1  [19 sets: 10]  M21 Mountain
+  sub:Myr                                       1  [19 sets: 1]  M21 Palladium Myr
+  sub:Nightmare                                 1  [19 sets: 29]  M20 Dread Presence
+  sub:Noble                                     2  [19 sets: 27]  FDN Guarded Heir; M21 Indulging Patrician
+  sub:Octopus                                   1  [19 sets: 4]  M20 Octoprophet
+  sub:Ooze                                      1  [19 sets: 7]  M21 Scavenging Ooze
+  sub:Ox                                        1  [19 sets: 7]  M20 Yoked Ox
+  sub:Phoenix                                   1  [19 sets: 8]  M20 Immortal Phoenix
+  sub:Phyrexian                                 2  [19 sets: 13]  M20 Master Splicer; M21 Massacre Wurm
+  sub:Plains                                    1  [19 sets: 10]  M21 Plains
+  sub:Plant                                     1  [19 sets: 10]  M21 Portcullis Vine
+  sub:Scorpion                                  1  [19 sets: 3]  M20 Sedge Scorpion
+  sub:Serpent                                   1  [19 sets: 13]  M20 Frilled Sea Serpent
+  sub:Shark                                     2  [19 sets: 4]  FDN Bigfin Bouncer; M21 Spined Megalodon
+  sub:Siren                                     1  [19 sets: 3]  M21 Mistral Singer
+  sub:Skeleton                                  2  [19 sets: 14]  M20 Sanitarium Skeleton; M21 Skeleton Archer
+  sub:Snake                                     2  [19 sets: 12]  M21 Hooded Blightfang; M21 Lorescale Coatl
+  sub:Sorcerer                                  1  [19 sets: 3]  M20 Sorcerer of the Fang
+  sub:Sorin                                     2  [19 sets: 4]  M20 Sorin, Imperious Bloodlord; M20 Sorin, Vampire Lord
+  sub:Sphinx                                    1  [19 sets: 19]  M20 Riddlemaster Sphinx
+  sub:Swamp                                     1  [19 sets: 10]  M21 Swamp
+  sub:Teferi                                    2  [19 sets: 5]  M21 Teferi, Master of Time; M21 Teferi, Timeless Voyager
+  sub:Thopter                                   1  [19 sets: 2]  M21 Skyscanner
+  sub:Thrull                                    1  [19 sets: 1]  M20 Feral Abomination
+  sub:Turtle                                    1  [19 sets: 8]  FDN Aegis Turtle
+  sub:Ugin                                      1  [19 sets: 2]  M21 Ugin, the Spirit Dragon
+  sub:Unicorn                                   2  [19 sets: 9]  M21 Daybreak Charger; M21 Valorous Steed
+  sub:Vedalken                                  1  [19 sets: 7]  M20 Sage's Row Denizen
+  sub:Vivien                                    2  [19 sets: 6]  FDN Vivien Reid; M20 Vivien, Nature's Avenger
+  sub:Warlock                                   2  [19 sets: 16]  M21 Kaervek, the Spiteful; M21 Liliana's Devotee
+  sub:Weird                                     1  [19 sets: 2]  M21 Spellgorger Weird
+  sub:Whale                                     2  [19 sets: 4]  M21 Pursued Whale; M21 Waker of Waves
+  sub:Wolf                                      2  [19 sets: 18]  M20 Ferocious Pup; M20 Nightpack Ambusher
+  sub:Yanling                                   2  [19 sets: 2]  M20 Mu Yanling, Celestial Wind; M20 Mu Yanling, Sky Dancer
+
+### string (60)
+  str:ACTIVATED                                 1  [19 sets: 2]  M20 Tale's End
+  str:ALL_YOURS                                 1  [19 sets: 1]  M21 Chromatic Orrery
+  str:AS_NO_DEFENDER                            1  [19 sets: 1]  M21 Drowsing Tyrannodon
+  str:AS_UNBLOCKED                              1  [19 sets: 1]  M21 Garruk, Savage Herald
+  str:Ajani, Inspiring Leader                   1  [19 sets: 1]  M20 Goldmane Griffin
+  str:Alpine Watchdog                           1  [19 sets: 1]  M21 Alpine Houndmaster
+  str:Aura                                      1  [19 sets: 1]  M20 Portal of Sanctuary
+  str:Basri                                     1  [19 sets: 1]  M21 Adherent of Hope
+  str:Basri, Devoted Paladin                    1  [19 sets: 1]  M21 Basri's Aegis
+  str:Battalion Foot Soldier                    1  [19 sets: 1]  M20 Battalion Foot Soldier
+  str:Beast                                     2  [19 sets: 8]  M21 Elder Gargaroth; M21 Garruk, Unleashed
+  str:COLOR                                     2  [19 sets: 4]  FDN Diamond Mare; M20 Diamond Knight
+  str:CREATURE_TYPE                             1  [19 sets: 4]  M20 Icon of Ancestry
+  str:Chandra                                   2  [19 sets: 2]  M20 Chandra's Embercat; M21 Keral Keep Disciples
+  str:Chandra, Flame's Catalyst                 1  [19 sets: 1]  M21 Chandra's Firemaw
+  str:Chandra, Flame's Fury                     1  [19 sets: 1]  M20 Chandra's Flame Wave
+  str:Construct                                 1  [19 sets: 1]  M21 Chrome Replicator
+  str:Demon                                     2  [19 sets: 4]  M21 Archfiend's Vessel; M21 Baneslayer Angel
+  str:Dinosaur                                  1  [19 sets: 1]  M20 Marauding Raptor
+  str:Elf                                       1  [19 sets: 5]  FDN Imperious Perfect
+  str:Equipment                                 1  [19 sets: 2]  M21 Turn to Slag
+  str:Faerie Miscreant                          1  [19 sets: 1]  M20 Faerie Miscreant
+  str:Forest                                    1  [19 sets: 1]  FDN Blanchwood Armor
+  str:Frantic Inventory                         1  [19 sets: 1]  M21 Frantic Inventory
+  str:Garruk                                    2  [19 sets: 2]  M21 Garruk's Harbinger; M21 Predatory Wurm
+  str:Garruk, Savage Herald                     1  [19 sets: 1]  M21 Garruk's Warsteed
+  str:Goat                                      1  [19 sets: 3]  M21 Animal Sanctuary
+  str:Golem                                     2  [19 sets: 2]  M20 Cavalier of Dawn; M20 Master Splicer
+  str:Griffin                                   1  [19 sets: 1]  M21 Griffin Aerie
+  str:Growth Cycle                              1  [19 sets: 1]  M20 Growth Cycle
+  str:Human                                     1  [19 sets: 14]  FDN Stroke of Midnight
+  str:Hydra                                     1  [19 sets: 1]  M21 Wildwood Scourge
+  str:Igneous Cur                               1  [19 sets: 1]  M21 Alpine Houndmaster
+  str:Island                                    1  [19 sets: 1]  M20 Mu Yanling, Sky Dancer
+  str:Legendary                                 2  [19 sets: 3]  M20 Tale's End; M21 Niambi, Esteemed Speaker
+  str:Liliana                                   1  [19 sets: 1]  M21 Liliana's Scrounger
+  str:Liliana, Death Mage                       1  [19 sets: 1]  M21 Liliana's Scorn
+  str:Mu Yanling, Celestial Wind                1  [19 sets: 1]  M20 Yanling's Harbinger
+  str:Ox                                        1  [19 sets: 1]  M21 Animal Sanctuary
+  str:Pack Mastiff                              1  [19 sets: 1]  M20 Pack Mastiff
+  str:Phyrexian                                 1  [19 sets: 1]  M20 Master Splicer
+  str:Pirate                                    2  [19 sets: 2]  FDN Pirate's Cutlass; M21 Pursued Whale
+  str:Rogue                                     1  [19 sets: 10]  M21 Thieves' Guild Enforcer
+  str:Skeleton                                  1  [19 sets: 1]  FDN Death Baron
+  str:Snake                                     1  [19 sets: 1]  M21 Animal Sanctuary
+  str:Sorin, Vampire Lord                       1  [19 sets: 1]  M20 Sorin's Guide
+  str:Sphinx                                    1  [19 sets: 1]  M21 Riddleform
+  str:Swamp                                     1  [19 sets: 1]  M20 Dread Presence
+  str:THIS_MANA                                 2  [19 sets: 2]  M20 Chandra's Embercat; M21 Vodalian Arcanist
+  str:TRIGGERED                                 1  [19 sets: 2]  M20 Tale's End
+  str:Teferi                                    1  [19 sets: 1]  M21 Historian of Zhalfir
+  str:Teferi, Timeless Voyager                  1  [19 sets: 1]  M21 Teferi's Wavecaster
+  str:Undead Servant                            1  [19 sets: 1]  M20 Undead Servant
+  str:Vivien                                    1  [19 sets: 1]  M20 Vivien's Crocodile
+  str:Vivien, Nature's Avenger                  1  [19 sets: 1]  M20 Ethereal Elk
+  str:Warrior                                   1  [19 sets: 20]  FDN Imperious Perfect
+  str:Weird                                     1  [19 sets: 1]  M21 Experimental Overload
+  str:Werewolf                                  1  [19 sets: 1]  M20 Nightpack Ambusher
+  str:Wizard                                    1  [19 sets: 17]  M21 Goblin Wizardry
+  str:Yanling                                   1  [19 sets: 1]  M20 Celestial Messenger
+
+### filter predicate (18)
+  FAtomPred.CARDS_DRAWN_THIS_TURN_GE            2  [19 sets: 2]  M21 Gnarled Sage; M21 Tome Anima
+  FAtomPred.CAST_THIS_TURN_FROM                 1  [19 sets: 2]  M21 Archfiend's Vessel
+  FAtomPred.CMC_GE                              1  [19 sets: 1]  M21 Fierce Empath
+  FAtomPred.COLOR_COUNT_GE                      2  [19 sets: 2]  M21 Basri's Lieutenant; M21 Ugin, the Spirit Dragon
+  FAtomPred.CONTROLLER_COUNT_GT                 1  [19 sets: 1]  M21 Garruk, Unleashed
+  FAtomPred.ENTERED_THIS_TURN_FROM              1  [19 sets: 1]  M21 Archfiend's Vessel
+  FAtomPred.FLIP_WON                            1  [19 sets: 1]  M21 Tavern Swindler
+  FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN   1  [19 sets: 1]  M21 Stormwing Entity
+  FAtomPred.IS_ATTACHED_TO                      2  [19 sets: 3]  M20 Portal of Sanctuary; M21 Turn to Slag
+  FAtomPred.IS_EXILED_WITH_SOURCE               2  [19 sets: 2]  M20 Bag of Holding; M21 Idol of Endurance
+  FAtomPred.IS_RESULT                           1  [19 sets: 1]  M21 Teferi, Timeless Voyager
+  FAtomPred.LIFE_LEAD_OVER_START_GE             2  [19 sets: 2]  M20 Ajani, Strength of the Pride; M21 Speaker of the Heavens
+  FAtomPred.LIFE_TOTAL_GE                       2  [19 sets: 3]  M20 Angel of Vitality; M20 Twinblade Paladin
+  FAtomPred.NAME_PARTITION_COUNT_GE             1  [19 sets: 1]  M21 Chrome Replicator
+  FAtomPred.NOT_FIRST_DRAW_THIS_STEP            1  [19 sets: 2]  M21 Teferi's Ageless Insight
+  FAtomPred.POWER_LE                            2  [19 sets: 5]  M20 Goblin Smuggler; M21 Subira, Tulzidi Caravanner
+  FAtomPred.SUBJECT_OF_EVENT_THIS_TURN          2  [19 sets: 5]  M20 Fathom Fleet Cutthroat; M20 Ogre Siegebreaker
+  FAtomPred.WAS_CAST_THIS_TURN                  1  [19 sets: 1]  M21 Containment Priest
+
+### verb (13)
+  Verb.ADD_LAND_PLAY                            1  [19 sets: 1]  M21 Azusa, Lost but Seeking
+  Verb.ATTACK_POLICY                            1  [19 sets: 1]  M21 Drowsing Tyrannodon
+  Verb.CAST                                     1  [19 sets: 5]  M21 Idol of Endurance
+  Verb.DAMAGE_ASSIGN_POLICY                     1  [19 sets: 1]  M21 Garruk, Savage Herald
+  Verb.END_TURN                                 2  [19 sets: 3]  FDN Time Stop; M21 Discontinuity
+  Verb.EXTRA_TURN                               1  [19 sets: 1]  M21 Teferi, Master of Time
+  Verb.FLIP_COIN                                1  [19 sets: 1]  M21 Tavern Swindler
+  Verb.GRANT_ACTIVATION                         1  [19 sets: 1]  M21 Teferi, Master of Time
+  Verb.LOSE_GAME                                1  [19 sets: 1]  M21 Nine Lives
+  Verb.MANDATE_BLOCK                            1  [19 sets: 2]  M21 Canopy Stalker
+  Verb.PHASE_OUT                                2  [19 sets: 2]  M21 Teferi, Master of Time; M21 Teferi, Timeless Voyager
+  Verb.REMOVE_COUNTER                           1  [19 sets: 1]  M21 Pestilent Haze
+  Verb.TRIGGER_ADDITIONAL                       1  [19 sets: 1]  M21 Sanctum of All
+
+### quantity (12)
+  QAgg.MAX                                      1  [19 sets: 1]  M21 Carrion Grub
+  QAgg.SUM                                      2  [19 sets: 2]  FDN Ghalta, Primal Hunger; M21 Volcanic Salvo
+  QBinOp.DIV                                    1  [19 sets: 1]  M21 Peer into the Abyss
+  QDistinctColorCount                           1  [19 sets: 2]  M21 Chromatic Orrery
+  QPropField.CARDS_IN_GRAVEYARD                 1  [19 sets: 1]  M21 Liliana, Waker of the Dead
+  QPropField.CARDS_IN_HAND                      1  [19 sets: 1]  M21 Jolrael, Mwonvuli Recluse
+  QPropField.LIFE                               1  [19 sets: 1]  M21 Peer into the Abyss
+  QPropField.MANA_VALUE                         1  [19 sets: 1]  M21 Niambi, Esteemed Speaker
+  QPropField.THIS_WAY_COUNT                     1  [19 sets: 1]  M21 Siege Striker
+  QThisTurn                                     1  [19 sets: 1]  M21 Chandra's Incinerator
+  Rounding.CEIL                                 1  [19 sets: 1]  M21 Peer into the Abyss
+  ThisTurnKind.NONCOMBAT_DAMAGE                 1  [19 sets: 1]  M21 Chandra's Incinerator
+
+### event (10)
+  AbilityActivatedEvent                         2  [19 sets: 2]  M21 Faith's Fetters; M21 Keral Keep Disciples
+  AbilityKind.LOYALTY                           1  [19 sets: 1]  M21 Keral Keep Disciples
+  AbilityKind.NON_MANA                          1  [19 sets: 1]  M21 Faith's Fetters
+  AbilityTriggerEvent                           1  [19 sets: 1]  M21 Sanctum of All
+  BecomesBlockedEvent                           1  [19 sets: 1]  M21 Gloom Sower
+  Phase.UPKEEP                                  2  [19 sets: 6]  M20 Rotting Regisaur; M21 Sanctum of All
+  PhasingEvent                                  1  [19 sets: 1]  M21 Teferi, Timeless Voyager
+  SacrificeEvent                                1  [19 sets: 1]  M21 Havoc Jester
+  Step.UNTAP                                    2  [19 sets: 4]  M20 Frost Lynx; M21 Frost Breath
+  TargetingEvent                                2  [19 sets: 3]  M21 Enthralling Hold; M21 Warden of the Woods
+
+### field (7)
+  @extra_deltas                                 2  [19 sets: 2]  M21 Discontinuity; M21 Stormwing Entity
+  @from_zone_not                                1  [19 sets: 1]  M21 Ghostly Pilferer
+  @owner_scoped                                 2  [19 sets: 4]  M20 Frost Lynx; M21 Frost Breath
+  @phased_in                                    1  [19 sets: 1]  M21 Teferi, Timeless Voyager
+  @right_inner_filter                           1  [19 sets: 1]  M21 Garruk, Unleashed
+  @rounding                                     1  [19 sets: 1]  M21 Peer into the Abyss
+  @step                                         2  [19 sets: 4]  M20 Frost Lynx; M21 Frost Breath
+
+### cost/counter (7)
+  CostDeltaIncreaseLife                         1  [19 sets: 1]  M21 Terror of the Peaks
+  CostDeltaReduceMana                           2  [19 sets: 2]  M21 Discontinuity; M21 Stormwing Entity
+  CostLife                                      2  [19 sets: 2]  M20 Vilis, Broker of Blood; M21 Tavern Swindler
+  CostPutCounter                                1  [19 sets: 1]  M21 Mazemind Tome
+  CounterKind.INCARNATION                       1  [19 sets: 1]  M21 Nine Lives
+  CounterKind.PAGE                              1  [19 sets: 2]  M21 Mazemind Tome
+  CounterKind.SOUL                              1  [19 sets: 1]  M21 Malefic Scythe
+
+### role (4)
+  role:name_filter                              1  [19 sets: 1]  M21 Necromentia
+  role:source                                   1  [19 sets: 7]  M21 Idol of Endurance
+  role:step                                     2  [19 sets: 4]  M20 Frost Lynx; M21 Frost Breath
+  role:window                                   1  [19 sets: 1]  M21 Teferi, Master of Time
+
+### duration (3)
+  DurationUntilEndOfNextTurn                    1  [19 sets: 1]  M21 Teferi, Timeless Voyager
+  DurationUntilNextStep                         2  [19 sets: 4]  M20 Frost Lynx; M21 Frost Breath
+  DurationUntilNextTurn                         2  [19 sets: 2]  M20 Mu Yanling, Celestial Wind; M20 Mu Yanling, Sky Dancer
+
+### other (1)
+  ActivationWindow.INSTANT                      1  [19 sets: 1]  M21 Teferi, Master of Time
+
+### selector/zone (1)
+  ControllerRef.DEFENDING_PLAYER                1  [19 sets: 5]  M20 Heart-Piercer Bow
+
+## Over the 19 sets: tokens used by 1-2 compiled trees, by kind
+  string (158): str:ACTIVATED, str:ALL_YOURS, str:AS_NO_DEFENDER, str:AS_UNBLOCKED, str:Agadeem, the Undercrypt, str:Ajani, Inspiring Leader, str:Akoum Teeth, str:Alpine Watchdog, str:Alter Fate, str:Ashiok, Sculptor of Fears, str:Aura, str:Bala Ged Sanctuary, str:Basri, str:Basri, Devoted Paladin, str:Bat, str:Battalion Foot Soldier, str:Battle Display, str:Bear, str:Beyeen Coast, str:Blackbloom Bog, str:Boulder Rush, str:Boulderloft Pathway, str:Bring Back, str:Bring to Life, str:Cast Off, str:Chandra, str:Chandra, Flame's Catalyst, str:Chandra, Flame's Fury, str:Chandra, Roaring Flame, str:Chop Down, str:Construct, str:Curry Favor, str:Dinosaur, str:Dizzying Swoop, str:Drake, str:Dwarf, str:Elspeth, Undaunted Hero, str:Emeria, Shattered Skyclave, str:Equipment, str:Faerie, str:Faerie Miscreant, str:Fertile Footsteps, str:Forest, str:Frantic Inventory, str:Garruk, str:Garruk, Savage Herald, str:Giant, str:Gideon, Battle-Forged, str:Gift of the Fae, str:Glasspool Shore, str:Golem, str:Granted, str:Griffin, str:Grimclimb Pathway, str:Growth Cycle, str:Haggle, str:Hagra Broodpit, str:Hakka, Whispering Raven, str:Harnfel, Horn of Bounty, str:Harvest Fear, str:Heart's Desire, str:Hydra, str:Igneous Cur, str:Island, str:Jace, Telepath Unbound, str:Jwari Ruins, str:Kabira Plateau, str:Kaldring, the Rimestaff, str:Kazandu Valley, str:Kazuul's Cliffs, str:Khalni Territory, str:Kor, str:Lavaglide Pathway, str:Liliana, str:Liliana, Death Mage, str:Liliana, Defiant Necromancer, str:Makindi Mesas, str:Malakir Mire, str:Mesmeric Glare, str:Mistgate Pathway, str:Mu Yanling, Celestial Wind, str:Murkwater Pathway, str:Ninja, str:Nissa, str:Nissa, Sage Animist, str:Oaken Boon, str:On Alert, str:Ondu Skyruins, str:Ooze, str:Ox, str:Pack Mastiff, str:Pelakka Caverns, str:Pentavite, str:Petty Theft, str:Phyrexian, str:Pillarverge Pathway, str:Pirate, str:Plant, str:Profane Insight, str:Punchcard, str:Rage of Winter, str:Rat, str:Rider in Need, str:Rowan, Fearless Sparkmage, str:Saga, str:Sea Gate, Reborn, str:Searstep Pathway, str:Seasonal Ritual, str:Sejiri Glacier, str:Shatterskull, the Hammer Pass, str:Shield's Might, str:Silundi Isle, str:Skeleton, str:Skyclave Basilica, str:Slitherbore Pathway, str:Snake, str:Song-Mad Ruins, str:Sorin, Vampire Lord, str:Sphinx, str:Spikefield Cave, str:Stomp, str:Stonework Packbeast, str:Swamp, str:Swift End, str:Sword of the Realms, str:THIS_MANA, str:TRIGGERED, str:Tajuru Paragon, str:Tangled Vale, str:Teferi, str:Teferi, Timeless Voyager, str:Tergrid's Lantern, str:The Prismatic Bridge, str:The Ringhart Crest, str:Throne of Death, str:Tibalt, Cosmic Impostor, str:Tidechannel Pathway, str:Timbercrown Pathway, str:Toralf's Hammer, str:Treats to Share, str:Troll, str:Turntimber, Serpentine Wood, str:Umara Skyfalls, str:Undead Servant, str:Usher to Safety, str:Valakut Stoneforge, str:Valkmira, Protector's Shield, str:Vastwood Thicket, str:Venture Deeper, str:Veteran Adventurer, str:Vivien, str:Vivien, Nature's Avenger, str:Wall, str:Weird, str:Welcome Home, str:Werewolf, str:Yanling, str:Zof Bloodbog
+  face (87): sub:Ally, sub:Angrath, sub:Arlinn, sub:Assembly-Worker, sub:Badger, sub:Barbarian, sub:Bard, sub:Basri, sub:Bolas, sub:Brushwagg, sub:Calix, sub:Citizen, sub:Cockatrice, sub:Coward, sub:Davriel, sub:Domri, sub:Dovin, sub:Efreet, sub:Eldrazi, sub:Elspeth, sub:Food, sub:Gnome, sub:Goat, sub:Gremlin, sub:Hippo, sub:Hippogriff, sub:Homarid, sub:Homunculus, sub:Huatli, sub:Hyena, sub:Jaya, sub:Jellyfish, sub:Juggernaut, sub:Kaito, sub:Karn, sub:Kasmina, sub:Kavu, sub:Kaya, sub:Kiora, sub:Lamia, sub:Leech, sub:Lhurgoyf, sub:Lukka, sub:Manticore, sub:Masticore, sub:Metathran, sub:Minion, sub:Mole, sub:Monkey, sub:Mouse, sub:Myr, sub:Nahiri, sub:Narset, sub:Niko, sub:Nixilis, sub:Nomad, sub:Oko, sub:Ouphe, sub:Pangolin, sub:Praetor, sub:Rabbit, sub:Ral, sub:Rowan, sub:Sable, sub:Saheeli, sub:Samut, sub:Sloth, sub:Slug, sub:Squid, sub:Squirrel, sub:Starfish, sub:Tamiyo, sub:Teyo, sub:Thopter, sub:Thrull, sub:Tibalt, sub:Tyvar, sub:Ugin, sub:Vraska, sub:Weird, sub:Will, sub:Wolverine, sub:Wraith, sub:Yanggu, sub:Yanling, sub:Yeti, type:Card
+  filter predicate (16): FAtomPred.ATTACK_AGAINST_COUNT_GE, FAtomPred.CARDS_DRAWN_THIS_TURN_GE, FAtomPred.CAST_THIS_TURN_FROM, FAtomPred.CMC_GE, FAtomPred.COLOR_COUNT_GE, FAtomPred.CONTROLLER_COUNT_GT, FAtomPred.ENTERED_THIS_TURN_FROM, FAtomPred.FLIP_WON, FAtomPred.HAS_KICKER, FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, FAtomPred.IS_EXILED_WITH_SOURCE, FAtomPred.IS_RESULT, FAtomPred.LIFE_LEAD_OVER_START_GE, FAtomPred.NAME_PARTITION_COUNT_GE, FAtomPred.NOT_FIRST_DRAW_THIS_STEP, FAtomPred.WAS_CAST_THIS_TURN
+  verb (13): Verb.ADD_LAND_PLAY, Verb.ATTACK_POLICY, Verb.COPY, Verb.DAMAGE_ASSIGN_POLICY, Verb.DISCARD, Verb.EXTRA_TURN, Verb.FLIP_COIN, Verb.GRANT_ACTIVATION, Verb.LOSE_GAME, Verb.MANDATE_BLOCK, Verb.PHASE_OUT, Verb.REMOVE_COUNTER, Verb.TRIGGER_ADDITIONAL
+  quantity (12): QAgg.MAX, QAgg.SUM, QBinOp.DIV, QDistinctColorCount, QPropField.CARDS_IN_GRAVEYARD, QPropField.CARDS_IN_HAND, QPropField.LIFE, QPropField.MANA_VALUE, QPropField.THIS_WAY_COUNT, QThisTurn, Rounding.CEIL, ThisTurnKind.NONCOMBAT_DAMAGE
+  cost/counter (7): CostDeltaIncreaseLife, CostDeltaReduceMana, CostLife, CostPutCounter, CounterKind.INCARNATION, CounterKind.PAGE, CounterKind.SOUL
+  event (7): AbilityActivatedEvent, AbilityKind.LOYALTY, AbilityKind.NON_MANA, AbilityTriggerEvent, BecomesBlockedEvent, PhasingEvent, SacrificeEvent
+  field (6): @attacked, @extra_deltas, @from_zone_not, @phased_in, @right_inner_filter, @rounding
+  role (2): role:name_filter, role:window
+  duration (2): DurationUntilEndOfNextTurn, DurationUntilNextTurn
+  other (1): ActivationWindow.INSTANT

@@ -1,0 +1,70 @@
+# IR-side proposals: gain and blast radius
+trees: distinct oracle ids of the 19 sets whose tree changes | stamps: verified home (M21+M20+FDN) + reprint | unverified home trees | remaining unparsed sentences needing the form
+
+## I1 one quantity comparison
+  trees 66 | stamps 46 home + 5 reprint | unverified home trees 2 | remaining sentences 37 on 36 cards
+  tokens removed (cards of the 19 sets each): POWER_LE 5, POWER_GE 17, CMC_LE 7, CMC_GE 1, COLOR_COUNT_GE 2, LIFE_TOTAL_GE 3, LIFE_LEAD_OVER_START_GE 2, CONTROLLER_COUNT_GE 29, CONTROLLER_COUNT_GT 1, ZONE_COUNT_GE 5, NAME_PARTITION_COUNT_GE 1, PT_LE 0, PT_GE 0, CONTROLLER_COUNT_LE 0; added: FAtomPred.QTY_GE (on 66 trees)
+  home stamps: FDN Angel of Vitality; FDN Crypt Feaster; FDN Fierce Empath; FDN Garruk's Uprising; FDN Goblin Smuggler; FDN Raise the Past; FDN Twinblade Paladin; M20 Ajani, Strength of the Pride; M20 Angel of Vitality; M20 Cavalier of Night; M20 Cryptic Caves; M20 Elvish Reclaimer; M20 Eternal Isolation; M20 Faerie Miscreant; M20 Goblin Bird-Grabber; M20 Goblin Smuggler; M20 Leafkin Druid; M20 Omnath, Locus of the Roil; M20 Twinblade Paladin; M20 Winged Words; M21 Adherent of Hope; M21 Basri's Lieutenant; M21 Celestial Enforcer; M21 Chrome Replicator; M21 Drowsing Tyrannodon; M21 Eliminate; M21 Fabled Passage; M21 Fierce Empath; M21 Gadrak, the Crown-Scourge; M21 Garruk's Uprising; M21 Garruk, Unleashed; M21 Historian of Zhalfir; M21 Idol of Endurance; M21 Leafkin Avenger; M21 Legion's Judgment; M21 Liliana, Waker of the Dead; M21 Lofty Denial; M21 Makeshift Battalion; M21 Ornery Dilophosaur; M21 Sanctum of All ...
+  remaining sentences, e.g.: Agent of Treachery: At the beginning of your end step, if you control three or more perman | Chandra, Acolyte of Flame: [−2]: You may cast target instant or sorcery card with mana value 3 or | Field of the Dead: Whenever this land or another land you control enters, if you control  | Flood of Tears: If you return four or more nontoken permanents you control this way, y | Legion's End: Exile target creature an opponent controls with mana value 2 or less a | Thunderkin Awakener: Whenever this creature attacks, choose target Elemental creature card 
+
+## I2 turn history on EVENT_THIS_TURN
+  trees 27 | stamps 25 home + 0 reprint | unverified home trees 2 | remaining sentences 19 on 18 cards
+  tokens removed (cards of the 19 sets each): DIED_THIS_TURN 10, LIFE_GAINED_THIS_TURN_GE 4, CARDS_DRAWN_THIS_TURN_GE 2, MOVED_TO_ZONE_THIS_TURN 4, INSTANT_OR_SORCERY_CAST_THIS_TURN 1, CAST_THIS_TURN_FROM 2, ENTERED_THIS_TURN_FROM 1, NOT_FIRST_DRAW_THIS_STEP 2, ATTACK_AGAINST_COUNT_GE 1; added: (none: EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN exist) (on 27 trees)
+  home stamps: FDN Sanguine Indulgence; M20 Brought Back; M20 Salvager of Ruin; M21 Archfiend's Vessel; M21 Barrin, Tolarian Archmage; M21 Caged Zombie; M21 Canopy Stalker; M21 Chandra's Incinerator; M21 Fungal Rebirth; M21 Gadrak, the Crown-Scourge; M21 Gnarled Sage; M21 Griffin Aerie; M21 Indulging Patrician; M21 Life Goes On; M21 Liliana's Devotee; M21 Liliana's Scrounger; M21 Liliana's Standard Bearer; M21 Necromentia; M21 Sabertooth Mauler; M21 Sanguine Indulgence; M21 Silversmote Ghoul; M21 Stormwing Entity; M21 Teferi's Ageless Insight; M21 Tome Anima; M21 Twinblade Assassins
+  remaining sentences, e.g.: Abyssal Harvester: {T}: Exile target creature card from a graveyard that was put there th | Alesha, Who Laughs at Fate: Raid — At the beginning of your end step, if you attacked this turn, r | Aurelia, the Warleader: Whenever ~ attacks for the first time each turn, untap all creatures y | Bloodtithe Collector: When this creature enters, if an opponent lost life this turn, each op | Cackling Prowler: Morbid — At the beginning of your end step, if a creature died this tu | Gorehorn Raider: Raid — When this creature enters, if you attacked this turn, this crea
+
+## I3 one form for 'this <permanent>'
+  trees 76 | stamps 41 home + 16 reprint | unverified home trees 4 | remaining sentences 67 on 57 cards
+  home stamps: FDN Cathar Commando; FDN Evolving Wilds; FDN Goblin Firebomb; FDN Heartfire Immolator; FDN Hungry Ghoul; FDN Mazemind Tome; FDN Shivan Dragon; FDN Thrashing Brontodon; M20 Bag of Holding; M20 Creeping Trailblazer; M20 Cryptic Caves; M20 Ember Hauler; M20 Evolving Wilds; M20 Goblin Bird-Grabber; M20 Knight of the Ebon Legion; M20 Metropolis Sprite; M20 Moorland Inquisitor; M20 Salvager of Ruin; M20 Shifting Ceratops; M20 Shivan Dragon; M20 Thrashing Brontodon; M20 Vial of Dragonfire; M20 Yarok's Fenlurker; M21 Anointed Chorister; M21 Fabled Passage; M21 Fetid Imp; M21 Garruk, Unleashed; M21 Heartfire Immolator; M21 Hellkite Punisher; M21 Hobblefiend; M21 Igneous Cur; M21 Liliana's Steward; M21 Masked Blackguard; M21 Mazemind Tome; M21 Obsessive Stitcher; M21 Silent Dart; M21 Silversmote Ghoul; M21 Sparkhunter Masticore; M21 Thrashing Brontodon; M21 Tormod's Crypt ...
+  remaining sentences, e.g.: Cerulean Drake: Sacrifice this creature: Counter target spell that targets you. | Embodiment of Agonies: This creature enters with a +1/+1 counter on it for each different man | Loxodon Lifechanter: {5}{W}: This creature gets +X/+X until end of turn, where X is your li | Unholy Indenture: When enchanted creature dies, return that card to the battlefield unde | Alesha, Who Laughs at Fate: Whenever ~ attacks, put a +1/+1 counter on it. | Beast-Kin Ranger: Whenever another creature you control enters, this creature gets +1/+0
+
+## I4 one role for MOVE_ZONE's objects (B-42)
+  trees 61 | stamps 32 home + 9 reprint | unverified home trees 6 | remaining sentences 20 on 17 cards
+  home stamps: FDN Angelic Edict; FDN Banishing Light; FDN Mazemind Tome; FDN Obliterating Bolt; FDN Scavenging Ooze; FDN Scorching Dragonfire; FDN Stasis Snare; M20 Ajani, Inspiring Leader; M20 Ajani, Strength of the Pride; M20 Apostle of Purifying Light; M20 Bag of Holding; M20 Boneclad Necromancer; M20 Cavalier of Thorns; M20 Devout Decree; M20 Reduce to Ashes; M20 Thought Distortion; M21 Angelic Ascension; M21 Archfiend's Vessel; M21 Containment Priest; M21 Experimental Overload; M21 Idol of Endurance; M21 Kitesail Freebooter; M21 Mazemind Tome; M21 Necromentia; M21 Nine Lives; M21 Return to Nature; M21 Scavenging Ooze; M21 Scorching Dragonfire; M21 Secure the Scene; M21 Tormod's Crypt; M21 Transmogrify; M21 Ugin, the Spirit Dragon
+  remaining sentences, e.g.: Chandra, Awakened Inferno: If a permanent dealt damage this way would die this turn, exile it ins | Legion's End: Exile target creature an opponent controls with mana value 2 or less a | Leyline of the Void: If a card would be put into an opponent's graveyard from anywhere, exi | Abyssal Harvester: {T}: Exile target creature card from a graveyard that was put there th | Abyssal Harvester: Then exile all other Nightmare tokens you control. | Ambush Wolf: When this creature enters, exile up to one target card from a graveyar
+
+## I5 names by referent or type, not by string
+  trees 14 | stamps 10 home + 2 reprint | unverified home trees 0 | remaining sentences 8 on 7 cards
+  tokens removed (cards of the 19 sets each): NAME_CONTAINS 8; added: (NAME_EQ takes a referent) (on 14 trees)
+  home stamps: M20 Battalion Foot Soldier; M20 Faerie Miscreant; M20 Growth Cycle; M20 Pack Mastiff; M20 Undead Servant; M21 Adherent of Hope; M21 Frantic Inventory; M21 Garruk's Harbinger; M21 Historian of Zhalfir; M21 Liliana's Scrounger
+  remaining sentences, e.g.: Legion's End: Exile target creature an opponent controls with mana value 2 or less a | Pattern Matcher: When this creature enters, you may search your library for a card with | Renowned Weaponsmith: {U}, {T}: Search your library for a card named Heart-Piercer Bow or Vi | Hare Apparent: When this creature enters, create a number of 1/1 white Rabbit creatur | Hare Apparent: A deck can have any number of cards named ~. | Koma, World-Eater: Whenever ~ deals combat damage to a player, create four 3/3 blue Serpe
+
+## I6 one POLICY verb, one MANDATE verb (F9)
+  trees 8 | stamps 6 home + 1 reprint | unverified home trees 1 | remaining sentences 10 on 10 cards
+  tokens removed (cards of the 19 sets each): MANA_POLICY 3, DAMAGE_ASSIGN_POLICY 1, ATTACK_POLICY 1, MANDATE_BLOCK 2; added: Verb.POLICY, (MANDATE_ATTACK kept as MANDATE) (on 8 trees)
+  home stamps: M20 Chandra's Embercat; M21 Canopy Stalker; M21 Chromatic Orrery; M21 Drowsing Tyrannodon; M21 Garruk, Savage Herald; M21 Vodalian Arcanist
+  remaining sentences, e.g.: Gauntlets of Light: Enchanted creature gets +0/+2 and assigns combat damage equal to its t | Leyline of Anticipation: You may cast spells as though they had flash. | Prized Unicorn: All creatures able to block this creature do so. | Renowned Weaponsmith: Spend this mana only to cast artifact spells or activate abilities of  | Flamewake Phoenix: This creature attacks each combat if able. | Giada, Font of Hope: Spend this mana only to cast an Angel spell.
+
+## I7 'choose a colour' at resolution as CHOOSE_NAME(COLOR) (F13)
+  trees 2 | stamps 2 home + 0 reprint | unverified home trees 0 | remaining sentences 1 on 1 cards
+  home stamps: M20 Gods Willing; M21 Feat of Resistance
+  remaining sentences, e.g.: Uncharted Haven: As it enters, choose a color.
+
+## I8 the ledger's small folds (D12-D14, D18, D19, D21-D23, B-48)
+  trees 36 | stamps 27 home + 7 reprint | unverified home trees 1 | remaining sentences 23 on 22 cards
+  tokens removed (cards of the 19 sets each): Verb.DISCARD 1; added:  (on 36 trees)
+  home stamps: FDN Evolving Wilds; FDN Hungry Ghoul; FDN Massacre Wurm; FDN Unflinching Courage; M20 Cavalier of Gales; M20 Celestial Messenger; M20 Dragon Mage; M20 Evolving Wilds; M20 Unchained Berserker; M20 Vivien's Crocodile; M21 Cultivate; M21 Epitaph Golem; M21 Fabled Passage; M21 Garruk, Unleashed; M21 Grim Tutor; M21 Hobblefiend; M21 Hooded Blightfang; M21 Keral Keep Disciples; M21 Liliana's Scrounger; M21 Massacre Wurm; M21 Necromentia; M21 Predatory Wurm; M21 Pursued Whale; M21 Sanctum of All; M21 Sigiled Contender; M21 Subira, Tulzidi Caravanner; M21 Thieves' Guild Enforcer
+  remaining sentences, e.g.: Golos, Tireless Pilgrim: When ~ enters, you may search your library for a land card, put that c | Pattern Matcher: When this creature enters, you may search your library for a card with | Renowned Weaponsmith: {U}, {T}: Search your library for a card named Heart-Piercer Bow or Vi | Shared Summons: Search your library for up to two creature cards with different names, | Burnished Hart: {3}, Sacrifice this creature: Search your library for up to two basic  | Bushwhack: • Search your library for a basic land card, reveal it, put it into yo
+
+## I9 three one-case nodes made general: TARGETS(filter), QDistinct(property), zone counts as QCount
+  trees 8 | stamps 8 home + 0 reprint | unverified home trees 0 | remaining sentences 12 on 12 cards
+  tokens removed (cards of the 19 sets each): TARGETS_SOURCE 4, QDistinctColorCount 2, QPropField.CARDS_IN_HAND 1, QPropField.CARDS_IN_GRAVEYARD 1; added: FAtomPred.TARGETS, QDistinct (on 8 trees)
+  home stamps: FDN Gnarlback Rhino; M20 Boreal Elemental; M20 Gnarlback Rhino; M21 Chromatic Orrery; M21 Jolrael, Mwonvuli Recluse; M21 Liliana, Waker of the Dead; M21 Pursued Whale; M21 Terror of the Peaks
+  remaining sentences, e.g.: Atemsis, All-Seeing: If cards with at least six different mana values are revealed this way | Cerulean Drake: Sacrifice this creature: Counter target spell that targets you. | Embodiment of Agonies: This creature enters with a +1/+1 counter on it for each different man | Field of the Dead: Whenever this land or another land you control enters, if you control  | Gargos, Vicious Watcher: Whenever a creature you control becomes the target of a spell, ~ fight | Leyline of Combustion: Whenever you and/or at least one permanent you control becomes the tar
+
+
+# Bundles (one gate round each, the recommended order)
+  I1+I9: trees 73, stamps 53 home + 5 reprint, unverified home trees 2, remaining cards with a sentence needing it 46
+  I2+I5+I6: trees 47, stamps 39 home + 3 reprint, unverified home trees 3, remaining cards with a sentence needing it 34
+  I3+I4: trees 134, stamps 69 home + 23 reprint, unverified home trees 10, remaining cards with a sentence needing it 72
+  I8+I7: trees 38, stamps 29 home + 7 reprint, unverified home trees 1, remaining cards with a sentence needing it 23
+  I1+I2+I3+I4+I5+I6+I7+I8+I9: trees 258, stamps 161 home + 30 reprint, unverified home trees 14, remaining cards with a sentence needing it 146
+
+
+# Network side: the stream without field keys and exact copies
+  verified: tokens per card mean 72.2 -> 40.9, median 63 -> 36, p90 135 -> 76, max 326 -> 181; past 128: 79 -> 6
+  19 sets: tokens per card mean 29.3 -> 17.2, median 12 -> 8, p90 71 -> 41, max 326 -> 181; past 128: 116 -> 11
+  tokens dropped from the vocabulary: 118 of 857 (field keys 80, copies 38)
+  fused variant, verified: tokens per card mean 72.2 -> 40.9, median 63 -> 36, max 326 -> 182; past 128: 79 -> 6; vocabulary 593
+  fused variant, 19 sets: tokens per card mean 29.3 -> 17.2, median 12 -> 8, max 326 -> 182; past 128: 116 -> 11; vocabulary 846
+  the component pool per forward (r28 v2: 611 rows, d 512): a gather of 611x128x512 = 40.0M values, against a count matrix 611x857 times the table 857x512 (268M multiply-adds, 0.31M values out)

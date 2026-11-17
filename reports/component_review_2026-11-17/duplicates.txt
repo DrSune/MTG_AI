@@ -1,0 +1,339 @@
+# A. The ledger's classes, by detector (trees of the 19 sets with records applied)
+columns: trees (distinct oracle ids) | verified home stamps (M21, M20, FDN) | verified reprint stamps
+
+## D12 SEARCH.controller written or left out
+  controller left out                                           18 |   17 |    1   FDN Fierce Empath; FDN Solemn Simulacrum; M20 Battalion Foot Soldier; M20 Chandra's Flame Wave; M20 Elvish Reclaimer; M20 Ethereal Elk; M20 Goldmane Griffin; M20 Sorin's Guide; M20 Yanling's Harbinger; M21 Alpine Houndmaster ...
+  controller written                                            11 |    8 |    6   FDN Evolving Wilds; M20 Evolving Wilds; M21 Cultivate; M21 Fabled Passage; M21 Garruk, Unleashed; M21 Grim Tutor; M21 Necromentia; M21 Sanctum of All
+
+## D13 a cost victim's selector mode (TARGET or CHOOSE)
+  cost victim mode CHOOSE                                       71 |   46 |   14   FDN Cathar Commando; FDN Evolving Wilds; FDN Gleaming Barrier; FDN Goblin Firebomb; FDN Goldvein Pick; FDN Heartfire Immolator; FDN Mazemind Tome; FDN Thrashing Brontodon; FDN Thrill of Possibility; M20 Bag of Holding ...
+  cost victim mode TARGET                                        3 |    2 |    0   FDN Hungry Ghoul; M21 Hobblefiend
+  cost victim mode ALL                                           1 |    1 |    0   M21 Subira, Tulzidi Caravanner
+
+## D14 Planeswalker as SUPERTYPE_EQ or TYPE_EQ
+  TYPE_EQ Planeswalker                                         112 |   58 |   15   FDN Drakuseth, Maw of Flames; FDN Heartfire Immolator; FDN Hero's Downfall; FDN Obliterating Bolt; FDN Scorching Dragonfire; FDN Skeleton Archer; M20 Agonizing Syphon; M20 Ajani, Strength of the Pride; M20 Cavalier of Flame; M20 Celestial Messenger ...
+  SUPERTYPE_EQ Planeswalker                                      2 |    2 |    0   M21 Hooded Blightfang; M21 Liliana's Scrounger
+
+## D18 'its controller' as TARGET_PLAYER
+  TARGET_PLAYER, text prints a target player                    12 |   13 |   16   FDN Duress; FDN Pilfer; M20 Chandra's Flame Wave; M20 Duress; M20 Mind Rot; M20 Sage's Row Denizen; M20 Thought Distortion; M21 Duress; M21 Kitesail Freebooter; M21 Mind Rot ...
+  TARGET_PLAYER, text prints none (the D18 form)                 1 |    2 |    0   FDN Massacre Wurm; M21 Massacre Wurm
+
+## D19 a move into a library with or without a position
+  library BOTTOM                                                12 |   11 |    3   FDN Spinner of Souls; FDN Vivien Reid; M20 Anticipate; M20 Brightwood Tracker; M20 Drawn from Dreams; M20 Eternal Isolation; M20 Goblin Ringleader; M20 Icon of Ancestry; M20 Vivien, Nature's Avenger; M21 Garruk's Harbinger ...
+  library TOP                                                    3 |    3 |    0   M20 Cavalier of Gales; M20 Cavalier of Thorns; M21 Teferi, Timeless Voyager
+  library, no position                                           2 |    2 |    0   M20 Cavalier of Gales; M21 Epitaph Golem
+
+## D21 'each opponent <verb>s': EachPlayer around one atom or a plural controller
+  plural controller on LOSE_LIFE                                14 |   11 |    3   FDN Marauding Blight-Priest; FDN Vampire Spawn; M20 Corpse Knight; M20 Epicure of Blood; M20 Vampire Opportunist; M21 Bad Deal; M21 Caged Zombie; M21 Hooded Blightfang; M21 Indulging Patrician; M21 Sanctum of Stone Fangs ...
+  plural controller on MOVE_ZONE                                 4 |    3 |    1   M20 Dragon Mage; M21 Bad Deal; M21 Liliana, Waker of the Dead
+  EachPlayer(ALL_OPPONENTS) around one MOVE_ZONE                 3 |    2 |    0   M20 Yarok's Fenlurker; M21 Thieves' Guild Enforcer
+  EachPlayer(ALL_OPPONENTS) around one SACRIFICE                 1 |    1 |    0   M21 Goremand
+  EachPlayer(ALL_OPPONENTS) around one DEAL_DAMAGE               1 |    1 |    0   M21 Keral Keep Disciples
+  EachPlayer(TARGET_PLAYER) around one LOSE_LIFE                 1 |    1 |    0   M21 Peer into the Abyss
+  EachPlayer(ALL_OPPONENTS) around one CREATE_TOKEN              1 |    1 |    0   M21 Pursued Whale
+  EachPlayer(TARGET_OPPONENT) around one SACRIFICE               1 |    1 |    0   M21 Run Afoul
+  EachPlayer(ANY) around one DRAW                                1 |    1 |    1   M20 Dragon Mage
+
+## D22 'as long as' on a static: its condition or a DurationWhileCondition
+  static condition                                              18 |   12 |    0   FDN Angel of Vitality; FDN Twinblade Paladin; M20 Angel of Vitality; M20 Blood Burglar; M20 Daggersail Aeronaut; M20 Elvish Reclaimer; M20 Twinblade Paladin; M21 Drowsing Tyrannodon; M21 Gadrak, the Crown-Scourge; M21 Gnarled Sage ...
+  DurationWhileCondition on the atom                             5 |    5 |    0   M20 Celestial Messenger; M20 Unchained Berserker; M20 Vivien's Crocodile; M21 Predatory Wurm; M21 Sigiled Contender
+
+## D23 one static's keyword grants: sorted or printed order
+  two or more grants, printed order                              5 |    1 |    0   FDN Unflinching Courage
+  two or more grants, sorted                                     3 |    0 |    0   
+
+## D24 'dies' as CreatureDiesEvent or a zone change
+  CreatureDiesEvent                                             46 |   32 |    9   FDN Gleaming Barrier; FDN Maalfeld Twins; FDN Massacre Wurm; FDN Obliterating Bolt; FDN Pelakka Wurm; FDN Scorching Dragonfire; FDN Solemn Simulacrum; FDN Spinner of Souls; M20 Bishop of Wings; M20 Cavalier of Dawn ...
+  zone change BF->GY, other subject                              2 |    2 |    0   M20 Retributive Wand; M20 Starfield Mystic
+
+## D25 'this <permanent>' as a cost's object
+  CostSacrifice: FAnd(CONTROLLER_IS YOU, IS_SOURCE)             18 |   20 |    9   FDN Cathar Commando; FDN Evolving Wilds; FDN Goblin Firebomb; FDN Heartfire Immolator; FDN Thrashing Brontodon; M20 Bag of Holding; M20 Cryptic Caves; M20 Ember Hauler; M20 Evolving Wilds; M20 Salvager of Ruin ...
+  CostSacrifice: IS_SOURCE alone                                 6 |    6 |    2   FDN Gleaming Barrier; FDN Goldvein Pick; M20 Mask of Immolation; M20 Rapacious Dragon; M21 Gadrak, the Crown-Scourge; M21 Selfless Savior
+  CostRemoveCounter: IS_SOURCE alone                             6 |    0 |    0   
+  CostExile: IS_SOURCE alone                                     5 |    0 |    0   
+  CostPutCounter: FAnd(CONTROLLER_IS YOU, IS_SOURCE)             1 |    2 |    0   FDN Mazemind Tome; M21 Mazemind Tome
+  CostDiscard: IS_SOURCE alone                                   1 |    1 |    0   M21 Waker of Waves
+
+## B-42 MOVE_ZONE: the moved objects' role; 'its owner's hand'
+  moved objects in role:cards                                  135 |   92 |   41   FDN Bigfin Bouncer; FDN Chart a Course; FDN Duress; FDN Elvish Regrower; FDN Exclusion Mage; FDN Incinerating Blast; FDN Into the Roil; FDN Nullpriest of Oblivion; FDN Pilfer; FDN Raise the Past ...
+  moved objects in role:target                                  61 |   32 |    9   FDN Angelic Edict; FDN Banishing Light; FDN Mazemind Tome; FDN Obliterating Bolt; FDN Scavenging Ooze; FDN Scorching Dragonfire; FDN Stasis Snare; M20 Ajani, Inspiring Leader; M20 Ajani, Strength of the Pride; M20 Apostle of Purifying Light ...
+  to Zone(HAND, OWNER)                                          36 |   18 |    8   FDN Bigfin Bouncer; FDN Exclusion Mage; FDN Into the Roil; FDN Unsummon; M20 Bag of Holding; M20 Captivating Gyre; M20 Immortal Phoenix; M20 Mu Yanling, Celestial Wind; M20 Portal of Sanctuary; M20 Pulse of Murasa ...
+  neither                                                        8 |    4 |    0   M20 Sage's Row Denizen; M21 Carrion Grub; M21 Teferi's Tutelage; M21 Thieves' Guild Enforcer
+
+## B-48 discard: Verb.DISCARD or MOVE_ZONE from a hand to a graveyard
+  MOVE_ZONE hand->graveyard                                     37 |   25 |   11   FDN Chart a Course; FDN Incinerating Blast; FDN Strix Lookout; M20 Bag of Holding; M20 Cavalier of Flame; M20 Dragon Mage; M20 Hard Cover; M20 Keldon Raider; M20 Mind Rot; M20 Rotting Regisaur ...
+  Verb.DISCARD                                                   1 |    0 |    0   
+
+## B-44 turn history: the legacy predicates or EVENT_THIS_TURN
+  general EVENT_THIS_TURN                                       24 |    9 |    0   FDN Chart a Course; FDN Goblin Boarders; FDN Searslicer Goblin; FDN Skyship Buccaneer; FDN Storm Fleet Spy; M20 Knight of the Ebon Legion; M20 Nightpack Ambusher; M20 Savage Gorger; M20 Veil of Summer
+  legacy DIED_THIS_TURN                                         10 |   10 |    0   M21 Caged Zombie; M21 Canopy Stalker; M21 Fungal Rebirth; M21 Gadrak, the Crown-Scourge; M21 Life Goes On; M21 Liliana's Devotee; M21 Liliana's Scrounger; M21 Liliana's Standard Bearer; M21 Sabertooth Mauler; M21 Twinblade Assassins
+  general SUBJECT_OF_EVENT_THIS_TURN                             5 |    2 |    0   M20 Fathom Fleet Cutthroat; M20 Ogre Siegebreaker
+  legacy MOVED_TO_ZONE_THIS_TURN                                 4 |    4 |    0   M20 Brought Back; M20 Salvager of Ruin; M21 Barrin, Tolarian Archmage; M21 Necromentia
+  legacy LIFE_GAINED_THIS_TURN_GE                                4 |    5 |    0   FDN Sanguine Indulgence; M21 Griffin Aerie; M21 Indulging Patrician; M21 Sanguine Indulgence; M21 Silversmote Ghoul
+  legacy CAST_THIS_TURN_FROM                                     2 |    1 |    0   M21 Archfiend's Vessel
+  legacy CARDS_DRAWN_THIS_TURN_GE                                2 |    2 |    0   M21 Gnarled Sage; M21 Tome Anima
+  legacy NOT_FIRST_DRAW_THIS_STEP                                2 |    1 |    0   M21 Teferi's Ageless Insight
+  legacy ENTERED_THIS_TURN_FROM                                  1 |    1 |    0   M21 Archfiend's Vessel
+  legacy QThisTurn                                               1 |    1 |    0   M21 Chandra's Incinerator
+  legacy WAS_CAST_THIS_TURN                                      1 |    1 |    0   M21 Containment Priest
+  legacy ATTACK_AGAINST_COUNT_GE                                 1 |    0 |    0   
+  legacy INSTANT_OR_SORCERY_CAST_THIS_TURN                       1 |    1 |    0   M21 Stormwing Entity
+
+## Comparators: the threshold predicates, LE forms and FNot(GE) forms
+  CONTROLLER_COUNT_GE                                           29 |   20 |    5   FDN Garruk's Uprising; M20 Cryptic Caves; M20 Faerie Miscreant; M20 Goblin Bird-Grabber; M20 Leafkin Druid; M20 Omnath, Locus of the Roil; M20 Winged Words; M21 Adherent of Hope; M21 Celestial Enforcer; M21 Drowsing Tyrannodon ...
+  POWER_GE                                                      17 |    8 |    1   FDN Garruk's Uprising; M20 Eternal Isolation; M21 Drowsing Tyrannodon; M21 Garruk's Uprising; M21 Leafkin Avenger; M21 Legion's Judgment; M21 Ornery Dilophosaur; M21 Turret Ogre
+  CMC_LE                                                         7 |    5 |    0   FDN Raise the Past; M20 Cavalier of Night; M21 Eliminate; M21 Idol of Endurance; M21 Ugin, the Spirit Dragon
+  ZONE_COUNT_GE                                                  5 |    4 |    0   FDN Crypt Feaster; M20 Elvish Reclaimer; M21 Liliana, Waker of the Dead; M21 Thieves' Guild Enforcer
+  POWER_LE                                                       5 |    3 |    0   FDN Goblin Smuggler; M20 Goblin Smuggler; M21 Subira, Tulzidi Caravanner
+  LIFE_TOTAL_GE                                                  3 |    4 |    0   FDN Angel of Vitality; FDN Twinblade Paladin; M20 Angel of Vitality; M20 Twinblade Paladin
+  COLOR_COUNT_GE                                                 2 |    2 |    0   M21 Basri's Lieutenant; M21 Ugin, the Spirit Dragon
+  LIFE_LEAD_OVER_START_GE                                        2 |    2 |    0   M20 Ajani, Strength of the Pride; M21 Speaker of the Heavens
+  NAME_PARTITION_COUNT_GE                                        1 |    1 |    0   M21 Chrome Replicator
+  CMC_GE                                                         1 |    2 |    0   FDN Fierce Empath; M21 Fierce Empath
+  FNot(CONTROLLER_COUNT_GE)                                      1 |    1 |    0   M21 Gadrak, the Crown-Scourge
+  CONTROLLER_COUNT_GT                                            1 |    1 |    0   M21 Garruk, Unleashed
+  FNot(ZONE_COUNT_GE)                                            1 |    1 |    0   M21 Liliana, Waker of the Dead
+
+## F9 the 'as though' policies and the requirements
+  Verb.MANDATE_ATTACK                                            5 |    3 |    0   M20 Rubblebelt Recluse; M21 Furor of the Bitten; M21 Pursued Whale
+  Verb.MANDATE_BLOCK                                             3 |    1 |    0   M21 Canopy Stalker
+  Verb.MANA_POLICY                                               3 |    3 |    1   M20 Chandra's Embercat; M21 Chromatic Orrery; M21 Vodalian Arcanist
+  Verb.ATTACK_POLICY                                             1 |    1 |    0   M21 Drowsing Tyrannodon
+  Verb.DAMAGE_ASSIGN_POLICY                                      1 |    1 |    0   M21 Garruk, Savage Herald
+
+## F13 'choose a colour': a Choose over five or CHOOSE_NAME(COLOR)
+  CHOOSE_NAME quality {'tag': 'String', 'value': 'COLOR'}        4 |    2 |    1   FDN Diamond Mare; M20 Diamond Knight
+  CHOOSE_NAME quality {'tag': 'String', 'value': 'CREATURE_TYPE'}     4 |    1 |    0   M20 Icon of Ancestry
+  Choose over five colours (resolution)                          2 |    2 |    0   M20 Gods Willing; M21 Feat of Resistance
+
+## D2 / B-backlog 'ALL's count': what an ALL selector's count holds
+  ALL count QUnbounded                                         323 |  152 |   44   FDN Adventuring Gear; FDN Ancestor Dragon; FDN Anthem of Champions; FDN Blanchwood Armor; FDN Crash Through; FDN Dauntless Veteran; FDN Dawnwing Marshal; FDN Death Baron; FDN Duress; FDN Empyrean Eagle ...
+  ALL count QConst(1)                                           52 |   15 |    7   FDN Shivan Dragon; M20 Creeping Trailblazer; M20 Goblin Bird-Grabber; M20 Knight of the Ebon Legion; M20 Metropolis Sprite; M20 Moorland Inquisitor; M20 Shifting Ceratops; M20 Shivan Dragon; M20 Yarok's Fenlurker; M21 Anointed Chorister ...
+
+## D1/D4 negation placement and un-distributed FOr
+  FNot(FAnd)                                                     3 |    3 |    0   FDN Chart a Course; M20 Flame Sweep; M21 Necromentia
+  FOr of FAnds sharing a conjunct (un-distributed)               2 |    1 |    0   M21 Eliminate
+
+## Enumerations: a Choose whose options repeat one subtree (and/or, colour of your choice)
+  Choose over 2 near-identical options                          66 |   62 |   19   FDN Azorius Guildgate; FDN Bloodfell Caves; FDN Blossoming Sands; FDN Boros Guildgate; FDN Dimir Guildgate; FDN Dismal Backwater; FDN Golgari Guildgate; FDN Gruul Guildgate; FDN Izzet Guildgate; FDN Jungle Hollow ...
+  Choose over 5 near-identical options                           2 |    2 |    0   M20 Gods Willing; M21 Feat of Resistance
+  Choose over 3 near-identical options                           1 |    1 |    0   M20 Shifting Ceratops
+
+## The source as an effect's object: which selector form
+  CHOOSE QConst(1) IS_SOURCE [BATTLEFIELD/ANY]                 181 |   82 |   19   FDN Adventuring Gear; FDN Ajani's Pridemate; FDN Angel of Vitality; FDN Ball Lightning; FDN Brineborn Cutthroat; FDN Clinquant Skymage; FDN Crypt Feaster; FDN Enigma Drake; FDN Erudite Wizard; FDN Fireshrieker ...
+  ALL QConst(1) FAnd(CONTROLLER_IS YOU, IS_SOURCE) [BATTLEFIELD/ANY]    52 |   15 |    7   FDN Shivan Dragon; M20 Creeping Trailblazer; M20 Goblin Bird-Grabber; M20 Knight of the Ebon Legion; M20 Metropolis Sprite; M20 Moorland Inquisitor; M20 Shifting Ceratops; M20 Shivan Dragon; M20 Yarok's Fenlurker; M21 Anointed Chorister ...
+  CHOOSE QConst(1) FAnd(CONTROLLER_IS YOU, IS_SOURCE) [BATTLEFIELD/ANY]     5 |    4 |    0   FDN Hungry Ghoul; M21 Garruk, Unleashed; M21 Hobblefiend; M21 Trufflesnout
+  CHOOSE QConst(1) IS_SOURCE [GRAVEYARD/YOU]                     2 |    2 |    0   M20 Sanitarium Skeleton; M21 Silversmote Ghoul
+  CHOOSE QConst(1) IS_SOURCE [GRAVEYARD/ANY]                     2 |    2 |    0   M20 Cavalier of Gales; M20 Immortal Phoenix
+  CHOOSE QConst(1) IS_SOURCE [STACK/ANY]                         1 |    1 |    0   M21 Experimental Overload
+
+## Names: NAME_EQ of the card itself or of another card
+  NAME_EQ another card's name                                   14 |   11 |    0   M20 Chandra's Flame Wave; M20 Ethereal Elk; M20 Goldmane Griffin; M20 Sorin's Guide; M20 Yanling's Harbinger; M21 Alpine Houndmaster; M21 Basri's Aegis; M21 Chandra's Firemaw; M21 Garruk's Warsteed; M21 Liliana's Scorn ...
+  NAME_CONTAINS (a planeswalker's name)                          8 |    4 |    0   M21 Adherent of Hope; M21 Garruk's Harbinger; M21 Historian of Zhalfir; M21 Liliana's Scrounger
+  NAME_EQ its own name                                           6 |    6 |    2   M20 Battalion Foot Soldier; M20 Faerie Miscreant; M20 Growth Cycle; M20 Pack Mastiff; M20 Undead Servant; M21 Frantic Inventory
+
+
+# B. Sentences one slot word apart with different encodings
+1959 parsed (card, sentence) pairs of the 19 sets; 626 slot shapes; a shape with two or more abstracted encodings is listed (slot values: numbers, colours, card types; the card's name and 'this <type>' as ~)
+shapes with two or more encodings: 2 (sentences in them: 107)
+
+[104] {T}: Add {C}.
+    53 x  e.g. M21 Animal Sanctuary: "{T}: Add {C}."  [B3-add-mana-colorless]
+    51 x  e.g. M21 Llanowar Visionary: "{T}: Add {G}."  [B3-add-mana-single]
+         vs the first: +['COLOR'] -['str:C']
+
+[3] ~ is also a Cleric, Rogue, Warrior, and Wizard.
+     1 x  e.g. ZNR Stonework Packbeast: "Stonework Packbeast is also a Cleric, Rogue, Warrior, and Wizard."  [B8-party-class-signature]
+     1 x  e.g. ZNR Tajuru Paragon: "Tajuru Paragon is also a Cleric, Rogue, Warrior, and Wizard."  [B8-party-class-signature]
+         vs the first: +['str:Tajuru Paragon'] -['str:Stonework Packbeast']
+     1 x  e.g. ZNR Veteran Adventurer: "Veteran Adventurer is also a Cleric, Rogue, Warrior, and Wizard."  [B8-party-class-signature]
+         vs the first: +['str:Veteran Adventurer'] -['str:Stonework Packbeast']
+
+
+# C. Whole cards with the same text up to slot words (wholly compiled, records applied)
+862 texts; texts whose cards carry two or more encodings beyond the slot values: 33
+
+[22] Flying
+    21 x {'compiler/verified': 3, 'compiler/compiled': 18}  e.g. M21 Concordia Pegasus, M20 Air Elemental, 10E Dusk Imp, 10E Ornithopter, 10E Suntail Hawk
+     1 x {'compiler/compiled': 1}  e.g. ELD Ardenvale Tactician // Dizzying Swoop
+         vs the first: +['@abilities', '@args', '@controller', '@count', '@effect', '@face_name', '@filter', '@kind', '@kind', '@mode', '@n', '@pred', '@string_value', '@verb'] -[]
+
+[16] {T}: Add {C}.
+     5 x {'compiler/verified': 3, 'compiler/compiled': 2}  e.g. M20 Woodland Mystic, 10E Llanowar Elves, M14 Elvish Mystic, ORI Leaf Gilder, M19 Druid of the Cowl
+     1 x {'compiler/compiled': 1}  e.g. ZNR Branchloft Pathway // Boulderloft Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Brightclimb Pathway // Grimclimb Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Clearwater Pathway // Murkwater Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Cragcrown Pathway // Timbercrown Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Needleverge Pathway // Pillarverge Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Riverglide Pathway // Lavaglide Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. ZNR Tangled Florahedron // Tangled Vale
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR'] -[]
+     1 x {'compiler/compiled': 1}  e.g. KHM Barkchannel Pathway // Tidechannel Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. KHM Blightstep Pathway // Searstep Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. KHM Darkbore Pathway // Slitherbore Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+     1 x {'compiler/compiled': 1}  e.g. KHM Hengegate Pathway // Mistgate Pathway
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR', 'ControllerRef.YOU'] -['@kind', 'SpellAbility', 'SpellKind.CREATURE']
+
+[9] When ~ enters, you gain N life.
+     8 x {'compiler/compiled': 6, 'compiler/verified': 2}  e.g. ZNR Turntimber Ascetic, M20 Healer of the Glade, M20 Savannah Sage, KHM Ravenous Lindwurm, 10E Venerable Monk
+     1 x {'compiler/compiled': 1}  e.g. ZNR Skyclave Cleric // Skyclave Basilica
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR'] -[]
+
+[7] Destroy target TYPE.
+     4 x {'compiler/verified': 1, 'compiler/compiled': 3}  e.g. M20 Murder, 10E Demystify, M10 Shatter, M13 Smelt
+     3 x {'compiler/compiled': 3}  e.g. 10E Rain of Tears, M13 Craterize, DOM Eviscerate
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[6] Creatures you control get +N/+N until end of turn.
+     5 x {'compiler/verified': 2, 'compiler/compiled': 3}  e.g. M21 Burn Bright, M20 Inspired Charge, 10E Warrior's Honor, M10 Glorious Charge, DOM Charge
+     1 x {'compiler/compiled': 1}  e.g. ZNR Makindi Stampede // Makindi Mesas
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR'] -['SpellKind.INSTANT']
+
+[6] Destroy target TYPE or TYPE.
+     5 x {'compiler/verified': 4, 'compiler/compiled': 1}  e.g. M21 Finishing Blow, ZNR Disenchant, 10E Naturalize, FDN Hero's Downfall, FDN Mortify
+     1 x {'compiler/compiled': 1}  e.g. 10E Demolish
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[4] Exile target TYPE or TYPE.
+     2 x {'compiler/compiled': 2}  e.g. KHM Feed the Serpent, DOM Blessed Light
+     2 x {'compiler/verified': 1, 'compiler/compiled': 1}  e.g. FDN Angelic Edict, THB Revoke Existence
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[4] Draw N TYPE.
+     2 x {'compiler/compiled': 2}  e.g. 10E Counsel of the Soratami, M10 Divination
+     2 x {'compiler/compiled': 1, 'compiler/verified': 1}  e.g. ORI Weave Fate, FDN Quick Study
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[3] Destroy target tapped TYPE.
+     2 x {'compiler/verified': 1, 'compiler/compiled': 1}  e.g. M20 Take Vengeance, 10E Assassinate
+     1 x {'compiler/verified': 1}  e.g. M21 Swift Response
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[3] As an additional cost to cast ~, discard a TYPE. / Draw N TYPE.
+     2 x {'compiler/compiled': 2}  e.g. ZNR Tormenting Voice, M13 Wild Guess
+     1 x {'compiler/verified': 1}  e.g. M21 Thrill of Possibility
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[3] Landfall — Whenever a TYPE you control enters, ~ gets +N/+N until end of turn.
+     2 x {'compiler/compiled': 2}  e.g. ZNR Akoum Hellhound, ZNR Canopy Baloth
+     1 x {'compiler/compiled': 1}  e.g. ZNR Kazandu Mammoth // Kazandu Valley
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR'] -[]
+
+[3] Counter target TYPE unless its controller pays {N}.
+     2 x {'compiler/verified': 1, 'compiler/compiled': 1}  e.g. M20 Convolute, M11 Mana Leak
+     1 x {'compiler/compiled': 1}  e.g. ZNR Jwari Disruption // Jwari Ruins
+         vs the first: +['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR'] -[]
+
+[3] ~ deals N damage to target TYPE.
+     2 x {'compiler/verified': 1, 'compiler/compiled': 1}  e.g. M20 Engulfing Eruption, M19 Fiery Finish
+     1 x {'compiler/compiled': 1}  e.g. M19 Electrify
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[3] Destroy target TYPE or TYPE. / You gain N life.
+     2 x {'compiler/verified': 1, 'compiler/compiled': 1}  e.g. M20 Natural End, KHM Invoke the Divine
+     1 x {'compiler/compiled': 1}  e.g. M10 Solemn Offering
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[3] {N}{C}, {T}: Tap target TYPE.
+     2 x {'compiler/compiled': 2}  e.g. ORI Akroan Jailer, IKO Checkpoint Officer
+     1 x {'compiler/compiled': 1}  e.g. ELD Giant Killer // Chop Down
+         vs the first: +['@abilities', '@args', '@children', '@controller', '@count', '@count', '@effect', '@face_name', '@filter', '@kind', '@kind', '@mode', '@pred', '@pred'] -[]
+
+[3] Vigilance
+     2 x {'compiler/compiled': 2}  e.g. IKO Maned Serval, IKO Mosscoat Goriak
+     1 x {'compiler/compiled': 1}  e.g. ELD Lonesome Unicorn // Rider in Need
+         vs the first: +['@abilities', '@args', '@colors', '@effect', '@face_name', '@keywords', '@kind', '@power', '@subtypes', '@toughness', '@types', '@verb', 'Atom', 'AtomArgs'] -[]
+
+[2] {N}{C}: Target TYPE gains flying until end of turn.
+     1 x {'compiler/verified': 1}  e.g. M21 Keen Glidemaster
+     1 x {'compiler/verified': 1}  e.g. M20 Zephyr Charge
+         vs the first: +['SpellKind.ENCHANTMENT'] -['SpellKind.CREATURE']
+
+[2] Destroy target TYPE with power N or greater.
+     1 x {'compiler/verified': 1}  e.g. M21 Legion's Judgment
+     1 x {'compiler/compiled': 1}  e.g. ZNR Smite the Monstrous
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[2] Draw N TYPE, then discard a TYPE.
+     1 x {'compiler/verified': 1}  e.g. M21 Rain of Revelation
+     1 x {'compiler/compiled': 1}  e.g. 10E Sift
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] ~ deals N damage to target TYPE or TYPE. / If that TYPE or TYPE would die this turn, exile it instead.
+     1 x {'compiler/verified': 1}  e.g. M21 Scorching Dragonfire
+     1 x {'compiler/verified': 1}  e.g. FDN Obliterating Bolt
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] ~ deals N damage to target TYPE. / Destroy all TYPE attached to that TYPE.
+     1 x {'compiler/verified': 1}  e.g. M21 Turn to Slag
+     1 x {'compiler/compiled': 1}  e.g. M15 Blastfire Bolt
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[2] ~ deals X damage to any target.
+     1 x {'compiler/verified': 1}  e.g. M21 Volcanic Geyser
+     1 x {'compiler/compiled': 1}  e.g. 10E Blaze
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] Trample
+     1 x {'compiler/compiled': 1}  e.g. ZNR Akoum Warrior // Akoum Teeth
+     1 x {'compiler/compiled': 1}  e.g. DOM Pardic Wanderer
+         vs the first: +[] -['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR']
+
+[2] Return target TYPE from your graveyard to your hand.
+     1 x {'compiler/compiled': 1}  e.g. ZNR Bala Ged Recovery // Bala Ged Sanctuary
+     1 x {'compiler/compiled': 1}  e.g. 10E Recollect
+         vs the first: +[] -['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR']
+
+[2] Creatures your opponents control get +N/+N until end of turn.
+     1 x {'compiler/compiled': 1}  e.g. ZNR Beyeen Veil // Beyeen Coast
+     1 x {'compiler/compiled': 1}  e.g. M13 Cower in Fear
+         vs the first: +[] -['@abilities', '@args', '@cost', '@effect', '@face_name', '@parts', '@tapped', '@value', '@verb', 'ActivatedAbility', 'Atom', 'AtomArgs', 'BackFace', 'COLOR']
+
+[2] Destroy target TYPE with power N or less.
+     1 x {'compiler/compiled': 1}  e.g. ZNR Vanquish the Weak
+     1 x {'compiler/compiled': 1}  e.g. ORI Reave Soul
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] Return target TYPE TYPE from your graveyard to your hand.
+     1 x {'record/verified': 1}  e.g. M20 Disentomb
+     1 x {'compiler/compiled': 1}  e.g. M10 Nature's Spiral
+         vs the first: +['FAtomPred.IS_PERMANENT'] -['@string_value', 'FAtomPred.TYPE_EQ', 'TYPE']
+
+[2] Create N N/N COLOR Soldier TYPE TYPE.
+     1 x {'compiler/verified': 1}  e.g. M20 Raise the Alarm
+     1 x {'compiler/compiled': 1}  e.g. M13 Captain's Call
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] ~ deals N damage to target player or TYPE.
+     1 x {'compiler/compiled': 1}  e.g. 10E Lava Axe
+     1 x {'compiler/compiled': 1}  e.g. WAR Sarkhan's Catharsis
+         vs the first: +['SpellKind.INSTANT'] -['SpellKind.SORCERY']
+
+[2] This TYPE can't block.
+     1 x {'compiler/compiled': 1}  e.g. 10E Spineless Thug
+     1 x {'compiler/compiled': 1}  e.g. ELD Rimrock Knight // Boulder Rush
+         vs the first: +['@abilities', '@args', '@controller', '@count', '@direction', '@direction', '@effect', '@face_name', '@filter', '@kind', '@kind', '@magnitude', '@magnitude', '@mode'] -[]
+
+[2] Return target TYPE TYPE to its owner's hand.
+     1 x {'compiler/compiled': 1}  e.g. M14 Disperse
+     1 x {'compiler/compiled': 1}  e.g. M15 Void Snare
+         vs the first: +['SpellKind.SORCERY'] -['SpellKind.INSTANT']
+
+[2] As ~ enters, choose a color. / Whenever you cast a TYPE of the chosen color, you gain N life.
+     1 x {'compiler/compiled': 1}  e.g. ORI Prism Ring
+     1 x {'compiler/verified': 1}  e.g. M19 Diamond Mare
+         vs the first: +['SpellKind.CREATURE'] -['SpellKind.ARTIFACT']
+
+[2] Attacking TYPE you control get +N/+N.
+     1 x {'compiler/compiled': 1}  e.g. ORI War Horn
+     1 x {'compiler/verified': 1}  e.g. FDN Goblin Oriflamme
+         vs the first: +['SpellKind.ENCHANTMENT'] -['SpellKind.ARTIFACT']

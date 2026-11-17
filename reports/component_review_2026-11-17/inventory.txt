@@ -1,0 +1,344 @@
+# Component inventory: cards using each (verified M21+M20+FDN 651 | compiled 19 sets 4314)
+
+## Verb (51 members)
+  MODIFY_PT                              126 |   332
+  ADD_MANA                                60 |   247
+  DRAW                                    85 |   196
+  MOVE_ZONE                              113 |   194
+  CREATE_TOKEN                            56 |   159
+  GRANT_ABILITY                           77 |   159
+  DEAL_DAMAGE                             61 |   135
+  GAIN_LIFE                               61 |   114
+  DESTROY                                 36 |   104
+  PUT_COUNTER                             53 |   103
+  ATTACH                                  12 |    84
+  PREVENT_EFFECT                          31 |    81
+  SCRY                                    21 |    61
+  REVEAL                                  29 |    49
+  TAP                                     12 |    45
+  SHUFFLE                                 24 |    42
+  LOSE_LIFE                               20 |    34
+  SEARCH                                  22 |    29
+  COUNTER_SPELL                            8 |    28
+  UNTAP                                    8 |    26
+  LOOK_AT                                  8 |    21
+  PAY                                      3 |    16
+  GAIN_CONTROL                             4 |    14
+  CHOOSE_NAME                              5 |    10
+  SACRIFICE                                8 |     8
+  GRANT_TYPE                               3 |     7
+  GET_EMBLEM                               5 |     6
+  SET_PT                                   6 |     6
+  CAST                                     1 |     5
+  CHOOSE                                   3 |     5
+  MANDATE_ATTACK                           3 |     5
+  FIGHT                                    4 |     4
+  END_TURN                                 2 |     3
+  LOSE_ABILITY                             3 |     3
+  MANA_POLICY                              3 |     3
+  COPY                                     0 |     2
+  MANDATE_BLOCK                            1 |     2
+  PHASE_OUT                                2 |     2
+  ADD_LAND_PLAY                            1 |     1
+  ATTACK_POLICY                            1 |     1
+  DAMAGE_ASSIGN_POLICY                     1 |     1
+  DISCARD                                  0 |     1
+  EXTRA_TURN                               1 |     1
+  FLIP_COIN                                1 |     1
+  GRANT_ACTIVATION                         1 |     1
+  LOSE_GAME                                1 |     1
+  REMOVE_COUNTER                           1 |     1
+  TRIGGER_ADDITIONAL                       1 |     1
+  EXILE                                    0 |     0   <- no tree
+  MILL                                     0 |     0   <- no tree
+  PHASE_IN                                 0 |     0   <- no tree
+
+## FAtomPred (57 members)
+  TYPE_EQ                                367 |  1007
+  IS_SOURCE                              309 |   679
+  CONTROLLER_IS                          257 |   570
+  IS_ATTACHED_TO_SOURCE                   35 |   125
+  SUBTYPE_EQ                              44 |    64
+  IS_PERMANENT                            26 |    58
+  KEYWORD_HAS                             28 |    36
+  WAS_KICKED                               3 |    34
+  STACK_KIND_EQ                           10 |    33
+  CONTROLLER_COUNT_GE                     19 |    29
+  EVENT_THIS_TURN                          9 |    24
+  MAY_DONE                                17 |    23
+  IS_ANY_TARGET                           12 |    20
+  NAME_EQ                                 17 |    20
+  POWER_GE                                 7 |    17
+  COLOR_HAS                               14 |    16
+  OPPONENT_OF                              4 |    15
+  TURN_OF                                 10 |    14
+  SUPERTYPE_EQ                             9 |    11
+  DIED_THIS_TURN                          10 |    10
+  NAME_CHOSEN                              5 |    10
+  IS_ATTACKING                             8 |     9
+  NAME_CONTAINS                            4 |     8
+  CMC_LE                                   5 |     7
+  HAS_COUNTER                              7 |     7
+  IS_TAPPED                                3 |     7
+  IS_TOKEN                                 6 |     6
+  POWER_LE                                 2 |     5
+  SUBJECT_OF_EVENT_THIS_TURN               2 |     5
+  ZONE_COUNT_GE                            4 |     5
+  LIFE_GAINED_THIS_TURN_GE                 4 |     4
+  MOVED_TO_ZONE_THIS_TURN                  4 |     4
+  TARGETS_SOURCE                           4 |     4
+  IS_ATTACHED_TO                           2 |     3
+  IS_UNTAPPED                              3 |     3
+  LIFE_TOTAL_GE                            2 |     3
+  CARDS_DRAWN_THIS_TURN_GE                 2 |     2
+  CAST_THIS_TURN_FROM                      1 |     2
+  COLOR_COUNT_GE                           2 |     2
+  IS_EXILED_WITH_SOURCE                    2 |     2
+  LIFE_LEAD_OVER_START_GE                  2 |     2
+  NOT_FIRST_DRAW_THIS_STEP                 1 |     2
+  ATTACK_AGAINST_COUNT_GE                  0 |     1
+  CMC_GE                                   1 |     1
+  CONTROLLER_COUNT_GT                      1 |     1
+  ENTERED_THIS_TURN_FROM                   1 |     1
+  FLIP_WON                                 1 |     1
+  HAS_KICKER                               0 |     1
+  INSTANT_OR_SORCERY_CAST_THIS_TURN        1 |     1
+  IS_RESULT                                1 |     1
+  NAME_PARTITION_COUNT_GE                  1 |     1
+  WAS_CAST_THIS_TURN                       1 |     1
+  COLOR_IN                                 0 |     0   <- no tree
+  CONTROLLER_COUNT_LE                      0 |     0   <- no tree
+  IS_BLOCKING                              0 |     0   <- no tree
+  PT_GE                                    0 |     0   <- no tree
+  PT_LE                                    0 |     0   <- no tree
+
+## QPropField (12 members)
+  POWER                                   11 |    11
+  AMOUNT                                   9 |    10
+  COUNTER_COUNT                            4 |     4
+  THAT_MANY_COUNT                          4 |     4
+  CARDS_IN_GRAVEYARD                       1 |     1
+  CARDS_IN_HAND                            1 |     1
+  LIFE                                     1 |     1
+  MANA_VALUE                               1 |     1
+  THIS_WAY_COUNT                           1 |     1
+  CARDS_IN_LIBRARY                         0 |     0   <- no tree
+  CMC                                      0 |     0   <- no tree
+  TOUGHNESS                                0 |     0   <- no tree
+
+## ThisTurnKind (3 members)
+  NONCOMBAT_DAMAGE                         1 |     1
+  CARDS_DRAWN                              0 |     0   <- no tree
+  LIFE_GAINED                              0 |     0   <- no tree
+
+## QAgg (4 members)
+  FIRST                                   29 |    30
+  SUM                                      2 |     2
+  MAX                                      1 |     1
+  MIN                                      0 |     0   <- no tree
+
+## QBinOp (6 members)
+  MUL                                     15 |    31
+  ADD                                      3 |     4
+  DIV                                      1 |     1
+  MAX                                      0 |     0   <- no tree
+  MIN                                      0 |     0   <- no tree
+  SUB                                      0 |     0   <- no tree
+
+## Keyword (23 members)
+  FLYING                                 107 |   523
+  ENCHANT                                 23 |   182
+  TRAMPLE                                 31 |   147
+  VIGILANCE                               25 |   112
+  FLASH                                   17 |    99
+  HASTE                                   17 |    98
+  EQUIP                                   12 |    84
+  LIFELINK                                26 |    84
+  FIRST_STRIKE                             7 |    68
+  DEATHTOUCH                              16 |    66
+  REACH                                   18 |    57
+  DEFENDER                                 6 |    46
+  MENACE                                   6 |    38
+  FIGHT                                    4 |    32
+  HEXPROOF                                 9 |    31
+  INDESTRUCTIBLE                          10 |    31
+  DOUBLE_STRIKE                           11 |    22
+  TREASURE                                 4 |    15
+  PROWESS                                  7 |    13
+  PROTECTION                              11 |    11
+  BATTALION                                0 |     0   <- no tree
+  MILL                                     0 |     0   <- no tree
+  SCRY                                     0 |     0   <- no tree
+
+## CounterKind (7 members)
+  PLUS_1_PLUS_1                           54 |   134
+  LOYALTY                                  3 |     4
+  CHARGE                                   0 |     3
+  PAGE                                     1 |     2
+  INCARNATION                              1 |     1
+  SOUL                                     1 |     1
+  MINUS_1_MINUS_1                          0 |     0   <- no tree
+
+## SelectorMode (6 members)
+  TARGET                                 217 |   617
+  ALL                                    159 |   372
+  CHOOSE                                 173 |   341
+  ONE_OF                                  50 |    75
+  REST                                    12 |    13
+  RANDOM                                   0 |     0   <- no tree
+
+## ControllerRef (8 members)
+  YOU                                    460 |  1241
+  ANY                                    471 |  1179
+  OWNER                                   49 |   100
+  OPPONENT                                36 |    63
+  TARGET_OPPONENT                         11 |    23
+  ALL_OPPONENTS                           17 |    21
+  TARGET_PLAYER                           11 |    13
+  DEFENDING_PLAYER                         1 |     5
+
+## ZoneKind (9 members)
+  BATTLEFIELD                            449 |  1121
+  ANY                                    194 |   400
+  HAND                                    96 |   153
+  GRAVEYARD                               88 |   130
+  LIBRARY                                 44 |    71
+  EXILE                                   30 |    62
+  STACK                                   10 |    34
+  PLAYER                                  17 |    30
+  COMMAND                                  0 |     0   <- no tree
+
+## SpellKind (7 members)
+  CREATURE                               381 |  2376
+  ENCHANTMENT                             45 |   418
+  INSTANT                                 82 |   295
+  ARTIFACT                                26 |   250
+  SORCERY                                 57 |   210
+  PLANESWALKER                            19 |   123
+  LAND                                     0 |     0   <- no tree
+
+## Phase (4 members)
+  END_TURN                                15 |    19
+  COMBAT                                   5 |    12
+  UPKEEP                                   2 |     6
+  FIRST_MAIN                               3 |     3
+
+## Step (4 members)
+  UNTAP                                    2 |     4
+  DEALS_COMBAT_DAMAGE                      0 |     0   <- no tree
+  DECLARE_ATTACKERS                        0 |     0   <- no tree
+  END_OF_COMBAT                            0 |     0   <- no tree
+
+## AbilityKind (3 members)
+  LOYALTY                                  1 |     1
+  NON_MANA                                 1 |     1
+  ANY                                      0 |     0   <- no tree
+
+## Quantity classes
+  QConst                                   0 |     0   <- no tree
+  QX                                       6 |    22
+  QUnbounded                             159 |   360
+  QCount                                  34 |    36
+  QPartyCount                              0 |    25
+  QDistinctColorCount                      1 |     2
+  QProp                                   32 |    33
+  QBin                                    19 |    36
+  QThisTurn                                1 |     1
+  QAtLeast                                 3 |     9
+  QAtMost                                 29 |    40
+
+## Event classes
+  ZoneChangeEvent                        158 |   345
+  CastSpellEvent                          13 |    29
+  DeclareAttackersEvent                   36 |    48
+  DeclareBlockersEvent                    20 |    42
+  CounterPlacedEvent                       5 |     5
+  CreatureDiesEvent                       29 |    46
+  BecomesBlockedEvent                      1 |     1
+  TapStateEvent                            6 |    15
+  PhasingEvent                             1 |     1
+  AbilityTriggerEvent                      1 |     1
+  TurnPhaseEvent                          25 |    40
+  StepEvent                                0 |     0   <- no tree
+  DamageDealtEvent                        19 |    34
+  TargetingEvent                           2 |     3
+  CardDrawnEvent                           9 |    15
+  LifeGainedEvent                         10 |    19
+  LifeLostEvent                            4 |     5
+  CounteredEvent                           4 |    22
+  SacrificeEvent                           1 |     1
+  AbilityActivatedEvent                    2 |     2
+
+## Duration classes
+  DurationEot                            114 |   258
+  DurationPermanent                        0 |     3
+  DurationUntilNextTurn                    2 |     2
+  DurationUntilEndOfNextTurn               1 |     1
+  DurationWhileCondition                   5 |     5
+  DurationUntilNextStep                    2 |     4
+  DurationUntilLeaves                      4 |     8
+
+## Cost classes
+  CostTap                                 96 |   315
+  CostManaColor                           60 |   194
+  CostManaGeneric                         90 |   327
+  CostManaHybrid                           0 |     0   <- no tree
+  CostLife                                 2 |     2
+  CostSacrifice                           33 |    48
+  CostDiscard                              8 |    12
+  CostPutCounter                           1 |     1
+  CostExile                                0 |     7
+  CostRemoveCounter                        0 |     6
+  CostLoyalty                             19 |    67
+  CostDeltaReduceGeneric                  13 |    24
+  CostDeltaIncreaseGeneric                 3 |     3
+  CostDeltaReduceMana                      2 |     2
+  CostDeltaIncreaseLife                    1 |     1
+  CostDeltaWaiveMana                       0 |     0   <- no tree
+
+## Effect node classes
+  Atom                                   574 |  1677
+  Seq                                    181 |   305
+  Choose                                  56 |    96
+  OptionalEffect                          49 |    79
+  Conditional                             35 |    53
+  Repeat                                   0 |     0   <- no tree
+  EachPlayer                              10 |    11
+  DelayedTrigger                           6 |     6
+
+## Ability classes
+  StaticAbility                           96 |   254
+  TriggeredAbility                       269 |   517
+  ActivatedAbility                       179 |   597
+  SpellAbility                           610 |  3643
+  KeywordAbility                         269 |  1398
+  ReplacementAbility                       9 |    15
+  CostModifier                            17 |    28
+  EtBState                                43 |   166
+  KickerAbility                            3 |    66
+  BackFace                                 0 |    87
+
+## Filter classes
+  FAnd                                   352 |   767
+  FOr                                     75 |   169
+  FNot                                    94 |   136
+  FAtom                                  537 |  1424
+
+## Value classes
+  TokenSpec                               56 |   159
+  EmblemSpec                               5 |     6
+  PtDelta                                126 |   332
+  LiteralName                              0 |     0   <- no tree
+
+## num tokens (QConst values and other integers, bucketed)
+  num:0         43 |   115
+  num:1        509 |  1479
+  num:2        170 |   435
+  num:3         65 |   214
+  num:4         45 |   122
+  num:5         17 |    54
+  num:6+        25 |    46
+  num:neg       19 |    46
+  num:?          0 |     0
+
+enum members no tree of the 19 sets uses (28): Verb.EXILE, Verb.MILL, Verb.PHASE_IN, FAtomPred.COLOR_IN, FAtomPred.CONTROLLER_COUNT_LE, FAtomPred.IS_BLOCKING, FAtomPred.PT_GE, FAtomPred.PT_LE, QPropField.CARDS_IN_LIBRARY, QPropField.CMC, QPropField.TOUGHNESS, ThisTurnKind.CARDS_DRAWN, ThisTurnKind.LIFE_GAINED, QAgg.MIN, QBinOp.MAX, QBinOp.MIN, QBinOp.SUB, Keyword.BATTALION, Keyword.MILL, Keyword.SCRY, CounterKind.MINUS_1_MINUS_1, SelectorMode.RANDOM, ZoneKind.COMMAND, SpellKind.LAND, Step.DEALS_COMBAT_DAMAGE, Step.DECLARE_ATTACKERS, Step.END_OF_COMBAT, AbilityKind.ANY
