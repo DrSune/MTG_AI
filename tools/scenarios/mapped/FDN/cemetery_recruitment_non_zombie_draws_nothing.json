@@ -1,0 +1,19 @@
+{
+ "name": "cemetery_recruitment_non_zombie_draws_nothing",
+ "set": "FDN",
+ "note": "Cemetery Recruitment: 'Return target creature card from your graveyard to your hand. If it's a Zombie card, draw a card.' P0 returns a Human Soldier creature card: it goes to P0's hand and, not being a Zombie, P0 draws nothing (one card in hand, the library untouched). The Zombie card beside it in the graveyard stays there.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cr", "real": "Cemetery Recruitment", "zone": "hand", "controller": 0},
+  {"key": "soldier", "name": "Fallen Soldier", "power": "2", "toughness": "2", "type": "Creature — Human Soldier", "zone": "graveyard", "controller": 0},
+  {"key": "zombie", "name": "Fallen Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 1}},
+  {"op": "cast", "real": "Cemetery Recruitment", "key": "cr", "controller": 0, "targets": ["soldier"]}
+ ],
+ "expect": {
+  "zone": {"cr": "graveyard", "soldier": "hand", "zombie": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

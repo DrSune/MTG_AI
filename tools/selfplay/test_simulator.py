@@ -155,6 +155,24 @@ def test_hand_and_library_decoders_are_distributions_over_multisets(table) -> No
     assert math.isclose(logp([hand] * len(libraries), libraries, 1), 0.0, abs_tol=1e-4)
 
 
+def test_the_copy_mask_is_each_cards_own_limit(table, monkeypatch) -> None:
+    """A rule masks the decoders, so the copy limit is the format's per card: none for a basic
+    land, a card's own deck rule where it prints one (CR 100.2a: FDN Hare Apparent's "any
+    number", ``CardMeta.max_copies``), else four. A fixed four would give a deck holding five
+    such copies a truth of probability zero."""
+    import dataclasses
+
+    sup = get_supply(S.POOL, "M21")
+    spell = next(o for o in sup.deckable if not sup.metas[o].is_land)
+    lifted = dataclasses.replace(sup, metas={
+        **sup.metas, spell: dataclasses.replace(sup.metas[spell], max_copies=60)})
+    monkeypatch.setattr(S, "get_supply", lambda pool, code: lifted)
+    monkeypatch.setattr(S, "_POOLS", {})
+    pool, basic, caps = S.pool_rows(table, "M21")
+    assert caps[table.row(spell)] == 60 and set(caps[basic]) == {S.BASIC_CAP}
+    assert set(caps[pool & ~basic]) == {4, 60} and not caps[~pool].any()
+
+
 def test_one_training_step_moves_every_trained_parameter(table) -> None:
     torch.manual_seed(2)
     net = S.Simulator(table, d=32, layers=1, heads=4, ff=64)

@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sph", "real": "Sphinx of the Final Word", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 1},
+  {"key": "neg", "real": "Negate", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}, "1": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Giant Growth", "key": "gg", "controller": 1, "targets": ["bear"], "hold": true},
+  {"op": "cast", "real": "Negate", "key": "neg", "controller": 0, "targets": ["gg"]}
+ ],
+ "expect": {
+  "zone": {"gg": "graveyard", "neg": "graveyard", "bear": "battlefield"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "mana_pool": {"0": {}, "1": {}}
+ },
+ "notes": "FDN Sphinx of the Final Word, printed: 'Instant and sorcery spells you control can't be countered.' Only the Sphinx controller's spells are covered: the opponent's Giant Growth, cast at their own Bear while the Sphinx is on the battlefield, is countered by my Negate, and the Bear stays 2/2."
+}

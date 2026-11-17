@@ -1,0 +1,171 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "33c21ef1-33eb-447a-a318-a352f163a8a0",
+ "name": "Joust Through",
+ "text_sha": "de67e61111c9e70e6e19f7fb0e1a1b96142a2fedb05ebdc356af7bb997d6e998",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FOr",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_ATTACKING"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_BLOCKING"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Joust Through: \"Joust Through deals 3 damage to target attacking or blocking creature. You gain 1 life.\"\n# Sentence 1 as Elspeth's Smite's (DEAL_DAMAGE 3; TYPE_EQ Creature and FOr(IS_ATTACKING,\n# IS_BLOCKING)). Sentence 2 is the compiler's B4-gain-life-n atom, kept, as the second step.\ndamage = A(Verb.DEAL_DAMAGE, {\n    'amount': QConst(value=3),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FOr(children=(\n                FAtom(pred=FAtomPred.IS_ATTACKING),\n                FAtom(pred=FAtomPred.IS_BLOCKING),\n            )),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\ngain = compiled[0].effect\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(damage, gain)))]\n",
+  "clauses": [
+   {
+    "clause": "Joust Through deals 3 damage to target attacking or blocking creature.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You gain 1 life.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "DEAL_DAMAGE 3 to target attacking or blocking creature (TYPE_EQ Creature and FOr(IS_ATTACKING, IS_BLOCKING)), then the compiler's GAIN_LIFE 1. The probe board has no combat. Packs: tools/scenarios/mapped/FDN/joust_through_*.json."
+ },
+ "probe": {
+  "sha": "f2501bb6cc0171233ffdbc890fe8ee97249c7ccb5397421f33781801a500c19b"
+ }
+}

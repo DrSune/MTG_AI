@@ -20,3 +20,7 @@ the other scripts read through `common.py`. The checkpoint (default r28's v2) is
 
 `remaining.py`'s classes come from a hand-written lexicon (`RULES`); its default bucket is printed
 in full in `remaining.txt` for review.
+
+After N1 and N2 were built (210 §8, `reports/n1n2_2026-11-17/`), `dump.py` writes N2's tokens
+(no card names), and `checkpoint_table.py` and `pool_check.py` stop at `CardTable.max_ir`, which
+is gone. To reproduce these outputs, run the scripts on a checkout of 32e804ec or earlier.

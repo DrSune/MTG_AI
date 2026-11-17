@@ -1,0 +1,20 @@
+{
+ "name": "arcane_epiphany_no_wizard_full_cost",
+ "set": "FDN",
+ "note": "Arcane Epiphany: 'This spell costs {1} less to cast if you control a Wizard. Draw three cards.' P0 controls no Wizard (a Bear) and the opponent controls a Wizard, which does not count: the spell costs its full {3}{U}{U}, so of six mana one blue is left, and P0 draws three.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ae", "real": "Arcane Epiphany", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "owiz", "name": "Opp Wizard", "power": "1", "toughness": "1", "type": "Creature — Human Wizard", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 3, "C": 3}},
+  {"op": "cast", "real": "Arcane Epiphany", "key": "ae", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"ae": "graveyard"},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {"U": 1}}
+ }
+}

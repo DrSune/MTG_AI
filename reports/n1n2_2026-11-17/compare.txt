@@ -1,0 +1,144 @@
+# N1/N2 on r28 v2: the base commit's code (32e804ec) against N1/N2's, CPU fp32
+
+## 1. v2's own table, read as saved (rows cut at 128, names in)
+  rows 613: the same rows; component vectors bitwise equal 13, max |diff| 1.12e-08 (count matrix against gather-and-mean: fp32 summation order)
+  recorded decisions (heuristic games, 6 deals): 1027; encodings bitwise equal: 1027/1027
+    no changed card visible: 1027; logits and value bitwise equal 19; max |dlogit| 1.43e-05 (median 1.91e-06), max |dvalue| 1.82e-06; greedy choice differs 0
+    a changed card visible: none
+  games v2 plays greedily (saved):
+    M21 seed 900011 vs self: 262 / 262 decisions, result win w1 t22 / win w1 t22; the same game (262 decisions without a changed card: 3 bitwise, max |dlogit| 2.00e-05, |dvalue| 8.05e-07)
+    M21 seed 900012 vs heuristic: 160 / 160 decisions, result win w0 t21 / win w0 t21; the same game (160 decisions without a changed card: 1 bitwise, max |dlogit| 9.54e-06, |dvalue| 8.34e-07)
+    M21 seed 900013 vs self: 59 / 59 decisions, result win w0 t17 / win w0 t17; the same game (59 decisions without a changed card: 2 bitwise, max |dlogit| 1.14e-05, |dvalue| 4.17e-07)
+    M21 seed 900014 vs heuristic: 83 / 83 decisions, result win w0 t15 / win w0 t15; the same game (83 decisions without a changed card: 1 bitwise, max |dlogit| 1.74e-05, |dvalue| 7.90e-07)
+    M20 seed 900011 vs self: 55 / 55 decisions, result win w0 t17 / win w0 t17; the same game (55 decisions without a changed card: 1 bitwise, max |dlogit| 1.50e-05, |dvalue| 2.98e-07)
+    M20 seed 900012 vs heuristic: 78 / 78 decisions, result win w0 t19 / win w0 t19; the same game (78 decisions without a changed card: 1 bitwise, max |dlogit| 8.82e-06, |dvalue| 1.52e-06)
+
+## 2. Refreshed as r28 and r29 build it (--refresh-table --extend-sets M20 --mix-sets M20)
+  old: 57 rows rebuilt, 23 tokens added; new: 117 rows, 24 tokens
+  tokens only the old refresh adds: ['str:Battalion Foot Soldier']
+  tokens only the new refresh adds: ['str:<name>', 'str:~']
+  rows 613: tokens differ on 82 (past 128: 77, a card name: 17, both: 12); the other 531: vectors bitwise equal 12, max |diff| 1.12e-08
+
+  tokens of v2's vocabulary no saved row holds (only ever past the cut, never trained): ['@right_inner_filter', 'AbilityTriggerEvent', 'FAtomPred.COLOR_IN', 'LoyaltyActivatedEvent', 'QPropField.TOUGHNESS', 'Verb.DAMAGE_ASSIGN_POLICY', 'Verb.TRIGGER_ADDITIONAL', 'str:AS_UNBLOCKED']
+
+  ### rows past 128, now whole (77), longest first: the verbs and keywords the row lacked entirely and has back (other components back counted), and how many of its tokens v2 never trained
+    Sorin, Imperious Bloodlord: 128 -> 278 tokens, |dv| 0.051 (35% of |v| 0.146); back: Verb.DEAL_DAMAGE, Verb.GAIN_LIFE, Verb.MOVE_ZONE, Verb.SACRIFICE (+17 others)
+    Cavalier of Flame: 128 -> 272 tokens, |dv| 0.064 (42% of |v| 0.153); back: Verb.DEAL_DAMAGE, Verb.DRAW (+23 others)
+    Garruk, Unleashed: 128 -> 256 tokens, |dv| 0.063 (46% of |v| 0.138); back: Verb.GET_EMBLEM, Verb.PUT_COUNTER, Verb.SEARCH, Verb.SHUFFLE (+25 others); untrained 3
+    Chandra, Heart of Fire: 128 -> 246 tokens, |dv| 0.036 (25% of |v| 0.142); back: Verb.ADD_MANA, Verb.SEARCH, Verb.SHUFFLE (+13 others)
+    Garruk, Savage Herald: 128 -> 237 tokens, |dv| 0.040 (30% of |v| 0.134); back: Verb.DAMAGE_ASSIGN_POLICY, Verb.GRANT_ABILITY (+21 others); untrained 2
+    Mask of Immolation: 128 -> 235 tokens, |dv| 0.055 (37% of |v| 0.149); back: Keyword.EQUIP (+19 others)
+    Gods Willing: 128 -> 232 tokens, |dv| 0.020 (13% of |v| 0.146); back: Verb.SCRY (+4 others)
+    Liliana, Waker of the Dead: 128 -> 226 tokens, |dv| 0.026 (21% of |v| 0.127); back: Keyword.HASTE, Verb.GET_EMBLEM, Verb.GRANT_ABILITY (+16 others); untrained 2
+    Wolfrider's Saddle: 128 -> 224 tokens, |dv| 0.065 (45% of |v| 0.146); back: Keyword.EQUIP, Verb.PREVENT_EFFECT (+23 others)
+    Rin and Seri, Inseparable: 128 -> 221 tokens, |dv| 0.073 (51% of |v| 0.144); back: Verb.GAIN_LIFE (+14 others)
+    Basri Ket: 128 -> 216 tokens, |dv| 0.034 (28% of |v| 0.124); back: Verb.GET_EMBLEM (+15 others); untrained 3
+    Chandra's Flame Wave: 128 -> 215 tokens, |dv| 0.033 (24% of |v| 0.137); back: -; untrained 3; also a name
+    Feat of Resistance: 128 -> 212 tokens, |dv| 0.032 (23% of |v| 0.143); back: - (+2 others)
+    Basri, Devoted Paladin: 128 -> 208 tokens, |dv| 0.051 (39% of |v| 0.133); back: Keyword.FLYING (+15 others)
+    Ajani, Strength of the Pride: 128 -> 208 tokens, |dv| 0.062 (50% of |v| 0.125); back: Verb.MOVE_ZONE (+17 others)
+    Chandra, Flame's Fury: 128 -> 207 tokens, |dv| 0.024 (16% of |v| 0.149); back: - (+6 others)
+    Vivien, Nature's Avenger: 128 -> 207 tokens, |dv| 0.059 (46% of |v| 0.129); back: Keyword.TRAMPLE, Verb.GRANT_ABILITY, Verb.MODIFY_PT (+14 others); untrained 4
+    Feline Sovereign: 128 -> 200 tokens, |dv| 0.050 (32% of |v| 0.160); back: Verb.DESTROY (+15 others); untrained 1
+    Ajani, Inspiring Leader: 128 -> 199 tokens, |dv| 0.052 (40% of |v| 0.131); back: Keyword.DOUBLE_STRIKE, Keyword.FLYING (+12 others)
+    Radha, Heart of Keld: 128 -> 195 tokens, |dv| 0.049 (36% of |v| 0.137); back: - (+3 others)
+    Creeping Trailblazer: 128 -> 193 tokens, |dv| 0.033 (19% of |v| 0.169); back: - (+2 others)
+    Basri's Aegis: 128 -> 191 tokens, |dv| 0.031 (21% of |v| 0.143); back: -; untrained 3; also a name
+    Sanctum of All: 128 -> 189 tokens, |dv| 0.042 (28% of |v| 0.152); back: Verb.TRIGGER_ADDITIONAL (+12 others); untrained 2
+    Mu Yanling, Sky Dancer: 128 -> 188 tokens, |dv| 0.035 (29% of |v| 0.121); back: Verb.DRAW, Verb.GRANT_ABILITY (+17 others); untrained 3
+    Sorin, Vampire Lord: 128 -> 187 tokens, |dv| 0.047 (34% of |v| 0.138); back: Verb.GAIN_CONTROL (+9 others)
+    Ancestral Blade: 128 -> 187 tokens, |dv| 0.037 (25% of |v| 0.146); back: Keyword.EQUIP (+12 others)
+    Omnath, Locus of the Roil: 128 -> 187 tokens, |dv| 0.030 (17% of |v| 0.180); back: Verb.DRAW (+10 others)
+    Goldmane Griffin: 128 -> 187 tokens, |dv| 0.020 (13% of |v| 0.160); back: Keyword.FLYING, Keyword.VIGILANCE (+5 others); untrained 3; also a name
+    Liliana's Scorn: 128 -> 185 tokens, |dv| 0.029 (20% of |v| 0.149); back: -; untrained 3; also a name
+    Alpine Houndmaster: 128 -> 185 tokens, |dv| 0.052 (36% of |v| 0.146); back: - (+17 others); untrained 2; also a name
+    Teferi's Wavecaster: 128 -> 185 tokens, |dv| 0.020 (13% of |v| 0.157); back: Keyword.FLASH (+5 others); untrained 3; also a name
+    Ethereal Elk: 128 -> 185 tokens, |dv| 0.017 (11% of |v| 0.158); back: Keyword.TRAMPLE (+5 others); untrained 3; also a name
+    Chandra's Firemaw: 128 -> 184 tokens, |dv| 0.020 (13% of |v| 0.159); back: Keyword.HASTE (+5 others); untrained 3; also a name
+    Garruk's Warsteed: 128 -> 184 tokens, |dv| 0.018 (12% of |v| 0.159); back: Keyword.VIGILANCE (+5 others); untrained 3; also a name
+    Yanling's Harbinger: 128 -> 184 tokens, |dv| 0.017 (11% of |v| 0.159); back: Keyword.FLYING (+5 others); untrained 3; also a name
+    Chandra, Flame's Catalyst: 128 -> 182 tokens, |dv| 0.041 (29% of |v| 0.142); back: Verb.DRAW (+9 others)
+    Sorin's Guide: 128 -> 180 tokens, |dv| 0.016 (10% of |v| 0.158); back: - (+2 others); untrained 3; also a name
+    Ugin, the Spirit Dragon: 128 -> 177 tokens, |dv| 0.051 (38% of |v| 0.134); back: - (+9 others)
+    Cavalier of Thorns: 128 -> 177 tokens, |dv| 0.023 (15% of |v| 0.157); back: Keyword.REACH (+12 others)
+    Malefic Scythe: 128 -> 172 tokens, |dv| 0.058 (35% of |v| 0.166); back: Keyword.EQUIP (+11 others)
+    Icon of Ancestry: 128 -> 172 tokens, |dv| 0.041 (32% of |v| 0.127); back: - (+10 others); untrained 6
+    Risen Reef: 128 -> 168 tokens, |dv| 0.033 (20% of |v| 0.161); back: - (+4 others)
+    Thieves' Guild Enforcer: 128 -> 167 tokens, |dv| 0.033 (24% of |v| 0.137); back: Keyword.FLASH (+9 others)
+    Necromentia: 128 -> 166 tokens, |dv| 0.035 (23% of |v| 0.149); back: - (+15 others)
+    Bag of Holding: 128 -> 162 tokens, |dv| 0.022 (14% of |v| 0.159); back: - (+5 others)
+    Mazemind Tome: 128 -> 158 tokens, |dv| 0.022 (16% of |v| 0.136); back: Verb.GAIN_LIFE (+5 others)
+    Rousing Read: 128 -> 157 tokens, |dv| 0.043 (30% of |v| 0.142); back: Keyword.ENCHANT (+4 others)
+    Cavalier of Night: 128 -> 153 tokens, |dv| 0.022 (13% of |v| 0.175); back: Keyword.LIFELINK (+9 others)
+    Garruk's Harbinger: 128 -> 150 tokens, |dv| 0.022 (16% of |v| 0.132); back: Keyword.HEXPROOF (+10 others); untrained 2
+    Mu Yanling, Celestial Wind: 128 -> 150 tokens, |dv| 0.019 (13% of |v| 0.142); back: Keyword.FLYING (+4 others)
+    Shifting Ceratops: 128 -> 150 tokens, |dv| 0.022 (14% of |v| 0.152); back: Keyword.PROTECTION (+6 others)
+    Waker of Waves: 128 -> 148 tokens, |dv| 0.024 (17% of |v| 0.136); back: - (+4 others)
+    Experimental Overload: 128 -> 146 tokens, |dv| 0.024 (16% of |v| 0.145); back: - (+6 others)
+    Niambi, Esteemed Speaker: 128 -> 145 tokens, |dv| 0.026 (19% of |v| 0.138); back: Keyword.FLASH, Verb.DRAW (+6 others)
+    Wakeroot Elemental: 128 -> 145 tokens, |dv| 0.021 (14% of |v| 0.150); back: - (+2 others)
+    Overgrowth Elemental: 128 -> 144 tokens, |dv| 0.019 (12% of |v| 0.165); back: - (+3 others)
+    Knight of the Ebon Legion: 128 -> 144 tokens, |dv| 0.025 (17% of |v| 0.152); back: - (+3 others); untrained 1
+    Elvish Reclaimer: 128 -> 144 tokens, |dv| 0.021 (14% of |v| 0.148); back: Verb.SHUFFLE (+5 others)
+    Liliana, Death Mage: 128 -> 143 tokens, |dv| 0.016 (12% of |v| 0.129); back: - (+3 others)
+    Colossus Hammer: 128 -> 143 tokens, |dv| 0.021 (14% of |v| 0.152); back: Keyword.EQUIP (+5 others)
+    Cavalier of Dawn: 128 -> 142 tokens, |dv| 0.022 (14% of |v| 0.165); back: Keyword.VIGILANCE (+7 others)
+    Tomebound Lich: 128 -> 141 tokens, |dv| 0.019 (13% of |v| 0.154); back: Keyword.DEATHTOUCH, Keyword.LIFELINK (+5 others)
+    Hard Cover: 128 -> 140 tokens, |dv| 0.020 (14% of |v| 0.137); back: Keyword.ENCHANT (+5 others)
+    Sublime Epiphany: 128 -> 136 tokens, |dv| 0.020 (12% of |v| 0.164); back: Verb.DRAW (+3 others); untrained 2
+    Gadrak, the Crown-Scourge: 128 -> 135 tokens, |dv| 0.017 (12% of |v| 0.143); back: Keyword.FLYING (+2 others)
+    Cavalier of Gales: 128 -> 135 tokens, |dv| 0.015 (10% of |v| 0.152); back: Keyword.FLYING (+5 others)
+    Kinetic Augur: 128 -> 134 tokens, |dv| 0.013 (9% of |v| 0.137); back: Keyword.TRAMPLE (+4 others)
+    Garruk's Uprising: 128 -> 133 tokens, |dv| 0.010 (6% of |v| 0.161); back: - (+2 others)
+    Growth Cycle: 128 -> 133 tokens, |dv| 0.014 (7% of |v| 0.205); back: -; untrained 2; also a name
+    Riddleform: 128 -> 132 tokens, |dv| 0.008 (6% of |v| 0.144); back: - (+2 others)
+    Obsessive Stitcher: 128 -> 130 tokens, |dv| 0.006 (4% of |v| 0.151); back: - (+1 others)
+    Chandra, Novice Pyromancer: 128 -> 130 tokens, |dv| 0.005 (4% of |v| 0.133); back: - (+1 others)
+    Setessan Training: 128 -> 129 tokens, |dv| 0.004 (3% of |v| 0.141); back: -
+    Teferi, Master of Time: 128 -> 129 tokens, |dv| 0.003 (3% of |v| 0.134); back: - (+1 others)
+    Dire Fleet Warmonger: 128 -> 129 tokens, |dv| 0.004 (3% of |v| 0.154); back: - (+1 others)
+    Veil of Summer: 128 -> 129 tokens, |dv| 0.004 (3% of |v| 0.128); back: -
+    Marauding Raptor: 128 -> 129 tokens, |dv| 0.004 (3% of |v| 0.151); back: - (+1 others); untrained 1
+  verb-card pairs back: 35
+
+  ### rows with a card name in them before (17)
+    Alpine Houndmaster: |dv| 0.052 (36% of |v| 0.146); ['str:Alpine Watchdog', 'str:Igneous Cur'] -> ['str:<name>', 'str:<name>']
+    Basri's Aegis: |dv| 0.031 (21% of |v| 0.143); ['str:Basri, Devoted Paladin', 'str:Basri, Devoted Paladin'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Battalion Foot Soldier: |dv| 0.000 (0% of |v| 0.161); ['str:Battalion Foot Soldier'] -> ['str:~']
+    Chandra's Firemaw: |dv| 0.020 (13% of |v| 0.159); ["str:Chandra, Flame's Catalyst", "str:Chandra, Flame's Catalyst"] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Chandra's Flame Wave: |dv| 0.033 (24% of |v| 0.137); ["str:Chandra, Flame's Fury"] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Ethereal Elk: |dv| 0.017 (11% of |v| 0.158); ["str:Vivien, Nature's Avenger", "str:Vivien, Nature's Avenger"] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Faerie Miscreant: |dv| 0.002 (1% of |v| 0.163); ['str:Faerie Miscreant'] -> ['str:~']
+    Frantic Inventory: |dv| 0.018 (11% of |v| 0.173); ['str:Frantic Inventory'] -> ['str:~']
+    Garruk's Warsteed: |dv| 0.018 (12% of |v| 0.159); ['str:Garruk, Savage Herald', 'str:Garruk, Savage Herald'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Goldmane Griffin: |dv| 0.020 (13% of |v| 0.160); ['str:Ajani, Inspiring Leader', 'str:Ajani, Inspiring Leader'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Growth Cycle: |dv| 0.014 (7% of |v| 0.205); ['str:Growth Cycle', 'str:Growth Cycle'] -> ['str:~', 'str:~']
+    Liliana's Scorn: |dv| 0.029 (20% of |v| 0.149); ['str:Liliana, Death Mage', 'str:Liliana, Death Mage'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Pack Mastiff: |dv| 0.002 (1% of |v| 0.181); ['str:Pack Mastiff'] -> ['str:~']
+    Sorin's Guide: |dv| 0.016 (10% of |v| 0.158); ['str:Sorin, Vampire Lord', 'str:Sorin, Vampire Lord'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Teferi's Wavecaster: |dv| 0.020 (13% of |v| 0.157); ['str:Teferi, Timeless Voyager', 'str:Teferi, Timeless Voyager'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+    Undead Servant: |dv| 0.002 (2% of |v| 0.152); ['str:Undead Servant'] -> ['str:~']
+    Yanling's Harbinger: |dv| 0.017 (11% of |v| 0.159); ['str:Mu Yanling, Celestial Wind', 'str:Mu Yanling, Celestial Wind'] -> ['str:<name>', 'str:<name>', 'str:<name>']
+  (the new tokens str:~ and str:<name> start at zero, extend_cards, as every new token)
+  |dv| / |v| over the rows past 128 (77): median 16%, quartiles 12%-29%, max 51%
+  |dv| / |v| over the rows a name (17): median 11%, quartiles 7%-13%, max 36%
+  |dv| / |v| over the rows all changed (82): median 16%, quartiles 12%-29%, max 51%
+  recorded decisions (heuristic games, 6 deals): 1027; encodings bitwise equal: 1027/1027
+    no changed card visible: 76; logits and value bitwise equal 1; max |dlogit| 1.07e-05 (median 1.91e-06), max |dvalue| 4.77e-07; greedy choice differs 0
+    a changed card visible: 951; logits and value bitwise equal 0; max |dlogit| 1.40e+00 (median 3.08e-02), max |dvalue| 4.04e-02; greedy choice differs 4
+  games v2 plays greedily (refreshed):
+    M21 seed 900011 vs self: 262 / 262 decisions, result win w1 t22 / win w1 t22; the same game (18 decisions without a changed card: 0 bitwise, max |dlogit| 2.00e-05, |dvalue| 2.68e-07)
+    M21 seed 900012 vs heuristic: 160 / 160 decisions, result win w0 t21 / win w0 t21; the same game (27 decisions without a changed card: 0 bitwise, max |dlogit| 9.54e-06, |dvalue| 4.77e-07)
+    M21 seed 900013 vs self: 59 / 59 decisions, result win w0 t17 / win w0 t17; the same game (6 decisions without a changed card: 0 bitwise, max |dlogit| 1.48e-05, |dvalue| 3.59e-07)
+    M21 seed 900014 vs heuristic: 83 / 83 decisions, result win w0 t15 / win w0 t15; the same game (83 decisions without a changed card: 0 bitwise, max |dlogit| 1.12e-05, |dvalue| 7.90e-07)
+    M20 seed 900011 vs self: 55 / 55 decisions, result win w0 t17 / win w0 t17; the same game (1 decisions without a changed card: 0 bitwise, max |dlogit| 1.43e-06, |dvalue| 2.98e-08)
+    M20 seed 900012 vs heuristic: 78 / 78 decisions, result win w0 t19 / win w0 t19; the same game (0 decisions without a changed card: 0 bitwise, max |dlogit| 0.00e+00, |dvalue| 0.00e+00)
+
+  component rows exactly zero in v2: ['str:ACTIVATED', 'str:TRIGGERED', 'sub:Advisor', 'sub:Octopus', 'sub:Scarecrow', 'sub:Troll', 'sub:Vivien']
+    str:ACTIVATED: on ['Sublime Epiphany', "Tale's End"]
+    str:TRIGGERED: on ['Sublime Epiphany', "Tale's End"]
+    sub:Advisor: on ['Kethis, the Hidden Hand']
+    sub:Vivien: on ['Vivien, Arkbow Ranger', "Vivien, Nature's Avenger"]
+    sub:Scarecrow: on ['Scuttlemutt']
+    sub:Octopus: on ['Octoprophet']
+    sub:Troll: on ['Barkhide Troll']

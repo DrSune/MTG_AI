@@ -100,6 +100,8 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
 5. Write `clauses.json`: every printed sentence (reminder text in parentheses may be left out) with
    the tree path that implements it, for example
    `[{"clause": "Flying", "ir": "keywords[0]"}, {"clause": "When ...", "ir": "abilities[0]"}]`.
+   G0 refuses an `ir` that names no `abilities[i]` or `keywords[i]` of the draft, except the two
+   labels (Rulings, "Labelled sentences").
 6. `cardtool.py write SET "Card" draft.py --clauses clauses.json --author <your id>`. It refuses on a
    G0 failure or an engine error. The record is unverified until a verifier passes it.
 7. Cannot be expressed: `cardtool.py needs-atom SET "Card" --missing "<the missing piece, precisely>"
@@ -362,10 +364,7 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     one while its text says neither "target player" nor "target opponent" (ATOM_DIVERGENCES D18).
     After "up to one target" the same Selector stands: with no target chosen, "its controller"
     names nobody and the instruction does nothing (CR 608.2b; M20 Cavalier of Dawn's Golem).
-  - "N damage to that creature's controller" has no encoding yet: a second TARGET selector over
-    the PLAYER zone is a target slot of its own, so the caster would pick who takes the damage.
-    Mark such a card needs-atom (M20 Chandra's Outrage). (Under review: BACKLOG, "N damage to that
-    creature's controller".)
+  - "N damage to that creature's controller": see "That creature's controller" under Rulings.
   - **A trigger with several "target" words** designates them in turn, as a spell does
     (Drakuseth, Maw of Flames). "Each of up to two other targets" (any targets) is a QAtMost(2)
     TARGET slot whose filter is `FAnd(IS_ANY_TARGET, <the any-target FOr>)`: the "another target"
@@ -423,6 +422,111 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     every numeric sibling is hidden too). Try a different wording, or `similar`. The same sentence
     on another card or set may still show; if you see a hidden wording's tree, say so.
 
+## Rulings (KNOWLEDGE/2026-11-17/209 §3, §5)
+One form each where the IR had the pieces but no convention. G0's lints of the same names refuse
+the other forms (`tools/cards/lints.py`). Worked drafts, packs and traces:
+`reports/rulings_2026-11-17/`.
+
+### Food tokens (R_FOOD)
+"Create a Food token" (28 printings by 209's count) makes the one Food, `templates.food_token()`
+(CR 111.10b). Food is an artifact type (CR 205.3g), so it is the token's subtype, which
+SUBTYPE_EQ reads ("Sacrifice a Food"), never a keyword: Treasure's `Keyword.TREASURE` marker is
+not the model (BACKLOG). Its sacrifice is `IS_SOURCE` alone, as Treasure's is (the form D25's
+fold keeps). Copy it exactly; "two Food tokens" is `count` 2:
+```python
+# R_FOOD
+FOOD = TokenSpec(
+    name='Food', type_line='Artifact — Food', types=('Artifact',), subtypes=('Food',),
+    power=None, toughness=None, keywords=(),
+    abilities=(ActivatedAbility(
+        cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(
+            target=Selector(
+                count=QConst(value=1), mode=SelectorMode.CHOOSE,
+                filter=FAtom(pred=FAtomPred.IS_SOURCE),
+                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))))),
+        effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU})),),
+)
+create_food = A(Verb.CREATE_TOKEN, {'count': QConst(value=1), 'tokens': FOOD})
+```
+Why one: the binder keys a token's abilities by its name (`verbs.token_oracle_id`), so a second
+Food spec in a game plays as whichever was made first. MTGJSON's "Food" keyword is met by the
+token's subtype, and the `amounts` lint does not read its 3 (reminder text).
+
+### One trigger, two events (R_TWOEVENTS)
+"When this creature enters or dies, X" (and "enters or attacks": 18 printings in the 19 sets) is
+two TriggeredAbility nodes, adjacent in printed order, with one condition and byte-equal effects:
+the compiler's own "When this creature enters" event, then `CreatureDiesEvent(IS_SOURCE)` (never
+a zone change, D24) or `DeclareAttackersEvent(IS_SOURCE)`. It is the form the compiler gives M21
+Elder Gargaroth's "attacks or blocks" (verified), which the lint reads too. With `effect` the
+printed effect's tree:
+```python
+# R_TWOEVENTS
+enters = TriggeredAbility(event=ZoneChangeEvent(
+    from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+    to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),
+    subject=FAtom(pred=FAtomPred.IS_SOURCE)), condition=None, effect=effect)
+dies = TriggeredAbility(event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
+                        condition=None, effect=effect)
+abilities = [enters, dies, *compiled]
+```
+Why not one ability with an either-event: an ability triggers once each time its event occurs
+(CR 603.2c), and no one event is both an entering and a dying, so each event triggers exactly one
+of the two; once per event holds either way. The halves are read at different times, the enters
+one after the event (CR 603.6a), the dies one looking back (CR 603.10a), and the binder matches
+each event class with its own matcher (`binding._match_node`: the zone change against the
+permanent that arrived, CreatureDiesEvent against the was-snapshot). Two abilities reuse both;
+an either-event is a new EventSpec, an IR change. The rules count one ability (CR 113.2c), the
+tree two: nothing in the 19 sets tells them apart (none of these cards triggers "only once each
+turn"; losing all abilities loses both).
+
+### That creature's controller (R_ITSCONTROLLER)
+"Its controller" and "that creature's controller" are the referent Selector of the object in
+scope: `referent='target'` for the ability's own target, `'event'` for the triggering object (the
+dying, attacking or blocking creature; a damage event's recipient). A player verb takes it in
+`controller` (or `EachPlayer.ref`, above). DEAL_DAMAGE has no player role, so "N damage to that
+creature's controller" (10 printings: Chandra's Outrage, Cryoclasm, Impending Doom's `'event'`,
+...) reads the same Selector through CONTROLLER_IS over the players, M20 Chandra, Flame's Fury's
+verified -2:
+```python
+# R_ITSCONTROLLER
+its_controller = Selector(
+    count=QUnbounded(), mode=SelectorMode.ALL,
+    filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=Selector(
+        count=QConst(value=1), mode=SelectorMode.CHOOSE, filter=FAnd(children=()),
+        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),), referent='target')),
+    zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),))
+two_to_its_controller = A(Verb.DEAL_DAMAGE, {'amount': QConst(value=2), 'target': its_controller})
+```
+That player is not targeted (CR 115.1), and the object is read as it last existed (CR 608.2h), as
+the `controller` role reads it (`selectors.controller_matches`, 2026-11-17: Smash to
+Smithereens' damage hit a stolen artifact's owner). Never a TARGET slot over the players (the
+caster would choose), the `recipient` role, TARGET_PLAYER (D18), a referent in `target` (the
+creature again) or an EachPlayer around the damage. In a damage trigger (KNOWLEDGE 203) the
+dealer stands only for a TARGET_PLAYER read with no printed target and is lifted for every other
+effect, so `'target'` names only the trigger's printed target and `'event'` the damaged object:
+the dealer's or a targeting spell's controller (M12 Belltower Sphinx's "that source's
+controller", ELD Bonecrusher Giant's "that spell's controller") has no referent, needs-atom. The
+`its_controller` lint also refuses a `'target'` referent read as a player in an ability that
+chooses no target.
+
+### Labelled sentences
+Two sentences have no tree, by the coordinator's ruling (209 §5). Their clause takes a label in
+place of a tree path, which G0 accepts on those sentences only; every other clause's `ir` names
+an `abilities[i]` or `keywords[i]` the draft has.
+- `"ir": "deck rule"`: a card's own deck-construction rule, "A deck can have any number of cards
+  named ~." (FDN Hare Apparent; DOM Rat Colony, Relentless Rats, M14 Shadowborn Apostle) or "...
+  up to seven ..." (ELD Seven Dwarves): the card overrides the copy limit (CR 100.2a, 101.1). It
+  means nothing in a game; the deck builders read it off the printed sentence
+  (`games.deck_rule_copies`, `CardMeta.max_copies`: stress, coherent, package and drafted decks,
+  and the opponent simulator's copy mask).
+- `"ir": "inert"`: M20 Vivien, Arkbow Ranger's "[−5]: You may reveal a creature card you own from
+  outside the game and put it into your hand." Self-play and Commander give a player no
+  sideboard, so it reveals nothing (CR 400.11). The record leaves the -5 out (`lints.INERT`, which
+  the `costs` lint reads): the IR holds no ability without an effect (a no-op is not a node), and
+  one would be an IR change for an activation that only removes 5 loyalty (what that buys in the
+  19 sets: a planeswalker-death trigger or M15 The Chain Veil's demand, none in M20). The card
+  waits on SPLIT for its +1.
+
 ## Verifier workflow (gate G2)
 Packets are made by the orchestrator: `cardtool.py packet SET "Card" --out DIR --id ID`. A packet
 holds:
@@ -448,6 +552,8 @@ For each printed clause:
   2026-11-05/184 §10); an order the engine asks where the text says "random order" is WRONG.
 - **NOT_EXERCISED:** nothing in the trace shows the clause (a trigger whose event the board cannot
   produce, a condition never true). Write a spec pack for it (below).
+- A clause the record labels `deck rule` or `inert` (Rulings, "Labelled sentences") has no tree
+  to judge: OK when the label fits the sentence; G0 refuses the labels anywhere else.
 
 Do not pass a clause because the tree "looks right". The trace is what the engine does.
 

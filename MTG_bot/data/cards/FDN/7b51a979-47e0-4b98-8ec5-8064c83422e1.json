@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7b51a979-47e0-4b98-8ec5-8064c83422e1",
+ "name": "Knight of Grace",
+ "text_sha": "c4fed10e4854a60188e3fb4948fa255038b1e1194e5b564e7011e796219b935e",
+ "needs_atom": {
+  "missing": "A battlefield-wide existence condition, 'This creature gets +1/+0 as long as any player controls a black permanent': CONTROLLER_COUNT_GE counts only the ability controller's permanents (it has no who slot), and ZONE_COUNT_GE has no battlefield reading (a who=ANY draft over Zone(BATTLEFIELD) plays in the probe, but it would count phased-out permanents, CR 702.26b, and be a second encoding of a permanent count). Wants round 12's quantity comparison over a battlefield count (QCount of black permanents, any controller, >= 1) or a who slot on CONTROLLER_COUNT_GE. The rest maps: 'Hexproof from black' is KeywordAbility(HEXPROOF, params=(COLOR_HAS 'B',)) (M21 Garruk's Harbinger), First strike compiles.",
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17"
+ }
+}

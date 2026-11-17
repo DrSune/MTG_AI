@@ -21,16 +21,30 @@ from typing import Union
 
 from MTG_bot.core.ability_tree import (
     Ability,
+    ActivatedAbility,
     ActivationWindow,
+    Atom,
+    AtomArgs,
     Choose,
+    ControllerRef,
     Cost,
+    CostManaGeneric,
+    CostSacrifice,
+    CostTap,
     Effect,
+    FAtom,
+    FAtomPred,
     Filter,
     Keyword,
     QConst,
     Quantity,
     ReplacementAbility,
+    Selector,
+    SelectorMode,
+    TokenSpec,
+    Verb,
     Zone,
+    ZoneKind,
 )
 
 # ---------------------------------------------------------------------------
@@ -54,6 +68,45 @@ def and_or_zone_search(
             search_in((library, graveyard)),
             search_in((library,)),
             search_in((graveyard,)),
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# The Food token (docs/MAPPER_GUIDE.md, "Food tokens").
+# ---------------------------------------------------------------------------
+
+
+def food_token() -> TokenSpec:
+    """The one Food TokenSpec: "a colorless Food artifact token with '{2}, {T}, Sacrifice this
+    token: You gain 3 life.'" (CR 111.10b). Food is an artifact type (CR 205.3g), so it is the
+    token's subtype, read by SUBTYPE_EQ ("Sacrifice a Food"), never a keyword; its sacrifice is
+    ``IS_SOURCE`` alone, as the Treasure token's is (the form divergence D25's fold keeps).
+    ``tools/cards/lints.py`` refuses any other Food spec: the binder keys a token's abilities by
+    its name, so two specs named Food would play as whichever was made first."""
+    this_token = Selector(
+        count=QConst(1),
+        mode=SelectorMode.CHOOSE,
+        filter=FAtom(pred=FAtomPred.IS_SOURCE),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+    )
+    gain_3 = Atom(
+        verb=Verb.GAIN_LIFE,
+        args=AtomArgs(pairs=(("amount", QConst(3)), ("controller", ControllerRef.YOU))),
+    )
+    return TokenSpec(
+        name="Food",
+        type_line="Artifact — Food",
+        types=("Artifact",),
+        subtypes=("Food",),
+        power=None,
+        toughness=None,
+        keywords=(),
+        abilities=(
+            ActivatedAbility(
+                cost=Cost(parts=(CostManaGeneric(QConst(2)), CostTap(), CostSacrifice(this_token))),
+                effect=gain_3,
+            ),
         ),
     )
 

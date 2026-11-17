@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sph", "real": "Sphinx of the Final Word", "zone": "battlefield", "controller": 0},
+  {"key": "opp_un", "real": "Unsummon", "zone": "hand", "controller": 1},
+  {"key": "my_un", "real": "Unsummon", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "real": "Unsummon", "key": "opp_un", "controller": 1, "targets": ["sph"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Unsummon", "key": "my_un", "controller": 0, "targets": ["sph"]}
+ ],
+ "expect": {
+  "zone": {"sph": "hand", "my_un": "graveyard", "opp_un": "hand"},
+  "mana_pool": {"0": {}, "1": {"U": 1}}
+ },
+ "notes": "FDN Sphinx of the Final Word, printed: 'Hexproof (This creature can't be the target of spells or abilities your opponents control.)' The opponent's Unsummon cannot target the Sphinx (refused before anything is paid, so their blue stays in the pool); my own Unsummon can, and returns it to my hand."
+}

@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sph", "real": "Sphinx of the Final Word", "zone": "battlefield", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "fodder", "real": "Dragon Fodder", "zone": "hand", "controller": 0},
+  {"key": "n1", "real": "Negate", "zone": "hand", "controller": 1},
+  {"key": "n2", "real": "Negate", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "R": 1, "C": 1}, "1": {"U": 4}},
+ "steps": [
+  {"op": "cast", "real": "Giant Growth", "key": "gg", "targets": ["sph"], "hold": true},
+  {"op": "cast", "real": "Negate", "key": "n1", "controller": 1, "targets": ["gg"]},
+  {"op": "cast", "real": "Dragon Fodder", "key": "fodder", "hold": true},
+  {"op": "cast", "real": "Negate", "key": "n2", "controller": 1, "targets": ["fodder"]}
+ ],
+ "expect": {
+  "zone": {"gg": "graveyard", "fodder": "graveyard", "n1": "graveyard", "n2": "graveyard"},
+  "power": {"sph": 8},
+  "toughness": {"sph": 8},
+  "tokens": {"Goblin": 2},
+  "mana_pool": {"0": {}, "1": {}}
+ },
+ "notes": "FDN Sphinx of the Final Word, printed: 'Instant and sorcery spells you control can't be countered.' With the Sphinx on the battlefield the opponent's Negate (counter target noncreature spell) is cast at my instant (Giant Growth on the Sphinx, 5/5 to 8/8) and at my sorcery (Dragon Fodder, two Goblin tokens): both Negates resolve and neither of my spells is countered."
+}

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "exec", "real": "Hanged Executioner", "zone": "battlefield", "controller": 1},
+  {"key": "aot", "real": "Act of Treason", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Act of Treason", "key": "aot", "targets": ["exec"]},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 3}},
+  {"op": "activate", "key": "exec", "idx": 1, "seat": 0, "targets": ["ogre"]}
+ ],
+ "expect": {
+  "zone": {"aot": "graveyard", "exec": "exile", "ogre": "exile"},
+  "controller": {"exec": 1, "ogre": 1},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "M20 Hanged Executioner, printed: '{3}{W}, Exile this creature: Exile target creature.' I steal the opponent's Executioner with Act of Treason and use its ability. The exile is a cost paid by me, but the card is exiled to its OWNER's exile (the opponent's, seat 1; off the battlefield the controller lane reads the owner), and the target Ogre goes to its owner's exile too."
+}

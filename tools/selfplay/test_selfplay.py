@@ -414,7 +414,7 @@ def test_table_extension_reads_new_cards_through_known_components(table) -> None
         after, _ = net(M.collate([feats], "cpu"))
     assert torch.allclose(before, after, atol=1e-5)
     assert torch.equal(net.name_emb.weight[-1], net.name_emb.weight[FT.UNK])
-    assert net.ir_table.shape[0] == len(t2.oracle_ids)
+    assert net.ir_counts.shape[0] == len(t2.oracle_ids)
 
 
 def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
@@ -428,12 +428,12 @@ def test_table_refresh_is_idempotent_and_grows_the_network(table) -> None:
     assert same.ir == table.ir and same.ir_vocab == table.ir_vocab
     grown = FT.CardTable(table.oracle_ids, table.names, table.ir_vocab + ["New.Component"],
                          [row + [len(table.ir_vocab)] if i == 2 else row
-                          for i, row in enumerate(table.ir)], table.max_ir)
+                          for i, row in enumerate(table.ir)])
     net = M.build(table, d=32, layers=2, heads=4, ff=64)
     M.extend_cards(net, grown)
     assert net.ir_emb.weight.shape[0] == len(table.ir_vocab) + 1
     assert torch.equal(net.ir_emb.weight[-1], torch.zeros(32))
-    assert net.ir_table.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)
+    assert net.ir_counts.shape[0] == len(table.oracle_ids) and net.config["n_ir"] == len(grown.ir_vocab)
 
 
 def test_refresh_table_rebuilds_the_rows_of_every_dealt_set(table, tmp_path, monkeypatch) -> None:
@@ -448,14 +448,107 @@ def test_refresh_table_rebuilds_the_rows_of_every_dealt_set(table, tmp_path, mon
     row = next(i for i, oid in enumerate(base.oracle_ids) if oid in m20 and oid not in m21
                and len(base.ir[i]) > 3)
     stale = FT.CardTable(base.oracle_ids, base.names, base.ir_vocab,
-                         [ids[:2] if i == row else ids for i, ids in enumerate(base.ir)],
-                         base.max_ir)
+                         [ids[:2] if i == row else ids for i, ids in enumerate(base.ir)])
     M.save(str(tmp_path / "init.pt"), M.build(stale, d=32, layers=1, heads=4, ff=64), stale)
     monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
     lr = L.Learner(L.parse(["--run", str(tmp_path / "run"), "--device", "cpu", "--init",
                             str(tmp_path / "init.pt"), "--refresh-table", "--extend-sets", "M20",
                             "--mix-sets", "M20"]))
     assert lr.table.ir[row] == base.ir[row] != stale.ir[row]
+
+
+def test_a_card_past_128_tokens_keeps_its_last_ones(table) -> None:
+    """N1 (KNOWLEDGE 210 §8): a card is the mean of every component token it has. The table cut
+    rows at 128 tokens, and 79 verified cards (12%) lost their last ones: Basri Ket (216) its
+    emblem, its last ability."""
+    supply = get_supply("castable")
+    oid, rec = next((o, r.card) for o, r in supply.pool.results.items() if r.card.name == "Basri Ket")
+    toks = FT.card_tokens(rec)
+    assert "Verb.GET_EMBLEM" in toks[128:] and "Verb.GET_EMBLEM" not in toks[:128]
+    row = table.row(oid)
+    assert [table.ir_vocab[i] for i in table.ir[row]] == toks
+    torch.manual_seed(0)
+    net = M.build(table, d=16, layers=1, heads=2, ff=32)
+    with torch.no_grad():
+        mean = net.ir_emb.weight[torch.tensor(table.ir[row])].mean(0)
+        assert torch.allclose(net.card_table_emb()[row], mean, atol=1e-6)
+
+
+def test_no_card_name_is_a_component_token(table) -> None:
+    """N2 (KNOWLEDGE 210 §8, D30): names reach the network through the name embedding only, which
+    --mask-names switches off. A token named after a card is learned from that card alone and
+    names it to a masked network: the card's own name is "str:~", another card's "str:<name>",
+    a back face's name is left out. A planeswalker type in a name filter ("a Garruk
+    planeswalker", D29) names no card and stays."""
+    supply = get_supply("castable")
+    recs = {r.card.name: r.card for r in supply.pool.results.values() if not r.card.is_token}
+    names = set(recs) - {"Plains", "Island", "Swamp", "Mountain", "Forest"}  # also subtypes
+    assert not [t for t in table.ir_vocab if t.startswith("str:") and t[4:] in names]
+    assert FT.card_tokens(recs["Frantic Inventory"]).count(FT.SELF_NAME) == 1  # cards named ~
+    # a card named Alpine Watchdog and/or a card named Igneous Cur
+    assert FT.card_tokens(recs["Alpine Houndmaster"]).count(FT.OTHER_NAME) == 2
+    assert "str:Garruk" in FT.card_tokens(recs["Garruk's Harbinger"])
+    face = {"tag": "BackFace", "face_name": "Agadeem, the Undercrypt", "abilities": []}
+    assert FT.ir_tokens(face, {"Agadeem, the Undercrypt"}) == ["BackFace"]
+    assert FT.ir_tokens({"tag": "LiteralName", "name": "Frantic Inventory"}) == [
+        "LiteralName", FT.OTHER_NAME]
+
+
+class _LoggedSlot:
+    """A greedy slot (model.LocalSlot) that keeps every answer with its value and probabilities."""
+
+    def __init__(self, net) -> None:
+        self.inner = M.LocalSlot({"net": net})
+        self.log: list[tuple] = []
+
+    def infer(self, req):
+        answer = self.inner.infer((*req[:6], 2))
+        self.log.append(answer)
+        return answer[0]
+
+
+def test_a_checkpoint_from_before_n1_is_read_as_saved_and_plays_as_before(table, tmp_path) -> None:
+    """A checkpoint saved before N1 holds rows cut at 128 tokens and "max_ir": 128. It is read as
+    saved: its rows pool to what the old gather-and-mean of their ids computed (to fp32 summation
+    order), and a seeded game it plays against itself takes the same decisions with the same
+    values both ways. One the new code saves holds whole rows, and loads to the same network."""
+    from tools.selfplay.actor import NetAgent
+
+    torch.manual_seed(0)
+    old_table = {**table.to_json(), "ir": [r[:128] for r in table.ir], "max_ir": 128}
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    for head in (net.policy_head, net.value_head):  # zero at birth: every option would tie
+        torch.nn.init.normal_(head[-1].weight, std=0.5)
+    torch.save({"config": net.config, "state": net.state_dict(), "table": old_table, "extra": {}},
+               tmp_path / "old.pt")
+    games = []
+    for pool in ("counts", "gather"):
+        back, saved, _ = M.load(str(tmp_path / "old.pt"))
+        assert saved.ir == old_table["ir"] and max(map(len, saved.ir)) == 128
+        if pool == "gather":  # card_table_emb before N1, inline
+            ids = torch.as_tensor(np.array([r + [0] * (128 - len(r)) for r in saved.ir]))
+            with torch.no_grad():
+                emb, mask = back.ir_emb(ids), (ids > 0).unsqueeze(-1).float()
+                gather = (emb * mask).sum(1) / mask.sum(1).clamp(min=1.0)
+                assert (back.card_table_emb() - gather).abs().max() < 1e-6
+            back.card_table_emb = lambda gather=gather: gather
+        slot = _LoggedSlot(back)
+        job = {"gid": 0, "seats": ["net", "net"], "greedy": [True, True], "record": [False, False]}
+        play_game(5, [NetAgent(slot, job, s, saved) for s in (0, 1)], deck_mode="coherent",
+                  turn_cap=20)
+        games.append(slot.log)
+    counts, gather = games
+    assert len(counts) > 50 and [a for a, _, _ in counts] == [a for a, _, _ in gather]
+    assert max(abs(x[1] - y[1]) for x, y in zip(counts, gather, strict=True)) < 1e-5
+    M.save(str(tmp_path / "new.pt"), net, table)
+    back, saved, _ = M.load(str(tmp_path / "new.pt"))
+    assert "max_ir" not in torch.load(tmp_path / "new.pt", weights_only=False)["table"]
+    assert saved.ir == table.ir and max(map(len, saved.ir)) > 128
+    feats = RecordingHeuristic(0, table)
+    play_game(7, [feats, HeuristicAgent()], deck_mode="coherent", turn_cap=4)
+    b = M.collate([f for f, _ in feats.samples], "cpu")
+    with torch.no_grad():
+        assert all(torch.equal(x, y) for x, y in zip(net.eval()(b), back(b), strict=True))
 
 
 class _CounterProbe:
@@ -673,10 +766,10 @@ def test_an_opponent_checkpoint_must_share_the_learners_card_rows(table, tmp_pat
     lr = _small_learner(monkeypatch, tmp_path / "run")
     M.save(str(tmp_path / "same.pt"), M.build(lr.table, d=32, layers=1, heads=4, ff=64), lr.table)
     net = lr._load_net(tmp_path / "same.pt")
-    assert torch.equal(net.ir_table, lr.model.ir_table)
+    assert torch.equal(net.ir_counts, lr.model.ir_counts)
     shuffled = FT.CardTable(lr.table.oracle_ids[:2] + lr.table.oracle_ids[2:][::-1],
                             lr.table.names[:2] + lr.table.names[2:][::-1], lr.table.ir_vocab,
-                            lr.table.ir[:2] + lr.table.ir[2:][::-1], lr.table.max_ir)
+                            lr.table.ir[:2] + lr.table.ir[2:][::-1])
     M.save(str(tmp_path / "other.pt"), M.build(shuffled, d=32, layers=1, heads=4, ff=64),
            shuffled)
     with pytest.raises(ValueError, match="not a prefix"):

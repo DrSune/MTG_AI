@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "demolition_field_targets_only_opponents_nonbasic",
+ "notes": "M7 mapper. Printed: 'Destroy target nonbasic land an opponent controls.' Seat 1's basic Forest is not a legal target, nor is seat 0's own nonbasic My Desert: each activation is refused as illegal, and nothing is paid or sacrificed (the Field stays, untapped).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "field", "real": "Demolition Field", "zone": "battlefield", "controller": 0},
+  {"key": "opp_forest", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "my_desert", "name": "My Desert", "type": "Land — Desert", "zone": "battlefield", "controller": 0, "cmc": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "field", "idx": 1, "seat": 0, "targets": ["opp_forest"], "expect_raise": "illegal"},
+  {"op": "activate", "key": "field", "idx": 1, "seat": 0, "targets": ["my_desert"], "expect_raise": "illegal"}
+ ],
+ "expect": {
+  "zone": {"field": "battlefield", "opp_forest": "battlefield", "my_desert": "battlefield"},
+  "tapped": {"field": false}
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "name": "food_needs_2_mana",
+ "set": "FDN",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "pie", "zone": "hand", "controller": 0, "real": "Bake into a Pie"},
+  {"key": "victim", "zone": "battlefield", "controller": 1, "name": "Victim", "power": 2, "toughness": 2, "type": "Creature"}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Bake into a Pie", "key": "pie", "targets": ["victim"]},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0"], "expect_raise": "words no ask took"}
+ ],
+ "expect": {"life": {"0": 20, "1": 20}, "tokens": {"Food": 1}}
+}

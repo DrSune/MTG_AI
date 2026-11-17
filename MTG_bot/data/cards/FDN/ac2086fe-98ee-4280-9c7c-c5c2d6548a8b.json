@@ -1,0 +1,270 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ac2086fe-98ee-4280-9c7c-c5c2d6548a8b",
+ "name": "Burst Lightning",
+ "text_sha": "fcfd3865760179f47c5dabff9db0500564bb0488806ce3c084b9cede6408ed27",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "KickerAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 4
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "WAS_KICKED"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DEAL_DAMAGE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 4
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FOr",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Planeswalker",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Player",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DEAL_DAMAGE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 2
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FOr",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Planeswalker",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Player",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ]
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Burst Lightning (FDN). Kicker {4} (compiled KickerAbility, kept).\n# \"Burst Lightning deals 2 damage to any target.\" (compiled, kept as the else branch)\n# \"If this spell was kicked, it deals 4 damage instead.\" -- ZNR Roil Eruption's\n# B6-kicker-instead-suffix: Conditional(WAS_KICKED, the damage at 4, else the printed 2).\nany_target = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FOr(\n        children=(\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    compiled[0],\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Conditional(\n            pred=FAtom(pred=FAtomPred.WAS_KICKED),\n            then_effect=A(Verb.DEAL_DAMAGE, {'amount': QConst(value=4), 'target': any_target}),\n            else_effect=compiled[1].effect,\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Kicker {4} (You may pay an additional {4} as you cast this spell.)",
+    "ir": "abilities[0] (compiled KickerAbility)"
+   },
+   {
+    "clause": "Burst Lightning deals 2 damage to any target.",
+    "ir": "abilities[1].effect.else_effect (compiled)"
+   },
+   {
+    "clause": "If this spell was kicked, it deals 4 damage instead.",
+    "ir": "abilities[1].effect (Conditional WAS_KICKED; then_effect deals 4)"
+   }
+  ],
+  "g0_warnings": [
+   "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['KICKER']"
+  ],
+  "notes": "Compiled Kicker and 2-damage atom kept; ZNR Roil Eruption's Conditional(WAS_KICKED, 4 damage, else the printed 2). The probe plays both."
+ },
+ "probe": {
+  "sha": "fcce4ecf38966b26ae70fdf4a6453a6bc51c6b202cc38390321bd90036dc6e5d"
+ }
+}

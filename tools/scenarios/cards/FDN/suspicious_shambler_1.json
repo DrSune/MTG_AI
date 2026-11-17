@@ -1,0 +1,116 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sham",
+   "real": "Suspicious Shambler",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sham2",
+   "real": "Suspicious Shambler",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "study",
+   "real": "Quick Study",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 4
+   }
+  },
+  {
+   "op": "activate",
+   "key": "sham",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery:not_own_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 4,
+    "U": 3
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Quick Study",
+   "key": "study",
+   "hold": true
+  },
+  {
+   "op": "activate",
+   "key": "sham",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery:stack_nonempty"
+  },
+  {
+   "op": "pass"
+  },
+  {
+   "op": "activate",
+   "key": "sham",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 2,
+    "C": 4
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  },
+  {
+   "op": "activate",
+   "key": "sham2",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery:phase"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sham": "exile",
+   "sham2": "graveyard",
+   "study": "graveyard"
+  },
+  "tokens": {
+   "Zombie": 2
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ]
+ },
+ "notes": "FDN Suspicious Shambler, printed: '{4}{B}{B}, Exile this card from your graveyard: Create two 2/2 black Zombie creature tokens. Activate only as a sorcery.' The sorcery clause: refused on the opponent's turn (not_own_turn); refused on my own turn while a spell waits on the stack (stack_nonempty); refused in the combat phase (phase); allowed in my main phase with an empty stack (the Shambler goes to exile, two Zombie tokens appear). Quick Study is only the spell that waits on the stack."
+}

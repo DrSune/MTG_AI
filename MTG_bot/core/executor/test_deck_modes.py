@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 from collections import Counter
 
@@ -11,7 +12,9 @@ from MTG_bot.core.executor.games import (
     COHERENT_LANDS,
     DECK_SIZE,
     MAX_COPIES,
+    build_coherent_deck,
     deal_decks,
+    deck_rule_copies,
     get_supply,
     play_game,
 )
@@ -77,3 +80,29 @@ def test_coherent_games_play_to_a_result(m21) -> None:
 def test_an_unknown_mode_raises(m21) -> None:
     with pytest.raises(ValueError, match="deck_mode"):
         deal_decks(1, 1409, m21, "constructed")
+
+
+def test_a_cards_own_deck_rule_lifts_the_copy_limit() -> None:
+    """CR 100.2a, the card winning (CR 101.1): "A deck can have any number of cards named ~."
+    (FDN Hare Apparent) and "... up to seven ..." (ELD Seven Dwarves), read off the printed
+    sentence (docs/MAPPER_GUIDE.md "Labelled sentences"); every other card keeps MAX_COPIES."""
+    rule = "A deck can have any number of cards named Hare Apparent."
+    assert deck_rule_copies(rule, "Hare Apparent") == DECK_SIZE
+    assert deck_rule_copies(rule, "Rat Colony") is None  # another card's rule
+    assert deck_rule_copies("A deck can have up to seven cards named Seven Dwarves.", "Seven Dwarves") == 7
+    assert deck_rule_copies("When this creature enters, draw a card.", "Hare Apparent") is None
+    for code, lifted in (("FDN", {"Hare Apparent": DECK_SIZE}), ("ELD", {"Seven Dwarves": 7})):
+        metas = get_supply("all", code).metas.values()
+        assert {m.name: m.max_copies for m in metas if m.max_copies != MAX_COPIES} == lifted
+
+
+def test_the_coherent_deck_deals_a_deck_rule_card_past_four(m21) -> None:
+    # The pool's basics and one colourless spell whose deck rule lifts the limit: all 36 spell
+    # slots hold it. Under the four-copy limit alone the pool was refused as too small.
+    spell = next(o for o in m21.deckable
+                 if not m21.metas[o].is_land and not m21.pool.results[o].card.color_identity)
+    basics = [o for o in m21.deckable if m21.metas[o].is_basic]
+    sup = dataclasses.replace(m21, deckable=(*basics, spell), metas={
+        **m21.metas, spell: dataclasses.replace(m21.metas[spell], max_copies=DECK_SIZE)})
+    for seed in range(1, 4):
+        assert Counter(build_coherent_deck(seed, sup))[spell] == DECK_SIZE - COHERENT_LANDS

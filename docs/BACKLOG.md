@@ -30,7 +30,7 @@ are neutral; each one is teaching the agent something.
 | **10 actions per player per step** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; 10 in each main phase from 2026-11-06, B-74; per player and step since 2026-11-11, when the loop gave priority in every step, DESIGN_PRIORITY §2.6) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`_play_turns`; `Executor.acted` counts); the pack runner's `act` op | A rail, not a rule: CR 117 sets no limit on how often a player who keeps priority acts. It makes a player who never passes pass after its tenth action in a step (a free ability activated forever), recorded as any pass is. Priority did not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
 | **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later step adds the mana at that step, standing in for the lands the player taps there. Since 2026-11-11 a cast step may instead tap real lands with `"tap": true` (the menu's automatic payment, the row above); the op stays as the short form. Remove when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
-| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10), 128 IR tokens per card** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`, `CardTable.max_ir`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics): since 2026-11-13 (ontology R9) a creature-type `quality` ask in the M20 and M21 pools too (69 and 74 types; FDN's 47 fit), Icon of Ancestry's choice, which the heuristic then makes (`HeuristicAgent._quality`: the type most of its own visible cards share). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
+| **Observation caps: 64 options per ask, 112 card entities (graveyard and exile keep their newest 16 and 10)** (registered 2026-10-24 for the deleted PointerBC observation, which truncated 15,407 of 17,270 asks; these are the self-play network's; the third, 128 IR tokens per card, went 2026-11-17 with N1, KNOWLEDGE/2026-11-17/210 §8) | `tools/selfplay/features.py` `MAX_OPTIONS`, `MAX_CARDS`, `GRAVE_KEEP`, `EXILE_KEEP`; `tools/selfplay/actor.py` `decide` | A larger ask, and every `name` ask, is answered by the fallback agent and never trained on (counted as `overflow` in the metrics): since 2026-11-13 (ontology R9) a creature-type `quality` ask in the M20 and M21 pools too (69 and 74 types; FDN's 47 fit), Icon of Ancestry's choice, which the heuristic then makes (`HeuristicAgent._quality`: the type most of its own visible cards share). Capacity limits, not strategy limits. Remove or resize them with a measured context budget. |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value; multi-slot rows hidden until 2026-11-06, now one target question per slot; one act window per main phase until 2026-11-11, now a decision at every priority point) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each is a harness simplification. Remove with tool mode (`notes` memory). An LLM seat now pays one call per priority point it can act at, so its clock is measured (DESIGN_PRIORITY §3.6). |
 | **Decision-time search budget: k candidates (3-4), d sampled worlds (2), at most 6 attack or block plans, search skipped where the network's top option >= skip_p, 400 decisions per simulation, leaf = the next own turn's value** (2026-11-03/04) | `tools/selfplay/search.py` (`Searcher`, `plan_attacks`, `plan_blocks`, `MAX_SIM_DECISIONS`) | Compute budgets, not strategy rules, but they decide which moves can ever be found (a move outside the network's top k is never searched). Replace with a budgeted tree search whose breadth follows the visit statistics (PUCT/MCTS) once the engine is fast enough; measure the plan caps by raising them. |
@@ -611,28 +611,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
   mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
   emblem with a verb the supply reads is compiled; none of the 6 emblem trees has one.
-- **"N damage to that creature's controller": two answers, one of them stale** (2026-11-13,
-  analysis only; a decision for the next gate round).
-  - MAPPER_GUIDE ("has no encoding yet ... Mark such a card needs-atom (M20 Chandra's Outrage)")
-    and Chandra's Outrage's needs-atom note reject a TARGET selector over the PLAYER zone (a slot
-    of its own), a referent Selector in `target` (the creature itself), ALL over Zone(PLAYER,
-    TARGET_PLAYER) (a phantom player slot) and DEAL_DAMAGE `recipient` (raises). None of these is
-    the verified M20 Chandra, Flame's Fury's −2: `DEAL_DAMAGE(target=Selector(ALL, QUnbounded,
-    FAtom(CONTROLLER_IS, who=Selector(referent="target")), zones=(Zone(PLAYER, ANY),)))`.
-  - That form opens no designation (AGENTS §10), never names TARGET_PLAYER (D18), and reuses the
-    canonical "its controller" referent Selector as CONTROLLER_IS's `who`, as filters already read
-    "that creature's controller" (M21 Feline Sovereign, `who=Selector(referent="event")`). By the
-    identity law it is the one encoding for the wording: the guide's line is stale.
-  - One engine fault first: `selectors.controller_matches` reads a referent's current controller
-    (`controller_of`), not the one it last had (CR 608.2h), which `role_players` reads
-    (`last_known_controller`). Probed 2026-11-13: "destroy target artifact; 3 damage to that
-    artifact's controller" on a stolen artifact hits its owner. Exact today for damage dealt while
-    the object is still there (Chandra's two, Searing Barrage, Ravaging Blaze, Synchronized
-    Spellcraft) or on the stack (ELD Bonecrusher Giant's "that spell's controller"); wrong for
-    10E Cryoclasm, ORI Smash to Smithereens and THB Impending Doom.
-  - Then: the guide's line, and the cards: Chandra's Outrage (M20, M11, M12, M14), Bonecrusher
-    Giant (referent "event"), Searing Barrage, Ravaging Blaze, Cryoclasm, Smash to Smithereens,
-    Impending Doom, Synchronized Spellcraft (X).
+- **"N damage to that creature's controller": settled 2026-11-17** (KNOWLEDGE/2026-11-17/209
+  R_ITSCONTROLLER; MAPPER_GUIDE "That creature's controller", lint `its_controller`). The one form
+  is M20 Chandra, Flame's Fury's verified −2; `selectors.controller_matches` now reads the
+  referent's last known controller (CR 608.2h), so Cryoclasm, Smash to Smithereens and Impending
+  Doom are exact too (`test_damage_to_a_destroyed_creatures_controller_hits_the_thief`). The
+  2026-11-13 reading of ELD Bonecrusher Giant was wrong: a targeting event's `'event'` is the
+  targeted object, so "that spell's controller" has no referent (needs-atom, 209's TARGETS), as
+  M12 Belltower Sphinx's "that source's controller" in a damage trigger has none.
+- **Treasure's TokenSpec writes its artifact type as a keyword** (2026-11-17, R_FOOD). Gadrak's
+  template (`templates_b2a._treasure_token`) builds `type_line='Artifact'`, no subtype and
+  `Keyword.TREASURE`, so SUBTYPE_EQ 'Treasure' finds no Treasure: KHM Gilded Assault Cart's and
+  Magda's "Sacrifice ... Treasures", Goldspan Dragon's "Treasures you control" would read nothing.
+  Food takes the CR's form (CR 205.3g: an artifact type is a subtype; `templates.food_token()`).
+  Fold: the Treasure spec takes `type_line='Artifact — Treasure'`, `subtypes=('Treasure',)` and no
+  keyword, re-verifying its 6 verified trees (M21 Gadrak, M20 and FDN Rapacious Dragon, KHM and
+  FDN Goldvein Pick, FDN Gleaming Barrier) before a card that reads Treasures is mapped; retiring
+  `Keyword.TREASURE` itself is an IR change.
 - **"Whenever you discard a card" has two encodings in waiting** (2026-11-13, analysis only).
   - M20 Bag of Holding (verified) triggers on `ZoneChangeEvent(HAND YOU -> GRAVEYARD YOU)`; M20
     Glint-Horn Buccaneer's needs-atom note asks for a discard event (B-48).
@@ -1648,9 +1643,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   goes to the fallback agent (`actor.NetAgent.decide`). Icon of Ancestry's menu in the M20 and
   M21 pools (69 and 74 types) is over `MAX_OPTIONS`, so the heuristic chooses there (the
   observation caps' scaffold). The bench's seat view (`bench/view.py`) shows no chosen value
-  either. Fix with a name embedding on the chooser and a two-stage or wider ask. Icon of
-  Ancestry's tree is 172 IR tokens, past `CardTable.max_ir`'s 128: its choice and its reads fall
-  in the first 128. `C_CHOSEN` holds one value per permanent (gate round 9, n2): an object that
+  either. Fix with a name embedding on the chooser and a two-stage or wider ask. `C_CHOSEN`
+  holds one value per permanent (gate round 9, n2): an object that
   chooses two qualities ("choose a color and a creature type", Riptide Replicator; none in the 19
   sets, and the IR allows one choice per quality, not one per object) would show only one of
   them. Widen the column to one per quality, or refuse the pair, with that card.

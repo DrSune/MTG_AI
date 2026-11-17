@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jor", "real": "Joraga Invocation", "zone": "hand", "controller": 0},
+  {"key": "fl", "name": "My Flier", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "gr", "name": "My Ogre", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Joraga Invocation", "key": "jor"},
+  {"op": "combat", "seat": 0, "attack": {"fl": true, "gr": true}}
+ ],
+ "expect": {
+  "zone": {"jor": "graveyard", "fl": "battlefield", "gr": "battlefield", "b1": "graveyard"},
+  "blocked": {"gr": ["b1"], "fl": []},
+  "not_asked_to_block": ["b1"],
+  "life": {"1": 15},
+  "damage": {"gr": 4}
+ },
+ "notes": "FDN Joraga Invocation, printed: '... must be blocked this turn if able.' 'If able': the Flier (5/5 flying) cannot be blocked by the ground Giant, so it is not forced to; the Giant's one way to obey is to block the Ogre (6/6), which it must, with no choice left to ask. The Flier deals 5 to the opponent; the Ogre takes 4 and kills the Giant."
+}

@@ -210,5 +210,47 @@
  },
  "probe": {
   "sha": "aa44748c94f437b7fd4e49244178f7be9a7ba4a21b1be08e2da86fe82fa110b8"
+ },
+ "verified": {
+  "tree_sha": "873e51961affd4351edc3dbb9559199a00b72d2e21038301d5db31d6f7c69c79",
+  "probe_sha": "aa44748c94f437b7fd4e49244178f7be9a7ba4a21b1be08e2da86fe82fa110b8",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave2",
+  "clauses": [
+   {
+    "clause": "This creature enters with a +1/+1 counter on it.",
+    "status": "OK",
+    "evidence": "[cast] change: card: zone hand -> battlefield; counters {} -> {'PLUS_1_PLUS_1': 1}; P/T - -> 3/3. The flash-in variant (MOVE_ZONE) shows the same counter and 3/3.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [1] not activatable from battlefield: cost:remove_counter:PLUS_1_PLUS_1:insufficient_candidates:0<1': the probe's battlefield copy has no counter, so the ability is never played. Packs A02_1..A02_6: the cost ({1} and the counter, paid at activation), the hexproof, its end with the turn, the response in both orders, the refusals, and that only the Troll gains it.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/barkhide_troll_1.json",
+   "tools/scenarios/cards/M20/barkhide_troll_2.json",
+   "tools/scenarios/cards/M20/barkhide_troll_3.json",
+   "tools/scenarios/cards/M20/barkhide_troll_4.json",
+   "tools/scenarios/cards/M20/barkhide_troll_5.json",
+   "tools/scenarios/cards/M20/barkhide_troll_6.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 2,
+   "score": 0.2222222222222222,
+   "survived": [
+    "drop cost part 0 (CostManaGeneric) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "amount+1 at 1/1/cost/parts/1/count",
+    "until-end-of-turn->permanent at 1/1/effect/args/duration",
+    "widen filter (drop part 0) at 1/1/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/1/effect/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

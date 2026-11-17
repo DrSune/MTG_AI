@@ -197,10 +197,14 @@ def controller_matches(
     """Did ``actual`` (a player handle) satisfy a CONTROLLER_IS ``who`` slot?"""
     if isinstance(who, Selector):
         # A referent Selector (e.g. the event subject's controller): resolve
-        # the bound object(s) and compare their player side.
+        # the bound object(s) and compare their player side. "That artifact's
+        # controller" after the artifact was destroyed is the controller it last
+        # had on the battlefield, not its owner (CR 608.2h), as the `controller`
+        # role reads it (role_players): Smash to Smithereens' damage, Impending
+        # Doom's dies trigger.
         candidates = resolve_selector(who, ctx, info=True)
         players = [
-            c if c.namespace == "player" else controller_of(ctx, c) for c in candidates
+            c if c.namespace == "player" else last_known_controller(ctx, c) for c in candidates
         ]
         return actual in players
     if who is ControllerRef.YOU:

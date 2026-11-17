@@ -177,6 +177,40 @@ def test_g0_ignores_ability_words_but_not_keywords() -> None:
     assert fails == ["MTGJSON keywords missing from the tree: ['FLYING']"]
 
 
+def test_the_clause_trace_takes_a_tree_path_or_the_label_its_sentence_takes() -> None:
+    """MAPPER_GUIDE "Labelled sentences": each clause names an abilities[i] or keywords[i] the
+    draft has, or the label its sentence takes, "deck rule" for a card's own deck-construction rule
+    (FDN Hare Apparent, CR 100.2a) and "inert" for a sentence lints.INERT lists (M20 Vivien, Arkbow
+    Ranger's -5), each label there only. A clause of reminder text alone needs no trace."""
+    import corpus
+
+    def card(code: str, name: str) -> tuple[Any, Any]:
+        sc = corpus.compile_set(code)
+        oid = sc.by_name(name)
+        return sc.raw[oid], sc.results[oid].card
+
+    raw, hare = card("FDN", "Hare Apparent")
+    etb, rule = raw.sentences
+    assert gates.clause_trace_faults(raw, hare, [{"clause": etb, "ir": "abilities[0]"},
+                                                 {"clause": rule, "ir": "deck rule (CR 100.2a)"},
+                                                 {"clause": "(Reminder text.)", "ir": ""}]) == []
+    for clause, ir in ((rule, "abilities[0]"),  # the deck rule has no tree
+                       (etb, "deck rule"),      # the label on another sentence
+                       (etb, "inert"),
+                       (etb, "abilities[1]"),   # no such ability
+                       (etb, "the trigger")):   # no path at all
+        assert gates.clause_trace_faults(raw, hare, [{"clause": clause, "ir": ir}]), (clause, ir)
+    fails, _w = gates.g0(raw, hare, hare, clauses=[{"clause": rule, "ir": "abilities[0]"}],
+                         known_signatures=None)
+    assert any("trace it as 'deck rule'" in f for f in fails)
+    raw, vivien = card("M20", "Vivien, Arkbow Ranger")
+    plus_one, _they, minus_three, minus_five = raw.sentences
+    assert gates.clause_trace_faults(raw, vivien, [{"clause": minus_five, "ir": "inert"}]) == []
+    assert gates.clause_trace_faults(raw, vivien, [{"clause": minus_five, "ir": "abilities[0]"}])
+    assert gates.clause_trace_faults(raw, vivien, [{"clause": plus_one, "ir": "inert"}])
+    assert gates.clause_trace_faults(raw, vivien, [{"clause": minus_three, "ir": "deck rule"}])
+
+
 # ----------------------------------------------------------------------------- G3
 GRUB_MILL = "1/1/effect/args"
 

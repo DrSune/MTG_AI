@@ -535,6 +535,52 @@ class TestCR6082hLastKnownController(unittest.TestCase):
         r.run_step({"op": "activate", "key": "lili", "idx": 1, "seat": 0, "targets": ["obear"]})
         self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), (18, 20))
 
+    def test_damage_to_a_destroyed_creatures_controller_hits_the_thief(self):
+        # "Destroy target creature. ~ deals 3 damage to that creature's controller." (ORI Smash to
+        # Smithereens' shape): the recipient is MAPPER_GUIDE's one form for "that creature's
+        # controller", CONTROLLER_IS of a referent over the players, which reads the creature as
+        # it last existed (CR 608.2h), as the `controller` role does. It hit the owner before.
+        r = self.stolen([], {"0": {"R": 4}})
+        its_controller = Selector(
+            QUnbounded(), SelectorMode.ALL,
+            FAtom(FAtomPred.CONTROLLER_IS, who=Selector(
+                QConst(1), SelectorMode.CHOOSE, UNIV, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                referent="target")),
+            zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),))
+        destroy = Atom(Verb.DESTROY, AtomArgs((
+            ("target", Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))),)))
+        damage = Atom(Verb.DEAL_DAMAGE, AtomArgs((("amount", QConst(3)), ("target", its_controller))))
+        r.ex.apply_effect(Seq((destroy, damage)), source=r.handles["greed"], controller=r.p0,
+                          bindings={"target": [r.handles["obear"]]})
+        self.assertEqual(r.world.zone_of(r.handles["obear"]).kind, "graveyard")
+        self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), (17, 20))
+
+    def test_a_damage_triggers_its_controller_is_the_damaged_objects(self):
+        # "Whenever a source deals damage to this creature, <its controller> loses 1 life" on seat
+        # 0's creature, dealt 1 by seat 1's: the 'event' referent is the damaged creature, so seat
+        # 0 loses it; the dealer stands for "target" only in a TARGET_PLAYER read with no printed
+        # target (KNOWLEDGE 203), so a 'target' referent names nobody and does nothing.
+        # MAPPER_GUIDE "That creature's controller": the dealer's controller has no referent.
+        for referent, lives in (("event", (19, 20)), ("target", (20, 20))):
+            r = runner([bear("obear", 1)])
+            oid = "99999999-0000-0000-0000-0000000000ab"
+            who = Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                           zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent=referent)
+            loses = Atom(Verb.LOSE_LIFE, AtomArgs((("amount", QConst(1)), ("controller", who))))
+            trigger = TriggeredAbility(event=DamageDealtEvent(
+                amount=QUnbounded(), filter=FAtom(FAtomPred.IS_SOURCE)), condition=None, effect=loses)
+            r.ex.binder.records[oid] = CardRecord(
+                oracle_id=oid, name="Sphinx", type_line="Creature — Sphinx", types=("Creature",),
+                subtypes=("Sphinx",), supertypes=(), colors=(), color_identity=frozenset(),
+                mana_cost=None, mana_value=2, power=QConst(1), toughness=QConst(5), loyalty=None,
+                keywords=(), abilities=(trigger,), is_token=False)
+            r.handles["sphinx"] = r.world.add_card(CardIdentity(
+                oracle_id=oid, name="Sphinx", type_line="Creature — Sphinx", power="1",
+                toughness="5", cmc=2), r.p0, "hand")
+            r.run_step({"op": "enter", "key": "sphinx"})
+            r.run_step({"op": "deal_damage", "source": "obear", "target": "sphinx", "amount": 1})
+            self.assertEqual((r.world.players[r.p0].life, r.world.players[r.p1].life), lives, referent)
+
     def wurm_sees(self, thief):
         """Seat ``thief`` steals the other seat's Bear with Traitorous Greed on its own turn;
         seat 0's Massacre Wurm is on the battlefield; the Bear dies under the thief."""

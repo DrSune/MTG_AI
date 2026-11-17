@@ -1,0 +1,23 @@
+{
+ "name": "goblin_surprise_pump_locks_in_its_creatures",
+ "set": "FDN",
+ "note": "Goblin Surprise, first mode: 'Creatures you control get +2/+0 until end of turn.' The affected set is fixed as it resolves (CR 611.2c): P0's Bear gets +2/+0, a creature that enters afterwards that turn does not, and the opponent's creature never does. The second mode, two 1/1 red Goblin tokens, is not chosen, so none appear.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gs", "real": "Goblin Surprise", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Latecomer", "power": "1", "toughness": "1", "type": "Creature — Human", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 2}},
+  {"op": "cast", "real": "Goblin Surprise", "key": "gs", "controller": 0, "decisions": ["0"]},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {
+  "zone": {"gs": "graveyard", "late": "battlefield"},
+  "power": {"bear": 4, "late": 1, "obear": 2},
+  "toughness": {"bear": 2, "late": 1, "obear": 2},
+  "tokens": {"Goblin": 0}
+ }
+}

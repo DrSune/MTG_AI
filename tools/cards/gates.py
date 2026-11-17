@@ -80,6 +80,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.compiler import CompileResult, _engine_supported
 from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.executor import SUPPORTED_VERBS_V2
+from MTG_bot.core.executor.games import deck_rule_copies
 from MTG_bot.core.executor.query import _player_widening_applies
 from MTG_bot.core.identity import LegalityFlags
 
@@ -136,6 +137,45 @@ def text_numbers(raw: RawCard) -> set[int]:
     return nums
 
 
+#: The tree paths a clause's ``ir`` names: "abilities[1].effect.steps[0]", "keywords[0]".
+_IR_PATH = re.compile(r"\b(abilities|keywords)\[(\d+)\]")
+#: The labels a clause's ``ir`` may carry in place of a tree path (docs/MAPPER_GUIDE.md "Labelled
+#: sentences"): a card's own deck-construction rule (CR 100.2a, ``games.deck_rule_copies``), and a
+#: sentence labelled inert for good (``lints.INERT``). Each is accepted on its sentences only.
+_IR_LABEL = re.compile(r"^(deck rule|inert)\b")
+
+
+def clause_trace_faults(raw: RawCard, card: CardRecord, clauses: list[dict]) -> list[str]:
+    """What is wrong with a draft's clause trace beyond coverage: each clause's ``ir`` names a
+    tree path the card has, or is a label its sentence takes. A clause of reminder text alone
+    needs no trace."""
+    inert = {s for oid, s in lints.INERT if oid == raw.identity.oracle_id}
+    out = []
+    for clause in clauses:
+        core = re.sub(r"\s*\([^)]*\)", "", str(clause.get("clause", ""))).strip()
+        ir = str(clause.get("ir", "")).strip()
+        if not core:
+            continue
+        label = m.group(1) if (m := _IR_LABEL.match(ir)) else None
+        for name, holds in (("deck rule", deck_rule_copies(core, raw.identity.name) is not None),
+                            ("inert", lints.rules_sentence(raw, core) in inert)):
+            if holds and label != name:
+                out.append(f"clause {core[:60]!r} has no tree: trace it as {name!r}")
+            elif label == name and not holds:
+                out.append(f"clause {core[:60]!r}: {name!r} labels only "
+                           + ("a card's own deck-construction rule (CR 100.2a)" if name == "deck rule"
+                              else "a sentence lints.INERT lists"))
+        if label is not None:
+            continue
+        paths = _IR_PATH.findall(ir)
+        if not paths:
+            out.append(f"clause {core[:60]!r}: its ir {ir[:40]!r} names no tree path (abilities[i], "
+                       "keywords[i]) and no label")
+        out += [f"clause {core[:60]!r}: its ir names {kind}[{i}], which the tree does not have"
+                for kind, i in paths if int(i) >= len(getattr(card, kind))]
+    return out
+
+
 def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] | None,
        known_signatures: dict[str, int] | None) -> tuple[list[str], list[str]]:
     """(failures, warnings) for one card tree."""
@@ -168,6 +208,9 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     # performs: the mill shape writes "MILL" (verbs.py _v_move_zone), so it satisfies "Mill".
     tree_kw |= {str(n.args.get("journal_kind")) for n in walk(card)
                 if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & set(Keyword.__members__)
+    # MTGJSON lists a token's artifact type with the keywords ("Food"): the subtype of a token the
+    # tree makes satisfies it (MAPPER_GUIDE "Food tokens").
+    tree_kw |= {s.upper() for n in walk(card) if isinstance(n, TokenSpec) for s in n.subtypes}
     unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
     if unknown:
         fails.append(f"MTGJSON keywords missing from the tree: {unknown}")
@@ -194,6 +237,7 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
             core = re.sub(r"\s*\([^)]*\)", "", sentence).strip()
             if core and core not in covered:
                 fails.append(f"clause not traced to the tree: {core!r}")
+        fails += clause_trace_faults(raw, card, clauses)
     if known_signatures is not None:
         from corpus import signatures_of
 

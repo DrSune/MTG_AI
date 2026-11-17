@@ -1,0 +1,23 @@
+{
+ "name": "seekers_folly_shrink_locks_in_its_creatures",
+ "set": "FDN",
+ "note": "Seeker's Folly, second mode: 'Creatures your opponents control get -1/-1 until end of turn.' The affected set is fixed as it resolves (CR 611.2c): the opponent's 2/2 becomes 1/1 and its 1/1 dies, a 1/1 the opponent puts onto the battlefield afterwards that turn is untouched, and P0's own creature is never affected.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "folly", "real": "Seeker's Folly", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1},
+  {"key": "omite", "name": "Opp Mite", "power": "1", "toughness": "1", "type": "Creature — Insect", "zone": "battlefield", "controller": 1},
+  {"key": "olate", "name": "Opp Latecomer", "power": "1", "toughness": "1", "type": "Creature — Human", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 2}},
+  {"op": "cast", "real": "Seeker's Folly", "key": "folly", "controller": 0, "decisions": ["1"]},
+  {"op": "move", "key": "olate", "to": "battlefield"}
+ ],
+ "expect": {
+  "zone": {"folly": "graveyard", "omite": "graveyard", "obear": "battlefield", "olate": "battlefield", "mybear": "battlefield"},
+  "power": {"obear": 1, "olate": 1, "mybear": 2},
+  "toughness": {"obear": 1, "olate": 1, "mybear": 2}
+ }
+}

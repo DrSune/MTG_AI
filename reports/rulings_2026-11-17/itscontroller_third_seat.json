@@ -1,0 +1,15 @@
+{
+ "name": "itscontroller_third_seat",
+ "set": "M20",
+ "world": {"life": 20, "seed": 1, "players": 3},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "bear", "zone": "battlefield", "controller": 1, "name": "Bear", "power": 2, "toughness": 2, "type": "Creature"},
+  {"key": "victim", "zone": "battlefield", "controller": 2, "name": "Victim", "power": 2, "toughness": 2, "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["victim"]}
+ ],
+ "expect": {"life": {"0": 20, "1": 20, "2": 18}, "zone": {"victim": "graveyard", "bear": "battlefield"}}
+}

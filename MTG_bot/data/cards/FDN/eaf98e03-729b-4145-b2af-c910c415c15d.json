@@ -1,0 +1,129 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "eaf98e03-729b-4145-b2af-c910c415c15d",
+ "name": "Flashfreeze",
+ "text_sha": "d6fadfdf1c129d64766e0440d459f97f500110025409d6e70cd92b52ab3b696f",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "COUNTER_SPELL"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "G",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "COLOR_HAS"
+              },
+              "string_value": null,
+              "color": "R",
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "STACK_KIND_EQ"
+            },
+            "string_value": "SPELL",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "STACK"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Flashfreeze: \"Counter target red or green spell.\"\n# Cancel's COUNTER_SPELL (STACK_KIND_EQ SPELL on the stack) with the colour test \"red or green\"\n# as an FOr of COLOR_HAS (MAPPER_GUIDE \"Colours\": never COLOR_IN, a subset test; B-54).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.COUNTER_SPELL, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value='SPELL'),\n                    FOr(children=(\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='R'),\n                        FAtom(pred=FAtomPred.COLOR_HAS, color='G'),\n                    )),\n                )),\n                zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Counter target red or green spell.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Cancel's COUNTER_SPELL with 'red or green' as FOr(COLOR_HAS R, COLOR_HAS G) (MAPPER_GUIDE, never COLOR_IN). The probe board has no spell on the stack. Packs: tools/scenarios/mapped/FDN/flashfreeze_*.json."
+ },
+ "probe": {
+  "sha": "dd2cddfe18ccf57ed1a9fde159b99dd88471ab6ca1a9ef345393ce35d4cad6f0"
+ }
+}
