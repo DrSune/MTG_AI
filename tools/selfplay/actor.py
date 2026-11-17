@@ -7,7 +7,8 @@ the other group while it waits, so the CPU keeps working during GPU inference. E
 runs concurrently, so there are no data races on the engine's module-level caches.
 
 Workers do no torch work (spawn still imports torch in them: it re-imports learner.py as each
-worker's main module).
+worker's main module). A game that keeps the baton HANG_S seconds is hung: the worker's watchdog
+voids it (``Worker._run``, outcome ``void-timeout``) and the worker's other games go on.
 
 Messages, worker -> learner: ("infer", wid, group, [req]), ("done", wid, [result]),
 ("need", wid, n). Learner -> worker: ("ans", group, [(action, logp, value)]), ("jobs", [job]),
@@ -24,10 +25,13 @@ the labels come back in the result.
 
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 import random
+import sys
 import threading
+import time
 import traceback
 from collections import deque
 from pathlib import Path
@@ -41,6 +45,19 @@ from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
 SEARCH_SUFFIX = "+search"
+#: The watchdog's limit (a safety rail, docs/BACKLOG.md "Scaffolds to remove"): a game that holds
+#: its worker this long without handing the baton back is hung, and is voided. Nothing else of the
+#: worker runs meanwhile, every slot waits, and an evaluation waiting for that game never ends.
+#: The longest legitimate stretch is a whole game with no network seat (teacher inter-play): 1.83
+#: s at most over 600 heuristic games (M21, M20, FDN; coherent and stress; at nice 19 beside a
+#: training run, 2026-11-17). 600 s is 300 times that: a slow healthy game is never voided (a
+#: void of the long games would bias the batch), and a hang costs one worker ten minutes.
+HANG_S = 600.0
+
+
+class GameTimeout(BaseException):
+    """Raised inside a hung slot by its worker's watchdog (``Worker._run``). A BaseException, so
+    no ``except Exception`` in the engine swallows it; the slot voids the game."""
 
 
 def is_net(spec: str) -> bool:
@@ -187,11 +204,15 @@ class _Slot(threading.Thread):
         self.state = "new"  # new | infer | idle | running
         self.req: Any = None
         self.answer: Any = None
+        self.job: dict | None = None  # the game it plays (the watchdog voids only a game)
+        self.mark = 0.0  # when it last got the baton or began a game (the watchdog's clock)
 
     # --- called from the slot thread
     def _yield(self) -> None:
-        self.worker.main_wake.release()
-        self.go.acquire()
+        try:
+            self.worker.main_wake.release()
+        finally:  # a watchdog's late GameTimeout still waits for the baton: one thread runs
+            self.go.acquire()
 
     def infer(self, req: Any) -> Any:
         self.req = req
@@ -205,23 +226,39 @@ class _Slot(threading.Thread):
         self.go.acquire()
         self.state = "running"
         while True:
-            job = self.worker.take_job()
-            if job is None:
-                self.state = "idle"
-                self._yield()
-                self.state = "running"
-                continue
             try:
-                result = self.worker.play(job, self)
-            except Exception as error:  # noqa: BLE001 - reported, never hidden
-                result = {"gid": job["gid"], "kind": job["kind"], "outcome": "void-worker",
-                          "winner": None, "crash": f"{type(error).__name__}: {error}",
-                          "trace": traceback.format_exc()[-2000:],
-                          # the deal, so an eval voids the seat-swapped pair
-                          "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
-                          "seats": job.get("seats"), "a_seat": job.get("a_seat"),
-                          "opp": job.get("opp"), "set_code": job.get("set_code")}
+                self._next()
+            except GameTimeout:  # it came as its game ended: that game's own result stands
+                self.state = "running"
+
+    def _next(self) -> None:
+        """Play the next job, or wait for one. Exactly one result per job reaches the outbox,
+        whenever the watchdog's GameTimeout arrives."""
+        self.state = "running"
+        job = self.worker.take_job()
+        if job is None:
+            self.state = "idle"
+            self._yield()
+            self.state = "running"
+            return
+        self.job, self.mark, done = job, time.monotonic(), False
+        try:
+            result = self.worker.play(job, self)
+            done = True
             self.worker.outbox.append(result)
+        except (Exception, GameTimeout) as error:  # noqa: BLE001 - reported, never hidden
+            if not done:
+                self.worker.outbox.append({
+                    "gid": job["gid"], "kind": job["kind"],
+                    "outcome": "void-timeout" if isinstance(error, GameTimeout) else "void-worker",
+                    "winner": None, "crash": f"{type(error).__name__}: {error}",
+                    "trace": traceback.format_exc()[-2000:],
+                    # the deal, so an eval voids the seat-swapped pair
+                    "seed": job.get("seed"), "deck_mode": job.get("deck_mode"),
+                    "seats": job.get("seats"), "a_seat": job.get("a_seat"),
+                    "opp": job.get("opp"), "set_code": job.get("set_code")})
+        finally:
+            self.job = None
 
 
 class Worker:
@@ -317,8 +354,19 @@ class Worker:
 
     # --- main thread
     def _run(self, slot: _Slot) -> None:
+        """Hand ``slot`` the baton until it hands it back. The watchdog: a game that keeps it
+        HANG_S seconds (since it got the baton or began) is hung; GameTimeout is raised inside
+        it, so the worker's other games go on and the hung one ends as a void."""
+        slot.mark = time.monotonic()
         slot.go.release()
-        self.main_wake.acquire()
+        while not self.main_wake.acquire(timeout=HANG_S):
+            job = slot.job
+            if job is not None and time.monotonic() - slot.mark >= HANG_S:
+                print(f"worker {self.wid}: game {job['gid']} (seed {job.get('seed')}) held the "
+                      f"worker {HANG_S:.0f} s: voided", file=sys.stderr, flush=True)
+                slot.mark = time.monotonic()  # raised again only if it holds on another HANG_S
+                ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_ulong(slot.ident),
+                                                           ctypes.py_object(GameTimeout))
 
     def _handle(self, msg: tuple) -> None:
         kind = msg[0]

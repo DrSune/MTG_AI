@@ -7,8 +7,9 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   instant nor a flash card (those wait for the opponent's turn; kicked when offered, the largest
   X, never X = 0; the menu pays from lands and mana rocks first, then a creature's mana, then a
   Treasure's), activate a planeswalker, in the second main phase an ability that damages or
-  draws and costs only mana and {T}, otherwise pass. A harmful non-damage spell is not cast while
-  the opponent controls no creature. In the first main phase, when the spell it would cast reads
+  draws and costs only mana and {T}, otherwise pass. A spell with targets is cast only at its own
+  side (see target); a harmful non-damage spell without targets is not cast while the opponent
+  controls no creature. In the first main phase, when the spell it would cast reads
   whether it attacked this turn (raid) and it has a creature that can attack, it passes instead:
   that spell and the rest of its plays come in the second main phase, after the attack.
 * priority (any priority point but its own main phase with an empty stack; DESIGN_PRIORITY
@@ -20,12 +21,18 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   first strike for its own creature in a fight it would lose or not win; in the opponent's end
   step: removal, a flash creature, a draw spell, then an ability that damages or draws.
   Otherwise pass.
-* target: a harmful source (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
-  creature, then the opponent; a helpful one at its own best creature, then itself. A spell with
-  several targets (CR 601.2c) is judged slot by slot, by what it does to that slot's own target:
-  the target of a harmful verb or a -N/-N is harmed, any other one is helped (Rabid Bite's creature
-  that deals the damage, Primal Might's pumped creature), and each slot then takes the same rule.
-  An "up to" slot is left empty when no candidate scores above zero.
+* target: a harmful effect (damage, destroy, exile, tap, -N/-N, ...) aims at the opponent's best
+  creature, then the opponent; a helpful one at its own best creature, then itself. A spell is
+  judged slot by slot, from what it does to that slot's own target, never from the card as a
+  whole: the target of a harmful verb or a -N/-N is harmed, any other one is helped (Rabid Bite's
+  creature that deals the damage, Primal Might's pumped creature); a modal spell by the modes it
+  announced; an aura's enchant slot by what it does to the object it enchants (Pacifism's "can't
+  attack or block" harms, Rousing Read's +1/+1 and flying help, its loot is its caster's). A spell
+  is cast, and a modal spell's modes chosen, only when every slot it must fill has a candidate on
+  its side (an aura that helps, with no creature of its own, waits: hunt 4 found it on the
+  learner's creature; Return to Nature with only its own Nine Lives to destroy is not cast). An
+  ability's targets follow its card as a whole. An "up to" slot is left empty when no candidate
+  scores above zero.
 * attack: attack unless an untapped opposing creature that can block it would kill it and
   survive.
 * block: a free kill, else chump the biggest attacker when the attack is lethal, else a block
@@ -59,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     SpellAbility,
     Verb,
+    ZoneKind,
     to_dict,
     walk,
 )
@@ -74,8 +82,12 @@ from MTG_bot.core.executor.legality import (
 )
 from MTG_bot.core.executor.quantity import creature_types
 from MTG_bot.core.executor.query import (
+    cast_mode_options,
+    choose_options,
+    is_aura_spell,
     modal_choose,
     spell_target_slots,
+    with_modes,
 )
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_HAND
@@ -115,17 +127,48 @@ def _harms(toks: frozenset) -> bool:
     return "Verb.MODIFY_PT" in toks and ("num:neg" in toks or "PtDirection.DECREASE" in toks)
 
 
+_RETURNED_FROM = {ZoneKind.GRAVEYARD, ZoneKind.EXILE, ZoneKind.LIBRARY}
+
+
 def harms_slot(effect: Any, selector: Any) -> bool:
-    """Does ``effect`` harm what the target slot ``selector`` designates: is it the target of an
-    atom that is harmful the way :func:`is_harmful` reads a card? A slot that is only a dealer or
-    the subject of a pump is not harmed ("target creature you control deals damage equal to its
-    power", Rabid Bite; "+X/+X", Primal Might)."""
+    """Does ``effect`` harm what the target slot ``selector`` designates: does an atom that is
+    harmful the way :func:`is_harmful` reads a card act on it, in any role but a damage
+    dealer's? A slot that is only a dealer or the subject of a pump is not harmed ("target
+    creature you control deals damage equal to its power", Rabid Bite; "+X/+X", Primal Might).
+    A zone move harms what it moves (Unsummon, Return to Nature's exile from a graveyard) unless
+    it returns a card from a graveyard, exile or a library to a hand or the battlefield
+    (Disentomb, Rise Again)."""
     key = repr(selector)
+
+    def harms(n: Atom) -> bool:
+        if n.verb is Verb.MOVE_ZONE:
+            to = n.args.get("destination")
+            return not (selector.zones and {z.kind for z in selector.zones} <= _RETURNED_FROM
+                        and to is not None and to.kind in (ZoneKind.HAND, ZoneKind.BATTLEFIELD))
+        return _harms(frozenset(ir_tokens(to_dict(n))))
+
     return any(
-        isinstance(n, Atom) and repr(n.args.get("target")) == key
-        and _harms(frozenset(ir_tokens(to_dict(n))))
+        isinstance(n, Atom) and harms(n)
+        and any(role != "dealer" and repr(value) == key for role, value in n.args.pairs)
         for n in walk(effect)
     )
+
+
+def harms_enchanted(record: Any) -> bool | None:
+    """Does an aura harm the object it enchants? Its atoms that read that object (an
+    IS_ATTACHED_TO_SOURCE filter: "enchanted creature gets +2/+2", "can't attack or block") all
+    harm it: a harmful verb, a -N/-N, a restriction (PREVENT_EFFECT). One that helps it (a
+    +N/+N, a granted ability or type) makes it a helpful aura: Maniacal Rage's +2/+2 beside its
+    "can't block". What else the aura does (Rousing Read's loot, Faith's Fetters' life) is its
+    caster's. None when no atom reads the enchanted object."""
+    on = [n for n in walk(record) if isinstance(n, Atom) and any(
+        isinstance(f, FAtom) and f.pred is FAtomPred.IS_ATTACHED_TO_SOURCE
+        for _, value in n.args.pairs for f in walk(value))]
+    if not on:
+        return None
+    return all(n.verb is Verb.PREVENT_EFFECT or f"Verb.{n.verb.name}" in HARM_VERBS
+               or (n.verb is Verb.MODIFY_PT and _harms(frozenset(ir_tokens(to_dict(n)))))
+               for n in on)
 
 
 def reads_raid(executor: Any, handle: Handle) -> bool:
@@ -161,6 +204,7 @@ def cast_token(token: str) -> tuple[Handle | None, bool, int]:
 class HeuristicAgent:
     name = "heuristic"
     focus: frozenset | set = frozenset()  # targets a priority play is meant for
+    announced: tuple | None = None  # (spell, modes): the modes it chose for the spell it casts
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -172,6 +216,8 @@ class HeuristicAgent:
         self.opp = self.world.player_order[1 - ask.seat]
         if ask.kind != "target":
             self.focus = set()  # a priority play's target asks follow it
+        if ask.kind not in ("target", "choose"):
+            self.announced = None  # and a cast's modes
         tokens = [o.token for o in ask.options]
         method = getattr(self, f"_{ask.kind}", None)
         if method is not None:
@@ -272,13 +318,15 @@ class HeuristicAgent:
         return record is not None and any(k.keyword is Keyword.FLASH for k in record.keywords)
 
     def _first(self, rows: list, test: Any, focus: set) -> int | None:
-        """The preferred instant-speed row whose card passes ``test``; its targets aim at
-        ``focus``."""
-        passing = [(key, i) for i, h, toks, key in rows if self._instant_speed(h) and test(h, toks)]
-        if not passing:
-            return None
-        self.focus = focus
-        return max(passing)[1]
+        """The preferred instant-speed row whose card passes ``test`` and can be cast at its own
+        side (``_aimed``); its targets aim at ``focus``."""
+        passing = [(key, i, h) for i, h, toks, key in rows
+                   if self._instant_speed(h) and test(h, toks)]
+        for _key, i, h in sorted(passing, reverse=True):
+            if self._aimed(h):
+                self.focus = focus
+                return i
+        return None
 
     def _removal(self, rows: list, prefer: set) -> int | None:
         """Removal: a harmful card that destroys, damages, exiles, bounces or shrinks."""
@@ -359,20 +407,19 @@ class HeuristicAgent:
         lands = [i for i, t in enumerate(tokens) if t.startswith("land:")]
         if lands:
             return lands[0]
-        best, best_key = None, None
+        casts = []
         for i, t in enumerate(tokens):
             if not t.startswith("cast:"):
                 continue
             h, kicked, x = cast_token(t)
             if h is None or h not in self.world.cards:
                 continue
-            if (x == 0 and self._has_x(h)) or self._pointless(h) or self._instant_speed(h):
+            if (x == 0 and self._has_x(h)) or self._instant_speed(h):
                 continue  # X = 0 does nothing (Volcanic Geyser deals 0, Wildwood Scourge dies)
-            key = ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i)
-            if best_key is None or key > best_key:
-                best, best_key = i, key
-        if best is not None:
-            h = cast_token(tokens[best])[0]
+            casts.append((((self.world.cards[h].identity.cmc or 0) + x, kicked, -i), i, h))
+        for _key, best, h in sorted(casts, reverse=True):
+            if self._pointless(h):
+                continue
             if (self.ex.phase != SECOND_MAIN and "PASS" in tokens and reads_raid(self.ex, h)
                     and legal_attackers(self.ex, self.me)):
                 return tokens.index("PASS")  # cast it after the attack (CR 505.1)
@@ -393,11 +440,86 @@ class HeuristicAgent:
         return record is not None and record.mana_cost is not None and _cost_has_x(record.mana_cost)
 
     def _pointless(self, spell: Handle) -> bool:
-        """Removal with nothing to remove: a harmful non-creature, non-planeswalker spell that deals
-        no damage, while the opponent controls no creature."""
+        """A spell it would cast at the wrong side or at nothing. One with targets is read from
+        its effect (``_aimed``: Mind Rot needs no creature, Disentomb is no removal); removal
+        without targets (a harmful non-creature, non-planeswalker spell that deals no damage) is
+        pointless while the opponent controls no creature."""
+        if self._spell(spell) is not None and self._aims(spell, None):
+            return not self._aimed(spell)
         return (not self._is(spell, "Creature") and not self._is(spell, "Planeswalker")
                 and is_harmful(self.ex, spell) and not deals_damage(self.ex, spell)
                 and not any(self._is(h, "Creature") for h in self._controlled(self.opp)))
+
+    # ------------------------------------------------------- aiming, read from the effect
+
+    def _spell(self, h: Handle | None) -> tuple[Any, SpellAbility] | None:
+        """(record, spell ability) of a card in its own hand."""
+        hand = self.world.players[self.me].zones.get(ZONE_HAND)
+        if h is None or hand is None or h not in hand.entries:
+            return None
+        record = spell_record(self.ex, h)
+        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
+        return None if node is None else (record, node)
+
+    def _aims(self, h: Handle, modes: tuple[int, ...] | None) -> list[tuple[bool, Any]]:
+        """Per target slot of ``h``, a spell in its hand cast with ``modes`` (a modal spell's;
+        None: every mode), whether its effect there harms, and the slot. Read from the effect,
+        not the card: the target of a harmful atom is harmed (``harms_slot``); an aura's enchant
+        slot by what the aura does to what it enchants (``harms_enchanted``); a designated
+        player ("target opponent") by the card as a whole."""
+        record, node = self._spell(h)
+        effect = with_modes(node, modes).effect if modes is not None else node.effect
+        out = []
+        for slot in spell_target_slots(self.ex, node, spell_handle=h, seat=self.me, modes=modes):
+            harm = None
+            if not slot.synthetic:
+                harm = harms_slot(effect, slot.selector)
+            elif is_aura_spell(self.world, h):
+                harm = harms_enchanted(record)
+            out.append((is_harmful(self.ex, h) if harm is None else harm, slot))
+        return out
+
+    def _aimed_with(self, h: Handle, modes: tuple[int, ...] | None) -> bool:
+        """Every target slot the spell must fill (cast with ``modes``) has a candidate on the
+        side its effect there is meant for: the opponent and its objects where it harms, itself
+        and its own where it helps."""
+        return all(slot.min_count < 1 or any(self._mine(c) != harm for c in slot.candidates)
+                   for harm, slot in self._aims(h, modes))
+
+    def _aimed(self, h: Handle) -> bool:
+        """``h`` (a spell in its hand) can be cast at its own side, under some legal choice of
+        modes. A card that is no spell of its hand has nothing to aim."""
+        spell = self._spell(h)
+        if spell is None or modal_choose(spell[1]) is None:
+            return spell is None or self._aimed_with(h, None)
+        return any(self._aimed_with(h, modes) for _, modes in cast_mode_options(
+            self.ex, spell[1], spell_handle=h, seat=self.me))
+
+    def _mine(self, h: Handle) -> bool:
+        if h.namespace == "player":
+            return h == self.me
+        if h in self.world.cards:
+            return self.ex.controller_of(h) == self.me
+        return any(f.handle == h and f.controller == self.me for f in self.ex.stack.frames)
+
+    def _choose(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        """A spell's modes as it is cast (``choose:<spell>:<digest>``, stack.cast_modes): the
+        first set offered that can be cast at its own side (``_aimed_with``), remembered for its
+        target picks. Every other choose ask takes the default."""
+        parts = ask.site.split(":")
+        h = _handle(":".join(parts[1:3])) if len(parts) == 4 else None
+        spell = self._spell(h)
+        choose = modal_choose(spell[1]) if spell is not None else None
+        if choose is None:
+            return None
+        options = choose_options(self.ex, choose, source=h, controller=self.me)
+        offered = [(i, options[int(t)].option_idxs) for i, t in enumerate(tokens)
+                   if t.isdigit() and int(t) < len(options)]
+        if not offered:
+            return None
+        i, modes = next(((i, m) for i, m in offered if self._aimed_with(h, m)), offered[0])
+        self.announced = (h, modes)
+        return i
 
     def _target(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         src = None
@@ -424,22 +546,25 @@ class HeuristicAgent:
         return best
 
     def _harmful_pick(self, site: str, src: Handle | None) -> bool:
-        """Whether this pick harms its target: the card as a whole, or for a spell in hand with
-        several target slots the asked slot alone (``pick:<source>:<slot>:<picks>``, the router's
-        site; harms_slot). A modal spell keeps the whole-card rule: its slots follow its modes."""
+        """Whether this pick harms its target: for a spell in its hand, what the spell does to
+        the asked slot (``pick:<source>:<slot>:<picks>``, the router's site; ``_aims``), a modal
+        spell with the modes announced (its own choice, or the only legal set); otherwise the
+        card as a whole (an ability's pick)."""
         parts = site.split(":")
-        hand = self.world.players[self.me].zones.get(ZONE_HAND)
-        if (src is None or len(parts) != 5 or not parts[3].isdigit() or hand is None
-                or src not in hand.entries):
+        spell = self._spell(src)
+        if spell is None or len(parts) != 5 or not parts[3].isdigit():
             return is_harmful(self.ex, src)
-        record = spell_record(self.ex, src)
-        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
-        if node is None or node.effect is None or modal_choose(node) is not None:
-            return is_harmful(self.ex, src)
-        slots = spell_target_slots(self.ex, node, spell_handle=src, seat=self.me)
-        if len(slots) <= 1 or int(parts[3]) >= len(slots):
-            return is_harmful(self.ex, src)
-        return harms_slot(node.effect, slots[int(parts[3])].selector)
+        modes = None
+        if self.announced is not None and self.announced[0] == src:
+            modes = self.announced[1]
+        elif modal_choose(spell[1]) is not None:
+            legal = cast_mode_options(self.ex, spell[1], spell_handle=src, seat=self.me)
+            if len(legal) != 1:
+                return is_harmful(self.ex, src)
+            modes = legal[0][1]
+        aims = self._aims(src, modes)
+        k = int(parts[3])
+        return aims[k][0] if k < len(aims) else is_harmful(self.ex, src)
 
     def _fixed_damage(self, src: Handle | None) -> int | None:
         """The damage the source's DEAL_DAMAGE atoms deal when every one is a fixed number."""
