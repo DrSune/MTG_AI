@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "vampire_neonate_drains_one",
+ "notes": "M8 mapper. Printed: '{2}, {T}: Each opponent loses 1 life and you gain 1 life.' Seat 0 pays {2} and taps Vampire Neonate: seat 1 goes to 19 life, seat 0 to 21, and the Neonate is tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "neonate", "real": "Vampire Neonate", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "neonate", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "life": {"0": 21, "1": 19},
+  "tapped": {"neonate": true},
+  "mana_pool": {"0": {}}
+ }
+}

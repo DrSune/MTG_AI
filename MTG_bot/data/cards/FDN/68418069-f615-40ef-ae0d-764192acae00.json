@@ -1,0 +1,168 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "68418069-f615-40ef-ae0d-764192acae00",
+ "name": "Krenko, Mob Boss",
+ "text_sha": "9098c351555c5029ed8a093e97d5311f0b91b50010320f42aa858f8988fc2c66",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "SUBTYPE_EQ"
+             },
+             "string_value": "Goblin",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Goblin",
+         "type_line": "Creature — Goblin",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Goblin"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "R"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {T}: Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.\n# \"Goblins you control\" is the tribal noun (SUBTYPE_EQ + TYPE_EQ Creature), counted as the\n# ability resolves (M21 Rin and Seri's \"the number of Cats you control\").\ngoblins_you_control = Selector(\n    count=QUnbounded(), mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Goblin'),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))\nmob = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QCount(selector=goblins_you_control),\n        'tokens': TokenSpec(\n            name='Goblin', type_line='Creature — Goblin', types=('Creature',), subtypes=('Goblin',),\n            power=QConst(value=1), toughness=QConst(value=1), keywords=(), abilities=(), colors=('R',)),\n    }),\n)\nabilities = [mob, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. Pack: tools/scenarios/mapped/FDN/krenko_counts_goblins_you_control.json."
+ },
+ "probe": {
+  "sha": "f6b456909d9abf32efd9a3d7e49b061d916e91796b7e5368f989798ee9ddf31e"
+ }
+}

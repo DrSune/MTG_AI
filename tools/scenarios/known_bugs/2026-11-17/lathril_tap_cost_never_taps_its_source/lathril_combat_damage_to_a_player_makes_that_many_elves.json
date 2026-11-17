@@ -1,0 +1,35 @@
+{
+ "set": "FDN",
+ "name": "lathril_combat_damage_to_a_player_makes_that_many_elves",
+ "notes": "M8 mapper. Printed: 'Whenever Lathril deals combat damage to a player, create that many 1/1 green Elf Warrior creature tokens.' Lathril (2/3) attacks alone, unblocked, and deals 2 to seat 1: two Elf Warrior tokens for seat 0. No record (needs-atom): run it with `cardtool.py runpack FDN <this pack> --card 'Lathril, Blade of the Elves' --draft draft.py` (the draft beside it); it passes today.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathril",
+   "real": "Lathril, Blade of the Elves",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "lathril": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "tokens": {
+   "Elf Warrior": 2
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "lathliss_two_dragons_returned_together_make_two_dragons",
+ "notes": "M8 mapper. Printed: 'Whenever another nontoken Dragon you control enters, create a 5/5 red Dragon creature token with flying.' Support card: FDN Raise the Past (verified; 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.'). Two Dragon creature cards return to seat 0's battlefield at the same time: each is a Dragon entering, so Lathliss triggers twice (once per Dragon, not once for the event) and seat 0 gets two Dragon tokens.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lathliss", "real": "Lathliss, Dragon Queen", "zone": "battlefield", "controller": 0},
+  {"key": "raise", "real": "Raise the Past", "zone": "hand", "controller": 0},
+  {"key": "d1", "name": "Grave Whelp One", "type": "Creature — Dragon", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "d2", "name": "Grave Whelp Two", "type": "Creature — Dragon", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "raise", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"raise": "graveyard", "d1": "battlefield", "d2": "battlefield"},
+  "tokens": {"Dragon": 2}
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "name": "soul_guide_lantern_exiles_each_opponents_graveyard",
+ "notes": "M8 mapper. Printed: '{T}, Sacrifice this artifact: Exile each opponent's graveyard.' Three players. Seat 0 sacrifices the Lantern: the cards in seat 1's and seat 2's graveyards are exiled; seat 0's graveyard card and the Lantern (now in seat 0's graveyard) stay.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "lantern",
+   "real": "Soul-Guide Lantern",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "Your Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "g1",
+   "name": "Opp One Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "g1b",
+   "name": "Opp One Spell",
+   "type": "Sorcery",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "g2",
+   "name": "Opp Two Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 2,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "lantern",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lantern": "graveyard",
+   "mine": "graveyard",
+   "g1": "exile",
+   "g1b": "exile",
+   "g2": "exile"
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "felidar_cub_sacrifices_itself_to_destroy_an_enchantment",
+ "notes": "M8 mapper. Printed: 'Sacrifice this creature: Destroy target enchantment.' Seat 0 activates Felidar Cub targeting seat 1's enchantment: the Cub goes to the graveyard as the cost and the enchantment is destroyed; seat 1's artifact and seat 0's other creature stay.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cub", "real": "Felidar Cub", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ench", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "cub", "idx": 0, "seat": 0, "targets": ["ench"]}
+ ],
+ "expect": {
+  "zone": {"cub": "graveyard", "bear": "battlefield", "ench": "graveyard", "relic": "battlefield"}
+ }
+}

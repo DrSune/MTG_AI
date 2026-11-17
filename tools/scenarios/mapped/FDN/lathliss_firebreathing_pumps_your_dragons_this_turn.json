@@ -1,0 +1,78 @@
+{
+ "set": "FDN",
+ "name": "lathliss_firebreathing_pumps_your_dragons_this_turn",
+ "notes": "M8 mapper. Printed: '{1}{R}: Dragons you control get +1/+0 until end of turn.' Seat 0 pays {1}{R} twice: Lathliss is 8/6 and its 2/2 Whelp 4/2; its Bear and seat 1's Dragon stay as they are. On the next turn Lathliss is 6/6 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathliss",
+   "real": "Lathliss, Dragon Queen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "drake",
+   "name": "Your Whelp",
+   "type": "Creature — Dragon",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "odrake",
+   "name": "Opp Whelp",
+   "type": "Creature — Dragon",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 2,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "lathliss",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "lathliss",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "power": {
+   "lathliss": 8,
+   "drake": 4,
+   "bear": 2,
+   "odrake": 2
+  },
+  "toughness": {
+   "lathliss": 6,
+   "drake": 2
+  }
+ }
+}

@@ -1,0 +1,144 @@
+{
+ "set": "FDN",
+ "name": "lathril_ten_other_elves_drain_ten",
+ "notes": "KNOWN BUG, fails today (M8 mapper, 2026-11-17): Lathril stays untapped. legality.pay_costs replaces the plan's taps with _ask_cost_choices' picks whenever the plan records tap_options, so the {T} of a cost that also has a CostTap(target) part is never paid. Run it with `cardtool.py runpack FDN <this pack> --card 'Lathril, Blade of the Elves' --draft draft.py` (the draft beside it). Printed: '{T}, Tap ten untapped Elves you control: Each opponent loses 10 life and you gain 10 life.' Seat 0 controls Lathril and ten other untapped Elves, and a Bear. It activates: Lathril and the ten Elves are tapped (the Bear is not), seat 1 goes to 10 life and seat 0 to 30.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathril",
+   "real": "Lathril, Blade of the Elves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf1",
+   "name": "Elf 1",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf2",
+   "name": "Elf 2",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf3",
+   "name": "Elf 3",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf4",
+   "name": "Elf 4",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf5",
+   "name": "Elf 5",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf6",
+   "name": "Elf 6",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf7",
+   "name": "Elf 7",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf8",
+   "name": "Elf 8",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf9",
+   "name": "Elf 9",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf10",
+   "name": "Elf 10",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "lathril",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 30,
+   "1": 10
+  },
+  "tapped": {
+   "lathril": true,
+   "elf1": true,
+   "elf2": true,
+   "elf3": true,
+   "elf4": true,
+   "elf5": true,
+   "elf6": true,
+   "elf7": true,
+   "elf8": true,
+   "elf9": true,
+   "elf10": true,
+   "bear": false
+  }
+ }
+}

@@ -1,0 +1,42 @@
+{
+ "set": "FDN",
+ "name": "reassembling_skeleton_not_from_the_battlefield",
+ "notes": "M8 mapper. Printed: '{1}{B}: Return this card from your graveyard to the battlefield tapped.' The ability works only from the graveyard (CR 113.6m): on the battlefield it can't be activated.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "skel",
+   "real": "Reassembling Skeleton",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "skel",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "not_in_graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "skel": "battlefield"
+  },
+  "tapped": {
+   "skel": false
+  }
+ }
+}

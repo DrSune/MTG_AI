@@ -1,0 +1,100 @@
+{
+ "set": "FDN",
+ "name": "ingenious_leonin_costs_three_and_white_paid_from_lands",
+ "notes": "M8 mapper. Printed: '{3}{W}: Put a +1/+1 counter on another target attacking creature you control.' The Cat attacks; seat 0 activates the ability through its menu (the Cat is its only legal target, so it is not asked), which taps lands for the cost: four of its five Plains are tapped, one stays untapped. The Cat gets its counter and first strike.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "leonin",
+   "real": "Ingenious Leonin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "Your Cat",
+   "type": "Creature — Cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "p1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "p5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "cat": true,
+    "leonin": false
+   },
+   "respond": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "act",
+      "seat": 0,
+      "words": [
+       "act:leonin:0"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "cat": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "battlefield_keywords": {
+   "Your Cat": [
+    "FIRST_STRIKE"
+   ]
+  },
+  "tapped": {
+   "p1": true,
+   "p2": true,
+   "p3": true,
+   "p4": true,
+   "p5": false
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  }
+ }
+}

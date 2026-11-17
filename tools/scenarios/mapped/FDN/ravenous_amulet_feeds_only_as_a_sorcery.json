@@ -1,0 +1,84 @@
+{
+ "set": "FDN",
+ "name": "ravenous_amulet_feeds_only_as_a_sorcery",
+ "notes": "M8 mapper. Printed: '{1}, {T}, Sacrifice a creature: Draw a card and put a soul counter on this artifact. Activate only as a sorcery.' On seat 1's turn the activation is refused for its timing. On seat 0's next turn it sacrifices its Bear: one card drawn and one soul counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "amulet",
+   "real": "Ravenous Amulet",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature — Bear",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "amulet",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "amulet",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bear": "graveyard",
+   "amulet": "battlefield"
+  },
+  "counters": {
+   "amulet": {
+    "SOUL": 1
+   }
+  },
+  "tapped": {
+   "amulet": true
+  }
+ }
+}

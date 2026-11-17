@@ -1,0 +1,57 @@
+{
+ "set": "FDN",
+ "name": "loot_two_land_plays_a_turn",
+ "notes": "M8 mapper. Printed: 'You may play an additional land on each of your turns.' With Loot on the battlefield seat 0 plays two lands in one turn; a third is refused.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "loot",
+   "real": "Loot, Exuberant Explorer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "f1"
+  },
+  {
+   "op": "play",
+   "key": "f2"
+  },
+  {
+   "op": "play",
+   "key": "f3",
+   "expect_raise": "land"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "battlefield",
+   "f2": "battlefield",
+   "f3": "hand"
+  }
+ }
+}

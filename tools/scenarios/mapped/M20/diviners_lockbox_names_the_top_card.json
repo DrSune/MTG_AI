@@ -1,0 +1,84 @@
+{
+ "set": "M20",
+ "name": "diviners_lockbox_names_the_top_card",
+ "notes": "M8 mapper. Printed: '{1}, {T}: Choose a card name, then reveal the top card of your library. If that card has the chosen name, sacrifice this artifact and draw three cards.' Seat 0 names Hidden Prize, the top card of its library: the Lockbox is sacrificed and seat 0 draws three cards (Hidden Prize, First Card, Second Card).",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "box",
+   "real": "Diviner's Lockbox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "Third Card",
+   "type": "Creature — Bear",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "c2",
+   "name": "Second Card",
+   "type": "Creature — Bear",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "c1",
+   "name": "First Card",
+   "type": "Creature — Bear",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "top",
+   "name": "Hidden Prize",
+   "type": "Creature — Bear",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "box",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "Hidden Prize"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "box": "graveyard",
+   "top": "hand",
+   "c1": "hand",
+   "c2": "hand",
+   "c3": "library"
+  },
+  "hand": {
+   "0": 3
+  }
+ }
+}

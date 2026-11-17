@@ -1,0 +1,75 @@
+{
+ "set": "FDN",
+ "name": "ajani_caller_minus_three_flying_and_double_strike",
+ "notes": "M8 mapper. Printed: '[-3]: Target creature gains flying and double strike until end of turn.' Ajani (4 loyalty) targets seat 0's 2/2 Bear (loyalty 1). The Bear attacks; seat 1's untapped 0/9 Wall has no flying or reach, so it has no legal block and is never asked; the Bear deals 2 first-strike and 2 regular damage (20 -> 16).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ajani",
+   "real": "Ajani, Caller of the Pride",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "0",
+   "toughness": "9"
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ajani",
+   "set": 4
+  },
+  {
+   "op": "activate",
+   "key": "ajani",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ajani": {
+    "LOYALTY": 1
+   }
+  },
+  "attackers": {
+   "bear": true
+  },
+  "not_asked_to_block": [
+   "wall"
+  ],
+  "life": {
+   "0": 20,
+   "1": 16
+  }
+ }
+}
