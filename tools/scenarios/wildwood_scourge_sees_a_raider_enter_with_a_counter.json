@@ -1,0 +1,75 @@
+{
+ "name": "wildwood_scourge_sees_a_raider_enter_with_a_counter",
+ "set": "FDN",
+ "notes": "Bug hunt 2026-11-17 (hunt 5 H5-2). Wildwood Scourge: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on Wildwood Scourge.' After P0 attacked (the Attacker deals 1), Goblin Boarders enters with a +1/+1 counter (raid). CR 122.6: counters put on a creature as it enters are put on it, so the Scourge gets one: 2 + 1 = 3. Failed before the fix: the raid counter (EtBState) was added with no journal row (2 counters).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "atk",
+   "name": "Attacker",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gb",
+   "real": "Goblin Boarders",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true,
+    "scourge": false
+   }
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "gb",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gb": "battlefield"
+  },
+  "counters": {
+   "gb": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "scourge": {
+    "PLUS_1_PLUS_1": 3
+   }
+  },
+  "life": {
+   "0": 20,
+   "1": 19
+  }
+ }
+}

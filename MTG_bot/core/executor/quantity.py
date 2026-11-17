@@ -60,7 +60,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, KIND_ZONE_CHANGE, GameEvent
-from MTG_bot.core.identity import Handle
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -319,7 +319,12 @@ class ExecCtx:
         return handles[0] if handles else None
 
     def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
-        card_state = self.world.cards[card]
+        card_state = self.world.cards.get(card)
+        if card_state is None:
+            lki = departed_lki(card, self)  # a token that ceased to exist, as it last existed
+            if lki is None:
+                raise KeyError(f"unknown card {card}")
+            return lki.power, lki.toughness
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
@@ -499,7 +504,10 @@ class LastKnown(NamedTuple):
     leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
     value) pairs (Executor.name_choices; quality None for a card name); ``types`` the type words
     an effect gave it (the layers' type overlay); ``granted`` the abilities an effect granted it
-    (a granted "When this creature dies" looks back at its death, CR 603.10a)."""
+    (a granted "When this creature dies" looks back at its death, CR 603.10a); ``identity`` its
+    printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
+    ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
+    "Whenever equipped creature dies", CR 603.10a)."""
 
     power: int | None
     toughness: int | None
@@ -511,6 +519,8 @@ class LastKnown(NamedTuple):
     choices: tuple[tuple[str | None, str], ...] = ()
     types: tuple[str, ...] = ()
     granted: tuple[GrantedAbility, ...] = ()
+    identity: CardIdentity | None = None
+    attached: tuple[Handle, ...] = ()
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -520,11 +530,15 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
     each object it gathered, each in its own row. Otherwise None: the caller reads the
     live object (a query's context, which carries the bindings but no event, included; a
-    trigger that does not look back, ``ctx.after_event``, CR 603.10)."""
+    trigger that does not look back, ``ctx.after_event``, CR 603.10). A token that has ceased
+    to exist (CR 704.5d) has no live object: whatever reads it reads this, in any context
+    (CR 608.2h)."""
+    ex, event = ctx.executor, ctx.event
+    if ex is not None and handle.namespace == "card" and handle not in ctx.world.cards:
+        return ex.departed_lki.get(handle)
     if ctx.after_event:
         return None
     found = departure_lki(handle, ctx.event, ctx.executor)
-    ex, event = ctx.executor, ctx.event
     if (
         found is None
         and ex is not None
@@ -598,9 +612,10 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
             raise ValueError(f"executor: {field.name} undefined on handle {handle}")
         return value
     if field in (QPropField.CMC, QPropField.MANA_VALUE):
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             raise ValueError(f"executor: {field.name} needs a card handle")
-        return ctx.world.cards[handle].identity.cmc or 0
+        return identity.cmc or 0
     if field in (
         QPropField.CARDS_IN_HAND,
         QPropField.CARDS_IN_LIBRARY,
@@ -780,11 +795,23 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+def card_identity(handle: Handle, ctx: ExecCtx) -> CardIdentity | None:
+    """A card's printed characteristics; a token that has ceased to exist has the ones it last
+    had (CR 704.5d, 608.2h: Overgrowth Elemental's "If that creature was an Elemental" of a dead
+    Elemental token). None: the handle names no card."""
+    state = ctx.world.cards.get(handle)
+    if state is not None:
+        return state.identity
+    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    return lki.identity if lki is not None else None
+
+
 def _type_words(handle: Handle, ctx: ExecCtx) -> set[str]:
     """A card's type words: its printed type line and those an effect gives it, the layers'
     overlay ("is a Knight in addition to its other types"). Judged on its own departure, the
     ones it had as it left (CR 603.10a: its last known information)."""
-    words = set(_type_line_tokens(ctx.world.cards[handle].identity.type_line))
+    identity = card_identity(handle, ctx)
+    words = set(_type_line_tokens(identity.type_line)) if identity is not None else set()
     lki = departed_lki(handle, ctx)
     if lki is not None:
         words.update(lki.types)
@@ -926,14 +953,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # ("creature card in a graveyard") and Unsubstantiate's
         # spell-on-the-stack target. The type-line test is zone-independent;
         # on the battlefield it agrees with the zone reading.
-        if handle not in world.cards:
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
-        return bool(words & _PERMANENT_TYPE_WORDS)
+        return bool(set(_type_line_tokens(identity.type_line)) & _PERMANENT_TYPE_WORDS)
     if pred is FAtomPred.IS_TOKEN:
         # "nontoken creature that died": printed token-ness (identity data,
         # so it survives death).
-        return world.cards[handle].identity.is_token
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.is_token
     if pred in (FAtomPred.TYPE_EQ, FAtomPred.SUBTYPE_EQ, FAtomPred.SUPERTYPE_EQ):
         # Supertypes share the type-word match: the identity has no
         # ``supertypes`` field, but every supertype ("Basic", "Legendary",
@@ -942,8 +970,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # layers UNION their overlay words in ("is a Knight in addition to
         # its other types"): the layer registry is the single type oracle.
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
         return atom.string_value in _type_words(handle, ctx)
     if pred is FAtomPred.NAME_CONTAINS:
         # Teferi's "a Teferi planeswalker" gate: case-sensitive substring on
@@ -952,9 +978,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # NAME_CHOSEN's unanswered-question convention does not apply (this
         # is pure identity data, no question to answer).
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
-        return atom.string_value in world.cards[handle].identity.name
+        identity = card_identity(handle, ctx)
+        return identity is not None and atom.string_value in identity.name
     if pred is FAtomPred.IS_ATTACHED_TO_SOURCE:
         # Malefic Scythe's "equipped creature", Dub's compiled aura shape:
         # the world has NO attachment state (CardState has no aura/equipment
@@ -969,16 +994,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if ctx.executor.attachments.get(ctx.source) == handle:
             return True
-        # A dies-trigger's filter (Malefic Scythe) is judged after the
-        # binder's leave-detach has pruned the live table (the ZONE_CHANGE
-        # row lands before the CREATURE_DIES row of the same diff sweep).
-        # Once the judged object has LEFT the battlefield, the live table
-        # can no longer speak for it: the object's own departure-time
-        # snapshot (executor.detach_lki) is its last known information
-        # (CR 400.7). On the battlefield the live table is the only word.
-        if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-            return False
-        return ctx.source in ctx.executor.detach_lki.get(handle, ())
+        # Judged on its own departure (Malefic Scythe's dies trigger, CR 603.10a), the object
+        # as it left: what was attached to it then, its last known information, once the
+        # binder's leave-detach has pruned the live table. Anywhere else the live table is the
+        # only word: a creature that left and came back is a new object (CR 400.7), equipped
+        # by nothing it was equipped by before.
+        lki = departed_lki(handle, ctx)
+        return lki is not None and ctx.source in lki.attached
     if pred is FAtomPred.IS_ATTACHED_TO:
         # "attached to the REFERENT object" (Turn to Slag): the same
         # attachment-table answer as IS_ATTACHED_TO_SOURCE, but the host
@@ -1022,16 +1044,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return ctx.executor.attachments.get(handle) == host
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
-        return world.cards[handle].identity.name == atom.string_value
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.name == atom.string_value
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # COLOR_IN is the grammar's SUBSET reading ("colours are a non-empty
         # subset of the given set"), COLOR_HAS the single-colour membership
         # ("hexproof from black"; a spell "that's white or blue" is the FOr
         # of COLOR_HAS, CR 105.2). Identity data: works for a card in any
         # zone, incl. the stack (the cast-trigger feed reads spells).
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        card_colors = set(world.cards[handle].identity.colors)
+        card_colors = set(identity.colors)
         if pred is FAtomPred.COLOR_HAS:
             assert atom.color is not None
             return atom.color in card_colors
@@ -1047,11 +1071,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # the engine carries no color-changing continuous effects (layers.py
         # never writes color), so an object's printed colors ARE its colors
         # in every zone.
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
         assert atom.count is not None  # FAtom: count is a required slot
         threshold = resolve(atom.count, ctx)
-        return len(world.cards[handle].identity.colors) >= threshold
+        return len(identity.colors) >= threshold
     if pred is FAtomPred.NAME_CHOSEN:
         # The object has what the SOURCE's CHOOSE_NAME of this quality recorded (CR 607.2d: the
         # read refers only to its own object's choice): Runed Halo's name, Diamond Knight's
@@ -1072,9 +1097,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
                 f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        identity = world.cards[handle].identity
         if quality == "COLOR":
             return chosen in identity.colors  # printed colours: no effect changes a colour
         if quality == "CREATURE_TYPE":
@@ -1112,9 +1137,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # missing cmc, as on synthetic tokens, is mana value 0).
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)
-        if handle.namespace != "card":
-            return False
-        return (world.cards[handle].identity.cmc or 0) <= threshold
+        identity = card_identity(handle, ctx)
+        return identity is not None and (identity.cmc or 0) <= threshold
     if pred is FAtomPred.CMC_GE:
         # The GE twin of CMC_LE, the SAME identity read (a missing cmc is
         # mana value 0). Fierce Empath's "reveals a creature with converted
@@ -1122,9 +1146,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # query lane (enumerate_candidates) and the runtime lane alike.
         assert atom.count is not None
         threshold = resolve(atom.count, ctx)
-        if handle.namespace != "card":
-            return False
-        return (world.cards[handle].identity.cmc or 0) >= threshold
+        identity = card_identity(handle, ctx)
+        return identity is not None and (identity.cmc or 0) >= threshold
     if pred is FAtomPred.KEYWORD_HAS:
         # "with <keyword>", in a selector filter (Run Afoul's "sacrifices a
         # creature of their choice with flying" CHOOSE pool) and in gate
@@ -1137,13 +1160,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # keyword. A handle outside the card set (a player seat) has no
         # keywords: characteristic absent, False.
         assert atom.keyword is not None
-        if handle.namespace != "card" or handle not in world.cards:
+        if handle.namespace != "card":
             return False
         lki = departed_lki(handle, ctx)
         if lki is not None:
             # CR 603.10a: judged on its own departure, the object as it left, its granted
             # keywords included (the layers drop them once they are brought up to date).
             return atom.keyword.name in lki.keywords
+        if handle not in world.cards:
+            return False
         if ctx.layers is None:
             raise NotImplementedError(
                 "executor: filter pred KEYWORD_HAS needs the layer "

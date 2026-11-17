@@ -1,0 +1,72 @@
+{
+ "name": "dead_token_is_not_a_card_in_a_graveyard_while_a_trigger_names_it",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt 3 F4, hunt 2 H2-1; BACKLOG B-112, closed). P0's 4/4 Angel token dies; P1's Massacre Wurm ('Whenever a creature an opponent controls dies, that player loses 2 life') triggers and waits on the stack. CR 704.5d, 111.7-8, 117.5: the token ceased to exist at the state-based check before the trigger went on the stack; it is no card in a graveyard, so Scavenging Ooze ('Exile target card from a graveyard. If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life') cannot target it. The Wurm's trigger still reads the token's last known information (CR 608.2h): its controller, P0, loses 2 life. Failed before the fix: the token was kept in the graveyard as its own last-known information while the trigger named it, and the Ooze ate it for a counter and 1 life.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "wurm",
+   "real": "Massacre Wurm",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "tok",
+   "name": "Angel",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ooze",
+   "real": "Scavenging Ooze",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "move",
+   "key": "tok",
+   "to": "graveyard",
+   "hold": true
+  },
+  {
+   "op": "activate",
+   "key": "ooze",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "tok"
+   ],
+   "expect_raise": "illegal activation"
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tok": "ceased",
+   "ooze": "battlefield"
+  },
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "power": {
+   "ooze": 2
+  }
+ }
+}

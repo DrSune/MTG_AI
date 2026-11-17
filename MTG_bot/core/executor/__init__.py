@@ -508,27 +508,21 @@ class Executor:
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
-        # Last-known information of the attachment relation as a host leaves
-        # the battlefield: HOST -> the sorted Auras and Equipment attached to
-        # it then (Malefic Scythe). The journal writes ZONE_CHANGE before
-        # CREATURE_DIES in the same diff sweep, so by the time a dies
-        # trigger's IS_ATTACHED_TO_SOURCE filter is judged the live table is
-        # already pruned; this row is the departure-time truth (CR 400.7).
-        # Replaced per departing host. Derived from the same detaches, so not
-        # in the fingerprint.
-        self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
         # The one last-known-information snapshot of each permanent that left the
         # battlefield (quantity.LastKnown: power, toughness, counters, keywords with
-        # the granted ones, controller), captured as it leaves, before its counters
-        # cease (CR 122.2), its effects end (CR 400.7) and its control entries
-        # expire. Read through quantity.departed_lki / last_known by what needs the
+        # the granted ones, controller, what was attached to it, its printed
+        # identity), captured as it leaves, before its counters cease (CR 122.2), its
+        # effects end (CR 400.7), its control entries expire and the binder prunes its
+        # attachments. Read through quantity.departed_lki / last_known by what needs the
         # object as it last existed: "When this creature dies, you gain life equal
         # to its power" (Conclave Mentor), "if it had a +1/+1 counter on it"
-        # (Basri's Lieutenant), damage a sacrificed source deals with its granted
+        # (Basri's Lieutenant), "Whenever equipped creature dies" (Malefic Scythe),
+        # damage a sacrificed source deals with its granted
         # deathtouch (CR 113.7a), "its controller" and "that player" (CR 608.2h),
-        # the controller of its own dies trigger (CR 603.3a, 603.10a). Dropped when
-        # the card re-enters (a new object, CR 400.7). Derived state replayed from
-        # the same departures, NOT in the fingerprint (the detach_lki precedent).
+        # the controller of its own dies trigger (CR 603.3a, 603.10a), and a token
+        # that has ceased to exist (CR 704.5d). Dropped when the card re-enters (a new
+        # object, CR 400.7). Derived state replayed from the same departures, NOT in
+        # the fingerprint.
         self.departed_lki: dict[Handle, LastKnown] = {}
         # Each seat's starting life, snapshotted at construction: GameWorld
         # takes ``start_life`` as a parameter but does not store it.
@@ -1204,6 +1198,9 @@ class Executor:
                     ),
                     self.layers.type_overlay(event.subject),
                     self.layers.granted_abilities(event.subject),
+                    state.identity,
+                    # before the binder's leave-detach prunes the table
+                    tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1263,6 +1260,9 @@ class Executor:
             self.layers.forget_departed(anchor)
             self.replacements.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
+            # CR 606.3: a planeswalker that comes back is a new permanent, none of whose
+            # loyalty abilities has been activated this turn.
+            self.loyalty_clock.pop(anchor, None)
             # A departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the
             # aura/source whose leaving ends the effect, CR 611.3's duration
@@ -1374,8 +1374,8 @@ class Executor:
         just saw ENTER the battlefield: what is done as it enters (each
         ``effect``, :meth:`run_as_enters`), then, where its gate holds, the
         tapped flag and any initial counters (CR 614.1c — part of the entering state, not
-        a trigger, so no TAP event is emitted and nothing is re-journalled;
-        the move's own journal row already carries the entry). A card whose
+        a trigger; entering tapped is no tapping, so no TAP event is emitted, while the
+        counters are put on it, CR 122.6, a journalled placement). A card whose
         record is not registered has no declared entered state."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
@@ -1417,46 +1417,55 @@ class Executor:
         for node in nodes:
             if node.tapped:
                 self.world.cards[card].tapped = True
-            for kind, quantity in node.initial_counters:
-                # "Enters with X +1/+1 counters"
-                # (Wildwood Scourge, the X hydras) — CR 614.1c, the count is
-                # part of the entering state. X is the value the spell was cast
-                # with (stack.cast records it in etb_x as the spell lands); an
-                # object that entered without being cast has X 0 (CR 107.3g). A
-                # negative result gives no counters (107.1b).
-                from MTG_bot.core.executor.legality import ctx_for
-                from MTG_bot.core.executor.quantity import resolve
+        counters = [pair for node in nodes for pair in node.initial_counters]
+        if not counters:
+            return
+        # CR 122.6: the counters an object enters with are put on it. So the placement is
+        # journalled, an atom boundary of its own (its COUNTER_PLACED rows: Wildwood Scourge sees
+        # a creature enter with +1/+1 counters), and a placement's prevention and replacement
+        # apply to it (Blightbeetle, Conclave Mentor). Entering tapped is no tapping: the flag is
+        # set outside the boundary, so no TAP_STATE row.
+        from MTG_bot.core.executor.legality import ctx_for
+        from MTG_bot.core.executor.quantity import resolve
 
-                qctx = ctx_for(
-                    self,
-                    source=card,
-                    controller=self.world.controller_of(card),
-                    x_value=self.etb_x.get(card, 0),
+        before = self.journal.snapshot()
+        start = len(self.events)
+        for kind, quantity in counters:
+            # "Enters with X +1/+1 counters" (Wildwood Scourge, the X hydras) — CR 614.1c, the
+            # count is part of the entering state. X is the value the spell was cast with
+            # (stack.cast records it in etb_x as the spell lands); an object that entered
+            # without being cast has X 0 (CR 107.3g). A negative result gives no counters
+            # (107.1b).
+            qctx = ctx_for(
+                self,
+                source=card,
+                controller=self.world.controller_of(card),
+                x_value=self.etb_x.get(card, 0),
+            )
+            n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
+            if not n:
+                continue
+            if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
+                continue  # Blightbeetle
+            # A counter-placement replacement applies (Conclave Mentor: "that many plus one"):
+            # the same consult and action run as the PUT_COUNTER lane's drain (the action's
+            # referent is the entering card, its COUNTER_COUNT register the entering count).
+            repl = self.replacements.replacement_for_counter_placement(qctx, card, kind, n)
+            if repl is not None:
+                inner = self._ctx(
+                    source=repl.source,
+                    controller=repl.controller,
+                    bindings={"event": [card]},
+                    decisions=(),
                 )
-                n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
-                if not n:
-                    continue
-                if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
-                    continue  # CR 122.6: entering with counters is putting them on it (Blightbeetle)
-                # CR 122.6: counters an object is given as it enters ARE counters
-                # put on it, so a counter-placement replacement applies (Conclave
-                # Mentor: "that many plus one"). Same consult and action run as the
-                # PUT_COUNTER lane's drain (the action's referent is the entering
-                # card, its COUNTER_COUNT register the entering count).
-                repl = self.replacements.replacement_for_counter_placement(qctx, card, kind, n)
-                if repl is not None:
-                    inner = self._ctx(
-                        source=repl.source,
-                        controller=repl.controller,
-                        bindings={"event": [card]},
-                        decisions=(),
-                    )
-                    inner.event_counter_count = n
-                    inner.replaced_seq = qctx.replaced_seq | {repl.seq}
-                    self._run_effect(repl.action, inner)
-                    continue
-                counters = self.world.cards[card].counters
-                counters[kind.name] = counters.get(kind.name, 0) + n
+                inner.event_counter_count = n
+                inner.replaced_seq = qctx.replaced_seq | {repl.seq}
+                self._run_effect(repl.action, inner)
+                continue
+            have = self.world.cards[card].counters
+            have[kind.name] = have.get(kind.name, 0) + n
+            self.events.append((len(self.events), "PUT_COUNTER", str(card), kind.name, n))
+        self.journal.record_atom(before, card, "PUT_COUNTER", self.events[start:])
 
     # ------------------------------------------------------------- triggers
 
@@ -1530,20 +1539,18 @@ class Executor:
         row: ceasing to exist is not a zone change and triggers nothing. Returns the
         tokens removed (Handle-sorted).
 
-        State-based actions run before triggered abilities resolve (CR 117.5),
-        so a token's own leave triggers can still be queued here. A token
-        a queued firing names (its source, or its event's subject or cause) waits
-        for the next check after that firing resolves: the engine keeps it as the
-        last-known information those triggers read (CR 603.10a)."""
+        Its leave triggers triggered before it ceased (CR 111.7) and wait for the
+        stack with the token gone (CR 117.5: state-based actions first); they read it
+        through its last known information (CR 608.2h, 603.10a: ``departed_lki``,
+        captured as it left the battlefield), never as an object in a zone."""
         world = self.world
-        pending = self.binder.pending_references()
         gone: list[Handle] = []
         for player in world.player_order:
             for kind, zone in world.players[player].zones.items():
                 if kind in (ZONE_BATTLEFIELD, ZONE_STACK):
                     continue
                 for card in list(zone.entries):
-                    if world.cards[card].identity.is_token and card not in pending:
+                    if world.cards[card].identity.is_token:
                         zone.entries.remove(card)
                         gone.append(card)
         for card in gone:
@@ -1719,8 +1726,7 @@ class Executor:
         while True:
             # CR 704.5a/b: a player who loses here ends a two-player game.
             self._player_losses()
-            # CR 704.5d, 111.7: a token off the battlefield ceases to exist;
-            # one whose leave triggers are still queued waits for them.
+            # CR 704.5d, 111.7: a token off the battlefield ceases to exist.
             self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()

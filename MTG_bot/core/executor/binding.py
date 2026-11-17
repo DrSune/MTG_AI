@@ -646,13 +646,7 @@ class TriggerBinder:
         # edge touching the departing handle. (An emblem never departs:
         # only bind_emblem's leaving=False refresh detaches one.)
         ex = self.executor
-        # Malefic Scythe: LKI capture BEFORE the prune — the edges
-        # this sweep kills are the departing host's attachment truth for
-        # the CREATURE_DIES row that follows the ZONE_CHANGE row in the
-        # same journal batch (see Executor.detach_lki).
-        ex.detach_lki[handle] = tuple(
-            sorted(a for a, host in ex.attachments.items() if host == handle)
-        )
+        # What was attached as it left is its last known information (Executor.departed_lki).
         ex.attachments = {
             aura: host
             for aura, host in ex.attachments.items()
@@ -1639,41 +1633,6 @@ class TriggerBinder:
             "firings dropped"
         )
 
-    def pending_references(self) -> frozenset[Handle]:
-        """The objects the waiting triggers (queued, or on the stack) still
-        name: their source, their event's subject and cause, and every object a gathered
-        event names (CR 603.2c). A token that left the battlefield stays in the
-        world (as its own last-known information) until the triggers its leaving
-        caused have resolved; see ``Executor._cease_tokens``."""
-        out: set[Handle] = set()
-        waiting = [(p.source, p.event, p.gathered) for p in self.firings.values()]
-        waiting += [
-            (o.source, o.event, o.ctx.binding_handles("gathered"))
-            for o in self.executor.stack.frames
-            if o.spell_kind == "TRIGGERED"
-        ]
-        for source, event, gathered in waiting:
-            out.add(source)
-            for handle in (event.subject, event.cause):
-                if isinstance(handle, Handle):
-                    out.add(handle)
-            # Two tokens that left in one event are read as they last existed ("the greatest
-            # power among them"), not only the one whose row queued the trigger.
-            out.update(gathered or ())
-        # What a reflexive trigger read of its creating resolution ("the sacrificed creature"),
-        # waiting or on the stack.
-        carried = [p.carried.bindings for p in self.firings.values() if p.carried is not None]
-        carried += [
-            o.ctx.bindings
-            for o in self.executor.stack.frames
-            if o.spell_kind == "TRIGGERED" and o.event.kind == KIND_REFLEXIVE
-        ]
-        for bindings in carried:
-            for value in bindings.values():
-                out.update(h for h in (value if isinstance(value, list) else [value])
-                           if isinstance(h, Handle))
-        return frozenset(out)
-
     def cease_triggered_before(self, mark: int) -> int:
         """CR 724.1a: when an effect ends the turn, the abilities that
         triggered before that process began and were never put onto the
@@ -1816,8 +1775,9 @@ class TriggerBinder:
         """CR 400.7: the objects the event register names ("it", "they") that the effect can no
         longer find as it begins to resolve. One that has changed zones since the event is a
         new object; one the event moved is found where it went only if that zone is public
-        (the rule's exception for an ability that triggers on the move); a token off the
-        battlefield has ceased to exist (CR 111.7, 111.8: it can't be moved). The effect does
+        (the rule's exception for an ability that triggers on the move); a token that left the
+        battlefield has ceased to exist at the state-based check before this resolution (CR
+        704.5d, 111.8: it can't be moved). The effect does
         not act on them (``selectors.resolve_selector``), and a read of their information finds
         them as they last existed (CR 608.2h: ``quantity.last_known``): Terror of the Peaks'
         "that creature's power", "that many" (every object a gathered event names). A gathered
@@ -1836,13 +1796,11 @@ class TriggerBinder:
             e.subject for e in rows
             if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] in (ZONE_HAND, ZONE_LIBRARY)
         }
-        cards = self.world.cards
         return [
             h
             for h in objects
-            if h not in cards
+            if h not in self.world.cards
             or h in hidden
-            or (cards[h].identity.is_token and self.world.zone_of(h).kind != ZONE_BATTLEFIELD)
             or moved_since(self.executor.journal, h, since)
         ]
 

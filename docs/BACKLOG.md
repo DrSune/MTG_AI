@@ -398,11 +398,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
-- **B-112 [fixer 3, 2026-10-30, review wave 4 residue] CR 111.8 (a token that has left the
-  battlefield can't change zones) is not enforced.** W4-4 runs state-based actions before
-  triggers, and keeps a token that a queued firing names in the world as its last-known
-  information until that firing resolves, so a trigger that moves "it" could still move such a
-  token, as before W4-4.
 - **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
   the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
   "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap

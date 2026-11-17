@@ -1,0 +1,59 @@
+{
+ "name": "planeswalker_that_returns_is_a_new_object_for_the_loyalty_limit",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt 3 F3, hunt 2 H2-4). Basri Ket's +1 is activated, then Basri returns to hand and enters again the same turn (Barrin's enter trigger, or any bounce and recast). CR 400.7, 606.3: the returned Basri is a new permanent, and no loyalty ability of it has been activated this turn, so its +1 can be activated again (3 + 1 = 4 loyalty). Failed before the fix: the once-per-turn clock (Executor.loyalty_clock) was keyed on the card's handle, which is stable across zones, and never cleared when it left the battlefield ('window:loyalty:once_per_turn').",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri Ket",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "peg",
+   "real": "Concordia Pegasus",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "peg"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "basri",
+   "to": "hand"
+  },
+  {
+   "op": "enter",
+   "key": "basri"
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "peg"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 4
+   }
+  }
+ }
+}
