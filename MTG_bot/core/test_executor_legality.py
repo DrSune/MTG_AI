@@ -765,6 +765,23 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         tap_for_payment(self.ex, self.p0, (tap,))
         self.assertEqual(self.world.players[self.p0].mana_pool, {"B": 1})
 
+    def test_each_mana_ability_of_a_permanent_is_a_way_it_pays(self):
+        # CR 605: the controller may activate any of a permanent's mana abilities, and it taps
+        # once. A Forest enchanted by M20 Gift of Paradise ('Enchanted land has "{T}: Add two mana
+        # of any one color."') has two; the payer listed its first only (c80f45f7), so no game
+        # ever paid with the granted one there.
+        forest = self.world.add_card(card_id("Forest", type_line="Land"), self.p0, ZONE_BATTLEFIELD)
+        self.attach([ability(cost(CostTap()), effect=add_mana("G")),
+                     ability(cost(CostTap()), effect=add_mana("ANY", 2))], forest)
+        (tap,) = self.plan(CostManaColor("U", QConst(1)))
+        self.assertEqual((tap.source, tap.ability_idx, tap.production[:2]), (forest, 1, ("U", 2)))
+        (tap,) = self.plan(CostManaGeneric(QConst(2)))  # its way that makes the most mana
+        self.assertEqual((tap.ability_idx, tap.production[1]), (1, 2))
+        (tap,) = self.plan(CostManaColor("G", QConst(1)))  # the first way that makes the colour
+        self.assertEqual((tap.ability_idx, tap.production[:2]), (0, ("G", 1)))
+        tap_for_payment(self.ex, self.p0, self.plan(CostManaColor("U", QConst(1)), CostManaColor("U", QConst(1))))
+        self.assertEqual((self.world.players[self.p0].mana_pool, self.world.cards[forest].tapped), ({"U": 2}, True))
+
     def test_sick_mana_creatures_and_tapped_lands_are_not_used(self):
         self.ex.begin_turn(self.p0)
         elf = self.world.add_card(card_id("Elf", "1", "1"), self.p0, ZONE_HAND)

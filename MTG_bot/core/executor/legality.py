@@ -2272,8 +2272,9 @@ def _mana_atom_output(atom: object, ctx: ExecCtx) -> tuple[str | None, int] | No
 def _mana_tap_options(
     executor: Executor, payer: Handle, costly: bool = False
 ) -> list[list[ManaTap]]:
-    """Per mana source of ``payer`` (Handle order), the ways its first eligible
-    ability can add mana. Free sources only (:func:`_source_tier` 0), or with
+    """Per mana source of ``payer`` (Handle order), the ways its eligible
+    abilities can add mana, alternatives of one source that taps once (the
+    cheapest tier first). Free sources only (:func:`_source_tier` 0), or with
     ``costly`` the dearer ones too; eligible: an effect of one ADD_MANA atom
     (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
     lands), or a Conditional over those, priced by the branch the state picks
@@ -2308,6 +2309,7 @@ def _mana_tap_options(
             (-k - 1, entry.node)
             for k, entry in enumerate(executor.layers.granted_activated(handle))
         )
+        ways: list[ManaTap] = []
         for idx, ability in rows:
             if not isinstance(ability, ActivatedAbility):
                 continue
@@ -2353,8 +2355,13 @@ def _mana_tap_options(
                 continue
             if ability_playable(world, executor, handle, idx, seat=payer) is not None:
                 continue
-            out.append(taps)
-            break  # one {T} ability per permanent: it can tap once
+            ways.extend(taps)
+        if ways:
+            # Each eligible ability is a way of this one source, which taps once (CR 605: its
+            # controller may activate any of them): a Forest enchanted by Gift of Paradise makes
+            # {G} or two mana of any one colour. Until 2026-11-17 only its first ability was
+            # listed, so a granted one never paid there. The cheapest tier first.
+            out.append(sorted(ways, key=lambda t: t.tier))
     return out
 
 
@@ -2402,9 +2409,10 @@ def _with_trial_mana(executor: Executor, payer: Handle, taps: Sequence[ManaTap],
 def _paying_tap(
     taps: list[ManaTap], kind: str, colors: tuple[str, ...], any_colour: bool
 ) -> ManaTap | None:
-    """The way of this source that pays the shortfall (``_mana_shortfall``), if any."""
+    """The way of this source that pays the shortfall (``_mana_shortfall``), if any: for a
+    generic one (or under an any-colour permission) its cheapest way that makes the most mana."""
     if kind == "generic" or any_colour:
-        return taps[0]
+        return min(taps, key=lambda t: (t.tier, -t.production[1]))
     return next((t for c in colors for t in taps if t.production[0] == c), None)
 
 
@@ -2475,8 +2483,9 @@ def plan_mana_taps(
             if sources is not None:
                 sources[dear] = listed
         options = [
-            taps for taps in listed
-            if taps[0].source not in exclude and not (taps[0].tier == 2 and taps[0].source in keep)
+            kept for taps in listed
+            if taps[0].source not in exclude
+            and (kept := [t for t in taps if not (t.tier == 2 and t.source in keep)])
         ]
         if payable_only:
             every = [taps[0] for taps in options]
