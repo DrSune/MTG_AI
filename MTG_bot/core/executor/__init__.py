@@ -1245,8 +1245,7 @@ class Executor:
         "battlefield does not yet (BACKLOG)",
         "EventJournal._open": "kept: the open atom boundaries' snapshots, empty between ops",
         "SpellStack.frames": "stack: a frame ends as its object leaves the stack: it resolves, is "
-        "countered or fizzles (stack.resolve_top); a move by an effect is gate round 13's "
-        "(212 §2 B)",
+        "countered or fizzles (stack.resolve_top), or an effect moves it (verbs._off_the_stack)",
         "GameWorld.cards": "kept: the object map, one CardState per card in every zone; the "
         "departure hook clears its counters (CR 122.2) and tapped flag (CR 110.5d), and a token "
         "off the battlefield ceases (CR 704.5d)",
