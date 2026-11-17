@@ -54,3 +54,6 @@ a69e7fda0f8c4418be13319481af8bef7000b23702becad4799b7ca691d5f304  runs/selfplay/
 d2408dff336dbb62c993adb68eed371f911d9b2a2d15431aa7767f58c7a8609b  runs/selfplay/r26_outcome_ppo/v0.pt
 ceb19ed0a7d0a41093176c650b796c0283f5c4780bd7f30f1200c19202ad6c2b  runs/selfplay/r27_priority_ppo/v1.pt
 4e2e18cea9f16dbc95d946098f3cd006bcb4d4f4594fbd3757ab12b78b4850a6  runs/window2/critic_r27.json
+# r29's init (KNOWLEDGE/2026-11-14/208 §1): r28's v2 (update 1000), copied out of its live run directory; and r28's save at 685 (199 §8's split)
+d9f752952714db35c9362701f7e1eb280d6b658b3bf1af45acd231fc9b0ad032  runs/r28_looks/r28_v2.pt
+ed308ff2f6ce6b7344eff50a092b2191db081347567a5c21e18a76e0057f1038  runs/r28_looks/r28_u685.pt
