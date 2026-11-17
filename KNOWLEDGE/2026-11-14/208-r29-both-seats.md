@@ -219,3 +219,82 @@ change before it is used.
     link;
   - each arm's `preregistration.json`;
   - `tools/check.sh` green at that commit.
+
+## 9. Before launch (2026-11-17, before any r29 game)
+
+r29 waited from 2026-11-17 on the owner's order: the sets completed and a bug hunt first (209, 211,
+212). Everything below changed after the red team. It is the same for both arms and was recorded
+before any r29 game.
+
+**What changed.**
+- **The engine.** The bug hunt's fixes (212), merged as E2 68d59bf2, E1 c80f45f7, round 13
+  bb9932fa, G1 72ef87d2 and G2's merge:
+  - dead tokens cease;
+  - per-object state ends at a zone change;
+  - entering counters are journalled;
+  - the layer order and timestamps;
+  - costs read control;
+  - the attacker divides combat damage, through a new "divide" ask;
+  - conditional mana is priced, and each mana ability of a permanent pays;
+  - targets are priced together;
+  - a negative number counts as 0;
+  - a prevention is scoped to what it names;
+  - a spell moved off the stack leaves it;
+  - "exiled with" reads the life the exile arrived in.
+- **The IR.** Round 12 (one quantity comparison, 8d0bf62e) and round 13 (PERMIT and REPLACE).
+  Verification wave 4 re-verified the M21 and M20 stamps round 12 changed.
+- **The network's inputs.**
+  - N1/N2 (210 §8): every token pooled, no card name a token. v2 reads bitwise as saved.
+  - T1's option encodings: an ability as a target, and a source's several triggers. v2 is bitwise
+    on every other ask.
+- **The harness (T1, 5411f386).**
+  - A failed gate is committed before it is logged.
+  - A resume keeps the run's own table.
+  - Gate blocks move with `--seed`, so r29's gate deals are not r28's.
+  - A batch takes games in the order they were issued.
+  - A hung game is voided after 600 s.
+- **The heuristic (T1).** It aims each target by what the effect does to it, and scores
+  0.533-0.540 against the old heuristic. It is 15% of the training mix and the rating anchor.
+- **The pool.** The verified cards at the launch commit:
+  - M21: 274 of 285;
+  - M20: 283 of 329;
+  - FDN: 261 of 517, not dealt.
+  The table refresh at start rebuilds rows and adds tokens, logged in the run's `refresh_table` row.
+
+**Known open faults at launch.** Both are rare in M21/M20 games. Both are fixed before the FDN
+segment below:
+- **Counters on a card off the battlefield.** A counter put on a card that has already left the
+  battlefield stays on it when it returns to the battlefield (CR 122.2, 400.7; stronger). The soak
+  flags the placement in about 5% of random M20 games; the return needs Brought Back, Gravewaker or
+  Cavalier of Night after it.
+- **Battlefield endpoints read the zone owner.** A ZoneChangeEvent endpoint on the battlefield
+  scoped to a player reads the zone owner, not the controller (`binding._zone_matches`; weaker):
+  - a stolen enchantment leaving gives Starfield Mystic no counter;
+  - a card entering under a non-owner's control misses its own enters trigger.
+
+**What it means.**
+- **B1 and B2 are clean.** B1 (A against B) and B2 (both on L) compare arms on the same code.
+- **B8 is exposed.** It compares B's gates against v2 with r28's 32, which were played on the old
+  engine, pool and gate deals.
+  - v2 never trained on the divide ask or the changed cards. A network trained on the new code may
+    beat v2 a little for that alone.
+  - B3 is the registered guard. With A's 3 gates (se about 0.0046) it trips only on a shift of
+    about 0.009, while B8's threshold is +0.01.
+- **Amendment, before any data.** B8's comparator is the larger of two numbers: r28's 0.4979, and
+  A's mean over its gates against v2. B must clear both.
+  - The shift a new ask and changed cards give should be learned early, so A's gates carry most of
+    it.
+  - Taking the larger only makes B8 harder to meet.
+  - The cost is power: B8's se rises to about 0.0062 when A's mean is the larger.
+  - `decide.py` does not read B8, which comes at B's update 300, so no script changes.
+- **FDN joins after B8.** The A/B and B8 deal M21 and M20, as r28 did and as registered. When B8
+  is read (update 300, or 500), the main run goes on as its own segment, under a short
+  registration of its own:
+  - FDN is added (`--extend-sets FDN`, `--refresh-table`);
+  - the engine fixes merged by then come in, the two open faults above among them.
+  This keeps B8 readable, and puts FDN, the third set the owner wants played, into training within
+  about a day.
+- **No CPU-heavy agent work runs during the arms** (§4). FDN's remaining verification (waves 3 and
+  4, nine batches) resumes after the A/B.
+- **Smoke.** `start.sh`'s start and resume were smoked on main's code at 1fb4463f: CPU, 2 updates,
+  then a resume to 3, with no refusal.
