@@ -507,7 +507,7 @@ class LastKnown(NamedTuple):
     (a granted "When this creature dies" looks back at its death, CR 603.10a); ``identity`` its
     printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
     ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
-    "Whenever equipped creature dies", CR 603.10a)."""
+    "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped."""
 
     power: int | None
     toughness: int | None
@@ -521,6 +521,7 @@ class LastKnown(NamedTuple):
     granted: tuple[GrantedAbility, ...] = ()
     identity: CardIdentity | None = None
     attached: tuple[Handle, ...] = ()
+    tapped: bool = False
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -942,10 +943,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return False
         frame = next((f for f in ctx.executor.stack.frames if f.handle == handle), None)
         return frame is not None and frame.spell_kind == atom.string_value
-    if pred is FAtomPred.IS_TAPPED:
-        return world.cards[handle].tapped
-    if pred is FAtomPred.IS_UNTAPPED:
-        return not world.cards[handle].tapped
+    if pred in (FAtomPred.IS_TAPPED, FAtomPred.IS_UNTAPPED):
+        # Judged on its own departure (CR 603.10a), or a token that ceased to exist: as it last
+        # was on the battlefield (CR 608.2h); a card in another zone is untapped (CR 110.5d).
+        lki = departed_lki(handle, ctx)
+        tapped = lki.tapped if lki is not None else world.cards[handle].tapped
+        return tapped == (pred is FAtomPred.IS_TAPPED)
     if pred is FAtomPred.IS_PERMANENT:
         # CR 110.1: a permanent card is a CARD THAT HAS A PERMANENT CARD
         # TYPE, not "a card sitting on the battlefield". Gates asked OFF the
@@ -1978,7 +1981,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     object). On the stack, the CAST row after its move onto the stack; on the
     battlefield, the CAST row inside the stack residency its last entry came
     from (a resolving permanent spell is the object that was cast, the
-    WAS_KICKED permanent-lane reading); in any other zone, None. The whole
+    WAS_KICKED permanent-lane reading); in any other zone, or a token that
+    ceased to exist (no token was cast, CR 111.1), None. The whole
     journal is read: the object's cast may be older than this turn."""
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
     from MTG_bot.core.state import ZONE_STACK
@@ -1989,6 +1993,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
             "executor: a was-cast read needs the journalled zone history "
             "(this ExecCtx has no journal)"
         )
+    if handle not in ctx.world.cards:
+        return None
     zone = ctx.world.zone_of(handle).kind
     if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
         return None

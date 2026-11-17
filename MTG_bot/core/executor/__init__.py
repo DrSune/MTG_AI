@@ -1201,6 +1201,7 @@ class Executor:
                     state.identity,
                     # before the binder's leave-detach prunes the table
                     tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
+                    state.tapped,  # before it is untapped below
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is

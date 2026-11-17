@@ -17,8 +17,9 @@
   it (CR 118.3, 701.9a).
 * A spell cast by an effect pays its own additional costs on top of the mana cost or
   the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
-* A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
-  after its leave triggers have fired.
+* A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7) at the
+  check after it left, its leave triggers waiting; they read its last known information
+  (CR 608.2h), its controller and whether it was tapped included.
 * A cost increase for spells that target a permanent is folded with the declared
   targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
   End to end in the terror_* and pursued_whale_* packs.
@@ -649,6 +650,59 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
             controller=self.p0,
         )
         self.assertEqual(self.world.zone_of(tok).kind, ZONE_BATTLEFIELD)
+
+    def watcher(self, amount, condition=None):
+        """Alpha: "Whenever a creature an opponent controls dies, [if <condition>,] that player
+        loses <amount> life" (Massacre Wurm's shape)."""
+        from MTG_bot.core.ability_tree import CreatureDiesEvent, FAnd, FAtom, FAtomPred
+        from MTG_bot.core.ability_tree import TriggeredAbility
+        from MTG_bot.core.test_executor_binding import record_of
+
+        opponents = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
+        trigger = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAnd((UNIV, opponents))),
+            condition=condition,
+            effect=atom(Verb.LOSE_LIFE, amount=amount, controller=ControllerRef.TARGET_PLAYER),
+        )
+        oid = self.world.cards[self.alpha].identity.oracle_id
+        self.ex.attach_card(self.alpha, record_of([trigger], oid=oid))
+
+    def test_a_dead_token_ceases_while_its_trigger_waits(self):
+        # CR 704.5d, 117.5: the token ceases at the check before the trigger goes on the stack,
+        # so nothing can find it there; the trigger reads its last known information (CR
+        # 608.2h): "that player" is its controller.
+        self.watcher(QConst(2))
+        tok = self.token(self.p1)
+        with self.ex.holding_priority():
+            self.kill(tok)
+            self.ex._priority_check()  # the killer keeps priority (CR 117.3c, 117.5)
+        self.assertEqual([f.spell_kind for f in self.ex.stack.frames], ["TRIGGERED"])
+        self.assertNotIn(tok, self.world.cards)
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_its_trigger_reads_it_through_a_filter(self):
+        # "That player loses 1 life for each creature they control": CONTROLLER_IS
+        # TARGET_PLAYER of the ceased token reads its last known controller (Beta is left).
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, QCount, Selector, SelectorMode
+        from MTG_bot.core.test_executor_verbs import BF_ANY
+
+        theirs = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER)
+        self.watcher(QCount(Selector(QConst(1), SelectorMode.ALL, theirs, zones=(BF_ANY,))))
+        self.kill(self.token(self.p1))
+        self.assertEqual(self.world.players[self.p1].life, 19)
+
+    def test_an_intervening_if_reads_it_as_it_last_existed(self):
+        # CR 603.4, 608.2h: "if it was untapped" is checked again as the trigger resolves, on
+        # the ceased token's last known information: it was tapped, so nothing happens.
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        self.watcher(QConst(2), condition=FAtom(FAtomPred.IS_UNTAPPED))
+        tapped = self.token(self.p1, name="Tapped")
+        self.world.cards[tapped].tapped = True
+        self.kill(tapped)
+        self.kill(self.token(self.p1, name="Untapped"))
+        self.assertEqual(self.world.players[self.p1].life, 18)
 
 
 class TestV29TargetDependentTax(unittest.TestCase):

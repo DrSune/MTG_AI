@@ -295,6 +295,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
   hash the spec's abilities into the id (an emblem's record is keyed by a hash of its EmblemSpec
   since 2026-11-12, `verbs.emblem_record`).
+- **A planeswalker's entering loyalty is journalled on the cast lane only** (2026-11-17, found
+  with the fix that journals the counters a permanent enters with, CR 122.6). CR 306.5b: its
+  loyalty counters are put on it as it enters. A cast planeswalker's seed
+  (`TriggerBinder._register`'s setdefault) lands inside the CAST boundary, so the diff writes its
+  COUNTER_PLACED row; one put onto the battlefield by an effect is seeded during the binder's
+  lifecycle, after its boundary closed, and writes none. No verified trigger reads a loyalty
+  placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement.
+- **Two handle-keyed reads that ignore CR 400.7** (2026-11-17, the audit of handle-keyed state
+  after the loyalty-clock and attachment fixes; neither live in the verified pools):
+  `CAST_THIS_TURN_FROM` (`quantity._eval_atom`) reads any CAST row of the card this turn, so a
+  card cast from a graveyard, then bounced and cast from the hand, still reads "you cast it from
+  your graveyard" (Archfiend's Vessel; it needs a cast-from-graveyard permission); read the
+  object's own row (`_object_cast_row`, as WAS_CAST_THIS_TURN does). And the CR 704.5n lane of
+  `Executor._state_checks` unattaches an Equipment before the departure snapshot of a creature
+  that dies in the same check, so "Whenever equipped creature dies" misses it (CR 704.3: the
+  actions are simultaneous).
 
 ### Effects, zones and replacements
 
@@ -398,6 +414,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
+- **CR 111.8 holds between resolutions only** (2026-11-17, the residue of B-112, whose trigger
+  window the bug-hunt fix closed: a token now ceases at the check after it left, and nothing finds
+  it). Inside one resolution, a later instruction can still move a token an earlier one moved off
+  the battlefield: an "exile it, then return it" of a token returns it, where it should stay in
+  exile and cease (`verbs._v_move_zone` moves any card it is given). No tree of the 19 sets moves
+  one object twice in a resolution (Transmogrify returns another card). Fix: MOVE_ZONE leaves a
+  token that is not on the battlefield where it is.
 - **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
   the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
   "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap
@@ -1620,6 +1643,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### What the network sees
 
+- **An ability whose source is a token that ceased to exist is not shown** (2026-11-17, the
+  bug-hunt fix for dead tokens). `features.encode` (~571) shows an ability on the stack as its
+  source's entity only while the source is a world card, and the trigger-order options that name
+  such a source all read entity 0. A token now ceases at the check after it left, before its own
+  leave triggers go on the stack, so these are hidden: Infernal Scarring's granted "When this
+  creature dies, draw a card" on a token, a sacrificed token's activated ability (Mask of
+  Immolation's, as before the fix). Rare in the verified pools. Candidate: the entity of its last
+  known information (`Executor.departed_lki[source].identity`), as a card in no zone.
 - **A trigger on the stack shows no event-derived number** (2026-11-13, ontology round R10). The
   card's tokens show a gathered trigger (`@once_per_event bool:True`, `QPropField.THAT_MANY_COUNT`,
   the `event` referent), and the trigger on the stack is its source's entity with its ability

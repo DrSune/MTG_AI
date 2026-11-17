@@ -214,8 +214,11 @@ def controller_matches(
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
     if who in DESIGNATED_PLAYER_REFS:
+        # As players_for_ref reads it: a designated object that has left is read by the
+        # controller it last had (CR 608.2h), a token that ceased to exist by nothing else.
         bound = designated_player(ctx) or []
-        return actual in [h if h.namespace == "player" else controller_of(ctx, h) for h in bound]
+        players = [h if h.namespace == "player" else last_known_controller(ctx, h) for h in bound]
+        return actual in players
     return who is ControllerRef.ANY
 
 
