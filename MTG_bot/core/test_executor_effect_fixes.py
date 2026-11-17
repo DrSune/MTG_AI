@@ -100,6 +100,44 @@ def leave_and_return(r, key):
     r.run_step({"op": "enter", "key": key})
 
 
+class TestANegativeNumberIsZero(unittest.TestCase):
+    """CR 107.1b: a calculation that yields a negative number for an effect gives 0 (engine wave
+    E2, from mapper M5: Halana and Alena at power -2 removed two counters where it puts none).
+    One place, selectors.effect_number, for every verb's number."""
+
+    def test_no_effect_does_a_negative_number_of_things(self):
+        from MTG_bot.core.ability_tree import QProp, QPropField
+
+        minus_two = QProp(referent="source", field=QPropField.POWER)  # "X is its power", at -2
+        target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))
+        for verb, roles in (
+            (Verb.PUT_COUNTER, (("count", minus_two), ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                                ("target", target))),
+            (Verb.REMOVE_COUNTER, (("count", minus_two),
+                                   ("counter_kind", CounterKind.PLUS_1_PLUS_1), ("target", target))),
+            (Verb.GAIN_LIFE, (("amount", minus_two), ("controller", ControllerRef.YOU))),
+            (Verb.LOSE_LIFE, (("amount", minus_two), ("controller", ControllerRef.YOU))),
+            (Verb.MODIFY_PT, (("power", PtDelta(PtDirection.DECREASE, minus_two)),
+                              ("target", target))),
+        ):
+            bear_ = bear("bear", 0)
+            bear_["counters"] = {"PLUS_1_PLUS_1": 3}
+            r = runner([bear_, {"key": "src", "name": "Weakling", "type": "Creature — Imp",
+                                "power": "0", "toughness": "3", "zone": "battlefield",
+                                "controller": 0}])
+            r.ex.execute(Atom(Verb.MODIFY_PT, AtomArgs((
+                ("power", PtDelta(PtDirection.DECREASE, QConst(2))), ("target", target)))),
+                source=r.handles["src"], controller=r.p0, bindings={"target": r.handles["src"]})
+            self.assertEqual(pt(r, "src"), (-2, 3))
+            before = (dict(r.world.cards[r.handles["bear"]].counters), pt(r, "bear"),
+                      r.world.players[r.p0].life)
+            r.ex.execute(Atom(verb, AtomArgs(roles)), source=r.handles["src"], controller=r.p0,
+                         bindings={"target": r.handles["bear"]})
+            after = (dict(r.world.cards[r.handles["bear"]].counters), pt(r, "bear"),
+                     r.world.players[r.p0].life)
+            self.assertEqual(after, before, verb.name)
+
+
 class TestTheDiscardingPlayerChooses(unittest.TestCase):
     """CR 701.9b: the discarding player chooses. Engine wave E2, from mapper M3: a record's "each
     opponent discards a card" (the plural controller role, Bad Deal's form with one card) was

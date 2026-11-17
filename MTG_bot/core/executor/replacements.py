@@ -94,11 +94,12 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations import duration_tag
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter, resolve
+from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     _filter_names_the_source,
     controller_matches,
+    effect_number,
 )
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD
@@ -512,7 +513,7 @@ class ReplacementRegistry:
             bindings={"event": [victim]},
             event_amount=amount,
         )
-        return max(0, resolve(quantity, ev_ctx))
+        return effect_number(quantity, ev_ctx)
 
     def _choose(
         self,

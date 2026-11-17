@@ -85,6 +85,7 @@ from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     amount,
     apnap_order,
+    effect_number,
     existing,
     last_known_controller,
     move_destination,
@@ -180,7 +181,7 @@ def _hand_picks(ctx: ExecCtx, sel: Selector, player: Handle, discard: bool) -> l
     unbounded = isinstance(sel.count, QUnbounded)
     if unbounded and sel.mode is not SelectorMode.CHOOSE:
         return pool
-    want = len(pool) if unbounded else resolve(sel.count, ctx)
+    want = len(pool) if unbounded else effect_number(sel.count, ctx)
     optional = unbounded or isinstance(sel.count, QAtMost)
     if sel.mode is not SelectorMode.CHOOSE or want <= 0 or (want >= len(pool) and not optional):
         return pool[:want]
@@ -324,7 +325,7 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
-        n = 0 if isinstance(sel.count, QUnbounded) else resolve(sel.count, ctx)
+        n = 0 if isinstance(sel.count, QUnbounded) else effect_number(sel.count, ctx)
         # The ONE_OF/REST partition modes SELECT specific cards (the pick /
         # its complement), and so does an ALL over the looked-at cards (the
         # top of a library: every card of the window that passes the filter,
@@ -692,9 +693,9 @@ def _v_deal_damage(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "DAMAGE_NO_DEALER", str(ctx.source)))
         ctx.bindings["result"] = []  # no object was dealt damage this way
         return
-    # CR 107.1b: a negative result (a negative power) means 0; CR 120.8: a
+    # CR 107.1b: a negative result (a negative power) means 0 (amount); CR 120.8: a
     # source that would deal 0 damage deals no damage at all.
-    n = max(0, amount(ctx, atom, "amount"))
+    n = amount(ctx, atom, "amount")
     if n == 0:
         ctx.bindings["result"] = []
         return
@@ -1121,7 +1122,7 @@ def _pt_delta_value(quantity: object, ctx: ExecCtx) -> int:
     """power/toughness role -> a signed int adjustment (PtDelta keeps
     magnitudes non-negative; a bare Quantity reads as an increase)."""
     if isinstance(quantity, PtDelta):
-        magnitude = resolve(quantity.magnitude, ctx)
+        magnitude = effect_number(quantity.magnitude, ctx)  # CR 107.1b
         if quantity.direction is PtDirection.DECREASE:
             return -magnitude
         return magnitude
@@ -1345,7 +1346,7 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
     assert isinstance(spec, TokenSpec)
     count_quantity = atom.args.get("count")
     assert count_quantity is None or isinstance(count_quantity, Quantity)
-    n = 1 if count_quantity is None else resolve(count_quantity, ctx)
+    n = 1 if count_quantity is None else effect_number(count_quantity, ctx)
     creator = ctx.controller
     if atom.args.get("controller") is not None:
         # The anaphoric creator — "ITS CONTROLLER creates a … token" (Secure
@@ -1686,7 +1687,7 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
     player = role_player(ctx, atom, "controller")
     count_q = atom.args.get("amount")
     assert isinstance(count_q, Quantity)
-    n = resolve(count_q, ctx)
+    n = effect_number(count_q, ctx)
     ex = ctx.executor
     # CR 121.2: drawing N cards is N single card draws, and a draw replacement applies to each
     # of them. The CardDrawnEvent replacement lane (Teferi's Ageless Insight): a live record
@@ -1896,7 +1897,7 @@ def _v_extra_turn(ctx: ExecCtx, atom: Atom) -> None:
     executor = _executor_or_raise(ctx, atom.verb.name)
     count_q = atom.args.get("count")
     assert isinstance(count_q, Quantity)
-    n = resolve(count_q, ctx)
+    n = effect_number(count_q, ctx)
     executor.extra_turn_queue[0:0] = [ctx.controller] * n
     ctx.events.append((len(ctx.events), "EXTRA_TURN", str(ctx.controller), n))
 
@@ -2300,7 +2301,7 @@ def _v_add_land_play(ctx: ExecCtx, atom: Atom) -> None:
     if count_q is None:
         count_q = QConst(1)
     assert isinstance(count_q, Quantity)
-    count = resolve(count_q, ctx)
+    count = effect_number(count_q, ctx)
     layers.register_land_play(ctx.source, ctx.controller, count, duration)
     ctx.events.append(
         (

@@ -1435,7 +1435,7 @@ class Executor:
                 # object that entered without being cast has X 0 (CR 107.3g). A
                 # negative result gives no counters (107.1b).
                 from MTG_bot.core.executor.legality import ctx_for
-                from MTG_bot.core.executor.quantity import resolve
+                from MTG_bot.core.executor.selectors import effect_number
 
                 qctx = ctx_for(
                     self,
@@ -1443,7 +1443,7 @@ class Executor:
                     controller=self.world.controller_of(card),
                     x_value=self.etb_x.get(card, 0),
                 )
-                n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
+                n = effect_number(quantity, qctx)
                 if not n:
                     continue
                 if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
