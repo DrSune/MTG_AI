@@ -1,0 +1,88 @@
+{
+ "name": "malefic_scythe_creature_once_equipped_dies_unequipped_later",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt 3 F2). Malefic Scythe: 'Whenever equipped creature dies, put a soul counter on Malefic Scythe.' The Scythe (1 soul counter as it enters) is equipped to the Pegasus, which is bounced and cast again: a new object (CR 400.7), equipped by nothing. The Scythe is moved to the Ox, and then the unequipped Pegasus dies. CR 603.10a: it was not equipped as it died, so nothing triggers: 1 soul counter, Ox 3/3 + 1 = 4/4. Failed before the fix: the attachment snapshot of the Pegasus's first departure (Executor.detach_lki) was never dropped when it came back, answered IS_ATTACHED_TO_SOURCE at its death, and the Scythe got a second counter (Ox 5/5). What was attached as it left is now part of its last known information, dropped when it re-enters.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scythe",
+   "real": "Malefic Scythe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "peg",
+   "real": "Concordia Pegasus",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Ox",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "scythe"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 0,
+   "targets": [
+    "peg"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "peg",
+   "to": "hand"
+  },
+  {
+   "op": "enter",
+   "key": "peg"
+  },
+  {
+   "op": "activate",
+   "key": "scythe",
+   "idx": 3,
+   "seat": 0,
+   "targets": [
+    "ox"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "peg",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "attached": {
+   "scythe": "ox"
+  },
+  "counters": {
+   "scythe": {
+    "SOUL": 1
+   }
+  },
+  "power": {
+   "ox": 4
+  }
+ }
+}

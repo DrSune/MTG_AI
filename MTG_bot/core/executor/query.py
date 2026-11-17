@@ -604,6 +604,7 @@ def optional_offer(
     source: Handle,
     controller: Handle,
     bindings: dict[str, Binding] | None = None,
+    origin_clock: int = 0,
 ) -> tuple[str, ...]:
     """The two-way may-offer as decision tokens — ``("fire", "skip")``
     when firing is actionable, narrowed to ``("skip",)`` when the inner
@@ -639,6 +640,7 @@ def optional_offer(
             f"optional_offer: needs an OptionalEffect, got {type(effect).__name__}"
         )
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    ctx.origin_clock = origin_clock  # the resolving ability's own life, as at runtime
     # A PAY atom is the other unactionable-action shape — "You may pay {2}"
     # that nothing can pay offers only skip (CR 117.3: no resources, no
     # action), and _v_pay RAISES if a 'fire' decision ever reaches an

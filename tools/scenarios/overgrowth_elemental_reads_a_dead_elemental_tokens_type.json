@@ -1,0 +1,50 @@
+{
+ "name": "overgrowth_elemental_reads_a_dead_elemental_tokens_type",
+ "set": "M20",
+ "notes": "Guard for the dead-token fix of 2026-11-17 (BACKLOG B-112, closed). Overgrowth Elemental: 'Whenever another creature you control dies, you gain 1 life. If that creature was an Elemental, put a +1/+1 counter on this creature.' P0's 1/1 Elemental token dies and ceases to exist at the state-based check before the trigger goes on the stack (CR 704.5d, 117.5). The trigger reads it by its last known information (CR 608.2h): it was an Elemental, so P0 gains 1 and Overgrowth (3/2) gets a counter. A reading that found nothing once the token ceased would give no counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "og",
+   "real": "Overgrowth Elemental",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Elemental",
+   "type": "Creature — Elemental",
+   "power": "1",
+   "toughness": "1",
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "tok",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tok": "ceased"
+  },
+  "counters": {
+   "og": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "og": 4
+  },
+  "life": {
+   "0": 21
+  }
+ }
+}

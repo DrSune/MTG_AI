@@ -1,0 +1,29 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_returned_forgets_what_its_earlier_life_exiled",
+ "notes": "Bug hunt 2026-11-17 (mapper M3, Hoarding Dragon's draft; wave E1). Bag of Holding: 'Whenever you discard a card, exile that card from your graveyard. / {2}, {T}: Draw a card, then discard a card. / {4}, {T}, Sacrifice this artifact: Return all cards exiled with this artifact to their owner's hand.' The Bag loots Spare A away (exiled by its trigger), then returns to its owner's hand and is put onto the battlefield again: a new object (CR 400.7). It loots Spare B away, and on seat 0's next turn its sacrifice returns the cards exiled with this object only (CR 607.2a): Spare B, not Spare A. Hand: 2, +1 -1, +1 the Bag, -1 the Bag, +1 -1, +1 the turn's draw, +1 Spare B = 4. Failed before the fix: IS_EXILED_WITH_SOURCE read every exile the card's handle caused, across its lives, and Spare A came back too (hand 5).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "spare_b", "name": "Spare B", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]},
+  {"op": "move", "key": "bag", "to": "hand"},
+  {"op": "enter", "key": "bag"},
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_b"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "spare_a": "exile", "spare_b": "hand"},
+  "hand": {"0": 4}
+ }
+}

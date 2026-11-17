@@ -1,0 +1,5 @@
+EXILED_WITH M20 Bag of Holding verified
+EXILED_WITH M21 Idol of Endurance verified
+GRAVEYARD-ONLY FDN Flamewake Phoenix unverified Creature — Phoenix
+GRAVEYARD-ONLY FDN Gate Colossus unverified Artifact Creature — Construct
+GRAVEYARD-ONLY M21 Silversmote Ghoul verified Creature — Zombie Vampire

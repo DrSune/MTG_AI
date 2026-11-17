@@ -1,0 +1,63 @@
+{
+ "name": "cavalier_of_night_cannot_return_a_dead_token",
+ "set": "M20",
+ "notes": "Bug hunt 2026-11-17 (hunt 3 F4b, hunt 2 H2-1; BACKLOG B-112, closed). A 2/2 Wolf token dies while P0 controls Moldervine Reclamation ('Whenever a creature you control dies, you gain 1 life and draw a card'), whose trigger waits on the stack. Then Cavalier of Night dies: 'When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.' CR 704.5d, 111.7-8: the token ceased to exist at the state-based check before the Cavalier's trigger was put on the stack, so it is no legal target; the trigger has none and is removed (CR 603.3d). Both deaths still draw through Moldervine. Failed before the fix: the token, kept in the graveyard as the Moldervine trigger's last-known information, was the Cavalier trigger's only target and came back to the battlefield.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cav",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mold",
+   "real": "Moldervine Reclamation",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Wolf",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "tok",
+   "to": "graveyard",
+   "hold": true
+  },
+  {
+   "op": "move",
+   "key": "cav",
+   "to": "graveyard",
+   "hold": true,
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tok": "ceased",
+   "cav": "graveyard",
+   "mold": "battlefield"
+  },
+  "life": {
+   "0": 22
+  }
+ }
+}

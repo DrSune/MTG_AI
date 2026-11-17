@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_returns_its_cards_though_it_came_back_meanwhile",
+ "notes": "Guard for the 'exiled with' fix of 2026-11-17 (wave E1; its fresh-eyes review). Bag of Holding loots Spare A away (exiled with this object); two turns later it activates its sacrifice return, and with the ability on the stack the Bag card is put back onto the battlefield, a new object (CR 400.7). The ability is the old object's (CR 113.7a, 607.2a): it returns the cards exiled with that object, so Spare A comes back to hand, though the Bag on the battlefield now exiled none. Hand: 1, +1 -1, +1 the turn's draw, +1 Spare A = 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0, "hold": true},
+  {"op": "move", "key": "bag", "to": "battlefield", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"bag": "battlefield", "spare_a": "hand"},
+  "hand": {"0": 3}
+ }
+}
