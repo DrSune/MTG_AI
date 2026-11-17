@@ -6,5 +6,5 @@
   {"key": "l1", "zone": "hand", "controller": 0, "name": "Lib B", "type": "Creature — Bear", "power": 2, "toughness": 2}
  ],
  "mana": {},
- "steps": [{"op": "combat", "seat": 0, "attack": {"je": true}, "may": {"je": true}}],
+ "steps": [{"op": "combat", "seat": 0, "attack": {"je": true}, "may": {"je": true}, "decisions": ["l1"]}],
  "expect": {"life": {"1": 19}, "hand": {"0": 1}, "graveyard": {"0": ["Lib B"]}}}

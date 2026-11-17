@@ -48,7 +48,8 @@
    "attack": {
     "striker": true,
     "grog": false
-   }
+   },
+   "decisions": ["grog"]
   }
  ],
  "expect": {

@@ -1,18 +1,49 @@
 {
  "set": "M21",
- "notes": "Vodalian Arcanist, printed: '{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.' Tap the Arcanist for {C}; with {B} also in the pool, try to cast Walking Corpse ({1}{B}, a creature spell): the {C} may not be spent on it, so the total {1}{B} cannot be paid and the cast is refused. Walking Corpse stays in hand.",
- "world": {"life": 20, "seed": 7},
+ "notes": "Vodalian Arcanist, printed: '{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.' Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). With {B} in the pool, Walking Corpse ({1}{B}, a creature spell) cannot use the Arcanist's {C}, so the payer finds no payment: the cast is refused, Walking Corpse stays in hand and the Arcanist stays untapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "va", "real": "Vodalian Arcanist", "zone": "battlefield", "controller": 0},
-  {"key": "wc", "real": "Walking Corpse", "zone": "hand", "controller": 0}
+  {
+   "key": "va",
+   "real": "Vodalian Arcanist",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"B": 1}},
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
  "steps": [
-  {"op": "activate", "key": "va", "idx": 0, "seat": 0},
-  {"op": "cast", "real": "Walking Corpse", "key": "wc", "expect_raise": "cost:mana_generic"}
+  {
+   "op": "cast",
+   "real": "Walking Corpse",
+   "key": "wc",
+   "tap": true,
+   "expect_raise": "cannot pay it"
+  }
  ],
  "expect": {
-  "tapped": {"va": true},
-  "zone": {"wc": "hand"}
+  "tapped": {
+   "va": false
+  },
+  "zone": {
+   "wc": "hand"
+  },
+  "mana_pool": {
+   "0": {
+    "B": 1
+   }
+  }
  }
 }

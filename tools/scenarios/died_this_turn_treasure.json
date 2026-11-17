@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "B-56 regression (fixed 2026-10-29). Twinblade Assassins: 'At the beginning of your end step, if a creature died this turn, draw a card.' Only a Treasure (noncreature) goes to the graveyard this turn (the zone and tokens expectations prove the sacrifice happened) -> NO draw expected: the hand stays at the setup draw's 1. Before the fix DIED_THIS_TURN counted every battlefield-to-graveyard dies row and the trigger drew. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token (games.identity_of kept is_token), so a sacrificed Treasure ceases to exist (CR 704.5d, V35) instead of lying in the graveyard: its zone expectation is 'ceased' (was 'graveyard', which encoded the token-in-graveyard gap).",
+ "notes": "B-56 regression (fixed 2026-10-29). Twinblade Assassins: 'At the beginning of your end step, if a creature died this turn, draw a card.' Mana abilities are no menu rows (2026-11-11): the payer sacrifices a Treasure while a cost is paid, choosing its colour (CR 605.3a), so the pack casts with \"tap\": true. The Treasure pays Shock's {R} (2 to the opponent), so only a Treasure, a noncreature, goes to the graveyard this turn -> NO draw: the hand keeps its one card. Before the fix DIED_THIS_TURN counted every battlefield-to-graveyard dies row and the trigger drew. A sacrificed Treasure is a token that left the battlefield, so it ceases to exist (CR 704.5d): its zone is 'ceased'.",
  "cards": [
   {
    "key": "tw",
@@ -44,18 +44,23 @@
    "type": "Creature — Bear",
    "power": 2,
    "toughness": 2
+  },
+  {
+   "key": "sk",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Shock"
   }
  ],
  "mana": {},
  "steps": [
   {
-   "op": "activate",
-   "key": "t1",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "G"
-   ]
+   "op": "cast",
+   "key": "sk",
+   "targets": [
+    "p1"
+   ],
+   "tap": true
   },
   {
    "op": "end_turn"
@@ -66,10 +71,14 @@
    "0": 1
   },
   "zone": {
-   "t1": "ceased"
+   "t1": "ceased",
+   "sk": "graveyard"
   },
   "tokens": {
    "Treasure": 0
+  },
+  "life": {
+   "1": 18
   }
  }
 }

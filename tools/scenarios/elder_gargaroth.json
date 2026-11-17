@@ -17,7 +17,8 @@
       "seat": 0,
       "attack": {
         "g": true
-      }
+      },
+      "decisions": ["0"]
     }
   ],
   "expect": {
@@ -44,5 +45,5 @@
       "Beast": 1
     }
   },
-  "notes": "Printed: 'Vigilance, reach, trample' + the attack/block choose-one. All three keywords read on the layers lane; the attack goes through, 6 damage lands (life 20->14) and VIGILANCE keeps it UNtapped. The attack trigger's mode ask is answered by the harness default (first legal mode) = 'create a 3/3 Beast token' - the tokens lane pins it. (If the engine's default mode differs, this pin moves with the observed vocab, never the assert.)"
+  "notes": "Printed: 'Vigilance, reach, trample' + the attack/block choose-one. All three keywords read on the layers lane; the attack goes through, 6 damage lands (life 20->14) and VIGILANCE keeps it UNtapped. The combat step answers the attack trigger's mode ask '0' = 'create a 3/3 Beast token' - the tokens lane pins it."
 }

@@ -34,36 +34,19 @@
  ],
  "steps": [
   {
-   "op": "activate",
-   "key": "t",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "W"
-   ]
-  },
-  {
-   "op": "activate",
-   "key": "t2",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "U"
-   ]
-  },
-  {
    "op": "cast",
    "real": "Defiant Strike",
    "key": "ds",
    "targets": [
     "soldier"
-   ]
+   ],
+   "tap": true
   }
  ],
  "expect": {
   "zone": {
    "t": "ceased",
-   "t2": "ceased",
+   "t2": "battlefield",
    "ds": "graveyard"
   },
   "power": {
@@ -73,13 +56,11 @@
    "0": 1
   },
   "tokens": {
-   "Treasure": 0
+   "Treasure": 1
   },
   "mana_pool": {
-   "0": {
-    "U": 1
-   }
+   "0": {}
   }
  },
- "notes": "r24a (2026-10-02) HARNESS — promoted from suspects. History: the suspect died at setup \"pool has no card 'Treasure'\": compile_supply filters is_token records out of metas, so no pack could ever name a token, although the Treasure golden sits in supply.pool.results (one ActivatedAbility {T},Sac -> ADD_MANA 1 ANY) and binder.attach_pool/legality.spell_record resolve it by real oracle_id — run_scenarios gained a token-golden fallback for \"real\" refs (harness-only; engine untouched). t's W is paid into Defiant Strike (soldier power 2 proves the payment); t2's U survives in the mana_pool expect lane added this batch. DOCUMENTED LIMITATION: engine-minted tokens (Gadrak) still have no pack address — the keyless-mint law stands (PITFALLS); the report lane tokens.Treasure works (24a probe), so the pack sets up real-token copies instead. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token, and a token in a hand ceases to exist at once (CR 704.5d, V35), so the setup 'Treasure in hand, then enter' was impossible; the two Treasures now start on the battlefield (no enter steps), and after their sacrifice they are 'ceased', not in the graveyard. The mana (W into Defiant Strike, U left in the pool) is asserted as before."
+ "notes": "r24a (2026-10-02) HARNESS: a pack names a token by its golden ('real': 'Treasure', the runner's token fallback: compile_supply keeps is_token records out of metas, but the golden sits in supply.pool.results with its {T}, Sacrifice: Add one mana of any color). Mana abilities are no menu rows (2026-11-11): the payer sacrifices a Treasure while a cost is paid, choosing its colour (CR 605.3a), so the pack casts with \"tap\": true. The first Treasure (the lowest Handle) pays Defiant Strike's {W} (the Soldier's power 2 and the drawn card prove the cast); the second is untouched. A sacrificed Treasure is a token that left the battlefield, so it ceases to exist (CR 704.5d): its zone is 'ceased'."
 }

@@ -10,7 +10,7 @@
  "mana": {"0": {"B": 2, "C": 3}},
  "steps": [
   {"op": "activate", "key": "vito", "idx": 1, "seat": 0},
-  {"op": "combat", "seat": 0, "attack": {"big": true, "small": true}, "block": {"guard": "small"}}
+  {"op": "combat", "seat": 0, "attack": {"big": true, "small": true, "vito": false}, "block": {"guard": "small"}, "decisions": ["first-legal"]}
  ],
  "expect": {
   "life": {"0": 26, "1": 10},

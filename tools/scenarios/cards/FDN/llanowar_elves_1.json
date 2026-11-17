@@ -1,23 +1,21 @@
-{"set": "FDN", "name": "llanowar_elves_summoning_sick_then_taps_for_one_green",
- "notes": "P7a0e742a3d G4. Printed: '{T}: Add {G}.' A creature's {T} ability needs it under its controller's control since the start of their most recent turn (CR 302.6): cast this turn, Llanowar Elves cannot tap (refused, nothing added). On seat 0's next turn it taps for exactly one {G}.",
+{
+ "set": "FDN",
+ "name": "llanowar_elves_summoning_sick_then_taps_for_one_green",
+ "notes": "P7a0e742a3d G4. Printed: '{T}: Add {G}.' A creature's {T} ability needs it under its controller's control since the start of their most recent turn (CR 302.6). Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer tapping a source (CR 605.3a), so the pack casts with \"tap\": true. Cast this turn, Llanowar Elves cannot pay Giant Growth's {G} (refused, nothing made). On seat 0's next turn it pays exactly that {G} (the pool is empty after) and gets +3/+3 from it.",
  "world": {"life": 20, "seed": 7},
  "cards": [
-  {"key": "elves", "real": "Llanowar Elves", "zone": "hand", "controller": 0}
+  {"key": "elves", "real": "Llanowar Elves", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"G": 1}},
  "steps": [
   {"op": "cast", "key": "elves"},
-  {"op": "activate", "key": "elves", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"},
+  {"op": "cast", "key": "gg", "targets": ["elves"], "tap": true, "expect_raise": "cannot pay it"},
   {"op": "end_turn"},
   {"op": "advance_turn"},
   {"op": "end_turn"},
   {"op": "advance_turn"},
-  {"op": "activate", "key": "elves", "idx": 0, "seat": 0}
+  {"op": "cast", "key": "gg", "targets": ["elves"], "tap": true}
  ],
- "expect": {
-  "turn_seats": [0, 1, 0],
-  "zone": {"elves": "battlefield"},
-  "tapped": {"elves": true},
-  "mana_pool": {"0": {"G": 1}, "1": {}}
- }
+ "expect": {"turn_seats": [0, 1, 0], "zone": {"elves": "battlefield", "gg": "graveyard"}, "tapped": {"elves": true}, "power": {"elves": 4}, "mana_pool": {"0": {}, "1": {}}}
 }

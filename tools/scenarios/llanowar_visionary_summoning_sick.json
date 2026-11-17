@@ -1,10 +1,15 @@
-{"set": "M21",
+{
+ "set": "M21",
  "world": {"life": 20, "seed": 7},
- "cards": [{"key": "v", "real": "Llanowar Visionary", "zone": "hand", "controller": 0}],
+ "cards": [
+  {"key": "v", "real": "Llanowar Visionary", "zone": "hand", "controller": 0},
+  {"key": "sniper", "real": "Skyway Sniper", "zone": "hand", "controller": 0}
+ ],
  "mana": {"0": {"G": 1, "C": 2}},
  "steps": [
   {"op": "cast", "real": "Llanowar Visionary", "key": "v"},
-  {"op": "activate", "key": "v", "idx": 1, "seat": 0, "expect_raise": "summoning sickness"}
+  {"op": "cast", "key": "sniper", "tap": true, "expect_raise": "cannot pay it"}
  ],
- "expect": {"zone": {"v": "battlefield"}, "tapped": {"v": false}, "mana_pool": {"0": {}}},
- "notes": "Printed: '{T}: Add {G}.' CR 302.6 / 602.5a: a creature's {T} ability (mana abilities included) cannot be activated the turn it comes under your control without haste. The Visionary is cast this turn, so the activation is refused: it stays untapped and no G is added."}
+ "expect": {"zone": {"v": "battlefield", "sniper": "hand"}, "tapped": {"v": false}, "mana_pool": {"0": {}}},
+ "notes": "Printed: '{T}: Add {G}.' CR 302.6 / 602.5a: a creature's {T} ability (mana abilities included) cannot be activated the turn it comes under your control without haste. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer tapping a source (CR 605.3a), so the pack casts with \"tap\": true. The Visionary is cast this turn, so it pays nothing: Skyway Sniper ({G}) cannot be cast with it, the Visionary stays untapped and no G is made."
+}

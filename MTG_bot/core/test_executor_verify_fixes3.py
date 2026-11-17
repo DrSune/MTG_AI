@@ -1657,10 +1657,11 @@ class TestAsEntersChoice(unittest.TestCase):
         }
         runner = ScenarioRunner(pack, get_supply("all", "M21"))
         halo = runner.handles["h"]
-        # Held triggers stay queued: before the fix the name waited in one.
-        runner.run_step({"op": "enter", "key": "h", "hold_triggers": True, "decisions": ["Runed Halo"]})
+        # The step holds priority, so a trigger would wait on the stack: before the fix the name
+        # waited in one.
+        runner.run_step({"op": "enter", "key": "h", "hold": True, "decisions": ["Runed Halo"]})
         self.assertEqual(runner.ex.name_choices.get((halo, None)), "Runed Halo")
-        self.assertEqual(runner.world.triggers, [])
+        self.assertEqual((runner.world.triggers, runner.ex.stack.frames), ([], []))
         runner.run_step({"op": "move", "key": "h", "to": "graveyard"})
         self.assertNotIn((halo, None), runner.ex.name_choices)
 

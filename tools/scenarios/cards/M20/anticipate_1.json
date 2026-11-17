@@ -11,7 +11,7 @@
   {"key": "a", "name": "Card A", "type": "Instant", "zone": "library", "controller": 0}
  ],
  "mana": {"0": {"U": 1, "C": 1}},
- "steps": [{"op": "cast", "key": "ant", "controller": 0, "decisions": ["b"]}],
+ "steps": [{"op": "cast", "key": "ant", "controller": 0, "decisions": ["b", "c"]}],
  "expect": {
   "zone": {"ant": "graveyard", "b": "hand", "a": "library", "c": "library", "d": "library"},
   "hand": {"0": 1},

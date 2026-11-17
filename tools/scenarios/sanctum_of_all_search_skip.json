@@ -38,7 +38,7 @@
    "op": "advance_turn",
    "decisions": [
     "fire"
-   ]
+   , "0"]
   }
  ],
  "expect": {

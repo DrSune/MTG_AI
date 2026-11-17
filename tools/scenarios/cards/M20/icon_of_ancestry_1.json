@@ -11,6 +11,6 @@
   {"key":"deep","name":"Deep Elf","type":"Creature — Elf","power":"1","toughness":"1","zone":"library","controller":0}],
  "mana":{"0":{"C":3}},
  "steps":[{"op":"enter","key":"icon","decisions":["Elf"]},
-          {"op":"activate","key":"icon","idx":2,"seat":0,"decisions":["fire"]}],
+          {"op":"activate","key":"icon","idx":2,"seat":0,"decisions":["fire", "lelf"]}],
  "expect":{"power":{"elf":2,"goblin":2,"oelf":1},"toughness":{"elf":2,"goblin":1,"oelf":1},
   "zone":{"lelf":"hand","lgob":"library","lforest":"library","deep":"library"},"hand":{"0":1},"tapped":{"icon":true}}}

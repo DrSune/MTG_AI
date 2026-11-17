@@ -24,18 +24,10 @@
  },
  "steps": [
   {
-   "op": "activate",
-   "key": "isle",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "glide",
-   "idx": 0,
+   "op": "act",
    "seat": 0,
-   "targets": [
-    "glide"
+   "words": [
+    "act:glide:0"
    ]
   }
  ],
@@ -50,5 +42,5 @@
    ]
   }
  },
- "notes": "Spend-trick proof of {T}: Add {U}: seed covers only the {2}; the {U} of Glidemaster's {2}{U} must come from Island's tap (without it: cost:mana:U:0<1). Glidemaster's own clause is keen_glidemaster.json."
+ "notes": "{T}: Add {U}, as a game uses it (mana abilities are no menu rows since 2026-11-11; the payer taps a source while a cost is paid, CR 605.3a): the pool's {2} pays the generic part of Keen Glidemaster's {2}{U} activation from the menu, and the {U} can only come from the Island, which taps (the Glidemaster, the only creature, is its only target). Glidemaster's own clause is keen_glidemaster.json."
 }

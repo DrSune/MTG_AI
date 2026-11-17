@@ -1,7 +1,7 @@
 {
  "name": "gift_of_paradise_on_opponents_land",
  "set": "M20",
- "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts it on P1's Forest: P0 (the Aura's controller) gains 3. The granted ability belongs to the land, so P1, its controller, taps it for two red into P1's pool; P0's pool stays empty.",
+ "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts it on P1's Forest: P0 (the Aura's controller) gains 3. The granted ability belongs to the land, so P1, its controller, uses it: on P1's turn its two red pay Pack Mastiff's {1}{R} exactly (Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act)).",
  "world": {
   "life": 20,
   "seed": 7
@@ -17,6 +17,12 @@
    "key": "of",
    "real": "Forest",
    "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "dog",
+   "real": "Pack Mastiff",
+   "zone": "hand",
    "controller": 1
   }
  ],
@@ -37,13 +43,13 @@
    ]
   },
   {
-   "op": "activate",
-   "key": "of",
-   "idx": -1,
-   "seat": 1,
-   "decisions": [
-    "R"
-   ]
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "dog",
+   "controller": 1,
+   "tap": true
   }
  ],
  "expect": {
@@ -57,11 +63,15 @@
   "tapped": {
    "of": true
   },
+  "zone": {
+   "dog": "battlefield"
+  },
+  "controller": {
+   "dog": 1
+  },
   "mana_pool": {
    "0": {},
-   "1": {
-    "R": 2
-   }
+   "1": {}
   }
  }
 }

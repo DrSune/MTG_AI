@@ -17,7 +17,8 @@
    "seat": 0,
    "attack": {
     "m": true
-   }
+   },
+   "decisions": ["top"]
   }
  ],
  "expect": {
@@ -38,5 +39,5 @@
    ]
   }
  },
- "notes": "Attack -> the scry 1 trigger fires inside the combat phase and the harness provider answers with the ask's first word; library integrity holds either way (asserted exactly). Hexproof sits outside the keyword lane's 10-key vocab and negative targeting raises -> findings note, not a silent pass claim."
+ "notes": "Attack -> the scry 1 trigger fires inside the combat phase and the combat step answers it 'top'; library integrity holds either way (asserted exactly). Hexproof sits outside the keyword lane's 10-key vocab and negative targeting raises -> findings note, not a silent pass claim."
 }

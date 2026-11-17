@@ -32,7 +32,7 @@
    "key": "h",
    "decisions": [
     "fire"
-   ]
+   , "wd"]
   }
  ],
  "expect": {

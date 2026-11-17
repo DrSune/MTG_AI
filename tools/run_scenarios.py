@@ -32,7 +32,13 @@ Pack vocabulary (all keys required as noted):
                                             only), OR
               "name"/"power"/"toughness"/"type" (synthetic; optional
                                             "colors", "keywords", and
-                                            "token": true for a token)}]
+                                            "token": true for a token),
+              "controlled_by": N?}]         a battlefield card that seat N controls
+                                            while seat "controller" owns it (CR
+                                            108.3, 110.2): the engine's control
+                                            overlay of a GAIN_CONTROL with no
+                                            duration, in place before the opening
+                                            turn; refused off the battlefield
   mana    : {"0": {"G": 5}, ...}            optional, per seat index
   mulligan: [word...]                       optional (CR 103.5): the pack starts
                                             like a dealt game, each seat drawing seven from its
@@ -52,23 +58,18 @@ Pack vocabulary (all keys required as noted):
                                             "first-legal" takes the first offered word).
                                             The cast reads its modes and designations
                                             from the front (CR 601.2b-c); the step's
-                                            later asks take the words after them
+                                            later asks take the words after them. A
+                                            held cast ("hold") resolves in a later
+                                            step, and that step's words answer what
+                                            its resolution asks
              {"op": "end_turn"} | {"op": "advance_turn"},
              {"op": "enter", "key": k}      hand -> battlefield (journalled:
                                             the sickness clock sees it),
-             {"op": "enter", "key": k, "hold_triggers": true}
-                                            the triggers the entry arms wait,
-                                            unresolved, until the NEXT step's
-                                            settle — the older stand-in for
-                                            "in response to the trigger" (it
-                                            keeps them off the stack; "hold"
-                                            below puts them on it),
              {"op": "move", "key": k, "to": "hand"|"graveyard"|"exile"
               |"battlefield"|"library"}     a journalled move by "another
                                             effect" (a bounce, a destroy, an
                                             exile) to the card's OWNER's
-                                            zone; its settle drains held
-                                            triggers after the move,
+                                            zone,
              {"op": "gain_control", "key": k, "seat": N}
                                             a control change by "another
                                             effect": the player at seat N gains
@@ -93,6 +94,7 @@ Pack vocabulary (all keys required as noted):
                                             the real API — journalled
                                             re-entry RE-REGISTERS its static),
              {"op": "loyalty", "key": k, "set": n}    seed the loyalty ledger,
+             {"op": "life", "seat": N, "set": n}      set a seat's life total,
              {"op": "mana", "seat": 0|1, "add": {"R": 1}}  add mana to a
                                             pool at this step (pools empty as
                                             each step and phase ends, CR 500.5;
@@ -101,7 +103,11 @@ Pack vocabulary (all keys required as noted):
               "seat": 0|1, "targets": [k...],         move (legality+pay+run),
               "decisions": [str...], "x": int?},      x: the announced X of an
                                             X-cost activation (CR 602.2b);
-                                            absent, the X ask takes a word
+                                            absent, the X ask takes a word. A
+                                            mana ability is refused: no game
+                                            activates one but while paying
+                                            (no menu row since 2026-11-11), so
+                                            a pack pays with it ("tap", act)
              {"op": "act", "seat": 0|1, "words": [word...]}
                                             the seat's priority decisions
                                             through the bench router until it
@@ -139,7 +145,9 @@ Pack vocabulary (all keys required as noted):
                                             passing until the stack is empty,
              "tap": true on a cast step: the caster taps the mana sources
                                             that pay it (the menu's automatic
-                                            payment, CR 601.2g, 605.3a),
+                                            payment, CR 601.2g, 605.3a), after
+                                            its targets: a refused designation
+                                            taps nothing,
              {"op": "test_permission_cast", "key": k,
               "from": "graveyard"|"exile"|"library", "controller": seat?,
               "targets": [key...]?, "x": int?, "decisions": [str...]?}
@@ -200,10 +208,13 @@ Pack vocabulary (all keys required as noted):
                                             these maps and the step's
                                             "decisions" (the engine narrows
                                             the vocabulary; an unspecified
-                                            block is NONE). A caller's own
-                                            answerer (the G1 probe) keeps the
-                                            asks no map or word claims that
-                                            are not combat declarations]
+                                            attacker DECLINEs, block is NONE,
+                                            policy AS_BLOCKED, may skip). Any
+                                            other ask no map or word claims (a
+                                            trigger's target, the order of two
+                                            triggers) raises with its words. A
+                                            caller's own answerer (the G1
+                                            probe) keeps those asks instead]
   expect  : {"life": {"0": int...}, "zone": {key: zone...},  zone may be
                                             "ceased": a token gone (CR 704.5d),
               "damage": {key: int...},      — the damage mark ledger
@@ -240,9 +251,22 @@ Pack vocabulary (all keys required as noted):
                                         cast from, CAST_THIS_TURN_FROM's
                                         column). A never-cast key FAILS
                                         loudly — no row, no silent False.
+             "kickback_asks": {"0": ["PASS"|"PAY"...]},  the answers seat 0
+                                        gave its "unless ... pays" asks, in
+                                        order ([] pins none was asked)
              "counters": {key: {"KIND": n}},  the counter table,
              "power": {key: int},             ledger effective_pt,
              "toughness": {key: int},         (base->timestamp fold),
+             "battlefield_pt": {Name: [p, t]},     by printed name, for an
+             "battlefield_keywords": {Name: [KW...]},  object an effect made
+                                        (no pack key): exactly one on the
+                                        battlefield; the keywords lane reads
+                                        FLYING, DEFENDER, VIGILANCE, HASTE,
+                                        REACH, TRAMPLE, DEATHTOUCH, LIFELINK,
+                                        FIRST_STRIKE, DOUBLE_STRIKE, INDESTRUCTIBLE
+             "revealed": {key: bool},  whether a REVEAL showed the card (CR
+                                        701.20; the executor's REVEAL rows,
+                                        which the journal does not keep)
              "library": {"0": [names...TOP-first]},   exact order,
              "graveyard": {"0": [names...]},          exact bag
              "turn_seats": [0, 0, 1],  the seat of every turn begun, in
@@ -255,13 +279,17 @@ Pack vocabulary (all keys required as noted):
   step's seat, a lane's seat key) must be one of the world's: any other is
   refused, never read as another seat.
   any step may carry "expect_raise": "<text>": the step must raise, with the
-  text in its message (a refusal: "illegal target"). A step without
-  "decisions" raises at its first ask that is not a response window, and the
-  message names the ask and every word it offers: "mana:card:1 needs a
-  decision from ('W', 'U', 'B', 'R', 'G')". So expect_raise pins an ask's exact
-  words, which is how a pack says "X is not offered" (a decision word the ask
-  lacks fails the pack instead). The step stops at that ask; a pack puts it
-  last.
+  text in its message (a refusal: "illegal target"), in a combat window too.
+  A step without "decisions", or whose words are used up, raises at its next
+  ask that is not a response window ("pay:" asks take PASS), and the message
+  names the ask and every word it offers: "mana:card:1 needs a decision from
+  ('W', 'U', 'B', 'R', 'G')". So expect_raise pins an ask's exact words, even
+  one after a may-offer, which is how a pack says "X is not offered" (a
+  decision word the ask lacks fails the pack instead). The step stops at that
+  ask; a pack puts it last.
+  Steps no game takes are refused: an activate of a mana ability (above), and
+  "hold_triggers" (gone 2026-11-17: no game acts while a trigger waits off the
+  stack, CR 117.5; "hold" keeps it on the stack instead).
 """
 
 from __future__ import annotations
@@ -287,8 +315,10 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    is_mana_ability,
 )
 from MTG_bot.core.executor import Executor, GameOver
+from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
 from MTG_bot.core.executor.games import OPENING_HAND, get_supply, identity_of, mulligans
 from MTG_bot.core.executor.legality import (
@@ -469,10 +499,10 @@ class ScenarioRunner:
                 self.world.cards[self.handles[card["key"]]].counters[kind] = int(n)
         # The real cards' triggers/abilities register from the compiled pool.
         self.ex.attach_pool(supply.pool)
+        self._control(pack["cards"])
         if "mulligan" in pack:
             self._mulligans(list(pack["mulligan"]))
-        if len(self.seats) > 2:
-            self._fill_libraries()  # seat 0 draws in the opening turn
+        self._fill_libraries()
         # The clock opens for real (begin_turn: markers, ledger; turn 1, so in a two-player game
         # seat 0 skips its draw step, CR 103.8a, and with more players nobody does, 103.8c);
         # a faked turn would desync world.turn and the
@@ -499,8 +529,25 @@ class ScenarioRunner:
         # as (tag, vocab, ANSWER) triples; the expect lane kickback_asks reads
         # these.
         self.rung1_asks: list[tuple[str, tuple[str, ...], str]] = []
-        if len(self.seats) == 2:
-            self._fill_libraries()
+
+    def _control(self, cards: list[dict[str, Any]]) -> None:
+        """A setup card's ``controlled_by``: the seat that controls it while seat ``controller``
+        owns it (CR 108.3, 110.2), through the engine's own overlay, as a resolved GAIN_CONTROL
+        with no duration leaves it (it ends when the permanent leaves the battlefield). Applied
+        after the pool is attached, so the card's static and replacement abilities follow its
+        controller (``Executor._recompute_control``), and before the opening turn, which it has
+        been controlled since, as every setup permanent has (CR 302.6)."""
+        for card in cards:
+            if "controlled_by" not in card:
+                continue
+            handle = self.handles[card["key"]]
+            if self.world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+                raise PackError(f"card {card['key']!r}: controlled_by: only a permanent has a controller apart "
+                                "from its owner")
+            seat = self._seat(card["controlled_by"], f"card {card['key']!r} controlled_by")
+            self.ex.gain_control(handle, seat, duration_tag(None))
+            self.ex.control_gained_turn[handle] = 0  # before the opening turn
+            self.ex.layers.recompute()
 
     def _as_entered(self, cards: list[dict[str, Any]]) -> None:
         """A permanent is on the battlefield only by having entered it, so each setup permanent has
@@ -524,9 +571,11 @@ class ScenarioRunner:
                 self.ex.run_as_enters(handle, node.effect)
 
     def _fill_libraries(self) -> None:
-        """Six filler cards per library, in before the first draw: seat 1's in turn 2 of a
-        two-player game (after the opening turn, as always), seat 0's own in turn 1 with more
-        players (CR 103.8c). The filler lands ON TOP of a pack's typed library cards, so
+        """Six filler cards per library, in before the opening turn: a setup permanent's
+        beginning-of-turn trigger may draw in it (Phyrexian Arena's upkeep, Sanctum of Calm
+        Waters' precombat main phase; from an empty library its player would lose, CR 704.5b),
+        and with more than two players seat 0 draws in its first draw step (CR 103.8c). The
+        filler lands ON TOP of a pack's typed library cards, so
         library-peek/scry asks would offer opaque "Library N" candidates. A pack that sets
         ``"world": {"library_top": true}`` re-raises its OWN library-zone cards above the
         filler (relative order preserved)."""
@@ -590,24 +639,40 @@ class ScenarioRunner:
             raise PackError(f"mulligan: words no ask took: {words}")
 
     def run_step(self, step: dict) -> None:
+        if "hold_triggers" in step:
+            raise PackError(
+                "hold_triggers is gone (2026-11-17): no game acts while a trigger waits off the "
+                "stack, since it goes on the stack before anyone receives priority (CR 117.5); "
+                "put \"hold\": true on this step, and the next steps respond to it there"
+            )
+
+        def quiet(vocab, what):
+            # No word for the ask: a kickback ask takes PASS, and every other ask raises with the
+            # engine's own exhaustion message, its words named.
+            self.asks_seen.append((what, tuple(vocab)))
+            if what.startswith("pay:"):
+                self.rung1_asks.append((what, tuple(vocab), "PASS"))
+                return "PASS"
+            raise ValueError(
+                f"executor: {what} needs a decision from {tuple(vocab)}, "
+                "nothing is primed and no answerer is registered"
+            )
+
         if step.get("decisions") and step["op"] != "combat":
             # The decision channel: a non-combat step (an ETB that scrys, a
             # mode choice, a may-offer) carries the ordered words its asks
             # consume, IN ARRIVAL ORDER. A word the vocabulary does not carry
             # is never forced: the ask takes its default and the miss fails
-            # the pack (self.unoffered).
+            # the pack (self.unoffered). Once the words are used up, an ask is
+            # answered as in a step with none (``quiet``): never with its first
+            # word, so a pack can pin an ask after a may-offer (expect_raise).
             queue = list(step["decisions"])
 
             def prov(vocab, what):
+                if not queue:
+                    return quiet(vocab, what)
                 self.asks_seen.append((what, tuple(vocab)))
                 rung1 = what.startswith("pay:")
-                # A kickback ask the queue does not reach takes "PASS" (a
-                # pack that wants another answer says so with a word).
-                if not queue:
-                    answer = "PASS" if rung1 else vocab[0]
-                    if rung1:
-                        self.rung1_asks.append((what, tuple(vocab), answer))
-                    return answer
                 got = queue.pop(0)
                 if got in self.handles:
                     # A DESIGNATION answer may be given as a PACK KEY
@@ -636,19 +701,6 @@ class ScenarioRunner:
                 self.unoffered.append(f"test_permission_cast {step['key']}: words no ask took: {queue}")
             return
         if step["op"] != "combat":
-            # A step WITHOUT a decisions queue still answers kickback asks
-            # with PASS. Every OTHER ask raises the engine's own exhaustion
-            # message verbatim.
-            def quiet(vocab, what):
-                self.asks_seen.append((what, tuple(vocab)))
-                if what.startswith("pay:"):
-                    self.rung1_asks.append((what, tuple(vocab), "PASS"))
-                    return "PASS"
-                raise ValueError(
-                    f"executor: {what} needs a decision from {tuple(vocab)}, "
-                    "nothing is primed and no answerer is registered"
-                )
-
             self.ex.decisions.provider = quiet
             try:
                 self._dispatch(step)
@@ -700,16 +752,24 @@ class ScenarioRunner:
                 if isinstance(tok, str) and tok.startswith("player:"):
                     targets.append(self._seat(tok.split(":", 1)[1], f"cast {spell_key}: {tok}"))
             seat = self._seat(step.get("controller", 0), f"cast {spell_key}")
+            handle = self.handles[spell_key]
             if step.get("tap"):
                 # "tap": the caster taps the mana sources that pay it, as a player
-                # does while casting (CR 601.2g, 605.3a; the menu's automatic payment).
+                # does while casting (CR 601.2g, 605.3a; the menu's automatic payment),
+                # after choosing the targets (601.2c): a designation the spell refuses is
+                # refused before anything is tapped, the engine's own check of it.
                 from MTG_bot.core.executor.legality import tap_for_payment
                 from MTG_bot.core.executor.menu import cast_taps
+                from MTG_bot.core.executor.query import modal_choose
+                from MTG_bot.core.executor.stack import _plan_cast_designation
 
-                taps = cast_taps(
-                    self.ex, seat, self.handles[spell_key], bool(step.get("kicked", False)),
-                    step.get("x"), tuple(targets),
-                )
+                record = spell_record(self.ex, handle)
+                node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
+                if node is not None and modal_choose(node) is None:  # a mode would be asked first
+                    _plan_cast_designation(self.ex, seat, handle, node, targets=tuple(targets),
+                                           decisions=(), mode_choices=())
+                taps = cast_taps(self.ex, seat, handle, bool(step.get("kicked", False)), step.get("x"),
+                                 tuple(targets))
                 if taps is None:
                     raise PackError(f"cast {spell_key}: its mana sources cannot pay it")
                 tap_for_payment(self.ex, seat, taps)
@@ -718,7 +778,7 @@ class ScenarioRunner:
                 frame = cast(
                     self.ex,
                     seat,
-                    self.handles[spell_key],
+                    handle,
                     x=step.get("x"),
                     kicked=bool(step.get("kicked", False)),
                     targets=tuple(targets),
@@ -728,6 +788,11 @@ class ScenarioRunner:
                 # The cast read its modes and designations from the front of the words
                 # (CR 601.2b-c); the step's later asks take the words after them.
                 del self.queue[: len(words) - len(frame.decisions)]
+            # Those later words reach the resolution through the step's answerer only, in the
+            # order its asks come. Left on the stack frame as a raw pool (a pack key,
+            # "first-legal"), they answered a resolution a later step ran ("hold") literally,
+            # where no answerer of the cast step was there to read them.
+            frame.decisions = ()
             self.ex._finish_op()  # undriven: both players pass until the stack is empty
         elif op == "resolve":
             # Every player passes once (CR 117.4): the top object resolves, and
@@ -766,23 +831,12 @@ class ScenarioRunner:
                 destination=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU),
                 tapped_on_enter=bool(step.get("tapped", False)),
             )
-            # "hold_triggers" leaves the armed triggers queued, through the binder's own
-            # hold flag (nothing goes on the stack); the next step's settle resolves
-            # them after its own action (a response).
-            binder = self.ex.binder
-            held = bool(step.get("hold_triggers"))
-            was_holding = binder.hold
-            if held:
-                binder.hold = True
-            try:
-                self.ex.execute(
-                    atom,
-                    source=handle,
-                    controller=self.world.controller_of(handle),
-                    bindings={"cards": handle},
-                )
-            finally:
-                binder.hold = was_holding
+            self.ex.execute(
+                atom,
+                source=handle,
+                controller=self.world.controller_of(handle),
+                bindings={"cards": handle},
+            )
         elif op == "move":
             # A journalled zone move by another effect, to the card's owner's zone
             # (the destroy / bounce / exile stand-in).
@@ -859,10 +913,18 @@ class ScenarioRunner:
         elif op == "activate":
             from MTG_bot.core.executor.legality import activate
 
+            handle, idx = self.handles[step["key"]], int(step.get("idx", 0))
+            if is_mana_ability(self._activated(handle, idx)):
+                raise PackError(
+                    f"activate {step['key']} [{idx}]: a mana ability is no menu row (since "
+                    "2026-11-11): a game activates it only while paying a cost (CR 605.3a, the "
+                    "automatic payer), so a pack pays with it, a cast with \"tap\": true or an act "
+                    "step, and pins what it made"
+                )
             activate(
                 self.ex,
-                self.handles[step["key"]],
-                int(step.get("idx", 0)),
+                handle,
+                idx,
                 seat=self._seat(step.get("seat", 0), op),
                 # "p<N>" designates a player (a "target opponent", or a "target
                 # player" that may be the caster); any other word is a pack key.
@@ -884,6 +946,15 @@ class ScenarioRunner:
             self._test_permission_cast(step)
         else:
             raise PackError(f"unknown op {op!r}")
+
+    def _activated(self, handle: Handle, idx: int) -> Any:
+        """The ability an activate step names, as ``legality.activate`` reads it (a negative
+        index: a granted one), or None when there is none (activate refuses that itself)."""
+        if idx < 0:
+            granted = self.ex.layers.granted_activated(handle)
+            return granted[-idx - 1].node if -idx <= len(granted) else None
+        record = spell_record(self.ex, handle)
+        return record.abilities[idx] if record is not None and idx < len(record.abilities) else None
 
     def _target_handle(self, key: str):
         """A ``targets`` entry: a pack key, ``p<N>`` for the player at seat N (so a "target
@@ -1019,9 +1090,11 @@ class ScenarioRunner:
         for key, word in step.get("policy", {}).items():
             answers[f"policy:{self.handles[key]}"] = word
         # A combat step may also carry a generic ``decisions`` script: the
-        # ordered words for asks the answer maps do not cover (a dies
-        # trigger's TARGET designation). Popped ONLY for sites no map or
-        # queue claims.
+        # ordered words for asks the answer maps do not cover (an unmapped
+        # creature's attack or block, a dies trigger's TARGET designation,
+        # the order of two triggers). Popped ONLY for sites no map or queue
+        # claims; a division keeps its default. Once the script is used up,
+        # a declaration keeps its default and any other ask raises.
         script = list(step.get("decisions", ()))
 
         def answer(vocab, what):
@@ -1060,8 +1133,20 @@ class ScenarioRunner:
                     _kind, b_ns, b_i, a_ns, a_i, _turn = what.split(":")
                     want = self.ex.lethal_damage(Handle(a_ns, int(a_i)), Handle(b_ns, int(b_i)))
                     got = min(vocab, key=lambda v: (abs(int(v) - want), int(v)))
-                else:
+                elif what.startswith("attack:"):
                     got = "DECLINE"
+                elif what.startswith("policy:"):
+                    got = "AS_BLOCKED"
+                elif what.startswith("pay:"):
+                    got = "PASS"  # a kickback ask, as in any step
+                else:
+                    # Any other ask (a trigger's target, a mode) that no map or word claims raises
+                    # with its words, as in a step with no decisions: its first word would be a
+                    # silent pick the pack never wrote.
+                    raise ValueError(
+                        f"executor: {what} needs a decision from {tuple(vocab)}; no answer map "
+                        "or decision word of the combat step claims it"
+                    )
             return got if got in vocab else vocab[0]
 
         # The windows, in the combat's step order: "respond_to_triggers" at a step's first
@@ -1097,12 +1182,30 @@ class ScenarioRunner:
                 for inner in responses:
                     self.ex.decisions.provider = None
                     try:
-                        self.run_step(inner)
+                        self._run_expecting(inner)
                     finally:
                         self.ex.decisions.provider = answer
             self.ex.combat_blocks(seat)
         finally:
             self.ex.decisions.provider = outer
+
+    def _run_expecting(self, step: dict) -> None:
+        """A step of a combat window, its "expect_raise" honoured as a top-level step's is
+        (``_run_pack``): the refusal is the assertion, and a step that should raise and does not
+        fails the pack."""
+        want = step.get("expect_raise")
+        if want is None:
+            self.run_step(step)
+            return
+        try:
+            self.run_step(step)
+        except GameOver:
+            raise
+        except Exception as e:
+            if want not in f"{type(e).__name__}: {e}":
+                raise PackError(f"step {step}: expected raise {want!r}, got {type(e).__name__}: {e}") from e
+            return
+        raise PackError(f"step {step}: expected raise {want!r}, but it succeeded")
 
     def _test_permission_cast(self, step: dict) -> None:
         """The ``test_permission_cast`` op: the caster casts its card from the zone it is in, as
@@ -1384,6 +1487,14 @@ class ScenarioRunner:
             got = dict(self.world.cards[self.handles[key]].counters)
             if got != dict(kinds):
                 fails.append(f"counters[{key}]: expected {dict(kinds)}, got {got}")
+        # Whether a REVEAL showed the card (CR 701.20a). A reveal moves nothing and journals no
+        # row, so the lane reads the executor's event tuples, (i, "REVEAL", player, cards).
+        if "revealed" in expect:
+            shown = {card for e in self.ex.events if e[1] == "REVEAL" for card in e[3]}
+            for key, want in expect["revealed"].items():
+                got_shown = str(self.handles[key]) in shown
+                if got_shown != bool(want):
+                    fails.append(f"revealed[{key}]: expected {want}, got {got_shown}")
         for lane in ("power", "toughness"):
             idx = 0 if lane == "power" else 1
             for key, want in expect.get(lane, {}).items():

@@ -69,22 +69,11 @@
    "op": "advance_turn"
   },
   {
-   "op": "activate",
-   "key": "s1",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "s2",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "tome",
-   "idx": 1,
-   "seat": 0
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:tome:1"
+   ]
   }
  ],
  "expect": {
@@ -113,5 +102,5 @@
    ]
   }
  },
- "notes": "Printed {2},{T}: counter on Bird/Cat/... (s1 idx1 on Cat, survives the cycle); {T}: Add {C} (s1+s2 turn-2 taps fund Mazemind Tome's {2},{T} draw \u2014 the only observable proof of Add {C} with no pool lane). Mana pool persists across turn cycles (NUMBERS 2026-10-01 wave4a)."
+ "notes": "Printed {2},{T}: counter on Bird/Cat/... (s1 idx1 on Cat, survives the cycle); {T}: Add {C}: on turn 3 the pool is empty, and Mazemind Tome's {2},{T} draw is offered on the menu only because the two Sanctuaries can pay it; the payer taps both (mana abilities are no menu rows since 2026-11-11, CR 605.3a)."
 }

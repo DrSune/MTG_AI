@@ -60,16 +60,11 @@
  },
  "steps": [
   {
-   "op": "activate",
-   "key": "leaf",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "jol",
-   "idx": 1,
-   "seat": 0
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:jol:1"
+   ]
   }
  ],
  "expect": {
@@ -88,5 +83,5 @@
    "leaf": true
   }
  },
- "notes": "{T}: Add {G} for each creature with power 4+ you control \u2014 proven by the only payment path for Jolrael's {4}{G}{G}: seed covers the {4}, and the two {G} must come from Leafkin's tap with the 5/5 Tiger out (pool otherwise fails cost:mana:G). Jolrael's X/X clause (X=3 hand incl. setup draw) rewrites everyone to 3/3, Leafkin taps for its {T} cost."
+ "notes": "{T}: Add {G} for each creature with power 4+ you control. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The pool's {4} pays the generic part of Jolrael's {4}{G}{G} activation, and its {G}{G} can only come from Leafkin's tap with the 5/5 Tiger out: the menu offers the activation, the Avenger taps. Jolrael's X/X clause (X=3 cards in hand) makes everyone 3/3."
 }

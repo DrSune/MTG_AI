@@ -4,11 +4,17 @@
   "life": 20,
   "seed": 7
  },
- "notes": "Printed: 'When this creature enters, draw a card. {T}: Add {G}.' The Visionary is cast this turn: its {T} mana ability is refused (CR 302.6, no haste) and it stays untapped. On seat 0's next turn it taps for exactly one G. Hand: the runner's opening begin_turn runs before the library filler exists, so it draws nothing; Visionary cast (0), ETB draw (1), turn 3's draw (2).",
+ "notes": "Printed: 'When this creature enters, draw a card. {T}: Add {G}.' Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer tapping a source (CR 605.3a), so the pack casts with \"tap\": true. The Visionary is cast this turn: it cannot pay Skyway Sniper's {G} (CR 302.6, no haste) and stays untapped. On seat 0's next turn it pays exactly that {G} (the pool is empty after). Hand: Sniper (1), ETB draw (2), turn 3's draw (3), Sniper cast (2).",
  "cards": [
   {
    "key": "v",
    "real": "Llanowar Visionary",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sniper",
+   "real": "Skyway Sniper",
    "zone": "hand",
    "controller": 0
   }
@@ -26,11 +32,10 @@
    "key": "v"
   },
   {
-   "op": "activate",
-   "key": "v",
-   "idx": 1,
-   "seat": 0,
-   "expect_raise": "summoning sickness"
+   "op": "cast",
+   "key": "sniper",
+   "tap": true,
+   "expect_raise": "cannot pay it"
   },
   {
    "op": "end_turn"
@@ -45,23 +50,21 @@
    "op": "advance_turn"
   },
   {
-   "op": "activate",
-   "key": "v",
-   "idx": 1,
-   "seat": 0
+   "op": "cast",
+   "key": "sniper",
+   "tap": true
   }
  ],
  "expect": {
   "zone": {
-   "v": "battlefield"
+   "v": "battlefield",
+   "sniper": "battlefield"
   },
   "tapped": {
    "v": true
   },
   "mana_pool": {
-   "0": {
-    "G": 1
-   }
+   "0": {}
   },
   "hand": {
    "0": 2

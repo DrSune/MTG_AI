@@ -47,5 +47,5 @@
    "0": 1
   }
  },
- "notes": "Printed: '{2}: Add one mana of any color.' Decision 'B': the generic {2} drains 2C (3->1), the ASKED color lands in the pool - proven because the Ghoul's printed {1}{B} is payable EXACTLY (1B + 1C) afterwards; any wrong color choice or uncounted add raises in legality."
+ "notes": "OUT OF THE SUITE (2026-11-17): this pack activates Prismite's filter directly, a path no game takes, and the runner now refuses that step (a mana ability is no menu row since 2026-11-11). In a game the payer never pays a mana cost of a mana ability (BACKLOG 'Automatic payment': the filters are given up), so Prismite's '{2}: Add one mana of any color' never makes mana; cards/M21/prismite_1.json pins that. When the payer pays filters, rewrite this pack to pay through the game's path (a cast with \"tap\": true or the act op) and move it back to tools/scenarios/. The printed behaviour it pinned: Printed: '{2}: Add one mana of any color.' Decision 'B': the generic {2} drains 2C (3->1), the ASKED color lands in the pool - proven because the Ghoul's printed {1}{B} is payable EXACTLY (1B + 1C) afterwards; any wrong color choice or uncounted add raises in legality."
 }

@@ -8,7 +8,7 @@
  "mana": {"0": {"R": 1, "U": 2}},
  "steps": [
   {"op": "cast", "key": "ct", "real": "Crash Through", "controller": 0},
-  {"op": "cast", "key": "s", "real": "Stormwing Entity", "controller": 0, "decisions": ["top", "top"]}
+  {"op": "cast", "key": "s", "real": "Stormwing Entity", "controller": 0, "decisions": ["top", "top", "first-legal"]}
  ],
  "expect": {
   "zone": {"s": "battlefield", "ct": "graveyard"},

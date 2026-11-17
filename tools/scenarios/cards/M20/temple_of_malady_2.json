@@ -1,17 +1,54 @@
-{"set": "M20", "name": "temple_of_malady_scry_top_and_mana",
- "notes": "P2b2dfac54f G4. Printed: 'When this land enters, scry 1. {T}: Add {B} or {G}.' Answering top keeps the library order. On the next turn the untapped Temple taps for {G} (the second option of its mana choice).",
- "world": {"life": 20, "seed": 7},
+{
+ "set": "M20",
+ "name": "temple_of_malady_scry_top_and_mana",
+ "notes": "P2b2dfac54f G4. Printed: 'When this land enters, scry 1. {T}: Add {B} or {G}.' Answering top keeps the library order. On the next turn the untapped Temple pays Sedge Scorpion's {G}, the second option of its mana choice. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "temple", "real": "Temple of Malady", "zone": "hand", "controller": 0}
+  {
+   "key": "temple",
+   "real": "Temple of Malady",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sc",
+   "real": "Sedge Scorpion",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "play", "key": "temple", "decisions": ["top"]},
-  {"op": "advance_turn"},
-  {"op": "advance_turn"},
-  {"op": "activate", "key": "temple", "idx": 2, "seat": 0, "decisions": ["1"]}
+  {
+   "op": "play",
+   "key": "temple",
+   "decisions": [
+    "top"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "sc",
+   "tap": true
+  }
  ],
  "expect": {
-  "tapped": {"temple": true},
-  "mana_pool": {"0": {"G": 1}}
+  "tapped": {
+   "temple": true
+  },
+  "zone": {
+   "sc": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  }
  }
 }

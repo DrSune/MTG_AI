@@ -6,7 +6,7 @@
     {"key": "fang2", "real": "Hooded Blightfang", "zone": "battlefield", "controller": 0}
   ],
   "steps": [
-    {"op": "combat", "seat": 0, "attack": {"fang1": true, "fang2": true}}
+    {"op": "combat", "seat": 0, "attack": {"fang1": true, "fang2": true}, "decisions": ["first-legal", "first-legal", "first-legal"]}
   ],
   "expect": {
     "life": {"0": 24, "1": 14}

@@ -28,18 +28,10 @@
  ],
  "steps": [
   {
-   "op": "activate",
-   "key": "forest",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "ooze",
-   "idx": 0,
+   "op": "act",
    "seat": 0,
-   "targets": [
-    "corpse"
+   "words": [
+    "act:ooze:0"
    ]
   }
  ],
@@ -54,5 +46,5 @@
    "forest": true
   }
  },
- "notes": "Spend-trick proof of {T}: Add {G}: with an empty seeded pool, the only G the Ooze's {G} can pay from is Forest's tap; without Forest's mana the activation refuses (cost:mana:G:0<1)."
+ "notes": "{T}: Add {G}, as a game uses it: mana abilities are no menu rows (2026-11-11), so the payer taps a source while a cost is paid (CR 605.3a). With an empty pool, the menu offers the Ooze's {G} activation only because the Forest's tap can pay it; the Forest taps, the corpse, the one card in a graveyard and so its only target, is exiled and the Ooze grows."
 }
