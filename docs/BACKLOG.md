@@ -1549,7 +1549,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   is weak at, balancing niche and meta play and unfair matchups against the two players' strength, so
   that each game maximises learning; it also learns deck-building. Established form: environment
   design / automatic curriculum (PAIRED, ACCEL, teacher-student curricula). Needs a student that
-  learns reliably first (/184 §25).
+  learns reliably first (/184 §25). Designed as PLAN_CEILING §9.1 (a curator sampling deck
+  families x opponents by Prioritized Level Replay's per-game scores, gated at 1.3x L per
+  machine-day). Not built. The owner (2026-11-17): matchups chosen for learning would also feed
+  the opponent simulator varied, realistic histories, so the Teacher may teach the simulator too.
+  Its turn comes after the card sets are complete and the bug hunt is done (the owner's order).
 - **Signal plan** (2026-11-06, after the PPO audit; measuring now): duplicate deals in training (each
   deal from both seats, the pair's result learned), lambda toward 1 (the full result reaches every
   decision), and at least B* decisions per optimizer step (gradient accumulation). Measured (/184 §26):
