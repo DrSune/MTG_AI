@@ -639,9 +639,10 @@ class TriggerBinder:
             self.executor.layers.detach_source(handle)
             self.executor.replacements.detach_source(handle)
             return len(keys)
-        # Attachment is battlefield-to-battlefield (CR 303.4c/117.12 —
-        # when either side of an aura/equipment pair leaves, the attachment
-        # relationship ends). The executor's attachment table drops every
+        # Attachment is battlefield-to-battlefield (CR 400.7: an object that
+        # changes zones is a new object, so when either side of an
+        # aura/equipment pair leaves, the attachment relationship ends; 117.12,
+        # cited here before, does not exist). The executor's attachment table drops every
         # edge touching the departing handle. (An emblem never departs:
         # only bind_emblem's leaving=False refresh detaches one.)
         ex = self.executor
