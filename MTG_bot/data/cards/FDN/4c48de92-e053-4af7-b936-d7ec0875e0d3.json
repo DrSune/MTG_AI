@@ -1,0 +1,149 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4c48de92-e053-4af7-b936-d7ec0875e0d3",
+ "name": "Ambush Wolf",
+ "text_sha": "6c6e60a9f811176cf83a8c55ccc69a4b5b95c5bcab2ceb825d40908f3373f88a",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLASH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QAtMost",
+          "n": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "EXILE"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Ambush Wolf: \"Flash. When this creature enters, exile up to one target card from a\n# graveyard.\"\n# Event: the compiler's \"When this creature enters\". Effect: M21 Return to Nature's \"Exile target\n# card from a graveyard.\" (B5c-bullet-exile-graveyard: any card, any graveyard, to its owner's\n# exile) with \"up to one\" as QAtMost(1) (Liliana, Death Mage's \"up to one target ... card\"), the\n# moved card under MOVE_ZONE's `cards` role (M20 Pulse of Murasa's verified graveyard move).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QAtMost(n=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n        ),\n        'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, exile up to one target card from a graveyard.",
+    "ir": "abilities[0] (MOVE_ZONE of up to one TARGET card from any graveyard to its owner's exile)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Return to Nature's 'Exile target card from a graveyard.' in the enters trigger, 'up to one' as QAtMost(1); the moved card under MOVE_ZONE's `cards` role. Flash compiles. Packs: tools/scenarios/mapped/FDN/ambush_wolf_exiles_one_card_from_an_opponents_graveyard.json, tools/scenarios/mapped/FDN/ambush_wolf_may_exile_nothing.json."
+ },
+ "probe": {
+  "sha": "3acc65a9327ee3d01fc308cf6efc2301bbf003b33e8f9558b0e0c0749a6c1a11"
+ }
+}

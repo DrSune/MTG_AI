@@ -1,0 +1,149 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d646e42b-5635-4798-b633-29c093b66a55",
+ "name": "Inspiring Overseer",
+ "text_sha": "787d4f741e3f2223d77556225b78469592026b90db1ae8ab22fa8cb8aef69500",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Inspiring Overseer: \"Flying. When this creature enters, you gain 1 life and draw a card.\"\n# Event: the compiler's \"When this creature enters\" (B2a-etb-draw-one). Effect: M21 Witch's\n# Cauldron's verified \"You gain 1 life and draw a card.\" (B5c-cost-b-tap-gain-draw), a Seq of\n# GAIN_LIFE then DRAW, both for you.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, you gain 1 life and draw a card.",
+    "ir": "abilities[0] (effect.steps[0] gain 1, effect.steps[1] draw 1)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Witch's Cauldron's verified 'You gain 1 life and draw a card.' Seq in the enters trigger. Flying compiles. Packs: tools/scenarios/mapped/FDN/inspiring_overseer_gains_one_and_draws_one.json."
+ },
+ "probe": {
+  "sha": "5db6347f8e1a3b94a43164d91c2e5995cf6f8b4b60cf3f53dfdf8067a96b001c"
+ }
+}

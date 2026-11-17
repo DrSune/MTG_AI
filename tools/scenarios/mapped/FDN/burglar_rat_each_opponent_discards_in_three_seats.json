@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "burglar_rat_each_opponent_discards_in_three_seats",
+ "notes": "M3 mapper. Printed: 'When this creature enters, each opponent discards a card.' Three players. Burglar Rat enters under seat 0: seat 1 discards one of its two cards and seat 2 one of its two (each its own choice, from its own hand); seat 0 discards nothing (its hand: its own card and the card it drew, CR 103.8c).",
+ "world": {"life": 20, "seed": 7, "players": 3},
+ "cards": [
+  {"key": "rat", "real": "Burglar Rat", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Card", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "a1", "name": "Seat One A", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "b1", "name": "Seat One B", "type": "Sorcery", "zone": "hand", "controller": 1},
+  {"key": "a2", "name": "Seat Two A", "type": "Instant", "zone": "hand", "controller": 2},
+  {"key": "b2", "name": "Seat Two B", "type": "Sorcery", "zone": "hand", "controller": 2}
+ ],
+ "steps": [
+  {"op": "enter", "key": "rat", "decisions": ["a1", "b2"]}
+ ],
+ "expect": {
+  "zone": {"rat": "battlefield", "mine": "hand", "a1": "graveyard", "b1": "hand", "a2": "hand", "b2": "graveyard"},
+  "hand": {"0": 2, "1": 1, "2": 1}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "fiendish_panda_offers_no_bear_no_six_not_itself",
+ "notes": "M3 mapper. Printed: 'When this creature dies, return another target non-Bear creature card with mana value less than or equal to this creature's power from your graveyard to the battlefield.' Fiendish Panda (3/2, no counters) dies. Seat 0's graveyard holds two legal cards, non-Bear creature cards of mana value 3 and 2, and three that are not: a Bear creature card of mana value 2 (non-Bear), a creature card of mana value 4 (above its power 3) and a noncreature card; the opponent's graveyard holds a mana value 1 creature card (not your graveyard); the Panda itself is a Bear and 'another'. The step answers no target, so it stops at the target ask, which offers the two legal cards only: card:1 and card:2 are Grave Three and Grave Two, the setup's second and third cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "panda", "real": "Fiendish Panda", "zone": "battlefield", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "two", "name": "Grave Two", "type": "Creature — Elf", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Grave Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "four", "name": "Grave Four", "type": "Creature — Giant", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0},
+  {"key": "rock", "name": "Grave Rock", "type": "Artifact", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their One", "type": "Creature — Elf", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "move", "key": "panda", "to": "graveyard", "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {}
+}

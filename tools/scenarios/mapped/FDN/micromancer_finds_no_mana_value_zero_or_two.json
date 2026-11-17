@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "micromancer_finds_no_mana_value_zero_or_two",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you may search your library for an instant or sorcery card with mana value 1, reveal it, put it into your hand, then shuffle.' Seat 0's library holds an instant of mana value 0 (set up first, so it would be offered first), an instant of mana value 2 and a sorcery of mana value 1. Micromancer enters and seat 0 searches, asking for the mana value 0 instant: only the mana value 1 sorcery can be found, and it is the card that goes to hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "micro", "real": "Micromancer", "zone": "hand", "controller": 0},
+  {"key": "zero", "name": "Lib Zero", "type": "Instant", "cmc": 0, "zone": "library", "controller": 0},
+  {"key": "blast", "name": "Lib Blast", "type": "Instant", "cmc": 2, "zone": "library", "controller": 0},
+  {"key": "spark", "name": "Lib Spark", "type": "Sorcery", "cmc": 1, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "micro", "decisions": ["fire", "zero"]}
+ ],
+ "expect": {
+  "zone": {"micro": "battlefield", "spark": "hand", "zero": "library", "blast": "library"},
+  "hand": {"0": 1}
+ }
+}

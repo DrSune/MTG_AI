@@ -1,0 +1,109 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d398dca3-f3a5-44c9-998f-b4fce9e5c2bf",
+ "name": "Infestation Sage",
+ "text_sha": "7933d18791fa737aadc86fa9230d112b39fb454c168c3ee13c4c82eb35389e50",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Insect",
+         "type_line": "Creature — Insect",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Insect"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "FLYING"
+          }
+         ],
+         "abilities": [],
+         "colors": [
+          "B",
+          "G"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Infestation Sage: \"When this creature dies, create a 1/1 black and green Insect creature\n# token with flying.\"\n# M21 Deathbloom Thallid's verified \"When this creature dies, create a 1/1 green Saproling\n# creature token.\" (B2a-deathbloom-thallid) with the token a 1/1 Insect (ZNR Scute Swarm's Insect),\n# black and green, with flying (M21 Archfiend's Vessel's token keyword).\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Insect',\n            type_line='Creature — Insect',\n            types=('Creature',),\n            subtypes=('Insect',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(Keyword.FLYING,),\n            abilities=(),\n            colors=('B', 'G'),\n        ),\n    }),\n)\nabilities = [dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature dies, create a 1/1 black and green Insect creature token with flying.",
+    "ir": "abilities[0] (CreatureDiesEvent IS_SOURCE; CREATE_TOKEN one 1/1 black and green Insect with flying)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Deathbloom Thallid's verified dies trigger with a 1/1 black and green Insect token with flying. Packs: tools/scenarios/mapped/FDN/infestation_sage_dies_into_a_flying_insect.json, tools/scenarios/mapped/FDN/infestation_sage_leaving_for_exile_is_no_death.json."
+ },
+ "probe": {
+  "sha": "5340a7084657003bb201087335d4457acb3ba6fe38ba0ab8e1f9364d4b21645e"
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "corsair_captain_treasure_pays_for_your_spell",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")' Corsair Captain enters under seat 0: one Treasure, seat 0's. With no other mana, seat 0 casts Giant Growth on its Deckhand, tapping and sacrificing the Treasure for {G}: the Deckhand (2/2, 3/3 with the Captain) is 6/6 and the Treasure is gone. Only the Treasure's controller could pay with it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "captain", "real": "Corsair Captain", "zone": "hand", "controller": 0},
+  {"key": "deckhand", "name": "My Deckhand", "type": "Creature — Human Pirate", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "growth", "real": "Giant Growth", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "captain"},
+  {"op": "cast", "real": "Giant Growth", "key": "growth", "targets": ["deckhand"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"captain": "battlefield", "growth": "graveyard"},
+  "power": {"deckhand": 6},
+  "toughness": {"deckhand": 6},
+  "tokens": {"Treasure": 0}
+ }
+}

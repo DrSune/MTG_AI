@@ -1,0 +1,222 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "41699d92-c209-4fcb-bbd6-685b3437d0c2",
+ "name": "Gorehorn Raider",
+ "text_sha": "197a6fcc03b668751701a58b87fa63d307e957be82eaf307803d3f0fa28cc547",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAnd",
+     "children": [
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TURN_OF"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "YOU"
+       },
+       "inner_filter": null
+      },
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "EVENT_THIS_TURN"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": {
+        "tag": "QConst",
+        "value": 1
+       },
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null,
+       "event": {
+        "tag": "DeclareAttackersEvent",
+        "filter": {
+         "tag": "FAnd",
+         "children": []
+        }
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Planeswalker",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Player",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Gorehorn Raider: \"Raid — When this creature enters, if you attacked this turn, this creature\n# deals 2 damage to any target.\"\n# Raid is an ability word (CR 207.2c). Event and intervening \"if\": the compiler's own raid frame\n# (`parse \"Raid — When this creature enters, if you attacked this turn, look at the top three cards\n# of your library.\"`, B13-etb+if: TURN_OF you and EVENT_THIS_TURN over a DeclareAttackersEvent),\n# the frame FDN Gutless Plunderer keeps. Effect: M21 Skeleton Archer's / Meteorite's verified\n# \"it deals N damage to any target\" (B2a-skeleton-archer) with 2; the source deals it.\nraid = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n            FAtom(\n                pred=FAtomPred.EVENT_THIS_TURN,\n                count=QConst(value=1),\n                event=DeclareAttackersEvent(filter=FAnd(children=())),\n            ),\n        ),\n    ),\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FOr(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Player'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [raid, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.",
+    "ir": "abilities[0] (condition: your turn and an attack declared this turn; DEAL_DAMAGE 2 to any target)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler's raid frame (B13-etb+if: TURN_OF you and EVENT_THIS_TURN over a DeclareAttackersEvent, as Gutless Plunderer keeps it) with Skeleton Archer's verified 'it deals N damage to any target' at 2. Raid is an ability word. Packs: tools/scenarios/mapped/FDN/gorehorn_raider_after_an_attack_deals_two.json, tools/scenarios/mapped/FDN/gorehorn_raider_hits_a_player.json, tools/scenarios/mapped/FDN/gorehorn_raider_without_an_attack_does_nothing.json."
+ },
+ "probe": {
+  "sha": "af97d272609c0bf70b4073ffb612e57e1b507171856a790477e2eed0d7540dbf"
+ }
+}

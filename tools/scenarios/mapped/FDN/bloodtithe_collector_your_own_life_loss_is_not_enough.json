@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "bloodtithe_collector_your_own_life_loss_is_not_enough",
+ "notes": "M3 mapper. Printed: 'When this creature enters, if an opponent lost life this turn, each opponent discards a card.' On the opponent's turn its 2/2 attacks seat 0 unblocked: seat 0 loses 2 life, no opponent of seat 0 does. Bloodtithe Collector then enters under seat 0: nothing happens; the opponent keeps its card.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "collector", "real": "Bloodtithe Collector", "zone": "hand", "controller": 0},
+  {"key": "raider", "name": "Their Raider", "type": "Creature — Orc", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "keep", "name": "Their Keep", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"raider": true}},
+  {"op": "enter", "key": "collector"}
+ ],
+ "expect": {
+  "life": {"0": 18, "1": 20},
+  "zone": {"collector": "battlefield", "keep": "hand"}
+ }
+}

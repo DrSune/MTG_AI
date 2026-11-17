@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "arbiter_of_woe_sacrifice_discard_drain_and_draw",
+ "notes": "M3 mapper. Printed: 'As an additional cost to cast this spell, sacrifice a creature. Flying. When this creature enters, each opponent discards a card and loses 2 life. You draw a card and gain 2 life.' Seat 0 casts Arbiter of Woe, sacrificing its 1/1 (its only creature, so no ask); it enters. The opponent discards one of its two cards (the Spare, its choice), keeps the other and loses 2 life; seat 0 draws one card and gains 2 life. Seat 0's hand held only the Arbiter, so it holds the one drawn card.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "arbiter", "real": "Arbiter of Woe", "zone": "hand", "controller": 0},
+  {"key": "fodder", "name": "Fodder", "type": "Creature — Human", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "spare", "name": "Their Spare", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "hand", "controller": 1},
+  {"key": "keep", "name": "Their Keep", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Arbiter of Woe", "key": "arbiter", "decisions": ["spare"]}
+ ],
+ "expect": {
+  "zone": {"arbiter": "battlefield", "fodder": "graveyard", "spare": "graveyard", "keep": "hand"},
+  "life": {"0": 22, "1": 18},
+  "hand": {"0": 1, "1": 1}
+ }
+}

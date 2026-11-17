@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d36d3c93-ed24-4447-9d15-3071f5c0989b",
+ "name": "Hoarding Dragon",
+ "text_sha": "258fb0497a6847a3cf075e0363fa12aef559158057b2d2c219b8b5a5e1abe18a",
+ "needs_atom": {
+  "missing": "ENGINE: IS_EXILED_WITH_SOURCE (quantity.py) counts every journalled exile whose cause is the source's card handle, across the card's lives, not only those of the current object (CR 400.7, 607.2a). A Hoarding Dragon that exiled an artifact, left the battlefield and came back, then exiled a second one, returns both to hand when it dies: stronger than printed (the first stays exiled for good). Known-bug draft and packs: tools/scenarios/known_bugs/2026-11-17/exiled_with_source_spans_lives/ (pack_a_returned_dragon_forgets_its_first_card.json: zone[relic] expected exile, got hand; hand 2, expected 1). The rest plays right on one life (pack_one_life_exiles_an_artifact_and_returns_it_on_death.json passes and kills a graveyard-destination mutant). Draft: enters OptionalEffect(Seq(SEARCH CHOOSE 1 TYPE_EQ Artifact from Zone(LIBRARY, YOU) to Zone(EXILE, OWNER), SHUFFLE)) as Solemn Simulacrum's search; dies (CreatureDiesEvent IS_SOURCE) OptionalEffect(MOVE_ZONE cards ALL IS_EXILED_WITH_SOURCE over Zone(EXILE, ANY) to Zone(HAND, OWNER)), M20 Bag of Holding's verified selector, which shares the fault (a Bag that left and came back returns its earlier life's cards). A CHOOSE 1 there would still offer the first life's card. Flying compiles.",
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17"
+ }
+}

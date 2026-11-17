@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "gorehorn_raider_without_an_attack_does_nothing",
+ "notes": "M3 mapper. Printed: 'Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.' Seat 0 has not attacked this turn: Gorehorn Raider enters and its ability does not trigger (the intervening 'if', CR 603.4): no target is asked and no damage is dealt anywhere.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raider", "real": "Gorehorn Raider", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Their Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "raider"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"raider": "battlefield", "brute": "battlefield"}
+ }
+}
