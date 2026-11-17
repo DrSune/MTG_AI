@@ -1,0 +1,371 @@
+# Census: completing M21, M20 and FDN (2026-11-17)
+
+## 1. Per set: the cards by state, and the unverified ones by need class
+M21: 285 cards: verified 275, compiled 10
+    unverified 10: (a) 1, (c) 8, (d) 1
+M20: 329 cards: verified 277, needs-atom 48, mapped 2, refused 2
+    unverified 52: (a) 2, (b) 3, (c) 47
+FDN: 517 cards: partly-compiled 311, verified 190, needs-atom 7, refused 5, mapped 2, compiled 2
+    unverified 327: (a) 4, (b) 199, (c) 121, (d) 3
+all three: unverified 389: (a) 7, (b) 202, (c) 176, (d) 4
+  ... castable today among them: 311
+  ... with a ruling: 8 cards; with a label: 2
+unparsed sentences: 639; parse alone: 13; verified analog word for word 42, by slot 24
+(b) cards: 202, 303 unparsed sentences, of which a verified analog: 45; cards whose every unparsed sentence has one: 13
+multi-package cards (c/d): 36
+printings of these cards in the other 16 sets with the same printed text (reprint stamps once verified): 115, of 115 printings
+
+## 2. Packages ((c) a gate round; (d) an engine wave; (r) a ruling), by reach
+reach = cards here that need only it + printings of the other 16 sets where it is the only piece the patterns detect
+id                kind here only o16 touch o16 only o16 whole reach  low-use
+PERMIT            c      28   19       100       79        18    98  
+BECOMES           c       9    6        60       50        21    56  
+COPY_PERM         c       9    6        31       23        18    29  
+R_FOOD            r       4    4        26       24        13    28  
+COUNTERKIND       c      11    5        29       21        14    26  
+TARGETS           c       5    4        21       16         8    20  
+COUNTS            c       9    8        14       11         5    19  
+DELAYED_MEMORY    c       6    3        21       16         2    19  
+ENTERS_WITH       c       8    6        17       10         9    16  
+R_TWOEVENTS       r       3    2        18       12         9    14  
+OTHERCHOOSER      c       6    5        11        8         4    13  
+COSTREF           c       1    1        13       12         9    13  
+MANARIDER         c       8    3        16        9         3    12  
+GAMEEND           c       3    1        12       11         6    12  
+PROHIBIT          c       3    3        10        9         5    12  
+SHUFFLEIN         c       4    1        16       10         6    11  
+DISCARD           c       3    2        10        9         6    11  
+SAMENAME          c       3    3         8        8         0    11  
+SPLIT             c       3    1        17       10        10    11  
+WARD              c       6    5         6        5         2    10  
+CHANGELING        c       3    1        14        9         3    10  
+LURE              c       1    1         9        9         7    10  
+R_ITSCONTROLLER   r       1    1        10        9         8    10  
+ALTCOST           c       3    3         9        6         5     9  
+DOUBLING          c       3    3         6        6         3     9  
+ANYTARGETS        c       3    1        17        7         5     8  
+FLASHPERM         c       3    2        10        6         5     8  
+DAMAGEDBY         c       2    1         7        7         6     8  
+GIVECONTROL       d       2    1         9        7         3     8  
+DURCONTROL        c       1    1         7        7         5     8  
+COPY_SPELL        c       6    3        11        4         2     7  
+ONCE              c       6    3         6        4         2     7  
+SURVEIL           c       6    5         2        2         1     7  
+CHOSEN            c       5    3         4        4         2     7  
+HANDSIZE          c       2    1         8        6         4     7  
+DISTINCT          c       6    4         7        2         2     6  
+TOUGHCMP          c       2    1         6        5         4     6  
+ALONE             c       1    1         5        5         5     6  
+DRAWSTEP          c       1    1         5        5         2     6  
+REDIRECT          c       1    1         6        5         4     6  
+NAMEDLOCK         c       1    1         4        4         1     5  
+SETLIFE           c       1    1         5        4         0     5  
+LEYLINE           c       6    2         5        2         1     4  
+DAMAGEASSIGN      c       1    1         3        3         1     4  
+EXCESS            c       1    1         3        3         2     4  
+TOKENLEGEND       c       1    1         3        3         1     4  
+TARGETLINK        c       4    2         2        1         0     3  
+EXTRACOMBAT       c       1    1         2        2         0     3  
+PAYX              c       1    1         3        2         0     3  
+EACHTYPE          c       1    1         1        1         0     2  LOW
+MODEMEMORY        c       1    1         2        1         0     2  
+PARTITION         c       1    1         1        1         0     2  LOW
+POISON            c       1    1         1        1         1     2  LOW
+RESOLVEDCOUNT     c       1    1         1        1         0     2  LOW
+TRIGGERCAUSE      c       1    1         2        1         1     2  
+ZONEREPLACE       d       4    1         4        0         1     1  
+REPLACE           c       3    1         0        0         0     1  
+DELAYEDNEXT       c       2    0         7        1         1     1  
+OWNER             c       2    1         0        0         0     1  LOW
+ATTACKED          c       1    1         0        0         0     1  LOW
+EACHPLAYERTARGET  d       1    1         0        0         0     1  LOW
+LIFEOTHER         c       1    1         0        0         0     1  LOW
+SACSUBJECT        c       1    1         0        0         0     1  LOW
+SEETHETRUTH       d       1    1         0        0         0     1  LOW
+ABILITIESOF       c       1    0         0        0         0     0  LOW
+GRANTOR           c       1    0         0        0         0     0  LOW
+
+[PERMIT] (c) Permission to cast or play a card from another zone: flashback, impulse draw ('you may play that card this turn'), casting from a graveyard or the top of a library, free casts. CR 601.2, 601.3, 305.1, 702.34a, 113.6f, 118.9, 611.3a, 400.7. Nearest: CAST (one-shot), ADD_LAND_PLAY, GRANT_ACTIVATION, IS_EXILED_WITH_SOURCE, DurationUntilEndOfNextTurn, the result register. Build: R5-2 PERMIT_CAST (source, alternative, count, lands, duration), R5-3 play_lands, R5-8 provenance: designed in DESIGN_ATOM_ONTOLOGY §10, never built.
+    here: FDN Bulk Up, FDN Chandra, Flameshaper, FDN Electroduplicate, FDN Etali, Primal Storm, FDN Inspiration from Beyond, FDN Kellan, Planar Trailblazer, FDN Muldrotha, the Gravetide, FDN Mystical Teachings, FDN Omniscience, FDN Quilled Greatwurm, FDN Redcap Gutter-Dweller, FDN Revenge of the Rats, FDN Self-Reflection, FDN Sphinx of Forgotten Lore, FDN Strongbox Raider, FDN Think Twice, FDN Tinybones, Bauble Burglar, FDN Vizier of the Menagerie, FDN Zul Ashur, Lich Lord, M20 Golos, Tireless Pilgrim, M20 Kethis, the Hidden Hand, M20 Mystic Forge, M21 Chandra, Flame's Catalyst, M21 Chandra, Heart of Fire, M21 Conspicuous Snoop, M21 Demonic Embrace, M21 Furious Rise, M21 Radha, Heart of Keld
+    other 16 (only this piece): 10E Crucible of Worlds, DOM Jaya Ballard, DOM Muldrotha, the Gravetide, DOM Precognition Field, DOM Rona, Disciple of Gix, DOM Squee, the Immortal, DOM Teshar, Ancestor's Apostle, ELD Emry, Lurker of the Loch, ELD Escape to the Wilds, ELD Fires of Invention, ELD Once Upon a Time, ELD Syr Carah, the Bold ...
+[BECOMES] (c) 'Becomes' effects: a noncreature becomes a creature (creature lands, Gideons, Vehicles and crew), and characteristics overwritten (set colour, set creature types, 'loses all other card types', a new name). CR 613.1b-f, 613.4b, 205.1b, 105.3, 702.122 (crew). Nearest: GRANT_TYPE (adds type words), SET_PT (base P/T), LOSE_ABILITY, GRANT_ABILITY, COLOR_HAS, DurationEot. Build: one characteristic-setting atom (types replaced or added, colours set; layers 4 and 5) beside SET_PT and LOSE_ABILITY, creature-ness of a noncreature, and the CREW keyword.
+    here: FDN Crawling Barrens, FDN Cultivator's Caravan, FDN Eaten by Piranhas, FDN Imprisoned in the Moon, FDN Kellan, Planar Trailblazer, FDN Mild-Mannered Librarian, FDN Soulstone Sanctuary, FDN Witness Protection, M20 Scuttlemutt
+    other 16 (only this piece): 10E Faerie Conclave, 10E Forbidding Watchtower, 10E Ghitu Encampment, 10E Spawning Pool, 10E Treetop Village, DOM Weatherlight, ELD Animating Faerie // Bring to Life, ELD Enchanted Carriage, ELD Frogify, ELD Kenrith's Transformation, ELD Wishful Merfolk, IKO Startling Development ...
+[COPY_PERM] (c) Copies of permanents: a token that's a copy, 'becomes a copy', 'enters as a copy' (with exceptions). CR 707.2, 707.9, 613.1a, 111.10? (token copy), 706. Nearest: Verb.COPY (in the IR, no executor handler), CREATE_TOKEN, TokenSpec, the result register. Build: R5-5 CopyOf(source, exceptions) and layer-1 copiable values (§10), never built.
+    here: FDN Abyssal Harvester, FDN Chandra, Flameshaper, FDN Electroduplicate, FDN Extravagant Replication, FDN Homunculus Horde, FDN Rite of Replication, FDN Self-Reflection, M20 Masterful Replication, M21 Sublime Epiphany
+    other 16 (only this piece): 10E Clone, 10E Sculpting Steel, DOM Helm of the Host, DOM Mishra's Self-Replicator, ELD Mirrormade, ELD Oko, the Trickster, ELD Sorcerer's Broom, IKO Mythos of Illuna, IKO Offspring's Revenge, M10 Clone, M11 Clone, M12 Phantasmal Image ...
+[R_FOOD] (r) Ruling: the canonical Food TokenSpec (Artifact - Food, '{2}, {T}, Sacrifice this token: You gain 3 life.'), and whether Treasure's keyword marker is its model. CR 111.10b. Nearest: TokenSpec, ActivatedAbility, CostSacrifice, GAIN_LIFE; Treasure's TokenSpec (Gadrak). Build: one TokenSpec form for every Food card; better a compiler template.
+    here: FDN Bake into a Pie, FDN Cat Collector, FDN Eager Trufflesnout, FDN Midnight Snack
+    other 16 (only this piece): ELD Bake into a Pie, ELD Bartered Cow, ELD Bog Naughty, ELD Cauldron Familiar, ELD Curious Pair // Treats to Share, ELD Feasting Troll King, ELD Fell the Pheasant, ELD Fierce Witchstalker, ELD Foreboding Fruit, ELD Fortifying Provisions, ELD Giant Opportunity, ELD Giant's Skewer ...
+[COUNTERKIND] (c) Counter kinds the IR lacks (stun, incubation, divinity, wish, revival, bait, fellowship, stash, ...), a count of one kind, doubling counters. CR 122.1, 122.1d (stun), 122.6. Nearest: CounterKind (7 kinds), PUT_COUNTER, REMOVE_COUNTER, CostRemoveCounter, HAS_COUNTER, QProp COUNTER_COUNT (kind-blind). Build: CounterKind members with their cards, the stun rule, a kind on COUNTER_COUNT.
+    here: FDN Banner of Kinship, FDN Biogenic Upgrade, FDN Drake Hatcher, FDN Fishing Pole, FDN Grappling Kraken, FDN Mossborn Hydra, FDN Myojin of Night's Reach, FDN Nine-Lives Familiar, FDN Tinybones, Bauble Burglar, FDN Wishclaw Talisman, FDN Zimone, Paradox Sculptor
+    other 16 (only this piece): DOM Darigaaz Reincarnated, DOM Keldon Warcaller, ELD Midnight Clock, IKO Chevill, Bane of Monsters, IKO Ominous Seas, KHM Replicating Ring, M11 Phylactery Lich, M12 Mind Unbound, M12 Primordial Hydra, M13 Hellion Crucible, M13 Phylactery Lich, M13 Primordial Hydra ...
+[TARGETS] (c) A predicate over what a spell or ability targets: 'a spell that targets X', 'becomes the target of a spell', 'costs less if it targets'. CR 115.1, 115.10?, 601.2c, 601.2f. Nearest: TARGETS_SOURCE, TargetingEvent(filter, actor), STACK_KIND_EQ, CostModifier.condition. Build: a targets predicate with a filter (and TargetingEvent's targeting object), read after targets are chosen (601.2f).
+    here: FDN Luminous Rebuke, M20 Cerulean Drake, M20 Gargos, Vicious Watcher, M20 Leyline of Combustion, M20 Season of Growth
+    other 16 (only this piece): ELD Bonecrusher Giant // Stomp, ELD Mystical Dispute, IKO Keep Safe, KHM Goldspan Dragon, M19 Departed Deckhand, M19 Druid of Horns, ORI Psychic Rebuttal, THB Hero of the Games, THB Hero of the Nyxborn, THB Hero of the Pride, THB Hero of the Winds, THB Heroes of the Revel ...
+[COUNTS] (c) Counts and totals of what happened: 'for each creature destroyed this way', 'life lost this way', 'if at least one ... this way', 'total power 8 or greater'. CR 608.2c, 609.3, 107.3?. Nearest: QCount(Selector(referent='result', filter)) (round 10), THAT_MANY_COUNT, QProp SUM, CONTROLLER_COUNT_GE. Build: the result register written by DESTROY, the mill lane, SACRIFICE and an EachPlayer, a 'life lost this way' amount, and a predicate comparing a quantity with a threshold.
+    here: FDN Deadly Brew, FDN Dread Summons, FDN Exsanguinate, FDN Fumigate, FDN Soul-Shackled Zombie, FDN Surrak, the Hunt Caller, FDN Tribute to Hunger, M20 Flood of Tears, M20 Gorging Vulture
+    other 16 (only this piece): DOM Thallid Omnivore, KHM Renegade Reaper, KHM Skull Raid, KHM Smashing Success, M11 Blood Tithe, M12 Jace's Archivist, M14 Bubbling Cauldron, M19 Patient Rebuilding, ORI Sphinx's Tutelage, THB Gray Merchant of Asphodel, ZNR Nahiri's Lithoforming
+[DELAYED_MEMORY] (c) Delayed triggers that remember their objects: 'return it at the beginning of the next end step', 'sacrifice them'. CR 603.7a-c, 603.7e, 400.7. Nearest: DelayedTrigger, the reflexive trigger's carried bindings (fire_reflexive), result. Build: a DelayedTrigger whose effect reads the scheduling resolution's objects, one-shot ('the next end step'); BACKLOG 'a delayed trigger that remembers the objects it is about'.
+    here: FDN Charming Prince, FDN Kykar, Zephyr Awakener, FDN Nine-Lives Familiar, M20 Chandra, Acolyte of Flame, M20 Rienne, Angel of Rebirth, M20 Thunderkin Awakener
+    other 16 (only this piece): DOM Oath of Teferi, DOM Sentinel of the Pearl Trident, DOM Teferi, Hero of Dominaria, DOM Tiana, Ship's Caretaker, DOM Valduk, Keeper of the Flame, ELD Charming Prince, IKO Yorion, Sky Nomad, M10 Dragon Whelp, M10 Protean Hydra, M11 Mystifying Maze, M11 Protean Hydra, ORI Liliana, Heretical Healer // Liliana, Defiant Necromancer ...
+[ENTERS_WITH] (c) Entering modified: a moved object enters with counters, tapped and attacking, or as another type; other objects enter tapped or with extra counters. CR 614.1c, 614.12, 122.6, 508.4. Nearest: EtBState (self only), MOVE_ZONE tapped_on_enter, TokenSpec.enters_attacking, GRANT_TYPE, ReplacementAbility over ZoneChangeEvent (the enter lane). Build: an entering-state role on MOVE_ZONE (counters, attacking), and an 'enters with' replacement for other objects.
+    here: FDN Authority of the Consuls, FDN Giada, Font of Hope, FDN Infernal Vessel, FDN Nine-Lives Familiar, FDN Undying Malice, FDN Valkyrie's Call, M20 Thunderkin Awakener, M20 Unholy Indenture
+    other 16 (only this piece): DOM Warcry Phoenix, ELD Grumgully, the Generous, ELD Mysterious Pathlighter, IKO Winota, Joiner of Forces, KHM Boreal Outrider, M15 Preeminent Captain, M19 Leonin Warleader, THB Renata, Called to the Hunt, WAR Arlinn, Voice of the Pack, ZNR Zareth San, the Trickster
+[R_TWOEVENTS] (r) Ruling: 'When this enters or dies/attacks' is one TriggeredAbility per event, in printed order (no template or record has the shape). CR 603.1, 603.2. Nearest: TriggeredAbility, ZoneChangeEvent, CreatureDiesEvent, DeclareAttackersEvent. Build: a MAPPER_GUIDE line.
+    here: FDN Crow of Dark Tidings, FDN Dreadwing Scavenger, FDN Wary Thespian
+    other 16 (only this piece): ELD Korvold, Fae-Cursed King, ELD Loch Dragon, ELD Tome of Legends, KHM Resplendent Marshal, M11 Grave Titan, M11 Primeval Titan, M11 Sun Titan, M12 Grave Titan, M12 Primeval Titan, M12 Sun Titan, M19 Stitcher's Supplier, THB Daxos, Blessed by the Sun
+[OTHERCHOOSER] (c) A choice another player makes: 'unless they ...', 'any opponent may', the owner's top or bottom, an opponent's pile. CR 101.4, 608.2d?, 700.2?. Nearest: Choose, EachPlayer(ref), OptionalEffect, PAY. Build: a chooser on Choose (or EachPlayer over the affected player) with the options that player can take.
+    here: FDN Curator of Destinies, FDN Desecration Demon, FDN Painful Quandary, FDN Perforating Artist, FDN Uncharted Voyage, M20 Aether Gust
+    other 16 (only this piece): ELD Clackbridge Troll, KHM Tergrid, God of Fright // Tergrid's Lantern, M12 Sphinx of Uthuun, M13 Sphinx of Uthuun, M15 Aetherspouts, M15 Indulgent Tormentor, M19 Demanding Dragon, THB Atris, Oracle of Half-Truths
+[COSTREF] (c) The objects a cost was paid with: 'the sacrificed creature's power'. CR 601.2h, 608.2h. Nearest: the result register (effects only), a reflexive trigger's carried bindings. Build: a register for the objects a cost moved, read by last known information.
+    here: FDN Ayli, Eternal Pilgrim
+    other 16 (only this piece): ELD Fling, ELD Witch's Oven, IKO Bushmeat Poacher, KHM Surtland Flinger, M10 Xathrid Demon, M11 Fling, M12 Fling, M15 Life's Legacy, M19 Thud, ORI Tormented Thoughts, ZNR Kazuul's Fury // Kazuul's Cliffs, ZNR Skyclave Apparition
+[MANARIDER] (c) Mana with a rider or a history: spend on activations, 'when that mana is spent', any type, kept across steps, tapping a creature for mana. CR 106.4, 106.6, 106.11?, 605.1b. Nearest: MANA_POLICY(scope THIS_MANA, filter), ADD_MANA. Build: a use axis on MANA_POLICY, mana provenance events, and a pool that persists.
+    here: FDN Carnelian Orb of Dragonkind, FDN Pyromancer's Goggles, FDN Savage Ventmaw, FDN Secluded Courtyard, FDN Tinybones, Bauble Burglar, FDN Vizier of the Menagerie, M20 Leyline of Abundance, M20 Renowned Weaponsmith
+    other 16 (only this piece): DOM Grand Warlord Radha, ELD Castle Garenbrig, IKO Kinnan, Bonder Prodigy, KHM The Bloodsky Massacre, KHM Tundra Fumarole, THB Dalakos, Crafter of Wonders, THB Nyxbloom Ancient, WAR Neheb, Dreadhorde Champion, ZNR Base Camp
+[GAMEEND] (c) Game results: 'you win the game', 'can't lose the game', a named player loses. CR 104.2, 104.3, 104.3e?. Nearest: Verb.LOSE_GAME (no player role). Build: a player role on LOSE_GAME, a win, and the can't-lose prohibition.
+    here: FDN Herald of Eternal Dawn, FDN Maze's End, M20 Atemsis, All-Seeing
+    other 16 (only this piece): 10E Mortal Combat, 10E Phage the Untouchable, 10E Platinum Angel, DOM Lich's Mastery, ELD Happily Ever After, M10 Platinum Angel, M11 Platinum Angel, M13 Battle of Wits, M13 Door to Nothingness, THB Thassa's Oracle, WAR Jace, Wielder of Mysteries
+[PROHIBIT] (c) Prohibitions no engine lane consults: can't gain life, can't cast more than one spell, can't cast from zones, can't enter from zones. CR 101.2, 119.7, 601.2?. Nearest: PREVENT_EFFECT (consumers: damage, untap, attack, block, activation, counters, draw). Build: consumers in cast legality, the life lane and the zone-change lane.
+    here: FDN Giant Cindermaw, M20 Grafdigger's Cage, M20 Rule of Law
+    other 16 (only this piece): 10E Rule of Law, ELD Deafening Silence, IKO Drannith Magistrate, KHM Quakebringer, KHM Weathered Runestone, THB Kunoros, Hound of Athreos, WAR Tibalt, Rakish Instigator, ZNR Archon of Emeria, ZNR Roiling Vortex
+[SHUFFLEIN] (c) 'Shuffle into its owner's library': divergence D19's fold. CR 401.4, 701.24 (shuffle). Nearest: MOVE_ZONE to Zone(LIBRARY) with no position, SHUFFLE, `arrange`. Build: 'on the bottom' written as BOTTOM and a shuffle-in with no order asked (D19).
+    here: FDN Darksteel Colossus, FDN Feldon's Cane, FDN Finale of Revelation, FDN Progenitus
+    other 16 (only this piece): 10E Beacon of Destruction, 10E Beacon of Immortality, 10E Beacon of Unrest, DOM The Mending of Dominaria, IKO Yidaro, Wandering Monster, M11 Elixir of Immortality, M12 Elixir of Immortality, M13 Elixir of Immortality, M13 Serra Avatar, M14 Elixir of Immortality
+[DISCARD] (c) Discard as an event: 'whenever you discard', a discard replaced. CR 701.8, 614.1a. Nearest: MOVE_ZONE hand -> graveyard (27 trees), Verb.DISCARD (1), ZoneChangeEvent(HAND -> GRAVEYARD). Build: a DiscardEvent and B-48's one discard encoding (BACKLOG 'Whenever you discard a card').
+    here: FDN Tinybones, Bauble Burglar, FDN Wilt-Leaf Liege, M20 Glint-Horn Buccaneer
+    other 16 (only this piece): 10E Guerrilla Tactics, 10E Megrim, IKO Rielle, the Everwise, M10 Megrim, M11 Liliana's Caress, M11 Obstinate Baloth, M15 Waste Not, M19 Ajani's Last Stand, M19 Fell Specter
+[SAMENAME] (c) A name equal to another object's name. CR 201.2, 201.3. Nearest: NAME_EQ (a literal only), NAME_CHOSEN. Build: NAME_EQ against a referent or a filter.
+    here: FDN Maelstrom Pulse, M20 Legion's End, M20 Pattern Matcher
+    other 16 (only this piece): KHM Frostpyre Arcanist, M10 Haunting Echoes, M11 Haunting Echoes, M12 Doubling Chant, M13 Shimian Specter, M15 Stain the Mind, ORI Infinite Obliteration, THB Ashiok's Erasure
+[SPLIT] (c) Divided damage and distributed counters among targets. CR 601.2d. Nearest: DEAL_DAMAGE, PUT_COUNTER, TARGET selectors. Build: a division chosen as targets are announced, at least one to each.
+    here: FDN Biogenic Upgrade, FDN Chandra, Flameshaper, M20 Vivien, Arkbow Ranger
+    other 16 (only this piece): ELD Sundering Stroke, KHM Blessing of Frost, M10 Ignite Disorder, M11 Inferno Titan, M12 Inferno Titan, M13 Flames of the Firebrand, M14 Flames of the Firebrand, ORI Aerial Volley, WAR Chandra's Pyrohelix, ZNR Shatterskull Smashing // Shatterskull, the Hammer Pass
+[WARD] (c) Ward: counter a spell or ability that targets it unless its controller pays. CR 702.21a, 118.12, 701.5 (counter). Nearest: TargetingEvent(filter, actor), COUNTER_SPELL(unless), stack abilities (B-110), Keyword. Build: a WARD keyword with a cost parameter (mana or life), its trigger built by the engine.
+    here: FDN Cackling Prowler, FDN Koma, World-Eater, FDN Ovika, Enigma Goliath, FDN Sire of Seven Deaths, FDN Tolarian Terror, FDN Zul Ashur, Lich Lord
+    other 16 (only this piece): KHM Reidane, God of the Worthy // Valkmira, Protector's Shield, M11 Frost Titan, M12 Frost Titan, M15 Diffusion Sliver, THB Whirlwind Denial
+[CHANGELING] (c) Changeling and 'all creature types'. CR 702.73a, 205.3m. Nearest: SUBTYPE_EQ, GRANT_TYPE, Supply.creature_types. Build: a CHANGELING keyword read by every creature-type test.
+    here: FDN Soulstone Sanctuary, FDN Taurean Mauler, FDN Three Tree Mascot
+    other 16 (only this piece): KHM Arachnoform, KHM Bloodline Pretender, KHM Gladewalker Ritualist, KHM Guardian Gladewalker, KHM Littjara Glade-Warden, KHM Littjara Kinseekers, KHM Masked Vandal, KHM Maskwood Nexus, KHM Mistwalker
+[LURE] (c) Lure: all creatures able to block it do so. CR 509.1c. Nearest: MANDATE_BLOCK (one requirement, met by one blocker). Build: a requirement on every able blocker, and the declaration's requirement count.
+    here: M20 Prized Unicorn
+    other 16 (only this piece): 10E Lure, M10 Prized Unicorn, M11 Prized Unicorn, M12 Lure, M19 Declare Dominance, ORI Prized Unicorn, THB Nessian Boar, THB Treeshaker Chimera, ZNR Taunting Arbormage
+[R_ITSCONTROLLER] (r) Ruling: 'N damage to that creature's controller' is the verified M20 Chandra, Flame's Fury form (ALL over Zone(PLAYER) with CONTROLLER_IS a referent); MAPPER_GUIDE's 'no encoding yet' line is stale. CR 115.1, 608.2h. Nearest: DEAL_DAMAGE, Selector(referent='target'), CONTROLLER_IS. Build: BACKLOG 'N damage to that creature's controller: two answers, one of them stale'.
+    here: M20 Chandra's Outrage
+    other 16 (only this piece): 10E Cryoclasm, ELD Searing Barrage, M11 Chandra's Outrage, M12 Chandra's Outrage, M14 Chandra's Outrage, ORI Ravaging Blaze, ORI Smash to Smithereens, THB Impending Doom, ZNR Synchronized Spellcraft
+[ALTCOST] (c) Alternative costs and costs with two forms: 'rather than pay this spell's mana cost', 'sacrifice a creature or pay {3}{B}'. CR 118.9, 601.2b, 601.2f. Nearest: SpellAbility.additional_costs, KickerAbility, CostModifier(CostDeltaWaiveMana). Build: an alternative-cost node offered at cast (R5-2's 'alternative' role is the permission's twin).
+    here: FDN Blasphemous Edict, FDN Eaten Alive, M20 Sephara, Sky's Blade
+    other 16 (only this piece): DOM Jodah, Archmage Eternal, DOM Zahid, Djinn of the Lamp, KHM Runeforge Champion, KHM Stalwart Valkyrie, M11 Demon of Death's Gate, WAR Spark Harvest
+[DOUBLING] (c) Doubling replacements: tokens, counters, damage. CR 614.1a, 616.1. Nearest: ReplacementAbility over LifeGainedEvent with QBin (Angel of Vitality), replacements_for_damage, replacement_for_counter_placement. Build: replacement actions for created tokens and placed counters, damage multiplied, with the 616.1 order asked.
+    here: FDN Doubling Season, FDN Gratuitous Violence, FDN Twinflame Tyrant
+    other 16 (only this piece): 10E Furnace of Rath, IKO Obosh, the Preypiercer, KHM Calamity Bearer, KHM Vorinclex, Monstrous Raider, M11 Fire Servant, WAR Devouring Hellion
+[ANYTARGETS] (c) 'Any number of target X'. CR 115.1, 601.2c. Nearest: Selector(mode=TARGET) refuses QUnbounded; CHOOSE QUnbounded. Build: an unbounded TARGET count, asked pick by pick with a stop.
+    here: FDN Chandra, Flameshaper, FDN Divine Resilience, M20 Loaming Shaman
+    other 16 (only this piece): ELD Forever Young, IKO Nethroi, Apex of Death, M11 Hunters' Feast, M12 Jace, Memory Adept, M13 Jace, Memory Adept, M14 Jace, Memory Adept, WAR Command the Dreadhorde
+[FLASHPERM] (c) Cast as though it had flash. CR 601.3e?, 702.8, 609.4. Nearest: MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY, GRANT_ACTIVATION, Keyword.FLASH. Build: ledger F9's decision first: one POLICY verb with a scope enum before a fourth policy verb.
+    here: FDN Harbinger of the Tides, FDN High Fae Trickster, M20 Leyline of Anticipation
+    other 16 (only this piece): DOM Raff Capashen, Ship's Mage, M13 Yeva, Nature's Herald, M14 Quicken, ORI Harbinger of the Tides, ORI Swift Reckoning, WAR Teferi, Time Raveler
+[DAMAGEDBY] (c) History: dealt damage by this creature this turn. CR 120.1, 603.10?. Nearest: EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN, DamageDealtEvent (refused per dealer today). Build: the history atoms grouped by dealer ('a damage threshold counts per recipient, never per dealer').
+    here: FDN Predator Ooze, FDN Steel Hellkite
+    other 16 (only this piece): 10E Sengir Vampire, M12 Sengir Vampire, M14 Sengir Vampire, M15 Sengir Vampire, ORI Sengir Vampire, ORI Touch of Moonglove, THB Incendiary Oracle
+[GIVECONTROL] (d) Control given to another player: GAIN_CONTROL's executor raises on any controller but YOU. CR 611.2, 108.4?. Nearest: GAIN_CONTROL(controller, duration, target), the executor's control overlay. Build: the overlay for a named recipient ("target opponent gains control"; "an opponent" is a choice in multiplayer).
+    here: FDN Harmless Offering, FDN Wishclaw Talisman
+    other 16 (only this piece): 10E Sleeper Agent, KHM The Trickster-God's Heist, M11 Jinxed Idol, M13 Switcheroo, M15 Avarice Amulet, M19 Switcheroo, WAR Role Reversal
+[DURCONTROL] (c) 'For as long as you control <source>'. CR 611.2b. Nearest: DurationUntilLeaves, DurationWhileCondition. Build: a terminal duration ending at a control change.
+    here: M20 Dungeon Geists
+    other 16 (only this piece): DOM Time of Ice, M12 Aegis Angel, M12 Master Thief, M14 Tidebinder Mage, M15 Aegis Angel, ORI Aegis Angel, ORI Willbreaker
+[COPY_SPELL] (c) Copies of spells and abilities on the stack. CR 707.10, 707.10c (new targets), 112.1. Nearest: Verb.COPY, COUNTER_SPELL's stack targets, STACK_KIND_EQ, stack abilities (B-110). Build: R5-5's stack half: a copy is never cast (no CAST row), new targets asked.
+    here: FDN Pyromancer's Goggles, FDN Teach by Example, FDN Thousand-Year Storm, M20 Chandra's Regulator, M20 Repeated Reverberation, M21 Double Vision
+    other 16 (only this piece): KHM Reflections of Littjara, M15 Kurkesh, Onakke Ancient, ZNR Sea Gate Stormcaller, ZNR Verazol, the Split Current
+[ONCE] (c) Activate only once (each turn); this ability triggers only once each turn. CR 602.5b, 603.2h? (limits), 606.3. Nearest: AbilityActivatedEvent (no ability identity), EVENT_THIS_TURN, ActivatedAbility.condition. Build: an ability-identity slot (or a per-ability count limit) read by activation legality and the trigger binder.
+    here: FDN Exemplar of Light, FDN Mild-Mannered Librarian, FDN Ramos, Dragon Engine, FDN Steel Hellkite, FDN Three Tree Mascot, M20 Frilled Sandwalla
+    other 16 (only this piece): 10E Rootwalla, KHM Elvish Warmaster, M14 Rootwalla, M15 Aggressive Mining
+[SURVEIL] (c) Surveil N. CR 701.25 (keyword action). Nearest: Verb.SCRY (its sibling), LOOK_AT, MOVE_ZONE ONE_OF/REST. Build: SCRY's twin: look at N, any number into the graveyard, the rest on top in any order (one verb, or SCRY with a destination role: the gate decides).
+    here: FDN Cephalid Inkmage, FDN Lightshell Duo, FDN Rune-Sealed Wall, FDN Uncharted Voyage, FDN Vanguard Seraph, FDN Wary Thespian
+    other 16 (only this piece): IKO Titans' Nest, THB Eat to Extinction
+[CHOSEN] (c) Reads of a chosen quality round 9 left out: mana of the chosen colour, 'is the chosen type', a spend restriction to the chosen type. CR 607.2d, 106.1?, 205.1. Nearest: CHOOSE_NAME(quality), NAME_CHOSEN, ADD_MANA, GRANT_TYPE, MANA_POLICY. Build: ADD_MANA reading the choice, GRANT_TYPE of the chosen value, MANA_POLICY over it (BACKLOG 'A quality chosen as a permanent enters: the cards one piece away').
+    here: FDN Adaptive Automaton, FDN Banner of Kinship, FDN Heraldic Banner, FDN Secluded Courtyard, FDN Uncharted Haven
+    other 16 (only this piece): ELD Heraldic Banner, KHM Shimmerdrift Vale, M10 Convincing Mirage, M12 Adaptive Automaton
+[HANDSIZE] (c) Maximum hand size. CR 402.2, 514.1. Nearest: executor.MAX_HAND_SIZE (read by cleanup only). Build: a player's maximum hand size as a static and 'for the rest of the game' (BACKLOG B-96).
+    here: FDN Finale of Revelation, FDN Niv-Mizzet, Visionary
+    other 16 (only this piece): 10E Spellbook, ELD Folio of Fancies, M10 Spellbook, M13 Reliquary Tower, M19 Reliquary Tower, ZNR Sea Gate Restoration // Sea Gate, Reborn
+[DISTINCT] (c) Distinct values among a set: names, mana values, mana costs, and picks 'with different names'. CR 201.2, 202.1, 202.3. Nearest: QDistinctColorCount, NAME_PARTITION_COUNT_GE, QCount. Build: one distinct-count quantity over a selector by a property, and a 'different names' pick.
+    here: FDN Lunar Insight, FDN Maze's End, M20 Atemsis, All-Seeing, M20 Embodiment of Agonies, M20 Field of the Dead, M20 Shared Summons
+    other 16 (only this piece): IKO Eerie Ultimatum, THB Deathbellow War Cry
+[TOUGHCMP] (c) Toughness-only comparisons ('with toughness 4 or greater'). CR 208.?. Nearest: POWER_LE/GE (power only), PT_LE/GE (both components). Build: TOUGHNESS_LE/GE, POWER_LE/GE's twins.
+    here: FDN Valorous Stance, M20 Thunderkin Awakener
+    other 16 (only this piece): DOM Tetsuko Umezawa, Fugitive, KHM Rootless Yew, M14 Fleshpulper Giant, M15 Pillar of Light, WAR Finale of Eternity
+[ALONE] (c) Can't attack or block alone. CR 506.5. Nearest: PREVENT_EFFECT over declarations; BATTALION's group size. Build: a group-size test on the declaration.
+    here: M20 Loyal Pegasus
+    other 16 (only this piece): KHM Craven Hulk, M10 Jackal Familiar, M13 Mogg Flunkies, ORI Bonded Construct, WAR Raging Kronch
+[DRAWSTEP] (c) Draw-step triggers. CR 504.1, 504.2. Nearest: TurnPhaseEvent(phase) (no DRAW phase), StepEvent (no trigger listens). Build: a DRAW value for the turn-phase event.
+    here: FDN Dictate of Kruphix
+    other 16 (only this piece): 10E Howling Mine, 10E Razormane Masticore, M10 Howling Mine, M12 Rites of Flourishing, ORI Avaricious Dragon
+[REDIRECT] (c) Change the target of a spell or ability. CR 115.7. Nearest: COUNTER_SPELL's stack targets, the designation. Build: a verb that re-designates a stack object's target.
+    here: FDN Bolt Bend
+    other 16 (only this piece): 10E Shunt, M11 Redirect, M12 Redirect, M13 Redirect, WAR Bolt Bend
+[NAMEDLOCK] (c) 'As this enters, look at an opponent's hand, then choose a card name', and a lock on the named sources. CR 614.12a, 602.5?, 605.1a. Nearest: EtBState(effect=CHOOSE_NAME), NAME_CHOSEN, PREVENT_EFFECT over AbilityActivatedEvent(NON_MANA). Build: an EtBState effect beyond CHOOSE_NAME, and the lock keyed by the chosen name (B-109).
+    here: FDN Sorcerous Spyglass
+    other 16 (only this piece): 10E Pithing Needle, ELD Sorcerous Spyglass, M10 Pithing Needle, M15 Phyrexian Revoker
+[SETLIFE] (c) A life total becomes N. CR 119.5. Nearest: GAIN_LIFE, LOSE_LIFE. Build: a set-life atom gaining or losing the difference as one event.
+    here: M20 Loxodon Lifechanter
+    other 16 (only this piece): M12 Sorin Markov, M13 Elderscale Wurm, M13 Touch of the Eternal, M13 Worldfire
+[LEYLINE] (c) Opening-hand actions: 'begin the game with it on the battlefield'. CR 103.6a, 103.6. Nearest: games.py's setup (no hook), EtBState. Build: a pregame action read from the opening hand (an ability that works there, 113.6?).
+    here: FDN Leyline Axe, M20 Leyline of Abundance, M20 Leyline of Anticipation, M20 Leyline of Combustion, M20 Leyline of Sanctity, M20 Leyline of the Void
+    other 16 (only this piece): M11 Leyline of Sanctity, M11 Leyline of Vitality
+[DAMAGEASSIGN] (c) Assign combat damage equal to toughness. CR 510.1a, 510.1c?. Nearest: DAMAGE_ASSIGN_POLICY (scope AS_UNBLOCKED only). Build: a second scope value.
+    here: M20 Gauntlets of Light
+    other 16 (only this piece): IKO Solid Footing, M19 Arcades, the Strategist, WAR Huatli, the Sun's Heart
+[EXCESS] (c) Excess damage. CR 120.4a?. Nearest: DEAL_DAMAGE, QProp AMOUNT. Build: the damage beyond lethal as a quantity.
+    here: FDN Goblin Negotiation
+    other 16 (only this piece): IKO Flame Spill, IKO Ram Through, KHM Aegar, the Freezing Flame
+[TOKENLEGEND] (c) Legendary tokens: TokenSpec has no supertypes, so the legend rule never sees one. CR 111.4, 704.5j. Nearest: TokenSpec (no supertypes field), the legend rule (executor). Build: a supertypes field on TokenSpec.
+    here: FDN Kiora, the Rising Tide
+    other 16 (only this piece): DOM Verix Bladewing, ORI Nissa, Vastwood Seer // Nissa, Sage Animist, WAR Tolsimir, Friend to Wolves
+[TARGETLINK] (c) Targets constrained by each other: controlled by different players, from a single graveyard, a target player then cards in that player's graveyard, two target players each acting. CR 115.3, 601.2c. Nearest: several TARGET slots, EachPlayer(ref referent). Build: a constraint across target slots.
+    here: FDN Run Away Together, FDN Soul-Shackled Zombie, M20 Loaming Shaman, M20 Scheming Symmetry
+    other 16 (only this piece): ELD Run Away Together
+[EXTRACOMBAT] (c) An additional combat phase; 'attacks for the first time each turn'. CR 500.8, 506.1. Nearest: DeclareAttackersEvent (no ordinal), EXTRA_TURN. Build: an extra combat phase and an attack ordinal.
+    here: FDN Aurelia, the Warleader
+    other 16 (only this piece): 10E Relentless Assault, ZNR Moraug, Fury of Akoum
+[PAYX] (c) 'You may pay {X}' inside a resolving ability. CR 107.1b, 107.3a?, 118.?. Nearest: Verb.PAY, QX, reflexive triggers. Build: X chosen as the payment is made and read after it.
+    here: FDN Wildborn Preserver
+    other 16 (only this piece): ELD Wildborn Preserver, M12 Flameblast Dragon
+[EACHTYPE] (c) Choose a permanent of each permanent type, sacrifice the rest. CR 205.2a, 701.21. Nearest: SACRIFICE, Choose. Build: a choice over the types of permanents.
+    here: FDN Liliana, Dreadhorde General
+    other 16 (only this piece): WAR Liliana, Dreadhorde General
+[MODEMEMORY] (c) Modes remembered across resolutions: 'choose one that hasn't been chosen'. CR 700.2. Nearest: Choose. Build: a per-object record of modes chosen.
+    here: FDN Demonic Pact
+    other 16 (only this piece): ORI Demonic Pact
+[PARTITION] (c) One look window split into per-kind picks: 'an Angel card, a Demon card, and/or a Dragon card'. CR 608.2c. Nearest: ONE_OF/REST, ALL over the window. Build: a pick of at most one card per kind.
+    here: M20 Kaalia, Zenith Seeker
+    other 16 (only this piece): THB Relentless Pursuit
+[POISON] (c) Poison counters on players. CR 122.1f, 704.5c, 702.90 (infect). Nearest: none (players hold no counters in the IR). Build: player counters of the poison kind and the ten-poison state-based action.
+    here: FDN Fynn, the Fangbearer
+    other 16 (only this piece): KHM Fynn, the Fangbearer
+[RESOLVEDCOUNT] (c) 'If this is the second time this ability has resolved this turn'. CR 603.?. Nearest: EVENT_THIS_TURN. Build: a count of one ability's resolutions.
+    here: FDN Venom Connoisseur
+    other 16 (only this piece): ZNR Omnath, Locus of Creation
+[TRIGGERCAUSE] (c) Triggers caused by a permanent entering trigger again (Panharmonicon). CR 603.2. Nearest: AbilityTriggerEvent, TRIGGER_ADDITIONAL (Sanctum of All). Build: the triggering event's kind on AbilityTriggerEvent.
+    here: M20 Yarok, the Desecrated
+    other 16 (only this piece): DOM Naban, Dean of Iteration
+[ZONEREPLACE] (d) Replacements of a move into a graveyard from anywhere: the zone-change replacement lane is consulted at battlefield entries and deaths only. CR 614.1a, 614.6. Nearest: ReplacementAbility over ZoneChangeEvent (Containment Priest's enter lane), replacement_for_death. Build: every move into a graveyard (resolution, discard, mill, state-based actions) consults it.
+    here: FDN Darksteel Colossus, FDN Dryad Militant, FDN Progenitus, M20 Leyline of the Void
+[REPLACE] (c) Resolving replacement effects bound to an object, from a permanent's ability or a permission cast ('if it would die this turn, exile it instead' on a planeswalker; B-99's rider). CR 614.1a, 614.12?, 608.2g. Nearest: the card-level ReplacementAbility of instants and sorceries (B-77), replacement_for_death. Build: R5-12 Verb.REPLACE (§10), never built.
+    here: M20 Chandra, Acolyte of Flame, M20 Chandra, Awakened Inferno, M21 Chandra, Flame's Catalyst
+[DELAYEDNEXT] (c) One-shot delayed triggers on the next event: 'when you next cast an instant or sorcery spell this turn'. CR 603.7c. Nearest: DelayedTrigger, CastSpellEvent, AbilityActivatedEvent. Build: a DelayedTrigger that fires once on its event and lapses at end of turn.
+    here: FDN Teach by Example, M20 Repeated Reverberation
+    other 16 (only this piece): 10E Story Circle
+[OWNER] (c) Ownership in filters: 'permanents you don't own'. CR 108.3. Nearest: CONTROLLER_IS, Zone(..., OWNER). Build: an owner predicate.
+    here: FDN Tinybones, Bauble Burglar, M20 Agent of Treachery
+[ATTACKED] (c) The player or planeswalker a creature attacks. CR 506.2, 508.1b. Nearest: DeclareAttackersEvent.attacked, ATTACK_AGAINST_COUNT_GE, DEFENDING_PLAYER. Build: a referent for the attacked object, kept if the attacker leaves combat.
+    here: M20 Scorch Spitter
+[EACHPLAYERTARGET] (d) A trigger's 'target player sacrifices': the trigger designation scan does not read EachPlayer.ref. CR 603.3d, 701.21. Nearest: EachPlayer(ref=TARGET_PLAYER), SACRIFICE (Run Afoul's spell shape). Build: binding._designated_player_refs reads EachPlayer.ref (Gatekeeper's note).
+    here: FDN Gatekeeper of Malakir
+[LIFEOTHER] (c) Another player's life total in a condition. CR 119.?. Nearest: LIFE_TOTAL_GE (who YOU only since round 8). Build: LIFE_TOTAL_GE.who's next value, with its card's tests.
+    here: FDN Hidetsugu's Second Rite
+[SACSUBJECT] (c) 'When you sacrifice this Aura': SacrificeEvent names no subject. CR 701.21, 603.6c. Nearest: SacrificeEvent(actor), ZoneChangeEvent(BATTLEFIELD -> GRAVEYARD) (which a destroy also fires). Build: a subject filter on SacrificeEvent.
+    here: FDN Ordeal of Nylea
+[SEETHETRUTH] (d) A look's 'instead' clause compiles as an extra step (See the Truth). CR 608.2c, 614.1a?. Nearest: Conditional(else). Build: the compiler's look templates choose between the two outcomes (BACKLOG 'See the Truth's ... branch compiles wrong').
+    here: M21 See the Truth
+[ABILITIESOF] (c) Has all activated abilities of another card. CR 613.1f. Nearest: GRANT_ABILITY (a fixed ability). Build: a grant of another object's abilities.
+    here: M21 Conspicuous Snoop
+[GRANTOR] (c) A granted ability that names the object granting it ('Equipped creature has "{1}, {T}, Tap Fishing Pole: Put a bait counter on Fishing Pole."'). CR 113.10?, 611.3?. Nearest: GRANT_ABILITY; IS_SOURCE in a granted ability is the grantee (round 9's refusal 4). Build: a referent for the granting object inside a granted ability.
+    here: FDN Fishing Pole
+
+## 3. Mapping batches ((b) cards), with 207's rates (mapping 1.75, blind review about 1.1 with G3 follow-ups, agent-minutes per card)
+M1: 26 cards (FDN 26): instants and sorceries 15; modal spells and modal triggers 11; mapping 46 min, review 29 min; rulings {'R_FOOD': 1}; every unparsed sentence with a verified analog: 0; with a note (risk, ruling, carrier): 2
+    Abrade, Apothecary Stomper, Boros Charm, Bushwhack, Deadly Plot, Felidar Retreat, Goblin Surprise, Seeker's Folly, Slagstorm, Sylvan Scavenging, Wardens of the Cycle, Adamant Will, Aetherize, An Offer You Can't Refuse, Arcane Epiphany, Bake into a Pie, Bite Down, Boltwave, Brass's Bounty, Burst Lightning, Cemetery Recruitment, Circuitous Route, Claws Out, Day of Judgment, Deadly Riposte, Deathmark
+    components the nearest parsed sentences use (what the batch reuses): CHOOSE_NAME 8, EtBState 8, DEAL_DAMAGE 8, TriggeredAbility 7, MOVE_ZONE 5, CREATE_TOKEN 5, TokenSpec 5, DRAW 5, GRANT_ABILITY 4, MODIFY_PT 4, ActivatedAbility 4, PUT_COUNTER 3, ZoneChangeEvent 3, DESTROY 3
+M2: 26 cards (FDN 26): instants and sorceries 26; mapping 46 min, review 29 min; every unparsed sentence with a verified analog: 3; with a note (risk, ruling, carrier): 2
+    Elspeth's Smite, Essence Scatter, Faebloom Trick, Fake Your Own Death, Feed the Swarm, Felling Blow, Fiery Annihilation, Flashfreeze, Fleeting Flight, Genesis Wave, Grow from the Ashes, Heroic Reinforcements, Inspiring Call, Involuntary Employment, Joust Through, Macabre Waltz, Make Your Move, Make a Stand, Offer Immortality, Overrun, Preposterous Proportions, Refute, Rise of the Dark Realms, River's Rebuke, Seismic Rupture, Seize the Spoils
+    components the nearest parsed sentences use (what the batch reuses): ActivatedAbility 10, MOVE_ZONE 9, GRANT_ABILITY 5, DEAL_DAMAGE 4, CostTap 4, DESTROY 3, CostSacrifice 3, TriggeredAbility 3, DRAW 3, MODIFY_PT 3, CreatureDiesEvent 2, ReplacementAbility 2, COUNTER_SPELL 2, ADD_MANA 2
+M3: 25 cards (FDN 24, M20 1): enters and dies triggers 23; instants and sorceries 2; mapping 44 min, review 28 min; rulings {'R_ITSCONTROLLER': 1, 'R_FOOD': 1, 'R_TWOEVENTS': 1}; every unparsed sentence with a verified analog: 2; with a note (risk, ruling, carrier): 3
+    Snakeskin Veil, Chandra's Outrage, Ambush Wolf, Angel of Finality, Arbiter of Woe, Archway Angel, Billowing Shriekmass, Bloodtithe Collector, Burglar Rat, Burrog Befuddler, Campus Guide, Cat Collector, Cloudblazer, Corsair Captain, Crow of Dark Tidings, Driver of the Dead, Dwynen's Elite, Fiendish Panda, Gorehorn Raider, Hare Apparent, Hoarding Dragon, Icewind Elemental, Infestation Sage, Inspiring Overseer, Micromancer
+    components the nearest parsed sentences use (what the batch reuses): TriggeredAbility 12, MOVE_ZONE 10, ZoneChangeEvent 10, ActivatedAbility 6, CostSacrifice 6, CostTap 6, DRAW 6, OptionalEffect 4, CREATE_TOKEN 4, TokenSpec 4, MODIFY_PT 3, GAIN_LIFE 3, SEARCH 3, SHUFFLE 3
+M4: 25 cards (FDN 25): enters and dies triggers 13; other triggers 12; mapping 44 min, review 28 min; every unparsed sentence with a verified analog: 1; with a note (risk, ruling, carrier): 2
+    Mischievous Pup, Prayer of Binding, Prime Speaker Zegana, Reclamation Sage, Rune-Scarred Demon, Springbloom Druid, Sun-Blessed Healer, Terror of Mount Velus, Tragic Banshee, Vampire Soulcaller, Viashino Pyromancer, Vile Entomber, Voracious Greatshark, Alesha, Who Laughs at Fate, Angelic Destiny, Arahbo, the First Fang, Archmage of Runes, Armasaur Guide, Ashroot Animist, Balmor, Battlemage Captain, Beast-Kin Ranger, Bloodthirsty Conqueror, Consuming Aberration, Courageous Goblin, Crackling Cyclops
+    components the nearest parsed sentences use (what the batch reuses): TriggeredAbility 12, MOVE_ZONE 8, ZoneChangeEvent 6, MODIFY_PT 6, StaticAbility 5, GRANT_ABILITY 4, SEARCH 3, SHUFFLE 3, GAIN_LIFE 2, DESTROY 2, REVEAL 2, DeclareAttackersEvent 2, LOSE_GAME 1, CreatureDiesEvent 1
+M5: 25 cards (FDN 25): other triggers 25; mapping 44 min, review 28 min; rulings {'R_TWOEVENTS': 1, 'R_FOOD': 1}; every unparsed sentence with a verified analog: 2; with a note (risk, ruling, carrier): 1
+    Crossway Troublemakers, Dazzling Angel, Dragonmaster Outcast, Dreadwing Scavenger, Dwynen, Gilt-Leaf Daen, Eager Trufflesnout, Elfsworn Giant, Firespitter Whelp, Flamewake Phoenix, Garna, Bloodfist of Keld, Gate Colossus, Gateway Sneak, Good-Fortune Unicorn, Guttersnipe, Halana and Alena, Partners, High-Society Hunter, Hinterland Sanctifier, Kalastria Highborn, Leonin Vanguard, Linden, the Steadfast Queen, Mentor of the Meek, Midnight Reaper, Mindsparker, Mischievous Mystic, Mold Adder
+    components the nearest parsed sentences use (what the batch reuses): TriggeredAbility 20, DRAW 8, MODIFY_PT 8, ZoneChangeEvent 7, ActivatedAbility 6, GRANT_ABILITY 5, StaticAbility 5, OptionalEffect 5, TurnPhaseEvent 5, CREATE_TOKEN 4, TokenSpec 4, DEAL_DAMAGE 4, PUT_COUNTER 4, CreatureDiesEvent 3
+M6: 25 cards (FDN 25): other triggers 18; statics: anthems, Auras, Equipment, conditions, costs 7; mapping 44 min, review 28 min; every unparsed sentence with a verified analog: 0; with a note (risk, ruling, carrier): 1
+    Needletooth Pack, Nessian Hornbeetle, Phyrexian Arena, Primeval Bounty, Pulse Tracker, Rampaging Baloths, Ravenous Giant, Rite of the Dragoncaller, Ruby, Daring Tracker, Sanguine Syphoner, Scrawling Crawler, Skyknight Squire, Slumbering Cerberus, Stromkirk Noble, Trygon Predator, Vampire Gourmand, Vengeful Bloodwitch, Youthful Valkyrie, Ballyrush Banneret, Basilisk Collar, Celestial Armor, Confiscate, Crusader of Odric, Crystal Barricade, Elenda, Saint of Dusk
+    components the nearest parsed sentences use (what the batch reuses): TriggeredAbility 19, DRAW 6, TurnPhaseEvent 6, OptionalEffect 5, StaticAbility 5, PUT_COUNTER 4, GAIN_LIFE 4, DeclareAttackersEvent 4, LOSE_LIFE 4, CREATE_TOKEN 3, TokenSpec 3, ZoneChangeEvent 3, MODIFY_PT 3, GRANT_ABILITY 3
+M7: 25 cards (FDN 25): statics: anthems, Auras, Equipment, conditions, costs 17; activated abilities 8; mapping 44 min, review 28 min; every unparsed sentence with a verified analog: 2; with a note (risk, ruling, carrier): 0
+    Fog Bank, Frenzied Goblin, Ghitu Lavarunner, Gutless Plunderer, Inspiring Paladin, Juggernaut, Kargan Dragonrider, Kitesail Corsair, Knight of Grace, Knight of Malice, Lyra Dawnbringer, Mocking Sprite, New Horizons, Quick-Draw Katana, Swiftfoot Boots, Tempest Djinn, Twinblade Blessing, Arcanis the Omnipotent, Axgard Cavalry, Burnished Hart, Demolition Field, Dropkick Bomber, Elvish Archdruid, Expedition Map, Fanatical Firebrand
+    components the nearest parsed sentences use (what the batch reuses): StaticAbility 17, GRANT_ABILITY 11, MODIFY_PT 9, MOVE_ZONE 4, SEARCH 4, SHUFFLE 4, ActivatedAbility 4, PREVENT_EFFECT 3, TriggeredAbility 3, CostSacrifice 3, CostTap 3, DeclareBlockersEvent 2, ADD_MANA 2, REVEAL 2
+M8: 25 cards (FDN 23, M20 2): activated abilities 23; planeswalkers and legends with several abilities 2; mapping 44 min, review 28 min; rulings {'R_FOOD': 1}; every unparsed sentence with a verified analog: 3; with a note (risk, ruling, carrier): 4
+    Felidar Cub, Gilded Lotus, Hedron Archive, Heroes' Bane, Immersturm Predator, Ingenious Leonin, Jazal Goldmane, Krenko, Mob Boss, Lathliss, Dragon Queen, Lathril, Blade of the Elves, Loot, Exuberant Explorer, Midnight Snack, Ravenous Amulet, Reassembling Skeleton, Rogue's Passage, Soul-Guide Lantern, Sower of Chaos, Squad Rallier, Vampire Neonate, Vampiric Rites, Wildheart Invoker, Bloodsoaked Altar, Diviner's Lockbox, Ajani, Caller of the Pride, Kaito, Cunning Infiltrator
+    components the nearest parsed sentences use (what the batch reuses): ActivatedAbility 10, MOVE_ZONE 9, TriggeredAbility 8, CostTap 6, CREATE_TOKEN 6, TokenSpec 6, GAIN_LIFE 5, DRAW 5, GRANT_ABILITY 4, MODIFY_PT 4, CostSacrifice 3, PUT_COUNTER 3, ZoneChangeEvent 3, CreatureDiesEvent 3
+(b) cards whose every unparsed sentence has a verified analog (13): FDN Beast-Kin Ranger, FDN Dazzling Angel, FDN Driver of the Dead, FDN Essence Scatter, FDN Gilded Lotus, FDN Hedron Archive, FDN Hinterland Sanctifier, FDN Icewind Elemental, FDN Lyra Dawnbringer, FDN New Horizons, FDN Overrun, FDN Refute, FDN Rogue's Passage
+
+## 4. Blind verification only ((a))
+  M21 Mangara, the Diplomat [compiled]: compiled whole; G3's inner-filter survivor differs only when an attacked planeswalker changes control while the trigger waits (S5): a pack-runner op or an equivalence rule (BACKLOG 'G3 survivors no 2-seat same-set pack can kill')
+  M20 Barkhide Troll [mapped]: record re-mapped by round 11; waits for blind G2
+  M20 Hanged Executioner [mapped]: record re-mapped by round 11 (the compiler's tree); waits for blind G2
+  FDN Joraga Invocation [mapped]: record; refused once for a forced blocker, fixed 62a1ae2: back to G2
+  FDN Sphinx of the Final Word [compiled]: compiles whole
+  FDN Stromkirk Bloodthief [mapped]: record, unverified
+  FDN Suspicious Shambler [compiled]: compiles whole since round 11
+
+## 5. Labels
+  M20 Vivien, Arkbow Ranger (sentence): the -5's 'reveal a creature card you own from outside the game': CR 400.11 outside-the-game cards (a sideboard) are not modelled; in the trained formats a player has none, so the ability reveals nothing. Labelled for good only if the owner rules that self-play and Commander games have no sideboard; the +1 still needs SPLIT
+  FDN Hare Apparent (sentence): 'A deck can have any number of cards named Hare Apparent.' is a deck-construction rule (CR 100.2a, 903.5b): no in-game tree; the drafter and build_deck must honour it. Labelled for good: G0's clause trace needs an accepted 'deck rule' clause path
+
+## 6. Order of work (A: cards, no code; B: gate rounds, one merge each; C: engine wave)
+step tr lanes cards agent-min  verified after it (all pass / expected)   other-16 printings unlocked
+A0   A      0     7         8  M21 276/276  M20 279/279  FDN 194/194       0
+A1   A      0     0        30  M21 276/276  M20 279/279  FDN 194/194      45
+A2   A      0   127       362  M21 276/276  M20 280/280  FDN 320/301      45
+A3   A      0    75       214  M21 276/276  M20 282/281  FDN 393/363      45
+C1   C      2     4       247  M21 277/277  M20 282/281  FDN 396/366      52
+B1   B      3    21       474  M21 282/281  M20 286/285  FDN 408/376     131
+B2   B      2     9       322  M21 282/281  M20 287/286  FDN 416/384     195
+B3   B      2    11       327  M21 284/283  M20 289/288  FDN 423/390     224
+B4   B      1     7       198  M21 284/283  M20 289/288  FDN 430/396     251
+B5   B      2    11       327  M21 284/283  M20 289/288  FDN 441/406     258
+B6   B      2    12       330  M21 284/283  M20 295/293  FDN 447/412     308
+B7   B      1     6       195  M21 284/283  M20 296/294  FDN 452/416     317
+B8   B      1     6       195  M21 284/283  M20 299/297  FDN 455/419     342
+B9   B      1    10       206  M21 284/283  M20 301/299  FDN 463/426     367
+B10  B      1     7       198  M21 284/283  M20 302/299  FDN 469/431     383
+B11  B      1    10       206  M21 284/283  M20 303/300  FDN 478/439     403
+B12  B      2    10       324  M21 284/283  M20 309/306  FDN 482/443     434
+B13  B      1    13       215  M21 284/283  M20 315/311  FDN 489/449     465
+B14  B      2     6       313  M21 284/283  M20 319/315  FDN 491/451     491
+B15  B      1     6       195  M21 284/283  M20 321/317  FDN 495/455     510
+B16  B      2     5       310  M21 284/283  M20 322/317  FDN 499/458     526
+B17  B      1     8       201  M21 284/283  M20 324/319  FDN 505/464     535
+B18  B      2    13       333  M21 284/283  M20 328/323  FDN 514/472     567
+B19  B      2     5       310  M21 285/284  M20 329/324  FDN 517/475     575
+  A0: Blind verification of the (a) cards (one batch with 2 plants). Beside: everything. Conflicts: none (Mangara's last survivor waits on C1's runner op). Completes: {'M21': 1, 'M20': 2, 'FDN': 4}
+  A1: Rulings R_FOOD, R_TWOEVENTS, R_ITSCONTROLLER into MAPPER_GUIDE (coordinator). Beside: everything. Conflicts: MAPPER_GUIDE text only. Completes: -
+  A2: Mapping wave 1 (M1-M5, five mappers at once), then its blind verification. Beside: B and C throughout. Conflicts: none: records only; the coordinator commits. Completes: {'M20': 1, 'FDN': 126}
+  A3: Mapping wave 2 (M6-M8), given wave 1's lessons and faults, then its blind verification. Beside: B and C throughout. Conflicts: none. Completes: {'M20': 2, 'FDN': 73}
+  C1: Engine wave: See the Truth's 'instead' branch, a trigger's 'target player sacrifices', zone-change replacements from anywhere, control given to another player; the pack-runner op for Mangara's S5. Beside: A, B1. Conflicts: replacements.py with B10 and B16; the control overlay. Completes: {'M21': 1, 'FDN': 3}
+  B1: Round 12: the permission lane (R5-2 PERMIT_CAST, R5-3 play_lands, R5-8) and R5-12 REPLACE. Beside: A, C1; B2-B4 built beside it. Conflicts: legality.py and stack.py with B6, B9, B11, B15. Completes: {'M21': 5, 'M20': 4, 'FDN': 12}
+  B2: Round 13: 'becomes' effects and changeling (layer 4 and 5 setting, crew). Beside: B1's build. Conflicts: layers.py with B3; types of entering objects with B10. Completes: {'M20': 1, 'FDN': 8}
+  B3: Round 14: copies (R5-5 CopyOf: tokens, 'becomes a copy', spells and abilities). Beside: B4's build. Conflicts: layers.py with B2 (merge B2 first); stack.py with B1. Completes: {'M21': 2, 'M20': 2, 'FDN': 7}
+  B4: Round 15: counter kinds, counts of a kind, the stun rule, poison. Beside: B1-B3 builds. Conflicts: state-based actions with B12. Completes: {'FDN': 7}
+  B5: Round 16: surveil and ward. Beside: B4's build. Conflicts: TargetingEvent triggers with B6. Completes: {'FDN': 11}
+  B6: Round 17: the designation family: targets predicates, any number of targets, linked targets, division among targets, changing a target. Beside: B7's build. Conflicts: query.py and binding.py with B8 and B17; the cost fold with B1. Completes: {'M20': 6, 'FDN': 6}
+  B7: Round 18: choices another player makes. Beside: B6's build. Conflicts: asks per seat (features.py) with any round adding an ask kind. Completes: {'M20': 1, 'FDN': 5}
+  B8: Round 19: delayed triggers that remember their objects, and 'when you next'. Beside: B9's build. Conflicts: binding.py with B6 and B17. Completes: {'M20': 3, 'FDN': 3}
+  B9: Round 20: registers: what an instruction or a cost acted on, and quantity thresholds. Beside: B8's build. Conflicts: verbs.py registers with B10; pay_costs with B1. Completes: {'M20': 2, 'FDN': 8}
+  B10: Round 21: entering modified (with counters, tapped and attacking; others enter tapped). Beside: B11's build. Conflicts: MOVE_ZONE with B13; the replacements' enter lane with C1. Completes: {'M20': 1, 'FDN': 6}
+  B11: Round 22: mana riders and the chosen colour's mana. Beside: B10's build. Conflicts: payment in legality.py with B1 and B15. Completes: {'M20': 1, 'FDN': 9}
+  B12: Round 23: game rules: win and can't lose, prohibitions, hand size, opening-hand actions. Beside: B13's build. Conflicts: state-based actions with B4; setup. Completes: {'M20': 6, 'FDN': 4}
+  B13: Round 24: libraries and names: D19's shuffle-in fold, same name, distinct values. Beside: B12's build. Conflicts: MOVE_ZONE with B10. Completes: {'M20': 6, 'FDN': 7}
+  B14: Round 25: combat rules: lure, alone, damaged-by history, extra combat, the attacked object, damage by toughness. Beside: B15's build. Conflicts: combat declarations. Completes: {'M20': 4, 'FDN': 2}
+  B15: Round 26: cast options: alternative costs and flash permissions (ledger F9's POLICY first). Beside: B14's build. Conflicts: the cast lane after B1. Completes: {'M20': 2, 'FDN': 4}
+  B16: Round 27: events and replacements: discard (B-48's fold) and doubling. Beside: B17's build. Conflicts: re-bakes 27 compiled discard trees; replacements.py with C1. Completes: {'M20': 1, 'FDN': 4}
+  B17: Round 28: limits by ability identity: once each turn, resolution counts, trigger causes. Beside: B16's build. Conflicts: binding.py and activation legality. Completes: {'M20': 2, 'FDN': 6}
+  B18: Round 29: small vocabulary: toughness tests, draw step, another player's life, legendary tokens, a sacrifice's subject, a granted ability's grantor, set life, 'for as long as you control', excess damage, pay X, owner. Beside: B19's build. Conflicts: one value or slot each; a round of ten small refusal sets. Completes: {'M20': 4, 'FDN': 9}
+  B19: Round 30: one-card components (the owner's call after note 210). Beside: -. Conflicts: each a component used by one or two printings. Completes: {'M21': 1, 'M20': 1, 'FDN': 3}
+agent-minutes: A 614, B and C 5426 for 180 cards (30 a card; 207's tail: about 49)
+gate rounds: 19
+
+## 7. Review: pattern hits the table does not assign (each checked by hand in 209)
+  M20 Chandra, Acolyte of Flame [c]: PERMIT
