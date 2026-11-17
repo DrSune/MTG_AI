@@ -1,0 +1,174 @@
+{
+ "set": "FDN",
+ "name": "lathril_new_elves_can_be_tapped_for_the_cost",
+ "notes": "KNOWN BUG, fails today (M8 mapper, 2026-11-17): Lathril stays untapped, as in lathril_ten_other_elves_drain_ten (the same cause). Printed: '{T}, Tap ten untapped Elves you control: Each opponent loses 10 life and you gain 10 life.' Ten Elves enter under seat 0's control this turn; Lathril has been there since the turn began. Summoning sickness restricts only a creature's own {T} abilities (CR 302.6), so the ten new Elves pay the cost: seat 1 goes to 10 life, seat 0 to 30.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathril",
+   "real": "Lathril, Blade of the Elves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf1",
+   "name": "Elf 1",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf2",
+   "name": "Elf 2",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf3",
+   "name": "Elf 3",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf4",
+   "name": "Elf 4",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf5",
+   "name": "Elf 5",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf6",
+   "name": "Elf 6",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf7",
+   "name": "Elf 7",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf8",
+   "name": "Elf 8",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf9",
+   "name": "Elf 9",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "elf10",
+   "name": "Elf 10",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "elf1"
+  },
+  {
+   "op": "enter",
+   "key": "elf2"
+  },
+  {
+   "op": "enter",
+   "key": "elf3"
+  },
+  {
+   "op": "enter",
+   "key": "elf4"
+  },
+  {
+   "op": "enter",
+   "key": "elf5"
+  },
+  {
+   "op": "enter",
+   "key": "elf6"
+  },
+  {
+   "op": "enter",
+   "key": "elf7"
+  },
+  {
+   "op": "enter",
+   "key": "elf8"
+  },
+  {
+   "op": "enter",
+   "key": "elf9"
+  },
+  {
+   "op": "enter",
+   "key": "elf10"
+  },
+  {
+   "op": "activate",
+   "key": "lathril",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 30,
+   "1": 10
+  },
+  "tapped": {
+   "lathril": true,
+   "elf1": true,
+   "elf2": true,
+   "elf3": true,
+   "elf4": true,
+   "elf5": true,
+   "elf6": true,
+   "elf7": true,
+   "elf8": true,
+   "elf9": true,
+   "elf10": true
+  }
+ }
+}

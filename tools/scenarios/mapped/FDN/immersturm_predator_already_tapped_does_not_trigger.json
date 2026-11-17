@@ -1,0 +1,78 @@
+{
+ "set": "FDN",
+ "name": "immersturm_predator_already_tapped_does_not_trigger",
+ "notes": "M8 mapper. Printed: '... This creature gains indestructible until end of turn. Tap it.' The Predator is already tapped: 'Tap it' does nothing, it does not become tapped, so its trigger does not fire (no counter, seat 1's graveyard card stays). It still gains indestructible: 9 damage does not destroy it.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "pred",
+   "real": "Immersturm Predator",
+   "zone": "battlefield",
+   "controller": 0,
+   "start_tapped": true
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ocard",
+   "name": "Opp Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "3",
+   "toughness": "3"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "pred",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "deal_damage",
+   "source": "ogre",
+   "target": "pred",
+   "amount": 9
+  }
+ ],
+ "expect": {
+  "zone": {
+   "pred": "battlefield",
+   "bear": "graveyard",
+   "ocard": "graveyard"
+  },
+  "tapped": {
+   "pred": true
+  },
+  "counters": {
+   "pred": {}
+  },
+  "power": {
+   "pred": 3
+  },
+  "damage": {
+   "pred": 9
+  }
+ }
+}

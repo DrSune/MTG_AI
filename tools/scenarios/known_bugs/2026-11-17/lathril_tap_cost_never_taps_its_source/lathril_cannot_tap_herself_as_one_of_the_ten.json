@@ -1,0 +1,117 @@
+{
+ "set": "FDN",
+ "name": "lathril_cannot_tap_herself_as_one_of_the_ten",
+ "notes": "M8 mapper, 2026-11-17. Passes with the draft beside it (its tap filter says FNot(IS_SOURCE)); fails with the same tree without it: the engine's tap lane offers the source itself as one of the ten, so nine other Elves paid (and the {T} went unpaid). Printed: '{T}, Tap ten untapped Elves you control: ...'. Seat 0 controls Lathril (an Elf) and nine other untapped Elves. Lathril is tapped for {T}, so she can't also be one of the ten untapped Elves (CR 601.2h, 602.2b): the cost can't be paid and the activation is refused; nobody's life changes and nothing is tapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathril",
+   "real": "Lathril, Blade of the Elves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf1",
+   "name": "Elf 1",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf2",
+   "name": "Elf 2",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf3",
+   "name": "Elf 3",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf4",
+   "name": "Elf 4",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf5",
+   "name": "Elf 5",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf6",
+   "name": "Elf 6",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf7",
+   "name": "Elf 7",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf8",
+   "name": "Elf 8",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf9",
+   "name": "Elf 9",
+   "type": "Creature — Elf Warrior",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "lathril",
+   "idx": 1,
+   "seat": 0,
+   "expect_raise": "cost:tap:insufficient_candidates:9<10"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "lathril": false,
+   "elf1": false
+  }
+ }
+}

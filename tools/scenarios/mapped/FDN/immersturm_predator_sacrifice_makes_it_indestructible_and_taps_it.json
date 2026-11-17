@@ -1,0 +1,82 @@
+{
+ "set": "FDN",
+ "name": "immersturm_predator_sacrifice_makes_it_indestructible_and_taps_it",
+ "notes": "M8 mapper. Printed: 'Sacrifice another creature: This creature gains indestructible until end of turn. Tap it.' and 'Whenever this creature becomes tapped, exile up to one target card from a graveyard and put a +1/+1 counter on this creature.' Seat 0 sacrifices its Bear: the Predator gains indestructible and becomes tapped, so its trigger exiles seat 1's graveyard card and gives it a counter (4/4). Then 9 damage does not destroy it.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "pred",
+   "real": "Immersturm Predator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ocard",
+   "name": "Opp Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "3",
+   "toughness": "3"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "pred",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "ocard"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "ogre",
+   "target": "pred",
+   "amount": 9
+  }
+ ],
+ "expect": {
+  "zone": {
+   "pred": "battlefield",
+   "bear": "graveyard",
+   "ocard": "exile"
+  },
+  "tapped": {
+   "pred": true
+  },
+  "counters": {
+   "pred": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "pred": 4
+  },
+  "damage": {
+   "pred": 9
+  }
+ }
+}

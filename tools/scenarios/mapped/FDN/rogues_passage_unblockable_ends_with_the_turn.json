@@ -1,0 +1,89 @@
+{
+ "set": "FDN",
+ "name": "rogues_passage_unblockable_ends_with_the_turn",
+ "notes": "M8 mapper. Printed: '{4}, {T}: Target creature can't be blocked this turn.' Seat 0 targets its Runner on its turn. On seat 0's next turn the Runner attacks again and seat 1's Wall blocks it: 'this turn' is over.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "passage",
+   "real": "Rogue's Passage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "runner",
+   "name": "Runner",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "0",
+   "toughness": "9"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 4
+   }
+  },
+  {
+   "op": "activate",
+   "key": "passage",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "runner"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "runner": true
+   },
+   "block": {
+    "wall": "runner"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "runner": [
+    "wall"
+   ]
+  },
+  "damage": {
+   "wall": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

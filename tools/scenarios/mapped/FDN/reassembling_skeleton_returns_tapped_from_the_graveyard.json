@@ -1,0 +1,44 @@
+{
+ "set": "FDN",
+ "name": "reassembling_skeleton_returns_tapped_from_the_graveyard",
+ "notes": "M8 mapper. Printed: '{1}{B}: Return this card from your graveyard to the battlefield tapped.' The Skeleton is in seat 0's graveyard; seat 0 pays {1}{B}: it is on the battlefield, tapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "skel",
+   "real": "Reassembling Skeleton",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "skel",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "skel": "battlefield"
+  },
+  "tapped": {
+   "skel": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "set": "FDN",
+ "name": "ravenous_amulet_counts_its_soul_counters_as_it_is_sacrificed",
+ "notes": "M8 mapper. Printed: '{4}, {T}, Sacrifice this artifact: Each opponent loses life equal to the number of soul counters on this artifact.' Three players. The Amulet has three soul counters; seat 0 sacrifices it as the cost, and the ability counts its counters as the Amulet last existed on the battlefield (CR 608.2h): seats 1 and 2 lose 3 life each, seat 0 none.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "amulet",
+   "real": "Ravenous Amulet",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "SOUL": 3
+   }
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 4
+   }
+  },
+  {
+   "op": "activate",
+   "key": "amulet",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "amulet": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 17,
+   "2": 17
+  }
+ }
+}

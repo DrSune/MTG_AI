@@ -1,0 +1,74 @@
+{
+ "set": "FDN",
+ "name": "jazal_goldmane_bonus_ends_with_the_turn",
+ "notes": "M8 mapper. Printed: '... get +X/+X until end of turn ...' Jazal and a Raider attack and the ability resolves with X = 2 (6/6 and 4/4); on the next turn they are 4/4 and 2/2 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "jazal",
+   "real": "Jazal Goldmane",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Your Raider One",
+   "type": "Creature — Human",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "jazal": true,
+    "a1": true
+   },
+   "respond": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "mana",
+      "seat": 0,
+      "add": {
+       "W": 2,
+       "C": 3
+      }
+     },
+     {
+      "op": "activate",
+      "key": "jazal",
+      "idx": 0,
+      "seat": 0
+     }
+    ]
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "jazal": 4,
+   "a1": 2
+  },
+  "toughness": {
+   "jazal": 4,
+   "a1": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 10
+  }
+ }
+}

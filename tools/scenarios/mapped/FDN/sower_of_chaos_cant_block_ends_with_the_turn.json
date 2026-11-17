@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "sower_of_chaos_cant_block_ends_with_the_turn",
+ "notes": "M8 mapper. Printed: '{2}{R}: Target creature can't block this turn.' On its turn seat 0 targets its own Wall. On seat 1's next turn seat 1 attacks with a Raider, and the Wall blocks it: 'this turn' is over.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sower", "real": "Sower of Chaos", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Your Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 0},
+  {"key": "raider", "name": "Opp Raider", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "activate", "key": "sower", "idx": 0, "seat": 0, "targets": ["wall"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"raider": true}, "block": {"wall": "raider", "sower": null}}
+ ],
+ "expect": {
+  "attackers": {"raider": true},
+  "blocked": {"raider": ["wall"]},
+  "life": {"0": 20, "1": 20},
+  "damage": {"wall": 2}
+ }
+}

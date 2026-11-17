@@ -1,0 +1,133 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9dbc3530-b278-4c8d-b2cc-a09dfac9d5e5",
+ "name": "Reassembling Skeleton",
+ "text_sha": "7b50a2500ea6178d5021fcab76815712743580c30567b5ae24cc555a9e1b0a35",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ],
+       [
+        "tapped_on_enter",
+        {
+         "tag": "Bool",
+         "value": true
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {1}{B}: Return this card from your graveyard to the battlefield tapped.\n# Silversmote Ghoul's move of itself from your graveyard (the source over Zone(GRAVEYARD, YOU)), so the\n# ability works only from the graveyard (CR 113.6m, legality.activation_zone).\nreassemble = ActivatedAbility(\n    cost=Cost(parts=(CostManaColor(color='B', amount=QConst(value=1)), CostManaGeneric(amount=QConst(value=1)))),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1), mode=SelectorMode.CHOOSE, filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),)),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        'tapped_on_enter': True,\n    }),\n)\nabilities = [reassemble, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{1}{B}: Return this card from your graveyard to the battlefield tapped.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. Silversmote Ghoul's move of the source from your graveyard, so it works only there (legality.activation_zone). Packs: tools/scenarios/mapped/FDN/reassembling_skeleton_*.json."
+ },
+ "probe": {
+  "sha": "66c4f230d63e3811904a03aefc26cf11105e0093e914569fd200a5b58cb54021"
+ }
+}

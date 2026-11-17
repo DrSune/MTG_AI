@@ -1,0 +1,58 @@
+{
+ "set": "FDN",
+ "name": "ajani_caller_minus_eight_cats_are_two_two_white",
+ "notes": "M8 mapper. Printed: '[-8]: Create X 2/2 white Cat creature tokens, where X is your life total.' Seat 0 is at 1 life: one Cat token, a 2/2 with no keywords.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ajani",
+   "real": "Ajani, Caller of the Pride",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 1
+  },
+  {
+   "op": "loyalty",
+   "key": "ajani",
+   "set": 9
+  },
+  {
+   "op": "activate",
+   "key": "ajani",
+   "idx": 2,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Cat": 1
+  },
+  "battlefield_pt": {
+   "Cat": [
+    2,
+    2
+   ]
+  },
+  "battlefield_keywords": {
+   "Cat": []
+  },
+  "counters": {
+   "ajani": {
+    "LOYALTY": 1
+   }
+  },
+  "life": {
+   "0": 1,
+   "1": 20
+  }
+ }
+}

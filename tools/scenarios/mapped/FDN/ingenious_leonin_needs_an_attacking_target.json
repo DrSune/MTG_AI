@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "name": "ingenious_leonin_needs_an_attacking_target",
+ "notes": "M8 mapper. Printed: '{3}{W}: Put a +1/+1 counter on another target attacking creature you control.' In seat 0's main phase nothing attacks: its Cat is no legal target and the activation is refused.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "leonin",
+   "real": "Ingenious Leonin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "Your Cat",
+   "type": "Creature — Cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "3",
+   "toughness": "3"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1,
+    "C": 3
+   }
+  },
+  {
+   "op": "activate",
+   "key": "leonin",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "cat"
+   ],
+   "expect_raise": "illegal"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "cat": {}
+  }
+ }
+}

@@ -1,0 +1,65 @@
+{
+ "set": "FDN",
+ "name": "lathril_damage_to_a_blocker_makes_no_elves",
+ "notes": "M8 mapper. Printed: 'Whenever Lathril deals combat damage to a player, ...' (and Menace). Seat 1's Wall One blocks Lathril and menace brings Wall Two in with it (the pair is forced): her 2 combat damage goes to Wall One, none to a player, so no tokens. No record (needs-atom): run it with `cardtool.py runpack FDN <this pack> --card 'Lathril, Blade of the Elves' --draft draft.py` (the draft beside it); it passes today.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathril",
+   "real": "Lathril, Blade of the Elves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "name": "Opp Wall One",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "w2",
+   "name": "Opp Wall Two",
+   "type": "Creature — Wall",
+   "power": "0",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "lathril": true
+   },
+   "block": {
+    "w1": "lathril"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "blocked": {
+   "lathril": [
+    "w1",
+    "w2"
+   ]
+  },
+  "tokens": {
+   "Elf Warrior": 0
+  },
+  "damage": {
+   "w1": 2
+  }
+ }
+}

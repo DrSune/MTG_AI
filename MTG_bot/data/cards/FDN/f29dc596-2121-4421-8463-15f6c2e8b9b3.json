@@ -1,0 +1,157 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f29dc596-2121-4421-8463-15f6c2e8b9b3",
+ "name": "Rogue's Passage",
+ "text_sha": "33fddaa97e5dfcf546e182e3332f167a4579049f321180991c305772d5aa8c1e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "C"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 4
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_ANY_TARGET"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_ANY_TARGET"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {4}, {T}: Target creature can't be blocked this turn.  (M20 Manifold Key's verified form)\nunblockable = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=4)), CostTap())),\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        'duration': DurationEot(),\n        'event': DeclareBlockersEvent(\n            filter=FAnd(children=()),\n            blocked=FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        ),\n    }),\n)\n# compiled[0]: {T}: Add {C}.  (a land: no cast carrier)\nabilities = [compiled[0], unblockable]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{4}, {T}: Target creature can't be blocked this turn.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. M20 Manifold Key's verified 'target creature can't be blocked this turn'. Pack: tools/scenarios/mapped/FDN/rogues_passage_target_creature_cant_be_blocked.json."
+ },
+ "probe": {
+  "sha": "d710338b948c682e0061c01a11dfe6851c1ec37ce36370ea448f9cd6c693118e"
+ }
+}

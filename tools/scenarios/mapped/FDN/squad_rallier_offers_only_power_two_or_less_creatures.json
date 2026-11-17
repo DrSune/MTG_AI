@@ -1,0 +1,91 @@
+{
+ "set": "FDN",
+ "name": "squad_rallier_offers_only_power_two_or_less_creatures",
+ "notes": "M8 mapper. Printed: '{2}{W}: Look at the top four cards of your library. You may reveal a creature card with power 2 or less from among them and put it into your hand.' The top four are Small Squire (2/2, the top card), a sorcery, a land and Big Knight (3/3); Deep Squire (1/1) is fifth. Seat 0 takes the offer and answers the pick with its first offered word: the only legal card is Small Squire, so it goes to the hand. Every card that must not be offered (the 3/3, the land, the sorcery, the fifth card) was declared before it and would come first in the pick's words.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "rallier",
+   "real": "Squad Rallier",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "deep",
+   "name": "Deep Squire",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "big",
+   "name": "Big Knight",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "3",
+   "toughness": "3"
+  },
+  {
+   "key": "land",
+   "name": "Plain Field",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "spell",
+   "name": "Squire Lesson",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "small",
+   "name": "Small Squire",
+   "type": "Creature — Human",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "rallier",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "small": "hand",
+   "big": "library",
+   "land": "library",
+   "spell": "library",
+   "deep": "library"
+  },
+  "hand": {
+   "0": 1
+  }
+ }
+}
