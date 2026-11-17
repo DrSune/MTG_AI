@@ -225,6 +225,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   partition journals) splits the batch in the binder's drain, which groups an event's rows by
   contiguity: the gathered counts stay right, but a permanent that moved in the first part no
   longer sees the second (Yarok's Fenlurker in a game of three or more, where nothing watches it).
+  The replacements are asked player by player too (2026-11-17, review of engine wave C1): when
+  "each player sacrifices a creature" takes a replacement's source from the first player, the
+  next player's creature goes to the graveyard where the rules exile it (CR 614.6: the event is
+  replaced as a whole). Latent: no source of a zone-change replacement in the 19 sets is moved by
+  an EachPlayer beside another player's card (the dies records are a spell's, which no move ends).
+  The fix is the one above: every player chooses, then the moves happen and ask together
+  (`verbs._replaced_moves`).
 - **An effect finds every object it moved itself, a hidden zone included** (2026-11-13, the
   one-event fix). `TriggerBinder._gone` judges "it"/"they" as the trigger begins to resolve (CR
   400.7), so a later instruction of the same effect finds an object an earlier one moved: right
@@ -309,14 +316,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   round R10). The referent form is CHOOSE/QConst(1) (convention C2), and `resolve_selector`'s
   CHOOSE fold slices it to one handle, whatever its register holds: a GRANT_ABILITY, MOVE_ZONE,
   DESTROY, PUT_COUNTER or TAP over `Selector(referent='result')` bound to two objects acts on one.
-  See the Truth's "put each of those cards into your hand" is one case (above). Round R10 makes
+  See the Truth's "put each of those cards into your hand" was one case (fixed 2026-11-17: an ALL
+  over the looked-at cards, as Goblin Ringleader's). Round R10 makes
   the `event` referent name every object bound (a gathered event's), in `resolve_selector` and in
   MOVE_ZONE's own count clamp (`verbs._v_move_zone`, which still moved the first of "them" until
   gate round 10's fixes); `result` and `target` keep the slice until their plural reads are
   audited, card by card.
 - **The life-gain replacement lane applies records in record order and never asks** (2026-11-13):
   `ReplacementRegistry.replacement_for_life_gained` returns the first live record, where CR 616.1
-  lets the gaining player choose the order (the damage lane asks, `_choose`). Two Angels of
+  lets the gaining player choose the order (the damage lane asks, `_choose`). The zone-change lane
+  does the same (`replacement_for_zone_change`, every move since 2026-11-17): with Leyline of the
+  Void and Dryad Militant both live the first in record order exiles (both exile: no difference
+  in the 19 sets; Darksteel Colossus's shuffle beside an exile would differ). Two Angels of
   Vitality commute, so nothing compiled today is affected; a "+1" beside "twice that much" (Rhox
   Faithmender, Alhammarret's Archive) does not (3 life: 8 or 7). Ask the order before compiling
   "twice that much life".
@@ -369,9 +380,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   whose host has protection from it (V44), not one whose host stops matching (an "Enchant
   creature" Aura on a permanent that stops being a creature). The cast-time host filter is fixed
   (ENCHANT carries the filter).
-- **B-72 [fixer A] DESTROY and other direct graveyard moves never check the dies replacements**
-  (`verbs._to_graveyard` → `_move_to`). A creature hit by Scorching Dragonfire, then destroyed later
-  the same turn, goes to the graveyard instead of exile. Weaker than printed.
 - **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
   (CR 610.3) are built; what is left.**
   - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
@@ -383,10 +391,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     ("up to one target", ready for a mapper now), Seal Away ("tapped creature"), Glass Casket
     ("with mana value 3 or less"), Sigrid, Colossal Whale, Glorious Protector, Grasping Giant,
     Hixus, Constricting Sliver, Valki.
-  - **A return to a zone other than the battlefield consults no replacement effect.** The move
-    path asks `replacement_for_zone_change` only for battlefield entries (`verbs._v_move_zone`), so
-    Leyline of the Void would not exile Idol of Endurance's returning cards (B-72 family; general,
-    not specific to returns).
   - **Simultaneity is per destination zone.** One MOVE_ZONE per zone, in the fixed order
     battlefield, hand, graveyard, exile; within a zone every object moves at once. V32 chooses
     each entering Aura's host inside the move loop, so an Aura returning in the same batch as a
@@ -420,6 +424,27 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   sacrifice, but the marking is not fixed).
 - **The reveal record of "reveals their hand" lists the library, not the hand** (verbs.py ~1485;
   round-3 verification, 2026-11-06); nothing reads it today.
+- **Zone moves that do not ask the replacements yet** (2026-11-17, engine wave C1; review of
+  the wave): every verb that moves a card, the state-based actions, a spell's put off the stack
+  and the end-of-turn exile ask `ReplacementRegistry.replacement_for_zone_change`, the moves of
+  one event all before any happens. Not yet: a draw (its own CardDrawnEvent lane), a cast (hand to
+  stack), a land drop (`stack.play_land`, hand to battlefield) and a token's creation. No compiled
+  replacement in the 19 sets reads one of them (Containment Priest's enter spares tokens and casts;
+  a land creature played under it would enter). Two conventions to revisit with the first card that
+  needs them: an endpoint's player is the zone's owner (the trigger lane's convention), so "enters
+  under an opponent's control" cannot be told; and a replaced move's card stays in the `result`
+  register ("Return it to the battlefield. It gains haste" after an enter replacement points at
+  the exiled card), as the enter lane did before. Separately, a resolved or countered spell goes
+  to its caster's graveyard (`stack.resolve_top`, `verbs._v_counter_spell`), its owner's only
+  while nobody casts another player's card (CR 400.3).
+- **A replacement that moves its own card "from anywhere" works only while the card is on the
+  battlefield** (2026-11-17, engine wave C1): every move asks the zone-change replacements since
+  then, but a permanent's records live while their source is on the battlefield
+  (`ReplacementRegistry._source_alive`). FDN Darksteel Colossus and Progenitus ("If ~ would be put
+  into a graveyard from anywhere, reveal ~ and shuffle it into its owner's library instead") also
+  replace their discard or mill (the cards' rulings: the ability works from a hand or a library).
+  For round B13 (ZONEREPLACE with SHUFFLEIN): a record whose event's subject is its own source
+  and whose origin is ANY lives in every zone.
 
 ### Mana and payment
 
@@ -463,6 +488,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       `role_players` does.
     - A non-targeted singular OPPONENT ("an opponent") with several candidates needs a chooser
       ask. Who chooses, and under which tag kind, is a design decision. It is not taken here.
+      GAIN_CONTROL's recipient reads it too since 2026-11-17 (FDN Wishclaw Talisman's "An
+      opponent gains control of this artifact": its controller chooses the opponent).
   - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`. Scenario packs may
     have three or more seats since 2026-11-13 (`"world": {"players": N}`;
     `tools/scenarios/teferis_ageless_insight_three_players.json`).
@@ -470,14 +497,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   records the loser and ends the game only when one player is left, but the player does not
   leave it (CR 800.4a: its objects leave, its turns are skipped; `next_turn_seat` still gives it
   turns). The pack runner fails a three-or-more-seat pack whose loser its `lost` lane does not
-  name, so no pack passes over it.
-- **A printed "target opponent" read without a TARGET selector still takes a trigger's
-  pre-bind** (2026-11-12): `binding._put` binds the dealer of a DAMAGE firing, or the dead
-  creature of a DIES firing, for an effect that reads a designated player and prints no TARGET
-  slot. That serves the "that player" anaphora (TARGET_PLAYER, D18, Massacre Wurm), but a
-  TARGET_OPPONENT read is always a printed target: with several opponents its controller must be
-  asked (CR 603.3d). No compiled tree in the 19 sets has one; lift the pre-bind for
-  TARGET_OPPONENT when one appears.
+  name, so no pack passes over it. Since 2026-11-17 one part of 800.4a is done: the control
+  effects that gave the loser control of objects end (`Executor._expire_control(players=...)`;
+  `test_executor_give_control.py`); its own objects still stay.
 - **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
   With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
   `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
@@ -782,13 +804,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     prints "can block as though".
 - **B-81 [fixer A, m21-fidelity item 5] Lossy rows judged (2026-10-29).** Significance per
   AGENTS §11 (alters legal options or state outcomes).
-  - Significant, not fixed: See the Truth's "If this spell was cast from anywhere other than your
-    hand, put each of those cards into your hand instead" runs as an extra step that returns one
-    card, not all three. No compiled card lets you cast it from elsewhere (Chandra, Flame's
-    Catalyst's -2, R5). Fix: the conditional "instead" arm (as Life Goes On), replacing the
-    one-and-rest split. A pack casts it from the graveyard since 2026-11-13 (the runner's test
-    permission): `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
-    fails today (Records, "See the Truth's ... branch compiles wrong").
+  - Significant, fixed 2026-11-17: See the Truth's "If this spell was cast from anywhere other
+    than your hand, put each of those cards into your hand instead" ran as an extra step that
+    returned one card; it is the conditional "instead" arm now (as Life Goes On), pack
+    `tools/scenarios/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`.
   - Not significant, kept: Cultivate's REVEAL count (REVEAL is a recorded no-op);
     Fiery Emancipation's universal recipient (damage only ever goes to permanents or players);
     Malefic Scythe's kind-blind counter count (nothing in M21 puts another counter kind on an
@@ -1030,6 +1049,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   counts the same card against coverage. One card in ZNR, two in M20, three in KHM.
 
 ### Records to map or re-verify
+- **Unblocked by engine wave C1 (2026-11-17), to map** (records are the coordinator's):
+  - FDN Gatekeeper of Malakir: its needs-atom note is stale. Run Afoul's shape under its WAS_KICKED
+    enters trigger (EachPlayer(TARGET_PLAYER, SACRIFICE a creature that player controls)) plays:
+    G1 targets a player, who chooses the creature (`cardtool try` on a scratch draft).
+  - FDN Harmless Offering: GAIN_CONTROL(target permanent you control, controller
+    TARGET_OPPONENT) plays (G1 shows nothing of it: Probe blind spots, "A control change").
+  - FDN Dryad Militant: its replacement plays from every zone; it needs its sentence mapped
+    (ReplacementAbility over ZoneChangeEvent(ANY -> GRAVEYARD ANY, instant or sorcery), "exile it
+    instead" on the event referent, Containment Priest's action).
+  - M21 See the Truth: its tree changed (the "instead" arm); it goes to blind verification.
+  - M21 Mangara, the Diplomat: the S5 pack kills its inner-filter survivor (Gates, below).
 - **27 home stamps whose packs no longer kill every critical G3 mutant** (2026-11-17, gate round 11's
   review; the same on main and on the round's merge). The stamps still hold, since their tree bytes
   are unchanged, but a re-verification today would fail G3. Each needs a pack for its survivor; then
@@ -1114,8 +1144,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - FDN Drake Hatcher, Myojin of Night's Reach, Wishclaw Talisman (and ELD's), Ramos, Dragon
     Engine: counter kinds the IR lacks (incubation, divinity, wish) and other clauses ("put that
     many incubation counters on it", "if you cast it from your hand", "has indestructible as long
-    as ...", "An opponent gains control of this artifact", "Activate only during your turn",
-    "Activate only once each turn", "for each of that spell's colors").
+    as ...", "Activate only during your turn", "Activate only once each turn", "for each of that
+    spell's colors"). "An opponent gains control of this artifact" plays since 2026-11-17
+    (GAIN_CONTROL's `controller` OPPONENT; with several opponents it raises, B-108).
   - Other kinds the IR lacks: wish (Djinn of Wishes x3, Ring of Three Wishes), gold (Dragon's
     Hoard), foreshadow (Ominous Seas), pressure (Hellion Crucible), storage (Mage-Ring Network).
     Amounts no lane pays: X (M15 Cruel Sadist), "all" (ZNR Relic Amulet), "any number" (Mage-Ring
@@ -1189,23 +1220,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     cast triggers of Diamond Knight, Diamond Mare and Prism Ring ("a spell of the chosen color"),
     like every single-atom filter. Their packs cast a spell of another colour. An anthem's read
     has one: its widen drops the choice with it (`gates._without_unread_choices`).
-- **See the Truth's "cast from anywhere other than your hand" branch compiles wrong** (2026-11-13,
-  verification wave 1b: the verifier left the clause unjudged, the coordinator read the tree).
-  - Printed: "If this spell was cast from anywhere other than your hand, put each of those cards
-    into your hand instead."
-  - The tree runs the normal outcome first (one card to hand, the rest to the bottom), then a
-    Conditional moving a count-1 CHOOSE over `result` to hand. So it gives one card, not three, and
-    never "instead".
-  - Unreachable in games: no compiled card casts it from elsewhere. M20 Chandra, Acolyte of
-    Flame's −2 would, but it needs an atom.
-  - The fix is a compiler one: an "instead" clause on a look chooses between the two outcomes,
-    Conditional(not from hand, all looked-at cards to hand, else the normal pair).
-  - Its pack (2026-11-13, the runner's test permission casts it from the graveyard):
-    `tools/scenarios/known_bugs/see_the_truth_cast_from_your_graveyard_puts_all_three_in_hand.json`
-    expects all three cards in hand and no choice. It fails today at the first ask (`one_of`,
-    which card goes to the hand); answered, the tree ends with two cards in hand and one on the
-    bottom. With the fix it passes and moves to `tools/scenarios/`.
-  - See the Truth stays unverified until then; its main branch was judged OK.
 - **Six M20 mapped records judged WRONG by blind G2** (2026-11-12, verification wave 1, KNOWLEDGE 201;
   verdicts `runs/verify_wave1/verdicts/B/`). They stay out of the verified pool:
   - **Battalion Foot Soldier** and **Cavalier of Flame**: "any number of" took every candidate with no
@@ -1260,8 +1274,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     "target->all" survivors now differ from the card where a pack can show it, and
     `reports/g3_equivalence_2026-11-13/packs/A05_*.json` does (Gates, below).
     M21 Mangara: its Oracle "if" is an intervening "if" and is right to be read again; the
-    re-read now counts a departed attacker by its last attack (its ruling). One survivor is live
-    only in S5 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: their G3
+    re-read now counts a departed attacker by its last attack (its ruling). Its one live survivor
+    is killed by an S5 pack since 2026-11-17 (Gates, below). M21 Archfiend's Vessel and Teferi's Ageless Insight: their G3
     survivors are killed since 2026-11-13 by packs the runner can now run (Gates, "G3 survivors
     no 2-seat same-set pack can kill"); both cards go to blind verification with them.
   - FDN Battlesong Berserker and Searslicer Goblin lost their documented equivalent mutants;
@@ -1422,11 +1436,10 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     a verifier; or one more pass of priority resolves it instead of ending the main phase. M21
     Mangara's inner-filter mutant differs only when an attacked planeswalker changes control while
     the trigger waits (S5: the card draws nothing, as its intervening "if" says; the mutant draws).
-    A pack can respond while the trigger waits since 2026-11-13 (the combat op's
-    `respond_to_triggers`), but no M21 card changes a planeswalker's control at instant speed and
-    the runner has no op that does, so S5 is still unstaged: the window's Mangara pack
-    (`mangara_counts_an_attacker_destroyed_while_its_trigger_waits.json`, an attacker destroyed,
-    S6) plays the same with both mutants. Its event-filter mutant is equivalent
+    No M21 card changes a planeswalker's control at instant speed; since 2026-11-17 the runner's
+    `gain_control` op does it in the combat op's `respond_to_triggers` window, and
+    `tools/scenarios/mangara_no_draw_when_the_attacked_planeswalker_changes_control.json` stages
+    S5 and kills the mutant (seat 0 draws with it). Its event-filter mutant is equivalent
     (`proof_mangara.py`) but its shape is that one card's, so no rule.
   - A dead role is still in the tree bytes the network encodes; only G2 sees a wrong value there.
   - Separately, `cardtool.py mutate --out` writes nothing (`cmd_mutate` never reads `args.out`).
@@ -1449,6 +1462,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Gales): the snapshot keeps each library's size only (`probe.py` `snapshot`), an ask shows its
     kind without its player (`probe.py:121`), and SCRY writes no journal row. Its G3 survivor
     needed a pack answering "bottom" and pinning both libraries.
+  - A control change is invisible (2026-11-17, engine wave C1): the snapshot's controller is
+    `world.controller_of`, the zone's owner, not the effective controller
+    (`Executor.controller_of`), and GAIN_CONTROL writes a raw event row, no journal row. So G1
+    shows FDN Harmless Offering's and Wishclaw Talisman's gift, and the verified Act of Treason
+    family's steal, as nothing. Read `ex.controller_of` in the snapshot (it changes the trace sha
+    of every card whose probe changes control: re-verify those verdicts' traces).
 - **Regenerate the wave-1 packets whose G1 trace changed** (2026-11-12): combat stimuli now show
   the asks a combat makes (a trigger's target, a may-offer, a mode), which the pack runner's
   combat op used to answer unseen with their first word; packet A15 (Feline Sovereign) showed a

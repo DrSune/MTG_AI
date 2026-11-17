@@ -41,10 +41,12 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # 2026-11-12: Transmogrify's reveal-until tail added three referent surfaces (its
 # REVEAL controller and EachPlayer ref, "that creature's controller", and the
 # MOVE_ZONE of "that card"): referent 35 -> 38, total 144 -> 147.
-TOTAL_SURFACES = 147
+# 2026-11-17: See the Truth's "put each of those cards into your hand instead" is an ALL over
+# the looked-at cards, no longer a count-1 result referent: referent 38 -> 37, total 147 -> 146.
+TOTAL_SURFACES = 146
 CORE_LIFTABLE = 21
 SELF_DESIGNATION = 50
-ANAPHORIC_REFERENT = 38
+ANAPHORIC_REFERENT = 37
 COST_VICTIM = 25
 COUNT_NOT_ONE = 13
 
