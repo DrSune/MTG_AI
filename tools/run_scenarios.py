@@ -322,6 +322,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    SpellAbility,
     Verb,
     Zone,
     ZoneKind,

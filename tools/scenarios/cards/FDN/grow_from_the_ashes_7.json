@@ -10,7 +10,7 @@
  ],
  "mana": {"0": {"G": 1, "C": 4}},
  "steps": [
-  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest", "island"]}
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest", "island", "first-legal"]}
  ],
  "expect": {
   "zone": {"gfa": "graveyard", "forest": "battlefield", "island": "battlefield", "tatyova": "battlefield"},

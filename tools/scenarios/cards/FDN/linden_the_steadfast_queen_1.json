@@ -46,7 +46,8 @@
     "linden": true,
     "wk": true,
     "rb": true
-   }
+   },
+   "decisions": ["first-legal"]
   }
  ],
  "expect": {

@@ -62,7 +62,8 @@
    "block": {
     "f1": "a",
     "f2": "b"
-   }
+   },
+   "decisions": ["first-legal"]
   }
  ],
  "expect": {
