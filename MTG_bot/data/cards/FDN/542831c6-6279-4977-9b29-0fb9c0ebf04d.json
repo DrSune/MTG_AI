@@ -1,0 +1,125 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "542831c6-6279-4977-9b29-0fb9c0ebf04d",
+ "name": "Mischievous Mystic",
+ "text_sha": "b6147c47755956234973218b50ef4be158d73ebdd1b5ee3b35513b093e81f4d8",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CardDrawnEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     },
+     "ordinal": 2
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Faerie",
+         "type_line": "Creature — Faerie",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Faerie"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [
+          {
+           "tag": "Keyword",
+           "name": "FLYING"
+          }
+         ],
+         "abilities": [],
+         "colors": [
+          "U"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Mischievous Mystic: \"Flying. Whenever you draw your second card each turn, create a 1/1 blue\n# Faerie creature token with flying.\"\n# M21 Jolrael's verified \"second card each turn\" trigger; the token as Roost of Drakes' flying Drake.\ntrigger = TriggeredAbility(\n    event=CardDrawnEvent(\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ordinal=2,\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Faerie',\n            type_line='Creature — Faerie',\n            types=('Creature',),\n            subtypes=('Faerie',),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(Keyword.FLYING,),\n            abilities=(),\n            colors=('U',),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Jolrael's verified 'second card each turn' trigger; a 1/1 blue flying Faerie (Faebloom Trick's TokenSpec). Flying compiled. packs in tools/scenarios/mapped/FDN/: mischievous_mystic_only_your_second_draw."
+ },
+ "probe": {
+  "sha": "d857d9d3daec38e849abb7a3d802fc1d988f09109c66155b668d7e55d12c3bdf"
+ }
+}

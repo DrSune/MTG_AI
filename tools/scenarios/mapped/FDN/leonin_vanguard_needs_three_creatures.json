@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "leonin_vanguard_needs_three_creatures",
+ "notes": "M5 mapper. Printed: 'At the beginning of combat on your turn, if you control three or more creatures, this creature gets +1/+1 until end of turn and you gain 1 life.' Seat 0 controls Leonin Vanguard and one Bear (two creatures; seat 1's two creatures do not count): at the beginning of combat nothing happens, and the Vanguard attacks as a 1/1 beside the Bear. Seat 1 takes 3, seat 0 gains nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vanguard", "real": "Leonin Vanguard", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Wall 2", "type": "Creature — Wall", "power": "0", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vanguard": true, "bear": true}, "block": {"o1": null, "o2": null}}
+ ],
+ "expect": {
+  "attackers": {"vanguard": true, "bear": true},
+  "life": {"0": 20, "1": 17},
+  "power": {"vanguard": 1}
+ }
+}

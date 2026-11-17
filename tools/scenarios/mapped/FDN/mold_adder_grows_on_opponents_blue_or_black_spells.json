@@ -1,0 +1,30 @@
+{
+ "set": "FDN",
+ "name": "mold_adder_grows_on_opponents_blue_or_black_spells",
+ "notes": "M5 mapper. Printed: 'Whenever an opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.' Seat 0 controls Mold Adder (1/1) and takes each offer ('fire'). Seat 1 casts Opt (blue), Stab (black) and Mortify (white and black: black, a colour test, never a subset test): one counter each. Seat 1's Giant Growth (green) and seat 0's own Opt (blue, but not an opponent's) offer nothing. Mold Adder ends with three +1/+1 counters, a 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "adder", "real": "Mold Adder", "zone": "battlefield", "controller": 0},
+  {"key": "opt0", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "opt1", "real": "Opt", "zone": "hand", "controller": 1},
+  {"key": "stab", "real": "Stab", "zone": "hand", "controller": 1},
+  {"key": "growth", "real": "Giant Growth", "zone": "hand", "controller": 1},
+  {"key": "mortify", "real": "Mortify", "zone": "hand", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ox", "name": "Opp Ox", "type": "Creature — Ox", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1}, "1": {"U": 1, "B": 2, "G": 1, "W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Opt", "key": "opt1", "controller": 1, "decisions": ["fire", "top"]},
+  {"op": "cast", "real": "Stab", "key": "stab", "controller": 1, "targets": ["bear"], "decisions": ["fire"]},
+  {"op": "cast", "real": "Giant Growth", "key": "growth", "controller": 1, "targets": ["ox"]},
+  {"op": "cast", "real": "Opt", "key": "opt0", "controller": 0, "decisions": ["top"]},
+  {"op": "cast", "real": "Mortify", "key": "mortify", "controller": 1, "targets": ["ox"], "decisions": ["fire"]}
+ ],
+ "expect": {
+  "counters": {"adder": {"PLUS_1_PLUS_1": 3}},
+  "power": {"adder": 4},
+  "toughness": {"adder": 4},
+  "zone": {"bear": "graveyard", "ox": "graveyard"}
+ }
+}

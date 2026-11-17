@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "dazzling_angel_two_goblins_two_life",
+ "notes": "M5 mapper. Printed: 'Whenever another creature you control enters, you gain 1 life.' Seat 0 casts Dragon Fodder: two Goblin tokens enter at once, one trigger each (it is not 'one or more'): seat 0 gains 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "angel", "real": "Dazzling Angel", "zone": "battlefield", "controller": 0},
+  {"key": "fodder", "real": "Dragon Fodder", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Dragon Fodder", "key": "fodder", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "life": {"0": 22, "1": 20},
+  "tokens": {"Goblin": 2}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "midnight_reaper_token_death_does_nothing",
+ "notes": "M5 mapper. Printed: 'Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.' Seat 0's Soldier token dies: nothing (no damage, no card). Then seat 0's nontoken Bear dies: Midnight Reaper deals 1 damage to seat 0 and seat 0 draws one card.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "reaper", "real": "Midnight Reaper", "zone": "battlefield", "controller": 0},
+  {"key": "soldier", "name": "Soldier", "type": "Creature — Soldier", "power": "1", "toughness": "1", "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "giant", "target": "soldier", "amount": 4},
+  {"op": "deal_damage", "source": "giant", "target": "bear", "amount": 4}
+ ],
+ "expect": {
+  "zone": {"soldier": "ceased", "bear": "graveyard", "reaper": "battlefield"},
+  "life": {"0": 19, "1": 20},
+  "hand": {"0": 1}
+ }
+}

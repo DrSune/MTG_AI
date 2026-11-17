@@ -1,0 +1,144 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c6bdaf76-6a03-4695-9c4b-f040e73435af",
+ "name": "Guttersnipe",
+ "text_sha": "1b0f610c06d016efd5074fce82051bdc74d31771afc505efa8b5e00ca9eb4ce3",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FOr",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Instant",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Sorcery",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OPPONENT"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Guttersnipe: \"Whenever you cast an instant or sorcery spell, this creature deals 2 damage to\n# each opponent.\"\n# Event: ZNR Rockslide Sorcerer's cast filter without the Wizard; effect: FDN Firebrand Archer's\n# verified each-opponent damage, 2.\ntrigger = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FOr(\n            children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Instant'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Sorcery'),\n            ),\n        ),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=2),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.OPPONENT),),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Rockslide Sorcerer's instant-or-sorcery cast filter with Firebrand Archer's verified each-opponent damage, 2. packs in tools/scenarios/mapped/FDN/: guttersnipe_only_your_instants_and_sorceries."
+ },
+ "probe": {
+  "sha": "43fb6553227ddf4bd07f798b2f6f6763955cd7ab2975ef1229e42b62f2609805"
+ }
+}
