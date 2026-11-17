@@ -249,7 +249,9 @@ __all__ = [
 
 
 # Predicates that test an object's own characteristics (CR 109.3: name, mana value, colour,
-# types, abilities, power and toughness), and whether it is a permanent card or a token.
+# types, abilities, power and toughness), whether it is a permanent card or a token, and
+# whether it is attacking: what "it" of a bare Conditional is asked (Garna, Bloodfist of
+# Keld's "draw a card if it was attacking").
 _CHARACTERISTIC_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -270,6 +272,7 @@ _CHARACTERISTIC_PREDS = frozenset(
         FAtomPred.PT_GE,
         FAtomPred.KEYWORD_HAS,
         FAtomPred.HAS_KICKER,
+        FAtomPred.IS_ATTACKING,
     }
 )
 
@@ -721,6 +724,7 @@ class Executor:
         decisions: Sequence[str] = (),
         slot_designations: dict[str, tuple[Handle, ...]] | None = None,
         x_value: int | None = None,
+        declared_clock: int = 0,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         known tree in ask order, and every demand it cannot serve reaches
@@ -735,7 +739,8 @@ class Executor:
         rebinding) and DelayedTrigger is scheduled on the binder; any other
         node (Repeat) raises ``NotImplementedError``. ``x_value`` is an
         activated ability's announced X (CR 107.3a; ``legality.activate``'s
-        X lane), None for every effect with no X."""
+        X lane), None for every effect with no X; ``declared_clock`` the
+        journal clock its stack object was pushed at (``ExecCtx.declared_clock``)."""
         if not isinstance(
             effect,
             (
@@ -759,6 +764,7 @@ class Executor:
             decisions=decisions,
             x_value=x_value,
         )
+        ctx.declared_clock = declared_clock
         if slot_designations:
             # An activation's per-target designations (legality.activate), the
             # same per-slot map the cast lane sets on a multi-target spell.
@@ -1145,6 +1151,7 @@ class Executor:
                         x_value=ctx.x_value,
                     )
                     inner.decision_idx = ctx.decision_idx
+                    inner.declared_clock = ctx.declared_clock
                     self._run_effect(effect.effect, inner)
                     ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):

@@ -198,6 +198,10 @@ class ExecCtx:
     # your hand" divides the found cards), not among every card in the zone
     # that passes the filter. None when no partition search has run.
     search_found: tuple[Handle, ...] | None = None
+    # The journal clock at which the resolving ability went on the stack (its stack object's
+    # ``declared_clock``): the life of its source it came from, which the source may have
+    # ended since (CR 113.7a, 607.2a: "exiled with ~"). 0 outside a resolution: the source now.
+    declared_clock: int = 0
     # The cards LOOK_AT/REVEAL showed THIS resolution, top-first (Track
     # Down, See the Truth): the compiler's register convention for the
     # following sentence (templates_b5b._build_if_it_type_then: "Conditional
@@ -946,7 +950,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return frame is not None and frame.spell_kind == atom.string_value
     if pred in (FAtomPred.IS_TAPPED, FAtomPred.IS_UNTAPPED):
         # Judged on its own departure (CR 603.10a), or a token that ceased to exist: as it last
-        # was on the battlefield (CR 608.2h); a card in another zone is untapped (CR 110.5d).
+        # was on the battlefield (CR 608.2h); otherwise the card's flag, cleared as it left.
         lki = departed_lki(handle, ctx)
         tapped = lki.tapped if lki is not None else world.cards[handle].tapped
         return tapped == (pred is FAtomPred.IS_TAPPED)
@@ -1712,11 +1716,14 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # card"). WORLD half: the card is in exile NOW. HISTORY half: the source CAUSED that
         # exile: the journal's diff-inspect writes the acting ability's source into the cause
         # column, so "exiled with this artifact" is a cause read, not a heuristic. NOT
-        # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are the
-        # objects they are now. The exile is the card's last arrival there (a card that left
-        # exile and came back is a new object), made by the source's life that ends or goes on
-        # now: since its last entry onto the battlefield (a returned Bag of Holding returns none
-        # of the cards its earlier life exiled). A source that never entered reads them all.
+        # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are
+        # objects. The exile is the card's last arrival there (a card that left exile and came
+        # back is a new object), made in the life of the source the reading ability came from:
+        # from the source's last entry onto the battlefield before that ability went on the stack
+        # (``ExecCtx.declared_clock``; outside a resolution, now) to its next entry. A returned
+        # Bag of Holding returns none of the cards its earlier life exiled; a Hoarding Dragon's
+        # dies trigger returns its own life's card though a new Dragon has entered since. A
+        # source that never entered reads every exile it made.
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1727,25 +1734,37 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if handle not in world.cards or world.zone_of(handle).kind != ZONE_EXILE:
             return False
-        life, arrival = 0, None
+        entries: list[int] = []
+        arrival = None
         for e in jrn.events:
             if e.kind != KIND_ZONE_CHANGE:
                 continue
             if e.subject == ctx.source and e.zone_move[1] == ZONE_BATTLEFIELD:
-                life = e.clock
+                entries.append(e.clock)
             elif e.subject == handle and e.zone_move[1] == ZONE_EXILE:
                 arrival = e
-        return arrival is not None and arrival.cause == ctx.source and arrival.clock > life
+        if arrival is None or arrival.cause != ctx.source:
+            return False
+        moment = ctx.declared_clock or jrn.clock
+        begun = max((c for c in entries if c <= moment), default=0)
+        ended = min((c for c in entries if c > begun), default=None)
+        return begun < arrival.clock and (ended is None or arrival.clock < ended)
     if pred is FAtomPred.IS_ATTACKING:
         # CR 506.4: the executor's live attack record, the attacker
         # set the COMBAT skeleton fills at declaration and clears at end
         # of combat. Tide Skimmer's "you attack with two or more" gate and
-        # the templates' IS_ATTACKING selectors read exactly this state.
+        # the templates' IS_ATTACKING selectors read exactly this state. An
+        # object judged on its own departure, or a token that ceased to exist,
+        # left combat as it left (CR 506.4): "if it was attacking" (Garna,
+        # Bloodfist of Keld) is its last known information (CR 603.10a, 608.2h).
         if ctx.executor is None:
             raise NotImplementedError(
                 "executor: filter pred IS_ATTACKING reads the executor's "
                 "attack record (bare ExecCtx)"
             )
+        lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+        if lki is not None:
+            return lki.attacking is not None
         return handle in ctx.executor.attackers
     if pred is FAtomPred.IS_BLOCKING:
         # CR 506.4: the executor's live block record: a handle IS blocking

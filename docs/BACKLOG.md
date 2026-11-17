@@ -898,6 +898,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   The conformance test `tools/audit/test_ontology_conformance.py::
   test_a_designated_player_is_a_printed_target` lists Massacre Wurm as its one exception
   (`ontology_conformance.DESIGNATED_PLAYER_EXCEPTIONS`); the fold removes it there.
+  It now blocks a card (2026-11-17, mapper M5; wave E1 stopped on it): FDN Kalastria Highborn's
+  "target player loses 2 life" in a dies trigger is the same bytes, so `TriggerBinder._put`'s
+  DIES pre-bind of a TARGET_PLAYER role read (`_reads_player_anaphora`) makes its target the
+  dying Vampire's controller and never asks it (weaker than printed). The engine half, dropping
+  that pre-bind so every TARGET_PLAYER is a printed target (CR 115.1, 603.3d), is right only
+  after the fold: alone it would make Massacre Wurm ask a target. Repro:
+  `tools/scenarios/known_bugs/kalastria_highborn_target_player_never_designated.json`.
 - **B-101 [fixer A, 2026-10-30] Protection residues after V44** (one oracle,
   `legality.protected_from`):
   - 702.16n/p ("this effect doesn't remove Auras") has no IR; no compiled card needs it (M15

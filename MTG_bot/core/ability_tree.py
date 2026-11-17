@@ -1224,18 +1224,21 @@ def _filter_names(filter_: object, pred: FAtomPred) -> bool:
     return False
 
 
-def _filter_names_the_source(filter_: object, positive: bool = True) -> bool:
+def _filter_names_the_source(
+    filter_: object, positive: bool = True, pred: FAtomPred = FAtomPred.IS_SOURCE
+) -> bool:
     """Does the filter pin the source itself (an ``IS_SOURCE`` reached through an even number of
     negations)? "This creature" is a self-designation, never a choice. ``FNot(IS_SOURCE)`` is
     "another": a real menu (Dire Fleet Warmonger's "you may sacrifice another creature"), which
     the polarity-blind ``executor.selectors._filter_is_self_referential`` (kept for its binding
-    and cost callers) counts as self-reference."""
+    and cost callers) counts as self-reference. ``pred`` IS_ATTACHED_TO_SOURCE asks the same of
+    the object the source is attached to ("enchanted creature")."""
     if isinstance(filter_, FAtom):
-        return positive and filter_.pred is FAtomPred.IS_SOURCE
+        return positive and filter_.pred is pred
     if isinstance(filter_, (FAnd, FOr)):
-        return any(_filter_names_the_source(c, positive) for c in filter_.children)
+        return any(_filter_names_the_source(c, positive, pred) for c in filter_.children)
     if isinstance(filter_, FNot):
-        return _filter_names_the_source(filter_.inner, not positive)
+        return _filter_names_the_source(filter_.inner, not positive, pred)
     return False
 
 

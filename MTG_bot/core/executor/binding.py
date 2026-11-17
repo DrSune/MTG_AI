@@ -328,19 +328,6 @@ class DelayedBinding:
     controller: Handle
 
 
-def _names_the_enchanted(filter_: object, positive: bool = True) -> bool:
-    """Does the filter pin the object the source is attached to (an IS_ATTACHED_TO_SOURCE
-    reached through an even number of negations), the way ``_filter_names_the_source`` pins
-    the source?"""
-    if isinstance(filter_, FAtom):
-        return positive and filter_.pred is FAtomPred.IS_ATTACHED_TO_SOURCE
-    if isinstance(filter_, (FAnd, FOr)):
-        return any(_names_the_enchanted(c, positive) for c in filter_.children)
-    if isinstance(filter_, FNot):
-        return _names_the_enchanted(filter_.inner, not positive)
-    return False
-
-
 def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
     """CR 113.6m ("An ability whose cost or effect specifies that it moves
     the object it's on out of a particular zone functions only in that zone, unless its
@@ -373,7 +360,11 @@ def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
             dies = event.subject
     if dies is not None and _filter_names_the_source(dies):
         return False
-    if aura and left is not None and _names_the_enchanted(left):
+    if (
+        aura
+        and left is not None
+        and _filter_names_the_source(left, pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
+    ):
         return False
     for node in walk(ability.effect):
         if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
@@ -1780,13 +1771,14 @@ class TriggerBinder:
         targets = (target,) if isinstance(target, Handle) else tuple(target or ())
         per_slot = dict(ctx.slot_designations or {})  # several slots (_designate_slots)
         selectors = self._designation_slots(node)[0] if designated and not per_slot else []
+        ctx.declared_clock = self.executor.journal.clock
         return StackObject(
             handle=self.executor.ability_handles.allocate(),
             node=node,
             controller=payload.controller,
             spell_kind="TRIGGERED",
             declared_targets=tuple(sorted(t for t in targets if isinstance(t, Handle))),
-            declared_clock=self.executor.journal.clock,
+            declared_clock=ctx.declared_clock,
             slot_designations=per_slot,
             source=payload.source,
             event=event,

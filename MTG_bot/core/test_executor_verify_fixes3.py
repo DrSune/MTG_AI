@@ -704,6 +704,59 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
         self.kill(self.token(self.p1, name="Untapped"))
         self.assertEqual(self.world.players[self.p1].life, 18)
 
+    def test_a_ceased_token_was_never_cast(self):
+        # "if it wasn't cast this turn", checked again on the ceased token as the trigger
+        # resolves (CR 603.4): no token is cast (CR 111.1), so it holds.
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, FNot
+
+        cast = FAtom(FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY)
+        self.watcher(QConst(2), condition=FNot(cast))
+        self.kill(self.token(self.p1))
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+
+class TestWasAttackingIsLastKnown(FixerCase):
+    def test_draw_a_card_if_it_was_attacking(self):
+        # FDN Garna, Bloodfist of Keld's shape: "Whenever another creature you control dies,
+        # <A> if it was attacking. Otherwise, <B>." "It" is the creature that died (a bare
+        # Conditional's object test), judged as it last existed: it left combat as it left the
+        # battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a,
+        # 608.2h; known_bugs/2026-11-17/garna_was_attacking).
+        from MTG_bot.core.ability_tree import (
+            Conditional,
+            CreatureDiesEvent,
+            FAnd,
+            FAtom,
+            FAtomPred,
+            FNot,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.test_executor_binding import record_of
+
+        def gain(n):
+            return atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(n))
+
+        mine = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        trigger = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAnd((mine, FNot(FAtom(FAtomPred.IS_SOURCE))))),
+            condition=None,
+            effect=Conditional(FAtom(FAtomPred.IS_ATTACKING), gain(3), gain(1)),
+        )
+        oid = self.world.cards[self.alpha].identity.oracle_id
+        self.ex.attach_card(self.alpha, record_of([trigger], oid=oid))
+        raider = self.world.add_card(card_id("Raider", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        homebody = self.world.add_card(card_id("Homebody", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.ex.attackers.append(raider)  # the attack record of a declaration
+        self.ex.attacked[raider] = self.p1
+        for dead in (raider, homebody):
+            self.ex.execute(
+                atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(5)),
+                source=self.beta,
+                controller=self.p1,
+                bindings={"target": [dead]},
+            )
+        self.assertEqual(self.world.players[self.p0].life, 24)
+
 
 class TestV29TargetDependentTax(unittest.TestCase):
     def test_the_tax_detector_reads_targets_source_anywhere_in_a_filter(self):
