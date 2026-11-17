@@ -1899,9 +1899,9 @@ is refused (a no-op state), so every mutant of a card entering tapped or with co
 stillborn and G3 built none (M20 Barkhide Troll 0 mutants; M21 Malefic Scythe 0, now 14). Since
 774fa6b9 (2026-11-13, gate round 9's pre-gate fixes).
 `tools/cards/test_gates.py::test_a_card_that_enters_tapped_or_with_counters_has_mutants` (red on
-the base; `g3_etb_counts.py`). The stamps (restated for the merged tree, main 4da972f1: 1,144
-verified stamps, 736 home stamps, M21 275, M20 277 and FDN 184, and 408 reprint stamps in 17 sets,
-6 of them in FDN, which holds 190; `g3_etb_stamps.txt` reads every set). 91 verified trees hold
+the base; `g3_etb_counts.py`). Restated for the tree merged with main 4da972f1, which holds 1,144
+verified stamps (736 home stamps, M21 275, M20 277 and FDN 184, and 408 reprint stamps in 17 sets,
+6 of them in FDN, which holds 190; `g3_etb_stamps.txt` reads every set): 91 verified trees hold
 such a node. The 70 home stamps all predate the bug and record their real mutation counts. Of the
 21 reprint stamps (`verify --reprint-of`, 2026-11-14, every one from an FDN home), **20 recorded 0
 mutants made under the bug** where their home stamps record real counts: ELD Wind-Scarred Crag,
@@ -2018,3 +2018,6 @@ equivalent. M9: the world files any card leaving for a zone but the battlefield 
 (R11-2). M11: a referent selector's zone set is `(Zone(ANY, ANY),)` (Selector's own check), which
 the zone check refuses. M14: CostExile refuses a library zone, so `_cost_moves_library_card`'s
 CostExile clause cannot fire today; it stays for the card whose exile cost takes a library card.
+Re-run on 586fa91a with the gate's fixes each undone in turn (the source in one form, the payer's
+permanents, one whole zone, one exile and one removal of a kind per cost, the raise on a short
+segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
