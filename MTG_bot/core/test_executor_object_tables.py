@@ -28,9 +28,10 @@ from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
 #: The games, by set and seed: a greedy cover of the 40 containers 40 random games per set filled
-#: on 2026-11-17, main a7b7ac35 merged (reports/guards_400_7_2026-11-17/seeds.py). Engine changes
-#: move what a seed's game does; MIN_FILLED says when the cover has worn too thin to trust.
-GAMES = {"M21": (20, 35, 6, 33), "M20": (36, 5), "FDN": (32,)}
+#: on 2026-11-17, main 1fb4463f merged (reports/guards_400_7_2026-11-17/seeds.py). Engine changes
+#: and verification waves move what a seed's game does; MIN_FILLED says when the cover has worn
+#: too thin to trust.
+GAMES = {"M21": (20, 37, 6, 7, 35), "M20": (5,), "FDN": (3,)}
 MIN_FILLED = 34
 BEHAVIOURS = ("departure", "lki", "stack", "derived", "kept")
 #: Compiled card text: it names no object of a game, so it is not walked.
