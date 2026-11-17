@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "bf38c3ca332c7809eb5fb218ed58e859f985cc697ae7c61e891a6d808ce07736",
   "probe_sha": "30778aa934ecf00ca805724c9bab4fcac930e43ea44781a34e1e16ddc537f853",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -33,10 +33,12 @@
    "tools/scenarios/cards/FDN/temple_of_deceit_1.json"
   ],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
-   "survived": []
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
   },
   "reprint_of": "FDN"
  }

@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "24cd279dc26bd163db1a6b7710fac04fffa15df4ba51469c8effe8159122dc89",
   "probe_sha": "f4b23743853868b9676592c0e656b9ba4f18f4c21cf3471816170a30f115a6b2",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -33,10 +33,12 @@
    "tools/scenarios/cards/FDN/temple_of_malice_1.json"
   ],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
-   "survived": []
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
   },
   "reprint_of": "FDN"
  }

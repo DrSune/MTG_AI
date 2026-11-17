@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "8a97383daf638b24266469c16dea3bc3df9249953c74a75199d20eaa1f17fc76",
   "probe_sha": "b536f44b8dad9f210029eec745b262d14b079be74034e677dc50b778ef83d271",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -31,9 +31,9 @@
   ],
   "packs": [],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
    "survived": []
   },
   "reprint_of": "FDN"

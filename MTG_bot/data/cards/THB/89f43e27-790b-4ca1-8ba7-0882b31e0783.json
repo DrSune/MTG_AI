@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "77628aff9ec0bda6e246e4e1e9b4fcfe3e2502a1a10d5ec1a4dfc61196114396",
   "probe_sha": "3baaa8f7f44df29f248f2a97158aab212c380b76526d15951496cbe5de3b0085",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -34,10 +34,12 @@
    "tools/scenarios/cards/FDN/temple_of_enlightenment_2.json"
   ],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
-   "survived": []
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
   },
   "reprint_of": "FDN"
  }

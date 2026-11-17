@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "3c7a55e72a571718b3cc00f3936eba673c6bca8c615b14d3f4c7687b54620bcc",
   "probe_sha": "efd2d50e178e53b0512aa65dea20ea53e54e627ff9769e2a0e5372b15fb1a393",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -34,10 +34,14 @@
    "tools/scenarios/cards/FDN/gnarlid_colony_2.json"
   ],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
-   "survived": []
+   "mutants": 12,
+   "killed": 9,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/2/effect/args/target/filter",
+    "amount+1 at 1/2/effect/args/target/filter/children/2/count"
+   ]
   },
   "reprint_of": "FDN"
  }

@@ -7,7 +7,7 @@
  "verified": {
   "tree_sha": "53e9c06c426823a3c3928aa7b01bf6c88e5e1aafea64a1e563808bb236487abf",
   "probe_sha": "0c47a0fb746160b88df91f924fde72d551e9a1b8f906a3bef13a417dffc3252f",
-  "date": "2026-11-14",
+  "date": "2026-11-17",
   "reviewer": "reprint-wave-2026-11-14",
   "clauses": [
    {
@@ -33,10 +33,12 @@
    "tools/scenarios/cards/FDN/temple_of_abandon_1.json"
   ],
   "mutation": {
-   "mutants": 0,
-   "killed": 0,
-   "score": null,
-   "survived": []
+   "mutants": 9,
+   "killed": 8,
+   "score": 0.8888888888888888,
+   "survived": [
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
   },
   "reprint_of": "FDN"
  }
