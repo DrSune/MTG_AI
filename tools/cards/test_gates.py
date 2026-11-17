@@ -334,6 +334,29 @@ def test_choose_over_your_player_zone_count_is_dead_in_a_static() -> None:
         assert _game(pack, _mutant(halo, HALO_TARGET, QConst(n))) == real
 
 
+GUIDE_PICK = "1/0/effect/inner/steps/3/args/cards/count"
+
+
+def test_one_of_count_after_a_one_card_search_is_dead() -> None:
+    """FDN Campus Guide: "you may search your library for a basic land card, reveal it, then
+    shuffle and put that card on top." The last step's ONE_OF picks among the cards the search
+    found (ctx.search_found), one at most, so a count of 2 or 3 picks the same card; the search's
+    own count stays live. Two basic lands in the library: the search's choice is the one that
+    goes on top, whatever the ONE_OF's count."""
+    guide = _card("Campus Guide", "FDN")
+    assert ("amount+1", GUIDE_PICK) not in _where(guide)
+    assert ("amount+1", GUIDE_PICK.replace("steps/3", "steps/0")) in _where(guide)  # the search's
+    pack = _pack([{"key": "g", "real": "Campus Guide", "zone": "hand", "controller": 0},
+                  {"key": "f", "real": "Forest", "zone": "library", "controller": 0},
+                  {"key": "p", "real": "Plains", "zone": "library", "controller": 0}],
+                 [{"op": "enter", "key": "g", "decisions": ["fire", "p"]}], code="FDN")
+    real = _game(pack)
+    seat0 = next(iter(real[1].values()))
+    assert real[0][seat0[1][-1]][0] == "Plains"  # the found card is on top
+    for n in (2, 3):
+        assert _game(pack, _mutant(guide, GUIDE_PICK, QConst(n))) == real
+
+
 EMPATH_REVEAL = "1/0/effect/inner/steps/1/args"
 TRACK_REVEAL = "1/0/effect/steps/0/steps/1/args"
 

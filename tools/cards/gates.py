@@ -669,6 +669,20 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))
+        # - a ONE_OF partition after the one SEARCH of its Seq picks among the cards that search
+        #   found (Executor._run_effect's search_partition, selectors.resolve_selector's
+        #   search_found lane; a library-TOP zone reads a look window instead): after a search for
+        #   one card it has one card at most, so every count >= 1 picks it (FDN Campus Guide's
+        #   "put that card on top").
+        if isinstance(node, Seq) and any(_partition_step(step) for step in node.steps):
+            searches = [i for i, step in enumerate(node.steps)
+                        if isinstance(step, Atom) and step.verb is Verb.SEARCH]
+            if len(searches) == 1 and node.steps[searches[0]].args.get("cards").count == QConst(1):
+                dead |= {(*path, "steps", i, "args", "cards", "count")
+                         for i, step in enumerate(node.steps) if i > searches[0] and _partition_step(step)
+                         and (sel := step.args.get("cards")).mode is SelectorMode.ONE_OF and sel.referent is None
+                         and not any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP
+                                     for z in sel.zones)}
         # Proven in test_gates.py like the above:
         # - SEARCH and MOVE_ZONE put a card into its OWNER's hand, library, graveyard or exile,
         #   whatever player the destination names (CR 400.3; selectors.move_destination):
