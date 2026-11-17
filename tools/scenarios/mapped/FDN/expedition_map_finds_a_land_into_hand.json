@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "expedition_map_finds_a_land_into_hand",
+ "notes": "M7 mapper. Printed: '{2}, {T}, Sacrifice this artifact: Search your library for a land card, reveal it, put it into your hand, then shuffle.' Seat 0's library holds a nonbasic Desert (a land card), a Forest and a creature. Seat 0 pays {2}, taps and sacrifices the Map and picks the Desert: it goes to seat 0's hand (one card only), the Forest and the creature stay in the library, which is shuffled; the opponent's library is untouched.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "map", "real": "Expedition Map", "zone": "battlefield", "controller": 0},
+  {"key": "desert", "name": "Odd Desert", "type": "Land — Desert", "zone": "library", "controller": 0, "cmc": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "lib_beast", "name": "Library Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "map", "idx": 0, "seat": 0, "decisions": ["desert"]}
+ ],
+ "expect": {
+  "zone": {"map": "graveyard", "desert": "hand", "forest": "library", "lib_beast": "library"},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {}},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "burnished_hart_up_to_two_takes_one",
+ "notes": "M7 mapper. Printed: 'Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.' 'Up to two': with two basic lands in the library seat 0 may stop after one (CR 107.1c). Seat 0 picks the Island and stops: the Island alone enters tapped, the Forest stays in the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "hart", "real": "Burnished Hart", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 3}},
+  {"op": "activate", "key": "hart", "idx": 0, "seat": 0, "decisions": ["island", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"hart": "graveyard", "forest": "library", "island": "battlefield"},
+  "tapped": {"island": true},
+  "controller": {"island": 0}
+ }
+}

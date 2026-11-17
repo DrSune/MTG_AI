@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "tempest_djinn_counts_your_basic_islands",
+ "notes": "M7 mapper. Printed: 'This creature gets +1/+0 for each basic Island you control.' Seat 0 controls two basic Islands, a nonbasic Island (Land — Island, not basic) and a Forest; seat 1 controls a basic Island. Tempest Djinn (0/4) is 2/4. Seat 0 then plays a third basic Island: 3/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "djinn", "real": "Tempest Djinn", "zone": "battlefield", "controller": 0},
+  {"key": "island1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "island2", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "odd_island", "name": "Odd Island", "type": "Land — Island", "zone": "battlefield", "controller": 0, "cmc": 0},
+  {"key": "forest", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "opp_island", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "island3", "real": "Island", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "play", "key": "island3"}
+ ],
+ "expect": {
+  "power": {"djinn": 3},
+  "toughness": {"djinn": 4},
+  "zone": {"island3": "battlefield"}
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "name": "an_offer_you_cant_refuse_counters_and_pays_its_controller",
+ "set": "FDN",
+ "note": "An Offer You Can't Refuse: 'Counter target noncreature spell. Its controller creates two Treasure tokens.' On the opponent's turn the opponent casts Scorching Dragonfire at P0's Bear; P0 responds with An Offer You Can't Refuse targeting it. The Dragonfire is countered (it goes to its owner's graveyard and the Bear takes no damage), and two Treasure tokens are created for the Dragonfire's controller, the opponent: with no other mana, the opponent then casts a second Dragonfire ({1}{R}) by sacrificing both Treasures (the automatic payment taps only the caster's own sources), which exiles the Bear. Were the Treasures P0's, that cast would be unpayable.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "offer", "real": "An Offer You Can't Refuse", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "sd", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1},
+  {"key": "sd2", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "sd", "controller": 1, "targets": ["mybear"], "hold": true},
+  {"op": "mana", "seat": 0, "add": {"U": 1}, "hold": true},
+  {"op": "cast", "real": "An Offer You Can't Refuse", "key": "offer", "controller": 0, "targets": ["sd"]},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "sd2", "controller": 1, "targets": ["mybear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"offer": "graveyard", "sd": "graveyard", "sd2": "graveyard", "mybear": "exile"},
+  "tokens": {"Treasure": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

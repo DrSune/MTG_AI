@@ -1,0 +1,226 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6a381121-9134-489c-8c7e-44be1936b0e2",
+ "name": "Apothecary Stomper",
+ "text_sha": "4133650ea4f42b44288df29d03889bf997b4c06e7a053fb806cb1aa6b7fbc592",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "VIGILANCE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Apothecary Stomper (FDN). Vigilance (compiled keyword, kept).\n# \"When this creature enters, choose one --\n#   * Put two +1/+1 counters on target creature you control.\n#   * You gain 4 life.\"\n# The compiled tree held \"You gain 4 life.\" on the creature's cast carrier (orphaned, BACKLOG):\n# this record replaces the whole tree. Trigger and modes: M21 Trufflesnout's verified ETB\n# Choose(count 1); the counters: Feat of Resistance's TARGET \"creature you control\" with count 2\n# (Phylath's PUT_COUNTER count); the life bullet is the compiled B5c-bullet-gain-life atom, moved\n# off the carrier. The carrier is the plain SpellAbility(CREATURE).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Choose(\n        count=QConst(value=1),\n        options=(\n            A(Verb.PUT_COUNTER, {\n                'count': QConst(value=2),\n                'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n            compiled[0].effect,\n        ),\n    ),\n)\nabilities = [etb, SpellAbility(kind=SpellKind.CREATURE)]\n",
+  "clauses": [
+   {
+    "clause": "Vigilance (Attacking doesn't cause this creature to tap.)",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, choose one —",
+    "ir": "abilities[0] (ETB trigger, effect Choose count 1)"
+   },
+   {
+    "clause": "• Put two +1/+1 counters on target creature you control.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• You gain 4 life.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Replaces the whole tree (the compiled GAIN_LIFE sat on the cast carrier, BACKLOG orphaned carriers): M21 Trufflesnout's ETB Choose, Feat of Resistance's TARGET creature you control with two counters, the life bullet moved off the carrier; plain SpellAbility(CREATURE) carrier."
+ },
+ "probe": {
+  "sha": "4e23e33a7996b4063795e0e65fbc4ce473917b2bdbd24e204dcdbccd66b7965c"
+ }
+}

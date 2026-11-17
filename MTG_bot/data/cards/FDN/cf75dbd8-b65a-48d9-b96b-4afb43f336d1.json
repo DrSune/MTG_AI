@@ -1,0 +1,186 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "cf75dbd8-b65a-48d9-b96b-4afb43f336d1",
+ "name": "Macabre Waltz",
+ "text_sha": "1f2ff226cb8807e843933cb6beb255f1d096946af8d063b0f4a09f2ba7f834e8",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 2
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Macabre Waltz: \"Return up to two target creature cards from your graveyard to your hand, then\n# discard a card.\"\n# FDN Sanguine Indulgence's verified \"Return up to two target creature cards from your graveyard to\n# your hand.\" (B5b-return-cards-hand: QAtMost(2) TARGET), then the discard of \"Draw a card, then\n# discard a card.\" (B3-seq-draw-discard, M21 Obsessive Stitcher: a MOVE_ZONE of one card you choose\n# from your hand to your graveyard).\nret = A(Verb.MOVE_ZONE, {\n    'cards': Selector(\n        count=QAtMost(n=2),\n        mode=SelectorMode.TARGET,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n    ),\n    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n})\ndiscard = A(Verb.MOVE_ZONE, {\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n    ),\n    'controller': ControllerRef.YOU,\n    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n})\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(ret, discard)))]\n",
+  "clauses": [
+   {
+    "clause": "Return up to two target creature cards from your graveyard to your hand, then discard a card.",
+    "ir": "abilities[0].effect.steps[0], abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "FDN Sanguine Indulgence's verified return (QAtMost(2) TARGET creature cards in your graveyard), then B3-seq-draw-discard's discard (the canonicaliser makes it a ONE_OF over your hand, as Rain of Revelation's). Pack: tools/scenarios/mapped/FDN/macabre_waltz_returns_two_then_discards_one.json (two targets; the probe board has one creature card in the graveyard)."
+ },
+ "probe": {
+  "sha": "e031c124581e5ee0bdfa4f940c2c5746bf7fc61ce247d1c92bc3dd860d7e198a"
+ }
+}

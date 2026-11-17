@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3b1f1a57-d83a-443f-b190-03df63d2bfe6",
+ "name": "Seismic Rupture",
+ "text_sha": "4dbdc208b7c12a4fab9645a19f1f4151cff8f7e7e9f7ba2cf7b233442311bc4d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 2
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "KEYWORD_HAS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": {
+              "tag": "Keyword",
+              "name": "FLYING"
+             },
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Seismic Rupture: \"Seismic Rupture deals 2 damage to each creature without flying.\"\n# ZNR Cinderclasm's \"deals 2 damage to each creature\" (DEAL_DAMAGE over ALL creatures) with M21\n# Destructive Tampering's \"creatures without flying\" (FNot(KEYWORD_HAS FLYING)).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.DEAL_DAMAGE, {\n            'amount': QConst(value=2),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FNot(inner=FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING)),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Seismic Rupture deals 2 damage to each creature without flying.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ZNR Cinderclasm's 'deals 2 damage to each creature' with Destructive Tampering's 'without flying' (FNot(KEYWORD_HAS FLYING)). G1: the flier is not dealt damage."
+ },
+ "probe": {
+  "sha": "7a9526d574fd5267c23338a32a8e676b6d15da87a52dae1460f780d558e0378d"
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "gutless_plunderer_no_attack_no_raid",
+ "notes": "M7 mapper. Printed: 'Raid — When this creature enters, if you attacked this turn, look at the top three cards of your library. ...' Seat 0 has not attacked this turn: Gutless Plunderer enters and nothing happens; the library is untouched and nothing goes to the graveyard.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "plunderer", "real": "Gutless Plunderer", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "c", "name": "Card C", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "plunderer"}
+ ],
+ "expect": {
+  "zone": {"plunderer": "battlefield", "a": "library", "b": "library", "c": "library"},
+  "graveyard": {"0": []},
+  "library": {"0": ["Card C", "Card B", "Card A", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

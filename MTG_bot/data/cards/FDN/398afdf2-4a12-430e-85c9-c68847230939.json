@@ -1,0 +1,277 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "398afdf2-4a12-430e-85c9-c68847230939",
+ "name": "Sylvan Scavenging",
+ "text_sha": "42ae98c91d62c3e9e78f8ce2e2f4bbecc27edbd5bb40cfd43dfd67db54fc38e5",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "END_TURN"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_COUNT_GE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "POWER_GE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": {
+            "tag": "QConst",
+            "value": 4
+           },
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        }
+       },
+       "then_effect": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "CREATE_TOKEN"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "tokens",
+           {
+            "tag": "TokenSpec",
+            "name": "Raccoon",
+            "type_line": "Creature — Raccoon",
+            "types": [
+             "Creature"
+            ],
+            "subtypes": [
+             "Raccoon"
+            ],
+            "power": {
+             "tag": "QConst",
+             "value": 3
+            },
+            "toughness": {
+             "tag": "QConst",
+             "value": 3
+            },
+            "keywords": [],
+            "abilities": [],
+            "colors": [
+             "G"
+            ]
+           }
+          ]
+         ]
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Sylvan Scavenging (FDN), an enchantment (its compiled cast carrier kept, last).\n# \"At the beginning of your end step, choose one --\n#   * Put a +1/+1 counter on target creature you control.\n#   * Create a 3/3 green Raccoon creature token if you control a creature with power 4 or greater.\"\n# Event: M21 Twinblade Assassins' \"At the beginning of your end step\" (TurnPhaseEvent END_TURN,\n#   actor YOU). Modes: Choose(count 1), chosen as the ability goes on the stack (CR 700.2b).\n# Mode 1: M21 Feat of Resistance's B5b-put-counter atom, word for word.\n# Mode 2: the token (Elder Gargaroth's create-token, a 3/3 green Raccoon) behind a Conditional, read\n#   as the mode resolves: the \"if\" closes the bullet, so it is no intervening \"if\" of the trigger.\n#   Its predicate is M21 Garruk's Uprising's \"if you control a creature with power 4 or greater\"\n#   (CONTROLLER_COUNT_GE 1 over creatures with POWER_GE 4).\nend_step = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=Choose(\n        count=QConst(value=1),\n        options=(\n            A(Verb.PUT_COUNTER, {\n                'count': QConst(value=1),\n                'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n            Conditional(\n                pred=FAtom(\n                    pred=FAtomPred.CONTROLLER_COUNT_GE,\n                    count=QConst(value=1),\n                    inner_filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n                        ),\n                    ),\n                ),\n                then_effect=A(Verb.CREATE_TOKEN, {\n                    'count': QConst(value=1),\n                    'tokens': TokenSpec(\n                        name='Raccoon',\n                        type_line='Creature — Raccoon',\n                        types=('Creature',),\n                        subtypes=('Raccoon',),\n                        power=QConst(value=3),\n                        toughness=QConst(value=3),\n                        keywords=(),\n                        abilities=(),\n                        colors=('G',),\n                    ),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [end_step, compiled[0]]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your end step, choose one —",
+    "ir": "abilities[0] (end-step trigger, effect Choose count 1); abilities[1] is the enchantment cast carrier"
+   },
+   {
+    "clause": "• Put a +1/+1 counter on target creature you control.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Create a 3/3 green Raccoon creature token if you control a creature with power 4 or greater.",
+    "ir": "abilities[0].effect.options[1] (Conditional CONTROLLER_COUNT_GE 1 creature with power 4 or greater; then CREATE_TOKEN)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Twinblade Assassins' end-step event (your end step); Choose(count 1): Feat of Resistance's counter on target creature you control; a 3/3 green Raccoon behind a Conditional read on resolution (the 'if' closes the bullet, no intervening if), Garruk's Uprising's 'if you control a creature with power 4 or greater'. Compiled enchantment carrier kept. packs in tools/scenarios/mapped/FDN/: sylvan_scavenging_no_raccoon_without_your_big_creature."
+ },
+ "probe": {
+  "sha": "7f1b13fb3e6dd55df3ee2d635ce33a1e2ba478bc948c1d05e4b8ce945c244718"
+ }
+}

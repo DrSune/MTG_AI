@@ -1,0 +1,102 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e5223a09-f732-4747-8914-e6546ab0ef4c",
+ "name": "Rise of the Dark Realms",
+ "text_sha": "31a3eada1e200bcb66f781719c75970487cc98906935869df971f4b94be36824",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Rise of the Dark Realms: \"Put all creature cards from all graveyards onto the battlefield under\n# your control.\"\n# M21 Liliana, Waker of the Dead's emblem (\"put target creature card from a graveyard onto the\n# battlefield under your control\": MOVE_ZONE from Zone(GRAVEYARD, ANY) to Zone(BATTLEFIELD, YOU))\n# with ALL creature cards (count QUnbounded, no choice) in place of the target.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Put all creature cards from all graveyards onto the battlefield under your control.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Liliana, Waker of the Dead's emblem move (Zone(GRAVEYARD, ANY) to Zone(BATTLEFIELD, YOU)) with ALL creature cards. Pack: tools/scenarios/mapped/FDN/rise_of_the_dark_realms_takes_every_creature_card.json (the opponent's creature cards enter under your control; G1 does not print controllers)."
+ },
+ "probe": {
+  "sha": "67364fd0f05c64f538f3bbdadde9d355d94e93dbfde606d2b5b967503b4b5b6e"
+ }
+}

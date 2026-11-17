@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "kargan_dragonrider_flies_with_your_dragon",
+ "notes": "M7 mapper. Printed: 'As long as you control a Dragon, this creature has flying.' Seat 0 controls Your Dragon: Kargan Dragonrider attacks with flying, so Opp Bear (no flying, no reach) is not offered a block; it deals 2 to seat 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rider", "real": "Kargan Dragonrider", "zone": "battlefield", "controller": 0},
+  {"key": "dragon", "name": "Your Dragon", "type": "Creature — Dragon", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"rider": true, "dragon": false}, "block": {"bear": null}}
+ ],
+ "expect": {
+  "attackers": {"rider": true},
+  "not_asked_to_block": ["bear"],
+  "life": {"1": 18}
+ }
+}

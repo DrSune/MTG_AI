@@ -1,0 +1,22 @@
+{
+ "name": "wardens_of_the_cycle_morbid_draw_and_lose",
+ "set": "FDN",
+ "note": "Wardens of the Cycle, second mode: 'You draw a card and you lose 1 life.' P0's own Bear dies on turn 1 (a creature died this turn); at P0's end step P0 chooses the second mode: P0 draws exactly one card (its library's top card) and loses 1 life (19). P0 declines the attack.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "wardens", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature — Giant", "zone": "battlefield", "controller": 1},
+  {"key": "second", "name": "Second Card", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogiant", "target": "bear", "amount": 2},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "1"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "top": "hand", "second": "library"},
+  "life": {"0": 19, "1": 20},
+  "hand": {"0": 1}
+ }
+}

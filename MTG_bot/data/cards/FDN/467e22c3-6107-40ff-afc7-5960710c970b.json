@@ -1,0 +1,199 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "467e22c3-6107-40ff-afc7-5960710c970b",
+ "name": "Adamant Will",
+ "text_sha": "04add41fa24ca9a1ec77ac773381262ecf65369189f8e21b3289bce7bd1a464c",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "INDESTRUCTIBLE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Adamant Will (FDN): \"Target creature gets +2/+2 and gains indestructible until end of turn.\"\n# Shape: M21 Sure Strike's B5b-seq-modpt-firststrike (one TARGET slot shared by the two steps),\n# with +2/+2 and Basri Ket's INDESTRUCTIBLE grant.\ncreature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                    'target': creature,\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),\n                    'duration': DurationEot(),\n                    'target': creature,\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Target creature gets +2/+2 and gains indestructible until end of turn.",
+    "ir": "abilities[0].effect (steps[0] MODIFY_PT +2/+2 EOT; steps[1] GRANT_ABILITY INDESTRUCTIBLE EOT; one TARGET slot)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Sure Strike's pump-and-grant Seq (one TARGET slot) with +2/+2 and INDESTRUCTIBLE, both until end of turn."
+ },
+ "probe": {
+  "sha": "df9492db614fadce93eddcab7cbd2f7c0f6d50956e2bd0986fa968f74eaf8ac5"
+ }
+}

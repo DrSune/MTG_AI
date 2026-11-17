@@ -1,0 +1,218 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "893fed41-c144-433f-af88-bc7d419b7fb3",
+ "name": "Burnished Hart",
+ "text_sha": "4eddb3a98b388b7ef7a2b46b3d209af68729a5c66f3235ebcb22edc8f15e9e9e",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 3
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SEARCH"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 2
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUPERTYPE_EQ"
+              },
+              "string_value": "Basic",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "tapped_on_enter",
+          {
+           "tag": "Bool",
+           "value": true
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SHUFFLE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "zone",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nsearch_two = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=3)), CostSacrifice(target=SELF))),\n    effect=Seq(\n        steps=(\n            A(Verb.SEARCH, {\n                'cards': Selector(\n                    count=QAtMost(n=2),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                'tapped_on_enter': True,\n            }),\n            A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n        ),\n    ),\n)\nabilities = [search_two, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{3}, Sacrifice this creature: Search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Self-sacrifice cost as IS_SOURCE alone (MAPPER_GUIDE, divergence D25's target form). 'Up to two' is QAtMost(2) (B-107). Packs: tools/scenarios/mapped/FDN/burnished_hart_two_basics_enter_tapped.json, tools/scenarios/mapped/FDN/burnished_hart_up_to_two_takes_one.json."
+ },
+ "probe": {
+  "sha": "f1302901ab39caf5e7dc8be4fa8156b7bfd8316b172017c152a71529e7ce1d72"
+ }
+}

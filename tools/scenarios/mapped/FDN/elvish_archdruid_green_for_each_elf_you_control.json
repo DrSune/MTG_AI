@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "elvish_archdruid_green_for_each_elf_you_control",
+ "notes": "M7 mapper. Printed: 'Other Elf creatures you control get +1/+1. {T}: Add {G} for each Elf you control.' Seat 0 controls the Archdruid and two other Elves (1/1 each); seat 1 controls an Elf. The other Elves of seat 0 are 2/2, the Archdruid stays 2/2 and seat 1's Elf stays 1/1. Tapping the Archdruid adds {G}{G}{G}: three Elves (itself included), not seat 1's.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Elvish Archdruid", "zone": "battlefield", "controller": 0},
+  {"key": "elf_a", "name": "Elf A", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "elf_b", "name": "Elf B", "type": "Creature — Elf Warrior", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "opp_elf", "name": "Opp Elf", "type": "Creature — Elf", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "druid", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "power": {"druid": 2, "elf_a": 2, "elf_b": 2, "opp_elf": 1},
+  "toughness": {"druid": 2, "elf_a": 2, "elf_b": 2, "opp_elf": 1},
+  "tapped": {"druid": true},
+  "mana_pool": {"0": {"G": 3}}
+ }
+}

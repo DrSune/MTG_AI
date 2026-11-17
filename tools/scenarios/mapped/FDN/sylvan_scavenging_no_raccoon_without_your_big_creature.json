@@ -1,0 +1,26 @@
+{
+ "name": "sylvan_scavenging_no_raccoon_without_your_big_creature",
+ "set": "FDN",
+ "note": "Sylvan Scavenging: 'At the beginning of your end step, choose one -- ... Create a 3/3 green Raccoon creature token if you control a creature with power 4 or greater.' At P0's end step P0 chooses the Raccoon mode, but P0's only creature is a 2/2 (the opponent's 5/5 is not P0's): no Raccoon is created. At P0's next end step P0 controls a 4/4 Brute (entered that turn) and the same mode makes exactly one 3/3 Raccoon. P0 declines every attack.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "scav", "real": "Sylvan Scavenging", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "power": "5", "toughness": "5", "type": "Creature — Giant", "zone": "battlefield", "controller": 1},
+  {"key": "brute", "name": "Brute", "power": "4", "toughness": "4", "type": "Creature — Ogre", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "1"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "enter", "key": "brute"},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "1"]}
+ ],
+ "expect": {
+  "zone": {"brute": "battlefield"},
+  "tokens": {"Raccoon": 1},
+  "battlefield_pt": {"Raccoon": [3, 3]}
+ }
+}

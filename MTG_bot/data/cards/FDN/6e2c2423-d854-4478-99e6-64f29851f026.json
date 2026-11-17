@@ -1,0 +1,299 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6e2c2423-d854-4478-99e6-64f29851f026",
+ "name": "Elvish Archdruid",
+ "text_sha": "b0257a458176abb9e1dfdf46562558eed22f4adbd3769bd68a5b2c17cd86fc71",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Elf",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_SOURCE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "SUBTYPE_EQ"
+             },
+             "string_value": "Elf",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "G"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "OTHER_ELVES = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nanthem = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        'target': OTHER_ELVES,\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n)\nmana = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.ADD_MANA, {\n        'amount': QCount(\n            selector=Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        ),\n        'color': 'G',\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [anthem, mana, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Other Elf creatures you control get +1/+1.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{T}: Add {G} for each Elf you control.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Pack Leader's anthem form; Leafkin Avenger's per-count ADD_MANA. Pack: tools/scenarios/mapped/FDN/elvish_archdruid_green_for_each_elf_you_control.json."
+ },
+ "probe": {
+  "sha": "0d2e0fb3a866392ebc6afd4805fb6111d77ea5efc4d44df83330500d2fa8ff5e"
+ }
+}

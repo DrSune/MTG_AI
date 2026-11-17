@@ -1,0 +1,358 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "16629f59-bae8-4c19-bf50-443eb0ed6856",
+ "name": "Felidar Retreat",
+ "text_sha": "450431bfa204399e3cee3fd2e7e13e2e7898b650ca8dd7d2aa2a145f111ea373",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Cat Beast",
+           "type_line": "Creature — Cat Beast",
+           "types": [
+            "Creature"
+           ],
+           "subtypes": [
+            "Beast",
+            "Cat"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 2
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 2
+           },
+           "keywords": [],
+           "abilities": [],
+           "colors": [
+            "W"
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "PUT_COUNTER"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "count",
+            {
+             "tag": "QConst",
+             "value": 1
+            }
+           ],
+           [
+            "counter_kind",
+            {
+             "tag": "CounterKind",
+             "name": "PLUS_1_PLUS_1"
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ALL"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                },
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "GRANT_ABILITY"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "ability",
+            {
+             "tag": "KeywordAbility",
+             "keyword": {
+              "tag": "Keyword",
+              "name": "VIGILANCE"
+             },
+             "params": []
+            }
+           ],
+           [
+            "duration",
+            {
+             "tag": "DurationEot"
+            }
+           ],
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ALL"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                },
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Felidar Retreat (FDN), an enchantment (its compiled cast carrier kept, last).\n# \"Landfall -- Whenever a land you control enters, choose one --\n#   * Create a 2/2 white Cat Beast creature token.\n#   * Put a +1/+1 counter on each creature you control. Those creatures gain vigilance until end of\n#     turn.\"\n# Event: ZNR Spitfire Lagac's B7-landfall-trigger (a land you control enters). Modes: Choose(count 1).\n# Mode 1: Elder Gargaroth's B5c-bullet-create-token, a 2/2 white Cat Beast (two subtypes, named as\n#   Goblin Wizardry's token is).\n# Mode 2: M21 Basri's Solidarity's B5b-put-counter (each creature you control), then the grant of\n#   Crash Through's B4-grant-trample-eot-you over the same creatures. \"Those creatures\" are the ones\n#   that just got a counter: nothing can enter or leave between the two instructions of one\n#   resolution, so \"creatures you control\" names the same set; a `result` referent would bind only\n#   the first of several objects (BACKLOG, \"A referent Selector over a register that binds several\n#   objects takes the first\").\nyours = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nlandfall = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Choose(\n        count=QConst(value=1),\n        options=(\n            A(Verb.CREATE_TOKEN, {\n                'count': QConst(value=1),\n                'tokens': TokenSpec(\n                    name='Cat Beast',\n                    type_line='Creature — Cat Beast',\n                    types=('Creature',),\n                    subtypes=('Cat', 'Beast'),\n                    power=QConst(value=2),\n                    toughness=QConst(value=2),\n                    keywords=(),\n                    abilities=(),\n                    colors=('W',),\n                ),\n            }),\n            Seq(\n                steps=(\n                    A(Verb.PUT_COUNTER, {\n                        'count': QConst(value=1),\n                        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n                        'target': yours,\n                    }),\n                    A(Verb.GRANT_ABILITY, {\n                        'ability': KeywordAbility(keyword=Keyword.VIGILANCE),\n                        'duration': DurationEot(),\n                        'target': yours,\n                    }),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [landfall, compiled[0]]\n",
+  "clauses": [
+   {
+    "clause": "Landfall — Whenever a land you control enters, choose one —",
+    "ir": "abilities[0] (landfall trigger, effect Choose count 1); abilities[1] is the enchantment cast carrier"
+   },
+   {
+    "clause": "• Create a 2/2 white Cat Beast creature token.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Put a +1/+1 counter on each creature you control.",
+    "ir": "abilities[0].effect.options[1].steps[0]"
+   },
+   {
+    "clause": "Those creatures gain vigilance until end of turn.",
+    "ir": "abilities[0].effect.options[1].steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Spitfire Lagac's landfall event; Choose(count 1): a 2/2 white Cat Beast token; Basri's Solidarity's counter on each creature you control, then the vigilance grant (until end of turn) over the same ALL selector: no creature can enter or leave between the two instructions, and a 'result' referent would bind only the first object (BACKLOG). Compiled enchantment carrier kept. packs in tools/scenarios/mapped/FDN/: felidar_retreat_counters_and_vigilance_this_turn, felidar_retreat_vigilance_ends_with_the_turn, felidar_retreat_only_your_lands."
+ },
+ "probe": {
+  "sha": "84e675f29e7fa2a8e532c256cd3e574f552495296c835d9e5c8d6d4a6bf542bf"
+ }
+}

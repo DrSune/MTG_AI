@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "ghitu_lavarunner_instant_and_sorcery_give_haste",
+ "notes": "M7 mapper. Printed: 'As long as there are two or more instant and/or sorcery cards in your graveyard, this creature gets +1/+0 and has haste.' Seat 0's graveyard holds an instant (Quick Study) and a sorcery (Crash Through). Seat 0 casts Ghitu Lavarunner: it is 2/2 with haste, attacks the turn it entered and deals 2 to seat 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lava", "real": "Ghitu Lavarunner", "zone": "hand", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "graveyard", "controller": 0},
+  {"key": "crash", "real": "Crash Through", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "cast", "key": "lava", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {"lava": true}}
+ ],
+ "expect": {
+  "attackers": {"lava": true},
+  "life": {"1": 18},
+  "power": {"lava": 2},
+  "toughness": {"lava": 2}
+ }
+}

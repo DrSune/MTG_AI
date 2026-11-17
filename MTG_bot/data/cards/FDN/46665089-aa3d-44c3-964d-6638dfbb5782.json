@@ -1,0 +1,109 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "46665089-aa3d-44c3-964d-6638dfbb5782",
+ "name": "Essence Scatter",
+ "text_sha": "d504b3b9946f36be8c45eafb46a48eb59240e9c463393244333200704fef3e5d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "COUNTER_SPELL"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "STACK_KIND_EQ"
+            },
+            "string_value": "SPELL",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "STACK"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Essence Scatter: \"Counter target creature spell.\"\n# Word for word M20 Bone to Ash's first sentence (verified record): COUNTER_SPELL over a TARGET\n# Selector on the stack, filtered to a SPELL that is a Creature. The compiler gave no tree.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.COUNTER_SPELL, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.STACK_KIND_EQ, string_value='SPELL'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n                zones=(Zone(kind=ZoneKind.STACK, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Counter target creature spell.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M20 Bone to Ash's first sentence (verified record), word for word. The probe board has no spell on the stack. Packs: tools/scenarios/mapped/FDN/essence_scatter_*.json."
+ },
+ "probe": {
+  "sha": "7a4326dc116551c713f6b88018092889874638acf8bb86a42b6f1e658f068112"
+ }
+}
