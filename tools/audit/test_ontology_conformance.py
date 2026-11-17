@@ -513,6 +513,9 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # Tolarian Kraken's "When you do": a reflexive DelayedTrigger gated by
         # Conditional(MAY_DONE) (CR 603.12, the trigger-timing fix).
         "ontology_census_2026-11-12_triggertiming_post_full.json",
+        # Idol of Endurance's permission over "cards exiled with this artifact":
+        # a PERMIT's ALL population over exile (ontology round R13, §17).
+        "ontology_census_2026-11-17_permit_post_full.json",
     ):
         full = oc.REPO / "reports" / name
         if not full.exists():

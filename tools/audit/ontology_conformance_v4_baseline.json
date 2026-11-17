@@ -90,10 +90,11 @@
       ]
     },
     "Chandra, Heart of Fire": {
-      "count": 2,
+      "count": 3,
       "shapes": [
-        "234c6544387f2934",
-        "3d8c166eb60bd205"
+        "808567d87e76d595",
+        "9583947c6a67fa87",
+        "bd7bec080d327629"
       ]
     },
     "Conclave Mentor": {
@@ -103,9 +104,8 @@
       ]
     },
     "Conspicuous Snoop": {
-      "count": 2,
+      "count": 1,
       "shapes": [
-        "6bbbf75453d0ce97",
         "6bbd7b676f7b6b6a"
       ]
     },
@@ -119,6 +119,12 @@
       "count": 1,
       "shapes": [
         "dd35b2b11b8b3fcf"
+      ]
+    },
+    "Demonic Embrace": {
+      "count": 1,
+      "shapes": [
+        "36ae55ee2245272c"
       ]
     },
     "Dire Fleet Warmonger": {
@@ -404,10 +410,9 @@
       ]
     },
     "Radha, Heart of Keld": {
-      "count": 2,
+      "count": 1,
       "shapes": [
-        "6bbd7b676f7b6b6a",
-        "b2521879a523aaa4"
+        "6bbd7b676f7b6b6a"
       ]
     },
     "Rewind": {
@@ -886,6 +891,12 @@
       "shapes": [
         "7c858c4d428b66aa",
         "7c858c4d428b66aa"
+      ]
+    },
+    "Valakut Exploration": {
+      "count": 1,
+      "shapes": [
+        "9583947c6a67fa87"
       ]
     },
     "Veteran Adventurer": {
