@@ -20,7 +20,7 @@ for _p in (HERE.parents[1], HERE, HERE.parent):
 
 import gates
 from irpy import A
-from run_scenarios import ScenarioRunner
+from run_scenarios import ScenarioRunner, run_pack
 
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
@@ -332,6 +332,33 @@ def test_choose_over_your_player_zone_count_is_dead_in_a_static() -> None:
     real = _game(pack)
     for n in (2, 3):
         assert _game(pack, _mutant(halo, HALO_TARGET, QConst(n))) == real
+
+
+PIE_FOOD = "1/0/effect/steps/1/args/tokens/"
+FOOD_PACKS = ("bake_into_a_pie_destroys_and_bakes_a_food.json", "bake_into_a_pie_a_tapped_food_cannot_be_eaten.json")
+
+
+def test_the_one_food_is_a_token_proven_by_two_packs(monkeypatch) -> None:
+    """The one Food (lints.FOOD, the R_FOOD ruling) is a token G3 counts proven, so a Food maker
+    keeps no survivor inside its Food spec: wave 3's FDN Eager Trufflesnout, Bake into a Pie and
+    Cat Collector each kept "drop cost part 2 (CostTap)", which only a tapped Food shows and no
+    pack could build until the tap op. The proof: every critical mutant of the spec, taken with
+    the rule off, fails one of the two Bake into a Pie packs that pin the Food. A golden token
+    record proves nothing here: FDN's own Food record compiles to no ability at all."""
+    for maker in ("Eager Trufflesnout", "Bake into a Pie", "Cat Collector"):
+        assert not [w for _op, w in _where(_card(maker, "FDN")) if "/abilities/" in w and "/tokens/" in w], maker
+    pie = _card("Bake into a Pie", "FDN")
+    monkeypatch.setattr(gates, "_verified_tokens", lambda: [])
+    food = [(op, w, m) for op, w, m in gates.mutants(pie) if w.startswith(PIE_FOOD) and gates.is_critical(op)]
+    assert ("drop cost part 2 (CostTap)", PIE_FOOD + "abilities/0/cost") in [(op, w) for op, w, _m in food]
+    sup = _supply("FDN")
+    packs = [HERE.parent / "scenarios" / "mapped" / "FDN" / name for name in FOOD_PACKS]
+    assert not any(run_pack(p, sup) for p in packs)
+    for op, where, mutant in food:
+        with gates.swapped(sup, _oid("Bake into a Pie", "FDN"), mutant):
+            assert any(run_pack(p, sup) for p in packs), (op, where)
+    golden = next(r.card for r in sup.pool.results.values() if r.card.is_token and r.card.name == "Food")
+    assert golden.abilities == ()
 
 
 GUIDE_PICK = "1/0/effect/inner/steps/3/args/cards/count"

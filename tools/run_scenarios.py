@@ -79,6 +79,10 @@ Pack vocabulary (all keys required as noted):
                                             CR 110.2, 613.1b). In a combat
                                             window it changes the side of an
                                             attacked planeswalker (CR 506.4),
+             {"op": "tap", "key": k}        a tap by "another effect" ("tap
+                                            target artifact"); k may be the
+                                            handle of an object an effect made
+                                            ("card:14"), as act words may,
              {"op": "play", "key": k}       the REAL land drop (CR 305.1,
                                             legality + once-per-turn +
                                             EtBState entry hook),
@@ -868,6 +872,14 @@ class ScenarioRunner:
                 controller=self._seat(step["seat"], op),
                 bindings={"target": handle},
             )
+        elif op == "tap":
+            # A tap by another effect ("Tap target artifact"), journalled as the TAP verb's. The
+            # key may name an object an effect made, by its handle ("card:14").
+            handle = self._object(step["key"])
+            if self.world.zone_of(handle).kind != ZONE_BATTLEFIELD:
+                raise PackError(f"tap {step['key']}: only a permanent is tapped (CR 110.5)")
+            self.ex.execute(_atom(Verb.TAP, target=_bf_target()), source=handle,
+                            controller=self.ex.controller_of(handle), bindings={"target": handle})
         elif op == "enchant":
             # A pack that DECLARES an aura on the battlefield meets the
             # CR 704.5q unattached-aura SBA at setup (begin_turn's settle):
@@ -946,6 +958,16 @@ class ScenarioRunner:
             self._test_permission_cast(step)
         else:
             raise PackError(f"unknown op {op!r}")
+
+    def _object(self, key: str) -> Handle:
+        """A pack key's card, or an object no pack key names (a token an effect made) by its
+        handle, "card:14", as an act word may name it."""
+        if key in self.handles:
+            return self.handles[key]
+        ns, _, idx = key.partition(":")
+        if ns == "card" and idx.isdecimal() and Handle("card", int(idx)) in self.world.cards:
+            return Handle("card", int(idx))
+        raise PackError(f"no card {key!r}: a pack key, or the handle (card:N) of an object an effect made")
 
     def _activated(self, handle: Handle, idx: int) -> Any:
         """The ability an activate step names, as ``legality.activate`` reads it (a negative

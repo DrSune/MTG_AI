@@ -392,6 +392,20 @@ def test_a_permanent_another_seat_controls(tmp_path) -> None:
     assert _fails_with(_run(tmp_path, {"cards": [hand]}), "controlled_by: only a permanent")
 
 
+def test_a_tap_by_another_effect(tmp_path) -> None:
+    """The tap op taps a permanent as "tap target artifact" does, a pack card or an object an
+    effect made, named by its handle (the one Food's {T}: bake_into_a_pie_a_tapped_food_cannot_
+    be_eaten). A card off the battlefield, or a key that names nothing, is refused."""
+    pack = {"cards": [_creature("bear", 0)], "steps": [{"op": "tap", "key": "bear"}], "expect": {"tapped": {"bear": True}}}
+    assert _run(tmp_path, pack) == []
+    assert _run(tmp_path, {**pack, "steps": [{"op": "tap", "key": "card:0"}]}) == []
+    fails = _run(tmp_path, {"cards": pack["cards"], "steps": [{"op": "tap", "key": "card:99"}]})
+    assert _fails_with(fails, "no card 'card:99'"), fails
+    hand = {**_creature("bear", 0), "zone": "hand"}
+    fails = _run(tmp_path, {"cards": [hand], "steps": [{"op": "tap", "key": "bear"}]})
+    assert _fails_with(fails, "only a permanent is tapped"), fails
+
+
 def test_the_revealed_lane_reads_whose_card_a_reveal_showed(tmp_path) -> None:
     """M21 Garruk, Savage Herald's +1: "Reveal the top card of your library. If it's a creature
     card, put it into your hand." The lane reads the REVEAL rows (a reveal moves nothing and
