@@ -111,10 +111,10 @@ def test_the_old_colour_count_does_not_decode() -> None:
     lambda: at_least(2, quantity=QConst(3)),  # a number is no measure of the game
     lambda: at_least(2, quantity=QX()),
     lambda: at_least(2, quantity=QProp(referent="source", field=QPropField.POWER)),  # field=POWER
-    lambda: at_least(2, quantity=QBin(QBinOp.MUL, QConst(-1), LIFE)),
+    lambda: at_least(2, quantity=QBin(QBinOp.SUB, QConst(0), LIFE)),  # a negated life
 ])
 def test_a_comparison_of_incomparable_quantities_is_refused(build) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="FAtom: QTY_GE|QProp:|QDistinct"):
         build()
 
 
@@ -158,6 +158,43 @@ def test_targets_needs_its_filter() -> None:
 def test_a_zone_count_has_one_encoding(build) -> None:
     with pytest.raises(ValueError, match="who"):
         build()
+
+
+THEIRS = number_in(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                   FAnd((CREATURE, FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))))
+MINE = number_you_control(CREATURE)
+START = QProp(referent="controller", field=QPropField.STARTING_LIFE)
+
+
+@pytest.mark.parametrize(("build", "says"), [
+    # the judged object's own property read through a referent: `field` is its one form
+    (lambda: at_least(4, quantity=QProp(referent=referent_sel("source"), field=QPropField.POWER,
+                                        agg=at.QAgg.MAX)), "no referent"),
+    (lambda: at_least(2, quantity=QDistinct(referent_sel("source"), QPropField.COLOR)), "no referent"),
+    # with `who` the threshold is read for the opponent too: only a number may stand there
+    (lambda: at_least(QBin(QBinOp.ADD, number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)), QConst(1)),
+                      quantity=number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)),
+                      who=ControllerRef.OPPONENT), "a literal or X"),
+    # a threshold of 0 always holds
+    (lambda: at_least(0, field=QPropField.COLOR), "count 0"),
+    (lambda: at_most(-1, quantity=MINE), "count 0"),
+    # a target player anywhere in a side designates nothing
+    (lambda: at_least(at.QThisTurn(kind=at.ThisTurnKind.NONCOMBAT_DAMAGE,
+                                   referent=ControllerRef.TARGET_PLAYER), field=QPropField.POWER),
+     "target player"),
+    # two measures compared have one orientation: "fewer than theirs" is "theirs at least mine + 1"
+    (lambda: FNot(at_least(THEIRS, quantity=MINE)), "never negated"),
+    # a sum's literal is its last operand
+    (lambda: at_least(QBin(QBinOp.ADD, QConst(1), MINE), quantity=THEIRS), "canonical order"),
+    (lambda: at_least(QBin(QBinOp.ADD, QConst(7), START), quantity=LIFE), "canonical order"),
+])
+def test_one_form_per_comparison(build, says) -> None:
+    with pytest.raises(ValueError, match=says):
+        build()
+    # the forms they stand for
+    at_least(QBin(QBinOp.ADD, MINE, QConst(1)), quantity=THEIRS)
+    at_least(QBin(QBinOp.ADD, START, QConst(7)), quantity=LIFE)
+    FNot(at_least(START, quantity=LIFE))  # "less than your starting life": the start is no measure
 
 
 # ------------------------------------------------------------------------------- 2. readings
@@ -242,6 +279,20 @@ class DepartedPowerTest(BindingCase):
     def test_an_unpumped_one_does_not(self) -> None:
         self.kill()
         self.assertEqual(self.life(self.p0), 20)
+
+
+class UndefinedPowerTest(BindingCase):
+    """A printed '*' with no number off the battlefield (CR 208.2a) is flagged, never compared:
+    "power 2 or less" would hold for it through the negation. An object with no power at all (a
+    noncreature) simply fails the comparison."""
+
+    def test_a_star_power_off_the_battlefield_raises(self) -> None:
+        star = self.world.add_card(card_id("Starry", "*", "4"), self.p0, ZONE_GRAVEYARD)
+        ctx = ctx_for(self.ex, source=self.watch, controller=self.p0)
+        with self.assertRaisesRegex(NotImplementedError, "has no value here"):
+            eval_filter(at_most(2, field=QPropField.POWER), star, ctx)
+        rock = self.world.add_card(card_id("Rock", type_line="Artifact"), self.p0, ZONE_BATTLEFIELD)
+        self.assertFalse(eval_filter(at_least(1, field=QPropField.POWER), rock, ctx))
 
 
 class DistinctTest(BindingCase):

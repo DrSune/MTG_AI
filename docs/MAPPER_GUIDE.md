@@ -358,8 +358,10 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       nothing else: a card that reads another player's life or a target player's zone is a
       needs-atom, and brings its slot with its tests.
     - "more <X> than <Y>" (Garruk, Unleashed's "an opponent controls more creatures than you")
-      measures the printed subject: `at_least(QBin(ADD, <Y>, QConst(1)), quantity=<X>)`
-      (divergence D31).
+      measures the larger side: `at_least(QBin(ADD, <Y>, QConst(1)), quantity=<X>)`, and "<Y> is
+      fewer than <X>" is the same tree: the IR refuses the negation of a comparison of two
+      measures, a sum written "1 + N", a threshold of 0 and, with `who`, a threshold that is not a
+      number.
   - "a spell that targets <filter>" is `FAtom(TARGETS, inner_filter=<filter>)`: one of the
     spell's targets passes it (CR 115.1, 601.2c); "that targets this creature" is
     `inner_filter=IS_SOURCE`. "Becomes the target of a spell or ability" is the targeting event,

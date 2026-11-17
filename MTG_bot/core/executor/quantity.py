@@ -1719,18 +1719,29 @@ def _targets_of(handle: Handle, ctx: ExecCtx) -> tuple[Handle, ...]:
 
 def _characteristic(field: QPropField, handle: Handle, ctx: ExecCtx) -> int | None:
     """The judged object's property a comparison reads (ability_tree.COMPARED_FIELDS), or None
-    when it has none (a noncreature's power, a player's mana value): the comparison then fails.
-    Power and toughness are the live values, the layers folded, or the ones it had as it left on
+    when it has none (a noncreature's power, a player's mana value): the comparison then fails;
+    a printed '*' with no number here raises. Power and toughness are the live values, the layers folded, or the ones it had as it left on
     its own departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them); mana value and
     colours are printed identity data (a missing mana value is 0, as ``_prop_value`` reads it; no
     effect changes a colour)."""
     if handle.namespace != "card" or handle not in ctx.world.cards:
         return None
+    identity = ctx.world.cards[handle].identity
     if field in (QPropField.POWER, QPropField.TOUGHNESS):
         lki = departed_lki(handle, ctx)
         power, toughness = (lki.power, lki.toughness) if lki is not None else ctx.effective_pt(handle)
-        return power if field is QPropField.POWER else toughness
-    identity = ctx.world.cards[handle].identity
+        value, printed = (
+            (power, identity.power) if field is QPropField.POWER else (toughness, identity.toughness)
+        )
+        if value is None and printed is not None:
+            # A printed '*' the engine has no number for here (a characteristic-defining ability
+            # off the battlefield, CR 208.2a): flag, never guess, since the comparison's FNot
+            # ("N or less") would hold for it.
+            raise NotImplementedError(
+                f"executor: {identity.name}'s {field.name.lower()} {printed!r} has no value here "
+                "for a comparison"
+            )
+        return value
     if field is QPropField.MANA_VALUE:
         return identity.cmc or 0
     return len(identity.colors)  # COLOR: the number of its colours (CR 105.2)

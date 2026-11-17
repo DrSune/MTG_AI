@@ -1295,6 +1295,13 @@ class FNot:
             raise ValueError(
                 f"FNot: inner must be a Filter, got {type(self.inner).__name__}"
             )
+        if _compares_two_measures(self.inner):
+            # "A < B" is at_least(A + 1, quantity=B), never "not B <= A": two measures compared
+            # are written the way round that needs no negation (the larger side measured)
+            raise ValueError(
+                "FNot: a comparison of two measures of the game is never negated; measure the "
+                "other side (A < B is at_least(A + 1, quantity=B))"
+            )
 
 
 @dataclass(frozen=True)
@@ -1615,17 +1622,48 @@ def _measures_the_game(q: object) -> bool:
     return False
 
 
+def _operand_key(q: object) -> tuple[bool, str]:
+    """The canonical order of a commutative operator's operands: a literal last, the others by
+    their canonical bytes ("N + 1", never "1 + N")."""
+    return isinstance(q, QConst), canonical_json(q)
+
+
+def _is_literal(q: object) -> bool:
+    """A number the ability itself fixes: a literal, its X, or arithmetic of them."""
+    if isinstance(q, QBin):
+        return _is_literal(q.left) and _is_literal(q.right)
+    return isinstance(q, (QConst, QX))
+
+
+def _compares_two_measures(f: object) -> bool:
+    """Is ``f`` a comparison of a measured quantity with a threshold that measures the game too
+    ("more creatures than you")? Such a comparison has one orientation (FNot refuses it)."""
+    return (
+        isinstance(f, FAtom)
+        and f.pred is FAtomPred.QTY_GE
+        and f.quantity is not None
+        and f.count is not None
+        and any(_measures_the_game(n) for n in walk(f.count))
+    )
+
+
 def _check_compared_side(atom_pred: str, side: str, q: object) -> None:
     """A side of the comparison is a number the game has now: not a choice count ("up to N",
-    "any number", "N or more" as a pick), and no designation (a TARGET pick or a target player:
-    the designation scans never read a comparison's quantities, so "target player has ..." would
-    reach resolution with no target chosen; gate round 8, M1)."""
+    "any number", "N or more" as a pick), no designation (a TARGET pick or a target player
+    anywhere in it: the designation scans never read a comparison's quantities, so "target
+    player has ..." would reach resolution with no target chosen; gate round 8, M1), and the
+    operands of a sum or product in canonical order."""
     stack = [q]
     while stack:
         n = stack.pop()
         if isinstance(n, (QAtLeast, QAtMost, QUnbounded)):
             raise ValueError(f"FAtom: {atom_pred} {side}: {type(n).__name__} is a pick, not a number")
         if isinstance(n, QBin):
+            if n.op in (QBinOp.ADD, QBinOp.MUL) and _operand_key(n.left) > _operand_key(n.right):
+                raise ValueError(
+                    f"FAtom: {atom_pred} {side}: {n.op.name} takes its operands in canonical order "
+                    "(a literal last: N + 1, never 1 + N)"
+                )
             stack.extend((n.left, n.right))
     for n in walk(q):
         if isinstance(n, Selector) and n.referent is None and n.mode is not SelectorMode.ALL:
@@ -1633,8 +1671,9 @@ def _check_compared_side(atom_pred: str, side: str, q: object) -> None:
                 f"FAtom: {atom_pred} {side}: a {n.mode.name} selector picks; a comparison reads "
                 "a population (ALL) or a referent"
             )
-        if (isinstance(n, Zone) and n.controller in DESIGNATED_PLAYER_REFS) or (
-            isinstance(n, FAtom) and n.who in DESIGNATED_PLAYER_REFS
+        if dataclasses.is_dataclass(n) and any(
+            isinstance(v, ControllerRef) and v in DESIGNATED_PLAYER_REFS
+            for v in (getattr(n, f.name) for f in dataclasses.fields(n))
         ):
             raise ValueError(
                 f"FAtom: {atom_pred} {side}: a target player in a comparison designates nothing"
@@ -1648,6 +1687,8 @@ def _check_comparison(atom: FAtom) -> None:
     player's own zone."""
     if atom.count is None:
         raise ValueError("FAtom: QTY_GE requires slot 'count' (the threshold)")
+    if atom.count == QConst(0):
+        raise ValueError("FAtom: QTY_GE count 0 always holds (and its FNot never): no threshold")
     if (atom.field is None) == (atom.quantity is None):
         raise ValueError(
             "FAtom: QTY_GE compares exactly one of `field` (the judged object's property) and "
@@ -1668,6 +1709,13 @@ def _check_comparison(atom: FAtom) -> None:
                 "(a literal or an X is the threshold; the judged object's property is `field`)"
             )
         _check_compared_side("QTY_GE", "quantity", atom.quantity)
+        if any(isinstance(n, Selector) and n.referent is not None for n in walk(atom.quantity)):
+            # the population, never one object: "its power" judged on the object is `field`, and
+            # a referent read here would be a second form of it
+            raise ValueError(
+                "FAtom: QTY_GE quantity measures a population (no referent); the judged "
+                "object's own property is `field`"
+            )
         if atom.who is not None:
             if atom.who not in COMPARED_PLAYERS:
                 raise ValueError(
@@ -1687,6 +1735,10 @@ def _check_comparison(atom: FAtom) -> None:
                     "FAtom: QTY_GE who reads a count of cards in that player's own zone "
                     "(Zone(<kind>, YOU)) for some opponent"
                 )
+            if not _is_literal(atom.count):
+                # the threshold is read in the rotated context too: a measure there would be the
+                # opponent's, never yours ("more cards than you" is no `who` comparison)
+                raise ValueError("FAtom: QTY_GE who compares with a number (a literal or X)")
     _check_compared_side("QTY_GE", "count", atom.count)
 
 

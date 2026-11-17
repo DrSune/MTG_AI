@@ -336,9 +336,10 @@ def shapes(ability: Any) -> set[Shape]:
         out.add(KEYWORDS.get(ability.keyword))
     own = list(_own(ability))
     negated = {id(x) for n in own if isinstance(n, FNot) for x in walk(n.inner)}
-    # a comparison's quantity is read by the comparison (_compared_shape), not as a count
+    # a comparison's quantities, both sides, are read by the comparison (_compared_shape), not as
+    # counts the ability wants
     compared = {id(x) for n in own if isinstance(n, FAtom) and n.pred is P.QTY_GE
-                for x in walk(n.quantity) if n.quantity is not None}
+                for side in (n.quantity, n.count) if side is not None for x in walk(side)}
     for n in own:
         if isinstance(n, FAtom) and n.pred in PREDICATES and id(n) not in negated:
             out.add(PREDICATES[n.pred](n))

@@ -107,6 +107,18 @@ def test_the_planted_shapes_of_the_commonest_classes_are_flagged(code: str, name
     assert any(f.startswith(lint + ":") for f in lints.lint(raw, plant))
 
 
+def test_the_amounts_lint_reads_a_comparison_as_printed() -> None:
+    # "N or less" is the comparison at N + 1 negated (ontology round R12): the text prints N, and
+    # "unless ... N or more" prints N + 1; a full party (four) prints no number (CR 700.8).
+    from MTG_bot.core.ability_tree import QPropField, at_least, at_most
+    from MTG_bot.core.compiler.templates_b8 import _full_party
+
+    party = _full_party()
+    assert list(lints._tree_numbers(at_most(2, field=QPropField.POWER))) == [(2, 3)]
+    assert list(lints._tree_numbers(at_least(5, field=QPropField.POWER))) == [5]
+    assert list(lints._tree_numbers(party)) == []
+
+
 def test_a_free_activation_is_flagged_and_an_equip_cost_is_read() -> None:
     raw, saddle = _card("M20", "Wolfrider's Saddle")
     assert lints.costs(raw, saddle) == []

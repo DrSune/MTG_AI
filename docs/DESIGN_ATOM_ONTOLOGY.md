@@ -2032,7 +2032,7 @@ segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt
 Proposals I1, I9 and I0 of KNOWLEDGE/2026-11-17/210 (the component-sharing review the owner asked
 for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and scripts:
 `reports/quantity_comparison_2026-11-17/`. Tests: `MTG_bot/core/test_executor_quantity_comparison.py`
-(47) and `MTG_bot/core/compiler/test_templates_r12.py` (16); packs
+(57) and `MTG_bot/core/compiler/test_templates_r12.py` (16); packs
 `tools/scenarios/mapped/M20/field_of_the_dead_*` (2) and `season_of_growth_*` (2).
 
 **R12-1 The comparison** (`ability_tree.py` :1577-1736; executor `quantity.py` `_comparison_holds`,
@@ -2048,7 +2048,12 @@ for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and script
 - "N or less" is FNot of the comparison at N + 1 (CR 107.1: the game's numbers are integers; "more
   than N" is at least N + 1). The IR refuses every other spelling: a pick (QAtLeast, QAtMost,
   QUnbounded) anywhere in either side's arithmetic, a literal or an X as the measured side, a
-  non-ALL selector or a designated player inside either side (`_check_compared_side`).
+  non-ALL selector or a designated player anywhere inside either side (`_check_compared_side`), a
+  referent on the measured side (the judged object's own property is `field`), a threshold of 0,
+  a sum's literal anywhere but last ("N + 1"), and, with `who`, a threshold that is not a number
+  (it is read for the opponent too). Two measures compared ("more creatures than you", "two share
+  a name") have one orientation: the larger side is measured, and FNot refuses the other
+  (`_compares_two_measures`; divergence D31, registered and closed here).
 - Builders: `at_least`, `at_most` (the FNot form), `number_you_control`, `number_in`; the card
   tools' draft namespace has them (`tools/cards/irpy.namespace`).
 - Folded: POWER_GE, POWER_LE, CMC_GE, CMC_LE, COLOR_COUNT_GE, CONTROLLER_COUNT_GE,
@@ -2063,8 +2068,10 @@ for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and script
   departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them). Before, a creature that died
   pumped was read at its printed power in the graveyard ("Whenever a creature with power 4 or
   greater dies": a 2/2 pumped to 4/2 did not trigger; `DepartedPowerTest`). No verified tree read
-  it. An object without the characteristic (a noncreature's power, a '*' power off the
-  battlefield) fails the comparison, so its FNot holds: the noun beside it says what has it.
+  it. An object without the characteristic (a noncreature's power) fails the comparison, so its
+  FNot holds: the noun beside it says what has it. A printed '*' the engine has no number for
+  there (a characteristic-defining ability off the battlefield, CR 208.2a) raises: flagged, never
+  guessed either way (the base read it as failing both "N or more" and "N or less").
 
 **R12-2 TARGETS(filter)** (TARGETS_SOURCE made general): one of the judged spell's or ability's
 targets passes `inner_filter` (required; CR 115.1, 601.2c). Read from the judged object's stack
@@ -2090,9 +2097,11 @@ QPropField 12 -> 11 (+COLOR, NAME, STARTING_LIFE), Verb 51 -> 49, Keyword 23 -> 
 
 **Refused forms** (tests): every folded predicate and member fails to decode; a comparison of a name,
 a player's life as `field`, QDistinct of POWER, QProp of COLOR or NAME, a literal, an X, the
-source's own power or a negated life as `quantity`; "or less" as a pick count or a number on the
-measured side; TARGETS without its filter; `who` over another player's zone, `who` YOU, `who` with
-`field`, `who` over life.
+source's own power (directly or through a referent selector, QProp or QDistinct) or a negated life
+as `quantity`; "or less" as a pick count or a number on the measured side; a threshold of 0; "1 + N";
+a target player in a QThisTurn; the negation of a comparison of two measures; TARGETS without its
+filter; `who` over another player's zone, `who` YOU, `who` with `field`, `who` over life, `who`
+against a measured threshold.
 
 **Alternatives rejected.**
 - An operator enum (GE, LE, GT, EQ): over integers LE and GT are FNot and +1 of GE, second
@@ -2150,9 +2159,21 @@ notes narrowed to what still has no node.
   cards lose what a checkpoint learned of their old tokens (nothing copies POWER_GE's row into
   QTY_GE's); they are out of the verified pools until re-verified anyway.
 
+**Pre-gate review** (one fresh-eyes reviewer on 1da776fb, 2026-11-17): 7 MAJOR, 3 MINOR, all
+fixed on the next commit. M1 the branch was red (a pin, Thieves' Guild Enforcer read by B5a and
+B14 alike: the test now asks the two readings to agree, the registry's design; the census
+regenerated after Eliminate's change). M2 a referent selector on the measured side was a second
+form of `field`; M3 `who` read a measured threshold for the opponent too; M4 a threshold of 0
+(COLOR_COUNT_GE's own refusal had gone with the fold); M5 a target player in a QThisTurn; M6 two
+measures compared had two orientations (D31: now closed) and "1 + N" was a second "N + 1"; M7 a
+refusal test failed before reaching the comparison. m8 the package shapes read the threshold side
+as a wanted count; m9 '*' off the battlefield (above); m10 the lint's comparison branch untested,
+D17's and D22's stale names. A tree dump after the fixes: no tree of the 19 sets changes or is
+refused.
+
 **Known limits** (BACKLOG): "becomes the target of a spell" (Gargos, Bonecrusher Giant, Fblthp)
 needs the targeting event to say whether the targeting object is a spell, not TARGETS; "a spell that
 targets you" (Cerulean Drake, Psychic Rebuttal) needs a filter that names a player; Luminous
 Rebuke's "costs {3} less if it targets a tapped creature" is priced before targets are chosen;
-"more creatures than you" sums all opponents at three seats (D31's population, BACKLOG); an
-opponent's "N or less" has no form.
+"more creatures than you" sums all opponents at three seats (BACKLOG); an opponent's "N or
+less" has no form.

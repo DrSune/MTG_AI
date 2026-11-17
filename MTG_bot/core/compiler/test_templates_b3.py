@@ -135,7 +135,7 @@ class TestB3Coverage(unittest.TestCase):
         self.assertEqual(total, 55)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b3.TEMPLATES), 30)
+        self.assertEqual(len(templates_b3.TEMPLATES), 31)
         self.assertEqual(len(templates_b3.UNCOVERED), 0)
 
     def test_covered_shape_and_occurrence_counts(self) -> None:

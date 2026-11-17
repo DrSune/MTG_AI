@@ -1263,10 +1263,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     601.2f);
   - "an opponent has N or less" (no FNot form: it is not "no opponent has N + 1 or more") and
     another player's life ("an opponent has 10 or less life") have no `who` value;
-  - the comparison of two measures follows the printed subject (divergence D31);
-  - a '*' power or toughness off the battlefield (Enigma Drake, Kinetic Augur in a graveyard)
-    reads as no value, so "power N or less" holds for it through the FNot (the noun beside it
-    decides; no card of the 19 sets asks it of such a card).
+  - a '*' power or toughness the engine has no number for (a characteristic-defining ability off
+    the battlefield, CR 208.2a: Kinetic Augur in a graveyard) raises when a comparison reads it:
+    computing such abilities in every zone is the fix; no compiled card of the 19 sets asks it
+    today (Squad Rallier's and Militia Bugler's "creature card with power 2 or less" do not
+    compile).
 - **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
   changed, verified stamps left untouched, so each left the verified pool, the pool training runs
   deal, once a run pins this code. Verified deckable pools measured on the tree merged with main

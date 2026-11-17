@@ -110,8 +110,8 @@ def test_life_total_reads_one_players_life_now_both_ways_through_fnot() -> None:
         assert eval_filter(at_most_24, alpha, ctx) is le24, life
         assert eval_filter(at_most_25, alpha, ctx) is le25, life
     world.players[p0].life = -3  # a life total can be negative (CR 119.6 ends the game later)
-    assert eval_filter(FNot(life_ge(0)), alpha, ctx)
-    assert not eval_filter(life_ge(0), alpha, ctx)
+    assert eval_filter(FNot(life_ge(1)), alpha, ctx)  # "0 or less life"
+    assert not eval_filter(life_ge(1), alpha, ctx)
 
 
 def test_life_total_is_not_the_lead_over_the_starting_life() -> None:
@@ -487,7 +487,10 @@ def _one(registry, sentence: str):
     from MTG_bot.core.compiler.frames import compose
 
     matches = registry.match(sentence) or compose(sentence, registry)
-    assert len(matches) == 1, [m.template.tid for m in matches]
+    # one reading: a specific template and a general one (B14) may both read a sentence, the
+    # specific first (registry.match's priority order), and then they agree byte for byte
+    assert matches and all(m.outcome == matches[0].outcome for m in matches), [
+        m.template.tid for m in matches]
     return matches[0]
 
 
