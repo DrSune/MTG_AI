@@ -69,7 +69,9 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
     canonical_json,
+    number_you_control,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.ingest import RawCard
@@ -1434,19 +1436,13 @@ class TestStructuralAssertions(unittest.TestCase):
         outcome = self._match_outcome("B5b-counter-unless-pays")
         assert isinstance(outcome, KickerEffectOutcome)
         self.assertTrue(outcome.replaces)
-        self.assertEqual(
-            outcome.pred,
-            FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                inner_filter=FAnd(
-                    children=(
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-                    )
-                ),
-                count=QConst(1),
-            ),
+        flier = FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
         )
+        self.assertEqual(outcome.pred, at_least(1, quantity=number_you_control(flier)))
         atom = _as_atom(outcome.effect)
         self.assertEqual(atom.verb, Verb.COUNTER_SPELL)
         p = _pairs_dict(atom)
@@ -1475,23 +1471,15 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Static abilities --
 
     def test_gadrak_cant_attack_structure(self) -> None:
-        """Gadrak: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
-        Artifact 4) over PREVENT_EFFECT/DeclareAttackersEvent(IS_SOURCE)."""
+        """Gadrak: StaticAbility.condition = FNot(you control four or more
+        artifacts) over PREVENT_EFFECT/DeclareAttackersEvent(IS_SOURCE)."""
         outcome = self._match_outcome("B5b-gadrak-cant-attack-unless-artifacts")
         ab = _as_static(_as_ability(outcome).ability)
         cond = ab.condition
         if not isinstance(cond, FNot):
             self.fail(f"expected FNot condition, got {type(cond)}")
-        gate = cond.inner
-        if not isinstance(gate, FAtom):
-            self.fail(f"expected FAtom gate, got {type(gate)}")
-        self.assertEqual(gate.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(gate.count, QConst(4))
-        inner_filter = gate.inner_filter
-        if not isinstance(inner_filter, FAtom):
-            self.fail(f"expected FAtom inner_filter, got {type(inner_filter)}")
-        self.assertEqual(inner_filter.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(inner_filter.string_value, "Artifact")
+        artifact = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact")
+        self.assertEqual(cond.inner, at_least(4, quantity=number_you_control(artifact)))
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.PREVENT_EFFECT)
         p = _pairs_dict(atom)

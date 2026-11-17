@@ -5,7 +5,8 @@ that cover distinct party classes (Cleric, Rogue, Warrior, Wizard, at most one e
 CR 702.158). The evaluator (executor/quantity.py) does the census; the Selector here is only
 the population, creatures you control on the battlefield. For-each amounts are
 ``QBin(MUL, unit, QPartyCount)``, "where X is the number of creatures in your party" binds X to
-it, and "if you have a full party" is the AND of four per-class CONTROLLER_COUNT_GE tests.
+it, and "if you have a full party" is the comparison "the number of creatures in your party is
+four or more" (CR 700.8: four is a full party).
 
 No tail here is a ``templates_b6._TAIL_BUILDERS`` key (each carries a quantity), so the effects
 are built from the shared b6 anchors.
@@ -23,8 +24,8 @@ Left unparsed on purpose, rather than encoded wrong:
   creature's controller" recipient, and a second TARGET over the PLAYER zone would let the
   caster pick the player (CR 115.1).
 
-Known loss: Coveted Prize's "a spell with mana value 4 or less" is CMC_LE 4 on the
-CHOOSE-from-hand selector; no predicate says "spell", so lands in hand are on the menu.
+Known loss: Coveted Prize's "a spell with mana value 4 or less" is the mana value comparison on
+the CHOOSE-from-hand selector; no predicate says "spell", so lands in hand are on the menu.
 """
 
 from __future__ import annotations
@@ -61,6 +62,7 @@ from MTG_bot.core.ability_tree import (
     QBinOp,
     QConst,
     QPartyCount,
+    QPropField,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -72,6 +74,8 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    at_most,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -114,18 +118,9 @@ def _party_count() -> QPartyCount:
 
 
 def _full_party() -> Filter:
-    """``you have a full party``: CONTROLLER_COUNT_GE 1 over SUBTYPE_EQ for each of the four
-    classes, ANDed."""
-    return FAnd(
-        children=tuple(
-            FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                count=QConst(1),
-                inner_filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=cls),
-            )
-            for cls in ("Cleric", "Rogue", "Warrior", "Wizard")
-        )
-    )
+    """``you have a full party``: the number of creatures in your party is four or more (CR
+    700.8: up to one each of four classes, so four is full)."""
+    return at_least(4, quantity=_party_count())
 
 
 def _template(tid: str, name: str, pattern: str, build) -> Template:
@@ -590,7 +585,7 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
                                 Selector(
                                     QConst(1),
                                     SelectorMode.CHOOSE,
-                                    FAtom(pred=FAtomPred.CMC_LE, count=QConst(4)),
+                                    at_most(4, field=QPropField.MANA_VALUE),
                                     zones=(
                                         Zone(
                                             kind=ZoneKind.HAND,

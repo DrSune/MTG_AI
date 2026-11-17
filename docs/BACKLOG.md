@@ -51,7 +51,8 @@ are neutral; each one is teaching the agent something.
   live in two-player verified play):
   - a target-player slot with no legal player still resolves instead of the ability being removed
     (CR 603.3d);
-  - `CONTROLLER_COUNT_GT` sums all opponents at three or more seats;
+  - "an opponent controls more creatures than you" (Garruk, Unleashed; since ontology round R12
+    the comparison of two counts) sums all opponents at three or more seats;
   - party size can count one multi-class creature several times;
   - `templates_b6` emits `Verb.DISCARD`, which has no handler.
 - **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
@@ -684,7 +685,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       `WAS_CAST_THIS_TURN`, `INSTANT_OR_SORCERY_CAST_`, `NOT_FIRST_DRAW_THIS_STEP` and
       `ATTACK_AGAINST_COUNT_GE`;
     - five comparators are one property comparison: `CMC_GE`, `COLOR_COUNT_GE`,
-      `CONTROLLER_COUNT_GT`, `LIFE_LEAD_OVER_START_GE` and `NAME_PARTITION_COUNT_GE`;
+      `CONTROLLER_COUNT_GT`, `LIFE_LEAD_OVER_START_GE` and `NAME_PARTITION_COUNT_GE` (**done**,
+      ontology round R12: `FAtomPred.QTY_GE` replaced eleven threshold predicates,
+      DESIGN_ATOM_ONTOLOGY §16);
     - `FIGHT` is two damage atoms.
   - Owner, 2026-10-27: components that "capture a lot of [the cards'] functionality, such that our
     model needs to learn less atomised components", so the network shares structure. Track it with
@@ -910,7 +913,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **"The player or planeswalker it's attacking"** (Scorch Spitter) is the attacked object, not the
   defending player: it needs a referent over `Executor.attacked` that survives removal from combat.
 - **"Defending player controls an Island / no Walls"** (Sea Monster, Serpent of the Endless Sea,
-  Siege Dragon): CONTROLLER_COUNT_GE counts only "you"; it needs a `who` slot. The search plans
+  Siege Dragon): the comparison's `who` reads only some opponent's own zones (ontology round R12);
+  "defending player" needs its own value there. The search plans
   attacks before combat opens (`search.plan_attacks` at `pre_combat`), when there is no defending
   player yet, so a "can't attack unless defending player ..." restriction would drop out of its
   plans; decide it at the declaration.
@@ -981,10 +985,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   turn" is `LifeLostEvent.ordinal` since 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12).
 - **FAtom never checks a required `count` in its generic slot loop** (2026-11-13): the loop in
   `FAtom.__post_init__` leaves `count` out of the slots it requires, so the bare form of every
-  count-taking predicate builds (`FAtom(LIFE_LEAD_OVER_START_GE)`, pinned as legal by
-  `test_ability_tree_r10.test_life_lead_bare_count_builds_and_roundtrips`) and fails only at
-  evaluation, on an assert. EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN and LIFE_TOTAL_GE check it
-  by hand. A validator accepting a form with no meaning: require `count` wherever the rules row
+  count-taking predicate builds and fails only at evaluation, on an assert. EVENT_THIS_TURN,
+  SUBJECT_OF_EVENT_THIS_TURN and the comparison (QTY_GE, ontology round R12) check it by hand. A validator accepting a form with no meaning: require `count` wherever the rules row
   does, after a census that no tree builds a bare one.
 - **The life family's wordings still unparsed** (2026-11-13, `reports/life_family_2026-11-13/
   census.txt`): "you gain twice that much life instead" (M13 Rhox Faithmender, ORI Alhammarret's
@@ -992,8 +994,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   until the life lane asks the CR 616.1 order (Open engine faults, Effects); "If an opponent would
   gain life, that player loses that much life instead" (ORI Tainted Remedy) needs a non-YOU actor in
   `replacement_for_life_gained`; the life totals relative to the starting life (Cosmos Elixir,
-  Path of Bravery, Elenda, Happily Ever After, Righteous Valkyrie, Angel of Destiny, Ayli) are
-  LIFE_LEAD_OVER_START_GE with templates to write; FDN Vanguard Seraph needs surveil, ELD Deathless
+  Path of Bravery, Elenda, Happily Ever After, Righteous Valkyrie, Angel of Destiny, Ayli) are the
+  comparison with QPropField.STARTING_LIFE (ontology round R12: `conditions.py` reads the phrases;
+  their sentences' other halves still have no template); FDN Vanguard Seraph needs surveil, ELD Deathless
   Knight its "return this card from your graveyard to your hand"; M13 Elderscale Wurm a damage floor
   and a set-life verb (CR 119.5, as M20 Loxodon Lifechanter).
 - **Lure has no atom** (round-3 verification, 2026-11-06): Prized Unicorn (M20, needs-atom) "All
@@ -1221,6 +1224,49 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/goblin_ringleader_all_goblins_no_choice.json`); Mu Yanling's -8
     carries its emblem in the GET_EMBLEM (EmblemSpec, ontology gate round 7; pack
     `tools/scenarios/mapped/M20/mu_yanling_sky_dancer_emblem_islands_draw.json`).
+- **Re-verify the cards ontology round R12 re-baked** (2026-11-17, the one quantity comparison,
+  DESIGN_ATOM_ONTOLOGY §16, pending gate round 12; tree shas changed, no stamp touched, so each is
+  out of the verified pool until a blind review passes it again; `get_supply("verified", <set>)`:
+  M21 275 -> 245, M20 277 -> 262, FDN 190 -> 181; `reports/quantity_comparison_2026-11-17/
+  blast_radius.txt`):
+  - M21 (30): Adherent of Hope, Basri's Lieutenant, Celestial Enforcer, Chromatic Orrery, Chrome
+    Replicator, Drowsing Tyrannodon, Eliminate, Fabled Passage, Fierce Empath, Gadrak, Garruk's
+    Uprising, Garruk, Unleashed, Historian of Zhalfir, Idol of Endurance, Jolrael, Leafkin Avenger,
+    Legion's Judgment, Liliana, Waker of the Dead, Lofty Denial, Makeshift Battalion, Ornery
+    Dilophosaur, Pursued Whale, Sanctum of All, Speaker of the Heavens, Subira, Terror of the Peaks,
+    Thieves' Guild Enforcer, Tide Skimmer, Turret Ogre, Ugin, the Spirit Dragon (compiler trees);
+  - M20 (15, records re-mapped by `ontology-r12` where the card has one): Ajani, Strength of the
+    Pride, Angel of Vitality, Boreal Elemental, Cavalier of Night, Cryptic Caves, Elvish Reclaimer,
+    Eternal Isolation, Faerie Miscreant, Gnarlback Rhino, Goblin Bird-Grabber, Goblin Smuggler,
+    Leafkin Druid, Omnath, Locus of the Roil, Twinblade Paladin, Winged Words;
+  - FDN (8): Angel of Vitality, Crypt Feaster, Fierce Empath, Garruk's Uprising, Gnarlback Rhino,
+    Goblin Smuggler, Raise the Past, Twinblade Paladin;
+  - reprint stamps to re-stamp after their homes (5): ELD Fabled Passage, WAR Makeshift Battalion,
+    WAR Turret Ogre (M21 homes), ORI Faerie Miscreant, FDN Cryptic Caves (M20 homes);
+  - their card packs that need the record moved to `tools/scenarios/mapped/<SET>/` (23: FDN Crypt
+    Feaster 1 and 4, Gnarlback Rhino 1 and 4, Raise the Past 1; M20 Ajani 1-4, Cavalier of Night 3,
+    Cryptic Caves 1-3, Elvish Reclaimer 2-3, Eternal Isolation 1-2, Faerie Miscreant 1, Gnarlback
+    Rhino 1, Leafkin Druid 1, Omnath 1-2, Winged Words 1); after re-verification they go back to
+    `cards/<SET>/`;
+  - newly mapped, never verified: M20 Field of the Dead and Season of Growth (packs in
+    `mapped/M20/`); 22 cards of the 19 sets now compile whole (THB's heroes, ZNR's Rogues, FDN Lunar
+    Insight, ...) and wait for their first review.
+- **What ontology round R12 left without a form** (2026-11-17, DESIGN_ATOM_ONTOLOGY §16):
+  - "becomes the target of a spell" (M20 Gargos, ELD Bonecrusher Giant, WAR Fblthp, M19 Departed
+    Deckhand, ZNR Myriad Construct) needs the targeting event to say whether the targeting object is
+    a spell or an ability: a slot of that event, not TARGETS;
+  - "a spell that targets you" (M20 Cerulean Drake, ORI Psychic Rebuttal) needs a filter that names
+    a player ("you"), which TARGETS' filter cannot say today;
+  - FDN Luminous Rebuke's "This spell costs {3} less to cast if it targets a tapped creature": the
+    cost is priced before the targets are chosen, and `_affordable_target_slots` scans only
+    battlefield hosts; the self cost modifier needs the cast's targets first (CR 601.2c before
+    601.2f);
+  - "an opponent has N or less" (no FNot form: it is not "no opponent has N + 1 or more") and
+    another player's life ("an opponent has 10 or less life") have no `who` value;
+  - the comparison of two measures follows the printed subject (divergence D31);
+  - a '*' power or toughness off the battlefield (Enigma Drake, Kinetic Augur in a graveyard)
+    reads as no value, so "power N or less" holds for it through the FNot (the noun beside it
+    decides; no card of the 19 sets asks it of such a card).
 - **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
   changed, verified stamps left untouched, so each left the verified pool, the pool training runs
   deal, once a run pins this code. Verified deckable pools measured on the tree merged with main

@@ -45,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    at_least,
 )
 from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.verbs import token_oracle_id
@@ -545,8 +546,8 @@ class TestTokens(ExecutorCase):
 
     def test_token_colour_reaches_colour_filters_and_protection(self):
         # A token is the colour its spec prints (CR 111.4, 105.2), and every colour consumer
-        # reads it from the minted identity: COLOR_HAS, COLOR_COUNT_GE (Ugin's "one or more
-        # colors") and protection, whose attacker cannot be blocked by a creature of the
+        # reads it from the minted identity: COLOR_HAS, the number of colours compared (Ugin's
+        # "one or more colors") and protection, whose attacker cannot be blocked by a creature of the
         # stated quality (CR 702.16f).
         from MTG_bot.core.ability_tree import DurationEot, Keyword, KeywordAbility
         from MTG_bot.core.executor.legality import block_pair_blocked_reason
@@ -574,8 +575,8 @@ class TestTokens(ExecutorCase):
         ctx = self.ex._ctx(source=self.alpha, controller=self.p0, bindings=None, decisions=())
         self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="G"), token, ctx))
         self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_HAS, color="W"), token, ctx))
-        self.assertTrue(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(1)), token, ctx))
-        self.assertFalse(eval_filter(FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(2)), token, ctx))
+        self.assertTrue(eval_filter(at_least(1, field=QPropField.COLOR), token, ctx))
+        self.assertFalse(eval_filter(at_least(2, field=QPropField.COLOR), token, ctx))
         self.assertIsNone(block_pair_blocked_reason(self.ex, token, self.alpha))
         green = FAtom(FAtomPred.COLOR_HAS, color="G")
         self.ex.apply_effect(
@@ -1175,8 +1176,9 @@ class TestQuantityAndFilters(ExecutorCase):
         # the flag side: a pred the executor cannot read raises at dispatch
         # (NAME_CHOSEN without a CHOOSE_NAME record is the same convention,
         # pinned in test_executor_stack.py). IS_ATTACKING and IS_BLOCKING
-        # read the combat record (False outside combat); a bare PT_GE
-        # (arity-legal FAtom, no count) is the unreadable pred.
+        # read the combat record (False outside combat); a FLIP_WON with no
+        # coin flipped is the unanswerable read (round R12 left no pred
+        # unread: the bare PT_GE these lines used is gone).
         answers_attacking = atom(
             Verb.DESTROY,
             target=Selector(
@@ -1209,7 +1211,7 @@ class TestQuantityAndFilters(ExecutorCase):
             target=Selector(
                 QConst(1),
                 SelectorMode.ALL,
-                FAtom(FAtomPred.PT_GE),
+                FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU),
                 zones=(BF_ANY,),
             ),
         )

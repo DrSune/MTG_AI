@@ -1467,16 +1467,16 @@ def spell_target_slots(
     return _affordable_target_slots(executor, slots, spell_handle, seat, pay)
 
 
-def _reads_targets_source(filter_: object) -> bool:
-    """Does a filter ask whether the judged spell targets the filter's source?"""
+def _reads_targets(filter_: object) -> bool:
+    """Does a filter ask what the judged spell targets (FAtomPred.TARGETS)?"""
     from MTG_bot.core.ability_tree import FNot, FOr
 
     if isinstance(filter_, FAtom):
-        return filter_.pred is FAtomPred.TARGETS_SOURCE
+        return filter_.pred is FAtomPred.TARGETS
     if isinstance(filter_, (FAnd, FOr)):
-        return any(_reads_targets_source(c) for c in filter_.children)
+        return any(_reads_targets(c) for c in filter_.children)
     if isinstance(filter_, FNot):
-        return _reads_targets_source(filter_.inner)
+        return _reads_targets(filter_.inner)
     return False
 
 
@@ -1489,7 +1489,7 @@ def _affordable_target_slots(
     cost the caster cannot pay is not a live option: casting the spell at it is
     illegal, and stack.cast refuses it. The slot drops such candidates, so the
     menu holds only completions the cast accepts. Inert (no fold at all) unless a
-    battlefield CostModifier reads TARGETS_SOURCE, and only for a spell in the
+    battlefield CostModifier reads TARGETS, and only for a spell in the
     caster's hand: the effect-cast lane designates no targets. ``pay(targets)``
     prices a candidate (default: the pool alone, ``spell_castable``)."""
     from MTG_bot.core.ability_tree import CostModifier
@@ -1506,8 +1506,8 @@ def _affordable_target_slots(
                 continue
             for node in record.abilities:
                 if isinstance(node, CostModifier) and (
-                    _reads_targets_source(node.filter)
-                    or _reads_targets_source(node.condition)
+                    _reads_targets(node.filter)
+                    or _reads_targets(node.condition)
                 ):
                     taxed = True
     if not taxed:

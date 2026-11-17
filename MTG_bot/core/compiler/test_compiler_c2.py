@@ -2,9 +2,9 @@
 
 The Fabled Passage SEARCH atom carries the printed "onto the battlefield tapped" as
 ``tapped_on_enter=True``. "If you control a Basri planeswalker" and "if you control a creature
-with power 4 or greater" are existence claims over the controlled population: CONTROLLER_COUNT_GE
-count=1 with the per-card test inside the inner filter, never a bare filter judged against the
-trigger source, and the printed 4 bound to the POWER filter, not the count.
+with power 4 or greater" are existence claims over the controlled population: the comparison
+"one or more" over the count whose filter holds the per-card test, never a bare filter judged
+against the trigger source, and the printed 4 bound to the power comparison, not the count.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     Filter,
     QConst,
+    QPropField,
     Seq,
     TriggeredAbility,
     Verb,
@@ -71,7 +72,7 @@ class TestC2CompilerPins(unittest.TestCase):
         self.assertIs(search.args.get("tapped_on_enter"), True)
 
     def test_fabled_conditional_untap_tail_still_falsifiable(self) -> None:
-        """The >=4-land branch is a Conditional(CONTROLLER_COUNT_GE Lands>=4,
+        """The >=4-land branch is a Conditional(you control four or more lands,
         UNTAP); the fabled_passage.json pack asserts the untap fires."""
         res = self._compile(_FABLED)
         (ability,) = res.card.abilities
@@ -80,7 +81,7 @@ class TestC2CompilerPins(unittest.TestCase):
         tail = ability.effect.steps[2]
         assert isinstance(tail, Conditional)
         assert isinstance(tail.pred, FAtom)
-        self.assertIs(tail.pred.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(tail.pred.pred, FAtomPred.QTY_GE)
         self.assertEqual(tail.pred.count, QConst(4))
 
     # ---- existential conditions ----
@@ -94,9 +95,9 @@ class TestC2CompilerPins(unittest.TestCase):
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)  # NOT FAnd: the quantifier leads
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         self.assertEqual(cond.count, QConst(1))
-        inner = cond.inner_filter
+        inner = cond.quantity.selector.filter
         assert isinstance(inner, FAnd)
         preds = [a.pred for a in _leaf_atoms(inner)]
         self.assertIn(FAtomPred.NAME_CONTAINS, preds)
@@ -107,23 +108,23 @@ class TestC2CompilerPins(unittest.TestCase):
 
     def test_ornery_gate_counts_one_creature_not_four(self) -> None:
         """Ornery Dilophosaur: one controlled creature matching the power
-        filter is demanded (count=1); the printed 4 lives only in POWER_GE."""
+        filter is demanded (count=1); the printed 4 lives only in the power comparison."""
         res = self._compile(_ORNERY)
         ability, _carrier = res.card.abilities  # + the effect-less cast carrier
         assert isinstance(ability, TriggeredAbility)
         cond = ability.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
         self.assertEqual(cond.count, QConst(1))
-        assert isinstance(cond.inner_filter, FAnd)
-        power = next(
-            a for a in _leaf_atoms(cond.inner_filter) if a.pred is FAtomPred.POWER_GE
-        )
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        power = next(a for a in _leaf_atoms(inner) if a.pred is FAtomPred.QTY_GE)
+        self.assertIs(power.field, QPropField.POWER)
         self.assertEqual(power.count, QConst(4))
 
     def test_ornery_row_decouples_count_from_threshold(self) -> None:
         """A synthetic "power 6 or greater ... +1/+1" sentence emits count=1 /
-        POWER_GE=6: the number never binds to the count."""
+        power >= 6: the number never binds to the count."""
         from MTG_bot.core.compiler import templates_b2b
         from MTG_bot.core.compiler.templates import TemplateRegistry
 
@@ -142,10 +143,10 @@ class TestC2CompilerPins(unittest.TestCase):
         cond = ability.condition
         assert isinstance(cond, FAtom)
         self.assertEqual(cond.count, QConst(1))
-        assert isinstance(cond.inner_filter, FAnd)
-        power = next(
-            a for a in _leaf_atoms(cond.inner_filter) if a.pred is FAtomPred.POWER_GE
-        )
+        inner = cond.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        power = next(a for a in _leaf_atoms(inner) if a.pred is FAtomPred.QTY_GE)
+        self.assertIs(power.field, QPropField.POWER)
         self.assertEqual(power.count, QConst(6))
 
 

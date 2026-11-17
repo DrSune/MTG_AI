@@ -24,7 +24,7 @@
       "tag": "FAtom",
       "pred": {
        "tag": "FAtomPred",
-       "name": "CONTROLLER_COUNT_GE"
+       "name": "QTY_GE"
       },
       "string_value": null,
       "color": null,
@@ -36,20 +36,70 @@
       "counter_kind": null,
       "keyword": null,
       "who": null,
-      "inner_filter": {
-       "tag": "FAtom",
-       "pred": {
-        "tag": "FAtomPred",
-        "name": "TYPE_EQ"
-       },
-       "string_value": "Creature",
-       "color": null,
-       "colors": [],
-       "count": null,
-       "counter_kind": null,
-       "keyword": null,
-       "who": null,
-       "inner_filter": null
+      "inner_filter": null,
+      "quantity": {
+       "tag": "QCount",
+       "selector": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QUnbounded"
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "ALL"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "CONTROLLER_IS"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           },
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
       }
      },
      "then_effect": {
@@ -130,9 +180,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-4",
-  "date": "2026-11-05",
-  "draft_py": "# Leafkin Druid: \"{T}: Add {G}. / If you control four or more creatures, add {G}{G} instead.\"\n# \"X. If cond, Y instead.\" is Conditional(pred=cond, then_effect=Y, else_effect=X) (Life Goes On, Lofty Denial, Cinderclasm).\nmana = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=Conditional(\n        pred=FAtom(\n            pred=FAtomPred.CONTROLLER_COUNT_GE,\n            count=QConst(value=4),\n            inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n        then_effect=A(Verb.ADD_MANA, {'amount': QConst(value=2), 'color': 'G', 'controller': ControllerRef.YOU}),\n        else_effect=A(Verb.ADD_MANA, {'amount': QConst(value=1), 'color': 'G', 'controller': ControllerRef.YOU}),\n    ),\n)\nabilities = [mana, compiled[1]]\n",
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(parts=(CostTap(),)),\n        effect=Conditional(\n            pred=FAtom(\n                pred=FAtomPred.QTY_GE,\n                count=QConst(value=4),\n                quantity=QCount(\n                    selector=Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n            ),\n            then_effect=A(Verb.ADD_MANA, {\n                'amount': QConst(value=2),\n                'color': 'G',\n                'controller': ControllerRef.YOU,\n            }),\n            else_effect=A(Verb.ADD_MANA, {\n                'amount': QConst(value=1),\n                'color': 'G',\n                'controller': ControllerRef.YOU,\n            }),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "{T}: Add {G}.",
@@ -144,45 +194,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Instead-shape of Life Goes On / Lofty Denial: Conditional(CONTROLLER_COUNT_GE 4 Creature, then ADD_MANA 2 G, else ADD_MANA 1 G) inside the compiler's {T} ability; '{G}{G}' as amount 2 per the '{T}: Add {C}{C}.' template. is_mana_ability still holds. Packs /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/leafkin_pack4.json (GG with four) and /tmp/claude-1000/-home-sune/2e18468a-eed7-47b5-a69b-d15b1f5fd0e8/scratchpad/round_m20/mapped/m4/leafkin_pack3.json (G with three; opponent creatures do not count) pass."
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-05 by claude-verifiers-m20v1 tree, same meaning; it waits for re-verification."
  },
  "probe": {
-  "sha": "4b38dbed95ccf80e64e0f14077170da32b20c9e57368a4b7769c6e1dd8115bcd"
- },
- "verified": {
-  "tree_sha": "bba0623478e8741ad44f0470ae70a42237164c9d1b0247520b859eb0aa22f41f",
-  "probe_sha": "a25a273ec1b59c07b2ece1f9c1dc3b1fa58057c1029214c7d33ad77a500dd682",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
-  "clauses": [
-   {
-    "clause": "{T}: Add {G}.",
-    "status": "OK",
-    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana G+1 (you control 3 creatures: the Druid, you_bear, you_giant). Pack leafkin_druid_summoning_sick_cannot_tap: cast this turn, the {T} ability is refused (summoning sickness, CR 302.6).",
-    "issue": ""
-   },
-   {
-    "clause": "If you control four or more creatures, add {G}{G} instead.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Standard board has only 3 creatures you control, so only the {G} branch runs. Packs: leafkin_druid_four_creatures_gg (4 creatures you control -> mana_pool G:2) and leafkin_druid_three_own_plus_opp_g (3 own + 2 opponent creatures -> G:1) pass; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/leafkin_druid_1.json",
-   "tools/scenarios/cards/M20/leafkin_druid_2.json",
-   "tools/scenarios/cards/M20/leafkin_druid_3.json"
-  ],
-  "mutation": {
-   "mutants": 8,
-   "killed": 4,
-   "score": 0.5,
-   "survived": [
-    "amount+1 at 1/0/effect/pred/count",
-    "amount+1 at 1/0/effect/then_effect/args/amount",
-    "amount-1 at 1/0/effect/then_effect/args/amount",
-    "controller YOU->OPPONENT at 1/0/effect/then_effect/args/controller"
-   ]
-  }
+  "sha": "e086fdeed10786ffa9a502898bc776c1d4a208e819fd0b47db77f80f2d7e92f6"
  }
 }

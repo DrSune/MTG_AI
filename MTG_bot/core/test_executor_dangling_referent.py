@@ -412,7 +412,7 @@ class QPropRefusalStaysLoudTest(StackCase):
                 target=Selector(
                     QConst(1), SelectorMode.CHOOSE, CREATURE_F, zones=(BF_YOU,)
                 ),
-                amount=QProp(referent="target", field=QPropField.CMC),
+                amount=QProp(referent="target", field=QPropField.MANA_VALUE),
             ),
         )
         self.world.add_card(card_id("Target", "1", "1"), self.p0, ZONE_BATTLEFIELD)

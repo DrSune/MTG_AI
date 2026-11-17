@@ -30,7 +30,7 @@ from MTG_bot.core.ability_tree import (
     QAgg,
     QConst,
     QCount,
-    QDistinctColorCount,
+    QDistinct,
     QProp,
     QPropField,
     Selector,
@@ -40,8 +40,10 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_most,
     canonical_json,
     fingerprint,
+    number_in,
 )
 from MTG_bot.core.compiler import templates_b3
 from MTG_bot.core.compiler.templates import (
@@ -303,7 +305,7 @@ class TestB3EffectStructure(unittest.TestCase):
         assert isinstance(power, PtDelta)
         self.assertIsInstance(power.magnitude, QCount)
 
-    def test_jolrael_uses_controller_hand_size_property(self) -> None:
+    def test_jolrael_counts_the_cards_in_your_hand(self) -> None:
         ability = _ability(
             _single_match(
                 self.reg,
@@ -316,12 +318,9 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.SET_PT)
         power = atom.args.get("power")
         toughness = atom.args.get("toughness")
-        assert isinstance(power, QProp)
-        assert isinstance(toughness, QProp)
+        # "the number of cards in your hand": a count of the zone (divergence D28)
+        self.assertEqual(power, number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)))
         self.assertEqual(power, toughness)
-        self.assertEqual(power.referent, "controller")
-        self.assertIs(power.field, QPropField.CARDS_IN_HAND)
-        self.assertIs(power.agg, QAgg.FIRST)
 
     def test_rin_and_seri_uses_qcount_of_dogs_you_control(self) -> None:
         ability = _ability(
@@ -535,9 +534,9 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(excl[0].inner.pred, FAtomPred.IS_SOURCE)
 
     def test_target_cant_be_blocked_r6(self) -> None:
-        """Subira's {1} activation: PREVENT_EFFECT with blocked = FAnd(IS_ANY_TARGET, POWER_LE 2,
-        FNot(IS_SOURCE)) ("another" excludes the source), condition IS_ANY_TARGET, a universal
-        blocker filter, DurationEot."""
+        """Subira's {1} activation: PREVENT_EFFECT with blocked = FAnd(IS_ANY_TARGET, power 2 or
+        less, FNot(IS_SOURCE)) ("another" excludes the source), condition IS_ANY_TARGET, a
+        universal blocker filter, DurationEot."""
         ability = _ability(
             _single_match(
                 self.reg,
@@ -557,16 +556,14 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIsNone(event.subject)
         blocked = event.blocked
         assert isinstance(blocked, FAnd)
-        target_pred, power_pred, excl = blocked.children
-        assert isinstance(target_pred, FAtom)
-        assert isinstance(power_pred, FAtom)
-        self.assertIs(target_pred.pred, FAtomPred.IS_ANY_TARGET)
-        self.assertIs(power_pred.pred, FAtomPred.POWER_LE)
-        assert isinstance(power_pred.count, QConst)
-        self.assertEqual(power_pred.count.value, 2)
-        assert isinstance(excl, FNot)  # "another": not the source
-        assert isinstance(excl.inner, FAtom)
-        self.assertIs(excl.inner.pred, FAtomPred.IS_SOURCE)
+        self.assertEqual(
+            set(blocked.children),
+            {
+                FAtom(pred=FAtomPred.IS_ANY_TARGET),
+                at_most(2, field=QPropField.POWER),  # "power 2 or less"
+                FNot(FAtom(pred=FAtomPred.IS_SOURCE)),  # "another": not the source
+            },
+        )
         self.assertIsInstance(atom.args.get("duration"), DurationEot)
 
     def test_target_helper_zones_are_battlefield_r11(self) -> None:
@@ -590,7 +587,8 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIsInstance(any_target.filter, FOr)
 
     def test_draw_per_distinct_color(self) -> None:
-        """Chromatic Orrery: DRAW amount = QDistinctColorCount over all permanents you control."""
+        """Chromatic Orrery: DRAW amount = the number of distinct colours among all permanents
+        you control (QDistinct of COLOR)."""
         ability = _ability(
             _single_match(
                 self.reg,
@@ -601,7 +599,8 @@ class TestB3EffectStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.DRAW)
         self.assertEqual(atom.args.get("controller"), ControllerRef.YOU)
         amount = atom.args.get("amount")
-        assert isinstance(amount, QDistinctColorCount)
+        assert isinstance(amount, QDistinct)
+        self.assertIs(amount.field, QPropField.COLOR)
         sel = amount.selector
         self.assertIs(sel.mode, SelectorMode.ALL)
         self.assertEqual(

@@ -1,7 +1,7 @@
 """Grammar pins for these constructs (the letters label the catalogue
 sections below):
 
-  A) FAtomPred.POWER_LE / POWER_GE   (power-only comparisons)
+  A) FAtomPred.QTY_GE over power     (the one comparison; "or less" is its FNot)
   B) FAtomPred.NAME_CONTAINS         (name substring)
   C) Selector.zones                  (multi-zone)
   D) Verb.CAST                       (source zone + optional cost role)
@@ -57,7 +57,7 @@ def _src_sel() -> at.Selector:
 
 def _atom_mill() -> at.Atom:
     return at.Atom(
-        at.Verb.MILL,
+        at.Verb.DRAW,
         at.AtomArgs(
             pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(1)))
         ),
@@ -87,7 +87,8 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         # the treasure token's tap+sacrifice Cost is sorted at construction
         "token_creator",
         T._token_creator,
-        "97d5d7c3ad5c258b1d56785ce41bcd312f2a6afa6778f53f4fe8e41aaae95e9d",
+        # re-pinned by ontology round R12: its condition is the one comparison
+        "a2c49645247481b0f995351246a0991b60e491f5c22c843ee6bba8b5e07fe16b",
     ),
     (
         "walk_sample",
@@ -132,15 +133,6 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
         "74cc8b8b11341e97eddf805d7439ce92cf4b2b97fd5341ecc315468c332d12a5",
     ),
     (
-        "fatom_ctrl_count_ge",
-        lambda: at.FAtom(
-            at.FAtomPred.CONTROLLER_COUNT_GE,
-            inner_filter=at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Artifact"),
-            count=at.QConst(4),
-        ),
-        "277d2a43f9017c7e2abff604c07987e83486f5f063b80867d562ddedca821aa3",
-    ),
-    (
         "triggered_combat_damage",
         # combat damage: DamageDealtEvent(amount unbounded, empty filter,
         # source=_SRC, combat=True)
@@ -149,7 +141,7 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
             None,
             at.OptionalEffect(
                 at.Atom(
-                    at.Verb.MILL,
+                    at.Verb.DRAW,
                     at.AtomArgs(
                         pairs=(
                             ("controller", at.ControllerRef.YOU),
@@ -159,7 +151,9 @@ _PINNED: list[tuple[str, Callable[[], object], str]] = [
                 )
             ),
         ),
-        "85758a084be0aa958fd5589fbfcda6b768324680ae564cef31958f5bb0b2004e",
+        # re-pinned by ontology round R12: Verb.MILL is gone (a mill is a MOVE_ZONE), so the
+        # effect is a DRAW of the same roles
+        "c8d3de72173ddbb41c48656146d9eb7dc165f0d6a008c56a4580619a2f3fbf52",
     ),
     (
         "zone_library_you",
@@ -279,12 +273,12 @@ def _emblem_triggered() -> at.EmblemSpec:
 
 
 _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
-    # A) power-only comparisons
-    ("fatom_power_le", lambda: at.FAtom(at.FAtomPred.POWER_LE, count=at.QConst(3))),
-    ("fatom_power_ge", lambda: at.FAtom(at.FAtomPred.POWER_GE, count=at.QConst(3))),
+    # A) the comparison over power ("or less" is its FNot)
+    ("fnot_qty_ge_power", lambda: at.at_most(3, field=at.QPropField.POWER)),
+    ("fatom_qty_ge_power", lambda: at.at_least(3, field=at.QPropField.POWER)),
     (
-        "fatom_power_ge_dynamic",
-        lambda: at.FAtom(at.FAtomPred.POWER_GE, count=at.QX()),
+        "fatom_qty_ge_power_dynamic",
+        lambda: at.at_least(at.QX(), field=at.QPropField.POWER),
     ),
     # B) name substring
     (
@@ -300,17 +294,13 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
     ("cast_extra_cost", _cast_extra_cost),
     # E) QThisTurn
     (
-        "qthisturn_life_gained_you",
-        lambda: at.QThisTurn(at.ThisTurnKind.LIFE_GAINED, at.ControllerRef.YOU),
+        "qthisturn_noncombat_damage_you",
+        lambda: at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.YOU),
     ),
     (
-        "qthisturn_cards_drawn_opp",
-        lambda: at.QThisTurn(at.ThisTurnKind.CARDS_DRAWN, at.ControllerRef.OPPONENT),
-    ),
-    (
-        "qthisturn_cards_drawn_all",
+        "qthisturn_noncombat_damage_all",
         lambda: at.QThisTurn(
-            at.ThisTurnKind.CARDS_DRAWN, at.ControllerRef.ALL_OPPONENTS
+            at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.ALL_OPPONENTS
         ),
     ),
     # F) event scoping + the CardDrawn / LifeGained / Sacrifice events
@@ -519,14 +509,21 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
     flying = at.FAtom(at.FAtomPred.KEYWORD_HAS, keyword=at.Keyword.FLYING)
     return [
-        # A) POWER_LE / POWER_GE
+        # A) the comparison
         (
-            "power_le_string_slot",
-            lambda: at.FAtom(at.FAtomPred.POWER_LE, string_value="Bird"),
+            "qty_ge_string_slot",
+            lambda: at.FAtom(
+                at.FAtomPred.QTY_GE,
+                count=at.QConst(3),
+                field=at.QPropField.POWER,
+                string_value="Bird",
+            ),
         ),
         (
-            "power_ge_color_slot",
-            lambda: at.FAtom(at.FAtomPred.POWER_GE, color="B"),
+            "qty_ge_color_slot",
+            lambda: at.FAtom(
+                at.FAtomPred.QTY_GE, count=at.QConst(3), field=at.QPropField.POWER, color="B"
+            ),
         ),
         # B) NAME_CONTAINS
         ("name_contains_no_arg", lambda: at.FAtom(at.FAtomPred.NAME_CONTAINS)),
@@ -579,14 +576,14 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
         (
             "qthisturn_kind_str",
             lambda: at.QThisTurn(
-                "LIFE_GAINED",  # type: ignore[arg-type]
+                "NONCOMBAT_DAMAGE",  # type: ignore[arg-type]
                 at.ControllerRef.YOU,
             ),
         ),
         (
             "qthisturn_referent_str",
             lambda: at.QThisTurn(
-                at.ThisTurnKind.LIFE_GAINED,
+                at.ThisTurnKind.NONCOMBAT_DAMAGE,
                 "you",  # type: ignore[arg-type]
             ),
         ),
@@ -905,13 +902,9 @@ def test_new_verb_roles() -> None:
 
 def test_new_fatom_rule_rows() -> None:
     rules = at._FATOM_RULES
-    assert rules[at.FAtomPred.POWER_LE] == (
+    assert rules[at.FAtomPred.QTY_GE] == (
         frozenset({"count"}),
-        frozenset({"count"}),
-    )
-    assert rules[at.FAtomPred.POWER_GE] == (
-        frozenset({"count"}),
-        frozenset({"count"}),
+        frozenset({"count", "field", "quantity", "who"}),
     )
     assert rules[at.FAtomPred.NAME_CONTAINS] == (
         frozenset({"string_value"}),
@@ -922,8 +915,7 @@ def test_new_fatom_rule_rows() -> None:
 def test_new_enum_members() -> None:
     assert at.ZonePosition.TOP.value == "TOP"
     assert at.ZonePosition.BOTTOM.value == "BOTTOM"
-    assert at.ThisTurnKind.LIFE_GAINED.value == "LIFE_GAINED"
-    assert at.ThisTurnKind.CARDS_DRAWN.value == "CARDS_DRAWN"
+    assert {k.name for k in at.ThisTurnKind} == {"NONCOMBAT_DAMAGE"}
     assert at.ControllerRef.OWNER.value == "OWNER"
     assert {v.name for v in at.Verb} >= {"CAST", "PAY", "LOSE_GAME"}
 
@@ -943,8 +935,10 @@ def test_fingerprint_sensitivity_new_fields() -> None:
         at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.BOTTOM)
     )
     assert at.fingerprint(
-        at.QThisTurn(at.ThisTurnKind.LIFE_GAINED, at.ControllerRef.YOU)
-    ) != at.fingerprint(at.QThisTurn(at.ThisTurnKind.CARDS_DRAWN, at.ControllerRef.YOU))
+        at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.YOU)
+    ) != at.fingerprint(
+        at.QThisTurn(at.ThisTurnKind.NONCOMBAT_DAMAGE, at.ControllerRef.ALL_OPPONENTS)
+    )
     assert at.fingerprint(at.EtBState(tapped=True)) != at.fingerprint(
         at.EtBState(
             tapped=False,

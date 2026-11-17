@@ -39,8 +39,10 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     TurnPhaseEvent,
     Verb,
+    at_least,
     canonical_json,
     from_dict,
+    number_you_control,
     to_dict,
 )
 from MTG_bot.core.executor import Executor
@@ -81,11 +83,7 @@ def sanctum_multiplier(count=1) -> TriggeredAbility:
                 )
             )
         ),
-        condition=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GE,
-            count=QConst(6),
-            inner_filter=shrine_filter(),
-        ),
+        condition=at_least(6, quantity=number_you_control(shrine_filter())),
         effect=multiplier_effect(count),
     )
 

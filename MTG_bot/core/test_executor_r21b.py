@@ -8,10 +8,10 @@ behaviour it must leave untouched:
    less to activate" discounts the printed cost. Only the IS_SOURCE
    shape folds there (a universal filter does NOT), and a caller that
    passes no activation (the cast lane, the bare PAY atoms) gets no fold.
-2. CONTROLLER_COUNT_GT (Garruk, Unleashed's -2): the dual-filter
-   battlefield census — each side's count is its OWN filter (the
-   compiled atom carries CONTROLLER_IS atoms inside), TRUE iff the
-   inner (opponent) side strictly beats the right_inner (you) side.
+2. "More creatures than you" (Garruk, Unleashed's -2): the comparison of two
+   battlefield counts — each side's count is its OWN filter (CONTROLLER_IS
+   atoms inside), TRUE iff the opponent side reaches the you side plus one
+   (CR 107.1: integers, so "more than n" is "at least n + 1").
 3. THAT_MANY_COUNT's trigger-antecedent register (Basri Ket's -2): the
    ``result`` register keeps strict precedence; the
    ``declare_attackers`` register answers ONLY when result is absent;
@@ -39,6 +39,8 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    QBin,
+    QBinOp,
     QConst,
     QProp,
     QPropField,
@@ -47,6 +49,8 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    number_in,
 )
 from MTG_bot.core.executor.events import KIND_CREATURE_DIES
 from MTG_bot.core.executor.legality import build_payment_plan, ctx_for, pay_costs
@@ -77,11 +81,10 @@ def _controlled_by(who: ControllerRef) -> FAtom:
 
 
 def gt(inner: FAnd, right: FAnd) -> FAtom:
-    return FAtom(
-        FAtomPred.CONTROLLER_COUNT_GT,
-        inner_filter=inner,
-        right_inner_filter=right,
-    )
+    """The number of permanents passing ``inner`` is greater than the number passing ``right``."""
+    battlefield = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
+    more = QBin(QBinOp.ADD, number_in(battlefield, right), QConst(1))
+    return at_least(more, quantity=number_in(battlefield, inner))
 
 
 class ActivationFoldTest(LegalityCase):
@@ -189,7 +192,7 @@ class ControllerCountGtTest(LegalityCase):
         self.assertTrue(self.eval_gt())
 
     def test_filters_are_per_side(self):
-        # inner names GOBLIN (0 match), right_inner CREATURE (1 match):
+        # the left names GOBLIN (0 match), the right CREATURE (1 match):
         # 0 > 1 is False even though the raw populations tie at 1/1
         self.assertFalse(
             _eval_atom(

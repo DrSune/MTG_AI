@@ -816,8 +816,8 @@ class ScenarioRunner:
             self.world.cards[handle].counters["LOYALTY"] = int(step["set"])
         elif op == "life":
             # harness ledger write, as the loyalty seed: set a seat's life
-            # directly. The LIFE_LEAD_OVER_START_GE lane reads current life
-            # minus the executor's starting-life snapshot, so this sets up a
+            # directly. A comparison with the starting life total reads current life
+            # against the executor's starting-life snapshot, so this sets up a
             # "gained N since the start" scenario without a healing spell.
             self.world.players[self._seat(step["seat"], op)].life = int(step["set"])
         elif op == "mana":

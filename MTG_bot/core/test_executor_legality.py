@@ -377,18 +377,13 @@ class TestConditionGate(LegalityCase):
         )
 
     def test_unsupported_condition_pred_raises(self):
-        # flag, never guess: a pred outside the vocab crashes the probe.
-        # CONTROLLER_COUNT_LE is the unimplemented sibling of
-        # CONTROLLER_COUNT_GT.
+        # flag, never guess: a condition the probe cannot answer crashes it
+        # (FLIP_WON with no coin flipped; round R12 left no pred unread).
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(
-                        FAtomPred.CONTROLLER_COUNT_LE,
-                        inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
-                        count=QConst(2),
-                    ),
+                    condition=FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU),
                 )
             ]
         )

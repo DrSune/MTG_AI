@@ -26,8 +26,8 @@ Pinned here:
 6. Zone(ANY) runtime enumeration == the query lane's population (seat ×
    PLAYER_ZONES, the OMNISCIENT reading: hidden zones included), and the
    universal "any target" legality set includes the seats (CR 109.5);
-7. query-lane pred parity: CMC_GE / ZONE_COUNT_GE /
-   NAME_PARTITION_COUNT_GE answer through ONE evaluator on both lanes,
+7. query-lane pred parity: the comparison (a mana value, an opponent's
+   graveyard count, two sharing a name) answers through ONE evaluator on both lanes,
    and THAT_MANY_COUNT reads the result register — an unset register
    stays a loud read;
 8. CONTROLLER_IS follows the live controller (a GAIN_CONTROL override moves
@@ -47,7 +47,10 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     QAtMost,
+    QBin,
+    QBinOp,
     QConst,
+    QDistinct,
     QProp,
     QPropField,
     Selector,
@@ -57,6 +60,9 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import (
@@ -512,12 +518,12 @@ class TestQueryLanePredParity(DesignationCase):
     """One evaluator: query context and effect context answer the SAME
     for these preds."""
 
-    def test_cmc_ge_one_evaluator_both_lanes(self):
+    def test_mana_value_comparison_one_evaluator_both_lanes(self):
         cheap = self.world.add_card(card_id("Cheap", "1", "1", cmc=5), self.p0)
         big = self.world.add_card(
             card_id("Big", "6", "6", cmc=6), self.p0, ZONE_LIBRARY
         )
-        pred = FAtom(FAtomPred.CMC_GE, count=QConst(6))
+        pred = at_least(6, field=QPropField.MANA_VALUE)
         selector = Selector(QAtMost(5), SelectorMode.CHOOSE, FAnd((pred,)), zones=(LIB_YOU,))
         ctx = ctx_for(self.ex, source=self.p0, controller=self.p0)
         # query lane (legal_targets' population):
@@ -541,40 +547,31 @@ class TestQueryLanePredParity(DesignationCase):
         )
         ctx = ctx_for(self.ex, source=anchor, controller=self.p0)
 
-        def gate(n: int):
-            return FAtom(
-                FAtomPred.ZONE_COUNT_GE,
-                who=ControllerRef.OPPONENT,
-                zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
-                inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Instant"),
-                count=QConst(n),
+        def gate(n: int, type_name: str = "Instant"):
+            # "an opponent has n or more <type> cards in their graveyard": the count of the
+            # graveyard of each opponent in turn (who rotates "your")
+            gy = number_in(
+                Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+                FAtom(FAtomPred.TYPE_EQ, string_value=type_name),
             )
+            return at_least(n, quantity=gy, who=ControllerRef.OPPONENT)
 
         self.assertTrue(eval_filter(gate(2), anchor, ctx))
         self.assertFalse(eval_filter(gate(3), anchor, ctx))
         # inner_filter bites: a nonmatching population never counts.
-        gy_gate = FAtom(
-            FAtomPred.ZONE_COUNT_GE,
-            who=ControllerRef.OPPONENT,
-            zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),
-            inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Sorcery"),
-            count=QConst(1),
-        )
-        self.assertFalse(eval_filter(gy_gate, anchor, ctx))
+        self.assertFalse(eval_filter(gate(1, "Sorcery"), anchor, ctx))
 
     def test_name_partition_is_mine_only(self):
-        # Chrome Replicator: EXACT-name partitions among the
-        # permanents the ABILITY CONTROLLER controls — the opponent's
-        # twins never count toward mine.
+        # Chrome Replicator: two of the permanents the ABILITY CONTROLLER
+        # controls share a name (more permanents than names among them) — the
+        # opponent's twins never count toward mine.
         a = self.world.add_card(card_id("Twin"), self.p0, ZONE_BATTLEFIELD)
         b = self.world.add_card(card_id("Twin"), self.p0, ZONE_BATTLEFIELD)
         self.world.add_card(card_id("Other"), self.p0, ZONE_BATTLEFIELD)
         self.world.add_card(card_id("Twin"), self.p1, ZONE_BATTLEFIELD)
-        pred = FAtom(
-            FAtomPred.NAME_PARTITION_COUNT_GE,
-            inner_filter=UNIV,
-            count=QConst(2),
-        )
+        mine = number_you_control(UNIV)
+        names = QDistinct(mine.selector, QPropField.NAME)
+        pred = at_least(QBin(QBinOp.ADD, names, QConst(1)), quantity=mine)
         self.assertTrue(
             eval_filter(pred, a, ctx_for(self.ex, source=a, controller=self.p0))
         )

@@ -45,9 +45,10 @@ effect    := Atom(verb, role→value pairs)                 # ONE operation = ON
 value     := Quantity | Selector | Filter | Zone | Duration | PtDelta | TokenSpec | EmblemSpec | LiteralName
 selector  := {mode, count, filter, zone∪zones → ONE set (R0), referent}
 filter    := FAnd(children) | FOr(children) | FNot(inner) | FAtom(pred, slots)
+compare   := FAtom(QTY_GE, count, field | quantity, who?)   # "N or less": FNot at N + 1 (R12, §16)
 event     := ZoneChange | CastSpell | … (18 classes, census §5)
 quantity  := QConst | QX | QUnbounded | QCount(sel) | QPartyCount(sel)
-           | QDistinctColorCount(sel) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
+           | QDistinct(sel, field) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
 ```
 
 Ability = fusion unit: **{when-event} × {gates} × {cost} × {operations}**; operation =
@@ -120,7 +121,7 @@ constructor set.
 | F8 | phantom menu | Choose(count==len) | V2′: must be encoded ALL |
 | F9 | the CR 609.4 policy family | MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY (round 4) | fold candidate: before a fourth policy verb (nine "as though it had flash" cards wait), decide one POLICY verb with a scope enum |
 | F10 | CR 110.5 status-change events | TapStateEvent, PhasingEvent (round 4; one card) | one family: fold when a third status event appears |
-| F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
+| F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **SETTLED R12 2026-11-17 (§16, pending gate round 12)**: both are the one comparison of your life total (`QProp('controller', LIFE)`), the second against `QProp('controller', STARTING_LIFE)` + N, right in Commander; both predicates removed. Before: **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
 | F12 | the chosen-quality pair's names | CHOOSE_NAME and NAME_CHOSEN name a card name but carry any chosen quality since R9 (§13): the role `quality` (COLOR, CREATURE_TYPE; absent, a card name) and NAME_CHOSEN's `string_value`, its quality slot for good (FAtom slots mean what their predicate says, `_FATOM_RULES`; within NAME_CHOSEN the slot has the one meaning, the quality read) | **rename deferred** (§13 R9-3, upheld at gate round 9): a quality-neutral pair (CHOOSE_QUALITY / QUALITY_CHOSEN) re-bakes M21 Runed Halo's verified tree and Necromentia's, for a label: the network reads a token as an id, not as English. The rename is a pure relabel (the role and the slot stay). Fold with the next round that re-bakes Runed Halo's tree, or with the third quality (a card type, IKO Umori; a basic land type, M10 Convincing Mirage), re-verifying Runed Halo |
 | F13 | a chosen colour or creature type, by when it is chosen | since R9, "choose a colour" has two forms by context: at resolution, `Choose` over five effects, one per colour (M21 Feat of Resistance and M20 Gods Willing, verified; M12 Stave Off; THB Alseid of Life's Bounty), and as a permanent enters, CHOOSE_NAME(COLOR) read later by NAME_CHOSEN. KHM Crippling Fear and Haunting Voyage choose a creature type at resolution and read it in the same resolution, which needs CHOOSE_NAME(CREATURE_TYPE) outside an EtBState: refused today (§13 R9-1, refusal 5) | **decision at the round that maps Crippling Fear** (Type-1, with F2's choose axis): either lift refusal 5 for a choice read within its own resolution, and fold the colour `Choose` into CHOOSE_NAME(COLOR) + read (one form for "choose a colour"; re-bakes Feat of Resistance's and Gods Willing's verified trees), or keep `Choose` over a fixed menu for colours and give a resolution-time creature type its own encoding. Until then: as a permanent enters, CHOOSE_NAME(quality); at resolution, a colour is `Choose` over five (V4' freeze holds) |
 
@@ -153,6 +154,10 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostExile, one per cost (`target`: a CHOOSE selector, a literal count, one zone: `Zone(BATTLEFIELD, ANY)` for the source or a permanent the payer controls, the payer's graveyard or hand; the source is `IS_SOURCE` alone, count 1): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostRemoveCounter, one per kind per cost (`counter_kind` but LOYALTY, `target` the source or a permanent the payer controls, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
+| 2026-11-17, gate round 12 (pending, §16) | FAtom QTY_GE x `field` (POWER, TOUGHNESS, MANA_VALUE, COLOR: `ability_tree.COMPARED_FIELDS`), the judged object's characteristic; "N or less" only as its FNot at N + 1 | B11 noun phrases ("with power|toughness|mana value N or less|greater"), M21 Legion's Judgment, Eliminate, Subira, Ugin; ZNR Bloodchief's Thirst; ELD Epic Downfall | 46 trees (16 of them the FNot form); `reports/quantity_comparison_2026-11-17/census.txt` |
+| 2026-11-17, gate round 12 (pending, §16) | FAtom QTY_GE x `quantity` (QCount, QDistinct, QPartyCount, a QProp over an ALL selector aggregated, your LIFE: `ability_tree._measures_the_game`) [x `who` OPPONENT over a count of "your" zone] | M21 Sanctum of All, Fabled Passage, Speaker of the Heavens (STARTING_LIFE), Thieves' Guild Enforcer (`who`); ZNR party (5); M20 Field of the Dead (QDistinct) | 68 trees (who 4, QDistinct 1, party 5, life 7) |
+| 2026-11-17, gate round 12 (pending, §16) | FAtom TARGETS x `inner_filter` (required): one of the judged spell's or ability's targets passes it | IS_SOURCE: Gnarlback Rhino (M20, FDN), Pursued Whale, the THB heroes (5); a filter: M20 Season of Growth (record), WAR Kasmina | 12 trees (2 with a filter) |
+| 2026-11-17, gate round 12 (pending, §16) | QDistinct x `field` (COLOR, NAME, MANA_VALUE: `ability_tree.DISTINCT_FIELDS`) | M21 Chromatic Orrery (COLOR), Chrome Replicator (NAME, in the count), M20 Field of the Dead (NAME), FDN Lunar Insight (MANA_VALUE) | **low-volume**: 5 trees |
 
 ## 6. Identity + conformance
 
@@ -2021,3 +2026,133 @@ CostExile clause cannot fire today; it stays for the card whose exile cost takes
 Re-run on 586fa91a with the gate's fixes each undone in turn (the source in one form, the payer's
 permanents, one whole zone, one exile and one removal of a kind per cost, the raise on a short
 segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
+
+## 16. Round R12 — one quantity comparison; TARGETS, QDistinct and zone counts made general (2026-11-17; DRAFT, PENDING gate round 12)
+
+Proposals I1, I9 and I0 of KNOWLEDGE/2026-11-17/210 (the component-sharing review the owner asked
+for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and scripts:
+`reports/quantity_comparison_2026-11-17/`. Tests: `MTG_bot/core/test_executor_quantity_comparison.py`
+(47) and `MTG_bot/core/compiler/test_templates_r12.py` (16); packs
+`tools/scenarios/mapped/M20/field_of_the_dead_*` (2) and `season_of_growth_*` (2).
+
+**R12-1 The comparison** (`ability_tree.py` :1577-1736; executor `quantity.py` `_comparison_holds`,
+`_compare`, `_characteristic`).
+- `FAtomPred.QTY_GE`: the judged object's characteristic, or a quantity the game measures, is at
+  least `count`. Two new optional FAtom slots, exactly one of them set: `field` (POWER, TOUGHNESS,
+  MANA_VALUE or COLOR, the number of the object's colours: `COMPARED_FIELDS`, CR 208.1, 202.3,
+  105.2) or `quantity` (a QCount, QDistinct or QPartyCount, a QProp over an ALL selector with
+  SUM/MAX/MIN, or your LIFE: `_measures_the_game`). `who` is OPPONENT or absent
+  (`COMPARED_PLAYERS`), and only over a QCount of "your" zones with no referent: the count read for
+  each opponent in turn, as EachPlayer rotates "you", true when one of them has it ("an opponent
+  has eight or more cards in their graveyard").
+- "N or less" is FNot of the comparison at N + 1 (CR 107.1: the game's numbers are integers; "more
+  than N" is at least N + 1). The IR refuses every other spelling: a pick (QAtLeast, QAtMost,
+  QUnbounded) anywhere in either side's arithmetic, a literal or an X as the measured side, a
+  non-ALL selector or a designated player inside either side (`_check_compared_side`).
+- Builders: `at_least`, `at_most` (the FNot form), `number_you_control`, `number_in`; the card
+  tools' draft namespace has them (`tools/cards/irpy.namespace`).
+- Folded: POWER_GE, POWER_LE, CMC_GE, CMC_LE, COLOR_COUNT_GE, CONTROLLER_COUNT_GE,
+  CONTROLLER_COUNT_GT, ZONE_COUNT_GE, LIFE_TOTAL_GE, LIFE_LEAD_OVER_START_GE,
+  NAME_PARTITION_COUNT_GE (11 in trees), PT_GE, PT_LE, CONTROLLER_COUNT_LE (unused);
+  `FAtom.right_inner_filter` removed. "Two share a name" (Chrome Replicator) is "more permanents
+  than names among them": the count against QDistinct(NAME) + 1.
+- **F11 settled** (§4): `QPropField.STARTING_LIFE` (CR 103.4, `Executor.starting_life`), so "at
+  least N life more than your starting life total" is the comparison of your life with the
+  starting life plus N: right in Commander (40), one predicate instead of two.
+- Engine: power and toughness are read as the object last existed when the event is its own
+  departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them). Before, a creature that died
+  pumped was read at its printed power in the graveyard ("Whenever a creature with power 4 or
+  greater dies": a 2/2 pumped to 4/2 did not trigger; `DepartedPowerTest`). No verified tree read
+  it. An object without the characteristic (a noncreature's power, a '*' power off the
+  battlefield) fails the comparison, so its FNot holds: the noun beside it says what has it.
+
+**R12-2 TARGETS(filter)** (TARGETS_SOURCE made general): one of the judged spell's or ability's
+targets passes `inner_filter` (required; CR 115.1, 601.2c). Read from the judged object's stack
+frame (`declared_targets`); while it is being cast, from the cast's designation
+(`quantity._targets_of`; the cast lane no longer binds "target" for it). "That targets this
+creature" is `inner_filter=IS_SOURCE`.
+
+**R12-3 QDistinct(selector, field)** (QDistinctColorCount made general): the number of different
+COLOR (each colour of a multicoloured object counts), NAME (CR 201.2) or MANA_VALUE (a land's is 0)
+values among the selected objects (`DISTINCT_FIELDS`). QProp refuses COLOR and NAME: they are read
+by the comparison's `field` and by QDistinct, never as one object's number.
+
+**R12-4 Zone counts (D28)**: QPropField.CARDS_IN_HAND, CARDS_IN_LIBRARY and CARDS_IN_GRAVEYARD
+removed; "the number of cards in your hand" is `number_in(Zone(HAND, YOU))`, the QCount form the
+corpus already used (divergence D28 closed).
+
+**R12-5 I0, the duplicate members**: Verb.EXILE and Verb.MILL (MOVE_ZONE's), QPropField.CMC
+(MANA_VALUE's twin), Keyword.SCRY and Keyword.MILL (keyword actions, CR 701.22, 701.17: G0 still
+demands them, `gates.KEYWORD_ACTIONS`), Keyword.BATTALION (an ability word, CR 207.2c; the binder's
+battalion lane went with it), ThisTurnKind.CARDS_DRAWN and LIFE_GAINED. Counts: FAtomPred 57 -> 44,
+QPropField 12 -> 11 (+COLOR, NAME, STARTING_LIFE), Verb 51 -> 49, Keyword 23 -> 20, ThisTurnKind
+3 -> 1.
+
+**Refused forms** (tests): every folded predicate and member fails to decode; a comparison of a name,
+a player's life as `field`, QDistinct of POWER, QProp of COLOR or NAME, a literal, an X, the
+source's own power or a negated life as `quantity`; "or less" as a pick count or a number on the
+measured side; TARGETS without its filter; `who` over another player's zone, `who` YOU, `who` with
+`field`, `who` over life.
+
+**Alternatives rejected.**
+- An operator enum (GE, LE, GT, EQ): over integers LE and GT are FNot and +1 of GE, second
+  encodings; no card of the 19 sets prints "exactly N" against a threshold.
+- One predicate per measured kind (a characteristic comparison beside a quantity comparison):
+  two tokens for one relation; the slot says which side is measured.
+- A starting-life predicate (F11's other route) and the life-lead predicate kept: a quantity is
+  one node fewer and reads Torgaar's and Resolute Archangel's "starting life total" too.
+- QProp(controller, CARDS_IN_*) kept beside QCount: D28's second encoding.
+- `who` over any player or any quantity: "an opponent has N or less" (no FNot reading: "no opponent
+  has N + 1") and a target player's zone would bring a designation into a condition; the cards
+  that print them bring the slot's next value.
+- Keeping the largest same-name group (NAME_PARTITION_COUNT_GE): "two share a name" is the count
+  against the distinct names plus one, no new node.
+
+**Templates** (wordings by regex over the 19 sets, `MTG_bot/core/compiler`): `conditions.py` reads
+counts of your permanents and zones, a creature with power N or greater, total power, the starting
+life total, an opponent's graveyard and the ability words in front (threshold, ferocious,
+formidable, spell mastery); B11 "with toughness|mana value N or less|greater"; B14's "as long as"
+statics after an ability word, "can't be blocked as long as"; B13 "Whenever you cast a spell that
+targets this creature|a creature you control"; B4 Kasmina's tax; B3 Lunar Insight. Eliminate's
+template now writes B11's form, the comparison beside FOr(Creature, Planeswalker) (one encoding,
+B11's differential; ZNR Bloodchief's Thirst follows). 22 cards of the 19 sets newly compile whole
+(DOM, FDN Ghitu Lavarunner; FDN Dragonmaster Outcast, Lunar Insight, Gnarlback Rhino; THB the four
+heroes, Warden of the Chained; ZNR Blackbloom Rogue, Nimana Skitter-Sneak; ...;
+`blast_radius.txt`).
+
+**Records** (`tools/cards/cardtool.py write`, author ontology-r12, no verified block): the 17
+records holding a folded form re-mapped, their trees translated (same meaning); M20 Field of the
+Dead and Season of Growth mapped (their needs-atom notes met); Thunderkin Awakener's and Atemsis's
+notes narrowed to what still has no node.
+
+**Blast radius** (`tree_dump.py` on a `git archive` of 30736aba and on the branch, `tree_diff.py`:
+`blast_radius.txt`).
+- Trees: 104 compiler trees and 117 with records applied change, in 15 of the 19 sets (M21 32,
+  M20 17, FDN 16, ZNR 16, THB 8, WAR 7, ELD 6, ...); every fold-only change equals the base tree
+  translated (0 beyond the fold before the templates). 22 cards newly whole, none lost.
+- Verified: **58 stamps out** (53 home: M21 30, M20 15, FDN 8; 5 reprint stamps: ELD Fabled
+  Passage, FDN Cryptic Caves, ORI Faerie Miscreant, WAR Makeshift Battalion, WAR Turret Ogre), none
+  in; no still-verified tree reads a node the round changes. Re-baked, never re-stamped: the
+  coordinator re-verifies them (list in the round's report). `test_reprint_stamps_follow_their_home_record`
+  holds. Card packs of the de-verified M20 and FDN records that no longer run on the verified pool
+  moved to `tools/scenarios/mapped/<SET>/` (23), all passing there.
+- Play: 300 seeded heuristic games (100 each of M21, M20 and FDN, the decks dealt from the cards
+  verified on both checkouts with the same tree: 245, 262 and 181 deckable): **300 of 300
+  identical** replay digests, journal dumps and raw event logs, 0 crashes either side
+  (`replay.py`, `replay_compare.py`: `replay.txt`).
+- Network (`old_net_decks.py`, `old_net_base.py`, `old_net_branch.py`: `old_net.txt`): a base
+  checkpoint over the three home sets' 1,090 cards, its table refreshed (`CardTable.refresh`) and
+  the network grown (`model.extend_cards`): 53 rows rebuilt (the round's cards of those sets), 7
+  component tokens appended (QTY_GE, `@quantity`, TARGETS, QDistinct, QPropField COLOR, NAME,
+  STARTING_LIFE), all starting at zero, the old rows kept; 15 old tokens no row reads any more
+  (the folded predicates, QDistinctColorCount, CARDS_IN_HAND and _GRAVEYARD). On 64 decisions of
+  six games of unchanged cards: encodings, tokens, logits and value **bitwise equal**. The 53
+  cards lose what a checkpoint learned of their old tokens (nothing copies POWER_GE's row into
+  QTY_GE's); they are out of the verified pools until re-verified anyway.
+
+**Known limits** (BACKLOG): "becomes the target of a spell" (Gargos, Bonecrusher Giant, Fblthp)
+needs the targeting event to say whether the targeting object is a spell, not TARGETS; "a spell that
+targets you" (Cerulean Drake, Psychic Rebuttal) needs a filter that names a player; Luminous
+Rebuke's "costs {3} less if it targets a tapped creature" is priced before targets are chosen;
+"more creatures than you" sums all opponents at three seats (D31's population, BACKLOG); an
+opponent's "N or less" has no form.

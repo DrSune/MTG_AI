@@ -5,6 +5,18 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-17 (the one quantity comparison; TARGETS, QDistinct and zone counts made general: ontology R12 = KNOWLEDGE/2026-11-17/210 I1 + I9 + I0, pending gate round 12; DESIGN_ATOM_ONTOLOGY §16; branch `worktree-agent-a6b3b1412af16b3da` on 30736aba)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| IR vocabulary | FAtomPred **57 -> 44** (15 out: the 14 threshold predicates and TARGETS_SOURCE; QTY_GE and TARGETS in), QPropField 12 -> 11, Verb 51 -> 49, Keyword 23 -> 20, ThisTurnKind 3 -> 1; QDistinctColorCount -> QDistinct; `FAtom.right_inner_filter` out, `field` and `quantity` in | `len(at.FAtomPred)` etc. on both | 210 estimated -11 + 1 for I1 and -4 + 2 for I9 |
+| the round's nodes, 19 sets, records applied | **116 trees** hold one, 0 verified: QTY_GE field 46 trees (POWER 30, MANA_VALUE 13, COLOR 2, TOUGHNESS 1; 16 the FNot form), quantity 68 (QCount 55, who OPPONENT 4 of them, party 5, life 7, QDistinct 1); TARGETS 12 (2 with a filter); QDistinct 5 | `.venv/bin/python reports/quantity_comparison_2026-11-17/census.py <checkout>` | `census.txt` |
+| trees changed, 19 sets | **104** compiler trees, **117** with records applied (M21 32, M20 17, FDN 16, ZNR 16, THB 8, WAR 7, ELD 6, ORI 4, IKO 3, M13 2, M15 2, DOM, M11, M14, M19 1); the fold alone equals the base tree translated for all of them; **22 cards newly whole**, none lost | `reports/quantity_comparison_2026-11-17/tree_dump.py <checkout> <out>` on a `git archive` of 30736aba and on the branch, `tree_diff.py <base> <branch>` | `blast_radius.txt` |
+| verified stamps that still match | M21 **275 -> 245**, M20 **277 -> 262**, FDN **190 -> 181**, ELD 14 -> 13, ORI 24 -> 23, WAR 22 -> 20: **58 out (53 home, 5 reprint stamps), 0 in** | same | 210 predicted 53 + 5; listed in BACKLOG "Re-verify the cards ontology round R12 re-baked" |
+| 300 seeded heuristic games, verified pools | **300/300 identical replay digests, journal dumps and raw event logs** (100 each, M21, M20, FDN; 245, 262, 181 deckable on both sides), 0 crashes either side | `reports/quantity_comparison_2026-11-17/replay.py <checkout> trees_base.json trees_branch.json 100 <out>` on both, `replay_compare.py` | `replay.txt` |
+| old networks on the branch | base checkpoint over 1,090 cards: refresh rebuilds **53 rows**, appends **7 tokens at zero**, leaves **15 old tokens unread**; on 64 decisions of six games: encodings, tokens, logits and value **bitwise equal** | `reports/quantity_comparison_2026-11-17/old_net_decks.py`, `old_net_base.py`, `old_net_branch.py` | `old_net.txt` |
+| the round's tests and packs on the base | the two test modules (47 + 16) fail to collect on 30736aba (the comparison does not exist there); the departed-power reading fails there by behaviour (a pumped 4/2 that dies read at 2); 2 of the 4 packs fail (the two negative packs pass on both) | `pytest MTG_bot/core/test_executor_quantity_comparison.py MTG_bot/core/compiler/test_templates_r12.py`; `run_packs.py` on both | 51 existing test files rewritten to the new forms |
+
 ## 2026-11-14 (the cost twins: CostExile and CostRemoveCounter, ledger F3 ruled not a fusion; ontology R11, gate round 11 FIX-THEN-GO, fixed 2026-11-17; DESIGN_ATOM_ONTOLOGY §15; branch `worktree-agent-ab5f3aadf2f65ed6e` on 1d5e4164, main 1db792e1 and 4da972f1 merged)
 
 | Number | Value | Command | Notes |

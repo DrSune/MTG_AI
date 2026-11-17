@@ -4,9 +4,236 @@
  "oracle_id": "3f4e300a-ec5c-42f3-a97b-d58e62abe22b",
  "name": "Season of Growth",
  "text_sha": "173ba2a3473b96ca27e2bcb5fd28f14b798cb9d79ebedbc909fff90b0881d74f",
- "needs_atom": {
-  "missing": "s3 'Whenever you cast a spell that targets a creature you control, draw a card.': no CastSpellEvent filter predicate tests a spell's chosen targets against a filter (TARGETS_SOURCE only tests the source object). A TargetingEvent(filter creature you control) is not equivalent: it fires once per targeted creature (a spell with two such targets would draw two) and for abilities and copies, stronger than printed. s1 'Whenever a creature you control enters, scry 1.' maps (ZoneChangeEvent subject FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature), SCRY 1).",
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "SCRY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TARGETS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": {
+       "tag": "FAnd",
+       "children": [
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "CONTROLLER_IS"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         },
+         "inner_filter": null
+        },
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "TYPE_EQ"
+         },
+         "string_value": "Creature",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ]
+      }
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = []\nabilities = [\n    # [0] Whenever a creature you control enters, scry 1.\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAnd(children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            )),\n        ),\n        condition=None,\n        effect=A(Verb.SCRY, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n    ),\n    # [1] Whenever you cast a spell that targets a creature you control, draw a card.\n    TriggeredAbility(\n        event=CastSpellEvent(\n            filter=FAtom(\n                pred=FAtomPred.TARGETS,\n                inner_filter=FAnd(children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                )),\n            ),\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=None,\n        effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.ENCHANTMENT),\n]\n",
+  "clauses": [
+   {
+    "clause": "Whenever a creature you control enters, scry 1.",
+    "ir": "abilities[0]: ZoneChangeEvent(to BATTLEFIELD YOU, subject FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature)), SCRY count 1"
+   },
+   {
+    "clause": "Whenever you cast a spell that targets a creature you control, draw a card.",
+    "ir": "abilities[1]: CastSpellEvent(filter TARGETS(FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature)), actor CONTROLLER_IS YOU), DRAW 1: one trigger per spell however many of its targets are yours (CR 115.1, 601.2c)"
+   },
+   {
+    "clause": "(cast)",
+    "ir": "abilities[2]: SpellAbility ENCHANTMENT"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Ontology round R12: the needs_atom note (no predicate tests a cast spell's targets against a filter) is met by TARGETS(filter); mapped, waits for verification."
+ },
+ "probe": {
+  "sha": "44eb459e2867d7d44e331a0247e41897157d0c7f6136bd94b61dd8e275d0e4f4"
  }
 }

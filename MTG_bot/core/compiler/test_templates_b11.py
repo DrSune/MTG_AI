@@ -18,8 +18,10 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     QConst,
+    QPropField,
     Selector,
     Verb,
+    at_most,
     walk,
 )
 from MTG_bot.core.compiler.compiler import compile_card
@@ -106,7 +108,7 @@ def test_the_noun_phrase_composes(registry) -> None:
     b = _filter_of(_one(registry, "Exile target creature with flying an opponent controls."))
     assert a == b
     power = _filter_of(_one(registry, "Destroy target creature with power 3 or less."))
-    assert FAtom(pred=FAtomPred.POWER_LE, count=QConst(3)) in power.children
+    assert at_most(3, field=QPropField.POWER) in power.children
 
 
 def test_a_phrase_outside_the_grammar_is_left_unparsed(registry) -> None:

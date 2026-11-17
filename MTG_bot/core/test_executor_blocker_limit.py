@@ -26,6 +26,7 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     QAtLeast,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     StaticAbility,
@@ -33,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
     from_dict,
     to_dict,
 )
@@ -46,7 +48,7 @@ SELF = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(Zone(ZoneKind.
 BIG_ONES = FAnd(
     (
         FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-        FAtom(FAtomPred.POWER_GE, count=QConst(4)),
+        at_least(4, field=QPropField.POWER),
         FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
     )
 )

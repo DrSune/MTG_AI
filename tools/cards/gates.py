@@ -87,8 +87,8 @@ _NUM_WORDS = {w: i for i, w in enumerate(
     ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"))}
 
 # CR 207.2c: ability words have no rules meaning, so a tree has nothing to show for them (the
-# ability itself is checked like any other clause). MTGJSON lists them with the keywords, and the
-# Keyword enum carries one (BATTALION); spelled as G0 normalises MTGJSON keywords.
+# ability itself is checked like any other clause). MTGJSON lists them with the keywords; spelled
+# as G0 normalises MTGJSON keywords.
 ABILITY_WORDS = frozenset(w.upper().replace(" ", "_") for w in (
     "adamant", "addendum", "alliance", "battalion", "bloodrush", "celebration", "channel", "chroma",
     "cohort", "constellation", "converge", "council's dilemma", "coven", "delirium", "descend 4",
@@ -98,6 +98,10 @@ ABILITY_WORDS = frozenset(w.upper().replace(" ", "_") for w in (
     "morbid", "pack tactics", "paradox", "parley", "radiance", "raid", "rally", "revolt",
     "secret council", "spell mastery", "strive", "survival", "sweep", "tempting offer", "threshold",
     "underdog", "undergrowth", "valiant", "will of the council"))
+# CR 701.22, 701.17: keyword actions MTGJSON lists with the keywords that have no Keyword member
+# (ontology round R12): the tree performs them as its verb (SCRY) or as the merged MOVE whose
+# journal_kind names them (MILL, verbs.py _v_move_zone), and G0 demands that as it demands a keyword.
+KEYWORD_ACTIONS = frozenset({"SCRY", "MILL"})
 
 
 # ----------------------------------------------------------------------------- G0
@@ -161,17 +165,18 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords} - ABILITY_WORDS
     tree_kw = {k.keyword.name for k in card.keywords} | {
         n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
-    # Keyword actions the compiler writes as their verb (scry, mill, fight exist as both a Verb and
-    # a Keyword): the verb in the tree satisfies the printed keyword.
+    # Keyword actions the compiler writes as their verb (scry; fight is both a Verb and a Keyword):
+    # the verb in the tree satisfies the printed keyword.
     tree_kw |= {n.verb.name for n in walk(card) if isinstance(n, Atom)}
     # ... or as the merged MOVE atom, whose journal_kind slot names the keyword action it
     # performs: the mill shape writes "MILL" (verbs.py _v_move_zone), so it satisfies "Mill".
     tree_kw |= {str(n.args.get("journal_kind")) for n in walk(card)
-                if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & set(Keyword.__members__)
-    unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
+                if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & KEYWORD_ACTIONS
+    demanded = set(Keyword.__members__) | KEYWORD_ACTIONS
+    unknown = sorted(k for k in printed_kw - tree_kw if k in demanded)
     if unknown:
         fails.append(f"MTGJSON keywords missing from the tree: {unknown}")
-    absent = sorted(k for k in printed_kw - tree_kw if k not in Keyword.__members__)
+    absent = sorted(k for k in printed_kw - tree_kw if k not in demanded)
     if absent:
         warns.append(f"MTGJSON keywords with no Keyword atom (check how the tree expresses them): {absent}")
     if not _engine_supported(card, set(SUPPORTED_VERBS_V2)):
@@ -606,8 +611,6 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         # - the merged MOVE atom's mill shape (pop_order TOP) and discard shape (from HAND) move the
         #   cards of the `controller` role's player: `from` and `destination` are read for their
         #   kind only (verbs.py _v_move_zone), so their controller fields are dead;
-        # - ZONE_COUNT_GE counts the zone of its `who` players; the zone's controller is never read
-        #   (quantity.py, ZONE_COUNT_GE: "reading WHO is the whole answer");
         # - a REST partition is the complement of the ONE_OF pick, its count is never read
         #   (selectors.py REST branch, query.py "count ignored (like ALL)", verbs.py partition lane);
         # - a CHOOSE over the one zone Zone(PLAYER, YOU) has one player to pick, so every count >= 1
@@ -617,8 +620,6 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 node.args.get("pop_order") == "TOP"
                 or getattr(node.args.get("from"), "kind", None) is ZoneKind.HAND):
             dead |= {(*path, "args", "from", "controller"), (*path, "args", "destination", "controller")}
-        if isinstance(node, FAtom) and node.pred is FAtomPred.ZONE_COUNT_GE:
-            dead.add((*path, "zone", "controller"))
         if isinstance(node, Selector) and node.referent is None and (
                 node.mode is SelectorMode.REST
                 or node.mode is SelectorMode.CHOOSE and len(node.zones) == 1

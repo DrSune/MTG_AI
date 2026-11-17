@@ -97,8 +97,14 @@ def _steward_activated() -> at.ActivatedAbility:
 
 
 def _life_lead() -> at.FAtom:
-    """A "you've gained 7 life more than you started with" style gate."""
-    return at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE, count=at.QConst(7))
+    """A "you've gained 7 life more than you started with" style gate: since round R12 the
+    comparison of your life with your starting life total plus 7 (ledger F11)."""
+    return at.at_least(
+        at.QBin(
+            at.QBinOp.ADD, at.QProp("controller", at.QPropField.STARTING_LIFE), at.QConst(7)
+        ),
+        quantity=at.QProp("controller", at.QPropField.LIFE),
+    )
 
 
 def _vodalian_policy() -> at.Atom:
@@ -157,7 +163,7 @@ def _subira_delay() -> at.DelayedTrigger:
 
 def _orrery_draw() -> at.Atom:
     """Orrery's "Draw a card for each color among permanents you
-    control" — DRAW counts through QDistinctColorCount."""
+    control" — DRAW counts through QDistinct over COLOR."""
     return at.Atom(
         at.Verb.DRAW,
         at.AtomArgs(
@@ -165,10 +171,11 @@ def _orrery_draw() -> at.Atom:
                 ("controller", at.ControllerRef.YOU),
                 (
                     "amount",
-                    at.QDistinctColorCount(
+                    at.QDistinct(
                         at.Selector(
                             at.QUnbounded(), at.SelectorMode.ALL, _PERMANENT, zones=(_BF_YOU,)
-                        )
+                        ),
+                        at.QPropField.COLOR,
                     ),
                 ),
             )
@@ -213,7 +220,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "life_lead",
         _life_lead,
-        "6aac79f21924e679f3744d5f5cb1e114b50967b37238a37c432d7eff07ecf1de",
+        "9d058996c56b103e772559fd076ab9a111e6c29b4dbe83b3ed68cfedc0d0d985",  # re-pinned by round R12
     ),
     (
         "vodalian_policy",
@@ -243,7 +250,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "orrery_draw",
         _orrery_draw,
-        "e0a155e3be6966390d01c8ee6bcb8e19e26e1b232170dfbba196cdf8a0c38cca",
+        "b63fe34d07d0aa840b49a121c69b84d3fc3f93fae0bd485e0b251c211a3e0eda",  # re-pinned by round R12
     ),
     (
         "teferi_grant",
@@ -282,8 +289,13 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     ),
     # The count-only rule rejects any other slot.
     (
-        "life_lead_extra_slot",
-        lambda: at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE, string_value="seven"),
+        "comparison_extra_slot",
+        lambda: at.FAtom(
+            at.FAtomPred.QTY_GE,
+            count=at.QConst(7),
+            quantity=at.QProp("controller", at.QPropField.LIFE),
+            string_value="seven",
+        ),
     ),
     # The scope vocabulary stays closed.
     (
@@ -373,8 +385,15 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
     ),
     # The counted population must be a Selector.
     (
-        "distinct_cc_not_selector",
-        lambda: at.QDistinctColorCount(_CREATURE),  # type: ignore[arg-type]
+        "distinct_not_selector",
+        lambda: at.QDistinct(_CREATURE, at.QPropField.COLOR),  # type: ignore[arg-type]
+    ),
+    (
+        "distinct_power_is_no_distinct_field",
+        lambda: at.QDistinct(
+            at.Selector(at.QUnbounded(), at.SelectorMode.ALL, _PERMANENT, zones=(_BF_YOU,)),
+            at.QPropField.POWER,
+        ),
     ),
     # filter REQUIRED on GRANT_ACTIVATION; window must be an
     # ActivationWindow.
@@ -474,16 +493,10 @@ def test_timing_key_shape_and_roundtrip() -> None:
 
 
 def test_life_lead_bare_count_builds_and_roundtrips() -> None:
-    """FAtom required-slot enforcement excludes "count" (as for
-    ZONE_COUNT_GE): the bare predicate builds; the pinned count
-    round-trips."""
-    bare = at.FAtom(at.FAtomPred.LIFE_LEAD_OVER_START_GE)
-    d = at.to_dict(bare)
-    assert isinstance(d, dict) and d.get("pred") == {
-        "tag": "FAtomPred",
-        "name": "LIFE_LEAD_OVER_START_GE",
-    }
-    assert at.from_dict(d["tag"], d) == bare
+    """The comparison requires its threshold (round R12; the old count-only predicate built
+    bare): a bare one is refused; the pinned gate round-trips."""
+    with pytest.raises(ValueError, match="requires slot 'count'"):
+        at.FAtom(at.FAtomPred.QTY_GE, quantity=at.QProp("controller", at.QPropField.LIFE))
     full = at.to_dict(_life_lead())
     assert isinstance(full, dict)
     assert at.from_dict(full["tag"], full) == _life_lead()
@@ -540,17 +553,17 @@ def test_mana_policy_scope_vocab() -> None:
 
 def test_r10_table_members() -> None:
     assert "ActivationWindow" in at._ENUMS
-    assert at.QDistinctColorCount in at._DATACLASSES
+    assert at.QDistinct in at._DATACLASSES
     assert at.DurationUntilNextStep in at._DATACLASSES
     assert at.DelayedTrigger in at._DATACLASSES
-    assert "QDistinctColorCount" in at._QUANTITY_TAGS
+    assert "QDistinct" in at._QUANTITY_TAGS
     assert "DurationUntilNextStep" in at._DURATION_TAGS
     assert "DelayedTrigger" in at._EFFECT_TAGS
     # the union tag literals that make embedded enum pairs decode
     assert "Step" in at._ATOM_VALUE_TAGS and "ActivationWindow" in at._ATOM_VALUE_TAGS
-    # LIFE_LEAD_OVER_START_GE rule row: count-only, both sides
-    req, opt = at._FATOM_RULES[at.FAtomPred.LIFE_LEAD_OVER_START_GE]
-    assert req == frozenset({"count"}) and opt == frozenset({"count"})
+    # the comparison's rule row: count required, one side and who allowed
+    req, opt = at._FATOM_RULES[at.FAtomPred.QTY_GE]
+    assert req == frozenset({"count"}) and opt == frozenset({"count", "field", "quantity", "who"})
     # role types
     assert at._ROLE_TYPES["filter"] == at._F_CLASSES
     assert at._ROLE_TYPES["step"] == (at.Step,)

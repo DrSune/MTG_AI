@@ -63,7 +63,6 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
-    FAtomPred,
     Filter,
     FNot,
     FOr,
@@ -77,6 +76,8 @@ from MTG_bot.core.ability_tree import (
     Step,
     TriggeredAbility,
     Verb,
+    at_least,
+    number_you_control,
 )
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
@@ -168,8 +169,8 @@ def _static_while_duration(atoms: list[Atom] | tuple[Atom, ...]) -> Duration | N
     IT has a counter", Sigiled Contender's HAS_COUNTER); an FAnd COMPOUND
     (TYPE/SUBTYPE/CONTROLLER_IS conjuncts) reads as existence — some
     battlefield permanent under ctx.controller matches the conjunct — and
-    is re-encoded as CONTROLLER_COUNT_GE 1 over it, the corpus's own
-    existence mechanism. FOr/FNot composites have no precedent for the
+    is re-encoded as the comparison "you control one or more of them"
+    (QTY_GE 1 over the count), the corpus's own existence mechanism. FOr/FNot composites have no precedent for the
     existence-vs-source reading, and two atoms of one record DISAGREEING
     about the gate have no honest reading either: both are flagged "not
     layer-parseable", never guessed (attach_source skips such a static and
@@ -192,13 +193,9 @@ def _static_while_duration(atoms: list[Atom] | tuple[Atom, ...]) -> Duration | N
             )
         if isinstance(cond, FAnd) and not _is_universal(cond):
             # Existence reading of the candidate-shape conjunct through the
-            # ONE executed counting atom (handle-free, per-candidate
-            # inner_filter under the layer's controller — quantity.py).
-            cond = FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                count=QConst(1),
-                inner_filter=cond,
-            )
+            # one comparison: you control one or more permanents it passes
+            # (handle-free, read under the layer's controller — quantity.py).
+            cond = at_least(1, quantity=number_you_control(cond))
             dur = DurationWhileCondition(filter=cond)
         if found is not None and dur != found:
             raise NotImplementedError(
@@ -1148,8 +1145,8 @@ class LayerRegistry:
     def holders(self, keyword) -> tuple[Handle, ...]:
         """Every card currently carrying the keyword (printed ∪ granted,
         minus live losses), Handle-sorted. ``keyword_of`` answers one
-        handle; the binder's keyword-trigger drain (PROWESS, BATTALION)
-        needs the POPULATION — the same oracle, inverted."""
+        handle; the binder's keyword-trigger drain (PROWESS) needs the
+        POPULATION — the same oracle, inverted."""
         name = _keyword_name(keyword)
         return tuple(
             handle

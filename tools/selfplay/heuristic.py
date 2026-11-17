@@ -82,7 +82,7 @@ from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZON
 from tools.selfplay.features import _handle, ir_tokens
 
 HARM_VERBS = {
-    "Verb.DEAL_DAMAGE", "Verb.DESTROY", "Verb.EXILE", "Verb.TAP", "Verb.MILL", "Verb.LOSE_LIFE",
+    "Verb.DEAL_DAMAGE", "Verb.DESTROY", "Verb.TAP", "Verb.LOSE_LIFE",
     "Verb.COUNTER_SPELL", "Verb.SACRIFICE", "Verb.DISCARD", "Verb.GAIN_CONTROL", "Verb.FIGHT",
     "Verb.MOVE_ZONE", "Verb.REMOVE_COUNTER",
 }
@@ -282,7 +282,7 @@ class HeuristicAgent:
 
     def _removal(self, rows: list, prefer: set) -> int | None:
         """Removal: a harmful card that destroys, damages, exiles, bounces or shrinks."""
-        kill = {"Verb.DESTROY", "Verb.DEAL_DAMAGE", "Verb.EXILE", "Verb.MOVE_ZONE"}
+        kill = {"Verb.DESTROY", "Verb.DEAL_DAMAGE", "Verb.MOVE_ZONE"}
         return self._first(rows, lambda h, toks: _harms(toks) and "Verb.COUNTER_SPELL" not in toks
                            and bool(toks & kill or "PtDirection.DECREASE" in toks), prefer)
 

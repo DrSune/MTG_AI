@@ -429,9 +429,8 @@ class TriggerBinder:
         # group or atom batch collapses the row fan-out (a once-per-occurrence
         # trigger takes every row it matches).
         self._gathered_queued: set[tuple[Handle, int, str, int]] = set()
-        # Cached synthetic keyword-trigger nodes, keyed (family, holder):
-        # ONE node object per (family, handle).
-        self._kw_nodes: dict[tuple[str, Handle], TriggeredAbility] = {}
+        # Cached synthetic prowess-trigger nodes: ONE node object per holder.
+        self._kw_nodes: dict[Handle, TriggeredAbility] = {}
         # True while the triggers that do not look back are matched (CR 603.10): only then
         # are the layers brought up to date (:meth:`_layers_now`) and a departed object read as
         # it is right after its event (``ExecCtx.after_event``).
@@ -825,28 +824,19 @@ class TriggerBinder:
                     and self._match_node(node.event, event, host, controller(host))
                 ):
                     self._queue(host, controller(host), node, event)
-        if not look_back and event.kind in (KIND_CAST, KIND_DECLARE_ATTACKERS):
-            # KEYWORD triggers (PROWESS / BATTALION: a cast, a declaration). The compiler
-            # folds printed keywords into CardRecord.keywords with NO
-            # ability row (Blood Glutton compiles with an EMPTY abilities
-            # tuple), so the engine constructs the canonical node itself —
-            # EPHEMERAL IR construction: the frozen serialised IR and the
-            # goldens on disk are untouched. Order: family, then the
-            # registry's Handle-sorted holder list.
+        if not look_back and event.kind == KIND_CAST:
+            # The KEYWORD trigger PROWESS (a cast). The compiler folds printed keywords into
+            # CardRecord.keywords with NO ability row (Blood Glutton compiles with an EMPTY
+            # abilities tuple), so the engine constructs the canonical node itself — EPHEMERAL
+            # IR construction: the frozen serialised IR and the goldens on disk are untouched.
+            # Order: the registry's Handle-sorted holder list.
             self._layers_now()
-            for family in ("PROWESS", "BATTALION"):
-                for host in layers.holders(Keyword[family]):
-                    if (
-                        host not in self.world.cards
-                        or self.world.zone_of(host).kind != ZONE_BATTLEFIELD
-                    ):
-                        continue
-                    node = self._keyword_node(family, host)
-                    ctrl = controller(host)
-                    if not self._match_node(node.event, event, host, ctrl):
-                        continue
-                    if family == "BATTALION" and self._group_size(event) < 3:
-                        continue  # CR 508.2: a group of at least three
+            for host in layers.holders(Keyword.PROWESS):
+                if host not in self.world.cards or self.world.zone_of(host).kind != ZONE_BATTLEFIELD:
+                    continue
+                node = self._keyword_node(host)
+                ctrl = controller(host)
+                if self._match_node(node.event, event, host, ctrl):
                     self._queue(host, ctrl, node, event)
         for entry in list(self.delayed):
             if looks_back(entry.node.event, event) is look_back and self._match_node(
@@ -1082,18 +1072,14 @@ class TriggerBinder:
             if eval_filter(ability.event.filter, payload.source, ctx):
                 self._queue(handle, ctrl, ability, synth)
 
-    def _keyword_node(self, family: str, handle: Handle) -> TriggeredAbility:
-        """The canonical compiled-shape node for a printed keyword
-        trigger, built ONCE per (family, holder) and cached. The
-        shapes mirror the frozen-IR precedent (Quirion Dryad's compiled
-        cast-trigger is exactly prowess minus the type exclusion):
-        PROWESS  — "whenever you cast a noncreature spell" → +1/+1 until
-        end of turn (PtDelta lanes, DurationEot sweep);
-        BATTALION — "whenever this creature attacks alone-or-not" gated
-        at the queue site on the CR 508.2 group-of-three → a +1/+1
-        counter (the Dryad's PUT_COUNTER shape)."""
-        key = (family, handle)
-        node = self._kw_nodes.get(key)
+    def _keyword_node(self, handle: Handle) -> TriggeredAbility:
+        """The canonical compiled-shape node for a printed prowess trigger (CR 702.108a),
+        built ONCE per holder and cached. The shape mirrors the frozen-IR precedent (Quirion
+        Dryad's compiled cast-trigger is exactly prowess minus the type exclusion): "whenever
+        you cast a noncreature spell" → +1/+1 until end of turn (PtDelta lanes, DurationEot
+        sweep). Battalion is an ability word (CR 207.2c), its trigger printed and compiled
+        (Makeshift Battalion), never a keyword the engine expands."""
+        node = self._kw_nodes.get(handle)
         if node is not None:
             return node
         target = Selector(
@@ -1102,68 +1088,40 @@ class TriggerBinder:
             filter=FAtom(pred=FAtomPred.IS_SOURCE),
             zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
         )
-        if family == "PROWESS":
-            node = TriggeredAbility(
-                event=CastSpellEvent(
-                    filter=FNot(
-                        inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
-                    ),
-                    actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        node = TriggeredAbility(
+            event=CastSpellEvent(
+                filter=FNot(
+                    inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
                 ),
-                condition=None,
-                effect=Atom(
-                    verb=Verb.MODIFY_PT,
-                    args=AtomArgs(
-                        pairs=(
-                            (
-                                "power",
-                                PtDelta(
-                                    direction=PtDirection.INCREASE,
-                                    magnitude=QConst(1),
-                                ),
+                actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+            ),
+            condition=None,
+            effect=Atom(
+                verb=Verb.MODIFY_PT,
+                args=AtomArgs(
+                    pairs=(
+                        (
+                            "power",
+                            PtDelta(
+                                direction=PtDirection.INCREASE,
+                                magnitude=QConst(1),
                             ),
-                            (
-                                "toughness",
-                                PtDelta(
-                                    direction=PtDirection.INCREASE,
-                                    magnitude=QConst(1),
-                                ),
+                        ),
+                        (
+                            "toughness",
+                            PtDelta(
+                                direction=PtDirection.INCREASE,
+                                magnitude=QConst(1),
                             ),
-                            ("duration", DurationEot()),
-                            ("target", target),
-                        )
-                    ),
+                        ),
+                        ("duration", DurationEot()),
+                        ("target", target),
+                    )
                 ),
-            )
-        else:  # BATTALION
-            node = TriggeredAbility(
-                event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),
-                condition=None,
-                effect=Atom(
-                    verb=Verb.PUT_COUNTER,
-                    args=AtomArgs(
-                        pairs=(
-                            ("count", QConst(1)),
-                            ("counter_kind", CounterKind.PLUS_1_PLUS_1),
-                            ("target", target),
-                        )
-                    ),
-                ),
-            )
-        self._kw_nodes[key] = node
-        return node
-
-    def _group_size(self, event: GameEvent) -> int:
-        """CR 508.2 population for the BATTALION gate: how many attackers
-        share this DECLARE_ATTACKERS row's declaration group. The declare
-        step journalled EVERY row inside one atom boundary, so the whole
-        declaration is already in the journal when the drain first sees
-        any row of it — a pure journal read, no executor side-state."""
-        return sum(
-            1
-            for other in self.executor.journal.events
-            if other.kind == KIND_DECLARE_ATTACKERS and other.data == event.data
+            ),
         )
+        self._kw_nodes[handle] = node
+        return node
 
     def _match_node(
         self, node: EventSpec, event: GameEvent, source: Handle, controller: Handle
@@ -1359,19 +1317,8 @@ class TriggerBinder:
         ):
             return False
         assert event.subject is not None  # the CAST row names the spell card
-        # Gnarlback Rhino ("whenever you cast a spell that targets this
-        # creature"): TARGETS_SOURCE asks whether the judged spell targets the filter's
-        # source, and reads the ``target`` binding (quantity._eval_atom). This ctx is the
-        # trigger's own, which binds no target, so the cast spell's
-        # declared targets (its stack frame, CR 601.2c) are bound here.
-        ctx.bindings["target"] = next(
-            (
-                list(frame.declared_targets)
-                for frame in self.executor.stack.frames
-                if frame.handle == event.subject
-            ),
-            [],
-        )
+        # Gnarlback Rhino ("whenever you cast a spell that targets this creature"): TARGETS
+        # reads the judged spell's own designation, its stack frame's (quantity._targets_of).
         return eval_filter(node.filter, event.subject, ctx)
 
     def _fitting_cast_ordinal(

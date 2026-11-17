@@ -36,6 +36,10 @@ def namespace() -> dict[str, Any]:
         and (dataclasses.is_dataclass(obj) or issubclass(obj, enum.Enum))
     }
     ns["A"] = A
+    # The comparison's builders (ontology round R12): "N or more", "N or less" as the one negated
+    # form, and the two count forms, so a draft cannot spell a second encoding of them.
+    for builder in (at.at_least, at.at_most, at.number_you_control, at.number_in):
+        ns[builder.__name__] = builder
     ns["__builtins__"] = {
         "frozenset": frozenset, "tuple": tuple, "list": list, "dict": dict, "range": range,
         "len": len, "True": True, "False": False, "None": None,

@@ -92,7 +92,6 @@ from MTG_bot.core.identity import LegalityFlags
 # ---------------------------------------------------------------------------
 
 _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
-    "Battalion": Keyword.BATTALION,
     "Deathtouch": Keyword.DEATHTOUCH,
     "Defender": Keyword.DEFENDER,
     "Double strike": Keyword.DOUBLE_STRIKE,
@@ -108,27 +107,23 @@ _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
     "Indestructible": Keyword.INDESTRUCTIBLE,
     "Lifelink": Keyword.LIFELINK,
     "Menace": Keyword.MENACE,
-    "Mill": Keyword.MILL,
     "Protection": Keyword.PROTECTION,
     "Prowess": Keyword.PROWESS,
     "Reach": Keyword.REACH,
-    "Scry": Keyword.SCRY,
     "Trample": Keyword.TRAMPLE,
     "Treasure": Keyword.TREASURE,
     "Vigilance": Keyword.VIGILANCE,
 }
 
-# Keywords whose _KEYWORD_PARAMS signatures all require ≥1 param —
-# cannot be built from a bare identity string alone.
-# KNOWN-GAP: the grammar models all four (Verb.SCRY/MILL/BATTALION carry a
-#   Quantity, Keyword.PROTECTION a Filter); the gap is upstream of it. The
-#   identity keyword pipeline delivers bare strings ("Scry", "Mill") and no
-#   oracle-text extraction feeds _KEYWORD_PARAMS for them, so the compiler
-#   skips them (reported via CompileResult.known_gaps) unless a template
-#   supplies the params. Wiring identity → params is the fix, not new atoms.
-_KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset(
-    {Keyword.SCRY, Keyword.MILL, Keyword.BATTALION, Keyword.PROTECTION}
-)
+# Keywords whose _KEYWORD_PARAMS signatures all require a param (PROTECTION's Filter): not built
+# from a bare identity string; a template supplies the param from the face's sentence
+# (reported via CompileResult.known_gaps).
+_KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset({Keyword.PROTECTION})
+#: MTGJSON keyword strings that name no keyword ability: the keyword actions scry and mill (CR
+#: 701.22, 701.17; their sentences compile to Verb.SCRY and a MOVE_ZONE mill) and the ability
+#: word battalion (CR 207.2c: no rules meaning; the trigger is its sentence). The bare string
+#: builds nothing (reported via CompileResult.known_gaps).
+_KEYWORD_ACTION_STRINGS: frozenset[str] = frozenset({"Battalion", "Mill", "Scry"})
 
 # ---------------------------------------------------------------------------
 # Continuation prefixes: a sentence starting with one continues the previous
@@ -592,7 +587,7 @@ def parse_pt(raw: str | None) -> QConst | QX | None:
 # Local bucket classifier for unparsed sentences.
 # ---------------------------------------------------------------------------
 
-_KEYWORD_WORDS: frozenset[str] = frozenset(kw for kw in _KEYWORD_STRING_TO_ENUM)
+_KEYWORD_WORDS: frozenset[str] = frozenset(_KEYWORD_STRING_TO_ENUM) | _KEYWORD_ACTION_STRINGS
 _TRIGGER_PREFIXES: tuple[str, ...] = (
     "When ",
     "Whenever ",
@@ -2121,6 +2116,12 @@ def compile_card(
     bare_keywords = _build_bare_keywords(raw)
     # KNOWN-GAP: report unbuildable keywords
     for kw_str in raw.keywords:
+        if kw_str in _KEYWORD_ACTION_STRINGS:
+            known_gaps.append(
+                f"keyword {kw_str!r}: a keyword action or ability word, compiled from its "
+                "sentence, never from the keyword list"
+            )
+            continue
         kw_enum = _KEYWORD_STRING_TO_ENUM.get(kw_str)
         if kw_enum is None:
             continue

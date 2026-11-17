@@ -167,7 +167,8 @@ def test_g0_ignores_ability_words_but_not_keywords() -> None:
     bat = _card("Makeshift Battalion")
     raw = _raw()[_oid("Makeshift Battalion")]
     assert raw.keywords == ("Battalion",) or list(raw.keywords) == ["Battalion"]
-    assert "BATTALION" in Keyword.__members__ and "BATTALION" in gates.ABILITY_WORDS
+    # an ability word (CR 207.2c), with no Keyword member since ontology round R12
+    assert "BATTALION" not in Keyword.__members__ and "BATTALION" in gates.ABILITY_WORDS
     fails, warns = gates.g0(raw, bat, bat, clauses=None, known_signatures=None)
     assert not fails and not any("BATTALION" in w for w in warns)
     # a real keyword dropped from a tree still fails
@@ -223,12 +224,18 @@ def test_discard_shape_from_and_destination_controllers_are_dead() -> None:
         assert _game(pack, _mutant(rain, where, ControllerRef.OPPONENT)) == real, where
 
 
-def test_zone_count_ge_zone_controller_is_dead() -> None:
+def test_an_opponents_graveyard_count_has_one_encoding() -> None:
+    # "an opponent has eight or more cards in their graveyard" (ontology round R12): the count of
+    # "your" graveyard read for each opponent in turn. Its who and its zone's controller have no
+    # other legal value (who YOU would be a second "you", another zone a count no player owns), so
+    # G3 offers no mutant there and the validator refuses one written by hand.
     tge = _card("Thieves' Guild Enforcer")
-    where = "1/1/condition/zone/controller"
-    assert ("controller OPPONENT->YOU", where) not in _where(tge)
-    assert ("controller OPPONENT->YOU", "1/1/condition/who") in _where(tge)  # whose graveyard: live
-    mutant = _mutant(tge, where, ControllerRef.YOU)
+    offered = {where for _op, where in _where(tge) if where.startswith("1/1/condition")}
+    assert offered == {"1/1/condition/count"}
+    for where, new in (("1/1/condition/who", ControllerRef.YOU),
+                       ("1/1/condition/quantity/selector/zones/0/controller", ControllerRef.OPPONENT)):
+        with pytest.raises(ValueError, match="who"):
+            _mutant(tge, where, new)
     for full in (0, 1):  # eight cards in your graveyard only, then in the opponent's only
         gy = [{"key": f"g{i}", "name": f"Dead {i}", "type": "Sorcery", "zone": "graveyard", "controller": full}
               for i in range(8)]
@@ -237,7 +244,6 @@ def test_zone_count_ge_zone_controller_is_dead() -> None:
         real = _game(pack)
         enforcer = next(o for o in real[0].values() if o[0] == "Thieves' Guild Enforcer")
         assert enforcer[5] == ((3, 2) if full == 1 else (1, 1))
-        assert _game(pack, mutant) == real
 
 
 WAKER_REST = "1/1/effect/steps/1/steps/1/args/cards/count"

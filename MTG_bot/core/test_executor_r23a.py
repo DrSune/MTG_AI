@@ -1,8 +1,8 @@
 """Targeting reads, activation player slots, the may-offer CAST gate, and color counts.
 
-* TARGETS_SOURCE (quantity.py) — the Pursued Whale cost-fold filter
-  "spells that target this creature" reads the judge's designation
-  (the mirror of IS_ANY_TARGET). Pinned at the filter level below; the
+* TARGETS over IS_SOURCE (quantity.py; round R12 made TARGETS_SOURCE general) — the
+  Pursued Whale cost-fold filter "spells that target this creature" reads the judge's
+  designation (the mirror of IS_ANY_TARGET). Pinned at the filter level below; the
   end-to-end fold (Titanic Growth costs {3} more targeting the enemy 8/8)
   is the ``targets_source_cost_fold`` pack.
 * Event register at designation (binding.py ``_designate``) — the trigger
@@ -11,8 +11,8 @@
   prompts) enumerates its bound object instead of raising "no register".
 * The TARGET_PLAYER activation slots, the may-offer CAST gate and the
   GAIN_LIFE guarded static (also the ``rin_seri_static_guard`` pack).
-* COLOR_COUNT_GE (quantity.py ``_eval_atom``): Basri's Lieutenant
-  "protection from multicolored" read by the block gate, and Ugin's "-X:
+* The comparison of the number of colours (quantity.py ``_characteristic``): Basri's
+  Lieutenant "protection from multicolored" read by the block gate, and Ugin's "-X:
   each permanent ... that's one or more colors". The subject simply has
   COUNT or more colors, off the same identity data as the
   COLOR_HAS/COLOR_IN twin.
@@ -26,12 +26,14 @@ from MTG_bot.core.ability_tree import (
     FAtomPred,
     OptionalEffect,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     SpellAbility,
     SpellKind,
     StaticAbility,
     Verb,
+    at_least,
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.durations import DurationLedger
@@ -53,6 +55,9 @@ from MTG_bot.core.test_executor_binding import (
     referent_sel,
     reset_oracle_ids,
 )
+
+#: "that target this creature": a target of the judged spell is the filter's source (CR 115.1).
+_TARGETS_THIS = FAtom(FAtomPred.TARGETS, inner_filter=FAtom(FAtomPred.IS_SOURCE))
 
 
 class R23ACase(unittest.TestCase):
@@ -88,25 +93,25 @@ class TestTargetsSourceFold(R23ACase):
         # Pre-601.2d target declaration there is NO designation — the
         # printed cost shows (the honest +{3} lands at payment, where the
         # fold re-runs with bindings).
-        f = FAtom(FAtomPred.TARGETS_SOURCE)
+        f = _TARGETS_THIS
         self.assertFalse(eval_filter(f, self.spell, self._ctx(source=self.whale)))
 
     def test_host_among_bound_targets_is_true(self):
         # The payment-time fold: stack.cast journaled bindings["target"] =
         # the designated objects; the host (Whale) is one of them.
-        f = FAtom(FAtomPred.TARGETS_SOURCE)
+        f = _TARGETS_THIS
         ctx = self._ctx(source=self.whale, bindings={"target": [self.whale]})
         self.assertTrue(eval_filter(f, self.spell, ctx))
 
     def test_other_bound_target_is_false(self):
-        f = FAtom(FAtomPred.TARGETS_SOURCE)
+        f = _TARGETS_THIS
         ctx = self._ctx(source=self.whale, bindings={"target": [self.urn]})
         self.assertFalse(eval_filter(f, self.spell, ctx))
 
     def test_designation_union_mirror_wins_over_bindings(self):
         # The designation channel is the authoritative reading when
         # present (same union IS_ANY_TARGET consults).
-        f = FAtom(FAtomPred.TARGETS_SOURCE)
+        f = _TARGETS_THIS
         ctx = self._ctx(source=self.whale, designation=(self.whale,))
         self.assertTrue(eval_filter(f, self.spell, ctx))
 
@@ -238,13 +243,13 @@ class TestGuardedStaticAttach(R23ACase):
 
 
 class TestColorCountGE(R23ACase):
-    """COLOR_COUNT_GE — the subject simply has COUNT or more colors, read
+    """The number of colours compared — the subject simply has COUNT or more colors, read
     off identity data like the COLOR_HAS/COLOR_IN twin. Basri's Lieutenant's
     "protection from multicolored" (count=2, block gate) and Ugin's "-X:
     exile each permanent ... that's one or more colors" (count=1)."""
 
     def _f(self, n: int) -> FAtom:
-        return FAtom(FAtomPred.COLOR_COUNT_GE, count=QConst(n))
+        return at_least(n, field=QPropField.COLOR)
 
     def test_bicoloured_meets_the_multicoloured_threshold(self):
         gold = self.world.add_card(

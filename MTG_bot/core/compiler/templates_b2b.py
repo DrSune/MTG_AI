@@ -117,6 +117,8 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_least,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -331,18 +333,14 @@ def _creature_power_ge_filter(power: int) -> FAnd:
     return FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.POWER_GE, count=QConst(power)),
+            at_least(power, field=QPropField.POWER),
         )
     )
 
 
 def _you_control_at_least(inner_filter: Filter, count: int) -> FAtom:
     """Set-level condition ``you control N or more`` matching ``inner_filter``."""
-    return FAtom(
-        pred=FAtomPred.CONTROLLER_COUNT_GE,
-        inner_filter=inner_filter,
-        count=QConst(count),
-    )
+    return at_least(count, quantity=number_you_control(inner_filter))
 
 
 def _event_reference() -> Selector:
@@ -508,10 +506,7 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
                                                     pred=FAtomPred.TYPE_EQ,
                                                     string_value="Creature",
                                                 ),
-                                                FAtom(
-                                                    pred=FAtomPred.CMC_GE,
-                                                    count=QConst(n),
-                                                ),
+                                                at_least(n, field=QPropField.MANA_VALUE),
                                             )
                                         ),
                                         zones=(
@@ -1028,7 +1023,7 @@ def _build_garruks_uprising_power_enter(m: re.Match[str]) -> SentenceOutcome:
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+            at_least(n, field=QPropField.POWER),
         )
     )
     return _ability(
@@ -1514,7 +1509,7 @@ def _build_garruks_uprising_etb_condition(m: re.Match[str]) -> SentenceOutcome:
     """ETB, if you control a creature with power N or greater, draw a card.
 
     "a creature" means one or more: count=1, and the power threshold lives
-    only in the inner POWER_GE filter (as for Historian Teferi below).
+    only in the inner power comparison (as for Historian Teferi below).
     """
     n = _n(m, 1)
     return _ability(
@@ -1562,7 +1557,7 @@ def _build_ornery_power_condition_self_boost(m: re.Match[str]) -> SentenceOutcom
     creature gets +P/+T until end of turn.
 
     The clause is an existence claim: count=1, with the threshold N only in
-    the inner POWER_GE filter (as for Garruk's Uprising's ETB above)."""
+    the inner power comparison (as for Garruk's Uprising's ETB above)."""
     n = _n(m, 1)
     power = _n(m, 2)
     toughness = _n(m, 3)

@@ -232,9 +232,8 @@ def filter_bound_player_refs(filter_: object) -> set[ControllerRef]:
             and filter_.who in DESIGNATED_PLAYER_REFS
         ):
             found.add(filter_.who)  # type: ignore[arg-type]
-        for inner in (filter_.inner_filter, filter_.right_inner_filter):
-            if inner is not None:
-                found |= filter_bound_player_refs(inner)
+        if filter_.inner_filter is not None:
+            found |= filter_bound_player_refs(filter_.inner_filter)
         return found
     if isinstance(filter_, (FAnd, FOr)):
         out: set[ControllerRef] = set()

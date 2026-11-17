@@ -8,7 +8,7 @@
   recipient (damage to a planeswalker is not damage to an opponent, CR 118.5).
 * Carrion Grub's "greatest power among creature cards in your graveyard" (QProp POWER MAX over a
   selector) skips a card whose power is undefined (Kinetic Augur's "*"): selector aggregations
-  treat an absent characteristic as no member of the value set, as POWER_LE/GE do. The scalar
+  treat an absent characteristic as no member of the value set, as the power comparison does. The scalar
   read of an undefined power still raises.
 """
 
@@ -245,12 +245,6 @@ class ThisTurnNoncombatDamageTest(BindingCase):
         with self.assertRaises(NotImplementedError) as caught:
             resolve(self._qty(), ctx)
         self.assertIn("journal", str(caught.exception))
-
-    def test_other_turn_kinds_stay_flagged(self):
-        qty = QThisTurn(kind=ThisTurnKind.LIFE_GAINED, referent=ControllerRef.YOU)
-        with self.assertRaises(NotImplementedError) as caught:
-            resolve(qty, self._ctx())
-        self.assertIn("LIFE_GAINED", str(caught.exception))
 
 
 class UndefinedPowerAggregationTest(BindingCase):

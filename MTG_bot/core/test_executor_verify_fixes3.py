@@ -652,16 +652,16 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
 
 
 class TestV29TargetDependentTax(unittest.TestCase):
-    def test_the_tax_detector_reads_targets_source_anywhere_in_a_filter(self):
+    def test_the_tax_detector_reads_targets_anywhere_in_a_filter(self):
         from MTG_bot.core.ability_tree import FAnd, FAtom, FAtomPred, FNot
-        from MTG_bot.core.executor.query import _reads_targets_source
+        from MTG_bot.core.executor.query import _reads_targets
 
-        ts = FAtom(FAtomPred.TARGETS_SOURCE)
-        self.assertTrue(_reads_targets_source(ts))
-        self.assertTrue(_reads_targets_source(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
-        self.assertTrue(_reads_targets_source(FNot(ts)))
-        self.assertFalse(_reads_targets_source(FAtom(FAtomPred.IS_SOURCE)))
-        self.assertFalse(_reads_targets_source(None))
+        ts = FAtom(FAtomPred.TARGETS, inner_filter=FAtom(FAtomPred.IS_SOURCE))
+        self.assertTrue(_reads_targets(ts))
+        self.assertTrue(_reads_targets(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
+        self.assertTrue(_reads_targets(FNot(ts)))
+        self.assertFalse(_reads_targets(FAtom(FAtomPred.IS_SOURCE)))
+        self.assertFalse(_reads_targets(None))
 
 
 class TestV25EachTargetReadsItsOwnSlot(FixerCase):

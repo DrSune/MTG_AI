@@ -54,7 +54,9 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
     from_dict,
+    number_you_control,
     to_dict,
 )
 from MTG_bot.core.executor import binding, verbs
@@ -183,8 +185,8 @@ def test_a_reflexive_trigger_stands_where_it_means_one_thing() -> None:
 REFUSED = {
     # the gate is not "when you do"
     "gate on TYPE_EQ": lambda: _trigger(_gate(FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
-    "gate on CONTROLLER_COUNT_GE": lambda: _trigger(_gate(FAtom(
-        FAtomPred.CONTROLLER_COUNT_GE, count=QConst(1), inner_filter=FAtom(FAtomPred.IS_SOURCE)))),
+    "gate on a comparison": lambda: _trigger(_gate(at_least(
+        1, quantity=number_you_control(FAtom(FAtomPred.IS_SOURCE))))),
     "gate on FNot(MAY_DONE)": lambda: _trigger(_gate(FNot(FAtom(FAtomPred.MAY_DONE)))),
     # no step before the gate: MAY_DONE would read an older may-offer
     "gate as the whole effect": lambda: _trigger(when_you_do(TAP)),
