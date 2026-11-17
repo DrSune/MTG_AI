@@ -1750,7 +1750,7 @@ class TriggerBinder:
             event.kind == KIND_DAMAGE
             and event.cause is not None
             and ctx.bindings.get("target") == event.cause
-            and (not self._designates(node) or self._designation_slots(node)[0])
+            and not self._reads_player_anaphora(node)
         ):
             # An effect that designates nothing has no use for the dealer pre-bind, and a
             # binding-first role would read it: "creatures you control get +1/+0" (Wildfire
@@ -1767,8 +1767,7 @@ class TriggerBinder:
             if (
                 event.kind == KIND_CREATURE_DIES
                 and event.subject is not None
-                and not self._trigger_designates_target(node)
-                and self._designated_player_refs(node.effect)
+                and self._reads_player_anaphora(node)
             ):
                 # The DAMAGE pre-bind's twin: in a DIES firing the antecedent
                 # the frozen IR compiles to TARGET_PLAYER IS the dead creature —
@@ -2008,36 +2007,41 @@ class TriggerBinder:
     @staticmethod
     def _designated_player_refs(effect: object) -> set[ControllerRef]:
         """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a trigger's effect
-        reads: a role value naming one, a zone it controls, or a filter reading the bound
-        player (the scan :meth:`_designate` makes). Only its own nodes: a delayed, reflexive
-        or granted ability designates for itself."""
-        refs: set[ControllerRef] = set()
-        for inner in own_nodes(effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
-                    refs.add(value)
-                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
-                    refs.add(value.controller)
-                elif isinstance(value, Selector):
-                    refs |= filter_bound_player_refs(value.filter)
-                else:
-                    refs |= filter_bound_player_refs(value)
-        return refs
+        reads (the scan :meth:`_designate` makes): the spell and activation lanes' predicate,
+        :func:`query.designated_player_refs`. So an EachPlayer run as the designated player is
+        a designation here too (FDN Gatekeeper of Malakir's "target player sacrifices a
+        creature of their choice": Run Afoul's spell shape on an enters trigger)."""
+        from MTG_bot.core.executor.query import designated_player_refs  # cycle-free at call time
+
+        return designated_player_refs(effect)
 
     @classmethod
-    def _trigger_designates_target(cls, node: _AnyTrigger) -> bool:
-        """Does this trigger's effect carry a real TARGET designation
-        slot — a TARGET-mode Selector with no referent (the collector of
-        :meth:`_designation_slots`; walk enters Optional-/SeqEffect wrappers,
-        so Goblin Arsonist's may-wrapped damage is seen)? A node that only
-        reads the TARGET_PLAYER anaphora (Massacre Wurm's "that player")
-        answers False and keeps the dies pre-bind in :meth:`_put`;
-        a printed "…to ANY target" (Pitchburn Devils) answers True and
-        routes to the designation ask."""
-        selectors, _reads_player, _opponent_only = cls._designation_slots(node)
-        return bool(selectors)
+    def _reads_player_anaphora(cls, node: _AnyTrigger) -> bool:
+        """Is the trigger's one designation a TARGET_PLAYER read through a role or a filter,
+        the encoding of the "that player" anaphora (divergence D18: Massacre Wurm's "that player
+        loses 2 life")? That is what a DAMAGE or DIES firing pre-binds to its event's object
+        (:meth:`_put`). A printed TARGET slot (Pitchburn Devils' "any target"; the collector
+        walks Optional and Seq wrappers, so Goblin Arsonist's may-wrapped damage is seen), a
+        TARGET_OPPONENT read (the anaphora is never "target opponent",
+        ``query.player_target_slot``), an EachPlayer run as the designated player (Run Afoul's
+        "target opponent sacrifices") and a selector over that player's zone (Tormod's Crypt's
+        "target player's graveyard") are printed targets, which the trigger's controller
+        chooses as it goes on the stack (CR 603.3d, 115.1)."""
+        from MTG_bot.core.executor.query import _rotation_player_refs  # cycle-free at call time
+
+        selectors, reads_player, opponent_only = cls._designation_slots(node)
+        if selectors or not reads_player or opponent_only:
+            return False
+        for inner in own_nodes(node.effect):
+            if _rotation_player_refs(inner):
+                return False
+            if isinstance(inner, Atom) and any(
+                isinstance(value, Selector)
+                and any(zone.controller in DESIGNATED_PLAYER_REFS for zone in value.zones)
+                for _role, value in inner.args.pairs
+            ):
+                return False
+        return True
 
     @classmethod
     def _designation_slots(cls, node: _AnyTrigger) -> tuple[list[Selector], bool, bool]:
@@ -2064,13 +2068,6 @@ class TriggerBinder:
                         seen.add(key)
                         selectors.append(value)
         return selectors, bool(refs), ControllerRef.TARGET_OPPONENT in refs
-
-    @classmethod
-    def _designates(cls, node: _AnyTrigger) -> bool:
-        """Does the trigger's effect make any designation (a TARGET slot or a designated-player
-        read)?"""
-        selectors, reads_target_player, _ = cls._designation_slots(node)
-        return bool(selectors) or reads_target_player
 
     def _target_players(self, node: _AnyTrigger, ctx: ExecCtx) -> list[Handle]:
         """The players a trigger's "target opponent" / "target player" may designate now: the

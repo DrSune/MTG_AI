@@ -248,7 +248,8 @@ __all__ = [
 ]
 
 
-# Predicates that test an object's own characteristics.
+# Predicates that test an object's own characteristics (CR 109.3: name, mana value, colour,
+# types, abilities, power and toughness), and whether it is a permanent card or a token.
 _CHARACTERISTIC_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -260,10 +261,15 @@ _CHARACTERISTIC_PREDS = frozenset(
         FAtomPred.CMC_LE,
         FAtomPred.CMC_GE,
         FAtomPred.NAME_EQ,
+        FAtomPred.NAME_CONTAINS,
         FAtomPred.IS_PERMANENT,
         FAtomPred.IS_TOKEN,
         FAtomPred.POWER_LE,
         FAtomPred.POWER_GE,
+        FAtomPred.PT_LE,
+        FAtomPred.PT_GE,
+        FAtomPred.KEYWORD_HAS,
+        FAtomPred.HAS_KICKER,
     }
 )
 
@@ -1060,10 +1066,14 @@ class Executor:
             # The compiler's sentence convention
             # (templates_b5b._build_if_it_type_then: "Conditional whose
             # subject is the previous sentence's revealed card"): when the
-            # preceding atom was a LOOK_AT/REVEAL, the pred judges the
-            # revealed card, not the ability source (Track Down's "if it's
-            # a creature or land card"). run_atom closes the window after
-            # every other verb. A bare Conditional judges ctx.source, unless
+            # preceding atom was a LOOK_AT/REVEAL and the predicate tests a
+            # card's characteristics, it judges the revealed card, not the
+            # ability source (Track Down's "if it's a creature or land
+            # card"). run_atom closes the window after every other verb. A
+            # history question about the spell itself is not about the
+            # card shown: See the Truth's "If this spell was cast from
+            # anywhere other than your hand" right after its look judges the
+            # spell. A bare Conditional judges ctx.source, unless
             # the predicate tests only an object's characteristics ("If it
             # was a creature card", Scavenging Ooze): then "it" is the
             # object the previous sentence acted on, the result register,
@@ -1071,7 +1081,7 @@ class Executor:
             # condition is false (CR 608.2b).
             subj = (
                 ctx.look_window[0]
-                if ctx.look_window
+                if ctx.look_window and _tests_characteristics_only(effect.pred)
                 else _conditional_subject(effect.pred, ctx)
             )
             if subj is not None and eval_filter(effect.pred, subj, ctx):
@@ -1696,6 +1706,11 @@ class Executor:
         self.drew_from_empty.clear()
         if self.lost_players and sum(p not in self.lost_players for p in players) <= 1:
             raise GameOver(", ".join(str(p) for p in self.lost_players))
+        # CR 800.4a: in a game that goes on, the effects that gave a player who lost (and so
+        # left the game) control of objects end. The rest of leaving is not modelled (BACKLOG,
+        # "A player who loses a game of three or more stays in it").
+        if any(entry[2] in self.lost_players for entry in self.control_entries):
+            self._expire_control(players=frozenset(self.lost_players))
 
     def _state_checks(self) -> int:
         """The state-based action check (CR 704.3), run at every settle
@@ -1752,37 +1767,53 @@ class Executor:
                 self.events.append(
                     (len(self.events), "STATE_CHECK", str(card), f"UNATTACHED:{host}")
                 )
-            # Dies-window replacements (Scorching Dragonfire) are consulted
-            # BEFORE the graveyard move, the die-lane twin of the damage and
-            # life replacements in verbs.py. A matched death is NOT moved —
-            # the record's ACTION (the exile) runs as its own journalled atom
-            # in this iteration's drain below. A replaced death emits no
-            # BATTLEFIELD->GRAVEYARD diff, so no CREATURE_DIES row.
-            replaced: list[tuple[Handle, ReplacementRecord]] = []
-            for card in dying:
-                repl = self.replacements.replacement_for_death(card)
-                if repl is not None:
-                    replaced.append((card, repl))
-                    self.events.append(
-                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
-                    )
+            # Every lane below puts permanents into their owners' graveyards,
+            # and the moves ask the replacements first, as the verbs' moves do
+            # (ReplacementRegistry.replacement_for_zone_change): a dies
+            # replacement (Scorching Dragonfire; from the battlefield to a
+            # graveyard is dying, CR 700.4, a zero-loyalty walker and a legend
+            # rule loser too: "if that creature or planeswalker would die this
+            # turn, exile it instead", Obliterating Bolt) or a zone-change one
+            # ("into a graveyard from anywhere", Dryad Militant). The check's
+            # actions are one event (CR 704.3), so every card asks before any
+            # moves: a replacement whose source dies in the same check still
+            # applies to the rest (Rest in Peace's ruling). A matched move
+            # does not happen: the record's ACTION (the exile) runs as its own
+            # journalled atom in this iteration's drain below, and a replaced
+            # death emits no BATTLEFIELD->GRAVEYARD diff, so no CREATURE_DIES row.
+            decided: dict[Handle, ReplacementRecord] = {}
+            for card in (*dying, *unattached, *walkers, *legend_losers):
+                if card in decided or card not in self.world.cards:
                     continue
+                repl = self.replacements.replacement_for_zone_change(
+                    card, ZONE_GRAVEYARD, self.world.controller_of(card)
+                )
+                if repl is not None:
+                    decided[card] = repl
+            replaced: list[tuple[Handle, ReplacementRecord]] = []
+
+            def to_graveyard(card: Handle, why: str, replaced_why: str) -> None:
+                owner = self.world.controller_of(card)
+                if card in decided:
+                    if any(card == c for c, _repl in replaced):
+                        return  # listed in two lanes (a creature Aura dying unattached)
+                    replaced.append((card, decided[card]))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), replaced_why)
+                    )
+                    return
                 self.damage.pop(card, None)
                 self.damage_deathtouch.discard(card)
-                self.world.move_to_zone(
-                    card, self.world.controller_of(card), ZONE_GRAVEYARD
-                )
-                self.events.append((len(self.events), "STATE_CHECK", str(card), "DIES"))
+                self.world.move_to_zone(card, owner, ZONE_GRAVEYARD)
+                self.events.append((len(self.events), "STATE_CHECK", str(card), why))
+
+            for card in dying:
+                to_graveyard(card, "DIES", "DIES_REPLACED")
             for card in unattached:
                 if card not in self.world.cards:
                     continue  # an aura killed in this same batch
                 self.attachments.pop(card, None)
-                self.world.move_to_zone(
-                    card, self.world.controller_of(card), ZONE_GRAVEYARD
-                )
-                self.events.append(
-                    (len(self.events), "STATE_CHECK", str(card), "UNATTACHED")
-                )
+                to_graveyard(card, "UNATTACHED", "UNATTACHED_REPLACED")
             for card in walkers:
                 if card not in self.world.cards:
                     continue  # a walker killed in this same batch
@@ -1793,50 +1824,16 @@ class Executor:
                 # seeds the printed loyalty with setdefault
                 # (TriggerBinder._register).
                 self.world.cards[card].counters.pop("LOYALTY", None)
-                # CR 704.5i + 700.4: the zero-loyalty SBA puts the
-                # walker into its owner's graveyard from the battlefield, so
-                # it DIES and the dies-window replacements apply exactly as
-                # in the lethal-creature lane above ("if that creature or
-                # planeswalker would die this turn, exile it instead":
-                # Obliterating Bolt, Scorching Dragonfire). The record's
-                # filter decides which objects it covers.
-                repl = self.replacements.replacement_for_death(card)
-                if repl is not None:
-                    replaced.append((card, repl))
-                    self.events.append(
-                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
-                    )
-                    continue
-                self.damage.pop(card, None)
-                self.damage_deathtouch.discard(card)
-                self.world.move_to_zone(
-                    card, self.world.controller_of(card), ZONE_GRAVEYARD
-                )
-                self.events.append(
-                    (len(self.events), "STATE_CHECK", str(card), "ZERO_LOYALTY")
-                )
+                # CR 704.5i + 700.4: put into its owner's graveyard from the
+                # battlefield, it dies.
+                to_graveyard(card, "ZERO_LOYALTY", "DIES_REPLACED")
             for card in legend_losers:
                 # CR 704.5j: the ones not kept go to their owners'
-                # graveyards. From the battlefield to a graveyard is dying
-                # (CR 700.4), so the dies-window replacements apply as in the
-                # lanes above. A walker's loyalty key goes with it (a new
-                # object on re-entry, the zero-loyalty lane's convention).
+                # graveyards, which is dying (CR 700.4). A walker's loyalty key
+                # goes with it (a new object on re-entry, the zero-loyalty
+                # lane's convention).
                 self.world.cards[card].counters.pop("LOYALTY", None)
-                repl = self.replacements.replacement_for_death(card)
-                if repl is not None:
-                    replaced.append((card, repl))
-                    self.events.append(
-                        (len(self.events), "STATE_CHECK", str(card), "DIES_REPLACED")
-                    )
-                    continue
-                self.damage.pop(card, None)
-                self.damage_deathtouch.discard(card)
-                self.world.move_to_zone(
-                    card, self.world.controller_of(card), ZONE_GRAVEYARD
-                )
-                self.events.append(
-                    (len(self.events), "STATE_CHECK", str(card), "LEGEND_RULE")
-                )
+                to_graveyard(card, "LEGEND_RULE", "DIES_REPLACED")
             new_events = self.journal.record_atom(
                 before, None, "STATE_CHECK", self.events[start:]
             )
@@ -1851,18 +1848,27 @@ class Executor:
             with self._one_event(new_events):
                 self._on_zone_changes(new_events)
                 for card, repl in replaced:
-                    inner = self._ctx(
-                        source=repl.source,
-                        controller=repl.controller,
-                        bindings={"event": [card]},
-                        decisions=(),
-                    )
-                    inner.replaced_seq = frozenset({repl.seq})
-                    self._run_effect(repl.action, inner)
+                    self.replace_move(repl, card)
             # Queue the triggers this batch caused; they resolve once the
             # check is stable (the settle's drain).
             self.binder.on_events()
             batches += 1
+
+    def replace_move(self, repl: ReplacementRecord, card: Handle) -> None:
+        """Run the action of ``repl``, which replaced ``card``'s zone move (CR 614.6), as its
+        own atom boundary with the card bound as ``event`` ("exile it instead"). The record that
+        replaced the move does not replace the moves its own action makes (CR 614.5). A caller
+        outside an atom (the state-based actions, a spell's put off the stack) runs it inside the
+        replaced move's event (``_one_event``); inside an atom the pending drain of
+        :meth:`_run_effect` does the same."""
+        inner = self._ctx(
+            source=repl.source,
+            controller=repl.controller,
+            bindings={"event": [card]},
+            decisions=(),
+        )
+        inner.replaced_seq = frozenset({repl.seq})
+        self._run_effect(repl.action, inner)
 
     def _priority_check(self) -> None:
         """CR 117.5, the check made each time a player would receive
@@ -2044,17 +2050,39 @@ class Executor:
         self.stack.frames.clear()  # removed from the stack: none resolves
         before = self.journal.snapshot()
         start = len(self.events)
-        for frame in frames:
-            if frame.spell_kind in ("ACTIVATED", "TRIGGERED"):
-                continue  # an ability is no card: it ceases to exist
-            if self.world.zone_of(frame.handle).kind == ZONE_STACK:
-                self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+        spells = [
+            frame
+            for frame in frames  # an ability is no card: it ceases to exist
+            if frame.spell_kind not in ("ACTIVATED", "TRIGGERED")
+            and self.world.zone_of(frame.handle).kind == ZONE_STACK
+        ]
+        # The exiles are one event and ask the replacements first, as the verbs' moves do (CR
+        # 614.6): all of them before any moves.
+        replaced: list[tuple[Handle, ReplacementRecord]] = []
+        for frame in spells:
+            repl = self.replacements.replacement_for_zone_change(
+                frame.handle, ZONE_EXILE, frame.controller
+            )
+            if repl is not None:
+                replaced.append((frame.handle, repl))
                 self.events.append(
-                    (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+                    (len(self.events), "ZONE_REPLACED", str(frame.handle), str(repl.source))
                 )
-        self._on_zone_changes(
-            self.journal.record_atom(before, None, "END_TURN", self.events[start:])
-        )
+        for frame in spells:
+            if any(card == frame.handle for card, _repl in replaced):
+                continue
+            self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+            self.events.append(
+                (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+            )
+        moved = self.journal.record_atom(before, None, "END_TURN", self.events[start:])
+        if not replaced:
+            self._on_zone_changes(moved)
+            return
+        with self._one_event(moved):
+            self._on_zone_changes(moved)
+            for card, repl in replaced:
+                self.replace_move(repl, card)
 
     def _while_eval(self, change: object, meta: object) -> bool:
         """The ledger WHILE evaluator: the condition (a state predicate,
@@ -3371,9 +3399,11 @@ class Executor:
         creature: Handle | None = None,
         anchor: Handle | None = None,
         eot: bool = False,
+        players: frozenset[Handle] = frozenset(),
     ) -> bool:
-        """Drop matching entries and re-derive (leave expiry + EoT sweep).
-        Returns whether any effective controller changed."""
+        """Drop matching entries and re-derive (leave expiry, EoT sweep, and the entries
+        giving ``players`` control, CR 800.4a). Returns whether any effective controller
+        changed."""
         before = len(self.control_entries)
         self.control_entries = [
             entry
@@ -3382,6 +3412,7 @@ class Executor:
                 (creature is not None and entry[1] == creature)
                 or (anchor is not None and entry[4] == anchor)
                 or (eot and entry[3] == "Eot")
+                or entry[2] in players
             )
         ]
         return (
