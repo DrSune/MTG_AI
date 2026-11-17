@@ -1,0 +1,30 @@
+  40  branch-only: COUNTER_PLACED Wildwood Scourge ('PLUS_1_PLUS_1')
+  16  branch-only: COUNTER_PLACED Goblin Boarders ('PLUS_1_PLUS_1')
+  10  branch-only: COUNTER_PLACED Voracious Hydra ('PLUS_1_PLUS_1')
+   9  branch-only: COUNTER_PLACED Malefic Scythe ('SOUL')
+   9  branch-only: COUNTER_PLACED Barkhide Troll ('PLUS_1_PLUS_1')
+   6  branch-only: TAP_STATE Forest (True,)
+   6  branch-only: ABILITY_ACTIVATED Forest (0, True, None)
+   4  branch-only: TARGETING Forest (Handle(namespace='card', index=39), Handle(namespace='player', index=0))
+   2  branch-only: COUNTER_PLACED Gnarlid Colony ('PLUS_1_PLUS_1')
+   2  branch-only: TARGETING Swamp (Handle(namespace='card', index=39), Handle(namespace='player', index=0))
+   2  branch-only: TAP_STATE Forest (False,)
+   1  branch-only: COUNTER_PLACED Squad Captain ('PLUS_1_PLUS_1')
+   1  branch-only: DAMAGE Prideful Parent (3, 134)
+   1  branch-only: COMBAT_DAMAGE Wildwood Scourge (((2, Handle(namespace='card', index=78)), (3, Handle(namespace='card', index=80)), (1, Handle(namespace='card', index=113)), (1, Handle(namespace='card', index=120))),)
+   1  branch-only: ZONE_CHANGE Forest ('library', 'hand', Handle(namespace='player', index=0), Handle(namespace='player', index=0))
+   1  branch-only: ZONE_CHANGE Forest ('hand', 'battlefield', Handle(namespace='player', index=0), Handle(namespace='player', index=0))
+   1  branch-only: ZONE_CHANGE Swamp ('library', 'hand', Handle(namespace='player', index=0), Handle(namespace='player', index=0))
+   1  branch-only: TARGETING Sanguine Indulgence (Handle(namespace='card', index=39), Handle(namespace='player', index=0))
+   1  branch-only: TARGETING Duress (Handle(namespace='card', index=39), Handle(namespace='player', index=0))
+   8  base-only: TAP_STATE Forest
+   6  base-only: ABILITY_ACTIVATED Forest
+   5  base-only: TARGETING Forest
+   2  base-only: ZONE_CHANGE Forest
+   1  base-only: DAMAGE Prideful Parent
+   1  base-only: COMBAT_DAMAGE Wildwood Scourge
+   1  base-only: TARGETING Vivien Reid
+   1  base-only: TARGETING Skeleton Archer
+   1  base-only: ZONE_CHANGE Skeleton Archer
+   1  base-only: TARGETING Primal Might
+games with base-only rows: ['FDN:920008', 'FDN:920183']

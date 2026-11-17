@@ -58,7 +58,7 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, KIND_ZONE_CHANGE, GameEvent
-from MTG_bot.core.identity import Handle
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -193,6 +193,11 @@ class ExecCtx:
     # your hand" divides the found cards), not among every card in the zone
     # that passes the filter. None when no partition search has run.
     search_found: tuple[Handle, ...] | None = None
+    # The journal clock of the moment the resolving ability came from: a triggered ability's
+    # event, an activated ability's activation (its stack object's ``declared_clock``). Which
+    # life of its source it belongs to, a life the source may have ended since (CR 113.7a,
+    # 607.2a: "exiled with ~"). 0 outside a resolution: the source now.
+    origin_clock: int = 0
     # The cards LOOK_AT/REVEAL showed THIS resolution, top-first (Track
     # Down, See the Truth): the compiler's register convention for the
     # following sentence (templates_b5b._build_if_it_type_then: "Conditional
@@ -315,7 +320,12 @@ class ExecCtx:
         return handles[0] if handles else None
 
     def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
-        card_state = self.world.cards[card]
+        card_state = self.world.cards.get(card)
+        if card_state is None:
+            lki = departed_lki(card, self)  # a token that ceased to exist, as it last existed
+            if lki is None:
+                raise KeyError(f"unknown card {card}")
+            return lki.power, lki.toughness
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
@@ -498,7 +508,11 @@ class LastKnown(NamedTuple):
     leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
     value) pairs (Executor.name_choices; quality None for a card name); ``types`` the type words
     an effect gave it (the layers' type overlay); ``granted`` the abilities an effect granted it
-    (a granted "When this creature dies" looks back at its death, CR 603.10a)."""
+    (a granted "When this creature dies" looks back at its death, CR 603.10a); ``identity`` its
+    printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
+    ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
+    "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped; ``left``
+    the clock of the journal row of that departure, the one this snapshot answers for."""
 
     power: int | None
     toughness: int | None
@@ -510,6 +524,10 @@ class LastKnown(NamedTuple):
     choices: tuple[tuple[str | None, str], ...] = ()
     types: tuple[str, ...] = ()
     granted: tuple[GrantedAbility, ...] = ()
+    identity: CardIdentity | None = None
+    attached: tuple[Handle, ...] = ()
+    tapped: bool = False
+    left: int = 0
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -519,11 +537,15 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
     each object it gathered, each in its own row. Otherwise None: the caller reads the
     live object (a query's context, which carries the bindings but no event, included; a
-    trigger that does not look back, ``ctx.after_event``, CR 603.10)."""
+    trigger that does not look back, ``ctx.after_event``, CR 603.10). A token that has ceased
+    to exist (CR 704.5d) has no live object: whatever reads it reads this, in any context
+    (CR 608.2h)."""
+    ex, event = ctx.executor, ctx.event
+    if ex is not None and handle.namespace == "card" and handle not in ctx.world.cards:
+        return ex.departed_lki.get(handle)
     if ctx.after_event:
         return None
     found = departure_lki(handle, ctx.event, ctx.executor)
-    ex, event = ctx.executor, ctx.event
     if (
         found is None
         and ex is not None
@@ -538,7 +560,10 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
 
 def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKnown | None:
     """:func:`departed_lki` for a caller that holds the event but no context (the binder
-    choosing the controller of the departed object's own trigger, CR 603.3a)."""
+    choosing the controller of the departed object's own trigger, CR 603.3a). The snapshot of
+    that departure, also once the card has come back as a new object (an attacker that died and
+    was returned before Garna, Bloodfist of Keld's trigger resolves was attacking); None once a
+    later departure has replaced it."""
     if event is None or ex is None or getattr(event, "subject", None) != handle:
         return None
     kind = getattr(event, "kind", None)
@@ -549,9 +574,8 @@ def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKno
             return None
     elif kind != KIND_CREATURE_DIES:
         return None
-    if handle in ex.world.cards and ex.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-        return None
-    return ex.departed_lki.get(handle)
+    snap = ex.departed_lki.get(handle)
+    return snap if snap is not None and snap.left <= event.clock else None
 
 
 def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -597,9 +621,10 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
             raise ValueError(f"executor: {field.name} undefined on handle {handle}")
         return value
     if field is QPropField.MANA_VALUE:
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             raise ValueError(f"executor: {field.name} needs a card handle")
-        return ctx.world.cards[handle].identity.cmc or 0
+        return identity.cmc or 0
     if field is QPropField.LIFE:
         # The life TOTAL ("loses half their life. Round up", Peer into the
         # Abyss): no zone to count, so QCount cannot carry it. A player
@@ -779,11 +804,23 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+def card_identity(handle: Handle, ctx: ExecCtx) -> CardIdentity | None:
+    """A card's printed characteristics; a token that has ceased to exist has the ones it last
+    had (CR 704.5d, 608.2h: Overgrowth Elemental's "If that creature was an Elemental" of a dead
+    Elemental token). None: the handle names no card."""
+    state = ctx.world.cards.get(handle)
+    if state is not None:
+        return state.identity
+    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    return lki.identity if lki is not None else None
+
+
 def _type_words(handle: Handle, ctx: ExecCtx) -> set[str]:
     """A card's type words: its printed type line and those an effect gives it, the layers'
     overlay ("is a Knight in addition to its other types"). Judged on its own departure, the
     ones it had as it left (CR 603.10a: its last known information)."""
-    words = set(_type_line_tokens(ctx.world.cards[handle].identity.type_line))
+    identity = card_identity(handle, ctx)
+    words = set(_type_line_tokens(identity.type_line)) if identity is not None else set()
     lki = departed_lki(handle, ctx)
     if lki is not None:
         words.update(lki.types)
@@ -907,10 +944,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return False
         frame = next((f for f in ctx.executor.stack.frames if f.handle == handle), None)
         return frame is not None and frame.spell_kind == atom.string_value
-    if pred is FAtomPred.IS_TAPPED:
-        return world.cards[handle].tapped
-    if pred is FAtomPred.IS_UNTAPPED:
-        return not world.cards[handle].tapped
+    if pred in (FAtomPred.IS_TAPPED, FAtomPred.IS_UNTAPPED):
+        # Judged on its own departure (CR 603.10a), or a token that ceased to exist: as it last
+        # was on the battlefield (CR 608.2h); otherwise the card's flag, cleared as it left.
+        lki = departed_lki(handle, ctx)
+        tapped = lki.tapped if lki is not None else world.cards[handle].tapped
+        return tapped == (pred is FAtomPred.IS_TAPPED)
     if pred is FAtomPred.IS_PERMANENT:
         # CR 110.1: a permanent card is a CARD THAT HAS A PERMANENT CARD
         # TYPE, not "a card sitting on the battlefield". Gates asked OFF the
@@ -918,14 +957,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # ("creature card in a graveyard") and Unsubstantiate's
         # spell-on-the-stack target. The type-line test is zone-independent;
         # on the battlefield it agrees with the zone reading.
-        if handle not in world.cards:
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
-        return bool(words & _PERMANENT_TYPE_WORDS)
+        return bool(set(_type_line_tokens(identity.type_line)) & _PERMANENT_TYPE_WORDS)
     if pred is FAtomPred.IS_TOKEN:
         # "nontoken creature that died": printed token-ness (identity data,
         # so it survives death).
-        return world.cards[handle].identity.is_token
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.is_token
     if pred in (FAtomPred.TYPE_EQ, FAtomPred.SUBTYPE_EQ, FAtomPred.SUPERTYPE_EQ):
         # Supertypes share the type-word match: the identity has no
         # ``supertypes`` field, but every supertype ("Basic", "Legendary",
@@ -934,8 +974,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # layers UNION their overlay words in ("is a Knight in addition to
         # its other types"): the layer registry is the single type oracle.
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
         return atom.string_value in _type_words(handle, ctx)
     if pred is FAtomPred.NAME_CONTAINS:
         # Teferi's "a Teferi planeswalker" gate: case-sensitive substring on
@@ -944,9 +982,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # NAME_CHOSEN's unanswered-question convention does not apply (this
         # is pure identity data, no question to answer).
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
-        return atom.string_value in world.cards[handle].identity.name
+        identity = card_identity(handle, ctx)
+        return identity is not None and atom.string_value in identity.name
     if pred is FAtomPred.IS_ATTACHED_TO_SOURCE:
         # Malefic Scythe's "equipped creature", Dub's compiled aura shape:
         # the world has NO attachment state (CardState has no aura/equipment
@@ -961,16 +998,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if ctx.executor.attachments.get(ctx.source) == handle:
             return True
-        # A dies-trigger's filter (Malefic Scythe) is judged after the
-        # binder's leave-detach has pruned the live table (the ZONE_CHANGE
-        # row lands before the CREATURE_DIES row of the same diff sweep).
-        # Once the judged object has LEFT the battlefield, the live table
-        # can no longer speak for it: the object's own departure-time
-        # snapshot (executor.detach_lki) is its last known information
-        # (CR 400.7). On the battlefield the live table is the only word.
-        if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-            return False
-        return ctx.source in ctx.executor.detach_lki.get(handle, ())
+        # Judged on its own departure (Malefic Scythe's dies trigger, CR 603.10a), the object
+        # as it left: what was attached to it then, its last known information, once the
+        # binder's leave-detach has pruned the live table. Anywhere else the live table is the
+        # only word: a creature that left and came back is a new object (CR 400.7), equipped
+        # by nothing it was equipped by before.
+        lki = departed_lki(handle, ctx)
+        return lki is not None and ctx.source in lki.attached
     if pred is FAtomPred.IS_ATTACHED_TO:
         # "attached to the REFERENT object" (Turn to Slag): the same
         # attachment-table answer as IS_ATTACHED_TO_SOURCE, but the host
@@ -1014,16 +1048,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return ctx.executor.attachments.get(handle) == host
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
-        return world.cards[handle].identity.name == atom.string_value
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.name == atom.string_value
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # COLOR_IN is the grammar's SUBSET reading ("colours are a non-empty
         # subset of the given set"), COLOR_HAS the single-colour membership
         # ("hexproof from black"; a spell "that's white or blue" is the FOr
         # of COLOR_HAS, CR 105.2). Identity data: works for a card in any
         # zone, incl. the stack (the cast-trigger feed reads spells).
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        card_colors = set(world.cards[handle].identity.colors)
+        card_colors = set(identity.colors)
         if pred is FAtomPred.COLOR_HAS:
             assert atom.color is not None
             return atom.color in card_colors
@@ -1051,9 +1087,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
                 f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        identity = world.cards[handle].identity
         if quality == "COLOR":
             return chosen in identity.colors  # printed colours: no effect changes a colour
         if quality == "CREATURE_TYPE":
@@ -1073,13 +1109,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # keyword. A handle outside the card set (a player seat) has no
         # keywords: characteristic absent, False.
         assert atom.keyword is not None
-        if handle.namespace != "card" or handle not in world.cards:
+        if handle.namespace != "card":
             return False
         lki = departed_lki(handle, ctx)
         if lki is not None:
             # CR 603.10a: judged on its own departure, the object as it left, its granted
             # keywords included (the layers drop them once they are brought up to date).
             return atom.keyword.name in lki.keywords
+        if handle not in world.cards:
+            return False
         if ctx.layers is None:
             raise NotImplementedError(
                 "executor: filter pred KEYWORD_HAS needs the layer "
@@ -1486,13 +1524,19 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return bool(dies)
         return False
     if pred is FAtomPred.IS_EXILED_WITH_SOURCE:
-        # "cards exiled with ~" (Idol of Endurance, Chandra, Heart of Fire).
-        # WORLD half: the card is in exile NOW. HISTORY half: the source
-        # CAUSED the exile: the journal's diff-inspect writes the acting
-        # ability's source into the cause column, so "exiled with this
-        # artifact" is a cause read, not a heuristic. NOT turn-windowed:
-        # an exile-with persists across turns (the world half prunes what
-        # has since moved on).
+        # "cards exiled with ~" (Idol of Endurance, Bag of Holding, Hoarding Dragon's "the exiled
+        # card"). WORLD half: the card is in exile NOW. HISTORY half: the source CAUSED that
+        # exile: the journal's diff-inspect writes the acting ability's source into the cause
+        # column, so "exiled with this artifact" is a cause read, not a heuristic. NOT
+        # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are
+        # objects. The exile is the card's last arrival there (a card that left exile and came
+        # back is a new object), made in the life of the source the reading ability came from:
+        # from the source's last entry onto the battlefield before that ability triggered or was
+        # activated (``ExecCtx.origin_clock``; outside a resolution, now) to its next entry. A
+        # returned Bag of Holding returns none of the cards its earlier life exiled; a Hoarding
+        # Dragon's dies trigger returns its own life's card though a new Dragon has entered
+        # since. A source that never entered reads every exile it made. (An exile is placed in
+        # the life it arrived in, not the life of the ability that made it: BACKLOG.)
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1503,23 +1547,37 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if handle not in world.cards or world.zone_of(handle).kind != ZONE_EXILE:
             return False
-        return any(
-            e.kind == KIND_ZONE_CHANGE
-            and e.subject == handle
-            and e.zone_move[1] == ZONE_EXILE
-            and e.cause == ctx.source
-            for e in jrn.events
-        )
+        entries: list[int] = []
+        arrival = None
+        for e in jrn.events:
+            if e.kind != KIND_ZONE_CHANGE:
+                continue
+            if e.subject == ctx.source and e.zone_move[1] == ZONE_BATTLEFIELD:
+                entries.append(e.clock)
+            elif e.subject == handle and e.zone_move[1] == ZONE_EXILE:
+                arrival = e
+        if arrival is None or arrival.cause != ctx.source:
+            return False
+        moment = ctx.origin_clock or jrn.clock
+        begun = max((c for c in entries if c <= moment), default=0)
+        ended = min((c for c in entries if c > begun), default=None)
+        return begun < arrival.clock and (ended is None or arrival.clock < ended)
     if pred is FAtomPred.IS_ATTACKING:
         # CR 506.4: the executor's live attack record, the attacker
         # set the COMBAT skeleton fills at declaration and clears at end
         # of combat. Tide Skimmer's "you attack with two or more" gate and
-        # the templates' IS_ATTACKING selectors read exactly this state.
+        # the templates' IS_ATTACKING selectors read exactly this state. An
+        # object judged on its own departure, or a token that ceased to exist,
+        # left combat as it left (CR 506.4): "if it was attacking" (Garna,
+        # Bloodfist of Keld) is its last known information (CR 603.10a, 608.2h).
         if ctx.executor is None:
             raise NotImplementedError(
                 "executor: filter pred IS_ATTACKING reads the executor's "
                 "attack record (bare ExecCtx)"
             )
+        lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+        if lki is not None:
+            return lki.attacking is not None
         return handle in ctx.executor.attackers
     if pred is FAtomPred.IS_BLOCKING:
         # CR 506.4: the executor's live block record: a handle IS blocking
@@ -1733,10 +1791,12 @@ def _characteristic(field: QPropField, handle: Handle, ctx: ExecCtx) -> int | No
     its own departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them); mana value and
     colours are printed identity data (a missing mana value is 0, as ``_prop_value`` reads it; no
     effect changes a colour)."""
-    if handle.namespace != "card" or handle not in ctx.world.cards:
+    identity = card_identity(handle, ctx) if handle.namespace == "card" else None
+    if identity is None:
         return None
-    identity = ctx.world.cards[handle].identity
     if field in (QPropField.POWER, QPropField.TOUGHNESS):
+        # card_identity is a ceased token's last known identity only on its own departure, when
+        # departed_lki answers its power and toughness too; otherwise the card is in the world
         lki = departed_lki(handle, ctx)
         power, toughness = (lki.power, lki.toughness) if lki is not None else ctx.effective_pt(handle)
         value, printed = (
@@ -1814,7 +1874,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     object). On the stack, the CAST row after its move onto the stack; on the
     battlefield, the CAST row inside the stack residency its last entry came
     from (a resolving permanent spell is the object that was cast, the
-    WAS_KICKED permanent-lane reading); in any other zone, None. The whole
+    WAS_KICKED permanent-lane reading); in any other zone, or a token that
+    ceased to exist (no token was cast, CR 111.1), None. The whole
     journal is read: the object's cast may be older than this turn."""
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
 
@@ -1824,6 +1885,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
             "executor: a was-cast read needs the journalled zone history "
             "(this ExecCtx has no journal)"
         )
+    if handle not in ctx.world.cards:
+        return None
     zone = ctx.world.zone_of(handle).kind
     if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
         return None

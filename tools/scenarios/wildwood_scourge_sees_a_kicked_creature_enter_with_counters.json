@@ -1,0 +1,53 @@
+{
+ "name": "wildwood_scourge_sees_a_kicked_creature_enter_with_counters",
+ "set": "FDN",
+ "notes": "Bug hunt 2026-11-17 (hunt 5 H5-2). Wildwood Scourge: 'Whenever one or more +1/+1 counters are put on another non-Hydra creature you control, put a +1/+1 counter on Wildwood Scourge.' A kicked Gnarlid Colony enters with two +1/+1 counters. CR 122.6: counters an object is given as it enters are put on it, so the Scourge triggers, once for the one placement: 2 + 1 = 3 counters. Failed before the fix: the entering counters (EtBState, Executor._apply_etb_state) were added with no journal row, so no counter-placement event existed for the Scourge to see (2 counters).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "scourge",
+   "real": "Wildwood Scourge",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "colony",
+   "real": "Gnarlid Colony",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "colony",
+   "controller": 0,
+   "kicked": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "colony": "battlefield"
+  },
+  "counters": {
+   "colony": {
+    "PLUS_1_PLUS_1": 2
+   },
+   "scourge": {
+    "PLUS_1_PLUS_1": 3
+   }
+  }
+ }
+}

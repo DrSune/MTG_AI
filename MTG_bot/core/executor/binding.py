@@ -328,30 +328,43 @@ class DelayedBinding:
     controller: Handle
 
 
-def functions_from_graveyard(ability: object) -> bool:
+def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
     """CR 113.6m ("An ability whose cost or effect specifies that it moves
     the object it's on out of a particular zone functions only in that zone, unless its
-    trigger condition ... specifies that the object is put into that zone"): a
+    trigger condition ... specifies that the object is put into that zone or, if the object
+    is an Aura, that the object it enchants leaves the battlefield"): a
     triggered ability whose effect moves its own source out of a graveyard
     ("return this card from your graveyard to the battlefield tapped", Silversmote
     Ghoul) functions only while that card is in a graveyard. One that triggers on that
     card being put into a graveyard from the battlefield ("When this creature dies,
     return it to its owner's hand", Immortal Phoenix) functions on the battlefield and
     looks back at its own death (CR 603.10a). "Another" (an IS_SOURCE under a
-    negation) is not the card itself."""
+    negation) is not the card itself. So does an Aura's (``aura``) that triggers on the
+    object it enchants leaving the battlefield ("When enchanted creature dies, return this
+    card to its owner's hand", Angelic Destiny): it finds the Aura card in its owner's
+    graveyard once the state-based check has put it there (CR 603.6e)."""
     from MTG_bot.core.executor.selectors import _filter_names_the_source
 
     if not isinstance(ability, TriggeredAbility):
         return False
     event = ability.event
     dies = event.filter if isinstance(event, CreatureDiesEvent) else None
+    left = dies  # the subject of a leaves-the-battlefield trigger condition
     if (
         isinstance(event, ZoneChangeEvent)
         and event.from_zone.kind is ZoneKind.BATTLEFIELD
-        and event.to_zone.kind is ZoneKind.GRAVEYARD
+        and event.to_zone.kind is not ZoneKind.BATTLEFIELD
     ):
-        dies = event.subject
+        left = event.subject
+        if event.to_zone.kind is ZoneKind.GRAVEYARD:
+            dies = event.subject
     if dies is not None and _filter_names_the_source(dies):
+        return False
+    if (
+        aura
+        and left is not None
+        and _filter_names_the_source(left, pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
+    ):
         return False
     for node in walk(ability.effect):
         if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
@@ -567,8 +580,9 @@ class TriggerBinder:
         """CR 113.6m: bind the record's graveyard-only triggers while the
         card is in a graveyard."""
         n = 0
+        aura = "Aura" in record.subtypes
         for idx, ability in enumerate(record.abilities):
-            if functions_from_graveyard(ability):
+            if functions_from_graveyard(ability, aura):
                 assert isinstance(ability, TriggeredAbility)
                 self._check_trigger(ability, record.name)
                 self.attached_graveyard[(handle, idx)] = ability
@@ -584,10 +598,11 @@ class TriggerBinder:
         BEFORE the old bindings are dropped (flag, never degrade into a
         silent unlink)."""
         triggers = []
+        aura = "Aura" in record.subtypes
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
                 self._check_trigger(ability, record.name)
-                if functions_from_graveyard(ability):
+                if functions_from_graveyard(ability, aura):
                     continue  # CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
@@ -645,13 +660,7 @@ class TriggerBinder:
         # edge touching the departing handle. (An emblem never departs:
         # only bind_emblem's leaving=False refresh detaches one.)
         ex = self.executor
-        # Malefic Scythe: LKI capture BEFORE the prune — the edges
-        # this sweep kills are the departing host's attachment truth for
-        # the CREATURE_DIES row that follows the ZONE_CHANGE row in the
-        # same journal batch (see Executor.detach_lki).
-        ex.detach_lki[handle] = tuple(
-            sorted(a for a, host in ex.attachments.items() if host == handle)
-        )
+        # What was attached as it left is its last known information (Executor.departed_lki).
         ex.attachments = {
             aura: host
             for aura, host in ex.attachments.items()
@@ -1586,41 +1595,6 @@ class TriggerBinder:
             "firings dropped"
         )
 
-    def pending_references(self) -> frozenset[Handle]:
-        """The objects the waiting triggers (queued, or on the stack) still
-        name: their source, their event's subject and cause, and every object a gathered
-        event names (CR 603.2c). A token that left the battlefield stays in the
-        world (as its own last-known information) until the triggers its leaving
-        caused have resolved; see ``Executor._cease_tokens``."""
-        out: set[Handle] = set()
-        waiting = [(p.source, p.event, p.gathered) for p in self.firings.values()]
-        waiting += [
-            (o.source, o.event, o.ctx.binding_handles("gathered"))
-            for o in self.executor.stack.frames
-            if o.spell_kind == "TRIGGERED"
-        ]
-        for source, event, gathered in waiting:
-            out.add(source)
-            for handle in (event.subject, event.cause):
-                if isinstance(handle, Handle):
-                    out.add(handle)
-            # Two tokens that left in one event are read as they last existed ("the greatest
-            # power among them"), not only the one whose row queued the trigger.
-            out.update(gathered or ())
-        # What a reflexive trigger read of its creating resolution ("the sacrificed creature"),
-        # waiting or on the stack.
-        carried = [p.carried.bindings for p in self.firings.values() if p.carried is not None]
-        carried += [
-            o.ctx.bindings
-            for o in self.executor.stack.frames
-            if o.spell_kind == "TRIGGERED" and o.event.kind == KIND_REFLEXIVE
-        ]
-        for bindings in carried:
-            for value in bindings.values():
-                out.update(h for h in (value if isinstance(value, list) else [value])
-                           if isinstance(h, Handle))
-        return frozenset(out)
-
     def cease_triggered_before(self, mark: int) -> int:
         """CR 724.1a: when an effect ends the turn, the abilities that
         triggered before that process began and were never put onto the
@@ -1744,6 +1718,7 @@ class TriggerBinder:
         targets = (target,) if isinstance(target, Handle) else tuple(target or ())
         per_slot = dict(ctx.slot_designations or {})  # several slots (_designate_slots)
         selectors = self._designation_slots(node)[0] if designated and not per_slot else []
+        ctx.origin_clock = payload.event.clock  # the moment it triggered (CR 603.2)
         return StackObject(
             handle=self.executor.ability_handles.allocate(),
             node=node,
@@ -1762,8 +1737,9 @@ class TriggerBinder:
         """CR 400.7: the objects the event register names ("it", "they") that the effect can no
         longer find as it begins to resolve. One that has changed zones since the event is a
         new object; one the event moved is found where it went only if that zone is public
-        (the rule's exception for an ability that triggers on the move); a token off the
-        battlefield has ceased to exist (CR 111.7, 111.8: it can't be moved). The effect does
+        (the rule's exception for an ability that triggers on the move); a token that left the
+        battlefield has ceased to exist at the state-based check before this resolution (CR
+        704.5d, 111.8: it can't be moved). The effect does
         not act on them (``selectors.resolve_selector``), and a read of their information finds
         them as they last existed (CR 608.2h: ``quantity.last_known``): Terror of the Peaks'
         "that creature's power", "that many" (every object a gathered event names). A gathered
@@ -1782,13 +1758,11 @@ class TriggerBinder:
             e.subject for e in rows
             if e.kind == KIND_ZONE_CHANGE and e.zone_move[1] in (ZONE_HAND, ZONE_LIBRARY)
         }
-        cards = self.world.cards
         return [
             h
             for h in objects
-            if h not in cards
+            if h not in self.world.cards
             or h in hidden
-            or (cards[h].identity.is_token and self.world.zone_of(h).kind != ZONE_BATTLEFIELD)
             or moved_since(self.executor.journal, h, since)
         ]
 

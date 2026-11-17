@@ -1,0 +1,5 @@
+FDN Armasaur Guide unverified trigger event DeclareAttackersEvent
+FDN Kitesail Corsair unverified static condition
+M21 Makeshift Battalion verified trigger event DeclareAttackersEvent
+M21 Tide Skimmer verified trigger event DeclareAttackersEvent
+WAR Makeshift Battalion verified trigger event DeclareAttackersEvent

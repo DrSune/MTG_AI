@@ -568,12 +568,13 @@ def protected_from(executor: Executor | None, holder: Handle, source: Handle | N
     quality that reads its own source answers for that ability: Runed Halo's
     NAME_CHOSEN is the name the Halo chose. A universal quality (``FAnd(())``) is
     protection from everything (702.16j). Only a card can be a source with
-    qualities here (an emblem or a player is not), and a card off the battlefield
-    has no protection that functions (113.6)."""
+    qualities here (an emblem or a player is not), a token that has ceased to exist
+    by its last known information (CR 113.7a), and a card off the battlefield has
+    no protection that functions (113.6)."""
     if executor is None or source is None or source.namespace != "card":
         return False
     world = executor.world
-    if source not in world.cards:
+    if source not in world.cards and source not in executor.departed_lki:
         return False
     if holder.namespace == "card":
         if holder not in world.cards or world.zone_of(holder).kind != ZONE_BATTLEFIELD:
@@ -2193,6 +2194,7 @@ def resolve_activated(executor: Executor, obj) -> str:
         decisions=obj.decisions,
         slot_designations=slot_designations,
         x_value=obj.x_value,
+        origin_clock=obj.declared_clock,
     )
     return "resolved"
 

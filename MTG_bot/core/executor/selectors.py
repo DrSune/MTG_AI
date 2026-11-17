@@ -214,8 +214,11 @@ def controller_matches(
     if who in (ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS):
         return actual != ctx.controller
     if who in DESIGNATED_PLAYER_REFS:
+        # As players_for_ref reads it: a designated object that has left is read by the
+        # controller it last had (CR 608.2h), a token that ceased to exist by nothing else.
         bound = designated_player(ctx) or []
-        return actual in [h if h.namespace == "player" else controller_of(ctx, h) for h in bound]
+        players = [h if h.namespace == "player" else last_known_controller(ctx, h) for h in bound]
+        return actual in players
     return who is ControllerRef.ANY
 
 
@@ -654,6 +657,10 @@ def resolve_selector(
                 f"executor: selector referent {sel.referent!r} is not in the "
                 "closed C12 vocabulary"
             )
+        if not info:
+            # A token that has ceased to exist (CR 704.5d, 111.8) is nothing an effect can act
+            # on; a read of its information finds its last known information.
+            candidates = [h for h in candidates if h.namespace != "card" or h in ctx.world.cards]
     else:
         candidates = []
         for zone_spec in sel.zones:  # the zones field IS the legal-zone set
@@ -1385,13 +1392,13 @@ def players_for(ref: ControllerRef | Selector, ctx: ExecCtx) -> list[Handle]:
 
 def _players_of(ctx: ExecCtx, handles: list[Handle]) -> list[Handle]:
     """Each handle's player side: a player itself, a card its (last known)
-    controller."""
+    controller (a token that ceased to exist, CR 704.5d, has only that)."""
     world = ctx.world
     players: set[Handle] = set()
     for handle in handles:
         if handle.namespace == "player":
             players.add(handle)
-        elif handle in world.cards:
+        elif handle in world.cards or last_known(handle, ctx) is not None:
             players.add(last_known_controller(ctx, handle))
     return sorted(players)
 
