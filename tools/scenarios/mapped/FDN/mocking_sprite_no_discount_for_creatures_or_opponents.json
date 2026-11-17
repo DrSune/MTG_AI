@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "mocking_sprite_no_discount_for_creatures_or_opponents",
+ "notes": "M7 mapper. Printed: 'Instant and sorcery spells you cast cost {1} less to cast.' Seat 0 controls Mocking Sprite. A creature spell is not reduced: a second Mocking Sprite ({2}{U}) with {1}{U} cannot be cast. Seat 1's Quick Study ({2}{U}) is not reduced either: with {1}{U} seat 1 cannot cast it. Both casts are refused and nothing moves.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sprite", "real": "Mocking Sprite", "zone": "battlefield", "controller": 0},
+  {"key": "sprite2", "real": "Mocking Sprite", "zone": "hand", "controller": 0},
+  {"key": "opp_study", "real": "Quick Study", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "sprite2", "controller": 0, "expect_raise": "illegal cast: cost:mana_generic:1<2"},
+  {"op": "mana", "seat": 1, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "opp_study", "controller": 1, "expect_raise": "illegal cast: cost:mana_generic:1<2"}
+ ],
+ "expect": {
+  "zone": {"sprite2": "hand", "opp_study": "hand"},
+  "hand": {"0": 1, "1": 1}
+ }
+}

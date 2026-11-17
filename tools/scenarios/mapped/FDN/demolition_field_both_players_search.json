@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "demolition_field_both_players_search",
+ "notes": "M7 mapper. Printed: '{2}, {T}, Sacrifice this land: Destroy target nonbasic land an opponent controls. That land's controller may search their library for a basic land card, put it onto the battlefield, then shuffle. You may search your library for a basic land card, put it onto the battlefield, then shuffle.' Seat 0 pays {2}, taps and sacrifices Demolition Field targeting seat 1's nonbasic Opp Desert: it is destroyed. Seat 1 (that land's controller) takes its may and finds its Forest, which enters untapped under seat 1's control; seat 1's Swamp-free library keeps its creature. Then seat 0 takes its may and finds its Plains, untapped under seat 0's control. Both libraries are shuffled.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "field", "real": "Demolition Field", "zone": "battlefield", "controller": 0},
+  {"key": "desert", "name": "Opp Desert", "type": "Land — Desert", "zone": "battlefield", "controller": 1, "cmc": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 1},
+  {"key": "opp_beast", "name": "Opp Library Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "my_beast", "name": "My Library Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "field", "idx": 1, "seat": 0, "targets": ["desert"], "decisions": ["fire", "fire"]}
+ ],
+ "expect": {
+  "zone": {"field": "graveyard", "desert": "graveyard", "forest": "battlefield", "plains": "battlefield", "opp_beast": "library", "my_beast": "library"},
+  "controller": {"forest": 1, "plains": 0},
+  "tapped": {"forest": false, "plains": false},
+  "mana_pool": {"0": {}},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*"],
+   "1": ["*", "*", "*", "*", "*", "*", "*"]
+  }
+ }
+}

@@ -1,0 +1,221 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "8fcf50cd-e6d0-4516-850f-d42ee75dcc3a",
+ "name": "Expedition Map",
+ "text_sha": "2bfdaeeb4146cf8e77cf1db23f25ab6a0b9e0e3288a13606414d2c9063fe1c0f",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SEARCH"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "LIBRARY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "REVEAL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "SHUFFLE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "zone",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ntutor_land = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(target=SELF))),\n    effect=Seq(\n        steps=(\n            A(Verb.SEARCH, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                    zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n            A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n        ),\n    ),\n)\nabilities = [tutor_land, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{2}, {T}, Sacrifice this artifact: Search your library for a land card, reveal it, put it into your hand, then shuffle.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Fierce Empath's search, reveal, shuffle. Pack: tools/scenarios/mapped/FDN/expedition_map_finds_a_land_into_hand.json."
+ },
+ "probe": {
+  "sha": "4d5a2095fc72867469ed487494100c5e9fa46d26b6632ccf1b0f999c56aa3523"
+ }
+}

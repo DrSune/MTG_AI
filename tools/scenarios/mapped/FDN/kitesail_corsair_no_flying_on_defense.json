@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "kitesail_corsair_no_flying_on_defense",
+ "notes": "M7 mapper. Printed: 'This creature has flying as long as it's attacking.' Seat 1's turn: Opp Bird (flying) attacks. Seat 0's untapped Kitesail Corsair is not attacking, so it has no flying (and no reach) and is never offered to block the Bird; seat 0 takes 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "corsair", "real": "Kitesail Corsair", "zone": "battlefield", "controller": 0},
+  {"key": "bird", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"bird": true}, "block": {"corsair": null}}
+ ],
+ "expect": {
+  "attackers": {"bird": true},
+  "not_asked_to_block": ["corsair"],
+  "life": {"0": 19}
+ }
+}

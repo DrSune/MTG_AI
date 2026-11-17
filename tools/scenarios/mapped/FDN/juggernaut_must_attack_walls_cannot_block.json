@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "juggernaut_must_attack_walls_cannot_block",
+ "notes": "M7 mapper. Printed: 'This creature attacks each combat if able. This creature can't be blocked by Walls.' Seat 0's combat: Juggernaut attacks with no attack answered for it (it must); Opp Wall (a Wall with defender) is never offered a block, Opp Bear is offered Juggernaut and declines; seat 1 takes 5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jugg", "real": "Juggernaut", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "5", "keywords": ["DEFENDER"], "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {}, "block": {"bear": null}}
+ ],
+ "expect": {
+  "attackers": {"jugg": true},
+  "not_asked_to_block": ["wall"],
+  "block_asks": {"bear": "<jugg>,NONE"},
+  "life": {"1": 15}
+ }
+}

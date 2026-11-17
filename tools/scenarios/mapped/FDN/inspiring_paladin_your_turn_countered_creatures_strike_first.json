@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "inspiring_paladin_your_turn_countered_creatures_strike_first",
+ "notes": "M7 mapper. Printed: 'During your turn, creatures you control with +1/+1 counters on them have first strike.' On seat 0's turn its Bear with a +1/+1 counter (3/3) and its Ox (3/3, no counter) attack; Opp Ape One blocks the Bear, Opp Ape Two the Ox (both 3/3). The Bear has first strike: it kills Ape One and takes no damage. The Ox has none: it and Ape Two trade. The Paladin stays home.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "paladin", "real": "Inspiring Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "ox", "name": "Your Ox", "type": "Creature — Ox", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "ape1", "name": "Opp Ape One", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "ape2", "name": "Opp Ape Two", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "ox": true, "paladin": false}, "block": {"ape1": "bear", "ape2": "ox"}}
+ ],
+ "expect": {
+  "blocked": {"bear": ["ape1"], "ox": ["ape2"]},
+  "zone": {"bear": "battlefield", "ape1": "graveyard", "ox": "graveyard", "ape2": "graveyard", "paladin": "battlefield"},
+  "damage_received": {"bear": 0}
+ }
+}

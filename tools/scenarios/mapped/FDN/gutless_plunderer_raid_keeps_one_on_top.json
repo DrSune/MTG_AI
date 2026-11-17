@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "gutless_plunderer_raid_keeps_one_on_top",
+ "notes": "M7 mapper. Printed: 'Raid — When this creature enters, if you attacked this turn, look at the top three cards of your library. You may put one of those cards back on top of your library. Put the rest into your graveyard.' Seat 0's library holds, top first, Card C, Card B, Card A, then Card X. Seat 0 attacks with a bear, then Gutless Plunderer enters: the trigger looks at the top three (only C, B and A are offered), seat 0 keeps Card B on top; Card A and Card C go to seat 0's graveyard; Card X and the rest stay below Card B.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "plunderer", "real": "Gutless Plunderer", "zone": "hand", "controller": 0},
+  {"key": "x", "name": "Card X", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "c", "name": "Card C", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "enter", "key": "plunderer", "decisions": ["fire", "b"]}
+ ],
+ "expect": {
+  "zone": {"plunderer": "battlefield", "a": "graveyard", "b": "library", "c": "graveyard", "x": "library"},
+  "graveyard": {"0": ["Card A", "Card C"]},
+  "library": {"0": ["Card B", "Card X", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

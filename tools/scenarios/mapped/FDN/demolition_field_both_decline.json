@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "demolition_field_both_decline",
+ "notes": "M7 mapper. Printed: 'That land's controller may search their library for a basic land card, put it onto the battlefield, then shuffle. You may search your library ...' Both searches are optional: seat 1 (that land's controller) declines, then seat 0 declines. The Opp Desert is destroyed and the Field sacrificed; no land enters and both basic lands stay in their libraries.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "field", "real": "Demolition Field", "zone": "battlefield", "controller": 0},
+  {"key": "desert", "name": "Opp Desert", "type": "Land — Desert", "zone": "battlefield", "controller": 1, "cmc": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "field", "idx": 1, "seat": 0, "targets": ["desert"], "decisions": ["skip", "skip"]}
+ ],
+ "expect": {
+  "zone": {"field": "graveyard", "desert": "graveyard", "forest": "library", "plains": "library"}
+ }
+}
