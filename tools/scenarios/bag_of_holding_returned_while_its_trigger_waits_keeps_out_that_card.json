@@ -1,0 +1,31 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_returned_while_its_trigger_waits_keeps_out_that_card",
+ "notes": "The CR 400.7 audit of 2026-11-17 (KNOWLEDGE 212 §3). Bag of Holding loots Spare A away; with its discard trigger ('exile that card from your graveyard') waiting, the Bag is destroyed (the move stands in for the removal) and Brought Back returns it, tapped: a new object (CR 400.7). The waiting trigger is the old object's (CR 113.7a): it exiles Spare A, and the cards it exiles are linked to the old object's abilities only (CR 607.2a). So two turns later the new Bag's sacrifice returns nothing, and Spare A stays in exile. Hand: 2, +1 the loot's draw, -1 Spare A, -1 Brought Back, +1 the turn's draw = 2. Failed on c80f45f7 (the exile was placed in the life it arrived in, after the return, and the new Bag returned Spare A: hand 3): stronger than printed, a card back.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "brought_back", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "hold": true},
+  {"op": "resolve", "decisions": ["spare_a"]},
+  {"op": "move", "key": "bag", "to": "graveyard", "hold": true},
+  {"op": "mana", "seat": 0, "add": {"W": 2}, "hold": true},
+  {"op": "cast", "key": "brought_back", "targets": ["bag"], "hold": true},
+  {"op": "resolve"},
+  {"op": "pass"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "brought_back": "graveyard", "spare_a": "exile"},
+  "hand": {"0": 2}
+ }
+}
