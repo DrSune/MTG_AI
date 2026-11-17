@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "krenko_counts_goblins_you_control",
+ "notes": "M8 mapper. Printed: '{T}: Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.' Seat 0 controls Krenko and two other Goblins (and a Bear); seat 1 controls a Goblin. Krenko taps for three Goblin tokens: the Bear and seat 1's Goblin are not counted.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "krenko", "real": "Krenko, Mob Boss", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Your Goblin One", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "g2", "name": "Your Goblin Two", "type": "Creature — Goblin Warrior", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "og", "name": "Opp Goblin", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "krenko", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "tapped": {"krenko": true},
+  "tokens": {"Goblin": 3}
+ }
+}

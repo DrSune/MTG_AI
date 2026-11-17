@@ -1,0 +1,82 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9a02a9a7-39d9-4763-85d3-747a0540b60b",
+ "name": "Gilded Lotus",
+ "text_sha": "92abc3524b46dc7246ac24c3e64e06192ca01a5a4e53a3cb3bde3f6cf163c5ac",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "ANY"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {T}: Add three mana of any one color.  (M20 Lotus Field's verified form)\nthree_any = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.ADD_MANA, {\n        'amount': QConst(value=3),\n        'color': 'ANY',\n        'controller': ControllerRef.YOU,\n    }),\n)\nabilities = [three_any, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add three mana of any one color.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [
+   "numbers in the text but not in the tree: [1]"
+  ],
+  "notes": "M8 mapper. M20 Lotus Field's verified form. Pack: tools/scenarios/mapped/FDN/gilded_lotus_three_mana_of_the_chosen_color.json."
+ },
+ "probe": {
+  "sha": "c69221295d155db72582117b6de22e8ce55f9785235fa95c619574168375ea3e"
+ }
+}

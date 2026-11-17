@@ -1,0 +1,49 @@
+{
+ "set": "FDN",
+ "name": "soul_guide_lantern_enters_and_exiles_the_target_card",
+ "notes": "M8 mapper. Printed: 'When this artifact enters, exile target card from a graveyard.' The Lantern enters from seat 0's hand targeting seat 1's graveyard card: that card is exiled, seat 1's other graveyard card stays.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lantern",
+   "real": "Soul-Guide Lantern",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "name": "Opp Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "g2",
+   "name": "Opp Spell",
+   "type": "Sorcery",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "lantern",
+   "decisions": [
+    "g1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "lantern": "battlefield",
+   "g1": "exile",
+   "g2": "graveyard"
+  }
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3ddcaee9-a11e-477a-bd19-f5ee10512549",
+ "name": "Midnight Snack",
+ "text_sha": "f400bbc173ec784ecb35c2bb60697e4290235393ac9550821088b68d223998ab",
+ "needs_atom": {
+  "missing": "Executor support for QThisTurn(LIFE_GAINED, YOU). '{2}{B}, Sacrifice this enchantment: Target opponent loses X life, where X is the amount of life you gained this turn' is LOSE_LIFE(controller TARGET_OPPONENT, amount QThisTurn(LIFE_GAINED, YOU)); the IR has the node, but executor/quantity.py resolves only QThisTurn(NONCOMBAT_DAMAGE) and raises NotImplementedError ('12b turn ledger') for LIFE_GAINED, so the probe's activation is an engine error and the record can't be written. The turn's KIND_LIFE_GAINED rows are there (LIFE_GAINED_THIS_TURN_GE sums them). The Raid trigger maps today (R_FOOD's token; FDN Goblin Boarders' verified Raid condition) and its packs pass. Draft and packs (the drain pack fails today): tools/scenarios/known_bugs/2026-11-17/midnight_snack_life_gained_this_turn_not_implemented/.",
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17"
+ }
+}

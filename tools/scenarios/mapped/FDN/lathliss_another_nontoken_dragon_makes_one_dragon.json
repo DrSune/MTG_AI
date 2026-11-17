@@ -1,0 +1,40 @@
+{
+ "set": "FDN",
+ "name": "lathliss_another_nontoken_dragon_makes_one_dragon",
+ "notes": "M8 mapper. Printed: 'Whenever another nontoken Dragon you control enters, create a 5/5 red Dragon creature token with flying.' A 2/2 Dragon enters under seat 0's control: one 5/5 Dragon token. The token is a token, so its own entering makes no other.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lathliss",
+   "real": "Lathliss, Dragon Queen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "drake",
+   "name": "Your Whelp",
+   "type": "Creature — Dragon",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "drake"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Dragon": 1
+  },
+  "zone": {
+   "drake": "battlefield"
+  }
+ }
+}

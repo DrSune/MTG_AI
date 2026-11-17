@@ -1,0 +1,59 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_demon_is_a_five_five_flier",
+ "notes": "M8 mapper. Printed: '... Create a 5/5 black Demon creature token with flying.' The Demon token is a 5/5 with flying.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "card",
+   "name": "Spare Card",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 1
+  },
+  "battlefield_pt": {
+   "Demon": [
+    5,
+    5
+   ]
+  },
+  "battlefield_keywords": {
+   "Demon": [
+    "FLYING"
+   ]
+  }
+ }
+}

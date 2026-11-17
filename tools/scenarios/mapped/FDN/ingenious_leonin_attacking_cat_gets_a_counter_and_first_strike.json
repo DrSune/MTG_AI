@@ -1,0 +1,99 @@
+{
+ "set": "FDN",
+ "name": "ingenious_leonin_attacking_cat_gets_a_counter_and_first_strike",
+ "notes": "M8 mapper. Printed: '{3}{W}: Put a +1/+1 counter on another target attacking creature you control. If that creature is a Cat, it gains first strike until end of turn.' The Cat and the Bear attack; seat 0 pays {3}{W} targeting the Cat (3/3, first strike). Seat 1's 3/3 Ogre blocks the Cat and dies to its first-strike damage before dealing any; the Bear's 2 damage goes through.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "leonin",
+   "real": "Ingenious Leonin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "Your Cat",
+   "type": "Creature — Cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogre",
+   "name": "Opp Ogre",
+   "type": "Creature — Ogre",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "3",
+   "toughness": "3"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "cat": true,
+    "bear": true,
+    "leonin": false
+   },
+   "block": {
+    "ogre": "cat"
+   },
+   "respond": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "mana",
+      "seat": 0,
+      "add": {
+       "W": 1,
+       "C": 3
+      }
+     },
+     {
+      "op": "activate",
+      "key": "leonin",
+      "idx": 0,
+      "seat": 0,
+      "targets": [
+       "cat"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "cat": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "blocked": {
+   "cat": [
+    "ogre"
+   ]
+  },
+  "zone": {
+   "cat": "battlefield",
+   "ogre": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}
