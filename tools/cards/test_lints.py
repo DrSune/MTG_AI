@@ -71,6 +71,13 @@ def _card(code: str, name: str) -> tuple[Any, Any]:
     return sc.raw[oid], sc.results[oid].card
 
 
+def _printed(code: str, name: str) -> tuple[Any, Any]:
+    """The card's printed facts with none of its text compiled (a permanent keeps its cast
+    carrier): the base of a tree a test writes itself, which the card's record cannot change."""
+    raw = _set(code).raw[_set(code).by_name(name)]
+    return raw, corpus.printed_only(raw).card
+
+
 def test_no_lint_finding_on_any_verified_card() -> None:
     # 736 verified cards on 2026-11-14 (M21 275, M20 277, FDN 184): every finding here is a false
     # positive, or a verified card that is wrong.
@@ -225,14 +232,17 @@ def test_the_two_events_are_the_compilers_own() -> None:
 
 
 def test_food_has_one_token() -> None:
-    raw, card = _card("FDN", "Bake into a Pie")
-    destroy = card.abilities[0].effect
+    # Bake into a Pie's text over trees written here, so its own record (the one Food) is not read
+    raw, card = _printed("FDN", "Bake into a Pie")
+    creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+    destroy = A(Verb.DESTROY, {"target": creature})  # the compiler's "Destroy target creature."
 
     def spell(*steps: Any) -> Any:
         return dataclasses.replace(card, abilities=(SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=steps)),))
 
     assert lints.lint(raw, spell(destroy, A(Verb.CREATE_TOKEN, {"count": QConst(1), "tokens": lints.FOOD}))) == []
-    assert lints.food(raw, card)  # "Create a Food token." with no Food in the tree
+    assert lints.food(raw, spell(destroy))  # "Create a Food token." with no Food in the tree
     treasure_like = dataclasses.replace(lints.FOOD, type_line="Artifact", subtypes=(), keywords=(Keyword.TREASURE,))
     gains_four = dataclasses.replace(lints.FOOD, abilities=(dataclasses.replace(
         lints.FOOD.abilities[0], effect=A(Verb.GAIN_LIFE, {"amount": QConst(4), "controller": ControllerRef.YOU})),))
@@ -242,7 +252,7 @@ def test_food_has_one_token() -> None:
 
 
 def test_enters_or_dies_is_two_abilities_with_one_effect() -> None:
-    raw, card = _card("FDN", "Crow of Dark Tidings")
+    raw, card = _printed("FDN", "Crow of Dark Tidings")  # its cast carrier alone, whatever its record holds
     mill = A(Verb.MOVE_ZONE, {"amount": QConst(2), "controller": ControllerRef.YOU,
                               "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                               "from": Zone(ZoneKind.LIBRARY, ControllerRef.YOU),
