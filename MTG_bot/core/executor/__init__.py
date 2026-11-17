@@ -582,8 +582,8 @@ class Executor:
         # ``blocked_by``: attacker -> the creatures blocking it, in DECLARE
         # order (CR 509.1b: one attacker per blocker, so a handle appears in
         # exactly one list; multiple blockers per attacker ARE legal — the
-        # assignment order is asked per attacker, CR 510.1). Cleared with
-        # the attack record at end of combat; replayed state.
+        # attacker's controller divides its damage among them, CR 510.1c).
+        # Cleared with the attack record at end of combat; replayed state.
         self.blocked_by: dict[Handle, list[Handle]] = {}
         # DISPATCHED MANDATE_BLOCK ledger (the static shape rides layers'
         # "mandate_block" records; Canopy Stalker's rule line).
@@ -2970,14 +2970,15 @@ class Executor:
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
 
     def lethal_damage(self, dealer: Handle, blocker: Handle) -> int:
-        """The damage that is lethal to ``blocker`` from ``dealer`` for a combat damage
-        assignment (CR 702.19b): its toughness minus the damage marked on it (CR 704.2: the
-        first-strike step's included), or 1 from a source with deathtouch (CR 702.2c)."""
-        if self.layers.keyword_of(dealer, Keyword.DEATHTOUCH):
-            return 1
+        """The damage still lethal to ``blocker`` from ``dealer`` for a combat damage assignment
+        (CR 702.19b, 120.6): its toughness minus the damage already marked on it (the
+        first-strike step's included), or any nonzero amount from a source with deathtouch (CR
+        702.2c); none when what is marked is already lethal (an indestructible blocker that
+        survived the first-strike step)."""
         card = self.world.cards[blocker]
         _power, toughness = self.ledger.effective_pt(card.identity, blocker, card.counters)
-        return max(1, (toughness or 1) - self.damage.get(blocker, 0))
+        short = max(0, (toughness or 0) - self.damage.get(blocker, 0))
+        return min(short, 1) if self.layers.keyword_of(dealer, Keyword.DEATHTOUCH) else short
 
     def _damage_wave(self, dealers: list[Handle]) -> None:
         """One combat-damage substep: EVERY dealer's legal assignment is

@@ -90,7 +90,8 @@ ASK_KINDS = (
     # asked before (no tree held the two cost parts), so they start as "other"
     "exile", "remove_counter",
     # how much of a blocked creature's combat damage goes to one of its blockers (CR 510.1c,
-    # 702.19b; Executor._assign_damage, divide:<blocker>:<attacker>:<turn>), the options amounts.
+    # 702.19b; Executor._assign_damage, divide:<blocker>:<attacker>:<turn>), the options amounts,
+    # the attacker the ask's source and the blocker offered (encode).
     # It replaces the damage assignment order and the trample excess asks ("order", "trample",
     # never asked since), which the rules no longer have or which it folds in; a division was
     # never asked before, so it starts as "other"
@@ -564,6 +565,11 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     parsed = [_OPTS[o.token] for o in ask.options[:MAX_OPTIONS]]
     offered = {p[1] for p in parsed if p[1] is not None and p[1].namespace == "card"}
     offered |= {p[2] for p in parsed if p[2] is not None and p[2].namespace == "card"}
+    if ask.kind == "divide" and len(site_cards) == 2:
+        # divide:<blocker>:<attacker>:<turn>: the attacker's damage is divided (the source), the
+        # amounts offered go to the blocker
+        source = Handle("card", int(site_cards[1]))
+        offered.add(Handle("card", int(site_cards[0])))
 
     # --- the visible cards, in a fixed zone order
     ents: list[tuple[Handle, str, Handle]] = []  # (handle, zone, owner)

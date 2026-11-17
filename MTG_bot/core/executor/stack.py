@@ -412,11 +412,13 @@ def can_designate(slots: list, chosen: SlotGroups = (), pay=None) -> bool:
     candidates. The drivers' gate before they offer a row. ``pay(targets)``,
     when given, prices the whole designation too (a menu row's ``pay``): each
     candidate is priced alone, and two taxed targets can together cost more
-    than the payer can pay (CR 601.2f-h), which is no completion."""
+    than the payer can pay (CR 601.2f-h), which is no completion. An empty
+    designation costs what the row was offered at (its ``pay(())``)."""
     if another_target_reason(slots[: len(chosen)], chosen) is not None:
         return False
     if len(chosen) == len(slots):
-        return pay is None or pay(tuple(h for group in chosen for h in group))
+        flat = tuple(h for group in chosen for h in group)
+        return pay is None or not flat or pay(flat)
     slot = slots[len(chosen)]
     return any(
         can_designate(slots, (*chosen, group), pay)

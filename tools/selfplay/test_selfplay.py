@@ -1169,6 +1169,23 @@ def test_heuristic_divides_combat_damage_sensibly() -> None:
     assert division == [("Brash Taunter", 0), ("Walking Corpse", 7)]
 
 
+def test_a_divide_ask_shows_its_attacker_and_its_blocker(table) -> None:
+    """The divide ask's entities (divide:<blocker>:<attacker>:<turn>): its attacker is the ask's
+    source, the blocker the amounts go to is offered, so with several blocked attackers the
+    network still knows which division it answers (E2 review)."""
+    from MTG_bot.bench.protocol import Ask, Option
+
+    game, _router, _me = _teach(field0=("Colossal Dreadmaw",), field1=("Walking Corpse",))
+    dealer, blocker = _named(game, "Colossal Dreadmaw"), _named(game, "Walking Corpse")
+    ask = Ask(seat=0, kind="divide", site=f"divide:{blocker}:{dealer}:1", prompt="",
+              options=(Option("0", "0 damage"), Option("6", "6 damage")))
+    f = FT.encode(game.executor, 0, ask, table)
+    rows = {flag: [int(f["cards_i"][j, 0]) for j in range(len(f["cards_f"])) if f["cards_f"][j, flag]]
+            for flag in (FT.F_ASK_SOURCE, FT.F_OFFERED)}
+    oid = {h: game.world.cards[h].identity.oracle_id for h in (dealer, blocker)}
+    assert rows == {FT.F_ASK_SOURCE: [table.row(oid[dealer])], FT.F_OFFERED: [table.row(oid[blocker])]}
+
+
 def test_heuristic_never_trades_two_mana_for_one() -> None:
     # Prismite's "{2}: Add one mana of any color" is a mana-cost filter: it never adds mana.
     game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))

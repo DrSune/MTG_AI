@@ -27,6 +27,8 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     FAtom,
     FAtomPred,
+    Keyword,
+    KeywordAbility,
     QConst,
     Verb,
 )
@@ -380,6 +382,27 @@ class TestAssignment(BlockerCase):
         self.assertEqual(asked, [(str(first).split(":"), tuple(map(str, range(7))))])
         self.assertEqual(sorted(self.damage_plan(dino)), sorted(((1, first), (5, second))))
         self.assertEqual(self.world.players[self.p1].life, 20)
+
+    def test_lethal_damage_already_marked_needs_none_more(self):
+        # CR 702.19b: lethal damage counts the damage already marked. A double-striking trampler
+        # blocked by Brash Taunter (indestructible 1/1): 1 to it in the first-strike step, and in
+        # the regular step it already has lethal damage, so all 6 may trample over (the menu
+        # starts at 0) and the Taunter turns 1 damage back, not 2. Found by the E2 review.
+        dino = self.real("Colossal Dreadmaw", self.p0)  # 6/6 trample
+        taunter = self.real("Brash Taunter", self.p1)
+        self.begin()
+        self.ex.apply_effect(
+            atom(Verb.GRANT_ABILITY, target=target_sel(),
+                 ability=KeywordAbility(Keyword.DOUBLE_STRIKE), duration=DurationEot()),
+            source=dino, controller=self.p0, bindings={"target": [dino]},
+        )
+        self.answers[f"block:{taunter}"] = str(dino)
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        menus = [v for v, what in self.seen_asks if what.startswith("divide:")]
+        self.assertEqual(menus, [tuple(map(str, range(1, 7))), tuple(map(str, range(7)))])
+        self.assertEqual(self.world.players[self.p1].life, 20 - 5 - 6)
+        self.assertEqual(self.world.players[self.p0].life, 19)
 
     def test_trample_excess_ask_routes_to_the_player(self):
         dino = self.real("Colossal Dreadmaw", self.p0)  # 6/6 trample

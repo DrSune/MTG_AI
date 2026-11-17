@@ -1034,9 +1034,9 @@ class ScenarioRunner:
             if got is None:
                 for k, q in queues.items():
                     if what == k or what.startswith(k + ":"):
-                        got = q.pop(0) if q else vocab[0]
+                        got = q.pop(0) if q else None  # used up: the division's default
                         break
-            if got is None and script:
+            if got is None and script and not what.startswith("divide:"):
                 got = script.pop(0)
                 if got in self.handles:
                     got = str(self.handles[got])
