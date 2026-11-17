@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "courageous_goblin_no_bonus_without_your_big_creature",
+ "notes": "M4 mapper. Printed: 'Whenever this creature attacks while you control a creature with power 4 or greater, this creature gets +1/+0 and gains menace until end of turn.' Seat 0's other creature is a 3/3 (power 3 is not 4 or greater); seat 1's 5/5 is not seat 0's. The Goblin attacks with no bonus and no menace: seat 1's 5/5 blocks it alone and it dies.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "goblin", "real": "Courageous Goblin", "zone": "battlefield", "controller": 0},
+  {"key": "three", "name": "Your Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"goblin": true, "three": false}, "block": {"obig": "goblin"}}
+ ],
+ "expect": {
+  "attackers": {"goblin": true},
+  "blocked": {"goblin": ["obig"]},
+  "zone": {"goblin": "graveyard", "obig": "battlefield"},
+  "damage": {"obig": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

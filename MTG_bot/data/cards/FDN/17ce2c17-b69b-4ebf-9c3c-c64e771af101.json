@@ -1,0 +1,317 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "17ce2c17-b69b-4ebf-9c3c-c64e771af101",
+ "name": "Alesha, Who Laughs at Fate",
+ "text_sha": "1272bb6e3160eef5fb09b518610af7095546d59afa984070a934674a1356b7a0",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FIRST_STRIKE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "END_TURN"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAnd",
+     "children": [
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TURN_OF"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "YOU"
+       },
+       "inner_filter": null
+      },
+      {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "EVENT_THIS_TURN"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": {
+        "tag": "QConst",
+        "value": 1
+       },
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null,
+       "event": {
+        "tag": "DeclareAttackersEvent",
+        "filter": {
+         "tag": "FAnd",
+         "children": []
+        }
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CMC_LE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": {
+             "tag": "QProp",
+             "referent": "source",
+             "field": {
+              "tag": "QPropField",
+              "name": "POWER"
+             },
+             "agg": {
+              "tag": "QAgg",
+              "name": "FIRST"
+             }
+            },
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Alesha, Who Laughs at Fate.\n# \"Whenever Alesha attacks, put a +1/+1 counter on it.\" DeclareAttackersEvent(IS_SOURCE), M21\n# Spellgorger Weird's counter on this creature.\n# \"Raid — At the beginning of your end step, if you attacked this turn, return target creature card\n# with mana value less than or equal to Alesha's power from your graveyard to the battlefield.\"\n# M21 Silversmote Ghoul's end-step trigger, the compiler's raid condition (FDN Goblin Boarders,\n# B14), M21 Rise Again's return; the mana-value bound is CMC_LE with a dynamic threshold, Alesha's\n# power (QProp('source', POWER); FAtom's count slot takes QProp).\nSELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ngrow = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': SELF,\n    }),\n)\nraid = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n            FAtom(\n                pred=FAtomPred.EVENT_THIS_TURN,\n                count=QConst(value=1),\n                event=DeclareAttackersEvent(filter=FAnd(children=())),\n            ),\n        ),\n    ),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(\n                        pred=FAtomPred.CMC_LE,\n                        count=QProp(referent='source', field=QPropField.POWER),\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [grow, raid, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "First strike",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever Alesha attacks, put a +1/+1 counter on it.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Raid — At the beginning of your end step, if you attacked this turn, return target creature card with mana value less than or equal to Alesha's power from your graveyard to the battlefield.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Attack trigger: DeclareAttackersEvent(IS_SOURCE), Spellgorger Weird's counter on this creature. Raid: Silversmote Ghoul's end-step trigger with the compiler's raid condition (Goblin Boarders, B14) and Rise Again's return; the bound is CMC_LE with a dynamic threshold, QProp('source', POWER) (FAtom's count slot), read with Alesha's power as the target is chosen and checked. Packs: tools/scenarios/mapped/FDN/alesha_raid_offers_creatures_up_to_her_power.json, tools/scenarios/mapped/FDN/alesha_raid_returns_the_chosen_creature.json, tools/scenarios/mapped/FDN/alesha_raid_bound_is_her_current_power.json."
+ },
+ "probe": {
+  "sha": "aba5120fe0f966cabf306609e194fd1d3ab63446a4af0b76ea047e02116a2c90"
+ }
+}

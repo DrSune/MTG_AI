@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "tragic_banshee_morbid_minus_thirteen",
+ "notes": "M4 mapper. Printed: 'Morbid — When this creature enters, target creature an opponent controls gets -1/-1 until end of turn. If a creature died this turn, that creature gets -13/-13 until end of turn instead.' Seat 0's Bear dies first this turn. Then Tragic Banshee enters and targets seat 1's 14/14: it gets -13/-13 instead of -1/-1, and is 1/1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "banshee", "real": "Tragic Banshee", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ohuge", "name": "Opp Huge", "type": "Creature — Giant", "power": "14", "toughness": "14", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 2},
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 4}},
+  {"op": "cast", "key": "banshee", "controller": 0, "decisions": ["ohuge"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "banshee": "battlefield", "ohuge": "battlefield"},
+  "power": {"ohuge": 1, "ogre": 3},
+  "toughness": {"ohuge": 1, "ogre": 3}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "prayer_of_binding_exiled_permanent_returns_when_it_leaves",
+ "notes": "M4 mapper. Printed: 'When this enchantment enters, exile up to one target nonland permanent an opponent controls until this enchantment leaves the battlefield. You gain 2 life.' Seat 0 casts Prayer of Binding and its trigger exiles seat 1's Opp Ogre; seat 0 gains 2 life. Then another effect puts the Prayer into its owner's graveyard: the Ogre returns to the battlefield under its owner's control (CR 610.3), and the 2 life stays.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "prayer", "real": "Prayer of Binding", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 3}},
+  {"op": "cast", "key": "prayer", "controller": 0, "decisions": ["ogre"]},
+  {"op": "move", "key": "prayer", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"prayer": "graveyard", "ogre": "battlefield"},
+  "controller": {"ogre": 1},
+  "life": {"0": 22, "1": 20}
+ }
+}

@@ -1,0 +1,309 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9b55fb72-237d-4935-b645-8ebc6eb4140e",
+ "name": "Consuming Aberration",
+ "text_sha": "8f05b6ebc37138a146e6dccef668eb1648897f666791bbca2cac6f997c4998a0",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "SET_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            }
+           }
+          ]
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            }
+           }
+          ]
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": []
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "EachPlayer",
+     "ref": {
+      "tag": "ControllerRef",
+      "name": "ALL_OPPONENTS"
+     },
+     "effect": {
+      "tag": "Seq",
+      "steps": [
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "REVEAL"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "controller",
+           {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          ],
+          [
+           "count",
+           {
+            "tag": "QConst",
+            "value": 1
+           }
+          ],
+          [
+           "until",
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Land",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "MOVE_ZONE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QUnbounded"
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "ALL"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "position": {
+               "tag": "ZonePosition",
+               "name": "TOP"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Consuming Aberration.\n# \"Consuming Aberration's power and toughness are each equal to the number of cards in your\n# opponents' graveyards.\"  M21 Kinetic Augur's characteristic-defining SET_PT static (B5b), both\n# halves, counting every card in the opponents' graveyards (Zone(GRAVEYARD, OPPONENT): every\n# opponent's).\n# \"Whenever you cast a spell, each opponent reveals cards from the top of their library until they\n# reveal a land card, then puts those cards into their graveyard.\"  \"A spell\" is\n# CastSpellEvent(FAnd(())) (MAPPER_GUIDE); each opponent in turn (EachPlayer(ALL_OPPONENTS), M21\n# Thieves' Guild Enforcer's form, \"you\" inside is that opponent) reveals until a land (M21\n# Transmogrify's REVEAL until), then every revealed card goes to the graveyard: an ALL over the\n# revealed window at the library top (MAPPER_GUIDE \"All of the revealed cards\").\nGY_COUNT = QCount(\n    selector=Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.OPPONENT),),\n    ),\n)\nsize = StaticAbility(\n    effect=A(Verb.SET_PT, {\n        'power': GY_COUNT,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': GY_COUNT,\n    }),\n)\nfeed = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAnd(children=()),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=EachPlayer(\n        ref=ControllerRef.ALL_OPPONENTS,\n        effect=Seq(\n            steps=(\n                A(Verb.REVEAL, {\n                    'controller': ControllerRef.YOU,\n                    'count': QConst(value=1),\n                    'until': FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(children=()),\n                        zones=(\n                            Zone(\n                                kind=ZoneKind.LIBRARY,\n                                controller=ControllerRef.YOU,\n                                position=ZonePosition.TOP,\n                            ),\n                        ),\n                    ),\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [size, feed, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Consuming Aberration's power and toughness are each equal to the number of cards in your opponents' graveyards.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): atom SET_PT(power,target,toughness)"
+  ],
+  "notes": "P/T: Kinetic Augur's characteristic-defining SET_PT static, both halves, counting every card in the opponents' graveyards (Zone(GRAVEYARD, OPPONENT)). Trigger: 'a spell' (FAnd(())), EachPlayer(ALL_OPPONENTS) (Thieves' Guild Enforcer), Transmogrify's REVEAL until a land, then an ALL over the revealed window at the library top to that player's graveyard. Pack: tools/scenarios/mapped/FDN/consuming_aberration_reveals_down_to_a_land.json."
+ },
+ "probe": {
+  "sha": "0c1be3ccfcf91c374d1665280408054362bd01257120785ba9d05d5739596ff9"
+ }
+}

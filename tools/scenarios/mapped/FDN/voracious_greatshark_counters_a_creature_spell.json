@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "voracious_greatshark_counters_a_creature_spell",
+ "notes": "M4 mapper. Printed: 'Flash. When this creature enters, counter target artifact or creature spell.' On seat 1's turn seat 1 casts Llanowar Elves and holds priority; in response seat 0 flashes in Voracious Greatshark, whose trigger counters the Elves: they go to seat 1's graveyard. (Both pools are filled before the Elves are cast: a mana step passes priority.)",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shark", "real": "Voracious Greatshark", "zone": "hand", "controller": 0},
+  {"key": "elves", "real": "Llanowar Elves", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 3}},
+  {"op": "mana", "seat": 1, "add": {"G": 1}},
+  {"op": "cast", "key": "elves", "controller": 1, "hold": true},
+  {"op": "cast", "key": "shark", "controller": 0, "decisions": ["elves"]}
+ ],
+ "expect": {
+  "zone": {"shark": "battlefield", "elves": "graveyard"}
+ }
+}
