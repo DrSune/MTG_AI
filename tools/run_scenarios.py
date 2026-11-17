@@ -990,6 +990,11 @@ class ScenarioRunner:
         controller was never shown to choose. A pack installs none, so its
         defaults are unchanged."""
         unknown = set(step) - COMBAT_KEYS
+        if unknown & {"order", "trample"}:
+            raise PackError(
+                "combat: the order and trample lanes are gone (2026-11-17, CR 510.1c): a blocked "
+                "creature's damage is divided blocker by blocker, \"divide\": {blockerKey: amount}"
+            )
         if unknown:
             raise PackError(f"combat: unknown keys {sorted(unknown)}; it takes {sorted(COMBAT_KEYS)}")
         outer = self.ex.decisions.provider
