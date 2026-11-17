@@ -1,19 +1,62 @@
 {
  "set": "FDN",
  "name": "hoarding_dragon_exiles_an_artifact_and_returns_it_on_death",
- "notes": "Control for the known bug beside it, passes today against draft.py (M3 mapper, 2026-11-17): one life of the Dragon plays as printed. Printed: 'When this creature enters, you may search your library for an artifact card, exile it, then shuffle. When this creature dies, you may put the exiled card into its owner's hand.' Seat 0's library holds an artifact card and a creature card. Hoarding Dragon enters; seat 0 searches and picks the artifact (the only artifact card offered): it is exiled, the creature stays in the library. The Dragon dies; seat 0 puts the exiled artifact into its owner's (seat 0's) hand.",
- "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "M3 mapper. Printed: 'When this creature enters, you may search your library for an artifact card, exile it, then shuffle. When this creature dies, you may put the exiled card into its owner's hand.' Seat 0's library holds an artifact card and a creature card. Hoarding Dragon enters; seat 0 searches and picks the artifact (the only artifact card offered): it is exiled, the creature stays in the library. The Dragon dies; seat 0 puts the exiled artifact into its owner's (seat 0's) hand.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
  "cards": [
-  {"key": "dragon", "real": "Hoarding Dragon", "zone": "hand", "controller": 0},
-  {"key": "relic", "name": "Lib Relic", "type": "Artifact", "zone": "library", "controller": 0},
-  {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+  {
+   "key": "dragon",
+   "real": "Hoarding Dragon",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "relic",
+   "name": "Lib Relic",
+   "type": "Artifact",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "beast",
+   "name": "Lib Beast",
+   "type": "Creature — Beast",
+   "power": "3",
+   "toughness": "3",
+   "zone": "library",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "enter", "key": "dragon", "decisions": ["fire", "relic"]},
-  {"op": "move", "key": "dragon", "to": "graveyard", "decisions": ["fire"]}
+  {
+   "op": "enter",
+   "key": "dragon",
+   "decisions": [
+    "fire",
+    "relic"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "dragon",
+   "to": "graveyard",
+   "decisions": [
+    "fire"
+   ]
+  }
  ],
  "expect": {
-  "zone": {"dragon": "graveyard", "relic": "hand", "beast": "library"},
-  "hand": {"0": 1}
+  "zone": {
+   "dragon": "graveyard",
+   "relic": "hand",
+   "beast": "library"
+  },
+  "hand": {
+   "0": 1
+  }
  }
 }

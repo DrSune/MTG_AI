@@ -1,0 +1,177 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1d60c80d-9a95-4051-bbf7-02ca51ee1be2",
+ "name": "Scrawling Crawler",
+ "text_sha": "a1a618a511543e1814171fcdaec8c34fe02deb4667bea3405ba3c4126b49c545",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "UPKEEP"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "EachPlayer",
+     "ref": {
+      "tag": "ControllerRef",
+      "name": "ANY"
+     },
+     "effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DRAW"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 1
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CardDrawnEvent",
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "OPPONENT"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "LOSE_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "ANY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ],
+         "referent": "event"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Scrawling Crawler (FDN), a 3/2 artifact creature (Phyrexian Construct) for {3}.\n# \"At the beginning of your upkeep, each player draws a card.\n#  Whenever an opponent draws a card, that player loses 1 life.\"\n# [0] Event: the compiler's \"At the beginning of your upkeep\" (frame B13-upkeep). \"Each player\n#     draws a card\" is M20 Dragon Mage's verified \"each player ... draws seven cards\": an\n#     EachPlayer(ANY) around DRAW with controller YOU, the rotated player (DRAW's controller role\n#     takes one player, ATOM_DIVERGENCES D21 / B-108).\n# [1] Event: \"whenever an opponent draws a card\" is CardDrawnEvent with actor CONTROLLER_IS\n#     OPPONENT (the drawer, journalled on the row; M21 Lorescale Coatl's verified \"whenever you\n#     draw a card\" is the YOU form). \"That player\" is the drawer: the referent 'event' Selector\n#     names the drawn card (the event's subject), whose controller is the player who drew it\n#     (R_ITSCONTROLLER: the referent of the triggering object, folded to its controller by\n#     selectors.role_players). Every draw triggers it, the [0] draw included.\nupkeep = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.UPKEEP,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=EachPlayer(\n        ref=ControllerRef.ANY,\n        effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    ),\n)\nopponent_draws = TriggeredAbility(\n    event=CardDrawnEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)),\n    condition=None,\n    effect=A(Verb.LOSE_LIFE, {\n        'amount': QConst(value=1),\n        'controller': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n            referent='event',\n        ),\n    }),\n)\nabilities = [upkeep, opponent_draws, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your upkeep, each player draws a card.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever an opponent draws a card, that player loses 1 life.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "36dfc4ce5f1db23562a0f37891a0ed7825f98599104e137785033797d1d772f6"
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "garna_a_creature_that_was_not_attacking_dies_deals_one",
+ "notes": "Printed: 'Whenever ANOTHER creature you control dies, draw a card if it was attacking. Otherwise, Garna deals 1 damage to each opponent.' Outside combat, another effect deals 10 to each creature in turn: seat 1's Opp Bear dies first (not a creature seat 0 controls: nothing), then seat 0's Bear (it was not attacking: Garna deals 1 to seat 1, 19, and seat 0 draws nothing), then Garna itself (not 'another' creature: nothing more).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "garna", "real": "Garna, Bloodfist of Keld", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "garna", "target": "obear", "amount": 10},
+  {"op": "deal_damage", "source": "garna", "target": "bear", "amount": 10},
+  {"op": "deal_damage", "source": "garna", "target": "garna", "amount": 10}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "garna": "graveyard", "obear": "graveyard"},
+  "hand": {"0": 0},
+  "life": {"0": 20, "1": 19}
+ }
+}

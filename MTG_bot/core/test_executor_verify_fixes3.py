@@ -722,7 +722,7 @@ class TestWasAttackingIsLastKnown(FixerCase):
     it was attacking. Otherwise, <B>." (+3 life, else +1 here.) "It" is the creature that died (a
     bare Conditional's object test), judged as it last existed: it left combat as it left the
     battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a, 608.2h;
-    known_bugs/2026-11-17/garna_was_attacking). Raider attacks."""
+    the pack mapped/FDN/garna_attacker_dies_draws.json). Raider attacks."""
 
     def setUp(self):
         super().setUp()
