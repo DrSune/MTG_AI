@@ -1,0 +1,201 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5001bf21-9dbb-4229-aeef-25805e71b832",
+ "name": "Icewind Elemental",
+ "text_sha": "0ef19a55cef88f6931e3d009312b981a5d633caf77ab24ee595bf73d02a81f44",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Icewind Elemental: \"Flying. When this creature enters, draw a card, then discard a card.\"\n# The enters trigger is M21 Teferi's Tutelage's verified sentence word for word\n# (B2b-teferis-tutelage-etb: `parse \"When this enchantment enters, draw a card, then discard a\n# card.\"`); only the permanent's noun differs, and the event is the same IS_SOURCE entry.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n                ),\n                'controller': ControllerRef.YOU,\n                'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n                'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, draw a card, then discard a card.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Teferi's Tutelage's verified sentence word for word (B2b-teferis-tutelage-etb). Flying compiles. Packs: tools/scenarios/mapped/FDN/icewind_elemental_draws_then_discards_the_drawn_card.json."
+ },
+ "probe": {
+  "sha": "05ee612564bb1ab9f402d3d0f7694dcd4c94eb3f8f19d913a5ab055a09e9eb23"
+ }
+}

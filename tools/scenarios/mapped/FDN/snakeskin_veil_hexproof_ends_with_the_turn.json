@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "snakeskin_veil_hexproof_ends_with_the_turn",
+ "notes": "M3 mapper. Printed: 'Put a +1/+1 counter on target creature you control. It gains hexproof until end of turn.' Seat 0 casts Snakeskin Veil on its 2/2 (now 3/3 with the counter). The turn ends and the hexproof with it; then the opponent's Scorching Dragonfire can target the creature: 3 damage kill it and it is exiled instead (Dragonfire's own replacement).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "veil", "real": "Snakeskin Veil", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "fire", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "real": "Scorching Dragonfire", "key": "fire", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"bear": "exile", "fire": "graveyard"}
+ }
+}

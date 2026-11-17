@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "cat_collector_only_the_first_life_gain_makes_cats",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a Food token. ... Whenever you gain life for the first time during each of your turns, create a 1/1 white Cat creature token.' Two Cat Collectors enter on seat 0's turn: two Foods. Seat 0 sacrifices one Food (gains 3, its first life gain this turn: each Collector's trigger makes a Cat, two Cats, put on the stack in the order seat 0 picks, CR 603.3b), then the other (gains 3 again: no more Cats). Life 26, two Cats, no Food. (act:card:14:0 and act:card:15:0 are the two Foods, made after the two setup cards and the twelve library fillers.)",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "c1", "real": "Cat Collector", "zone": "hand", "controller": 0},
+  {"key": "c2", "real": "Cat Collector", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 4}},
+ "steps": [
+  {"op": "enter", "key": "c1"},
+  {"op": "enter", "key": "c2"},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0", "c1"]},
+  {"op": "act", "seat": 0, "words": ["act:card:15:0"]}
+ ],
+ "expect": {"life": {"0": 26, "1": 20}, "tokens": {"Food": 0, "Cat": 2}}
+}

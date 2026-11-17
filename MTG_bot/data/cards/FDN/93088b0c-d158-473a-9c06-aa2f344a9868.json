@@ -1,0 +1,215 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "93088b0c-d158-473a-9c06-aa2f344a9868",
+ "name": "Bloodtithe Collector",
+ "text_sha": "ff5fe1834e5581146aaa1f3ee1c5406b395fea94d0e3cde4ff5d45f9979e92b8",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "EVENT_THIS_TURN"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "event": {
+      "tag": "LifeLostEvent",
+      "actor": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "CONTROLLER_IS"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": {
+        "tag": "ControllerRef",
+        "name": "OPPONENT"
+       },
+       "inner_filter": null
+      }
+     }
+    },
+    "effect": {
+     "tag": "EachPlayer",
+     "ref": {
+      "tag": "ControllerRef",
+      "name": "ALL_OPPONENTS"
+     },
+     "effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "CHOOSE"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "HAND"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "GRAVEYARD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ],
+        [
+         "from",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Bloodtithe Collector: \"Flying. When this creature enters, if an opponent lost life this\n# turn, each opponent discards a card.\"\n# Event: the compiler's \"When this creature enters\". The intervening \"if\" is the condition\n# (CR 603.4), M20 Savage Gorger's verified \"if an opponent lost life this turn\":\n# EVENT_THIS_TURN over LifeLostEvent(actor=an opponent), count 1. Effect: each opponent discards\n# a card in M20 Yarok's Fenlurker's verified EachPlayer(ALL_OPPONENTS, hand move) form, the\n# rotated opponent choosing from their own hand, to the graveyard (FDN Burglar Rat's note says\n# why not Bad Deal's plural role).\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.EVENT_THIS_TURN,\n        count=QConst(value=1),\n        event=LifeLostEvent(\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n        ),\n    ),\n    effect=EachPlayer(\n        ref=ControllerRef.ALL_OPPONENTS,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n            ),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n        }),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, if an opponent lost life this turn, each opponent discards a card.",
+    "ir": "abilities[0] (condition: EVENT_THIS_TURN LifeLostEvent by an opponent; effect: each opponent discards one)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Intervening 'if' as the condition: Savage Gorger's verified EVENT_THIS_TURN over LifeLostEvent(actor an opponent). The discard is Yarok's Fenlurker's EachPlayer(ALL_OPPONENTS, hand move) form to the graveyard (Arbiter of Woe's note says why not Bad Deal's). Flying compiles. Packs: tools/scenarios/mapped/FDN/bloodtithe_collector_after_combat_damage_the_opponent_discards.json, tools/scenarios/mapped/FDN/bloodtithe_collector_no_life_lost_no_discard.json, tools/scenarios/mapped/FDN/bloodtithe_collector_your_own_life_loss_is_not_enough.json."
+ },
+ "probe": {
+  "sha": "994942149a7db014e12560c5b51b99edaf8453dba77876881f8625d20b445e78"
+ }
+}

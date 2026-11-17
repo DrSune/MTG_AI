@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "48d14b5c-711a-4f8a-9de5-55415cb7a79a",
+ "name": "Angel of Finality",
+ "text_sha": "c1d2774d7d80ff4e2dce62a567db950da1b04f4289b0ffceb5d6cc14dee14a4f",
+ "needs_atom": {
+  "missing": "ENGINE: a triggered ability never designates the player of \"target player's graveyard\" written as a Selector over Zone(GRAVEYARD, TARGET_PLAYER), M21 Tormod's Crypt's form (MOVE_ZONE of ALL cards in that zone to Zone(EXILE, OWNER), in `cards` or `target`): binding.TriggerBinder._designated_player_refs reads an atom's ControllerRef and Zone role values and its filters, but not a Selector's zones, which query._designated_player_refs (the spell and activation lanes) does read. So 'When this creature enters, exile target player's graveyard.' opens no player target and raises 'TARGET_PLAYER needs a bound target (12c target prompt)' as the trigger resolves (G1: 2 engine errors, the cast and the entry on the opponent's turn); write refuses it. Weaker than printed, not stronger. A 'from': Zone(GRAVEYARD, TARGET_PLAYER) role on the same MOVE_ZONE designates and plays right (asks [you, opp], exiles that graveyard; G0 warns of the new shape MOVE_ZONE(cards,destination,from)), but it is a second encoding of Tormod's Crypt's meaning, so it is not written. Flying compiles. Known-bug draft and pack (raises today): tools/scenarios/known_bugs/2026-11-17/trigger_never_designates_a_selector_zone_player/.",
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17"
+ }
+}

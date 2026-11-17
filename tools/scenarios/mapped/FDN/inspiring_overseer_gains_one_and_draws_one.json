@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "inspiring_overseer_gains_one_and_draws_one",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you gain 1 life and draw a card.' Seat 0's library holds Card A on top. Inspiring Overseer enters: seat 0 gains 1 life and draws one card, A; Card B stays on top of the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "overseer", "real": "Inspiring Overseer", "zone": "hand", "controller": 0},
+  {"key": "b", "name": "Card B", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "a", "name": "Card A", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "overseer"}
+ ],
+ "expect": {
+  "life": {"0": 21, "1": 20},
+  "zone": {"overseer": "battlefield", "a": "hand", "b": "library"},
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Card B", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

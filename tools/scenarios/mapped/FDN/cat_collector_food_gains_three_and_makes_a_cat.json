@@ -1,0 +1,15 @@
+{
+ "set": "FDN",
+ "name": "cat_collector_food_gains_three_and_makes_a_cat",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a Food token. (It's an artifact with \"{2}, {T}, Sacrifice this token: You gain 3 life.\") Whenever you gain life for the first time during each of your turns, create a 1/1 white Cat creature token.' Cat Collector enters: one Food. On seat 0's turn it pays {2}, taps and sacrifices the Food: it gains 3 life, its first life gain this turn, so one Cat token is created. The Food is gone. (act:card:13:0 is the Food, the card made after the setup card and the twelve library fillers.)",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "collector", "real": "Cat Collector", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "enter", "key": "collector"},
+  {"op": "act", "seat": 0, "words": ["act:card:13:0"]}
+ ],
+ "expect": {"life": {"0": 23, "1": 20}, "tokens": {"Food": 0, "Cat": 1}, "zone": {"collector": "battlefield"}}
+}
