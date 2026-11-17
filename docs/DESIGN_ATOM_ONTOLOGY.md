@@ -2182,15 +2182,18 @@ Rebuke's "costs {3} less if it targets a tapped creature" is priced before targe
 "more creatures than you" sums all opponents at three seats (BACKLOG); an opponent's "N or
 less" has no form.
 
-**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5 and 0b309e22
-were merged** (the reviewer's evidence: the session scratchpad's `gate12/`).
+**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5, 0b309e22,
+e32e0b88 (mapping batch M6) and f59fb8f0 (M8) were merged** (the reviewer's evidence: the session
+scratchpad's `gate12/`).
 - MAJOR-1, the merge red (213 engine and 3 tools failures): 20 unverified FDN records of mapping
   batches M1-M7 held folded predicates and no longer decoded. Re-mapped through `cardtool write`
   with their authors (tree translated, draft re-rendered, clauses and notes reworded), equal, all
   20, to the reviewer's mechanical translation; Dragonmaster Outcast's and Ghitu Lavarunner's equal
   to the compiler's whole trees; Mentor of the Meek and Gate Colossus keep their creature noun. The
-  translation is a repeatable script outside the repository (the round's report names it) for
-  batches M6 and M8. G0's number check reads "N or less" as the comparison at N + 1, negated.
+  translation is a repeatable script outside the repository (the round's report names it); it
+  translated batch M6's three such records (Ruby, Daring Tracker, Nessian Hornbeetle, Elenda,
+  Saint of Dusk) and M8's three (Squad Rallier, Loot, Exuberant Explorer, M20 Diviner's Lockbox)
+  as they merged. G0's number check reads "N or less" as the comparison at N + 1, negated.
   Knight of Grace and Knight of Malice (FDN), whose needs-atom notes asked for this round's
   battlefield count of any controller, mapped (packs `mapped/FDN/knight_of_*`). The needs-atom
   notes and pack notes that named a folded predicate reworded; the stale stamps' evidence is left
@@ -2204,10 +2207,11 @@ were merged** (the reviewer's evidence: the session scratchpad's `gate12/`).
   mutants on their own; FNot refuses the negation of two measures through FAnd and FOr, and a
   double negation; "N + 0" and an ALL selector's count refused; BACKLOG: the last known power also
   answers a departure trigger's target choice.
-- Merged numbers (`tree_dump.py` on main 0b309e22 and on the branch, `tree_diff.py`): 104 compiler
-  trees and 134 with records applied change (FDN 33 with the re-mapped records); 22 cards newly
-  whole; the same **58 stamps out** (53 home, 5 reprint), none in: M21 275 -> 245, M20 279 -> 264,
-  FDN 193 -> 184, ELD 14 -> 13, ORI 24 -> 23, WAR 22 -> 20. The fixes change no stamp.
+- Merged numbers (`tree_dump.py` on main f59fb8f0 and on the branch, `tree_diff.py`:
+  `blast_radius_merged.txt`): 104 compiler trees and 140 with records applied change (FDN 38 and
+  M20 18 with the re-mapped records); 22 cards newly whole; no tree refused on either side only;
+  the same **58 stamps out** (53 home, 5 reprint), none in: M21 275 -> 245, M20 279 -> 264, FDN
+  193 -> 184, ELD 14 -> 13, ORI 24 -> 23, WAR 22 -> 20. The fixes change no stamp.
 - The coordinator's additions: G3 offers no count change on a CHOOSE or ONE_OF over your one
   player (FDN Crystal Barricade's "You have hexproof", from mapper M6: an equivalent critical
   mutant; its critical survivors are now none), and E2's pack that needs Leafkin Druid's record

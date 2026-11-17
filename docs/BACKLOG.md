@@ -1250,8 +1250,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **Re-verify the cards ontology round R12 re-baked** (2026-11-17, the one quantity comparison,
   DESIGN_ATOM_ONTOLOGY §16, pending gate round 12; tree shas changed, no stamp touched, so each is
   out of the verified pool until a blind review passes it again; `get_supply("verified", <set>)`:
-  M21 275 -> 245, M20 277 -> 262, FDN 190 -> 181; on main 0b309e22 merged, M20 279 -> 264 and FDN
-  193 -> 184, the same 58 cards; `reports/quantity_comparison_2026-11-17/blast_radius.txt`):
+  M21 275 -> 245, M20 277 -> 262, FDN 190 -> 181; on main f59fb8f0 merged, M20 279 -> 264 and FDN
+  193 -> 184, the same 58 cards; `reports/quantity_comparison_2026-11-17/blast_radius_merged.txt`):
   - M21 (30): Adherent of Hope, Basri's Lieutenant, Celestial Enforcer, Chromatic Orrery, Chrome
     Replicator, Drowsing Tyrannodon, Eliminate, Fabled Passage, Fierce Empath, Gadrak, Garruk's
     Uprising, Garruk, Unleashed, Historian of Zhalfir, Idol of Endurance, Jolrael, Leafkin Avenger,
@@ -1273,8 +1273,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `cards/<SET>/`;
   - newly mapped, never verified: M20 Field of the Dead and Season of Growth (packs in
     `mapped/M20/`), FDN Knight of Grace and Knight of Malice (gate round 12, packs in
-    `mapped/FDN/`); the 20 FDN records of mapping batches M1-M7 re-mapped into the comparison (they
-    were unverified); 22 cards of the 19 sets now compile whole (THB's heroes, ZNR's Rogues, FDN Lunar
+    `mapped/FDN/`); the 26 records of mapping batches M1-M8 that held folded predicates re-mapped
+    into the comparison (they were unverified); 22 cards of the 19 sets now compile whole (THB's heroes, ZNR's Rogues, FDN Lunar
     Insight, ...) and wait for their first review.
 - **The last known power also answers a departure trigger's target choice** (gate round 12,
   2026-11-17): `binding._put` builds the context of a trigger's target choice with its event, so a
