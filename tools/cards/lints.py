@@ -17,6 +17,12 @@ waves found most often (KNOWLEDGE/2026-11-14/207). They run inside gate G0, so a
 - ``carrier``: a permanent card's cast carrier holds no effect: an effect there happens when the
   card is CAST (the orphaned "If you do, draw a card." of 23 partly compiled cards, M20 Keldon
   Raider; M20 Sorin, Vampire Lord gaining 4 life as it was cast).
+- ``food``, ``two_events``, ``its_controller``: the three mapping rulings of
+  KNOWLEDGE/2026-11-17/209 §3 (docs/MAPPER_GUIDE.md "Rulings"), each refusing the encodings
+  other than its one form: a Food token is ``templates.food_token()``; "When this creature enters
+  or dies" is two adjacent triggered abilities with one effect; "N damage to that creature's
+  controller" is the referent read over the players, and "its controller" names a target only
+  where its ability designates one.
 
 Each check returns plain-language findings; an empty list is a pass. ``EXCEPTIONS`` lists the
 justified exceptions by oracle id, each with its reason. Over every verified card of M21, M20 and
@@ -29,9 +35,11 @@ import dataclasses
 import re
 from collections import Counter
 from collections.abc import Iterator
+from itertools import pairwise
 from typing import Any
 
 from MTG_bot.core.ability_tree import (
+    DESIGNATED_PLAYER_REFS,
     QX,
     ActivatedAbility,
     Atom,
@@ -48,16 +56,32 @@ from MTG_bot.core.ability_tree import (
     CostRemoveCounter,
     CostSacrifice,
     CostTap,
+    CreatureDiesEvent,
+    DeclareAttackersEvent,
+    DeclareBlockersEvent,
+    DelayedTrigger,
     EachPlayer,
+    FAnd,
     FAtom,
     FAtomPred,
     QConst,
+    QUnbounded,
+    ReplacementAbility,
     Selector,
+    SelectorMode,
     SpellAbility,
+    StaticAbility,
+    TokenSpec,
+    TriggeredAbility,
     Verb,
+    Zone,
+    ZoneChangeEvent,
+    ZoneKind,
+    own_nodes,
     walk,
 )
 from MTG_bot.core.compiler.ingest import RawCard
+from MTG_bot.core.compiler.templates import food_token
 
 #: (lint, oracle id) -> why the finding is right to ignore. Add one only with the reason, and say
 #: so in the card's review; a lint that needs many is a wrong lint.
@@ -69,6 +93,17 @@ EXCEPTIONS: dict[tuple[str, str], str] = {
         "tools/audit/test_ontology_conformance.py flags the same card"),
 }
 
+#: (oracle id, printed sentence) -> why: sentences labelled inert for good, which no tree holds
+#: (docs/MAPPER_GUIDE.md "Labelled sentences"). G0's clause trace accepts the label "inert" on
+#: these only, and ``costs`` reads no activation from them. Add one only by a ruling.
+INERT: dict[tuple[str, str], str] = {
+    ("3e83dec6-e1a0-4137-aaab-308dfd3122e1",
+     "[−5]: You may reveal a creature card you own from outside the game and put it into your hand."): (
+        "M20 Vivien, Arkbow Ranger: no card is outside the game in self-play or Commander (no "
+        "sideboard), so the ability reveals nothing (CR 400.11; the coordinator's ruling, "
+        "2026-11-17, KNOWLEDGE/2026-11-17/209 §5)"),
+}
+
 OPPONENT_SIDE = frozenset({ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
                            ControllerRef.TARGET_OPPONENT, ControllerRef.DEFENDING_PLAYER})
 _OPPONENT_WORDS = re.compile(r"\bopponents?\b|\bopponent's\b|\bdon't control\b|\bdoesn't control\b"
@@ -76,19 +111,17 @@ _OPPONENT_WORDS = re.compile(r"\bopponents?\b|\bopponent's\b|\bdon't control\b|\
 _PERMANENT_TYPES = ("Creature", "Artifact", "Enchantment", "Planeswalker", "Battle")
 
 
-def rules_text(raw: RawCard) -> list[str]:
-    """The front face's rules sentences, reminder text left out, the card's own name as ``~``."""
-    out = []
+def rules_sentence(raw: RawCard, sentence: str) -> str:
+    """One sentence as the lints read it: reminder text left out, the card's own name as ``~``."""
     name = raw.identity.name
     short = name.split(",")[0]
-    for sentence in raw.sentences:
-        s = re.sub(r"\s*\([^)]*\)", "", sentence).strip()
-        s = s.replace(name, "~")
-        if short != name and len(short) > 3:
-            s = s.replace(short, "~")
-        if s:
-            out.append(s)
-    return out
+    s = re.sub(r"\s*\([^)]*\)", "", sentence).strip().replace(name, "~")
+    return s.replace(short, "~") if short != name and len(short) > 3 else s
+
+
+def rules_text(raw: RawCard) -> list[str]:
+    """The front face's rules sentences (``rules_sentence``), empty ones left out."""
+    return [s for s in (rules_sentence(raw, x) for x in raw.sentences) if s]
 
 
 def _front(card: CardRecord) -> list[Any]:
@@ -452,7 +485,8 @@ def printed_activations(raw: RawCard) -> list[tuple[str, Counter | None]]:
 
 
 def costs(raw: RawCard, card: CardRecord) -> list[str]:
-    printed = printed_activations(raw)
+    inert = {s for oid, s in INERT if oid == raw.identity.oracle_id}
+    printed = [(s, p) for s, p in printed_activations(raw) if s not in inert]
     if any(p is None for _, p in printed):
         return []
     tree = [tree_cost(a) for a in _front(card) if isinstance(a, ActivatedAbility)]
@@ -495,10 +529,12 @@ def printed_numbers(raw: RawCard) -> set[int]:
 
 
 def _tree_numbers(node: Any) -> Iterator[int]:
-    """The QConst values of a subtree, its costs left out (the costs check reads those)."""
+    """The QConst values of a subtree, its costs left out (the costs check reads those), and the
+    one Food token's (its "You gain 3 life" is reminder text; ``food`` checks the whole token)."""
     if isinstance(node, QConst):
         yield node.value
-    elif type(node).__name__ == "Cost" or isinstance(node, BackFace):
+    elif (type(node).__name__ == "Cost" or isinstance(node, BackFace)
+          or (isinstance(node, TokenSpec) and node == FOOD)):
         return
     elif isinstance(node, AtomArgs):
         for _, value in node.pairs:
@@ -541,7 +577,141 @@ def carrier(raw: RawCard, card: CardRecord) -> list[str]:
     return found
 
 
-LINTS = {"players": players, "costs": costs, "amounts": amounts, "carrier": carrier}
+# ----------------------------------------------------------------------------- the 209 rulings
+#: R_FOOD: the one Food token (docs/MAPPER_GUIDE.md "Food tokens").
+FOOD = food_token()
+_CREATES_FOOD = re.compile(r"\bcreates?\b[^.]*\bFood tokens?\b", re.IGNORECASE)
+
+
+def food(raw: RawCard, card: CardRecord) -> list[str]:
+    """Every Food token in the tree (any face) is ``FOOD``, and a front face that creates one
+    holds a CREATE_TOKEN of it."""
+    found = []
+    odd = [n for n in walk(card) if isinstance(n, TokenSpec)
+           and (n.name == "Food" or "Food" in n.subtypes) and n != FOOD]
+    if odd:
+        found.append(f"{len(odd)} Food TokenSpec(s) differ from the one Food (MAPPER_GUIDE 'Food "
+                     "tokens', templates.food_token()): copy it exactly, subtype Food and no keyword")
+    makes = any(isinstance(n, Atom) and n.verb is Verb.CREATE_TOKEN and n.args.get("tokens") == FOOD
+                for a in _front(card) for n in walk(a))
+    if any(_CREATES_FOOD.search(s) for s in rules_text(raw)) and not makes:
+        found.append("the text creates a Food token, but no CREATE_TOKEN in the tree makes the one Food")
+    return found
+
+
+#: R_TWOEVENTS: "When this creature enters or dies, <effect>" (and "enters or attacks", "attacks
+#: or blocks") is two triggered abilities, adjacent in printed order, each with the compiler's own
+#: event for its half and one condition and one effect: the form the compiler gives M21 Elder
+#: Gargaroth's "attacks or blocks" (docs/MAPPER_GUIDE.md "One trigger, two events").
+_TWO_EVENTS = re.compile(r"^(?:When|Whenever) (?:this \w+|~) (enters|attacks) or (dies|attacks|blocks), ",
+                         re.IGNORECASE)
+_SELF = FAtom(pred=FAtomPred.IS_SOURCE)
+SELF_EVENTS = {
+    "enters": ZoneChangeEvent(from_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
+                              to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU), subject=_SELF),
+    "dies": CreatureDiesEvent(filter=_SELF),
+    "attacks": DeclareAttackersEvent(filter=_SELF),
+    "blocks": DeclareBlockersEvent(filter=_SELF),
+}
+
+
+def two_events(raw: RawCard, card: CardRecord) -> list[str]:
+    tops = _front(card)
+    found = []
+    for s in rules_text(raw):
+        m = _TWO_EVENTS.match(s)
+        if m is None:
+            continue
+        first, second = (SELF_EVENTS[w.lower()] for w in m.groups())
+        if not any(isinstance(a, TriggeredAbility) and isinstance(b, TriggeredAbility)
+                   and (a.event, b.event) == (first, second)
+                   and (a.condition, a.effect, a.once_per_event) == (b.condition, b.effect, b.once_per_event)
+                   for a, b in pairwise(tops)):
+            found.append(f'"{s[:60]}": two triggered abilities, adjacent and in printed order, with '
+                         f"one condition and one effect: {type(first).__name__} then "
+                         f"{type(second).__name__}, each as the compiler writes \"this creature\"'s")
+    return found
+
+
+#: R_ITSCONTROLLER: "N damage to that creature's controller" is DEAL_DAMAGE over every player who
+#: controls the referent (M20 Chandra, Flame's Fury's verified -2; docs/MAPPER_GUIDE.md "That
+#: creature's controller").
+_DAMAGE_TO_CONTROLLER = re.compile(
+    r"\bdamage to (?:that (?:creature|land|artifact|enchantment|permanent|planeswalker)'s|its) "
+    r"controller\b", re.IGNORECASE)
+
+
+def controller_of_referent(referent: str) -> Selector:
+    """The players "that creature's controller" names: CONTROLLER_IS of the referent object."""
+    return Selector(
+        count=QUnbounded(), mode=SelectorMode.ALL,
+        filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=Selector(
+            count=QConst(1), mode=SelectorMode.CHOOSE, filter=FAnd(()),
+            zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent=referent)),
+        zones=(Zone(ZoneKind.PLAYER, ControllerRef.ANY),))
+
+
+_RECIPIENTS = (controller_of_referent("target"), controller_of_referent("event"))
+_ABILITIES = (TriggeredAbility, ActivatedAbility, SpellAbility, DelayedTrigger, StaticAbility,
+              ReplacementAbility)
+
+
+def _own(ability: Any) -> list[Any]:
+    """An ability and the nodes of its body that are its own (``own_nodes``: not a granted,
+    token or delayed ability's)."""
+    body = ability.action if isinstance(ability, ReplacementAbility) else ability.effect
+    return [ability, *(own_nodes(body) if body is not None else ())]
+
+
+def _designates(nodes: list[Any]) -> bool:
+    """The ability's own nodes choose a target: a TARGET-mode selector of its own, or a
+    designated player anywhere (CR 115.1)."""
+    for n in nodes:
+        if isinstance(n, Selector) and n.mode is SelectorMode.TARGET and n.referent is None:
+            return True
+        values = n.pairs if isinstance(n, AtomArgs) else [getattr(n, f.name) for f in dataclasses.fields(n)]
+        flat = [v for pair in values for v in (pair if isinstance(pair, tuple) else (pair,))]
+        if any(isinstance(v, ControllerRef) and v in DESIGNATED_PLAYER_REFS for v in flat):
+            return True
+    return False
+
+
+def _player_referents(nodes: list[Any]) -> Iterator[Selector]:
+    """The referent Selectors read as a player ("its controller"): CONTROLLER_IS's ``who``, a
+    ``controller`` role, an EachPlayer's ``ref``."""
+    for n in nodes:
+        if isinstance(n, FAtom) and n.pred is FAtomPred.CONTROLLER_IS:
+            who = n.who
+        elif isinstance(n, Atom):
+            who = n.args.get("controller")
+        elif isinstance(n, EachPlayer):
+            who = n.ref
+        else:
+            continue
+        if isinstance(who, Selector) and who.referent is not None:
+            yield who
+
+
+def its_controller(raw: RawCard, card: CardRecord) -> list[str]:
+    found = []
+    printed = sum(len(_DAMAGE_TO_CONTROLLER.findall(s)) for s in rules_text(raw))
+    held = sum(1 for a in _front(card) for n in walk(a) if isinstance(n, Atom)
+               and n.verb is Verb.DEAL_DAMAGE and n.args.get("target") in _RECIPIENTS)
+    if held < printed:
+        found.append(f"{printed} \"damage to that creature's controller\" in the text, {held} in the tree: "
+                     "DEAL_DAMAGE over Zone(PLAYER, ANY) with CONTROLLER_IS of the referent (never a "
+                     "TARGET slot over the players, the recipient role, TARGET_PLAYER or EachPlayer)")
+    for ability in (n for a in _front(card) for n in walk(a) if isinstance(n, _ABILITIES)):
+        nodes = _own(ability)
+        if not _designates(nodes) and any(s.referent == "target" for s in _player_referents(nodes)):
+            found.append(f"a {type(ability).__name__} reads \"its controller\" of a target it never "
+                         "chooses: name the event's object (referent 'event') or the ability's own "
+                         "target; a damage trigger's dealer is no referent (KNOWLEDGE 203)")
+    return found
+
+
+LINTS = {"players": players, "costs": costs, "amounts": amounts, "carrier": carrier,
+         "food": food, "two_events": two_events, "its_controller": its_controller}
 
 
 def lint(raw: RawCard, card: CardRecord) -> list[str]:

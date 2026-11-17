@@ -224,6 +224,30 @@ def test_package_decks_are_legal_and_carry_their_package() -> None:
     assert len(seen) > len(kept) // 2  # the deal draws packages, not always the same one
 
 
+def test_a_deck_rule_lifts_the_copy_limit_in_swaps_and_package_decks() -> None:
+    """A card printing "A deck can have any number of cards named ~." (FDN Hare Apparent, CR
+    100.2a) takes copies past four: in the drafter's swaps (``cap``, the card's
+    ``CardMeta.max_copies``) and in a package deck's consumers."""
+    import dataclasses
+
+    from MTG_bot.core.executor.games import DECK_SIZE
+    from tools.selfplay import packages as PK
+
+    value = {"a": -0.2, "e": 0.5}
+    deck = Counter({"a": 8, "Plains": 12})
+    assert D.swap(deck, value, ["a", "e"], 6)["e"] == 4  # the four-copy limit
+    assert D.swap(deck, value, ["a", "e"], 6, cap={"a": 4, "e": DECK_SIZE}.__getitem__)["e"] == 6
+    sup, _ = _m21()
+    spell = next(c for c in sup.deckable
+                 if not sup.metas[c].is_land and not sup.pool.results[c].card.color_identity)
+    lifted = dataclasses.replace(sup, metas={
+        **sup.metas, spell: dataclasses.replace(sup.metas[spell], max_copies=DECK_SIZE)})
+    pkg = PK.Package(shapes=(("life", None),), consumers=(spell,), producers=(spell,), pairs=("BG",))
+    for s in range(3):
+        assert Counter(PK.build(s, lifted, [pkg])[1])[spell] >= PK.CONSUMER_COPIES
+        assert Counter(PK.build(s, sup, [pkg])[1])[spell] == 4
+
+
 def test_a_derived_package_holds_its_consumers_and_producers() -> None:
     """M21's lifegain package, read off the trees: "whenever you gain life" (Vito) and a granted
     one (Light of Promise) are consumers; GAIN_LIFE (Revitalize) and lifelink (Baneslayer Angel)

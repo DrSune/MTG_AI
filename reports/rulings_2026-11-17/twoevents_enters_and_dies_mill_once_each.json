@@ -1,0 +1,15 @@
+{
+ "name": "twoevents_enters_and_dies_mill_once_each",
+ "set": "FDN",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Crow of Dark Tidings", "key": "crow"},
+  {"op": "move", "key": "crow", "to": "graveyard"}
+ ],
+ "expect": {"graveyard": {"0": ["Crow of Dark Tidings", "Library 2", "Library 3", "Library 4", "Library 5"]},
+            "zone": {"crow": "graveyard"}}
+}

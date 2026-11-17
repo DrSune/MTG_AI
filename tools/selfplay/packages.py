@@ -36,7 +36,8 @@ and only "true" makes a producer. Consumers fed by the same producers are one pa
 Construction (``package_decks``), per deck from the deal's seed: a package, then the colour pair
 holding the most of its consumers and then the most producer copies; up to
 ``CONSUMER_COPIES`` consumers and ``PRODUCER_COPIES`` producers (basic producers count), the rest
-filled as ``games.build_coherent_deck`` fills, with its 24 basics and MAX_COPIES. A package with
+filled as ``games.build_coherent_deck`` fills, with its 24 basics and each card's
+``max_copies`` (MAX_COPIES, or the card's own deck rule). A package with
 no pair holding one consumer and ``PRODUCER_COPIES`` producer copies is dropped (``derive``).
 
     .venv/bin/python -m tools.selfplay.packages M21 M20 FDN [--pool verified]
@@ -99,7 +100,7 @@ from MTG_bot.core.ability_tree import (
     canonical_json,
     walk,
 )
-from MTG_bot.core.executor.games import COHERENT_LANDS, DECK_SIZE, MAX_COPIES
+from MTG_bot.core.executor.games import COHERENT_LANDS, DECK_SIZE
 from MTG_bot.core.executor.quantity import _PERMANENT_TYPE_WORDS, _type_line_tokens
 
 DEAL_SEED = 1409  # rig.play_game's deck_pairs_seed (decks.DEAL_SEED)
@@ -462,7 +463,7 @@ def label(pkg: Package) -> str:
 def derive(supply: Any) -> tuple[list[Package], list[tuple[Package, str]]]:
     """The supply's packages, and those dropped with the reason. A pair holds a card whose
     colour identity it covers; a package is kept when one pair holds a consumer and
-    PRODUCER_COPIES producer copies (MAX_COPIES of a spell, a consumer that produces included,
+    PRODUCER_COPIES producer copies (a spell's ``max_copies``, a consumer that produces included,
     and COHERENT_LANDS / 2 of a basic)."""
     metas = supply.metas
     rec = {c: supply.pool.results[c].card for c in supply.deckable}
@@ -484,7 +485,7 @@ def derive(supply: Any) -> tuple[list[Package], list[tuple[Package, str]]]:
         for pair in PAIRS:
             inside = {c for c in cons | fed if rec[c].color_identity <= set(pair)}
             held = len(cons & inside)
-            copies = sum(COHERENT_LANDS // 2 if metas[c].is_basic else MAX_COPIES
+            copies = sum(COHERENT_LANDS // 2 if metas[c].is_basic else metas[c].max_copies
                          for c in fed & inside)
             if held and copies >= PRODUCER_COPIES:
                 score[pair] = (held, copies)
@@ -528,13 +529,13 @@ def build(deck_seed: int, supply: Any, pkgs: list[Package]) -> tuple[Package, tu
     copies: Counter = Counter()
 
     def add(pool: list[str], n: int) -> None:
-        pool = [c for c in pool if copies[c] < MAX_COPIES]
+        pool = [c for c in pool if copies[c] < metas[c].max_copies]
         while n > 0 and pool:
             c = pool[rng.randrange(len(pool))]
             copies[c] += 1
             deck.append(c)
             n -= 1
-            if copies[c] == MAX_COPIES:
+            if copies[c] == metas[c].max_copies:
                 pool.remove(c)
 
     add([c for c in spells if c in pkg.consumers], CONSUMER_COPIES)

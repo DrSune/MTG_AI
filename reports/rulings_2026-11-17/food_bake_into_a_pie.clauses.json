@@ -1,0 +1,4 @@
+[
+ {"clause": "Destroy target creature.", "ir": "abilities[0].effect.steps[0]"},
+ {"clause": "Create a Food token.", "ir": "abilities[0].effect.steps[1] (templates.food_token())"}
+]

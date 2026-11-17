@@ -16,7 +16,8 @@ before them):
 - the library contents given the hand, the same way (l steps). The order is not modelled: the
   next draws are random draws from the contents.
 Only rules mask a step, never habits: the format's pool (the set's deckable cards), the copy
-limit (``MAX_COPIES`` of a card that is not a basic land, counting the public copies), the sorted
+limit (``CardMeta.max_copies`` of a card that is not a basic land, MAX_COPIES unless the card
+prints its own deck rule, counting the public copies), the sorted
 order, and that the remaining steps still fit. So both are distributions over multisets
 (test_simulator.py). A marginal head reads P(card in hand) and each card's expected library count.
 
@@ -41,7 +42,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from MTG_bot.core.executor.games import MAX_COPIES, get_supply
+from MTG_bot.core.executor.games import get_supply
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay.ppo import backward_step, steps
@@ -57,17 +58,22 @@ HOLDOUT = 25
 _POOLS: dict[tuple[int, str], tuple[np.ndarray, np.ndarray]] = {}
 
 
-def pool_rows(table: FT.CardTable, set_code: str) -> tuple[np.ndarray, np.ndarray]:
-    """The table rows of the set's dealt pool, and which of them are basic lands."""
+def pool_rows(table: FT.CardTable, set_code: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """The table rows of the set's dealt pool, which of them are basic lands, and each row's copy
+    limit: :data:`BASIC_CAP` for a basic land, else the card's ``max_copies`` (MAX_COPIES, or its
+    own deck rule, CR 100.2a), 0 outside the pool."""
     key = (id(table), set_code)
     if key not in _POOLS:
         supply = get_supply(POOL, set_code)
         pool = np.zeros(len(table.oracle_ids), bool)
         basic = np.zeros(len(table.oracle_ids), bool)
+        caps = np.zeros(len(table.oracle_ids), np.int64)
         for oid in supply.deckable:
+            m = supply.metas[oid]
             pool[table.row(oid)] = True
-            basic[table.row(oid)] = supply.metas[oid].is_basic
-        _POOLS[key] = (pool, basic)
+            basic[table.row(oid)] = m.is_basic
+            caps[table.row(oid)] = BASIC_CAP if m.is_basic else m.max_copies
+        _POOLS[key] = (pool, basic, caps)
     return _POOLS[key]
 
 
@@ -158,8 +164,7 @@ class Data:
         b = M.collate_packed(self.views, idx, device)
         cap = np.zeros((len(idx), len(self.table.oracle_ids)), np.int64)
         for s in np.unique(a["set"][idx]):
-            pool, basic = pool_rows(self.table, str(s))
-            cap[a["set"][idx] == s] = np.where(basic, BASIC_CAP, np.where(pool, MAX_COPIES, 0))
+            cap[a["set"][idx] == s] = pool_rows(self.table, str(s))[2]
         out: dict[str, Any] = {"h": a["h"][idx], "l": a["l"][idx]}
         for name in ("public", "hand", "lib"):
             rows, mask = M._rows(a[name + "_off"], idx)
