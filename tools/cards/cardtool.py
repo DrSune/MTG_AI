@@ -407,6 +407,23 @@ def kept_pack_path(dest: Path, stem: str, text: str) -> Path:
     return dest / f"{stem}_{i}.json"
 
 
+def unverified_supports(sc: corpus.SetCompile, pack: Path, card_oid: str) -> list[str]:
+    """The supporting cards a spec pack plays from a mapped record no verification stamps (the
+    card under review aside). The suite's ``test_card_pack`` plays verified trees only, so such
+    a pack passes ``verify`` and fails there (wave 3: seven packs played FDN Raise the Past after
+    gate round 12 took its stamp)."""
+    names = {c["real"] for c in json.loads(pack.read_text()).get("cards", []) if "real" in c}
+    out = set()
+    for oid, raw in sc.raw.items():
+        rec = sc.records.get(oid, {})
+        if oid == card_oid or raw.identity.name not in names or "ir" not in rec:
+            continue
+        result = sc.results.get(oid)
+        if result is None or not card_records.is_verified(result, rec):
+            out.add(raw.identity.name)
+    return sorted(out)
+
+
 def judgments(verdict: dict) -> str:
     """The sha256 of what a review judged: the verdict, the trace it read, and each clause's status
     and issue. Evidence and packs stay out: the verifier adds to them after the lock."""
@@ -581,7 +598,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
     packs = [Path(x) for x in verdict.get("packs", [])]
     if any(c.get("status") == "NOT_EXERCISED" for c in verdict.get("clauses", [])) and not packs:
         problems.append("G2/G4: clauses NOT_EXERCISED and no spec pack")
+    pack_sc = sc if pack_set == args.set else corpus.compile_set(pack_set)
     for pack in packs:
+        problems += [f"G4: pack {pack.name} plays unverified {name}"
+                     for name in unverified_supports(pack_sc, pack, oid)]
         bad = run_pack(pack, pack_supply)
         if bad:
             problems.append(f"G4: pack {pack.name} fails: {bad[0][:120]}")

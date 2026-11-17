@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     CardRecord,
     Choose,
+    EtBState,
     FAtom,
     FAtomPred,
     Keyword,
@@ -218,7 +219,10 @@ class Probe:
         for key, name in self.spells.items():
             cards.append({"key": key, "real": name, "zone": "hand", "controller": 0})
         if where is not None:
-            cards.append({"key": "card", "real": self.card.name, "zone": where, "controller": 0})
+            row = {"key": "card", "real": self.card.name, "zone": where, "controller": 0}
+            if where == "battlefield" and (counters := self._entering_counters()):
+                row["counters"] = counters
+            cards.append(row)
         pack = {"world": {"life": 20, "seed": 7}, "set": self.set_code, "cards": cards,
                 "mana": {"0": dict(MANA), "1": dict(MANA)}, "steps": []}
         setup_asks: list[str] = []
@@ -231,11 +235,41 @@ class Probe:
 
         # On the battlefield, the card has made the choice its "As this enters" requires (Runed
         # Halo's card name, Icon of Ancestry's creature type) with the default answer, before the
-        # opening turn reads it (ScenarioRunner._as_entered). Only that choice: the board's card
-        # keeps the untapped, counter-free state every other card has there.
+        # opening turn reads it (ScenarioRunner._as_entered), and carries the counters it enters
+        # with (_entering_counters). It is untapped, as every other card there is.
         runner = ScenarioRunner(pack, self.supply, setup_provider=setup_provider)
         runner.setup_asks = setup_asks  # type: ignore[attr-defined]
         return runner
+
+    def _entering_counters(self) -> dict[str, int]:
+        """The counters the card enters with ("enters with four +1/+1 counters", CR 614.1c,
+        122.6). A permanent is on the battlefield only by having entered it, and a 0/0 that enters
+        with counters is never there without them: the board would bury it at once (CR 704.5f),
+        and its abilities would never be probed (FDN Heroes' Bane; M21 Wildwood Scourge, whose X
+        counters a game gives it only when cast with X of 1 or more). So the board's card entered
+        as though cast with X = 1, the least X that keeps such a 0/0, and unkicked: a gate (kicked,
+        bloodthirst, raid) is unmet on a board where nothing was kicked, dealt damage or attacked.
+        A count read off the board as it enters (M20 Squad Captain) is left out; no such card is a
+        0/0."""
+        out: dict[str, int] = {}
+        for node in self.card.abilities:
+            if isinstance(node, EtBState) and node.condition is None:
+                for kind, quantity in node.initial_counters:
+                    n = 1 if isinstance(quantity, QX) else quantity.value if isinstance(quantity, QConst) else 0
+                    if n > 0:
+                        out[kind.name] = out.get(kind.name, 0) + n
+        return out
+
+    def board(self, where: str | None) -> ScenarioRunner | Variant:
+        """``runner(where)``, or a variant whose error says that the board ended the game before
+        any action (a GameOver in the opening turn, CR 704.5a-b): the trace shows it, as a G1
+        failure, where it used to crash the probe (M21 Sanctum of Calm Waters, 2026-11-12)."""
+        try:
+            return self.runner(where)
+        except GameOver as over:
+            seats = {"player:0": "you", "player:1": "opp"}
+            lost = ", ".join(f"{seats.get(p, p)} loses" for p in str(over).split(", "))
+            return Variant("setup", error=f"the game ends at setup, before any action: {lost}")
 
     def names(self, r: ScenarioRunner) -> Callable[[Any], str]:
         rev = {str(h): k for k, h in r.handles.items()}
@@ -306,7 +340,10 @@ class Probe:
                          else "until end of turn" if row.tag == "Eot"
                          else f"until {_seat_name(world, row.controller)}'s next turn")
                 zone = f"{zone} ({until}, then back to the {row.previous_zone})"
-            objs[name(h)] = (zone, _seat_name(world, world.controller_of(h)), bool(c.tapped),
+            # The effective controller, the GAIN_CONTROL overlay included (CR 610.3c; off the
+            # battlefield, the owner): the zone's player is the owner (CR 108.3), so reading it
+            # showed no control change at all (M21 Enthralling Hold).
+            objs[name(h)] = (zone, _seat_name(world, ex.controller_of(h)), bool(c.tapped),
                              tuple(sorted(dict(c.counters).items())), pt, kws, ex.damage.get(h, 0))
         players = {}
         for seat in world.player_order:
@@ -416,7 +453,11 @@ class Probe:
         """One variant in a fresh world. Every ask takes its default (PASS for an "unless its
         controller pays", else the first word), except ask ``choice[0]``, which takes word
         ``choice[1]``."""
-        r = self.runner(where)
+        r = self.board(where)
+        if isinstance(r, Variant):  # the board ended the game before the action
+            r.label = label
+            r.triggers, r.raw_vocab, r.raw_what = [], [], []  # type: ignore[attr-defined]
+            return r
         before = self.snapshot(r)
         start = len(r.ex.journal.events)
         v = Variant(label)
@@ -551,7 +592,9 @@ class Probe:
 
     def section_cast(self) -> tuple[list[str], list[Variant]]:
         notes: list[str] = []
-        r = self.runner("hand")
+        r = self.board("hand")
+        if isinstance(r, Variant):
+            return notes, [r]
         h = r.handles["card"]
         rows = [row for row in legal_casts(r.world, r.ex, r.p0) if row.handle == h]
         name = self.names(r)
@@ -600,7 +643,9 @@ class Probe:
 
     def section_activate(self, where: str) -> tuple[list[str], list[Variant]]:
         notes: list[str] = []
-        r = self.runner(where)
+        r = self.board(where)
+        if isinstance(r, Variant):
+            return notes, [r]
         h = r.handles["card"]
         name = self.names(r)
         legal = {o.ability_idx: o for o in legal_activations(r.world, r.ex, r.p0) if o.source == h}
@@ -752,8 +797,11 @@ class Probe:
 
     def section_static(self) -> list[str]:
         """The standard board with the card on the battlefield, against the board without it."""
-        without = self.snapshot(self.runner(None))
-        with_card = self.snapshot(self.runner("battlefield"))
+        boards = (self.board(None), self.board("battlefield"))
+        ended = [b.error or "" for b in boards if isinstance(b, Variant)]
+        if ended:
+            return ended
+        without, with_card = (self.snapshot(b) for b in boards)  # type: ignore[arg-type]
         lines = [c for c in self.diff(without, with_card) if not c.startswith("+ card ")]
         own = with_card[0].get("card")
         if own:

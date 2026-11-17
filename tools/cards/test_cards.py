@@ -121,6 +121,55 @@ def test_the_probe_plays_a_token_without_putting_it_in_a_hand() -> None:
     assert "from your hand" not in rep.text()
 
 
+def test_the_probe_board_draws_from_a_filled_library_in_the_opening_turn() -> None:
+    # M21 Sanctum of Calm Waters draws in its controller's precombat main phase. The two-player
+    # runner filled the libraries only after the opening turn, so the probe's battlefield card drew
+    # from an empty library and the probe died with GameOver at setup (c80f45f7).
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Sanctum of Calm Waters")
+    rep = probe.Probe(sup, "M21", oid).report()
+    assert not rep.errors
+    assert "card's triggered ability [0] triggers" in rep.text()
+
+
+def test_a_board_that_ends_the_game_is_a_finding_not_a_crash(monkeypatch) -> None:
+    # The probe built its runner outside run()'s GameOver guard, so a setup that ended the game
+    # crashed the whole report (c80f45f7). Now the trace says so, as a G1 failure.
+    from MTG_bot.core.executor import GameOver
+
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Shock")
+
+    def over(self, where):
+        raise GameOver("player:0")
+
+    monkeypatch.setattr(probe.Probe, "runner", over)
+    rep = probe.Probe(sup, "M21", oid).report()
+    assert rep.errors == ["setup: the game ends at setup, before any action: you loses"]
+
+
+def test_the_probe_shows_a_control_change() -> None:
+    # M21 Enthralling Hold: "You control enchanted creature." The snapshot read the zone's player,
+    # the owner (CR 108.3), so the trace showed no control change at all (c80f45f7).
+    sup = compile_supply("all", "M21", require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == "Enthralling Hold")
+    assert "opp_tapped: controller opp -> you" in probe.Probe(sup, "M21", oid).report().text()
+
+
+@pytest.mark.parametrize("code,name,lines", [
+    # "enters with four +1/+1 counters": its "{2}{G}{G}: put X +1/+1 counters on it, where X is its
+    # power" is probed now (c80f45f7: "not activatable from battlefield", the 0/0 had died)
+    ("FDN", "Heroes' Bane", ("card on the battlefield: 4/4", "[activate [1] from battlefield]")),
+    # "enters with X +1/+1 counters": the board's card was cast with X = 1, so it stays to watch
+    ("M21", "Wildwood Scourge", ("card on the battlefield: 1/1",)),
+])
+def test_a_card_that_enters_with_counters_is_on_the_probe_board_with_them(code, name, lines) -> None:
+    sup = compile_supply("all", code, require_verified=False)
+    oid = next(o for o, m in sup.metas.items() if m.name == name)
+    text = probe.Probe(sup, code, oid).report().text()
+    assert all(line in text for line in lines), text[-600:]
+
+
 def test_g0_asks_no_cast_carrier_of_a_token() -> None:
     # A token is never cast (CR 111.8), so G0 asks no permanent's cast carrier of it.
     import corpus
@@ -225,6 +274,37 @@ def test_the_survivors_step_locks_the_judgments_before_it_shows_any(tmp_path, ca
     path.write_text(json.dumps(locked))
     assert cardtool.main(["survivors", "M21", "Wall of Runes", "--verdict", str(path)]) == 0
     assert "0 critical survive your 1 pack(s)" in capsys.readouterr().out
+
+
+def test_verify_refuses_a_pack_that_plays_an_unverified_card(tmp_path, monkeypatch, capsys) -> None:
+    """The suite's test_card_pack plays verified trees only, so a spec pack whose supporting card
+    is a mapped record no review stamped passed verify (which plays records unverified) and then
+    failed in check.sh: wave 3's seven packs played FDN Raise the Past after gate round 12 took its
+    stamp. verify names such a card. Here Giant Growth's record is unstamped in a copy of FDN."""
+    import argparse
+    import dataclasses
+
+    import cardtool
+    import corpus
+
+    sc = corpus.compile_set("FDN")
+    growth = sc.by_name("Giant Growth")
+    unstamped = dataclasses.replace(sc, records={**sc.records, growth: {"ir": {}}})
+    monkeypatch.setattr(corpus, "compile_set", lambda code, *a, **k: unstamped)
+    pack = tmp_path / "elves_and_growth.json"
+    pack.write_text(json.dumps({"set": "FDN", "world": {"life": 20, "seed": 7}, "steps": [], "expect": {}, "cards": [
+        {"key": "elves", "real": "Llanowar Elves", "zone": "battlefield", "controller": 0},
+        {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0}]}))
+    elves = sc.by_name("Llanowar Elves")
+    assert cardtool.unverified_supports(sc, pack, elves) == []
+    assert cardtool.unverified_supports(unstamped, pack, elves) == ["Giant Growth"]
+    assert cardtool.unverified_supports(unstamped, pack, growth) == []  # the card under review
+    monkeypatch.setattr(cardtool, "uncovered_survivors", lambda *a, **k: (
+        {"mutants": 0, "killed": 0, "score": None, "survived": []}, []))
+    path = _verdict(tmp_path, packs=[str(pack)])  # its probe sha is wrong too: nothing is stamped
+    ns = argparse.Namespace(set="FDN", card="Llanowar Elves", verdict=str(path), reviewer="t", limit=80)
+    assert cardtool.cmd_verify(ns) == 1
+    assert "G4: pack elves_and_growth.json plays unverified Giant Growth" in capsys.readouterr().out
 
 
 def test_a_judgment_changed_after_its_lock_is_refused(tmp_path, capsys) -> None:
