@@ -827,17 +827,21 @@ class ReplacementRegistry:
         replaced_seq: frozenset[int] = frozenset(),
     ) -> ReplacementRecord | None:
         """The replacement for ``card`` moving from the zone it is in into
-        ``to_player``'s ``to_state`` zone, or None: the one interceptor every
-        zone move consults before it happens (CR 614.1a, 614.6), wherever
+        ``to_player``'s ``to_state`` zone, or None: the one interceptor the
+        zone moves consult before they happen (CR 614.1a, 614.6), wherever
         the card is ("If a card would be put into a graveyard from
-        anywhere", CR 614.1a). The move paths that ask: every verb's move
-        (``verbs._replaced_move``), the state-based actions
+        anywhere", CR 614.1a). The moves that ask: every verb that moves a
+        card (``verbs._replaced_moves``), the state-based actions
         (``Executor._state_checks``), a spell's put off the stack
         (``stack._put_off_the_stack``) and the end-of-turn exile of the stack
-        (``Executor._exile_the_stack``). A match consumes the move: the card
-        stays where it is, and the record's action runs after the move with
-        the card bound as ``event``, as part of the same event
-        (``Executor.replace_move``).
+        (``Executor._exile_the_stack``); the moves of one event all ask
+        before any happens. A draw (its own lane), a cast, a land drop and a
+        token's creation do not ask yet (BACKLOG). A match consumes the move:
+        the card stays where it is, and the record's action runs after the
+        move with the card bound as ``event``, as part of the same event
+        (``Executor.replace_move``). A zone's player is its owner (the
+        trigger lane's convention), so an endpoint reads the owner of the
+        zone the card leaves or joins, never a permanent's controller.
 
         Two event shapes: a ZoneChangeEvent by its endpoints and subject
         (Containment Priest's enter: ANY -> BATTLEFIELD; FDN Dryad Militant's

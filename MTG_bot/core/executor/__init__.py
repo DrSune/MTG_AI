@@ -248,7 +248,8 @@ __all__ = [
 ]
 
 
-# Predicates that test an object's own characteristics.
+# Predicates that test an object's own characteristics (CR 109.3: name, mana value, colour,
+# types, abilities, power and toughness), and whether it is a permanent card or a token.
 _CHARACTERISTIC_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -260,10 +261,15 @@ _CHARACTERISTIC_PREDS = frozenset(
         FAtomPred.CMC_LE,
         FAtomPred.CMC_GE,
         FAtomPred.NAME_EQ,
+        FAtomPred.NAME_CONTAINS,
         FAtomPred.IS_PERMANENT,
         FAtomPred.IS_TOKEN,
         FAtomPred.POWER_LE,
         FAtomPred.POWER_GE,
+        FAtomPred.PT_LE,
+        FAtomPred.PT_GE,
+        FAtomPred.KEYWORD_HAS,
+        FAtomPred.HAS_KICKER,
     }
 )
 
@@ -1762,31 +1768,39 @@ class Executor:
                     (len(self.events), "STATE_CHECK", str(card), f"UNATTACHED:{host}")
                 )
             # Every lane below puts permanents into their owners' graveyards,
-            # and each move asks the replacements first, as every move does
+            # and the moves ask the replacements first, as the verbs' moves do
             # (ReplacementRegistry.replacement_for_zone_change): a dies
             # replacement (Scorching Dragonfire; from the battlefield to a
             # graveyard is dying, CR 700.4, a zero-loyalty walker and a legend
             # rule loser too: "if that creature or planeswalker would die this
             # turn, exile it instead", Obliterating Bolt) or a zone-change one
-            # ("into a graveyard from anywhere", Dryad Militant). A matched move
+            # ("into a graveyard from anywhere", Dryad Militant). The check's
+            # actions are one event (CR 704.3), so every card asks before any
+            # moves: a replacement whose source dies in the same check still
+            # applies to the rest (Rest in Peace's ruling). A matched move
             # does not happen: the record's ACTION (the exile) runs as its own
             # journalled atom in this iteration's drain below, and a replaced
             # death emits no BATTLEFIELD->GRAVEYARD diff, so no CREATURE_DIES row.
+            decided: dict[Handle, ReplacementRecord] = {}
+            for card in (*dying, *unattached, *walkers, *legend_losers):
+                if card in decided or card not in self.world.cards:
+                    continue
+                repl = self.replacements.replacement_for_zone_change(
+                    card, ZONE_GRAVEYARD, self.world.controller_of(card)
+                )
+                if repl is not None:
+                    decided[card] = repl
             replaced: list[tuple[Handle, ReplacementRecord]] = []
 
             def to_graveyard(card: Handle, why: str, replaced_why: str) -> None:
                 owner = self.world.controller_of(card)
-                # A creature-walker the lethal-damage lane already moved is not asked twice.
-                if self.world.zone_of(card).kind == ZONE_BATTLEFIELD:
-                    repl = self.replacements.replacement_for_zone_change(
-                        card, ZONE_GRAVEYARD, owner
+                repl = decided.pop(card, None)  # one lane takes a card listed in two
+                if repl is not None:
+                    replaced.append((card, repl))
+                    self.events.append(
+                        (len(self.events), "STATE_CHECK", str(card), replaced_why)
                     )
-                    if repl is not None:
-                        replaced.append((card, repl))
-                        self.events.append(
-                            (len(self.events), "STATE_CHECK", str(card), replaced_why)
-                        )
-                        return
+                    return
                 self.damage.pop(card, None)
                 self.damage_deathtouch.discard(card)
                 self.world.move_to_zone(card, owner, ZONE_GRAVEYARD)
@@ -2035,25 +2049,31 @@ class Executor:
         self.stack.frames.clear()  # removed from the stack: none resolves
         before = self.journal.snapshot()
         start = len(self.events)
+        spells = [
+            frame
+            for frame in frames  # an ability is no card: it ceases to exist
+            if frame.spell_kind not in ("ACTIVATED", "TRIGGERED")
+            and self.world.zone_of(frame.handle).kind == ZONE_STACK
+        ]
+        # The exiles are one event and ask the replacements first, as the verbs' moves do (CR
+        # 614.6): all of them before any moves.
         replaced: list[tuple[Handle, ReplacementRecord]] = []
-        for frame in frames:
-            if frame.spell_kind in ("ACTIVATED", "TRIGGERED"):
-                continue  # an ability is no card: it ceases to exist
-            if self.world.zone_of(frame.handle).kind == ZONE_STACK:
-                # The exile asks the replacements first, as every move does (CR 614.6).
-                repl = self.replacements.replacement_for_zone_change(
-                    frame.handle, ZONE_EXILE, frame.controller
-                )
-                if repl is not None:
-                    replaced.append((frame.handle, repl))
-                    self.events.append(
-                        (len(self.events), "ZONE_REPLACED", str(frame.handle), str(repl.source))
-                    )
-                    continue
-                self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+        for frame in spells:
+            repl = self.replacements.replacement_for_zone_change(
+                frame.handle, ZONE_EXILE, frame.controller
+            )
+            if repl is not None:
+                replaced.append((frame.handle, repl))
                 self.events.append(
-                    (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+                    (len(self.events), "ZONE_REPLACED", str(frame.handle), str(repl.source))
                 )
+        for frame in spells:
+            if any(card == frame.handle for card, _repl in replaced):
+                continue
+            self.world.move_to_zone(frame.handle, frame.controller, ZONE_EXILE)
+            self.events.append(
+                (len(self.events), "MOVE", str(frame.handle), "stack->exile")
+            )
         moved = self.journal.record_atom(before, None, "END_TURN", self.events[start:])
         if not replaced:
             self._on_zone_changes(moved)

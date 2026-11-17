@@ -1018,7 +1018,7 @@ def _put_off_the_stack(
     executor: Executor, handle: Handle, seat: Handle, dest: str
 ) -> ReplacementRecord | None:
     """Put the spell ``handle`` from the stack into ``seat``'s ``dest`` zone (CR 608.2n,
-    608.3), unless a replacement replaces the move, as every move asks first (CR 614.6: FDN
+    608.3), unless a replacement replaces the move, as the verbs' moves do (CR 614.6: FDN
     Dryad Militant exiles an instant or sorcery card instead; Containment Priest spares a cast
     creature). Returns that record; its action is the caller's to run once the put's boundary
     is journalled (:meth:`Executor.replace_move`)."""

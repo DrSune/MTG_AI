@@ -43,6 +43,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     CounterKind,
     CreatureDiesEvent,
+    DamageDealtEvent,
     EachPlayer,
     FAnd,
     FAtom,
@@ -477,6 +478,43 @@ class TestTargetPlayerSacrifices(DesignationCase):
         self.enter(keeper)
         self.assertEqual(self.world.zone_of(bear).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(keeper).kind, ZONE_BATTLEFIELD)
+
+    def _edict(self, ref):
+        yours = FAnd((CREATURE_ONLY, FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)))
+        return EachPlayer(ref=ref, effect=atom(
+            Verb.SACRIFICE, target=Selector(QConst(1), SelectorMode.CHOOSE, yours, zones=(BF_ANY,))))
+
+    def test_a_dies_trigger_asks_its_target_too(self):
+        """"When this creature dies, target opponent sacrifices a creature": a printed target,
+        chosen as the trigger goes on the stack (CR 603.3d), never the dead creature's controller
+        (the DIES pre-bind is the "that player" anaphora's, a role read: Massacre Wurm)."""
+        martyr = self.world.add_card(card_id("Martyr", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        mine = self.world.add_card(card_id("Mine", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        theirs = self.world.add_card(card_id("Theirs", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        self.attach(martyr, TriggeredAbility(
+            event=CreatureDiesEvent(FAtom(FAtomPred.IS_SOURCE)), condition=None,
+            effect=self._edict(ControllerRef.TARGET_OPPONENT)), name="Martyr")
+        self.never_ask()  # one opponent with one creature
+        self.ex.execute(atom(Verb.DESTROY, target=Selector(QConst(1), SelectorMode.TARGET, UNIV,
+                                                            zones=(BF_ANY,))),
+                        source=martyr, controller=self.p0, bindings={"target": martyr})
+        self.assertEqual(self.world.zone_of(theirs).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(mine).kind, ZONE_BATTLEFIELD)
+
+    def test_a_damage_trigger_asks_its_target_too(self):
+        """"Whenever this creature deals damage, target player sacrifices a creature": its
+        controller chooses the player; the dealer never stands for it (the DAMAGE pre-bind)."""
+        raider = self.world.add_card(card_id("Raider", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        theirs = self.world.add_card(card_id("Theirs", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        self.attach(raider, TriggeredAbility(
+            event=DamageDealtEvent(QConst(1), UNIV, source=FAtom(FAtomPred.IS_SOURCE)),
+            condition=None, effect=self._edict(ControllerRef.TARGET_PLAYER)), name="Raider")
+        self.answer(str(self.p1))
+        self.ex.execute(atom(Verb.DEAL_DAMAGE, amount=QConst(1), target=any_target()),
+                        source=raider, controller=self.p0, bindings={"target": self.p1})
+        self.assertEqual(self.asks[0][0], (str(self.p0), str(self.p1)))
+        self.assertEqual(self.world.zone_of(theirs).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(raider).kind, ZONE_BATTLEFIELD)
 
 
 class TestZoneAnyEnumeration(DesignationCase):

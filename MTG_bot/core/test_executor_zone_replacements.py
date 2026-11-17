@@ -191,6 +191,27 @@ class TestFromAnywhere(ZoneReplacementCase):
                  {"target": target})
         self.assertEqual((self.zone(fodder), self.zone(target)), (ZONE_EXILE, ZONE_EXILE))
 
+    def test_a_wrath_that_takes_the_replacements_source_still_exiles_the_rest(self) -> None:
+        """One event moves them all (CR 614.6): every card is asked before any moves, so the
+        replacement whose source is destroyed beside them applies to the rest (Rest in Peace's
+        ruling), whatever their order. The Leyline is first in Handle order here."""
+        self.permanent("Leyline", LEYLINE)
+        theirs = self.creature("Theirs", self.p1)
+        wrath = atom(Verb.DESTROY, target=Selector(QConst(1), SelectorMode.ALL,
+                                                    FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                                                    zones=(BF_ANY,)))
+        self.do(wrath, theirs, {})
+        self.assertEqual(self.zone(theirs), ZONE_EXILE)
+
+    def test_a_state_based_death_beside_the_source_is_exiled_too(self) -> None:
+        """The state-based actions of one check are one event (CR 704.3)."""
+        leyline = self.permanent("Leyline", LEYLINE)
+        theirs = self.creature("Theirs", self.p1)
+        for card in (leyline, theirs):
+            self.ex.mark_damage(card, 2)
+        self.ex.fire_triggers()  # a priority check: both die at once
+        self.assertEqual((self.zone(leyline), self.zone(theirs)), (ZONE_GRAVEYARD, ZONE_EXILE))
+
     def test_a_token_is_no_card(self) -> None:
         """Leyline of the Void names cards: a token dies as usual (and then ceases to exist)."""
         self.permanent("Leyline", LEYLINE)

@@ -2087,7 +2087,13 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         )
         assert isinstance(outcome, KickerEffectOutcome)
         self.assertTrue(outcome.replaces)
-        self.assertIsInstance(outcome.pred, FNot)
+        # cast (a copy is not: CR 707.10), and not from your hand
+        assert isinstance(outcome.pred, FAnd)
+        self.assertEqual(
+            {type(c).__name__ for c in outcome.pred.children}, {"FAtom", "FNot"}
+        )
+        cast = next(c for c in outcome.pred.children if isinstance(c, FAtom))
+        self.assertEqual(cast.pred, FAtomPred.WAS_CAST_THIS_TURN)
         cards = _pairs_dict(_as_atom(outcome.effect))["cards"]
         self.assertEqual((cards.mode, cards.count, cards.referent), (SelectorMode.ALL, QUnbounded(), None))
         self.assertEqual(cards.zones[0].position, ZonePosition.TOP)

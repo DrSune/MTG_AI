@@ -1946,13 +1946,20 @@ def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
     else=the one-and-rest split). "Each of those cards" is every card of the
     open look window: an ALL over the top of the library, Goblin Ringleader's
     form ("Put all Goblin cards revealed this way into your hand") with no
-    filter. The condition is a history question about the spell itself
-    (CAST_THIS_TURN_FROM, negated for "anywhere other than your hand")."""
-    cond = FNot(
-        inner=FAtom(
-            pred=FAtomPred.CAST_THIS_TURN_FROM,
-            zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
-            who=ControllerRef.YOU,
+    filter. The condition is a history question about the spell itself: it
+    was cast (WAS_CAST_THIS_TURN, Containment Priest's "it wasn't cast"
+    twin: a copy is never cast, CR 707.10), and not from your hand
+    (CAST_THIS_TURN_FROM, negated)."""
+    cond = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY),
+            FNot(
+                inner=FAtom(
+                    pred=FAtomPred.CAST_THIS_TURN_FROM,
+                    zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    who=ControllerRef.YOU,
+                )
+            ),
         )
     )
     every_looked = Selector(

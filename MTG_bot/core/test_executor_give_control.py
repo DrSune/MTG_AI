@@ -121,23 +121,23 @@ class GiveControlTest(unittest.TestCase):
 
     def test_control_ends_when_its_player_leaves_the_game(self) -> None:
         """CR 800.4a: in a game of three, the player who lost leaves it, and the effects that
-        gave that player control end: the stolen creature goes back to its owner, while the
-        control another player gained stays."""
+        gave that player control end: the creature p0 stole goes back to its owner, while the one
+        p1 stole stays p1's (both owned by p2, who stays: the leaver's own objects are another
+        part of 800.4a, not modelled)."""
         self._world(seats=3)
         p0, p1, p2 = self.seats
-        theirs = self._permanent(2, "Theirs")
-        mine = self._permanent(0, "Mine")
+        first, second = self._permanent(2, "First"), self._permanent(2, "Second")
         steal = Selector(QConst(1), SelectorMode.TARGET, FAnd(()), zones=(_BF,))
-        self.ex.execute(_give(ControllerRef.YOU, steal), source=theirs, controller=p0,
-                        bindings={"target": theirs})
-        self.ex.execute(_give(ControllerRef.YOU, steal), source=mine, controller=p1,
-                        bindings={"target": mine})
-        self.assertEqual((self.ex.controller_of(theirs), self.ex.controller_of(mine)), (p0, p1))
+        self.ex.execute(_give(ControllerRef.YOU, steal), source=first, controller=p0,
+                        bindings={"target": first})
+        self.ex.execute(_give(ControllerRef.YOU, steal), source=second, controller=p1,
+                        bindings={"target": second})
+        self.assertEqual((self.ex.controller_of(first), self.ex.controller_of(second)), (p0, p1))
         self.world.players[p0].life = 0
         self.ex.fire_triggers()  # a priority check: the state-based actions (CR 704.5a)
         self.assertEqual(self.ex.lost_players, [p0])
-        self.assertEqual(self.ex.controller_of(theirs), p2)
-        self.assertEqual(self.ex.controller_of(mine), p1)
+        self.assertEqual(self.ex.controller_of(first), p2)
+        self.assertEqual(self.ex.controller_of(second), p1)
 
 
 if __name__ == "__main__":
