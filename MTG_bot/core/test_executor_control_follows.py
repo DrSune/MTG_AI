@@ -16,6 +16,9 @@ from __future__ import annotations
 
 from MTG_bot.core.ability_tree import (
     ControllerRef,
+    Cost,
+    CostSacrifice,
+    CostTap,
     CounterKind,
     CounterPlacedEvent,
     DeclareBlockersEvent,
@@ -24,6 +27,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     OptionalEffect,
     PtDelta,
     PtDirection,
@@ -285,6 +289,36 @@ class TestResolvedEffectsKeepTheirController(ControlCase):
         self.steal(self.banner)
         self.assertEqual([r.controller for r in resolved], [self.p0])
         self.assertTrue(self.ex.replacements.prevents_block_declaration(self.beta, self.alpha))
+
+
+class TestStolenPermanentsPayCosts(ControlCase):
+    """CR 701.21a: a player sacrifices only a permanent they control, and a tap cost taps the
+    payer's own ("Tap two untapped Spirits you control"): control, not ownership. Bug hunt
+    2026-11-17 (hunt2): after Traitorous Greed the thief could not sacrifice the stolen creature
+    to Village Rites or Witch's Cauldron, the cost reading the owner off the zone that holds it."""
+
+    def plan(self, part, controller, source):
+        from MTG_bot.core.executor.legality import build_payment_plan, ctx_for
+
+        ctx = ctx_for(self.ex, source=source, controller=controller)
+        return build_payment_plan(self.world, ctx, Cost(parts=(part,)))
+
+    def test_the_thief_sacrifices_or_taps_the_stolen_creature_and_the_owner_cannot(self):
+        another_of_yours = Selector(
+            QConst(1),
+            SelectorMode.CHOOSE,
+            FAnd((YOURS, CREATURE, FNot(FAtom(FAtomPred.IS_SOURCE)))),
+            zones=(BF_ANY,),
+        )
+        sacrifice = CostSacrifice(target=another_of_yours)
+        tap = CostTap(target=another_of_yours)
+        self.steal(self.alpha)  # P1 now controls Alpha, which P0 owns
+        for part, field in ((sacrifice, "sacrifice"), (tap, "tap")):
+            plan, why = self.plan(part, self.p1, self.beta)
+            self.assertIsNone(why)
+            self.assertEqual(getattr(plan, field), (self.alpha,))
+            _plan, why = self.plan(part, self.p0, self.banner)
+            self.assertIn("insufficient_candidates:0<1", why)
 
 
 if __name__ == "__main__":  # pragma: no cover
