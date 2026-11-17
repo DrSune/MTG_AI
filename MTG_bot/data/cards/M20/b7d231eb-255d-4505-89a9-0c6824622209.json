@@ -4,9 +4,211 @@
  "oracle_id": "b7d231eb-255d-4505-89a9-0c6824622209",
  "name": "Barkhide Troll",
  "text_sha": "920a938d75d64ee6113c9d06ec87f606988a3ac51aefd4527a38b4c601811fe2",
- "needs_atom": {
-  "missing": "Remove-counter cost part: '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' The CostPart union (CostTap, CostManaColor/Generic/Hybrid, CostLife, CostSacrifice, CostDiscard, CostPutCounter, CostLoyalty) has no part that removes counters of a kind from an object as a cost (CostLoyalty is loyalty-only and CostPutCounter only adds). Needed: e.g. CostRemoveCounter(counter_kind, target, count). The rest is expressible: 'enters with a +1/+1 counter' is EtBState(initial_counters=((PLUS_1_PLUS_1, QConst(1)),)) (Malefic Scythe shape) and the effect is GRANT_ABILITY hexproof EOT on itself (B3-grant-kw-self).",
-  "author": "claude-mapper-m20-4",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "EtBState",
+    "tapped": false,
+    "initial_counters": [
+     [
+      {
+       "tag": "CounterKind",
+       "name": "PLUS_1_PLUS_1"
+      },
+      {
+       "tag": "QConst",
+       "value": 1
+      }
+     ]
+    ]
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostRemoveCounter",
+       "counter_kind": {
+        "tag": "CounterKind",
+        "name": "PLUS_1_PLUS_1"
+       },
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       },
+       "count": {
+        "tag": "QConst",
+        "value": 1
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "HEXPROOF"
+         },
+         "params": []
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-r11-cost-twins",
+  "date": "2026-11-14",
+  "draft_py": "# M20 Barkhide Troll. \"This creature enters with a +1/+1 counter on it.\" is the EtBState of\n# Shatterskull Charger's and Goblin Boarders' sentences without their gates. The activated\n# ability's cost is {1} and the new CostRemoveCounter on the source (\"this creature\": the\n# MAPPER_GUIDE self selector); its effect is B3-grant-kw-self's grant (\"{1}: This creature gains\n# flying until end of turn.\" parses to it) with HEXPROOF.\nthis_creature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ngrant_self = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.IS_SOURCE),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nenters_with = EtBState(initial_counters=((CounterKind.PLUS_1_PLUS_1, QConst(value=1)),))\nhexproof = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaGeneric(amount=QConst(value=1)),\n        CostRemoveCounter(counter_kind=CounterKind.PLUS_1_PLUS_1, target=this_creature),\n    )),\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.HEXPROOF),\n        'duration': DurationEot(),\n        'target': grant_self,\n    }),\n)\nabilities = [enters_with, hexproof, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature enters with a +1/+1 counter on it.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Ontology round R11 (DESIGN_ATOM_ONTOLOGY 15): the cost is {1} and CostRemoveCounter(+1/+1) on the source. The probe's board card has no counter, so G1 shows the ability unpayable (CR 118.3); the packs in tools/scenarios/mapped/M20/barkhide_troll_* play it. Unverified."
+ },
+ "probe": {
+  "sha": "aa44748c94f437b7fd4e49244178f7be9a7ba4a21b1be08e2da86fe82fa110b8"
  }
 }

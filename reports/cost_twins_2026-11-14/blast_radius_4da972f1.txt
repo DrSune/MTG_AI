@@ -1,0 +1,107 @@
+compiler trees changed (12):
+   DOM Fungal Plots
+   ELD Inquisitive Puppet
+   ELD Steelbane Hydra
+   ELD Tome of Legends
+   FDN Suspicious Shambler
+   KHM Egon, God of Death // Throne of Death
+   M11 Brittle Effigy
+   M12 Pentavus
+   M15 Soul of Zendikar
+   M19 Transmogrifying Wand
+   M20 Hanged Executioner
+   ZNR Throne of Makindi
+trees with records applied changed (13):
+   DOM Fungal Plots compiler -> compiler unverified
+   ELD Inquisitive Puppet compiler -> compiler unverified
+   ELD Steelbane Hydra compiler -> compiler unverified
+   ELD Tome of Legends compiler -> compiler unverified
+   FDN Suspicious Shambler compiler -> compiler unverified
+   KHM Egon, God of Death // Throne of Death compiler -> compiler unverified
+   M11 Brittle Effigy compiler -> compiler unverified
+   M12 Pentavus compiler -> compiler unverified
+   M15 Soul of Zendikar compiler -> compiler unverified
+   M19 Transmogrifying Wand compiler -> compiler unverified
+   M20 Barkhide Troll needs-atom record -> record unverified
+   M20 Hanged Executioner needs-atom record -> record unverified
+   ZNR Throne of Makindi compiler -> compiler unverified
+compiler: fewer unparsed sentences (10):
+   DOM Fungal Plots 2 -> 1
+   ELD Inquisitive Puppet 1 -> 0
+   ELD Steelbane Hydra 1 -> 0
+   ELD Tome of Legends 3 -> 2
+   KHM Egon, God of Death // Throne of Death 4 -> 3
+   M11 Brittle Effigy 1 -> 0
+   M12 Pentavus 3 -> 2
+   M15 Soul of Zendikar 1 -> 0
+   M20 Hanged Executioner 1 -> 0
+   ZNR Throne of Makindi 3 -> 2
+compiler: newly compiling whole (5): [('ELD', 'Inquisitive Puppet'), ('ELD', 'Steelbane Hydra'), ('M11', 'Brittle Effigy'), ('M15', 'Soul of Zendikar'), ('M20', 'Hanged Executioner')]
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (64):
+   ELD Fabled Passage ['cost-twin']
+   ELD Thrill of Possibility ['cost-twin']
+   FDN Cathar Commando ['cost-twin']
+   FDN Cryptic Caves ['cost-twin']
+   FDN Evolving Wilds ['cost-twin']
+   FDN Gleaming Barrier ['cost-twin']
+   FDN Goblin Firebomb ['cost-twin']
+   FDN Goldvein Pick ['cost-twin']
+   FDN Heartfire Immolator ['cost-twin']
+   FDN Hungry Ghoul ['cost-twin']
+   FDN Mazemind Tome ['cost-twin']
+   FDN Rapacious Dragon ['cost-twin']
+   FDN Thrashing Brontodon ['cost-twin']
+   FDN Thrill of Possibility ['cost-twin']
+   IKO Evolving Wilds ['cost-twin']
+   KHM Goldvein Pick ['cost-twin']
+   KHM Village Rites ['cost-twin']
+   M11 Ember Hauler ['cost-twin']
+   M13 Evolving Wilds ['cost-twin']
+   M13 Tormod's Crypt ['cost-twin']
+   M15 Evolving Wilds ['cost-twin']
+   M15 Tormod's Crypt ['cost-twin']
+   M20 Bag of Holding ['cost-twin']
+   M20 Blood for Bones ['cost-twin']
+   M20 Bone Splinters ['cost-twin']
+   M20 Cryptic Caves ['cost-twin']
+   M20 Destructive Digger ['cost-twin']
+   M20 Elvish Reclaimer ['cost-twin']
+   M20 Ember Hauler ['cost-twin']
+   M20 Evolving Wilds ['cost-twin']
+   M20 Kykar, Wind's Fury ['cost-twin']
+   M20 Mask of Immolation ['cost-twin']
+   M20 Rapacious Dragon ['cost-twin']
+   M20 Salvager of Ruin ['cost-twin']
+   M20 Sanitarium Skeleton ['off-battlefield']
+   M20 Thrashing Brontodon ['cost-twin']
+   M20 Vial of Dragonfire ['cost-twin']
+   M21 Fabled Passage ['cost-twin']
+   M21 Gadrak, the Crown-Scourge ['cost-twin']
+   M21 Ghostly Pilferer ['cost-twin']
+   M21 Goremand ['cost-twin']
+   M21 Heartfire Immolator ['cost-twin']
+   M21 Hobblefiend ['cost-twin']
+   M21 Liliana's Steward ['cost-twin']
+   M21 Mazemind Tome ['cost-twin']
+   M21 Niambi, Esteemed Speaker ['cost-twin']
+   M21 Obsessive Stitcher ['cost-twin']
+   M21 Portcullis Vine ['cost-twin']
+   M21 Sanctum of Shattered Heights ['cost-twin']
+   M21 Seasoned Hallowblade ['cost-twin']
+   M21 Selfless Savior ['cost-twin']
+   M21 Shacklegeist ['cost-twin']
+   M21 Silent Dart ['cost-twin']
+   M21 Silversmote Ghoul ['cost-twin']
+   M21 Sparkhunter Masticore ['cost-twin']
+   M21 Subira, Tulzidi Caravanner ['cost-twin']
+   M21 Thrashing Brontodon ['cost-twin']
+   M21 Thrill of Possibility ['cost-twin']
+   M21 Tormod's Crypt ['cost-twin']
+   M21 Village Rites ['cost-twin']
+   M21 Waker of Waves ['cost-twin', 'off-battlefield']
+   M21 Witch's Cauldron ['cost-twin']
+   ORI Evolving Wilds ['cost-twin']
+   THB Thrill of Possibility ['cost-twin']
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '190->190', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '277->277', 'M21': '275->275', 'ORI': '24->24', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}

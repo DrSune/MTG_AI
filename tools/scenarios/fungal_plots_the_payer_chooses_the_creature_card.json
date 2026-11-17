@@ -1,0 +1,15 @@
+{
+ "set": "DOM", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "plots", "real": "Fungal Plots", "zone": "battlefield", "controller": 0},
+  {"key": "elk", "name": "Elk", "type": "Creature — Elk", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "rat", "name": "Rat", "type": "Creature — Rat", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "rock", "name": "Rock", "type": "Artifact", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "plots", "idx": 0, "seat": 0, "decisions": ["rat"]}
+ ],
+ "expect": {"zone": {"rat": "exile", "elk": "graveyard", "rock": "graveyard"}, "tokens": {"Saproling": 1}, "mana_pool": {"0": {}}},
+ "notes": "DOM Fungal Plots (the compiler's tree since ontology round R11): '{1}{G}, Exile a creature card from your graveyard: Create a 1/1 green Saproling creature token.' With two creature cards there the payer chooses which is exiled as the cost is paid (CR 601.2h; the exile ask offers the Elk and the Rat, not the artifact), and the Saproling comes. On the base 1d5e4164 the sentence was unparsed."
+}

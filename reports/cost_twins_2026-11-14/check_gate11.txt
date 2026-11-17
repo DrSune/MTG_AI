@@ -1,0 +1,9 @@
+== pytest MTG_bot
+5858 passed, 39 deselected, 71 subtests passed in 96.50s (0:01:36)
+== pytest tools
+298 passed in 111.13s (0:01:51)
+== scenario packs
+768/768 packs passed
+== ruff MTG_bot/bench
+All checks passed!
+CHECK GREEN

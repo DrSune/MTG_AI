@@ -85,6 +85,10 @@ ASK_KINDS = (
     # kind never encoded before does: the "name" row never trained (actor.NetAgent.decide gives
     # every name ask to the fallback)
     "quality",
+    # which objects a cost exiles, and which permanent a cost removes counters from, when the cost
+    # offers more than it needs (CR 601.2h; legality.pay_costs, DESIGN_ATOM_ONTOLOGY §15). Never
+    # asked before (no tree held the two cost parts), so they start as "other"
+    "exile", "remove_counter",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or

@@ -1,0 +1,12 @@
+{
+ "set": "FDN", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sham", "real": "Suspicious Shambler", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2, "C": 4}},
+ "steps": [
+  {"op": "activate", "key": "sham", "idx": 0, "seat": 0, "expect_raise": "window:not_in_graveyard"}
+ ],
+ "expect": {"zone": {"sham": "battlefield"}, "tokens": {}, "mana_pool": {"0": {"B": 2, "C": 4}}},
+ "notes": "Falsifier of suspicious_shambler_exiles_itself_from_the_graveyard: on the battlefield the ability does not exist to be activated (CR 113.6m), and nothing is paid."
+}

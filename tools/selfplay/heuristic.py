@@ -566,6 +566,14 @@ class HeuristicAgent:
         return min(cards, key=lambda x: (not self.world.cards[x[1]].identity.is_token,
                                          self._value(x[1]), x[0]))[0]
 
+    def _exile(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        """A cost's exile: the card of lowest mana value goes (a graveyard's cheapest card)."""
+        cards = [(i, _handle(t)) for i, t in enumerate(tokens)]
+        cards = [(i, h) for i, h in cards if h is not None and h in self.world.cards]
+        if not cards:
+            return None
+        return min(cards, key=lambda x: (float(self.world.cards[x[1]].identity.cmc or 0), x[0]))[0]
+
     def _one_of(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         cards = [(i, _handle(t)) for i, t in enumerate(tokens)]
         cards = [(i, h) for i, h in cards if h is not None and h in self.world.cards]

@@ -1,0 +1,15 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troll", "real": "Barkhide Troll", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "uns", "real": "Unsummon", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "uns", "real": "Unsummon", "controller": 1, "targets": ["troll"], "hold": true},
+  {"op": "activate", "key": "troll", "idx": 1, "seat": 0, "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {"zone": {"troll": "battlefield", "uns": "graveyard"}, "counters": {"troll": {}}, "mana_pool": {"0": {}, "1": {}}},
+ "notes": "Waits for the card's verification: played on Barkhide Troll's record (ontology round R11, DESIGN_ATOM_ONTOLOGY 15). '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' The opponent casts Unsummon at the Troll; activated in response (the counter comes off as it is activated, CR 602.2b), the ability resolves first and the Troll gains hexproof, so Unsummon's only target is illegal and it does not resolve (CR 702.11b, 608.2b). Its falsifier is barkhide_troll_unanswered_unsummon_returns_it."
+}

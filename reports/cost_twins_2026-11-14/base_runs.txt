@@ -1,0 +1,69 @@
+Round R11's tests and packs on the base, 1d5e4164 (a git archive; the round's test module, packs,
+tools/selfplay/test_selfplay.py and tools/cards/test_gates.py copied in), 2026-11-14, final files:
+
+    pytest MTG_bot/core/test_executor_cost_twins.py MTG_bot/core/test_scenario_packs.py \
+      tools/selfplay/test_selfplay.py tools/cards/test_gates.py -k "cost_twins or hanged_executioner \
+      or barkhide_troll or suspicious_shambler or fungal_plots or cost_asks or exiles_the_cheapest \
+      or enters_tapped_or_with_counters" -rA --tb=line
+
+-> "58 failed, 6 passed": the module's 46 tests, the 15 packs, the 2 selfplay tests and the G3 test.
+(A first run, before the repr and source-exclusion tests, the G3 test and the packs barkhide_troll_hexproof_ends_with_the_turn
+and barkhide_troll_hexproof_only_for_itself existed: "53 failed, 6 passed" of 59; those five fail on
+the base as their neighbours do.) The 6 that pass are true on both, controls:
+- test_the_frame_leaves_what_it_cannot_read_unparsed x4: a wish counter, a pronoun clause, X and
+  "all" stay unparsed (nothing parsed them on the base either);
+- test_barkhide_troll_answers_a_bounce_with_hexproof[False] and the pack
+  barkhide_troll_unanswered_unsummon_returns_it: unanswered, Unsummon returns the Troll.
+
+Why the rest fail on the base, grouped (the run's own lines):
+- the IR, compiler-unit and payment tests: AttributeError: module 'MTG_bot.core.ability_tree' has no
+  attribute 'CostExile' / 'CostRemoveCounter' (the source-exclusion test among them); the repr
+  test: PaymentPlan has no field 'exile';
+- 4 frame tests: "no parse: {3}{W}, Exile this creature: Exile target creature." and the Shambler's,
+  Fungal Plots' and Steelbane Hydra's sentences;
+- Hanged Executioner, 4 tests and 4 packs: "illegal activation: ability:not_activated:SpellAbility"
+  (its needs-atom record: index 1 is its cast carrier);
+- Barkhide Troll, 5 tests and 6 packs: "ability_playable: card:0 has no ability idx 1"; the
+  no-counter test and pack expected "cost:remove_counter" and got that error instead; the cast
+  test: assert {} == {'PLUS_1_PLUS_1': 1} (no counter as it enters: the sentence was unparsed);
+- Suspicious Shambler, 1 test and 2 packs: "pool has no card 'Suspicious Shambler'" (refused on the
+  base: its sorcery gate found no activated ability to attach to);
+- Fungal Plots, 2 packs: "illegal activation: ability:not_activated:SpellAbility";
+- test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did:
+  assert ('arrange', 'quality') == ('exile', 'remove_counter');
+- test_heuristic_exiles_the_cheapest_card_a_cost_offers: assert 'Fierce Empath' == 'Walking Corpse'
+  (no exile answer: the first option);
+- test_a_card_that_enters_tapped_or_with_counters_has_mutants: AssertionError: Barkhide Troll (its
+  tree there a bare cast carrier). The cause it pins, measured on both checkouts
+  (g3_etb_counts.py <checkout>): gates.mutants builds 0 mutants on the base for every card holding an
+  EtBState with no effect (M21 Malefic Scythe 0 -> 14, Temple of Malady 0 -> 9, Wildwood Scourge
+  0 -> 6; M20 Barkhide Troll 0 -> 9, Squad Captain 0 -> 5): gates._without_unread_choices built
+  EtBState(effect=None), which the IR refuses, so every mutant was stillborn. 70 verified trees of
+  M21, M20 and FDN hold such a node (18, 18, 34); every one of their home stamps predates the bug's
+  commit 774fa6b9 (2026-11-13) and records its real mutation count (g3_etb_stamps.txt). Restated
+  after gate round 11, on the tree merged with main 4da972f1: 21 reprint stamps of other sets
+  (verify --reprint-of, 2026-11-14, FDN homes) hold such a node too, and 20 of them recorded 0
+  mutants made under the bug where their home stamps record real counts (g3_etb_stamps.txt flags
+  them EMPTY; M19 Diregraf Ghoul's 0 is its home's). They are not stamped again on this branch.
+
+The costs lint's test, tools/cards/test_lints.py::test_the_costs_lint_reads_exile_and_remove_counter_costs,
+on a git archive of main 1db792e1 (where tools/cards/lints.py first came; the base 1d5e4164 has no
+lints module): fails, "assert None == {'generic': 1, 'remove:PLUS_1_PLUS_1:1': 1}" (printed_cost did
+not read a remove-counter or exile item, so `costs` skipped every card printing one).
+
+Gate round 11's tests (2026-11-17), the module MTG_bot/core/test_executor_cost_twins.py (68 tests)
+copied into git archives:
+
+    pytest MTG_bot/core/test_executor_cost_twins.py -rA --tb=line
+
+-> the merge commit before the fixes, 9c91ba1f (main 4da972f1 merged): "25 failed, 43 passed". 19
+fail for the faults (13 of the 14 forms of test_a_cost_takes_the_payers_own_objects_in_one_form,
+the 4 of test_an_exile_cost_takes_cards_from_the_payers_own_hand_or_graveyard,
+test_one_cost_holds_one_exile_and_one_removal_of_a_kind, test_a_segment_the_payers_picks_leave_short_raises),
+6 only for the refusal's new wording (the 4 zones of
+test_an_exile_cost_takes_a_permanent_or_a_card_from_a_graveyard_or_hand, the two-zones removal, and
+test_a_remove_counter_cost_is_one_kind_a_literal_amount_on_a_permanent). Three pass there by design:
+test_the_frame_reads_how_many_counters_a_cost_removes (the reviewer's mutant M17 killer),
+test_a_permanent_exiled_as_a_cost_goes_to_its_owners_exile (M9 is equivalent: a pin) and
+test_only_relic_amulet_gives_a_charge_counter_and_only_to_itself (the M5 tripwire).
+-> the base, 1d5e4164: "62 failed, 6 passed": the 5 controls above and the tripwire.

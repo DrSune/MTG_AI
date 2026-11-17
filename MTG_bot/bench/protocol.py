@@ -74,9 +74,11 @@ class AskRoutingError(RuntimeError):
 #: ``arrange``: the owner orders cards put into one end of their library at once (CR 401.4, a
 #: scry's groups too), ``arrange:<owner>:<TOP|BOTTOM>:<cards still to place>``: the card that
 #: goes highest of those left.
+#: ``exile`` and ``remove_counter``: which objects a cost exiles, and which permanent a cost removes
+#: counters from, ``exile:<seat>:<source>:<digest>`` (the sacrifice lane's shape, CR 601.2h).
 SEAT_IN_TAG = frozenset(
     {"target", "tap", "sacrifice", "discard", "scry", "pay", "legend", "x", "trigger",
-     "replace", "mulligan", "mulligan_bottom", "arrange"}
+     "replace", "mulligan", "mulligan_bottom", "arrange", "exile", "remove_counter"}
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 #: ``quality``: a colour or a creature type chosen as a permanent enters (CR 614.12a),
@@ -227,6 +229,8 @@ def engine_ask(
         "pay": "A spell asks whether you pay its cost.",
         "sacrifice": f"{about}: choose what to sacrifice.",
         "discard": f"{about}: choose what to discard.",
+        "exile": f"{about}: choose what to exile to pay its cost.",
+        "remove_counter": f"{about}: choose the permanent to remove the counters from, to pay its cost.",
         "legend": "Legend rule: you control legendary permanents with the same name. Choose the one to keep; the others go to the graveyard.",
         "replace": "Several replacement effects apply to the same event. Choose the one that applies first; the others apply afterwards if they still can.",
         "enchant": f"{about} enters the battlefield: choose what it enchants.",

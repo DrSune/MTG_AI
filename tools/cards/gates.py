@@ -557,12 +557,14 @@ def _without_unread_choices(keywords: tuple, abilities: tuple) -> tuple:
     type" widened to every creature you control) drops the choice with it, as the zone swap of an
     arranged move drops ``arrange``: the IR refuses a choice nothing reads
     (ability_tree.chosen_quality_fault), so the mutant would be stillborn and the fault untested.
-    Only a node that does nothing but choose goes."""
+    Only a node that does nothing but choose goes. The effect is tested before the node is
+    compared with ``EtBState(effect=...)``: built with no effect, that node is refused (a no-op
+    state), which made every mutant of a card entering tapped or with counters stillborn."""
     read = {n.string_value for _p, n in _paths((keywords, abilities))
             if isinstance(n, FAtom) and n.pred is FAtomPred.NAME_CHOSEN}
     return tuple(a for a in abilities if not (
-        isinstance(a, EtBState) and a == EtBState(effect=a.effect) and isinstance(a.effect, Atom)
-        and a.effect.verb is Verb.CHOOSE_NAME and a.effect.args.get("quality") not in read))
+        isinstance(a, EtBState) and isinstance(a.effect, Atom) and a.effect.verb is Verb.CHOOSE_NAME
+        and a.effect.args.get("quality") not in read and a == EtBState(effect=a.effect)))
 
 
 def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:

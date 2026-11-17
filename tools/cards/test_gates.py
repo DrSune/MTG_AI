@@ -679,6 +679,21 @@ def test_a_widened_chosen_quality_read_drops_its_choice() -> None:
         assert any(isinstance(a, EtBState) for a in mutant.abilities) is bool(reads_left), name
 
 
+def test_a_card_that_enters_tapped_or_with_counters_has_mutants() -> None:
+    """An "As this enters" node that only taps or puts counters (no effect) stays in every mutant:
+    ``_without_unread_choices`` compared it with ``EtBState(effect=None)``, which the IR refuses
+    (a no-op state), so every mutant of such a card was stillborn and G3 had nothing to test (found
+    by ontology round R11 on M20 Barkhide Troll: 0 mutants; red on 1d5e4164). M21 Malefic
+    Scythe's soul counter and a tapped land keep their EtBState and get their amount mutants."""
+    for name, code in (("Barkhide Troll", "M20"), ("Malefic Scythe", "M21"), ("Temple of Malady", "M21")):
+        card = _card(name, code)
+        found = list(gates.mutants(card))
+        assert found, name
+        assert all(any(isinstance(a, EtBState) for a in m.abilities) for _op, _w, m in found), name
+    troll = {op for op, _w, _m in gates.mutants(_card("Barkhide Troll", "M20"))}
+    assert {"amount+1", "drop cost part 1 (CostRemoveCounter)", "until-end-of-turn->permanent"} <= troll
+
+
 def test_trigger_count_mutants_only_where_one_event_holds_several_occurrences() -> None:
     """once_per_event (CR 603.2c), both directions critical: dropping it (Tide Skimmer would draw
     for each flyer) and forgetting it (Hooded Blightfang's drain fires per deathtouch attacker, so

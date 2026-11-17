@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    _filter_names_the_source,
     count_semantics,
 )
 from MTG_bot.core.executor.decisions import site_digest
@@ -1057,23 +1058,6 @@ def _filter_is_self_referential(filter_: object) -> bool:
         return any(_filter_is_self_referential(c) for c in filter_.children)
     if isinstance(filter_, FNot):
         return _filter_is_self_referential(filter_.inner)
-    return False
-
-
-def _filter_names_the_source(filter_: object, positive: bool = True) -> bool:
-    """Does the menu pin the source itself (an ``IS_SOURCE`` reached through
-    an even number of negations)? "This creature" is a self-designation,
-    never a choice. ``FNot(IS_SOURCE)`` is "another": a real menu (Dire
-    Fleet Warmonger's "you may sacrifice another creature"), which the
-    polarity-blind :func:`_filter_is_self_referential` (kept for its binding
-    and cost callers) would count as self-reference, so the lift would never
-    ask."""
-    if isinstance(filter_, FAtom):
-        return positive and filter_.pred is FAtomPred.IS_SOURCE
-    if isinstance(filter_, (FAnd, FOr)):
-        return any(_filter_names_the_source(c, positive) for c in filter_.children)
-    if isinstance(filter_, FNot):
-        return _filter_names_the_source(filter_.inner, not positive)
     return False
 
 

@@ -1,0 +1,14 @@
+{
+ "set": "DOM", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "plots", "real": "Fungal Plots", "zone": "battlefield", "controller": 0},
+  {"key": "rock", "name": "Rock", "type": "Artifact", "zone": "graveyard", "controller": 0},
+  {"key": "elk", "name": "Elk", "type": "Creature — Elk", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "plots", "idx": 0, "seat": 0, "expect_raise": "cost:exile:insufficient_candidates:0<1"}
+ ],
+ "expect": {"zone": {"rock": "graveyard", "elk": "graveyard"}, "tokens": {}, "mana_pool": {"0": {"G": 1, "C": 1}}},
+ "notes": "Falsifier of fungal_plots_the_payer_chooses_the_creature_card: with no creature card in YOUR graveyard (an artifact card there, a creature card in the opponent's) the cost can't be paid (CR 118.3), and nothing is paid."
+}

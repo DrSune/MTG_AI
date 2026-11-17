@@ -1,0 +1,11 @@
+Old networks compute what they did (2026-11-14): half 1 on a git archive of the base 1d5e4164, half 2 on the branch.
+
+    .venv/bin/python reports/cost_twins_2026-11-14/old_net_base.py <base archive> <dir>
+    .venv/bin/python reports/cost_twins_2026-11-14/old_net_branch.py <worktree> <dir>
+
+base: ask rows 32 | decisions 64 | ask kinds seen ['act', 'act_second_main', 'attack', 'block', 'mulligan', 'mulligan_bottom', 'priority'] | tokens (64, 38, 64)
+branch: ask rows 34 (checkpoint 32 ) | grown as other: {'exile': True, 'remove_counter': True} | decisions 64 | encodings equal: True | tokens equal: True | logits equal: True | value equal: True
+
+A first run recorded the first 64 decisions (all of game 0's opening: act, act_second_main, attack,
+mulligan, mulligan_bottom, priority, scry): the same verdict, every comparison True. The sample
+was then spread over the three games (every fourth decision), the run above.

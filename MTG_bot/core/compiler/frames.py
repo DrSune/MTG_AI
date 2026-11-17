@@ -175,12 +175,20 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
     (_frame("B13-activated", "<mana and tap cost>: <clause>",
             rf"{templates_b3._COST}\s*:\s*(?P<clause>.+)"),
      lambda m, effect, _cond: templates_b3._build_activated(templates_b3._parse_cost(m), effect)),
+    # An exile or remove-counter cost item after the mana and {T} tokens, if any (ontology R11,
+    # DESIGN_ATOM_ONTOLOGY §15): "{3}{W}, Exile this creature: Exile target creature." (Hanged
+    # Executioner), "{4}{B}{B}, Exile this card from your graveyard: <clause>" (Suspicious
+    # Shambler: the ability then works from the graveyard, legality.activation_zone).
+    (_frame("B13-activated-cost-item", "[<mana and tap cost>, ]<exile or remove-counter cost>: <clause>",
+            rf"(?:{templates_b3._COST},\s*)?(?P<item>{templates_b3.COST_ITEM})\s*:\s*(?P<clause>.+)"),
+     lambda m, effect, _cond: templates_b3._build_activated(templates_b3.cost_with_item(m), effect)),
     (_frame("B13-loyalty", "[+N] or [-N]: <clause>", r"\[([+−]\d+)\]: (?P<clause>.+)"),
      lambda m, effect, _cond: templates_b5c._loyalty_wrapper(effect, m)),
 )
 #: The frames that are triggers, so take an intervening "if".
 _TRIGGER_FRAMES: Final[frozenset[str]] = frozenset(
-    frame.tid for frame, _ in FRAMES if frame.tid not in ("B13-activated", "B13-loyalty")
+    frame.tid for frame, _ in FRAMES
+    if frame.tid not in ("B13-activated", "B13-activated-cost-item", "B13-loyalty")
 )
 _IF = _frame("B13-if", "<clause> if|unless <condition>", _TRAILING.pattern)
 

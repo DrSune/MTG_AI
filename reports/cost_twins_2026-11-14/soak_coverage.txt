@@ -1,0 +1,40 @@
+Round R11's soak coverage (2026-11-14; `.venv/bin/python reports/cost_twins_2026-11-14/soak_coverage.py`, the
+soak's own games: tools/cards/soak.play_one, stress decks, seeds 1..N; 1,100 games). "dealt": the round's cards
+in the pool's deckable list; "payments through the new parts": pay_costs calls whose plan held an exile or a
+counter removal, by the source's name.
+
+M20 (compiled, unverified records, 200 games, 0 crashes, 0 detector hits): dealt ['Barkhide Troll', 'Hanged Executioner']; games cast in: {'Hanged Executioner': 14, 'Barkhide Troll': 4}; payments through the new parts: {'Hanged Executioner': 8, 'Barkhide Troll': 2}
+FDN (compiled, 200 games, 0 crashes, 9 detector hits): dealt ['Suspicious Shambler']; games cast in: {'Suspicious Shambler': 35}; payments through the new parts: {'Suspicious Shambler': 7}
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 246 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 368 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 392 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 465 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 500 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 594 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 40 (the round's cards cast in that game: ['Suspicious Shambler']): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:83 at clock 633 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 167 (the round's cards cast in that game: none): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:75 at clock 346 while not on the battlefield (counters that cost resources must move before resolving)
+  hit, seed 167 (the round's cards cast in that game: none): d3_counters: phantom placement: PLUS_1_PLUS_1 x1 on card:75 at clock 349 while not on the battlefield (counters that cost resources must move before resolving)
+ELD (compiled, 100 games, 0 crashes, 0 detector hits): dealt ['Inquisitive Puppet', 'Steelbane Hydra']; games cast in: {'Steelbane Hydra': 36, 'Inquisitive Puppet': 55}; payments through the new parts: {'Steelbane Hydra': 15, 'Inquisitive Puppet': 74}
+M11 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Brittle Effigy']; games cast in: {'Brittle Effigy': 18}; payments through the new parts: {'Brittle Effigy': 13}
+M15 (castable, 100 games, 0 crashes, 3 detector hits): dealt ['Soul of Zendikar']; games cast in: {'Soul of Zendikar': 1}; payments through the new parts: {}
+  hit, seed 48 (the round's cards cast in that game: none): d5_pt_recompute: counter-invariant assert: card:4 died asserted 3/3 with pt-delta (0, 0) while a same-identity copy (Ajani's Pridemate) asserts the SAME PT with a diff
+  hit, seed 48 (the round's cards cast in that game: none): d5_pt_recompute: counter-invariant assert: card:103 died asserted 3/3 with pt-delta (1, 1) while a same-identity copy (Ajani's Pridemate) asserts the SAME PT with a di
+  hit, seed 48 (the round's cards cast in that game: none): d5_pt_recompute: recompute mismatch on card:103 (Ajani's Pridemate): assert 3/3 vs fold 4/4 (anchor base 3/3 + counters (1, 1)) — COUNTER-BLIND: assertion equals the u
+DOM (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Fungal Plots']; games cast in: {'Fungal Plots': 9}; payments through the new parts: {'Fungal Plots': 22}
+ZNR (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Throne of Makindi']; games cast in: {}; payments through the new parts: {}
+M19 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Transmogrifying Wand']; games cast in: {'Transmogrifying Wand': 8}; payments through the new parts: {}
+M12 (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Pentavus']; games cast in: {'Pentavus': 1}; payments through the new parts: {}
+ELD (castable, 100 games, 0 crashes, 0 detector hits): dealt ['Inquisitive Puppet', 'Steelbane Hydra', 'Tome of Legends']; games cast in: {'Steelbane Hydra': 3, 'Inquisitive Puppet': 19, 'Tome of Legends': 7}; payments through the new parts: {'Inquisitive Puppet': 19}
+
+The detector hits, replayed (a scratch replay of soak.play_one's game, the journal read for the hit's card):
+- FDN seed 40, 7 x D3 'phantom placement' on card:83: FDN Hungry Ghoul (verified; '{1}, Sacrifice another creature: Put
+  a +1/+1 counter on this creature.'). It died (clock 197-198) and was returned from the graveyard to the battlefield
+  (231); each later counter (246 ... 633) is its own ability's, on the battlefield. D3's presence model does not follow
+  the same handle back from the graveyard: the detector's class round R9 met on the base's FDN pool too. Suspicious
+  Shambler was cast in that game, and none of its rows is among the hits.
+- FDN seed 167, 2 x D3 on card:75, FDN Scavenging Ooze; none of the round's cards cast.
+- M15 seed 48, 3 x D5 on Ajani's Pridemate (a counter-blind recompute between two copies); none of the round's cards cast.
+
+The partial trees, inert as predicted (charge_sources.txt): M19 Transmogrifying Wand cast in 8 games, M12 Pentavus in 1,
+ELD Tome of Legends in 7, and none of them paid its remove-counter cost (no counters reach them); ZNR Throne of Makindi
+was dealt and never cast in 100 games.

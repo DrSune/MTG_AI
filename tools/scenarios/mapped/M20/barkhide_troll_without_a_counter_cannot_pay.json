@@ -1,0 +1,12 @@
+{
+ "set": "M20", "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troll", "real": "Barkhide Troll", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "troll", "idx": 1, "seat": 0, "expect_raise": "cost:remove_counter:PLUS_1_PLUS_1:insufficient_candidates:0<1"}
+ ],
+ "expect": {"zone": {"troll": "battlefield"}, "counters": {"troll": {}}, "mana_pool": {"0": {"G": 1}}},
+ "notes": "Waits for the card's verification: played on Barkhide Troll's record (ontology round R11). '{1}, Remove a +1/+1 counter from this creature: ...' With no +1/+1 counter on the Troll the cost can't be paid (CR 118.3, 601.2h: no partial payment), so the ability is not activated and nothing is paid."
+}
