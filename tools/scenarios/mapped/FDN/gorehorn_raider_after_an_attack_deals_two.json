@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "gorehorn_raider_after_an_attack_deals_two",
+ "notes": "M3 mapper. Printed: 'Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.' Seat 0's 2/2 attacks unblocked (the opponent goes to 18). After combat Gorehorn Raider enters: seat 0 attacked this turn, so it deals 2 damage to the target seat 0 picks, the opponent's 3/3, which is dealt 2 and survives. The opponent stays at 18.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raider", "real": "Gorehorn Raider", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Their Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "enter", "key": "raider", "decisions": ["brute"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "damage": {"brute": 2},
+  "zone": {"raider": "battlefield", "brute": "battlefield"}
+ }
+}

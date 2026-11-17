@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "archway_angel_two_life_for_each_gate_you_control",
+ "notes": "M3 mapper. Printed: 'When this creature enters, you gain 2 life for each Gate you control.' Seat 0 controls two Gates and a Forest, the opponent one Gate. Archway Angel enters: seat 0 gains 4 (2 for each of its two Gates); the opponent's Gate and seat 0's Forest count for nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "angel", "real": "Archway Angel", "zone": "hand", "controller": 0},
+  {"key": "gate_a", "name": "North Gate", "type": "Land — Gate", "zone": "battlefield", "controller": 0},
+  {"key": "gate_b", "name": "South Gate", "type": "Land — Gate", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "battlefield", "controller": 0},
+  {"key": "their_gate", "name": "Their Gate", "type": "Land — Gate", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "angel"}
+ ],
+ "expect": {
+  "life": {"0": 24, "1": 20},
+  "zone": {"angel": "battlefield"}
+ }
+}

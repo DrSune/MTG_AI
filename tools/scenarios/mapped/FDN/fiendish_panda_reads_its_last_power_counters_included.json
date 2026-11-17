@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "fiendish_panda_reads_its_last_power_counters_included",
+ "notes": "M3 mapper. Printed: 'When this creature dies, return another target non-Bear creature card with mana value less than or equal to this creature's power from your graveyard to the battlefield.' Fiendish Panda (printed 3/2) has two +1/+1 counters, so its power is 5 when it dies; 'this creature's power' is read as it last existed on the battlefield (CR 608.2h), counters included. Seat 0's graveyard holds a mana value 5 creature card and a mana value 6 one: the 5 comes back, the 6 stays.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "panda", "real": "Fiendish Panda", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "five", "name": "Grave Five", "type": "Creature — Ogre", "power": "4", "toughness": "4", "cmc": 5, "zone": "graveyard", "controller": 0},
+  {"key": "six", "name": "Grave Six", "type": "Creature — Giant", "power": "5", "toughness": "5", "cmc": 6, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "panda", "to": "graveyard", "decisions": ["five"]}
+ ],
+ "expect": {
+  "zone": {"panda": "graveyard", "five": "battlefield", "six": "graveyard"},
+  "controller": {"five": 0}
+ }
+}

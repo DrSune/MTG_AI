@@ -1,0 +1,303 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "52f1b5a4-62ff-44de-80da-503d4e52d312",
+ "name": "Cat Collector",
+ "text_sha": "a3c347f6af7d4fb8aa2d52f634926aac4471eed0ffc2c29c27c17a0fcbcbcbb6",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Food",
+         "type_line": "Artifact — Food",
+         "types": [
+          "Artifact"
+         ],
+         "subtypes": [
+          "Food"
+         ],
+         "power": null,
+         "toughness": null,
+         "keywords": [],
+         "abilities": [
+          {
+           "tag": "ActivatedAbility",
+           "cost": {
+            "tag": "Cost",
+            "parts": [
+             {
+              "tag": "CostManaGeneric",
+              "amount": {
+               "tag": "QConst",
+               "value": 2
+              }
+             },
+             {
+              "tag": "CostSacrifice",
+              "target": {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "BATTLEFIELD"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "ANY"
+                 }
+                }
+               ]
+              }
+             },
+             {
+              "tag": "CostTap",
+              "target": null
+             }
+            ]
+           },
+           "effect": {
+            "tag": "Atom",
+            "verb": {
+             "tag": "Verb",
+             "name": "GAIN_LIFE"
+            },
+            "args": {
+             "tag": "AtomArgs",
+             "pairs": [
+              [
+               "amount",
+               {
+                "tag": "QConst",
+                "value": 3
+               }
+              ],
+              [
+               "controller",
+               {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              ]
+             ]
+            }
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "LifeGainedEvent",
+     "actor": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TURN_OF"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       }
+      ]
+     },
+     "ordinal": 1
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Cat",
+         "type_line": "Creature — Cat",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Cat"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "W"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m3",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Cat Collector: \"When this creature enters, create a Food token. (It's an artifact with\n# \"{2}, {T}, Sacrifice this token: You gain 3 life.\") Whenever you gain life for the first time\n# during each of your turns, create a 1/1 white Cat creature token.\"\n# Enters: the compiler's \"When this creature enters\" with the one Food of the ruling R_FOOD\n# (MAPPER_GUIDE, templates.food_token(), copied exactly). compiled[0] is the compiler's lifegain\n# trigger (LifeGainedEvent, actor you during your turn, ordinal 1: MAPPER_GUIDE's \"for the first\n# time during each of your turns\"), kept; compiled[1] the creature's cast carrier.\n# R_FOOD\nFOOD = TokenSpec(\n    name='Food', type_line='Artifact — Food', types=('Artifact',), subtypes=('Food',),\n    power=None, toughness=None, keywords=(),\n    abilities=(ActivatedAbility(\n        cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(\n            target=Selector(\n                count=QConst(value=1), mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),))))),\n        effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU})),),\n)\ncreate_food = A(Verb.CREATE_TOKEN, {'count': QConst(value=1), 'tokens': FOOD})\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=create_food,\n)\nabilities = [etb, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a Food token.",
+    "ir": "abilities[0] (CREATE_TOKEN one Food, the R_FOOD TokenSpec)"
+   },
+   {
+    "clause": "Whenever you gain life for the first time during each of your turns, create a 1/1 white Cat creature token.",
+    "ir": "abilities[1] (the compiler's: LifeGainedEvent you, your turn, ordinal 1; one 1/1 white Cat)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The Food is the ruling R_FOOD's TokenSpec, copied exactly (MAPPER_GUIDE). The lifegain trigger (LifeGainedEvent you, your turn, ordinal 1) is the compiler's, kept. Packs: tools/scenarios/mapped/FDN/cat_collector_food_gains_three_and_makes_a_cat.json, tools/scenarios/mapped/FDN/cat_collector_only_the_first_life_gain_makes_cats.json."
+ },
+ "probe": {
+  "sha": "34d70426e4fd74fdf378254b91b98388509d08fea128ae52f8e0a6141381348b"
+ }
+}

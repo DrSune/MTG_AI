@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "snakeskin_veil_one_counter_on_your_creature",
+ "notes": "M3 mapper. Printed: 'Put a +1/+1 counter on target creature you control. It gains hexproof until end of turn.' Seat 0 casts Snakeskin Veil on its 2/2: one +1/+1 counter, a 3/3. Its other creature gets nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "veil", "real": "Snakeskin Veil", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "other", "name": "My Other", "type": "Creature — Elk", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"veil": "graveyard", "bear": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "other": {}},
+  "power": {"bear": 3, "other": 2},
+  "toughness": {"bear": 3, "other": 2}
+ }
+}

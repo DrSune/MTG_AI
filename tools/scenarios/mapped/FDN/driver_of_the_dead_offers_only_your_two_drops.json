@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "driver_of_the_dead_offers_only_your_two_drops",
+ "notes": "M3 mapper. Printed: 'When this creature dies, return target creature card with mana value 2 or less from your graveyard to the battlefield.' Driver of the Dead dies. Seat 0's graveyard holds a creature card of mana value 2 and one of mana value 1 (legal), one of mana value 3 (too high) and a noncreature artifact card of mana value 1; the opponent's graveyard holds a mana value 1 creature card (not your graveyard). The step answers no target, so it stops at the target ask: it offers card:1 and card:2 (Grave Two and Grave One, the setup's second and third cards) and nothing else.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "driver", "real": "Driver of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "two", "name": "Grave Two", "type": "Creature — Elf", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "one", "name": "Grave One", "type": "Creature — Goblin", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "rock", "name": "Grave Rock", "type": "Artifact", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their One", "type": "Creature — Elf", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "move", "key": "driver", "to": "graveyard", "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {}
+}

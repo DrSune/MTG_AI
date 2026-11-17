@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "billowing_shriekmass_threshold_at_seven_cards",
+ "notes": "M3 mapper. Printed: 'When this creature enters, mill three cards. Threshold — This creature gets +2/+1 as long as there are seven or more cards in your graveyard.' Seat 0's graveyard holds four cards. Billowing Shriekmass (2/3) enters and mills three: seven cards, so it is 4/4. The opponent's graveyard is not read.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shriek", "real": "Billowing Shriekmass", "zone": "hand", "controller": 0},
+  {"key": "g1", "name": "Old One", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Old Two", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "name": "Old Three", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "g4", "name": "Old Four", "type": "Artifact", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "shriek"}
+ ],
+ "expect": {
+  "zone": {"shriek": "battlefield"},
+  "power": {"shriek": 4},
+  "toughness": {"shriek": 4},
+  "graveyard": {"0": ["Old One", "Old Two", "Old Three", "Old Four", "Library 5", "Library 4", "Library 3"]}
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "burrog_befuddler_effect_ends_with_the_turn",
+ "notes": "M3 mapper. Printed: 'When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.' Burrog Befuddler enters and shrinks the opponent's 3/3; once the turn ends (cleanup, CR 514.2) it is 3/3 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "frog", "real": "Burrog Befuddler", "zone": "hand", "controller": 0},
+  {"key": "brute", "name": "Their Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "frog", "decisions": ["brute"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "power": {"brute": 3},
+  "toughness": {"brute": 3}
+ }
+}

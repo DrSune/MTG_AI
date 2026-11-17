@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "bloodtithe_collector_after_combat_damage_the_opponent_discards",
+ "notes": "M3 mapper. Printed: 'When this creature enters, if an opponent lost life this turn, each opponent discards a card.' Seat 0's 2/2 attacks unblocked: the opponent loses 2 life this turn. Then Bloodtithe Collector enters: the opponent discards a card (its choice: the Spare); its other card stays in hand.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "collector", "real": "Bloodtithe Collector", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "spare", "name": "Their Spare", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "hand", "controller": 1},
+  {"key": "keep", "name": "Their Keep", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "enter", "key": "collector", "decisions": ["spare"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"collector": "battlefield", "spare": "graveyard", "keep": "hand"},
+  "hand": {"1": 1}
+ }
+}

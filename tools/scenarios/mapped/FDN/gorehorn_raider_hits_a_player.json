@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "gorehorn_raider_hits_a_player",
+ "notes": "M3 mapper. Printed: 'Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.' Seat 0's 2/2 attacks unblocked (the opponent goes to 18); then Gorehorn Raider enters and seat 0 targets the opponent (any target includes players): 16.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "raider", "real": "Gorehorn Raider", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bear": true}},
+  {"op": "enter", "key": "raider", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 16},
+  "zone": {"raider": "battlefield"}
+ }
+}

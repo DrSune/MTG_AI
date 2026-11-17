@@ -1,0 +1,16 @@
+{
+ "set": "FDN",
+ "name": "infestation_sage_leaving_for_exile_is_no_death",
+ "notes": "M3 mapper. Printed: 'When this creature dies, create a 1/1 black and green Insect creature token with flying.' Infestation Sage is exiled from the battlefield: it did not die (CR 700.4), so no Insect is created.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sage", "real": "Infestation Sage", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "sage", "to": "exile"}
+ ],
+ "expect": {
+  "zone": {"sage": "exile"},
+  "tokens": {"Insect": 0}
+ }
+}
