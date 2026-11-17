@@ -2182,9 +2182,11 @@ Rebuke's "costs {3} less if it targets a tapped creature" is priced before targe
 "more creatures than you" sums all opponents at three seats (BACKLOG); an opponent's "N or
 less" has no form.
 
-**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5, 0b309e22,
-e32e0b88 (mapping batch M6) and f59fb8f0 (M8) were merged** (the reviewer's evidence: the session
-scratchpad's `gate12/`).
+**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5, 0b309e22
+(engine wave E2), e32e0b88 (mapping batch M6), f59fb8f0 (M8), c80f45f7 (engine wave E1) and
+bd7beb33 (fix wave T1) were merged** (the reviewer's evidence: the session scratchpad's `gate12/`).
+E1 reads a card's printed characteristics through `quantity.card_identity` (a ceased token's last
+known identity); the comparison's `_characteristic` reads them the same way since the merge.
 - MAJOR-1, the merge red (213 engine and 3 tools failures): 20 unverified FDN records of mapping
   batches M1-M7 held folded predicates and no longer decoded. Re-mapped through `cardtool write`
   with their authors (tree translated, draft re-rendered, clauses and notes reworded), equal, all
@@ -2207,7 +2209,7 @@ scratchpad's `gate12/`).
   mutants on their own; FNot refuses the negation of two measures through FAnd and FOr, and a
   double negation; "N + 0" and an ALL selector's count refused; BACKLOG: the last known power also
   answers a departure trigger's target choice.
-- Merged numbers (`tree_dump.py` on main f59fb8f0 and on the branch, `tree_diff.py`:
+- Merged numbers (`tree_dump.py` on main f59fb8f0, and again on bd7beb33 after E1 and T1, and on the branch, `tree_diff.py`:
   `blast_radius_merged.txt`): 104 compiler trees and 140 with records applied change (FDN 38 and
   M20 18 with the re-mapped records); 22 cards newly whole; no tree refused on either side only;
   the same **58 stamps out** (53 home, 5 reprint), none in: M21 275 -> 245, M20 279 -> 264, FDN
