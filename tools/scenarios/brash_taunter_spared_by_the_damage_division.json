@@ -1,0 +1,20 @@
+{
+ "name": "brash_taunter_spared_by_the_damage_division",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt2 t_taunter_block). A 5/5 attacks and is blocked by Brash Taunter (indestructible 1/1: 'Whenever this creature is dealt damage, it deals that much damage to target opponent') and a 2/2 Bear. Its controller divides its 5 damage among its blockers as they choose (CR 510.1c), here none to the Taunter and all 5 to the Bear: the Bear dies, the Taunter is dealt nothing and deals nothing, and seat 0 stays at 20. Failed before: the engine asked a damage assignment order and assigned lethal damage first, at least 1 to the Taunter, which came back.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "big", "name": "Smasher", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "taunter", "real": "Brash Taunter", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"big": true}, "block": {"taunter": "big", "bear": "big"}, "divide": {"taunter": 0}}
+ ],
+ "expect": {
+  "blocked": {"big": ["taunter", "bear"]},
+  "zone": {"bear": "graveyard", "taunter": "battlefield", "big": "battlefield"},
+  "damage": {"big": 3},
+  "life": {"0": 20, "1": 20}
+ }
+}

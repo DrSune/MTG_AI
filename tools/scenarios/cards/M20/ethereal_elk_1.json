@@ -6,7 +6,7 @@
   {"key": "chump", "name": "Chump", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"elk": true}, "block": {"chump": "elk"}, "trample": {"elk": [0]}}
+  {"op": "combat", "seat": 0, "attack": {"elk": true}, "block": {"chump": "elk"}, "divide": {"chump": 1}}
  ],
  "expect": {
   "blocked": {"elk": ["chump"]},

@@ -7,7 +7,7 @@
   {"key": "opp_c", "name": "Opp Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"wm": true, "fod": false}, "may": {"wm": true}, "decisions": ["fod"], "block": {"opp_c": "wm"}, "trample": {"wm": [0]}},
+  {"op": "combat", "seat": 0, "attack": {"wm": true, "fod": false}, "may": {"wm": true}, "decisions": ["fod"], "block": {"opp_c": "wm"}, "divide": {"opp_c": 3}},
   {"op": "end_turn"}
  ],
  "expect": {

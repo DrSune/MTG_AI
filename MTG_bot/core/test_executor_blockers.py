@@ -32,6 +32,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.executor.games import identity_of
 from MTG_bot.core.executor.legality import activate
+from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_GRAVEYARD, ZONE_LIBRARY
 from MTG_bot.core.test_executor_combat import CombatCase, _supply
 from MTG_bot.core.test_executor_verbs import (
@@ -46,7 +47,8 @@ from MTG_bot.core.test_executor_verbs import (
 class BlockerCase(CombatCase):
     """CombatCase with the block ask-answer contract: answers are keyed by
     SITE PREFIX (handle tags carry a turn suffix), block sites default to
-    NONE, order/trample sites to 0, policy sites to AS_BLOCKED."""
+    NONE, a division of combat damage to the blocker's lethal damage or what
+    is left (the pack runner's default), policy sites to AS_BLOCKED."""
 
     def provider(self, vocab, what):
         self.seen_asks.append((tuple(vocab), what))
@@ -57,8 +59,10 @@ class BlockerCase(CombatCase):
             return "skip" if "skip" in vocab else vocab[0]
         if what.startswith("block:"):
             return "NONE" if "NONE" in vocab else vocab[0]
-        if what.startswith(("order:", "trample:")):
-            return "0"
+        if what.startswith("divide:"):  # divide:<blocker>:<attacker>:<turn>
+            _kind, b_ns, b_i, a_ns, a_i, _turn = what.split(":")
+            want = self.ex.lethal_damage(Handle(a_ns, int(a_i)), Handle(b_ns, int(b_i)))
+            return min(vocab, key=lambda v: (abs(int(v) - want), int(v)))
         if what.startswith("policy:"):
             return "AS_BLOCKED"
         return self.default_answer if self.default_answer in vocab else vocab[0]
@@ -319,29 +323,70 @@ class TestPairLegality(BlockerCase):
 
 
 class TestAssignment(BlockerCase):
-    def test_order_ask_positional_choice_decides_survival(self):
+    def test_the_division_decides_survival(self):
+        # CR 510.1c: the attacker's controller divides its damage among its blockers as they
+        # choose, lethal to none required: none to the 2/2 (the Handle-first blocker, asked
+        # first), so the last one, the 4/4, takes all 3.
         attacker = self.synth("Smash", 3, 3, self.p0)
         small = self.synth("Small", 2, 2, self.p1)
         big = self.synth("Big", 4, 4, self.p1)
         self.begin()
         self.answers[f"block:{small}"] = str(attacker)
         self.answers[f"block:{big}"] = str(attacker)
-        # take the Handle-sorted slot 1 (the 4/4) first: all 3 into it
-        self.answers[f"order:{attacker}:0"] = "1"
+        self.answers[f"divide:{small}"] = "0"
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
+        self.assertEqual([v for v, what in self.seen_asks if what.startswith("divide:")],
+                         [tuple(map(str, range(4)))])  # the 4/4, last, is not asked
         plan = self.damage_plan(attacker)
-        self.assertEqual(plan, ((3, big),))  # 2 lethal short of the 4/4
+        self.assertEqual(plan, ((3, big),))  # 1 short of the 4/4
         self.assertEqual(self.world.zone_of(big).kind, ZONE_BATTLEFIELD)
         self.assertEqual(self.ex.damage.get(big, 0), 3)  # scarred, alive
         self.assertEqual(self.ex.damage.get(small, 0), 0)  # never reached
+
+    def test_the_attacker_may_spare_brash_taunter(self):
+        # Bug hunt 2026-11-17 (hunt2 t_taunter_block). A 5/5 blocked by Brash Taunter
+        # (indestructible 1/1: "Whenever this creature is dealt damage, it deals that much damage
+        # to target opponent") and a 2/2: its controller assigns all 5 to the 2/2 (CR 510.1c).
+        # The lethal-first order the rules dropped in 2024 put at least 1 on the Taunter, which
+        # dealt it back: the defender gained.
+        attacker = self.synth("Smash", 5, 5, self.p0)
+        taunter = self.real("Brash Taunter", self.p1)
+        bear = self.synth("Bear", 2, 2, self.p1)
+        self.begin()
+        self.answers[f"block:{taunter}"] = str(attacker)
+        self.answers[f"block:{bear}"] = str(attacker)
+        self.answers[f"divide:{taunter}"] = "0"
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        self.assertEqual(self.damage_plan(attacker), ((5, bear),))
+        self.assertEqual(self.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.players[self.p0].life, 20)
+
+    def test_a_trampler_may_keep_its_damage_on_its_blockers(self):
+        # CR 702.19b: once every blocker has lethal damage the rest may go to the player (the
+        # last blocker's menu runs from its lethal damage up); with less than lethal on a
+        # blocker, nothing may, and the last blocker takes the rest unasked.
+        dino = self.real("Colossal Dreadmaw", self.p0)  # 6/6 trample
+        first = self.synth("First", 2, 2, self.p1)
+        second = self.synth("Second", 2, 2, self.p1)
+        self.begin()
+        self.answers[f"block:{first}"] = str(dino)
+        self.answers[f"block:{second}"] = str(dino)
+        self.answers[f"divide:{first}"] = "1"
+        self.ex.begin_turn(self.p0)
+        self.ex.combat_step(self.p0)
+        asked = [(what.split(":")[1:3], v) for v, what in self.seen_asks if what.startswith("divide:")]
+        self.assertEqual(asked, [(str(first).split(":"), tuple(map(str, range(7))))])
+        self.assertEqual(sorted(self.damage_plan(dino)), sorted(((1, first), (5, second))))
+        self.assertEqual(self.world.players[self.p1].life, 20)
 
     def test_trample_excess_ask_routes_to_the_player(self):
         dino = self.real("Colossal Dreadmaw", self.p0)  # 6/6 trample
         blocker = self.synth("Small", 2, 2, self.p1)
         self.begin()
         self.answers[f"block:{blocker}"] = str(dino)
-        self.answers[f"trample:{dino}:0"] = "1"  # give 1 EXTRA to blocker
+        self.answers[f"divide:{blocker}"] = "3"  # its lethal 2 and 1 more
         self.ex.begin_turn(self.p0)
         self.ex.combat_step(self.p0)
         plan = self.damage_plan(dino) or ()
@@ -476,7 +521,7 @@ class TestMenaceAndMandate(BlockerCase):
         self.assertEqual(self.blocked_map(), {})
         self.assertEqual(self.world.players[self.p1].life, 20 - 4 - 5 - 1)
 
-    def test_menace_repairs_to_two_blockers_and_the_order_decides(self):
+    def test_menace_repairs_to_two_blockers_and_the_division_decides(self):
         brute = self.real("Bone Pit Brute", self.p0)  # 4/5 menace
         first = self.synth("First", 2, 2, self.p1)
         second = self.synth("Second", 2, 2, self.p1)

@@ -1142,6 +1142,33 @@ def test_heuristic_taps_a_mana_creature_only_for_a_spell_it_casts() -> None:
     assert game.world.cards[_named(game, "Llanowar Visionary")].tapped  # its {G} was the third mana
 
 
+def test_heuristic_divides_combat_damage_sensibly() -> None:
+    """The divide ask (CR 510.1c, 702.19b; Executor._assign_damage), one per blocker: a trampler
+    that can give each blocker lethal damage does and tramples the rest over; otherwise the
+    damage kills what it can and spares Brash Taunter (indestructible, it turns the damage
+    back), the rest on a creature that dies anyway."""
+    from MTG_bot.bench.agents import Observation
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.bench.test_router import _lenses
+
+    def plan(attacker, blockers):
+        game, _router, _me = _teach(field0=(attacker,), field1=blockers)
+        dealer = _named(game, attacker)
+        blocks = sorted(h for h, c in game.world.cards.items() if c.identity.name in blockers)
+        game.executor.blocked_by[dealer] = blocks
+        agent = HeuristicAgent()
+        ask = Ask(seat=0, kind="divide", site=f"divide:{blocks[0]}:{dealer}:1", prompt="",
+                  options=tuple(Option(str(n), str(n)) for n in range(7)))
+        first = int(ask.options[agent.decide(ask, Observation(_lenses()[0], game.executor))].token)
+        names = {h: game.world.cards[h].identity.name for h in blocks}
+        return first, sorted((names[h], n) for h, n in agent._division(dealer).items())
+
+    assert plan("Colossal Dreadmaw", ("Walking Corpse", "Walking Corpse")) == (
+        2, [("Walking Corpse", 2), ("Walking Corpse", 2)])  # 2 trample over
+    _first, division = plan("Garruk's Gorehorn", ("Brash Taunter", "Walking Corpse"))  # a 7/3
+    assert division == [("Brash Taunter", 0), ("Walking Corpse", 7)]
+
+
 def test_heuristic_never_trades_two_mana_for_one() -> None:
     # Prismite's "{2}: Add one mana of any color" is a mana-cost filter: it never adds mana.
     game, router, me = _teach(hand0=("Pursued Whale",), field0=("Island", "Island", "Prismite"))
@@ -1253,17 +1280,19 @@ def test_no_chosen_value_adds_nothing_to_the_tokens(table) -> None:
     assert torch.equal(x1, x2)
 
 
-def test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did(table, tmp_path) -> None:
+def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_did(table, tmp_path) -> None:
     """Ontology round R11 (DESIGN_ATOM_ONTOLOGY §15): which objects a cost exiles and which
-    permanent it removes counters from (CR 601.2h) are two ask kinds of their own, appended last
-    and grown from "other": no tree held the two cost parts before, so neither ask was ever
-    encoded. The round adds no input column (the widths below are the base's), so a checkpoint
-    from before the two kinds computes bitwise what it did on every decision of the kinds it
-    knew: tokens, logits and value on the heuristic's decisions of an FDN game."""
-    from MTG_bot.bench.protocol import SEAT_IN_TAG, Ask, Option
+    permanent it removes counters from (CR 601.2h) are two ask kinds of their own; engine wave E2
+    (2026-11-17): so is the division of a blocked creature's combat damage (CR 510.1c), which
+    replaced the damage assignment order and the trample excess asks. Each is appended last and
+    grown from "other": none was ever encoded before. They add no input column (the widths below
+    are the base's), so a checkpoint from before them computes bitwise what it did on every
+    decision of the kinds it knew: tokens, logits and value on the heuristic's decisions of an
+    FDN game."""
+    from MTG_bot.bench.protocol import SITE_KINDS, Ask, Option
 
-    new = ("exile", "remove_counter")
-    assert FT.ASK_KINDS[-2:] == new and set(new) <= SEAT_IN_TAG and not set(new) & set(FT.ASK_GROWN_FROM)
+    new = ("exile", "remove_counter", "divide")
+    assert FT.ASK_KINDS[-3:] == new and set(new) <= SITE_KINDS and not set(new) & set(FT.ASK_GROWN_FROM)
     assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (8, 62, 18, 23, 5)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     with torch.no_grad():
@@ -1281,7 +1310,7 @@ def test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did(tabl
 
     class Recording(HeuristicAgent):
         def decide(self, ask, obs):
-            if len(batches) < 48 and len(ask.options) <= FT.MAX_OPTIONS:
+            if len(batches) < 48 and len(ask.options) <= FT.MAX_OPTIONS and ask.kind not in new:
                 batches.append(FT.encode(obs.executor, ask.seat, ask, table))
             return super().decide(ask, obs)
 
@@ -1296,6 +1325,9 @@ def test_the_cost_asks_are_appended_and_an_old_network_computes_what_it_did(tabl
     ask = Ask(seat=0, kind="exile", site=f"exile:{me}:{card}:00", prompt="",
               options=(Option(str(card), "the Empath"),))
     assert int(FT.encode(game.executor, 0, ask, table)["ask_i"][0]) == FT.ASK_INDEX["exile"]
+    ask = Ask(seat=0, kind="divide", site=f"divide:{card}:{card}:1", prompt="",
+              options=(Option("0", "0 damage"), Option("1", "1 damage")))
+    assert int(FT.encode(game.executor, 0, ask, table)["ask_i"][0]) == FT.ASK_INDEX["divide"]
 
 
 def test_heuristic_exiles_the_cheapest_card_a_cost_offers() -> None:

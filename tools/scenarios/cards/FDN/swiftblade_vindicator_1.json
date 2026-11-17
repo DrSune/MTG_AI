@@ -10,7 +10,7 @@
  "mana": {"0": {"G": 1}},
  "steps": [
   {"op": "cast", "real": "Giant Growth", "key": "gg", "targets": ["vind"]},
-  {"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"chump": "vind"}, "trample": {"vind": [0, 0]}}
+  {"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"chump": "vind"}, "divide": {"chump": 2}}
  ],
  "expect": {
   "life": {"0": 20, "1": 14},

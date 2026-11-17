@@ -5,7 +5,7 @@
   {"key": "chump", "name": "Chump", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"p": true}, "block": {"chump": "p"}, "trample": {"p": [0]}}
+  {"op": "combat", "seat": 0, "attack": {"p": true}, "block": {"chump": "p"}, "divide": {"chump": 1}}
  ],
  "expect": {"life": {"0": 20, "1": 17}, "blocked": {"p": ["chump"]}, "damage": {"p": 1},
   "zone": {"p": "battlefield", "chump": "graveyard"}, "power": {"p": 4}, "toughness": {"p": 2}}}

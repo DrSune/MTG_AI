@@ -45,11 +45,6 @@
    "block": {
     "wall_a": "boar",
     "wall_b": "boar"
-   },
-   "order": {
-    "boar": [
-     "0"
-    ]
    }
   }
  ],

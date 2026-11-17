@@ -89,6 +89,12 @@ ASK_KINDS = (
     # offers more than it needs (CR 601.2h; legality.pay_costs, DESIGN_ATOM_ONTOLOGY §15). Never
     # asked before (no tree held the two cost parts), so they start as "other"
     "exile", "remove_counter",
+    # how much of a blocked creature's combat damage goes to one of its blockers (CR 510.1c,
+    # 702.19b; Executor._assign_damage, divide:<blocker>:<attacker>:<turn>), the options amounts.
+    # It replaces the damage assignment order and the trample excess asks ("order", "trample",
+    # never asked since), which the rules no longer have or which it folds in; a division was
+    # never asked before, so it starts as "other"
+    "divide",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
