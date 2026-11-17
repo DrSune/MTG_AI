@@ -247,7 +247,11 @@ class _Slot(threading.Thread):
                 self._yield()
                 self.state = "running"
                 continue
-            self.worker.outbox.append(self._play(job))
+            # the outbox as the game ends: the worker sends and replaces it while the game waits at
+            # its decisions (``outbox.append(self._play(job))`` read it first, and lost the result
+            # of every game that outlived a send of its worker's: nine in ten of r29's games)
+            result = self._play(job)
+            self.worker.outbox.append(result)
 
     def _play(self, job: dict) -> dict:
         """The job's one result: its game's, or a void when it crashed or the watchdog found it
