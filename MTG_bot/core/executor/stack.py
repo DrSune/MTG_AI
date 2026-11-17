@@ -403,37 +403,45 @@ def designate_slots(
     return {repr(slot.selector): tuple(sorted(g)) for slot, g in zip(slots, groups, strict=True)}
 
 
-def can_designate(slots: list, chosen: SlotGroups = ()) -> bool:
+def can_designate(slots: list, chosen: SlotGroups = (), pay=None) -> bool:
     """Can the slots after the designated ``chosen`` (one group per slot so
     far) each still take its minimum number of targets without breaking an
     "another target" (CR 601.2c: a spell or ability with a target that cannot
     be chosen cannot be cast or activated)? For one slot: it has enough
-    candidates. The drivers' gate before they offer a row."""
+    candidates. The drivers' gate before they offer a row. ``pay(targets)``,
+    when given, prices the whole designation too (a menu row's ``pay``): each
+    candidate is priced alone, and two taxed targets can together cost more
+    than the payer can pay (CR 601.2f-h), which is no completion."""
     if another_target_reason(slots[: len(chosen)], chosen) is not None:
         return False
     if len(chosen) == len(slots):
-        return True
+        return pay is None or pay(tuple(h for group in chosen for h in group))
     slot = slots[len(chosen)]
     return any(
-        can_designate(slots, (*chosen, group))
+        can_designate(slots, (*chosen, group), pay)
         for group in combinations(slot.candidates, slot.min_count)
     )
 
 
-def slot_options(slots: list, chosen: SlotGroups, picked: Sequence[Handle] = ()) -> tuple[Handle, ...]:
+def slot_options(
+    slots: list, chosen: SlotGroups, picked: Sequence[Handle] = (), pay=None
+) -> tuple[Handle, ...]:
     """The candidates the next pick of slot ``len(chosen)`` may take, after
     the earlier slots' groups ``chosen`` and this slot's ``picked``: not
     already picked for this slot (CR 115.3), and leaving the designation
-    completable, this slot up to its minimum and every later slot
-    (:func:`can_designate`). The drivers ask one target question per pick
-    from this (CR 601.2c), so no illegal pair is ever offered, and a slot's
-    minimum reached, ending it there is completable too."""
+    completable, this slot up to its minimum and every later slot, and
+    payable when ``pay`` prices it (:func:`can_designate`). The drivers ask
+    one target question per pick from this (CR 601.2c), so no illegal or
+    unpayable pair is ever offered, and a slot's minimum reached, ending it
+    there is completable too."""
     slot = slots[len(chosen)]
 
     def completes(group: tuple[Handle, ...]) -> bool:
         rest = [c for c in sorted(slot.candidates) if c not in group]
         need = max(0, slot.min_count - len(group))
-        return any(can_designate(slots, (*chosen, (*group, *more))) for more in combinations(rest, need))
+        return any(
+            can_designate(slots, (*chosen, (*group, *more)), pay) for more in combinations(rest, need)
+        )
 
     return tuple(c for c in sorted(slot.candidates) if c not in picked and completes((*picked, c)))
 

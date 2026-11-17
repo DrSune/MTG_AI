@@ -1292,7 +1292,7 @@ def cast_mode_options(
         slots = spell_target_slots(
             executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs, pay=pay
         )
-        if can_designate(slots):
+        if can_designate(slots, pay=pay):
             legal.append((i, option.option_idxs))
     return legal
 
