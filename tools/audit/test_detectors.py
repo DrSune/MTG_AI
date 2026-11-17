@@ -501,6 +501,17 @@ def test_d6_grant_eot_dead_source_is_silent() -> None:
     assert D.d6_lifecycle(g).status == "clean"
 
 
+def test_d6_a_resolved_permission_lives_off_the_battlefield() -> None:
+    # Chandra, Heart of Fire's [+1] (ontology round R13): "until end of turn, you may play cards
+    # exiled this way" stays live while she is gone (CR 611.2a), over cards in exile (CR 601.3).
+    permit = (9, "permit", "card:72", P0, "Eot", "live", ("card:68",), "payload", (), None, 40, True)
+    g = game([], final_zone={"card:72": "graveyard", "card:68": "exile"}, layers_rows=[permit])
+    assert D.d6_lifecycle(g).status == "clean"
+    # a static's permission (not made by a resolution) still dies with its source (CR 611.3a)
+    static = (10, "permit", "card:72", P0, "Permanent", "live", (), "payload", (), None, 0, False)
+    assert D.d6_lifecycle(game([], final_zone={"card:72": "graveyard"}, layers_rows=[static])).status == "HIT"
+
+
 def test_d6_grant_dead_target_still_fires() -> None:
     # The narrowing is SOURCE-side only: a live grant bound to a dead
     # TARGET remains a hit.

@@ -4,9 +4,380 @@
  "oracle_id": "efe9c3e0-7315-408e-9903-9d25a681039b",
  "name": "Golos, Tireless Pilgrim",
  "text_sha": "ebfb6244b9a09ecd8d99b248a819b37fac6dae77aca8eef0d0ddf771e7063d90",
- "needs_atom": {
-  "missing": "s2+s3 '{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library. You may play them this turn without paying their mana costs.': no node grants a turn-long permission to PLAY exiled cards. CAST is an immediate cast at resolution (verbs.py _v_cast), not a 'this turn' permission, it raises on lands (play includes a land drop from exile, CR 305.1), and it ignores timing. s1 (ETB optional SEARCH for a land card onto the battlefield tapped, then SHUFFLE) maps like Solemn Simulacrum.",
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Seq",
+      "steps": [
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SEARCH"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Land",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ],
+          [
+           "tapped_on_enter",
+           {
+            "tag": "Bool",
+            "value": true
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SHUFFLE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "zone",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "B",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "G",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "R",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "U",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "W",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "EXILE"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "LIBRARY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "pop_order",
+          {
+           "tag": "String",
+           "value": "TOP"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PERMIT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "alternative",
+          {
+           "tag": "Cost",
+           "parts": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "lands",
+          {
+           "tag": "Bool",
+           "value": true
+          }
+         ],
+         [
+          "source",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-ontology-r13",
+  "date": "2026-11-17",
+  "draft_py": "# M20 Golos, Tireless Pilgrim.\n# [0] \"When Golos enters, you may search your library for a land card, put that card onto the\n#     battlefield tapped, then shuffle.\" M21 Solemn Simulacrum's tree (B2b-etb-basic-land) with\n#     \"a land card\" for \"a basic land card\".\n# [1] \"{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library. You may play them this turn\n#     without paying their mana costs.\" The library pop of three (M21 Chandra, Heart of Fire's\n#     [+1], ontology round R13), then the permission over the cards it exiled (the result\n#     register; templates_b19 B19-play-result's tree for \"You may play them this turn without\n#     paying their mana costs.\").\nsearch = A(Verb.SEARCH, {\n    \"cards\": Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value=\"Land\"),\n        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n    ),\n    \"destination\": Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n    \"tapped_on_enter\": True,\n})\nshuffle = A(Verb.SHUFFLE, {\"zone\": Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)})\nenters = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(inner=Seq(steps=(search, shuffle))),\n)\nexile_three = A(Verb.MOVE_ZONE, {\n    \"amount\": QConst(value=3),\n    \"controller\": ControllerRef.YOU,\n    \"destination\": Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n    \"from\": Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n    \"pop_order\": \"TOP\",\n})\nplay_them = A(Verb.PERMIT, {\n    \"alternative\": Cost(),\n    \"duration\": DurationEot(),\n    \"lands\": True,\n    \"source\": Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n        referent=\"result\",\n    ),\n})\nimpulse = ActivatedAbility(\n    cost=Cost(parts=(\n        CostManaGeneric(amount=QConst(value=2)),\n        CostManaColor(color=\"W\", amount=QConst(value=1)),\n        CostManaColor(color=\"U\", amount=QConst(value=1)),\n        CostManaColor(color=\"B\", amount=QConst(value=1)),\n        CostManaColor(color=\"R\", amount=QConst(value=1)),\n        CostManaColor(color=\"G\", amount=QConst(value=1)),\n    )),\n    effect=Seq(steps=(exile_three, play_them)),\n)\n(carrier,) = compiled\nabilities = [enters, impulse, carrier]\n",
+  "clauses": [
+   {
+    "clause": "When Golos enters, you may search your library for a land card, put that card onto the battlefield tapped, then shuffle.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "You may play them this turn without paying their mana costs.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): atom PERMIT(alternative,duration,lands,source)"
+  ],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "2acac1c87e3cec099641a000f6f8fca7906cce28d039e6b6287c280593edee01"
  }
 }

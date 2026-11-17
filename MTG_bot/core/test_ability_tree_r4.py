@@ -13,8 +13,8 @@
 - ``CostModifier.extra_deltas: tuple[CostDelta, ...] = ()`` — further
   cost deltas beyond the single ``delta`` slot; ``tup:cost_delta`` +
   omit-if-empty.
-- ``FAtomPred.TARGETS_SOURCE`` — "spells your opponents cast that target
-  this creature"; no slots (like IS_SOURCE).
+- ``FAtomPred.TARGETS`` — "spells your opponents cast that target this
+  creature": ``inner_filter`` IS_SOURCE (round R12 made TARGETS_SOURCE general).
 
 Guards:
 - bare constructs (condition=None / extra_deltas=()) serialize WITHOUT
@@ -140,7 +140,7 @@ def _fatom_ios() -> at.FAtom:
 
 def _fatom_ts() -> at.FAtom:
     """'Spells your opponents cast that target this creature'."""
-    return at.FAtom(at.FAtomPred.TARGETS_SOURCE)
+    return at.FAtom(at.FAtomPred.TARGETS, inner_filter=at.FAtom(at.FAtomPred.IS_SOURCE))
 
 
 # ---- pinned fingerprints ---------------------------------------------------
@@ -194,7 +194,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "fatom_ts",
         _fatom_ts,
-        "b22db523817bb0380b139d62bfee5f3c65e2ddf5bd9ef5d4073a78e9f24fe22e",
+        "ca4ea4326d8acdabf06cc58992b168e725d4233337ee7cc96eeae3ca3f66dd5c",  # re-pinned by round R12 (TARGETS_SOURCE made general)
     ),
 ]
 
@@ -277,14 +277,17 @@ def test_r4_enum_and_table_members() -> None:
         at.FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN.value
         == "INSTANT_OR_SORCERY_CAST_THIS_TURN"
     )
-    assert at.FAtomPred.TARGETS_SOURCE.value == "TARGETS_SOURCE"
+    assert at.FAtomPred.TARGETS.value == "TARGETS"
     assert at._VERB_ROLES[at.Verb.COUNTER_SPELL] == {"target": True, "unless": False}
     assert at._ROLE_TYPES["unless"] == (at.Cost,)
     assert at._FATOM_RULES[at.FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN] == (
         frozenset({"who"}),
         frozenset({"who"}),
     )
-    assert at._FATOM_RULES[at.FAtomPred.TARGETS_SOURCE] == (frozenset(), frozenset())
+    assert at._FATOM_RULES[at.FAtomPred.TARGETS] == (
+        frozenset({"inner_filter"}),
+        frozenset({"inner_filter"}),
+    )
 
 
 def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
@@ -343,7 +346,15 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
         ),
         (
             "fatom_ts_forbidden_who_slot",
-            lambda: at.FAtom(at.FAtomPred.TARGETS_SOURCE, who=at.ControllerRef.YOU),
+            lambda: at.FAtom(
+                at.FAtomPred.TARGETS,
+                inner_filter=at.FAtom(at.FAtomPred.IS_SOURCE),
+                who=at.ControllerRef.YOU,
+            ),
+        ),
+        (
+            "fatom_targets_without_its_filter",
+            lambda: at.FAtom(at.FAtomPred.TARGETS),
         ),
         (
             "cm_extra_deltas_non_delta",

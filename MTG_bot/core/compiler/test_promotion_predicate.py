@@ -43,16 +43,21 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # MOVE_ZONE of "that card"): referent 35 -> 38, total 144 -> 147.
 # 2026-11-17: See the Truth's "put each of those cards into your hand instead" is an ALL over
 # the looked-at cards, no longer a count-1 result referent: referent 38 -> 37, total 147 -> 146.
-TOTAL_SURFACES = 146
 # 2026-11-17 (engine wave E2): a move out of another player's hand is that player's pick (CR
 # 701.9b, compiler._another_players_hand_pick): Liliana's Steward's and Liliana, Waker of the
 # Dead's discards left the core (21 -> 19) and their PICK_ASK_FORCE_SILENT rows.
 HAND_PICK = 2
-CORE_LIFTABLE = 19
+# 2026-11-17, ontology round R13 (Verb.PERMIT): the permission rows' CHOOSE surfaces left (Radha's
+# and Idol of Endurance's CASTs, core 19 -> 17; Conspicuous Snoop's CAST and Chandra, Heart of
+# Fire's second SEARCH, its [-9] now one search over both zones, count 13 -> 11); Chandra, Heart of
+# Fire's two PERMITs read the result register (referent 37 -> 39) and Demonic Embrace's own
+# graveyard cast discards a card as an additional cost (cost 25 -> 26): total 146 -> 145.
+TOTAL_SURFACES = 145
+CORE_LIFTABLE = 17
 SELF_DESIGNATION = 50
-ANAPHORIC_REFERENT = 37
-COST_VICTIM = 25
-COUNT_NOT_ONE = 13
+ANAPHORIC_REFERENT = 39
+COST_VICTIM = 26
+COUNT_NOT_ONE = 11
 
 # (card, verb) rows the predicate matches but the encoder keeps silent —
 # must stay in lockstep with compiler.PICK_ASK_FORCE_SILENT (L-27..L-29).
@@ -62,7 +67,6 @@ GAP_BLOCKED_EXPECT = {
     ("Keral Keep Disciples", "DEAL_DAMAGE"),
     ("Runed Halo", "GRANT_ABILITY"),
     ("Furious Rise", "MOVE_ZONE"),
-    ("Radha, Heart of Keld", "CAST"),
 }
 
 

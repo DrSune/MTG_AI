@@ -377,18 +377,13 @@ class TestConditionGate(LegalityCase):
         )
 
     def test_unsupported_condition_pred_raises(self):
-        # flag, never guess: a pred outside the vocab crashes the probe.
-        # CONTROLLER_COUNT_LE is the unimplemented sibling of
-        # CONTROLLER_COUNT_GT.
+        # flag, never guess: a condition the probe cannot answer crashes it
+        # (FLIP_WON with no coin flipped; round R12 left no pred unread).
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(
-                        FAtomPred.CONTROLLER_COUNT_LE,
-                        inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
-                        count=QConst(2),
-                    ),
+                    condition=FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU),
                 )
             ]
         )
@@ -975,10 +970,9 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         # instead." A mana ability resolves at once (CR 605.3a-b), so the payer prices it by
         # the branch the board picks now. Bug hunt 2026-11-17 (hunt5): it was never priced, and
         # mana abilities are no menu rows, so the Druid made no mana in a game.
-        from MTG_bot.core.ability_tree import Conditional, FAtom, FAtomPred
+        from MTG_bot.core.ability_tree import Conditional, FAtom, FAtomPred, at_least, number_you_control
 
-        four = FAtom(FAtomPred.CONTROLLER_COUNT_GE, count=QConst(4),
-                     inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))
+        four = at_least(4, quantity=number_you_control(FAtom(FAtomPred.TYPE_EQ, string_value="Creature")))
         druid = self.land("Druid", Conditional(pred=four, then_effect=add_mana("G", 2),
                                                else_effect=add_mana("G", 1)), type_line="Artifact")
         two = (CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))

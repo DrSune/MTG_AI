@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QConst,
     QCount,
+    QPropField,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -50,6 +51,9 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    at_most,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -137,23 +141,18 @@ def _target_creature_or_planeswalker() -> Selector:
 
 
 def _you_control_a_class(cls: str, *, exclude_self: bool) -> Filter:
-    """``you control (another) <Class>``: CONTROLLER_COUNT_GE 1 over creatures of that class you
-    control (as templates_b2a._build_adherent_of_hope). A world count, judged without a subject:
-    it walks the battlefield under ctx.controller and judges ``inner_filter`` per candidate with
-    ctx.source = the static's source, so ``FNot(IS_SOURCE)`` ("another") excludes the card
+    """``you control (another) <Class>``: the comparison "the creatures of that class you control
+    number one or more" (as templates_b2a._build_adherent_of_hope). A world count, judged without
+    a subject: it counts the battlefield under ctx.controller, judging the filter per candidate
+    with ctx.source = the static's source, so ``FNot(IS_SOURCE)`` ("another") excludes the card
     itself."""
     children: list[Filter] = [
         FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=cls),
-        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
     ]
     if exclude_self:
         children.append(FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)))
-    return FAtom(
-        pred=FAtomPred.CONTROLLER_COUNT_GE,
-        inner_filter=FAnd(children=tuple(children)),
-        count=QConst(1),
-    )
+    return at_least(1, quantity=number_you_control(FAnd(children=tuple(children))))
 
 
 def _creatures_you_control_all() -> Selector:
@@ -479,11 +478,11 @@ def _build_counter_noncreature(m: re.Match[str]) -> SentenceOutcome:
 def _build_cant_be_blocked_self_ok(m: re.Match[str]) -> SentenceOutcome:
     # B3-target-cant-be-blocked's PREVENT of the DeclareBlockers event, which builds in
     # FNot(IS_SOURCE) for "another". This row prints "Target creature…": the source may be
-    # its own target, so the blocked side keeps only the printed POWER_LE bound.
+    # its own target, so the blocked side keeps only the printed power bound.
     blocked = FAnd(
         children=(
             FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            FAtom(pred=FAtomPred.POWER_LE, count=QConst(2)),
+            at_most(2, field=QPropField.POWER),
         )
     )
     effect = Atom(

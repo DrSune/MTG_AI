@@ -45,9 +45,10 @@ effect    := Atom(verb, role→value pairs)                 # ONE operation = ON
 value     := Quantity | Selector | Filter | Zone | Duration | PtDelta | TokenSpec | EmblemSpec | LiteralName
 selector  := {mode, count, filter, zone∪zones → ONE set (R0), referent}
 filter    := FAnd(children) | FOr(children) | FNot(inner) | FAtom(pred, slots)
+compare   := FAtom(QTY_GE, count, field | quantity, who?)   # "N or less": FNot at N + 1 (R12, §16)
 event     := ZoneChange | CastSpell | … (18 classes, census §5)
 quantity  := QConst | QX | QUnbounded | QCount(sel) | QPartyCount(sel)
-           | QDistinctColorCount(sel) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
+           | QDistinct(sel, field) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
 ```
 
 Ability = fusion unit: **{when-event} × {gates} × {cost} × {operations}**; operation =
@@ -120,7 +121,7 @@ constructor set.
 | F8 | phantom menu | Choose(count==len) | V2′: must be encoded ALL |
 | F9 | the CR 609.4 policy family | MANA_POLICY, DAMAGE_ASSIGN_POLICY, ATTACK_POLICY (round 4) | fold candidate: before a fourth policy verb (nine "as though it had flash" cards wait), decide one POLICY verb with a scope enum |
 | F10 | CR 110.5 status-change events | TapStateEvent, PhasingEvent (round 4; one card) | one family: fold when a third status event appears |
-| F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
+| F11 | life thresholds | LIFE_TOTAL_GE (R8-1, the life total now: 7 sentences) vs LIFE_LEAD_OVER_START_GE (the lead over the starting life total: 11 sentences on 10 cards) | **SETTLED R12 2026-11-17 (§16, pending gate round 12)**: both are the one comparison of your life total (`QProp('controller', LIFE)`), the second against `QProp('controller', STARTING_LIFE)` + N, right in Commander; both predicates removed. Before: **not one meaning** (§12): they differ wherever the starting life is not 20 (CR 103.4: Commander 40, two-player Brawl 25), as Angel of Vitality's ruling says. Fold candidate only when a starting-life quantity lands (Torgaar's and Resolute Archangel's "your starting life total" need one): then LIFE_LEAD_OVER_START_GE(N) = LIFE_TOTAL_GE(QBin(ADD, <starting life>, N)), one predicate fewer |
 | F12 | the chosen-quality pair's names | CHOOSE_NAME and NAME_CHOSEN name a card name but carry any chosen quality since R9 (§13): the role `quality` (COLOR, CREATURE_TYPE; absent, a card name) and NAME_CHOSEN's `string_value`, its quality slot for good (FAtom slots mean what their predicate says, `_FATOM_RULES`; within NAME_CHOSEN the slot has the one meaning, the quality read) | **rename deferred** (§13 R9-3, upheld at gate round 9): a quality-neutral pair (CHOOSE_QUALITY / QUALITY_CHOSEN) re-bakes M21 Runed Halo's verified tree and Necromentia's, for a label: the network reads a token as an id, not as English. The rename is a pure relabel (the role and the slot stay). Fold with the next round that re-bakes Runed Halo's tree, or with the third quality (a card type, IKO Umori; a basic land type, M10 Convincing Mirage), re-verifying Runed Halo |
 | F13 | a chosen colour or creature type, by when it is chosen | since R9, "choose a colour" has two forms by context: at resolution, `Choose` over five effects, one per colour (M21 Feat of Resistance and M20 Gods Willing, verified; M12 Stave Off; THB Alseid of Life's Bounty), and as a permanent enters, CHOOSE_NAME(COLOR) read later by NAME_CHOSEN. KHM Crippling Fear and Haunting Voyage choose a creature type at resolution and read it in the same resolution, which needs CHOOSE_NAME(CREATURE_TYPE) outside an EtBState: refused today (§13 R9-1, refusal 5) | **decision at the round that maps Crippling Fear** (Type-1, with F2's choose axis): either lift refusal 5 for a choice read within its own resolution, and fold the colour `Choose` into CHOOSE_NAME(COLOR) + read (one form for "choose a colour"; re-bakes Feat of Resistance's and Gods Willing's verified trees), or keep `Choose` over a fixed menu for colours and give a resolution-time creature type its own encoding. Until then: as a permanent enters, CHOOSE_NAME(quality); at resolution, a colour is `Choose` over five (V4' freeze holds) |
 
@@ -153,6 +154,12 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostExile, one per cost (`target`: a CHOOSE selector, a literal count, one zone: `Zone(BATTLEFIELD, ANY)` for the source or a permanent the payer controls, the payer's graveyard or hand; the source is `IS_SOURCE` alone, count 1): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostRemoveCounter, one per kind per cost (`counter_kind` but LOYALTY, `target` the source or a permanent the payer controls, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom QTY_GE x `field` (POWER, TOUGHNESS, MANA_VALUE, COLOR: `ability_tree.COMPARED_FIELDS`), the judged object's characteristic; "N or less" only as its FNot at N + 1 | B11 noun phrases ("with power|toughness|mana value N or less|greater"), M21 Legion's Judgment, Eliminate, Subira, Ugin; ZNR Bloodchief's Thirst; ELD Epic Downfall | 46 trees (16 of them the FNot form); `reports/quantity_comparison_2026-11-17/census.txt` |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom QTY_GE x `quantity` (QCount, QDistinct, QPartyCount, a QProp over an ALL selector summed, your LIFE: `ability_tree._measures_the_game`) [x `who` OPPONENT over a count of "your" zone] | M21 Sanctum of All, Fabled Passage, Speaker of the Heavens (STARTING_LIFE), Thieves' Guild Enforcer (`who`); ZNR party (5); M20 Field of the Dead (QDistinct) | 68 trees (who 4, QDistinct 1, party 5, life 7) |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom TARGETS x `inner_filter` (required): one of the judged spell's or ability's targets passes it | IS_SOURCE: Gnarlback Rhino (M20, FDN), Pursued Whale, the THB heroes (5); a filter: M20 Season of Growth (record), WAR Kasmina | 12 trees (2 with a filter) |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | QDistinct x `field` (COLOR, NAME, MANA_VALUE: `ability_tree.DISTINCT_FIELDS`) | M21 Chromatic Orrery (COLOR), Chrome Replicator (NAME, in the count), M20 Field of the Dead (NAME), FDN Lunar Insight (MANA_VALUE) | **low-volume**: 5 trees |
+| 2026-11-17, gate round 13 (FIX-THEN-GO, fixed, §17) | Verb.PERMIT x `source` (ALL over your graveyard, exile, library top or hand; TARGET over a graveyard or exile; the `result` register whole, no filter) x `lands` (True or absent) x `alternative` / `additional` (Costs) x `replace` (`spell_riders()`) x `count` (a literal, resolving only) x `duration` (Eot, UntilEndOfNextTurn, Permanent; required when resolving, absent in a static) | templates_b19 (15 templates): M21 Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace, both Chandras, Idol of Endurance (b3); FDN Omniscience, Think Twice and the flashback cards, Sphinx of Forgotten Lore, Zul Ashur; records: M20 Golos, Mystic Forge | 33 PERMIT atoms in the 19 sets, records applied (`reports/permit_2026-11-17/`); **low-volume**: `count` 1 tree (Idol of Endurance), `additional` 1 (Demonic Embrace) |
+| 2026-11-17, gate round 13 (FIX-THEN-GO, fixed, §17) | Verb.CAST x `alternative` / `additional` (the old `cost` role split) x `replace` (the rider) | M21 Chandra, Flame's Catalyst's [-2]; ZNR Coveted Prize (b8) | 2 CAST atoms |
 
 ## 6. Identity + conformance
 
@@ -771,6 +778,31 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     13 record trees, 0 verified cards in or out of 1,144; 600 seeded heuristic games (200 each,
     M21, M20, FDN; 275, 277 and 190 deckable): 600/600 identical replay digests, journal dumps and
     raw event logs, 0 crashes either side (`replay_4da972f1.txt`).
+- R13 round 13 (adversarial, 2026-11-17; one reviewer on f01b303f, Verb.PERMIT, CAST's cost
+  roles and the spell's rider, §17, branch `worktree-agent-a4af16b825120dda1` with main fdd1a021
+  merged; a fresh-eyes review of the code diff before it: §17): **FIX-THEN-GO**. Fixed:
+  - MAJOR: seven forms the IR accepted said nothing or what another form says
+    (`gate13/ir_forms.py`): `lands` over the hand; a resolving PERMIT over ALL(IS_SOURCE), which
+    played wrong (the card cast and back in the graveyard is a new object the population covers
+    again, CR 400.7, castable again that turn); a cast PERMIT filtered FNot(Land); a lands-only
+    and a cast PERMIT over one zone in one ability (one PERMIT with `lands`); a CAST of a TARGET in
+    a library or a hand (CR 400.2); a card's own alternative cost from the hand as its own static
+    PERMIT. Refused (`_cast_roles_fault`, `_cast_verb_misplaced`, `_split_play_fault`), one test
+    each (`test_the_gate_13_forms_are_refused`). The last stays a SpellAbility piece, as §17 said:
+    a spell's alternative cost (CR 118.9) applies wherever it is cast from, a permission over the
+    hand only from the hand, so the two are not one meaning. MAPPER_GUIDE's own-permission rule
+    says "a static, never over your hand".
+  - MINOR: four surviving mutants that change play, each killed by a test: M6 (a static covering
+    every zone), M7 (the opponent's permission yours), M8 (a counted play spent first), M10 (no
+    rider on a fizzle).
+  - Flashback's exile fired only on resolution, a fizzle and a counter; and, the same cause, a
+    pre-existing EXPLOITABLE fault (a bug-hunt fault, KNOWLEDGE 212): an effect that moved a spell
+    off the stack left its frame, so Unsubstantiate (M21, verified) on your own Shock returned the
+    card to hand and the Shock still resolved. Every move of a spell off the stack now ends its
+    frame and passes its rider (`verbs._off_the_stack`, `_spells_leave_the_stack`); a pack
+    through the menu (`unsubstantiate_your_own_shock_never_resolves`, red on main) and
+    `test_executor_off_the_stack.py` (exile, a library, a creature spell, both riders).
+  - MINOR: BACKLOG's D32 deferral entry; Valakut Exploration's pools; §5's low-volume roles.
 - BINDING STATE: rounds 1–11 complete; further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
@@ -794,6 +826,7 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 | R5-11 `TokenSpec.colors` | **implemented** (lane r5b) |
 | `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
 | R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
+| R5-2, R5-3, R5-12's rider | **built as ontology round R13** (§17, 2026-11-17): one verb, PERMIT, with `lands`; the rider a cast verb's `replace` role; gate round 13 pending |
 | R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` **implemented, round 4 GO** (1cac720, fixes 844c315): count = the revealed cards that pass `until`; `until=FAnd(())` and an unbounded count with `until` refused. Transmogrify's "that creature's controller" is the majority referent Selector, and `EachPlayer.ref` takes it |
 | `Verb.ATTACK_POLICY` (scope `AS_NO_DEFENDER`, CR 609.4; BACKLOG B-80) | **implemented, round 4 GO** (1cac720): Drowsing Tyrannodon keeps defender and attacks as though it had none; ledger F9 |
 | R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | **implemented, round 4 FIX-THEN-GO** (6f020b8, fixes 3ece400): `once_per_event` (True or absent) on TriggeredAbility and DelayedTrigger; absent = once per occurrence (CR 603.2c); refused where the subject does not gather occurrences (IS_SOURCE, IS_ATTACHED_TO_SOURCE), on non-combat damage and with no dealer; checked as triggers queue |
@@ -2021,3 +2054,381 @@ CostExile clause cannot fire today; it stays for the card whose exile cost takes
 Re-run on 586fa91a with the gate's fixes each undone in turn (the source in one form, the payer's
 permanents, one whole zone, one exile and one removal of a kind per cost, the raise on a short
 segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
+
+## 16. Round R12 — one quantity comparison; TARGETS, QDistinct and zone counts made general (2026-11-17; gate round 12 FIX-THEN-GO, fixed)
+
+Proposals I1, I9 and I0 of KNOWLEDGE/2026-11-17/210 (the component-sharing review the owner asked
+for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and scripts:
+`reports/quantity_comparison_2026-11-17/`. Tests: `MTG_bot/core/test_executor_quantity_comparison.py`
+(57) and `MTG_bot/core/compiler/test_templates_r12.py` (16); packs
+`tools/scenarios/mapped/M20/field_of_the_dead_*` (2) and `season_of_growth_*` (2).
+
+**R12-1 The comparison** (`ability_tree.py` :1577-1736; executor `quantity.py` `_comparison_holds`,
+`_compare`, `_characteristic`).
+- `FAtomPred.QTY_GE`: the judged object's characteristic, or a quantity the game measures, is at
+  least `count`. Two new optional FAtom slots, exactly one of them set: `field` (POWER, TOUGHNESS,
+  MANA_VALUE or COLOR, the number of the object's colours: `COMPARED_FIELDS`, CR 208.1, 202.3,
+  105.2) or `quantity` (a QCount, QDistinct or QPartyCount, a population's total (a QProp over
+  an ALL selector with SUM), or your LIFE: `_measures_the_game`; a greatest or least value is a
+  second form of a count, gate round 12). `who` is OPPONENT or absent
+  (`COMPARED_PLAYERS`), and only over a QCount of "your" zones with no referent: the count read for
+  each opponent in turn, as EachPlayer rotates "you", true when one of them has it ("an opponent
+  has eight or more cards in their graveyard").
+- "N or less" is FNot of the comparison at N + 1 (CR 107.1: the game's numbers are integers; "more
+  than N" is at least N + 1). The IR refuses every other spelling: a pick (QAtLeast, QAtMost,
+  QUnbounded) anywhere in either side's arithmetic, a literal or an X as the measured side, a
+  non-ALL selector or a designated player anywhere inside either side (`_check_compared_side`), a
+  referent on the measured side (the judged object's own property is `field`), a threshold of 0,
+  a sum's literal anywhere but last ("N + 1"), and, with `who`, a threshold that is not a number
+  (it is read for the opponent too). Two measures compared ("more creatures than you", "two share
+  a name") have one orientation: the larger side is measured, and FNot refuses the other
+  (`_compares_two_measures`; divergence D31, registered and closed here).
+- Builders: `at_least`, `at_most` (the FNot form), `number_you_control`, `number_in`; the card
+  tools' draft namespace has them (`tools/cards/irpy.namespace`).
+- Folded: POWER_GE, POWER_LE, CMC_GE, CMC_LE, COLOR_COUNT_GE, CONTROLLER_COUNT_GE,
+  CONTROLLER_COUNT_GT, ZONE_COUNT_GE, LIFE_TOTAL_GE, LIFE_LEAD_OVER_START_GE,
+  NAME_PARTITION_COUNT_GE (11 in trees), PT_GE, PT_LE, CONTROLLER_COUNT_LE (unused);
+  `FAtom.right_inner_filter` removed. "Two share a name" (Chrome Replicator) is "more permanents
+  than names among them": the count against QDistinct(NAME) + 1.
+- **F11 settled** (§4): `QPropField.STARTING_LIFE` (CR 103.4, `Executor.starting_life`), so "at
+  least N life more than your starting life total" is the comparison of your life with the
+  starting life plus N: right in Commander (40), one predicate instead of two.
+- Engine: power and toughness are read as the object last existed when the event is its own
+  departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them). Before, a creature that died
+  pumped was read at its printed power in the graveyard ("Whenever a creature with power 4 or
+  greater dies": a 2/2 pumped to 4/2 did not trigger; `DepartedPowerTest`). No verified tree read
+  it. An object without the characteristic (a noncreature's power) fails the comparison, so its
+  FNot holds: the noun beside it says what has it. A printed '*' the engine has no number for
+  there (a characteristic-defining ability off the battlefield, CR 208.2a) raises: flagged, never
+  guessed either way (the base read it as failing both "N or more" and "N or less").
+
+**R12-2 TARGETS(filter)** (TARGETS_SOURCE made general): one of the judged spell's or ability's
+targets passes `inner_filter` (required; CR 115.1, 601.2c). Read from the judged object's stack
+frame (`declared_targets`); while it is being cast, from the cast's designation
+(`quantity._targets_of`; the cast lane no longer binds "target" for it). "That targets this
+creature" is `inner_filter=IS_SOURCE`.
+
+**R12-3 QDistinct(selector, field)** (QDistinctColorCount made general): the number of different
+COLOR (each colour of a multicoloured object counts), NAME (CR 201.2) or MANA_VALUE (a land's is 0)
+values among the selected objects (`DISTINCT_FIELDS`). QProp refuses COLOR and NAME: they are read
+by the comparison's `field` and by QDistinct, never as one object's number.
+
+**R12-4 Zone counts (D28)**: QPropField.CARDS_IN_HAND, CARDS_IN_LIBRARY and CARDS_IN_GRAVEYARD
+removed; "the number of cards in your hand" is `number_in(Zone(HAND, YOU))`, the QCount form the
+corpus already used (divergence D28 closed).
+
+**R12-5 I0, the duplicate members**: Verb.EXILE and Verb.MILL (MOVE_ZONE's), QPropField.CMC
+(MANA_VALUE's twin), Keyword.SCRY and Keyword.MILL (keyword actions, CR 701.22, 701.17: G0 still
+demands them, `gates.KEYWORD_ACTIONS`), Keyword.BATTALION (an ability word, CR 207.2c; the binder's
+battalion lane went with it), ThisTurnKind.CARDS_DRAWN and LIFE_GAINED. Counts: FAtomPred 57 -> 44,
+QPropField 12 -> 11 (+COLOR, NAME, STARTING_LIFE), Verb 51 -> 49, Keyword 23 -> 20, ThisTurnKind
+3 -> 1.
+
+**Refused forms** (tests): every folded predicate and member fails to decode; a comparison of a name,
+a player's life as `field`, QDistinct of POWER, QProp of COLOR or NAME, a literal, an X, the
+source's own power (directly or through a referent selector, QProp or QDistinct) or a negated life
+as `quantity`; "or less" as a pick count or a number on the measured side; a threshold of 0; "1 + N";
+a target player in a QThisTurn; the negation of a comparison of two measures, directly or through
+FAnd and FOr; a double negation; "N + 0"; an ALL selector with a count; a population's greatest or
+least value; a battlefield population whose zone names a controller (control is an overlay,
+`Executor.controller_of`: Zone(BATTLEFIELD, ANY) and CONTROLLER_IS in the filter), on either side
+and under `who`; TARGETS without its filter; `who` over another player's zone, `who` YOU, `who`
+with `field`, `who` over life, `who` against a measured threshold.
+
+**Alternatives rejected.**
+- An operator enum (GE, LE, GT, EQ): over integers LE and GT are FNot and +1 of GE, second
+  encodings; no card of the 19 sets prints "exactly N" against a threshold.
+- One predicate per measured kind (a characteristic comparison beside a quantity comparison):
+  two tokens for one relation; the slot says which side is measured.
+- A starting-life predicate (F11's other route) and the life-lead predicate kept: a quantity is
+  one node fewer and reads Torgaar's and Resolute Archangel's "starting life total" too.
+- QProp(controller, CARDS_IN_*) kept beside QCount: D28's second encoding.
+- `who` over any player or any quantity: "an opponent has N or less" (no FNot reading: "no opponent
+  has N + 1") and a target player's zone would bring a designation into a condition; the cards
+  that print them bring the slot's next value.
+- Keeping the largest same-name group (NAME_PARTITION_COUNT_GE): "two share a name" is the count
+  against the distinct names plus one, no new node.
+
+**Templates** (wordings by regex over the 19 sets, `MTG_bot/core/compiler`): `conditions.py` reads
+counts of your permanents and zones, a creature with power N or greater, total power, the starting
+life total, an opponent's graveyard and the ability words in front (threshold, ferocious,
+formidable, spell mastery); B11 "with toughness|mana value N or less|greater"; B14's "as long as"
+statics after an ability word, "can't be blocked as long as"; B13 "Whenever you cast a spell that
+targets this creature|a creature you control"; B4 Kasmina's tax; B3 Lunar Insight. Eliminate's
+template now writes B11's form, the comparison beside FOr(Creature, Planeswalker) (one encoding,
+B11's differential; ZNR Bloodchief's Thirst follows). 22 cards of the 19 sets newly compile whole
+(DOM, FDN Ghitu Lavarunner; FDN Dragonmaster Outcast, Lunar Insight, Gnarlback Rhino; THB the four
+heroes, Warden of the Chained; ZNR Blackbloom Rogue, Nimana Skitter-Sneak; ...;
+`blast_radius.txt`).
+
+**Records** (`tools/cards/cardtool.py write`, author ontology-r12, no verified block): the 17
+records holding a folded form re-mapped, their trees translated (same meaning); M20 Field of the
+Dead and Season of Growth mapped (their needs-atom notes met); Thunderkin Awakener's and Atemsis's
+notes narrowed to what still has no node.
+
+**Blast radius** (`tree_dump.py` on a `git archive` of 30736aba and on the branch, `tree_diff.py`:
+`blast_radius.txt`).
+- Trees: 104 compiler trees and 117 with records applied change, in 15 of the 19 sets (M21 32,
+  M20 17, FDN 16, ZNR 16, THB 8, WAR 7, ELD 6, ...); every fold-only change equals the base tree
+  translated (0 beyond the fold before the templates). 22 cards newly whole, none lost.
+- Verified: **58 stamps out** (53 home: M21 30, M20 15, FDN 8; 5 reprint stamps: ELD Fabled
+  Passage, FDN Cryptic Caves, ORI Faerie Miscreant, WAR Makeshift Battalion, WAR Turret Ogre), none
+  in; no still-verified tree reads a node the round changes. Re-baked, never re-stamped: the
+  coordinator re-verifies them (list in the round's report). `test_reprint_stamps_follow_their_home_record`
+  holds. Card packs of the de-verified M20 and FDN records that no longer run on the verified pool
+  moved to `tools/scenarios/mapped/<SET>/` (23), all passing there.
+- Play: 300 seeded heuristic games (100 each of M21, M20 and FDN, the decks dealt from the cards
+  verified on both checkouts with the same tree: 245, 262 and 181 deckable): **300 of 300
+  identical** replay digests, journal dumps and raw event logs, 0 crashes either side
+  (`replay.py`, `replay_compare.py`: `replay.txt`).
+- Network (`old_net_decks.py`, `old_net_base.py`, `old_net_branch.py`: `old_net.txt`): a base
+  checkpoint over the three home sets' 1,090 cards, its table refreshed (`CardTable.refresh`) and
+  the network grown (`model.extend_cards`): 53 rows rebuilt (the round's cards of those sets), 7
+  component tokens appended (QTY_GE, `@quantity`, TARGETS, QDistinct, QPropField COLOR, NAME,
+  STARTING_LIFE), all starting at zero, the old rows kept; 15 old tokens no row reads any more
+  (the folded predicates, QDistinctColorCount, CARDS_IN_HAND and _GRAVEYARD). On 64 decisions of
+  six games of unchanged cards: encodings, tokens, logits and value **bitwise equal**. The 53
+  cards lose what a checkpoint learned of their old tokens (nothing copies POWER_GE's row into
+  QTY_GE's); they are out of the verified pools until re-verified anyway.
+
+**Pre-gate review** (one fresh-eyes reviewer on 1da776fb, 2026-11-17): 7 MAJOR, 3 MINOR, all
+fixed on the next commit. M1 the branch was red (a pin, Thieves' Guild Enforcer read by B5a and
+B14 alike: the test now asks the two readings to agree, the registry's design; the census
+regenerated after Eliminate's change). M2 a referent selector on the measured side was a second
+form of `field`; M3 `who` read a measured threshold for the opponent too; M4 a threshold of 0
+(COLOR_COUNT_GE's own refusal had gone with the fold); M5 a target player in a QThisTurn; M6 two
+measures compared had two orientations (D31: now closed) and "1 + N" was a second "N + 1"; M7 a
+refusal test failed before reaching the comparison. m8 the package shapes read the threshold side
+as a wanted count; m9 '*' off the battlefield (above); m10 the lint's comparison branch untested,
+D17's and D22's stale names. A tree dump after the fixes: no tree of the 19 sets changes or is
+refused.
+
+**Known limits** (BACKLOG): "becomes the target of a spell" (Gargos, Bonecrusher Giant, Fblthp)
+needs the targeting event to say whether the targeting object is a spell, not TARGETS; "a spell that
+targets you" (Cerulean Drake, Psychic Rebuttal) needs a filter that names a player; Luminous
+Rebuke's "costs {3} less if it targets a tapped creature" is priced before targets are chosen;
+"more creatures than you" sums all opponents at three seats (BACKLOG); an opponent's "N or
+less" has no form.
+
+**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5, 0b309e22
+(engine wave E2), e32e0b88 (mapping batch M6), f59fb8f0 (M8), c80f45f7 (engine wave E1) and
+bd7beb33 (fix wave T1) were merged** (the reviewer's evidence: the session scratchpad's `gate12/`).
+E1 reads a card's printed characteristics through `quantity.card_identity` (a ceased token's last
+known identity); the comparison's `_characteristic` reads them the same way since the merge.
+- MAJOR-1, the merge red (213 engine and 3 tools failures): 20 unverified FDN records of mapping
+  batches M1-M7 held folded predicates and no longer decoded. Re-mapped through `cardtool write`
+  with their authors (tree translated, draft re-rendered, clauses and notes reworded), equal, all
+  20, to the reviewer's mechanical translation; Dragonmaster Outcast's and Ghitu Lavarunner's equal
+  to the compiler's whole trees; Mentor of the Meek and Gate Colossus keep their creature noun. The
+  translation is a repeatable script outside the repository (the round's report names it); it
+  translated batch M6's three such records (Ruby, Daring Tracker, Nessian Hornbeetle, Elenda,
+  Saint of Dusk) and M8's three (Squad Rallier, Loot, Exuberant Explorer, M20 Diviner's Lockbox)
+  as they merged. G0's number check reads "N or less" as the comparison at N + 1, negated.
+  Knight of Grace and Knight of Malice (FDN), whose needs-atom notes asked for this round's
+  battlefield count of any controller, mapped (packs `mapped/FDN/knight_of_*`). The needs-atom
+  notes and pack notes that named a folded predicate reworded; the stale stamps' evidence is left
+  as it was verified.
+- MAJOR-2: a population's greatest or least value as `quantity` (a second form of ferocious), and
+  Zone(BATTLEFIELD, YOU) as a counted population (a second, and wrong, "you control": the zone
+  reads the owner's battlefield), both refused, on both sides and under `who`.
+- MAJOR-3: G3 offers `who` dropped ("you have eight ...") and the bare measure of a "measure + 1"
+  threshold ("at least as many" for "more than") as critical mutants; no flip reaches either.
+- MINOR: tests that kill the battery's TARGETS any->all, COLOR read as 0/1 and reads_no_subject
+  mutants on their own; FNot refuses the negation of two measures through FAnd and FOr, and a
+  double negation; "N + 0" and an ALL selector's count refused; BACKLOG: the last known power also
+  answers a departure trigger's target choice.
+- Merged numbers (`tree_dump.py` on main f59fb8f0, and again on bd7beb33 after E1 and T1, and on the branch, `tree_diff.py`:
+  `blast_radius_merged.txt`): 104 compiler trees and 140 with records applied change (FDN 38 and
+  M20 18 with the re-mapped records); 22 cards newly whole; no tree refused on either side only;
+  the same **58 stamps out** (53 home, 5 reprint), none in: M21 275 -> 245, M20 279 -> 264, FDN
+  193 -> 184, ELD 14 -> 13, ORI 24 -> 23, WAR 22 -> 20. The fixes change no stamp.
+- The coordinator's additions: G3 offers no count change on a CHOOSE or ONE_OF over your one
+  player (FDN Crystal Barricade's "You have hexproof", from mapper M6: an equivalent critical
+  mutant; its critical survivors are now none), and E2's pack that needs Leafkin Druid's record
+  runs from `mapped/M20/`.
+- For round R13 (Mystic Forge, `templates_b19._kind`): "colorless" is `at_most(0,
+  field=QPropField.COLOR)`, FNot of the comparison at 1; "artifact spells and colorless spells" is
+  `FOr(TYPE_EQ Artifact, at_most(0, field=COLOR))`.
+
+## 17. Round R13 — PERMIT and REPLACE: playing a card from another zone (2026-11-17; gate round 13 FIX-THEN-GO, fixed)
+
+KNOWLEDGE 209 §6-§7's first package for M21, M20 and FDN: "permission to cast or play a card from
+another zone" (28 cards of the three sets, 19 needing only it; `reports/completion_2026-11-17/
+worklist.json`), and the "exile it instead" paired with it. §10's R5-2 v3 (PERMIT_CAST), R5-3
+(play_lands) and R5-12's rider were designed and never built; gate rounds 2-4's findings on them
+stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main 8d0bf62e merged (round
+R12, engine waves C1, E1 and E2, fix wave T1).
+Scripts and outputs: `reports/permit_2026-11-17/`.
+
+**How plays were legal before (the root cause).** `legality.spell_castable` cast only from the
+hand and `stack.land_playable` played only from the hand. A permission compiled as a free
+activated ability whose `OptionalEffect(CAST)` cast the card as the ability resolved (Radha, Heart
+of Keld; Conspicuous Snoop; Demonic Embrace's costed row): it cast at instant speed until a timing
+patch (`query.permission_cast`), never played a land (B-100), needed a phantom screen
+(`query.inert_row`) and kept the card out of the act menu. Duration permissions (both Chandras,
+Furious Rise, Valakut Exploration) were suppressed at assembly; "If that spell would be put into
+your graveyard, exile it instead" compiled as a static of the card over "any target" (B-99); the
+CAST atom had no target channel and cast with X = 0.
+
+**R13-1 `Verb.PERMIT`** (`ability_tree.py:182`; roles `_cast_roles_fault` :3563; placement
+`permission_fault` :4423, `_cast_verb_misplaced` :4496). The seat may play the cards `source`
+names from the zone it names (CR 601.3, 305.1).
+- `source`: ALL over a zone (a population, read whenever a card would be played), TARGET over a
+  graveyard or exile (designated as the ability resolves), or the `result` register whole (the
+  cards the instruction before it moved, no filter). The zones: your graveyard, exile, the top of
+  your library, your hand (with `alternative` only: the hand's own path is the rules', CR 117.1a).
+- `lands`: True is "play" (lands are played, CR 305.1; spells cast); absent is "cast". A land is
+  never cast (CR 305.9): a cast's filter names no land, and `lands` over cards that are never lands
+  is refused.
+- `alternative`: a Cost paid instead of the mana cost (CR 118.9; `Cost()` is "without paying its
+  mana cost"); `additional`: a Cost added (CR 601.2f; never empty). Neither on lands only (a land
+  play is a special action with no cost, CR 116.2a).
+- `replace`: the spell's rider (R13-3). `count`: plays allowed (Idol of Endurance's "a creature
+  spell"); never on a static, never as large as a designation (each designated card plays once,
+  CR 400.7).
+- `duration`: DurationEot, DurationUntilEndOfNextTurn, DurationPermanent ("for as long as it
+  remains exiled": a designated object leaves the permission when it changes zones, CR 400.7).
+- In a static ability it is the static's continuous effect, live while the static functions (CR
+  604.2, 611.3a): a population, no duration, no count. A card's own permission (`IS_SOURCE`)
+  functions from the zone it names (CR 113.6f): flashback (CR 702.34a), Demonic Embrace, Squee.
+  In a resolving ability it is the effect the ability creates (CR 611.2a): the duration is
+  required, and it outlives its source.
+- Refused as second encodings: an OptionalEffect around it (the "you may" is the permission's
+  use: a phantom ask), a granted static PERMIT ("each legendary card in your graveyard gains
+  'You may play this card from your graveyard'" is a resolving PERMIT), EachPlayer or Repeat
+  around it; since gate round 13 also `lands` over the hand, a cast filtered FNot(Land), a
+  lands-only and a cast PERMIT over one zone in one ability (one PERMIT with `lands`), a resolving
+  PERMIT over its own card as a population (it would cover the new object the card becomes, CR
+  400.7), and a card's own permission over the hand (its spell's alternative cost, CR 118.9).
+
+**R13-2 CAST, the one-shot cast** (CR 608.2g: cast while its ability resolves, ignoring timing).
+Roles `source`, `alternative`, `additional`, `replace`: the old `cost` role (empty: a waiver; with
+parts: added) split into the two PERMIT has, one meaning each. Refused: CAST in a static, in a free
+activation (the old permission row), of its own card in an activation (the old Demonic Embrace
+row, which CR 113.6m would make a graveyard activation at instant speed), of a land, of a permanent
+or a spell, of a TARGET in a library or a hand (CR 400.2). `CostDeltaWaiveMana`, Omniscience's
+second byte form, which the engine skipped, is retired: Omniscience is the static PERMIT over the
+hand with `alternative=Cost()`.
+
+**R13-3 REPLACE: the spell's rider** (`spell_rider` :3481). "If that spell would be put into your
+graveyard, exile it instead" (CR 614.1a, 614.6) and flashback's "exile it instead of putting it
+anywhere else any time it would leave the stack" are a cast verb's `replace` role, exactly the two
+values `spell_riders()` returns. The engine applies the frame's rider wherever the spell leaves the
+stack (`stack.exit_zone` :295: resolution, a fizzle; any effect's move of a spell, a counter or
+Unsubstantiate's return included, through `verbs._off_the_stack`, which also ends the frame: gate
+round 13), before engine wave C1's
+replacements of the move from anywhere (`stack._put_off_the_stack`, `verbs._move_all`): every rider
+exiles, so whichever the controller applies first (CR 616.1) the spell is exiled. A card-level
+replacement of a zone change from the stack is refused (B-99's tree). No `Verb.REPLACE`: a rider
+exists only on the spell its verb casts; R5-12's resolving replacements (Chandra, Awakened
+Inferno's die-to-exile) stay their own piece.
+
+**R13-4 The engine.**
+- `executor/permits.py`: `paths` (:162), every way a seat may cast a card now, one per cost path
+  (R5-2 v3 point 6; an uncounted permission first, then the older): live "permit" layer records (a
+  static's from its source's statics, a resolving one's from `layers.register_permit` :481), then
+  the card's own permissions; a designation drops an object that moved since it resolved
+  (`returns.moved_since`, CR 400.7). A land's play is `land_path` (:231) over every permission,
+  never lost to a cast permission sharing its cost path.
+- The menu (`menu.py:115`): `land:<card>` from any permitted zone; `cast:<card>[:via:<source>]`,
+  with `via` only for a path that is not plain (another cost, a rider). Timing is the card's
+  (`legality.card_window_reason`): a permission changes where from and at what cost, never when
+  (CR 601.3).
+- A land played from another zone is the turn's land play (CR 305.2a; `stack.land_playable` :260,
+  `play_land` :1334). A cast through a path (`stack.cast` :725) pays the path's cost
+  (`legality.spell_castable` :1585; X is 0 unless the alternative has an X, CR 107.3b), uses one of
+  its plays (`permits.use`) and journals the zone it came from.
+- `stack.cast_card`, CAST's lane: asks the caster for X and for each target as the spell is cast
+  (CR 601.2b-c), offering only the targets whose total cost it can pay (a target's tax, CR
+  601.2f: engine wave E2's pricing, as the menu prices a row); the may-offer is offered only for
+  a card whose targets can be chosen and whose cost can be paid (`query._cast_option_payable`).
+- `verbs._v_permit` (:2055). The library pop (`pop_order` TOP) writes `result` (`verbs.py:285`):
+  "exile the top three cards ... you may play them" reads all three.
+
+**R13-5 What the network sees.** A permission's play is a land or cast row: the card's entity
+carries the zone it is played from (the top of a library joins the entities as an offered card),
+and `:via:<source>` points the option's second entity at the permission's source
+(`tools/selfplay/features.py:472`). No new ask kind, option type or column; the bench names the
+card (`bench/router.py`). Old checkpoints compute the same (below).
+
+**CR basis**: 601.2a-i, 601.3, 305.1, 305.2a, 305.9, 116.2a, 117.1a, 113.6f, 113.6m, 118.9,
+107.3b, 604.2, 608.2g, 611.2a, 611.2c, 611.3a, 400.7, 614.1a, 614.6, 702.34a.
+
+**Rejected.**
+- R5-2's PERMIT_CAST and R5-3's play_lands as two verbs: "play" is one permission over lands and
+  spells (CR 305.1, 601.3; Chandra, Heart of Fire's "play cards exiled this way"), so one verb
+  with `lands`.
+- A `Verb.REPLACE` atom for the rider (R5-12's route): it would be a second encoding of the role, or
+  a rider with no spell.
+- A filter on the `result` register ("cast a creature spell from among them") and other registers:
+  refused until a card brings them; the engine reads the register whole.
+- "As though it had flash" in the same verb (KNOWLEDGE 209 §7): it changes when, not where; its
+  round decides. A card's own optional alternative cost (M20 Sephara) is a SpellAbility piece.
+- A set fixed at resolution for a resolving population (Kethis: "gains" changes characteristics,
+  CR 611.2c): waits for its card.
+- Keeping `CostDeltaWaiveMana`.
+
+**Census** (19 sets, records applied): 33 PERMIT atoms (ALL over a graveyard 12,
+over the top of a library 8, over the hand 4, over exile 1, over exile and a graveyard 1; the
+`result` register 4; TARGET over a graveyard 3) and 2 CASTs (ZNR Coveted Prize's ONE_OF over the
+hand with `alternative`; M21 Chandra, Flame's Catalyst's TARGET over the graveyard with the rider).
+
+**Blast radius** (`tree_dump.py`, `tree_diff.py` against main 8d0bf62e, round R12 and engine waves C1, E1
+and E2 included; the same trees against fba0ea20 and 4739cfef):
+- 35 compiler trees change in 11 sets, and 2 M20 records are mapped (Golos, Tireless Pilgrim;
+  Mystic Forge; unverified). 10 cards newly compile whole (10E and M19 Crucible of Worlds, DOM
+  Squee, FDN Omniscience, Sphinx of Forgotten Lore, Think Twice, M12 and M14 Garruk's Horde, M13
+  and M19 Omniscience); 26 have fewer unparsed sentences. 4 have one more, each a sentence that was
+  wrong or suppressed: M21 and THB Furious Rise (an event-ended window, B-100), M20 Chandra,
+  Acolyte of Flame and WAR Dreadhorde Arcanist (a rider whose cast sentence does not parse).
+- Verified: against main 8d0bf62e none leaves or joins (1,091 stamps → 1,091): M21 Idol of
+  Endurance's tree changes (the activation's permission is a PERMIT), but its stamp no longer
+  matched on main, where round R12 changed its tree ("mana value 3 or less"). Against fba0ea20
+  the Idol was the one to leave (1,149 → 1,148).
+- Deal pools: M21 engine and castable 280 → 283 (the two Chandras, Demonic Embrace; dropping them
+  reproduces the stress-pile hash); M21 compiled loses Furious Rise; FDN compiled 193 → 196.
+- 300 seeded heuristic games on the verified pools (100 each of M21, M20, FDN; 245, 264 and 184
+  deckable on main 8d0bf62e): 300/300 identical replay digests, journal dumps and raw event logs,
+  0 crashes either side, no cast or land play through a permission (none dealt).
+- Old networks: r28's v2 (`runs/r28_looks/r28_v2.pt`, read only) on 192 decisions of eight M21 and
+  M20 games (9 ask kinds), main 8d0bf62e against the branch: the same games, option tokens,
+  encodings, tokens, logits and values, bitwise (`r28_bitwise.txt`, gate 13's `net_compare.py`);
+  the permission rows it encodes are distinct, each card at its zone and a `via` row at its
+  source. A randomly initialised checkpoint over M21 and FDN games did the same against fba0ea20
+  and 4739cfef (128 decisions).
+- Soak (`soak_coverage.py`: `tools/cards/soak.py`'s games and abuse screen, 1,100 random games:
+  M21 300, FDN 200, M20 200 with the unverified records, ZNR, M19, DOM, M12 100 each): 0 crashes;
+  permissions resolved 107 times, casts through a permission 70, land plays 40, riders 12;
+  abuse screen: no repeatable activation, no trigger loop, two win-rate outliers, both low and
+  neither a permission card (M21 Discontinuity, Spirit of Malevolence). D6 flagged a resolved
+  permission live at game end over exiled cards (4 games): D6 now knows a resolved permission
+  outlives its source and covers cards off the battlefield (CR 611.2a, 601.3; a test). With it,
+  the M21 and FDN soaks' remaining hits (two replacement records for one damage event, a delayed
+  trigger pending at the end, a mandate_block layer) are classes main fba0ea20's soak on the same seeds
+  shows too (`soak_main_*.json`, `soak_branch_*.json`).
+
+**Tests and packs.** `test_ability_tree_permit.py` (20 cases: accepted shapes, zones, durations,
+static rules, roles, one encoding of "may play", refusals), `test_executor_permit.py` (18:
+impulse until end of turn then gone, a resolving permission outliving its source, a card that
+moves leaving it, the land drop, flashback and a countered flashback exiled, Chandra's recast with
+its target and rider, Demonic Embrace's costs, a static ending with its source, timing, Idol's one
+cast, Omniscience's two paths, the land path, X with an alternative cost), one each in
+`test_selfplay.py`, `test_router.py`, `test_detectors.py`. Packs: 9 new (four that fail on main
+for the brief's behaviours, Chandra's targeted recast out of `known_bugs`, four mapped M20), 14
+rewritten from the old rows. The V4' CHOOSE baseline moves for exactly six cards and V5' registers
+Idol's population over exile (`reports/ontology_census_2026-11-17_permit_post_full.json`).
+
+**The fresh-eyes review** (one reviewer on the code diff, 2026-11-17): 3 MAJOR, 3 MINOR, 1 NIT,
+all fixed but one MINOR. MAJOR: `CostDeltaWaiveMana` was a second encoding (retired); a referent
+`source` was not checked (a filter on `result` ignored, a `source` register a crash: refused); roles
+that limit or add nothing were accepted (`lands` over non-lands, a count as large as a designation,
+a designation in a library or a hand, a CAST of a permanent: refused). MINOR: a cast permission
+sharing a cost path hid a land play (`land_path` over every permission); the bench did not name a
+card offered from the top of a library (named); Valakut Exploration plays stronger than printed in
+the partial pools (logged, BACKLOG: its end-step sentence is the fix). NIT: an alternative cost
+with X announces X (CR 107.3b).
+
+**Limits, logged** (BACKLOG, "The permission lane still blocked"; "What the network sees"): Furious
+Rise's event-ended window; Kethis's set fixed at resolution; another player's cards (Etali,
+Tinybones); a permission shows only as the rows it offers; divergences D33 (the two forms of
+"exile the top card") and D32 (permission-like atoms still wrapped in OptionalEffect).

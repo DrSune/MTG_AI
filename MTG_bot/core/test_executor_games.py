@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     KickerAbility,
     OptionalEffect,
     QConst,
+    QPropField,
     QUnbounded,
     Repeat,
     Selector,
@@ -54,6 +55,8 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
+    at_most,
     walk,
 )
 from MTG_bot.core.compiler.compiler import CompileResult, PoolCompile
@@ -163,7 +166,8 @@ class DeckSupplyTest(unittest.TestCase):
         # card supported, so a harness that skipped the second pass would
         # report 305. Re-pin it only after diffing the gated compile with and
         # without the change: a change must move exactly the cards it affects.
-        self.assertEqual(len(self.supply.engine_ids), 300)
+        # R13 (Verb.PERMIT): 300 -> 303, exactly the two Chandras and Demonic Embrace.
+        self.assertEqual(len(self.supply.engine_ids), 303)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -197,7 +201,7 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        self.assertEqual(len(m21.deckable), 280)
+        self.assertEqual(len(m21.deckable), 283)  # R13: + the two Chandras, Demonic Embrace
 
 
 class KickerLaneTest(unittest.TestCase):
@@ -705,10 +709,10 @@ class CrashLedgerTest(unittest.TestCase):
         self.assertEqual(fp_a, fp_b)
 
     def test_b7_controller_count_ge_filter_raises_from_the_query(self) -> None:
-        """The world-count CONTROLLER_COUNT_GE (Fabled Passage) answers at
-        the query entry point (ctx_for carries the journal, and this pred
-        is pure world-state): 3 lands < 4 is False, and the 4th land flips
-        it."""
+        """The world count "you control four or more lands" (Fabled Passage; the comparison
+        over the number of lands you control) answers at the query entry point (ctx_for carries
+        the journal, and the count is pure world-state): 3 lands < 4 is False, and the 4th land
+        flips it."""
         supply = get_supply("all")
         record = _record_named(supply, "Fabled Passage")
         pred = next(
@@ -719,7 +723,7 @@ class CrashLedgerTest(unittest.TestCase):
             for node in walk(ability.effect)
             if isinstance(node, Conditional)
             and isinstance(node.pred, FAtom)
-            and node.pred.pred is FAtomPred.CONTROLLER_COUNT_GE
+            and node.pred.pred is FAtomPred.QTY_GE
         )
         reset_oracle_ids()
         world = GameWorld(num_players=2, start_life=20, master_seed=3)
@@ -1286,12 +1290,13 @@ class Round14cFixTest(unittest.TestCase):
             with self.assertRaises(NotImplementedError) as cm:
                 eval_filter(filt, card, bare)
             self.assertIn(filt.pred.name, str(cm.exception))
-        # TARGETS_SOURCE needs no journal: it is the IS_ANY_TARGET mirror
-        # (does the judged object's designation contain the ctx's SOURCE).
+        # TARGETS needs no journal: it is the IS_ANY_TARGET mirror (does the judged
+        # object's designation hold one that passes its filter, here the ctx's SOURCE).
         # A bare ctx designates NOTHING, so the pre-declaration reading is a
         # conservative False; the fold behaviour is pinned in
         # test_executor_r23a.
-        self.assertFalse(eval_filter(FAtom(FAtomPred.TARGETS_SOURCE), card, bare))
+        targets_this = FAtom(FAtomPred.TARGETS, inner_filter=FAtom(FAtomPred.IS_SOURCE))
+        self.assertFalse(eval_filter(targets_this, card, bare))
 
     def test_new_zone_stack_runtime_enumeration_raises(self) -> None:
         """Runtime enumeration of Zone(STACK) reads the parked frames
@@ -1581,9 +1586,9 @@ class Round14dJournalTest(unittest.TestCase):
 
 
 class Round14eWorldPredTest(unittest.TestCase):
-    """The WORLD-evaluated preds POWER_GE (Legion's Judgment "power 4 or
-    greater" family) and CMC_LE (Eliminate / Idol of Endurance / Ugin's
-    mana-value thresholds): pure world/identity reads, answered at EVERY
+    """The comparison of the judged object's power (Legion's Judgment "power 4 or
+    greater" family) and mana value (Eliminate / Idol of Endurance / Ugin's
+    "N or less", its FNot): pure world/identity reads, answered at EVERY
     eval entry point with no journal."""
 
     def _setup(self) -> tuple[GameWorld, Executor]:
@@ -1599,7 +1604,7 @@ class Round14eWorldPredTest(unittest.TestCase):
         p0 = world.player_order[0]
         anchor = world.add_card(card_id("Judge"), p0, ZONE_BATTLEFIELD)
         ctx = ctx_for(executor, source=anchor, controller=p0)
-        pred = FAtom(pred=FAtomPred.POWER_GE, count=QConst(4))
+        pred = at_least(4, field=QPropField.POWER)
         giant = world.add_card(
             card_id("Giant", power="4", toughness="4"), p0, ZONE_BATTLEFIELD
         )
@@ -1609,15 +1614,18 @@ class Round14eWorldPredTest(unittest.TestCase):
         plot = world.add_card(card_id("Plot", type_line="Land"), p0, ZONE_BATTLEFIELD)
         self.assertTrue(eval_filter(pred, giant, ctx))  # 4 >= 4
         self.assertFalse(eval_filter(pred, cat, ctx))  # 1 < 4
-        # no power is not "power 4 or greater" — the POWER_LE convention.
+        # no power is not "power 4 or greater": the comparison fails (ability_tree
+        # COMPARED_FIELDS); "power 3 or less", its FNot, holds, and the noun beside it
+        # ("creature") is what keeps a land out
         self.assertFalse(eval_filter(pred, plot, ctx))
+        self.assertTrue(eval_filter(at_most(3, field=QPropField.POWER), plot, ctx))
 
     def test_cmc_le_reads_identity_mana_value(self) -> None:
         world, executor = self._setup()
         p0 = world.player_order[0]
         anchor = world.add_card(card_id("Eliminator"), p0, ZONE_BATTLEFIELD)
         ctx = ctx_for(executor, source=anchor, controller=p0)
-        pred = FAtom(pred=FAtomPred.CMC_LE, count=QConst(3))
+        pred = at_most(3, field=QPropField.MANA_VALUE)
         cheap = world.add_card(card_id("Cheap", cmc=3), p0, ZONE_BATTLEFIELD)
         big = world.add_card(card_id("Big", cmc=6), p0, ZONE_BATTLEFIELD)
         # A synthetic token identity carries no cmc: mana value 0, the
@@ -1630,9 +1638,11 @@ class Round14eWorldPredTest(unittest.TestCase):
         self.assertTrue(eval_filter(pred, cheap, ctx))  # 3 <= 3
         self.assertFalse(eval_filter(pred, big, ctx))  # 6 > 3
         self.assertTrue(eval_filter(pred, token, ctx))  # cmc None == 0 <= 3
+        # a non-card handle has no mana value: the comparison fails, its FNot ("3 or less") holds
         self.assertFalse(
-            eval_filter(pred, world.player_order[1], ctx)
-        )  # non-card handle: no mana value
+            eval_filter(at_least(4, field=QPropField.MANA_VALUE), world.player_order[1], ctx)
+        )
+        self.assertTrue(eval_filter(pred, world.player_order[1], ctx))
 
     def test_cmc_le_qx_outside_a_cast_stays_loud(self) -> None:
         # Ugin/Idol compile the threshold with {X}: QX rides the CAST's
@@ -1644,7 +1654,7 @@ class Round14eWorldPredTest(unittest.TestCase):
         ctx = ctx_for(executor, source=anchor, controller=p0)
         critter = world.add_card(card_id("Critter", cmc=2), p0, ZONE_BATTLEFIELD)
         with self.assertRaises(NotImplementedError):
-            eval_filter(FAtom(pred=FAtomPred.CMC_LE, count=QX()), critter, ctx)
+            eval_filter(at_most(QX(), field=QPropField.MANA_VALUE), critter, ctx)
 
 
 class Round14fSurfaceTest(unittest.TestCase):

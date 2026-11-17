@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12 (QDistinct NAME under the one comparison). Printed: 'Whenever this land or another land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.' Six lands with six different names, then Field of the Dead is played: seven lands, seven different names, one Zombie.",
+ "cards": [
+  {"key": "field", "real": "Field of the Dead", "zone": "hand", "controller": 0},
+  {"key": "l1", "name": "Plains", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Island", "type": "Basic Land — Island", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "name": "Swamp", "type": "Basic Land — Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "name": "Mountain", "type": "Basic Land — Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "l5", "name": "Forest", "type": "Basic Land — Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l6", "name": "Wastes", "type": "Basic Land", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "play", "key": "field"}],
+ "expect": {"zone": {"field": "battlefield"}, "tapped": {"field": true}, "tokens": {"Zombie": 1}}
+}

@@ -52,6 +52,7 @@ from MTG_bot.core.ability_tree import (
     QBinOp,
     QConst,
     QCount,
+    QDistinct,
     QProp,
     QPropField,
     QUnbounded,
@@ -69,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
     canonical_json,
     fingerprint,
 )
@@ -767,13 +769,13 @@ class TestB2aTriggerEvents(unittest.TestCase):
         self.assertIs(event.phase, Phase.COMBAT)
         self.assertIs(event.actor.who, ControllerRef.YOU)
         # "if you control a Basri planeswalker" is an existence claim
-        # (CR 603.4): CONTROLLER_COUNT_GE(count=1) whose inner filter carries
+        # (CR 603.4): the comparison "one or more" over the count whose filter carries
         # the per-card test.
         condition = ability.condition
         assert isinstance(condition, FAtom)
-        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(condition.pred, FAtomPred.QTY_GE)
         self.assertEqual(condition.count, QConst(1))
-        inner = condition.inner_filter
+        inner = condition.quantity.selector.filter
         assert isinstance(inner, FAnd)
         self.assertEqual(
             _find_atom(inner, FAtomPred.NAME_CONTAINS).string_value, "Basri"
@@ -810,13 +812,13 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, TurnPhaseEvent)
         self.assertIs(event.phase, Phase.END_TURN)
         # "if you control a creature with power 4 or greater" is an existence
-        # test (CR 603.4): CONTROLLER_COUNT_GE >= 1 over Creature AND POWER_GE 4.
+        # test (CR 603.4): one or more creatures you control with power 4 or greater.
         condition = ability.condition
         assert isinstance(condition, FAtom)
-        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(condition.pred, FAtomPred.QTY_GE)
         self.assertEqual(condition.count, QConst(1))
-        assert condition.inner_filter is not None
-        self.assertEqual(_find_atom(condition.inner_filter, FAtomPred.POWER_GE).count, QConst(4))
+        inner = condition.quantity.selector.filter
+        self.assertIn(at_least(4, field=QPropField.POWER), inner.children)
 
     def test_sanctum_of_all_is_upkeep_turn_phase(self) -> None:
         ability = _ability(
@@ -857,17 +859,16 @@ class TestB2aTriggerEvents(unittest.TestCase):
         assert isinstance(event, ZoneChangeEvent)
         self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         condition = ability.condition
-        # The "if" clause is an existence count (CR 603.4): CONTROLLER_COUNT_GE
-        # count 1 with the power filter and FNot(IS_SOURCE) inside, judged per
-        # candidate.
+        # The "if" clause is an existence count (CR 603.4): the comparison "one or
+        # more" over the creatures you control with the power test and FNot(IS_SOURCE),
+        # judged per candidate.
         assert isinstance(condition, FAtom)
-        self.assertIs(condition.pred, FAtomPred.CONTROLLER_COUNT_GE)
+        self.assertIs(condition.pred, FAtomPred.QTY_GE)
         self.assertEqual(condition.count, QConst(1))
-        assert isinstance(condition.inner_filter, FAnd)
-        self.assertEqual(
-            _find_atom(condition.inner_filter, FAtomPred.POWER_GE).count, QConst(4)
-        )
-        self.assertTrue(_contains_not(condition.inner_filter, FAtomPred.IS_SOURCE))
+        inner = condition.quantity.selector.filter
+        assert isinstance(inner, FAnd)
+        self.assertIn(at_least(4, field=QPropField.POWER), inner.children)
+        self.assertTrue(_contains_not(inner, FAtomPred.IS_SOURCE))
 
     def test_griffin_aerie_is_end_step_with_life_gained_ge(self) -> None:
         ability = _ability(
@@ -2185,19 +2186,25 @@ class TestB2aRound10Chrome(unittest.TestCase):
         event = ability.event
         assert isinstance(event, ZoneChangeEvent)
         self.assertEqual(event.to_zone.kind, ZoneKind.BATTLEFIELD)
-        # condition: NAME_PARTITION_COUNT_GE(inner=nonland & nontoken, 2)
+        # condition: two of the nonland, nontoken permanents you control share a name, so they
+        # outnumber their different names: count >= distinct names + 1 (round R12)
         cond = ability.condition
         assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.NAME_PARTITION_COUNT_GE)
-        self.assertEqual(cond.count, QConst(2))
-        inner = cond.inner_filter
+        self.assertIs(cond.pred, FAtomPred.QTY_GE)
+        population = cond.quantity
+        assert isinstance(population, QCount)
+        self.assertEqual(
+            cond.count,
+            QBin(QBinOp.ADD, QDistinct(population.selector, QPropField.NAME), QConst(1)),
+        )
+        inner = population.selector.filter
         assert isinstance(inner, FAnd)
         # FAnd children are sorted at construction: both negations are pinned
-        # by their inner pred, the order by that rule.
+        # by their inner pred, the order by that rule (and CONTROLLER_IS YOU, "you control").
         self.assertEqual(
             list(inner.children), sorted(inner.children, key=canonical_json)
         )
-        nots = {c.inner.pred: c for c in inner.children}
+        nots = {c.inner.pred: c for c in inner.children if isinstance(c, FNot)}
         self.assertEqual(len(nots), 2)
         not_land, not_token = nots[FAtomPred.TYPE_EQ], nots[FAtomPred.IS_TOKEN]
         assert isinstance(not_land, FNot) and isinstance(not_token, FNot)
@@ -2222,42 +2229,31 @@ class TestB2aRound10Chrome(unittest.TestCase):
         self.assertEqual(token.colors, ())
 
 
-class TestC5FuriousRisePlayPermissionSuppression(unittest.TestCase):
-    """Furious Rise's "you may play that card" phantom ActivatedAbility is
-    suppressed at assembly with a known-gap note.
-
-    ``compiler._is_result_anaphoric_cast_permission`` drops the empty-cost
-    OptionalEffect(CAST referent='result') node that b4's
-    ``_build_play_that_card_until`` emits for the card's second sentence. The
-    card prints no activated ability: the play window is a permission created
-    by the end-step trigger's exile, and the engine has no play-permission
-    lane. The sentence stays matched; only the node is dropped, announced
-    once in ``known_gaps``."""
+class TestC5FuriousRisePlayPermissionUnread(unittest.TestCase):
+    """Furious Rise's "You may play that card until you exile another card with this enchantment."
+    is left unparsed (ontology round R13): its window ends on an event, the next exile by this
+    enchantment, which no duration carries, and "until the end of your next turn" would be
+    stronger than printed in that end step (gate round 3 on R5-8). The trigger compiles; the card
+    plays weaker than printed (the exiled card is never playable), never stronger."""
 
     @classmethod
     def setUpClass(cls) -> None:
         cls.pool = ingest_pool(_M21_PATH)
         cls.registry = build_full_registry()
 
-    def test_furious_rise_compiles_to_one_trigger_no_activation(self) -> None:
-        """One printed ability, a TriggeredAbility, and no ActivatedAbility.
-        The enchantment also trails its effect-less cast carrier, so it is
-        castable; the carrier is not a printed ability."""
+    def test_furious_rise_compiles_its_trigger_and_leaves_the_permission_unparsed(self) -> None:
         res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
-        self.assertEqual(res.unparsed, ())
+        self.assertEqual(
+            [s for s, _hint in res.unparsed],
+            ["You may play that card until you exile another card with this enchantment."],
+        )
         (ability, carrier) = res.card.abilities
         self.assertIsInstance(ability, TriggeredAbility)
         self.assertEqual(carrier, SpellAbility(kind=SpellKind.ENCHANTMENT))
         self.assertFalse(
             any(isinstance(a, ActivatedAbility) for a in res.card.abilities)
         )
-
-    def test_furious_rise_play_permission_known_gap_announced_once(self) -> None:
-        """known_gaps carries exactly one note, naming the missing 'play
-        permission' lane."""
-        res = compile_card(self.pool[_FURIOUS_RISE], self.registry)
-        self.assertEqual(len(res.known_gaps), 1)
-        self.assertIn("play permission", res.known_gaps[0])
+        self.assertEqual(res.known_gaps, ())
 
 
 if __name__ == "__main__":

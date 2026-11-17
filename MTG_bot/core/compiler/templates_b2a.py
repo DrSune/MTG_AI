@@ -73,6 +73,7 @@ from MTG_bot.core.ability_tree import (
     QBinOp,
     QConst,
     QCount,
+    QDistinct,
     QProp,
     QPropField,
     QUnbounded,
@@ -88,6 +89,9 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
+    at_most,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -1590,7 +1594,7 @@ def _build_crypt_lurker(m: re.Match[str]) -> SentenceOutcome:
 
 
 # ---------------------------------------------------------------------------
-# Builders — POWER_GE, NAME_CONTAINS, EachPlayer, ZonePosition and PAY shapes
+# Builders — the comparison, NAME_CONTAINS, EachPlayer, ZonePosition and PAY shapes
 # ---------------------------------------------------------------------------
 
 
@@ -1599,9 +1603,8 @@ def _build_adherent_of_hope(m: re.Match[str]) -> SentenceOutcome:
     planeswalker, put a +1/+1 counter on this creature.``
 
     The intervening "if" (CR 603.4) is an existence claim over your
-    permanents: ``CONTROLLER_COUNT_GE`` count=1 with the Basri /
-    Planeswalker / you-control test inside the inner filter, evaluated per
-    candidate. A bare filter as the condition would be judged against the
+    permanents: the comparison "the number of Basri planeswalkers you control
+    is one or more". A bare filter as the condition would be judged against the
     trigger's source, the Adherent itself.
     """
     counter_p, counter_t = _n(m, 1), _n(m, 2)
@@ -1622,16 +1625,16 @@ def _build_adherent_of_hope(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GE,
-            inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Basri"),
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        condition=at_least(
+            1,
+            quantity=number_you_control(
+                FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.NAME_CONTAINS, string_value="Basri"),
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                    )
                 )
             ),
-            count=QConst(1),
         ),
     )
 
@@ -1690,13 +1693,14 @@ def _build_furious_rise(m: re.Match[str]) -> SentenceOutcome:
         # "if you control a creature with power N or greater" is an existence
         # test over your creatures (CR 603.4); a bare filter would be judged
         # on this enchantment.
-        condition=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GE,
-            count=QConst(1),
-            inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+        condition=at_least(
+            1,
+            quantity=number_you_control(
+                FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        at_least(n, field=QPropField.POWER),
+                    )
                 )
             ),
         ),
@@ -1787,11 +1791,10 @@ def _build_turret_ogre(m: re.Match[str]) -> SentenceOutcome:
     """ETB, if you control another creature with power N or greater, deal D
     to each opponent.
 
-    The intervening "if" (CR 603.4) is an existence claim:
-    ``CONTROLLER_COUNT_GE`` counts your battlefield permanents through the
-    inner filter, and ``FNot(IS_SOURCE)`` inside the per-candidate test is
-    "another". Judged against the trigger's source instead, it could never
-    hold.
+    The intervening "if" (CR 603.4) is an existence claim: the comparison
+    counts the creatures you control with that power, and ``FNot(IS_SOURCE)``
+    inside the per-candidate test is "another". Judged against the trigger's
+    source instead, it could never hold.
     """
     threshold, damage = _n(m, 1), _n(m, 2)
     return _ability(
@@ -1805,17 +1808,17 @@ def _build_turret_ogre(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GE,
-            inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.POWER_GE, count=QConst(threshold)),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+        condition=at_least(
+            1,
+            quantity=number_you_control(
+                FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        at_least(threshold, field=QPropField.POWER),
+                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+                    )
                 )
             ),
-            count=QConst(1),
         ),
     )
 
@@ -2053,10 +2056,7 @@ def _build_idol_of_endurance_etb(m: re.Match[str]) -> SentenceOutcome:
                         FAnd(
                             children=(
                                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                                FAtom(
-                                    pred=FAtomPred.CMC_LE,
-                                    count=QConst(_n(m, 1)),
-                                ),
+                                at_most(_n(m, 1), field=QPropField.MANA_VALUE),
                             )
                         ),
                         zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
@@ -2137,10 +2137,11 @@ def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
     nontoken permanents with the same name as one another, create a 4/4
     colorless Construct artifact creature token.`` (Chrome Replicator)
 
-    The "if" is the condition ``NAME_PARTITION_COUNT_GE``: the inner filter
-    is nonland and nontoken, count=2 the threshold; the executor groups the
-    matched permanents by exact name and tests the largest group. A
-    colorless token leaves ``colors`` empty."""
+    The "if": two of the nonland, nontoken permanents you control share a name
+    exactly when they outnumber their different names (CR 201.2), so it is the
+    comparison "their number is at least their number of different names plus
+    one". The template reads "two or more" only: three of one name has no such
+    form. A colorless token leaves ``colors`` empty."""
     p, t = _n(m, 1), _n(m, 2)
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -2165,16 +2166,24 @@ def _build_chrome_replicator_etb(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         ),
-        condition=FAtom(
-            pred=FAtomPred.NAME_PARTITION_COUNT_GE,
-            inner_filter=FAnd(
+        condition=_two_share_a_name(
+            FAnd(
                 children=(
                     FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
                     FNot(inner=FAtom(pred=FAtomPred.IS_TOKEN)),
                 )
-            ),
-            count=QConst(2),
+            )
         ),
+    )
+
+
+def _two_share_a_name(filter_: Filter) -> FAtom:
+    """"You control two or more <filter> permanents with the same name as one another" (CR 201.2):
+    they outnumber their different names."""
+    population = number_you_control(filter_)
+    return at_least(
+        QBin(QBinOp.ADD, QDistinct(population.selector, QPropField.NAME), QConst(1)),
+        quantity=population,
     )
 
 

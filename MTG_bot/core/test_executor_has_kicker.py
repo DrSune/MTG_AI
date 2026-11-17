@@ -170,10 +170,10 @@ class HasKickerFilterTest(unittest.TestCase):
             eval_filter(FAtom(pred=FAtomPred.HAS_KICKER), handle, bare)
         self.assertIn("HAS_KICKER", str(cm.exception))
 
-    def test_unknown_pred_still_raises_12c(self) -> None:
-        # The generic raise REMAINS for preds the query surface cannot
-        # answer: scanning the closed pred vocab (no shadow list), at least
-        # one other member still meets its message.
+    def test_every_pred_has_a_reader(self) -> None:
+        # The generic raise is the guard a pred without a reader meets. Round R12 retired PT_GE,
+        # the last member that met it: scanning the closed pred vocab (no shadow list), none
+        # does now, so a new pred added without a reader fails here.
         handle = self._in_graveyard("Ruin Crab")
         ctx = self.ctx()
         generic = []
@@ -191,7 +191,7 @@ class HasKickerFilterTest(unittest.TestCase):
                     generic.append(pred)
             except Exception:  # noqa: BLE001,S112 - other shapes skipped
                 continue
-        self.assertTrue(generic, "the 12c honest raise vanished from the whole vocab")
+        self.assertEqual(generic, [], "preds the query surface has no reader for")
 
 
 if __name__ == "__main__":

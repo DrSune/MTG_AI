@@ -239,21 +239,21 @@ def test_vanilla_token_does_not_inherit_a_same_named_tokens_abilities() -> None:
         f"the vanilla Pirate picked up {len(rec.abilities)} abilities of the Whale's Pirate")
 
 
-def _countered_through_permission(g, permission, spell, mana) -> None:
-    """Activate ``permission``'s cast row (index 1) and let it resolve while the players keep
-    priority: the spell it casts waits on the stack like one cast from hand (CR 601.2i, 117.3c,
-    608.1), and the opponent, holding Cancel and {U}{U}{U}, counters it there."""
-    from MTG_bot.core.executor.legality import activate
+def _countered_through_permission(g, spell, mana) -> None:
+    """Cast ``spell`` through its permission's act-menu row (executor/permits.py; ontology round
+    R13): it waits on the stack like a spell cast from hand (CR 601.2i, 117.3c, 608.1), and the
+    opponent, holding Cancel and {U}{U}{U}, counters it there."""
+    from MTG_bot.core.executor.menu import menu, perform
     from MTG_bot.core.state import ZONE_STACK
 
     cancel = g.one(g.p1, "Cancel", ZONE_LIBRARY)
     g.to_hand(cancel)
     _pool(g, g.p0, **mana)
     _pool(g, g.p1, U=3)
-    g.answers = {"may:": "fire"}
+    rows = [row for row in menu(g.ex, g.p0) if row.kind == "cast" and row.handle == spell]
+    assert len(rows) == 1 and rows[0].path is not None, [row.token for row in menu(g.ex, g.p0)]
     with g.ex.holding_priority():
-        activate(g.ex, permission, 1, seat=g.p0)
-        g.ex.all_pass()  # the ability resolves: the spell is cast and waits
+        assert perform(g.ex, g.p0, rows[0])
     assert g.zone(spell) == ZONE_STACK, g.zone(spell)
     cast(g.ex, g.p1, cancel, targets=(spell,))
     assert g.zone(spell) == ZONE_GRAVEYARD, "countered: into its owner's graveyard (CR 400.7)"
@@ -261,6 +261,7 @@ def _countered_through_permission(g, permission, spell, mana) -> None:
 
 
 def test_idol_of_endurance_cast_can_be_countered() -> None:
+    from MTG_bot.core.executor.legality import activate
     from MTG_bot.core.state import ZONE_EXILE
 
     g = G("M21", ("Idol of Endurance", "Walking Corpse"), ("Cancel",), filler="Plains", filler1="Island")
@@ -270,7 +271,9 @@ def test_idol_of_endurance_cast_can_be_countered() -> None:
     g.ex.begin_turn(g.p0)
     g.enter(idol)
     assert g.zone(corpse) == ZONE_EXILE, "its enter trigger exiles the Corpse with the Idol"
-    _countered_through_permission(g, idol, corpse, {"W": 1, "C": 1})
+    _pool(g, g.p0, W=1, C=1)
+    activate(g.ex, idol, 1, seat=g.p0)  # {1}{W}, {T}: the permission, until end of turn
+    _countered_through_permission(g, corpse, {})  # "without paying its mana cost"
 
 
 def test_conspicuous_snoop_cast_from_the_top_can_be_countered() -> None:
@@ -281,7 +284,7 @@ def test_conspicuous_snoop_cast_from_the_top_can_be_countered() -> None:
     g.ex.begin_turn(g.p0)
     g.enter(snoop)
     g.to_library_top(goblin)  # unbound, as a dealt library card is
-    _countered_through_permission(g, snoop, goblin, {"R": 1})
+    _countered_through_permission(g, goblin, {"R": 1})
 
 
 def test_a_dealt_game_taps_colourless_for_generic_and_keeps_the_swamp() -> None:

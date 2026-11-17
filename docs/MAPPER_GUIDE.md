@@ -126,7 +126,8 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   filter. "you control" or "an opponent controls" adds `FAtom(pred=FAtomPred.CONTROLLER_IS,
   who=ControllerRef.YOU|OPPONENT)` in an `FAnd`.
   - See `parse "Destroy target creature an opponent controls."`.
-- **"you may ..."** is `OptionalEffect(inner=...)`.
+- **"you may ..."** is `OptionalEffect(inner=...)`, except "you may play/cast ... from ..." (a
+  permission: "Playing a card from another zone" below).
 - **"Whenever this creature becomes the target of a spell or ability an opponent controls"**
   (ontology R5-6) is `TargetingEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE),
   actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT))`: `filter` reads the
@@ -178,12 +179,45 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   another permanent says `CONTROLLER_IS YOU` in its filter over `Zone(BATTLEFIELD, ANY)`, a card
   comes from `Zone(GRAVEYARD, YOU)` or `Zone(HAND, YOU)`, one zone per selector; and one cost holds
   one `CostExile` and one `CostRemoveCounter` of a kind (divergence D26).
+- **Playing a card from another zone** (ontology R13, DESIGN_ATOM_ONTOLOGY §17; `parse` the
+  sentence first: templates_b19 reads most wordings). "You may play/cast X from Z" is
+  `Verb.PERMIT`, never a CAST and never a free activation:
+  - `source` names the cards and the zone: `Selector(QUnbounded(), ALL, <filter>, zones=(Z,))`
+    with Z your graveyard, exile, the top of your library (`ZonePosition.TOP`) or your hand; a
+    TARGET over a graveyard or exile ("target instant card in your graveyard ... this turn"); or
+    "them", "that card", "cards exiled this way": the `result` selector with no filter.
+  - "play" is `lands=True`; "cast" leaves `lands` out. "Play lands" is `lands=True` over
+    `TYPE_EQ 'Land'`.
+  - "without paying its mana cost" is `alternative=Cost()`; another cost instead of the mana cost
+    ("for its flashback cost") `alternative=<that cost>`; "by paying 3 life and discarding a card
+    in addition to paying its other costs" `additional=<those parts>`.
+  - "a creature spell" (one play) is `count=QConst(1)`; "this turn" `DurationEot()`, "until the
+    end of your next turn" `DurationUntilEndOfNextTurn()`, "for as long as it remains exiled"
+    `DurationPermanent()`.
+  - In a static ability (Conspicuous Snoop, Omniscience, "you may cast this card from your
+    graveyard") the PERMIT has no duration and no count, and lasts while the static functions. A
+    card's own permission names its card with `FAtom(IS_SOURCE)` in a static only, never over your
+    hand (a cost to cast it from your hand is its spell's alternative cost, CR 118.9: needs-atom).
+    In a spell or an activated, loyalty or triggered ability (Chandra, Heart of Fire's [+1], Golos)
+    the duration is required, and the cards are designated (TARGET, or `result`): an ALL over its
+    own card would cover the card again once it moves and comes back (CR 400.7).
+  - "Play lands and cast X from Z" is one PERMIT with `lands=True` over `FOr(Land, X)`; a cast
+    permission never filters `FNot(Land)` (a land is never cast anyway).
+  - Never under `OptionalEffect`: the "you may" is the permission's use.
+  - "If that spell would be put into your graveyard, exile it instead" and flashback's exile are
+    the cast verb's `replace` role, `ability_tree.spell_rider(Zone(GRAVEYARD, YOU))` or
+    `spell_rider(Zone(ANY, ANY))`, never a ReplacementAbility of the card.
+  - "You may cast target ... card from your graveyard" with no duration is the one-shot
+    `OptionalEffect(CAST(...))`: the card is cast as the ability resolves (CR 608.2g; Chandra,
+    Flame's Catalyst's [-2]); with "this turn" it is a PERMIT over the target (Jace, Telepath
+    Unbound's [-3]). "Flashback {cost}" is the card's own static PERMIT with `alternative` and
+    `spell_rider(Zone(ANY, ANY))` (B19-flashback).
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
   triggers once per declaration (CR 508.3d, 603.2c). "Attack with two or more ..." is the same
-  plus its count in the event's filter (Tide Skimmer: `CONTROLLER_COUNT_GE` over your attacking
-  flyers, a conjunct of `DeclareAttackersEvent.filter`). It is part of the trigger event, read
+  plus its count in the event's filter (Tide Skimmer: `at_least(2, quantity=number_you_control(
+  <attacking flyers>))`, a conjunct of `DeclareAttackersEvent.filter`). It is part of the trigger event, read
   once as the attackers are declared, so it is never the condition (below).
   - "Whenever a creature you control [with X] attacks" has no `once_per_event`: it triggers once
     for each such attacker, and that attacker is the event, "it" (CR 508.3a).
@@ -295,7 +329,7 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   opponent's turn" (Brineborn Cutthroat), "while you control six or more Shrines" (Sanctum of
   All), and a state trigger's threshold, "When there are four or more page counters on this
   artifact" (Mazemind Tome, CR 603.8). A count or turn test that does not read the subject
-  (TURN_OF, CONTROLLER_COUNT_GE, ...: `ontology_conformance.SUBJECT_FREE`) has one slot per event:
+  (TURN_OF, a comparison of a `quantity`, ...: `ability_tree.reads_no_subject`) has one slot per event:
   `subject` on a ZoneChangeEvent, `filter` on an event that has one, `source` on an
   AbilityActivatedEvent, else `actor` (TurnPhase, CardDrawn, LifeGained, LifeLost and Sacrifice
   events). Not `actor` beside a `filter`: `CastSpellEvent(filter=FAtom(TURN_OF, who=OPPONENT),
@@ -333,13 +367,43 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     for the first time each turn" is `LifeGainedEvent|LifeLostEvent(actor=<you>, ordinal=1)`;
     "... during each of your turns" adds `FAtom(TURN_OF, who=YOU)` to the `actor`. Never an
     ordinal in EVENT_THIS_TURN, a replacement or PREVENT_EFFECT's `event`: the IR refuses it there.
-  - "as long as you have N or more life" is `FAtom(LIFE_TOTAL_GE, who=YOU, count=QConst(N))` in
-    the static's condition; "N or less life" is `FNot` of it at N + 1, never another predicate.
-    "At least N life more than your starting life total" is LIFE_LEAD_OVER_START_GE, a different
-    meaning (Commander starts at 40). `who` is YOU and nothing else (the IR refuses any other): a
-    card that reads another player's life total ("if target opponent has 10 or less life", "an
-    opponent has N or less life") is a needs-atom, and its card brings the slot's next value
-    with its tests.
+  - **Every "N or more", "N or less", "more than", "at least" is the one comparison** (ontology
+    round R12), `FAtom(QTY_GE, count=N, field=... | quantity=...)`; write it with the draft's
+    builders `at_least(N, field=... | quantity=...)` and `at_most(N, ...)`. "N or less" is `at_most`,
+    `FNot` of the comparison at N + 1, and nothing else (CR 107.1: the numbers are integers; "more
+    than N" is `at_least(N + 1)`). The IR refuses every other spelling: a pick (`QAtMost`) as the
+    count, a number on the measured side, a comparison of something that is no number.
+    - The judged object's own characteristic is `field`: "creature with power 2 or less" is
+      `FAnd(TYPE_EQ Creature, at_most(2, field=POWER))`; also TOUGHNESS, MANA_VALUE and COLOR (its
+      number of colours: "multicolored" is `at_least(2, field=COLOR)`, "one or more colors" 1).
+    - A measure of the game is `quantity`: "you control three or more creatures" is
+      `at_least(3, quantity=number_you_control(<creature>))`; "you control a creature with power 4
+      or greater" `at_least(1, quantity=number_you_control(FAnd(<creature>, at_least(4,
+      field=POWER))))`; "there are seven or more cards in your graveyard" `at_least(7,
+      quantity=number_in(Zone(GRAVEYARD, YOU)))`; "the number of cards in your hand" is
+      `number_in(Zone(HAND, YOU))`, never a QProp field (divergence D28); "creatures you control have
+      total power 8 or greater" a `QProp(<your creatures>, POWER, SUM)` (a total only: "the
+      greatest power" is the count of the creatures that pass the comparison); a population on
+      the battlefield is `Zone(BATTLEFIELD, ANY)`, its controller a CONTROLLER_IS in the filter; "N different names / mana
+      values / colours among ..." `QDistinct(<selector>, NAME | MANA_VALUE | COLOR)`.
+    - "you have N or more life" is `at_least(N, quantity=QProp('controller', LIFE))`; relative to
+      the starting life total (CR 103.4: 40 in Commander) it adds `QProp('controller',
+      STARTING_LIFE)`: "at least N life more than your starting life total" is `at_least(QBin(ADD,
+      <starting life>, QConst(N)), quantity=<life>)` (`compiler.conditions.life_over_start`).
+    - "an opponent has eight or more cards in their graveyard" is `at_least(8,
+      quantity=number_in(Zone(GRAVEYARD, YOU)), who=OPPONENT)`: "your" graveyard read for each
+      opponent in turn, true when one has it. `who` is OPPONENT, over a count of "your" zone, and
+      nothing else: a card that reads another player's life or a target player's zone is a
+      needs-atom, and brings its slot with its tests.
+    - "more <X> than <Y>" (Garruk, Unleashed's "an opponent controls more creatures than you")
+      measures the larger side: `at_least(QBin(ADD, <Y>, QConst(1)), quantity=<X>)`, and "<Y> is
+      fewer than <X>" is the same tree: the IR refuses the negation of a comparison of two
+      measures, a sum written "1 + N", a threshold of 0 and, with `who`, a threshold that is not a
+      number.
+  - "a spell that targets <filter>" is `FAtom(TARGETS, inner_filter=<filter>)`: one of the
+    spell's targets passes it (CR 115.1, 601.2c); "that targets this creature" is
+    `inner_filter=IS_SOURCE`. "Becomes the target of a spell or ability" is the targeting event,
+    not TARGETS.
   - "If you would gain life, you gain that much life plus N instead" is a ReplacementAbility over
     `LifeGainedEvent(actor=<you>)` whose action gains `QBin(ADD, QProp('event', AMOUNT),
     QConst(N))`: `parse` it.
@@ -405,6 +469,9 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       - cast a card from another zone: `{"op": "test_permission_cast", "key": k, "from":
         "graveyard"}`, as though a permission let you, at the card's own timing and full cost.
         The CAST row records the zone (`"kick_rows": {k: {"from": "graveyard"}}`).
+      - play through a card's real permission (ontology R13): the `act` op's words
+        `land:<key>` and `cast:<key>[:via:<source key>]`, the `via` when the permission changes
+        the cost or adds a rider (flashback is `cast:<key>:via:<key>`).
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.

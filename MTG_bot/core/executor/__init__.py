@@ -260,17 +260,10 @@ _CHARACTERISTIC_PREDS = frozenset(
         FAtomPred.SUPERTYPE_EQ,
         FAtomPred.COLOR_HAS,
         FAtomPred.COLOR_IN,
-        FAtomPred.COLOR_COUNT_GE,
-        FAtomPred.CMC_LE,
-        FAtomPred.CMC_GE,
         FAtomPred.NAME_EQ,
         FAtomPred.NAME_CONTAINS,
         FAtomPred.IS_PERMANENT,
         FAtomPred.IS_TOKEN,
-        FAtomPred.POWER_LE,
-        FAtomPred.POWER_GE,
-        FAtomPred.PT_LE,
-        FAtomPred.PT_GE,
         FAtomPred.KEYWORD_HAS,
         FAtomPred.HAS_KICKER,
         FAtomPred.IS_ATTACKING,
@@ -279,14 +272,19 @@ _CHARACTERISTIC_PREDS = frozenset(
 
 
 def _tests_characteristics_only(pred: object) -> bool:
-    """Every leaf of the filter is a characteristic test (FAnd/FOr/FNot)."""
+    """Every leaf of the filter is a characteristic test (FAnd/FOr/FNot): a predicate of
+    ``_CHARACTERISTIC_PREDS``, or a comparison of the object's own power, toughness, mana value
+    or colours (``FAtom.field``)."""
     if isinstance(pred, (FAnd, FOr)):
         return bool(pred.children) and all(
             _tests_characteristics_only(c) for c in pred.children
         )
     if isinstance(pred, FNot):
         return _tests_characteristics_only(pred.inner)
-    return isinstance(pred, FAtom) and pred.pred in _CHARACTERISTIC_PREDS
+    return isinstance(pred, FAtom) and (
+        pred.pred in _CHARACTERISTIC_PREDS
+        or (pred.pred is FAtomPred.QTY_GE and pred.field is not None)
+    )
 
 
 def _ends_in_optional(effect: object) -> bool:
@@ -537,8 +535,8 @@ class Executor:
         self.departed_lki: dict[Handle, LastKnown] = {}
         # Each seat's starting life, snapshotted at construction: GameWorld
         # takes ``start_life`` as a parameter but does not store it.
-        # LIFE_LEAD_OVER_START_GE (Speaker of the Heavens) reads current life
-        # minus this; the journal cannot reconstruct the lead, since a
+        # QPropField.STARTING_LIFE reads it (Speaker of the Heavens: "at least 7
+        # life more than your starting life total"); the journal cannot reconstruct it, since a
         # non-damage life loss leaves no row. A replay rebuilds the world at
         # the same start_life (games._setup_game), so the snapshot stays out
         # of the fingerprint.

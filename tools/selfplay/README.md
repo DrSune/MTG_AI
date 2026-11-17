@@ -23,12 +23,12 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 
 | File | What |
 |---|---|
-| `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind (the second main phase's act menu is its own kind, `act_second_main`; the mulligan before the first turn asks `mulligan`, keep or mulligan, and `mulligan_bottom`, a card of the hand), one row per option (type + the entities it points at). A spell or ability with several targets asks one `target` question per slot (CR 601.2c): the slot reaches the network as `glob_f[G_SLOT]` (0 = the first or only one), and the cards and players chosen so far are marked (`F_TARGETED`, `P_TARGETED`), as attacks mark the attackers declared so far. Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
+| `features.py` | One decision -> arrays: card entities (vocab id, zone, controller, owner, flags, types, colours, keywords, live P/T, damage, counters), two player rows, global row, the ask kind (the second main phase's act menu is its own kind, `act_second_main`; the mulligan before the first turn asks `mulligan`, keep or mulligan, and `mulligan_bottom`, a card of the hand), one row per option (type + the entities it points at; an ability on the stack offered as a target points at its stack entity, and a source's different waiting triggers, `card:30` and `card:30:2`, differ in the option's ability column). A spell or ability with several targets asks one `target` question per slot (CR 601.2c): the slot reaches the network as `glob_f[G_SLOT]` (0 = the first or only one), and the cards and players chosen so far are marked (`F_TARGETED`, `P_TARGETED`), as attacks mark the attackers declared so far. Only what the seat may know: own hand, public zones, counts, cards offered or revealed to it. |
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
 | `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. The true-future labeller (`Labeller`, docs/PLAN_LEARNING.md §1.1-1.2): at a reservoir of unsure act decisions it compares k alternatives played to the game's end on d true futures (the second reshuffles both libraries whole), and `mmd_target` turns the results into the mirror-descent target; a job with `label` options runs it (`actor.py`). |
 | `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree, every token, pooled as a count matrix times the embedding table; no card name is a component token: KNOWLEDGE 210 §8) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. `grow` makes the same function in a deeper or wider network (zero-output layers, zero-weight new units; PLAN_CEILING §4.1's capacity probe). |
-| `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). |
+| `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). A game that holds the baton `HANG_S` seconds is hung: the worker's watchdog voids it (`void-timeout`) and its other games go on. |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
 | `simulator.py` | The opponent simulator (PLAN_LEARNING §8, E0): a network trained only by supervision on finished games to predict the opponent's whole hand and library contents from what one seat may know (`features.sim_view`). Decoders over sorted multisets, masked only by rules; a marginal head. Data: `learner.py --capture` games, whose seats `actor.Capture` wraps (views and truth saved apart). |
@@ -52,27 +52,36 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
    it does not forget how to beat them. With `--p-self`, that share of games seats the learner
    in both seats and trains both: twice the trained decisions of a game for the same inference.
    `--steps` still counts decisions, so an update then holds fewer games.
-   Every `--gate-every` iterations the learner plays a gate match on `--gate-deals` fresh deals;
-   `--gate-score` with the lower bound above 0.5 freezes the evaluated weights as the next
-   version (/183 §27: freeze on significance).
+   Every `--gate-every` iterations the learner plays a gate match on `--gate-deals` fresh deals
+   (each gate its own block, moved by `--seed` as the training deals are: before 2026-11-17 every
+   run's n-th gate played the same block, so a run from r28's v2 met v2 on the block it was
+   selected on); `--gate-score` with the lower bound above 0.5 freezes the evaluated weights as
+   the next version (/183 §27: freeze on significance).
 
 The network the run starts from is frozen as `v0`. PPO (/183 §19, §22) is what improves the raw
 network; expert iteration (search distillation) stalled at this data scale and was removed, as
 were the separate value network, the rollout network and the KL anchor to the frozen version
 (/183 §16-§17, §10-§13, §23). Each update runs in `trainer.py`'s process while the learner keeps
 serving the workers on the current weights; no new training game is issued while a full next
-batch waits (`throttled`). The games already dealt to the workers (up to 3 × `--slots` each) still
-finish, so when the trainer is slower than the workers a batch exceeds `--steps` by their
-decisions; self games, half the inference per trained decision, get there sooner (2026-11-14,
-`reports/pself_smoke_2026-11-14/`). Serve with `--infer-bf16` (KL to the trainer's numerics
-~1e-5, §20); without it inference runs in fp32 (before 2026-11-12 it ran fp32 weights under bf16
-autocast on CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows' `games`, `learner_seats` (the
-learner's seats in those games: two in a self game; the guard's mulligan rate is per seat),
-`voids`, `overflow` (the learner's asks answered by the fallback) and `throttled` (job requests
-refused while a full batch waited) are per update; before 2026-11-12 the last three were totals
-since the process started. `win` is the training win rate per opponent group; its `self` entry
-is 0.5 over decided games by construction (one seat wins, the other loses), a check of the
-crediting, and self games stay out of `win_set`.
+batch waits (`throttled`). A batch takes training games in the order they were issued, never in
+the order they end (`_release`): the run of games issued after the last batch's, to `--steps`
+decisions, its last game whole; a game still playing holds the ones issued after it until a full
+batch has ended behind it, and is then late (hung, or its result lost) and joins the batch it
+ends in, so no game stalls the training. Games that started together end short ones first, so a batch of the games that ended first was short-
+game-heavy after a start, a resume and every gate, whose jobs go first and pause the training
+games, and long-game-heavy before (r28's around a gate: 1,068 and 2,420 games against 1,750;
+190 §1.8). Games that end past a batch's last start the next one. Serve with `--infer-bf16` (KL
+to the trainer's numerics ~1e-5, §20); without it inference runs in fp32 (before 2026-11-12 it
+ran fp32 weights under bf16 autocast on CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows'
+`games`, `turns`, `win` and `learner_seats` (the learner's seats in those games: two in a self
+game; the guard's mulligan rate is per seat) are the batch's games (before 2026-11-17, the games
+that ended between two updates' ends); `voids`, `overflow` (the learner's asks answered by the
+fallback) and `throttled` (job requests refused while a full batch waited; before 2026-11-17 it
+counted the serve loop's passes, about 20 a second) are per update; before 2026-11-12 the last
+three were totals since the process started. `win` is the training win rate per opponent group;
+its `self` entry is 0.5 over decided games by construction (one seat wins, the other loses), a
+check of the crediting, and self games stay out of `win_set`. A game that holds its worker
+`actor.HANG_S` (600 s) without handing the baton back is hung and voided (`void-timeout`).
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
@@ -111,8 +120,15 @@ KNOWLEDGE/2026-11-12/195), with `--search-k/-d/-skip-p/-blocks` as before. An ev
 the opponent-draw RNG, gate count, queued evaluations, pool) is saved with `last.pt` and every
 `v<k>.pt`; resume into the same directory to keep one metrics history. A resume skips the
 teacher inter-play stage and must use the run's `--pool` (state files from before 2026-11-05:
-`castable`). PPO's AdamW moments restart; an evaluation still running when the run stopped is
-not resumed (queued ones are).
+`castable`). It continues the run's own network and card table as `last.pt` holds them:
+`--init`, `--refresh-table` and `--extend-sets` make a run's first table only (before 2026-11-17
+a restart rebuilt it from them and the compile of the moment, changing rows under the same
+weights); a new table is a new run's `--init <run>/last.pt --refresh-table`, logged as
+`refresh_table`, and a resume asking for a table change its start did not make (`--refresh-table`,
+`--mask-names`, a new `--extend-sets` set; the start's flags travel in the commit) is refused. A
+frozen version, like `--opp-ckpt`, keeps its own card rows. PPO's AdamW
+moments restart. An evaluation that ended is committed at once, and never played again; the one
+running at the commit starts again, and queued ones run.
 
 **Unattended runs (`launch.sh`).** `tools/selfplay/launch.sh RUN_DIR LEARNER-ARGS...` starts a
 run, or continues it with `--resume` when `RUN_DIR/state.pkl` exists. It first waits until 60 GiB
@@ -196,7 +212,7 @@ while the vLLM engine is resident (AGENTS.md §1).
 
 ## Tests
 
-`.venv/bin/python -m pytest tools/selfplay -q` (87 tests in five files on 2026-11-12; `test_selfplay.py` holds 63): hidden-information
+`.venv/bin/python -m pytest tools/selfplay -q` (140 tests in five files on 2026-11-17; `test_selfplay.py` holds 100): hidden-information
 metamorphic test (rewriting the opponent's hand and both libraries leaves the encoding
 byte-identical), encoding consistency over whole games, heuristic vs uniform random,
 option-permutation equivariance, batch-padding invariance and save/load round-trip, packed
@@ -208,7 +224,15 @@ heuristic's rules on arranged boards (a raid creature cast after its attack amon
 mulligan: the network and the heuristic both answer it, and a checkpoint from before it loads and
 plays; and several target slots: the network gets one ask per slot and sees which slot and what it
 chose before, the heuristic judges each slot by its own effect, a checkpoint from before the slot
-features loads and plays them, and the search plays a two-target cast in a fork.
+features loads and plays them, and the search plays a two-target cast in a fork. The bug hunt of
+2026-11-17 added, each failing on the code before it: an evaluation that ends is committed before
+it is logged and never played again; a resume serves the run's own card table, and another
+checkpoint keeps its own rows; gate blocks move with `--seed`; a batch takes games in the order
+they were issued; a refused job request counts once; a hung game is voided and its worker goes
+on; "keep" is the mulligan's pass; an ability target and a source's second trigger encode apart
+(and r28's v2 computes bitwise what it did on every other ask, when its file is present); the
+heuristic reads an aura by what it does to what it enchants, and never destroys its own Nine
+Lives.
 
 `test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
 rewriting every hidden card and both libraries' order leaves the simulator's input and output

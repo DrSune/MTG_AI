@@ -18,21 +18,18 @@ check it.
 from __future__ import annotations
 
 import re
+from typing import Final
 
 from MTG_bot.core.ability_tree import (
     QX,
-    ActivatedAbility,
     ActivationWindow,
     Atom,
     AtomArgs,
     ControllerRef,
-    Cost,
     CostDeltaIncreaseGeneric,
     CostDeltaIncreaseLife,
     CostDeltaReduceGeneric,
     CostDeltaReduceMana,
-    CostDiscard,
-    CostLife,
     CostModifier,
     CounterKind,
     DeclareBlockersEvent,
@@ -58,7 +55,6 @@ from MTG_bot.core.ability_tree import (
     QProp,
     QPropField,
     QThisTurn,
-    Quantity,
     QUnbounded,
     Selector,
     SelectorMode,
@@ -629,11 +625,11 @@ def _build_stormwing_cost(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
     """Spells your opponents cast that target this creature cost an
-    additional N life to cast.  The TARGETS_SOURCE filter selects the
-    affected spells; controller_ref scopes whose."""
+    additional N life to cast.  The TARGETS filter (a target that is the
+    source) selects the affected spells; controller_ref scopes whose."""
     n = int(m.group("n"))
     modifier = CostModifier(
-        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        filter=_TARGETS_THIS,
         controller_ref=ControllerRef.OPPONENT,
         delta=CostDeltaIncreaseLife(amount=QConst(n)),
     )
@@ -641,82 +637,39 @@ def _build_opponent_spell_cost_life(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_opponent_spell_cost_mana(m: re.Match[str]) -> SentenceOutcome:
-    """Spells your opponents cast that target this creature cost {N} more
-    to cast."""
+    """Spells your opponents cast that target this creature (Pursued Whale) or a creature or
+    planeswalker you control (Kasmina) cost {N} more to cast."""
     n = int(m.group("n"))
     modifier = CostModifier(
-        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),
+        filter=_TARGETS_THIS if m.group("what") == "this creature" else _TARGETS_YOURS,
         controller_ref=ControllerRef.OPPONENT,
         delta=CostDeltaIncreaseGeneric(amount=QConst(n)),
     )
     return AbilityOutcome(ability=modifier)
 
 
+#: "that target this creature": one of the judged spell's targets is the source (CR 115.1).
+_TARGETS_THIS = FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE))
+#: "that target a creature or planeswalker you control".
+_TARGETS_YOURS = FAtom(
+    pred=FAtomPred.TARGETS,
+    inner_filter=FAnd(
+        children=(
+            FOr(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
+                )
+            ),
+            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+        )
+    ),
+)
+
+
 def _build_enters_tapped(m: re.Match[str]) -> SentenceOutcome:
     """This creature/land enters tapped."""
     return AbilityOutcome(ability=EtBState(tapped=True))
-
-
-def _build_cast_goblin_top_library(m: re.Match[str]) -> SentenceOutcome:
-    """You may cast Goblin spells from the top of your library."""
-    source = Selector(
-        QUnbounded(),
-        SelectorMode.CHOOSE,
-        FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
-            )
-        ),
-        zones=(Zone(
-            kind=ZoneKind.LIBRARY,
-            controller=ControllerRef.YOU,
-            position=ZonePosition.TOP,
-        ),),
-    )
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(pairs=(("source", source),)),
-    )
-    ability = ActivatedAbility(
-        cost=Cost(),
-        effect=OptionalEffect(inner=atom),
-    )
-    return AbilityOutcome(ability=ability)
-
-
-def _build_cast_graveyard_recost(m: re.Match[str]) -> SentenceOutcome:
-    """You may cast this card from your graveyard by paying N life and
-    discarding a card in addition to paying its other costs."""
-    n = int(m.group("n"))
-    cost = Cost(
-        parts=(
-            CostLife(amount=QConst(n)),
-            CostDiscard(
-                target=Selector(
-                    QConst(1),
-                    SelectorMode.CHOOSE,
-                    FAnd(children=()),
-                    zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
-                )
-            ),
-        )
-    )
-    source = Selector(
-        QConst(1),
-        SelectorMode.CHOOSE,
-        FAtom(pred=FAtomPred.IS_SOURCE),
-        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),
-    )
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(pairs=(("source", source),)),
-    )
-    ability = ActivatedAbility(
-        cost=cost,
-        effect=OptionalEffect(inner=atom),
-    )
-    return AbilityOutcome(ability=ability)
 
 
 def _build_search_basri(m: re.Match[str]) -> SentenceOutcome:
@@ -1017,116 +970,6 @@ def reveal_one_from_among(pick_filter: Filter) -> OptionalEffect:
 # ---------------------------------------------------------------------------
 # Build functions — permissions, land plays, mana policy, activation windows
 # ---------------------------------------------------------------------------
-
-
-def _result_register_selector(count: Quantity) -> Selector:
-    """CHOOSE selector over the ability's result register: the neutral Zone(ANY, ANY) and the
-    referent "result". ``count`` is QConst(1) for a singular "that card", QUnbounded() for a
-    plural "them"."""
-    return Selector(
-        count,
-        SelectorMode.CHOOSE,
-        FAnd(children=()),
-        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),
-        referent="result",
-    )
-
-
-def _build_cast_them_this_turn(m: re.Match[str]) -> SentenceOutcome:
-    """``You may cast them this turn.`` (Chandra, Heart of Fire [−9], after "…exile them, then
-    shuffle"): the permission idiom, an empty-cost ActivatedAbility + OptionalEffect(CAST).
-
-    "them" is not the ``referent='result'`` register: the permission is used after the [−9]
-    resolved, when that register is gone. It is the cards exiled with this permanent,
-    ``FAtomPred.IS_EXILED_WITH_SOURCE`` over Zone(EXILE, YOU) with QUnbounded, the shape of
-    Chandra's own [+1] permission. The cards are cast for their costs: the CAST has no ``cost``
-    role, since the card prints no "without paying its mana cost" waiver (CR 118.9).
-
-    Known limits: both of Chandra's exile abilities record the same permanent as the cause, so
-    both permissions read the union of her exiled cards (the grammar has no per-ability exile
-    group); and CAST has no duration role, so "this turn" is dropped."""
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "source",
-                    Selector(
-                        QUnbounded(),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
-                        zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
-                    ),
-                ),
-            )
-        ),
-    )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
-
-
-def _build_look_and_play_top_of_library(m: re.Match[str]) -> SentenceOutcome:
-    """``You may look at the top card of your library any time, and you may play lands from the
-    top of your library.`` (Radha, Heart of Keld): two permissions in one sentence (the compiler
-    splits sentences on ". " only, so one template emits both). The empty-cost ActivatedAbility's
-    effect is a Seq of two OptionalEffects, LOOK_AT and a top-land CAST, so the two "may"
-    decisions stay independent; Optional(Seq(a, b)) would fuse them into one. LOOK_AT has no zone
-    role: it looks at the top of the library (count 1 = "the top card").
-    Lossy: lands are played, not cast, but CAST is the only from-zone permission verb
-    (ADD_LAND_PLAY counts extra land drops, it is not a from-zone play)."""
-    look = OptionalEffect(
-        inner=Atom(
-            verb=Verb.LOOK_AT,
-            args=AtomArgs(
-                pairs=(
-                    ("controller", ControllerRef.YOU),
-                    ("count", QConst(1)),
-                )
-            ),
-        )
-    )
-    play_top = OptionalEffect(
-        inner=Atom(
-            verb=Verb.CAST,
-            args=AtomArgs(
-                pairs=(
-                    (
-                        "source",
-                        Selector(
-                            QConst(1),
-                            SelectorMode.CHOOSE,
-                            FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
-                            zones=(Zone(
-                                kind=ZoneKind.LIBRARY,
-                                controller=ControllerRef.YOU,
-                                position=ZonePosition.TOP,
-                            ),),
-                        ),
-                    ),
-                )
-            ),
-        )
-    )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=Seq(steps=(look, play_top)))
-    )
-
-
-def _build_play_that_card_until(m: re.Match[str]) -> SentenceOutcome:
-    """``You may play that card until you exile another card with this enchantment.`` (Furious
-    Rise): OptionalEffect(CAST) over the result register ("that card": the card the end-step
-    trigger's first sentence exiled). Lossy: no Duration means "until the next such event"
-    (DurationUntilLeaves is leaves-the-battlefield only, DurationWhileCondition is a state
-    predicate), so the window is dropped; and the card is played through CAST, as in the Radha
-    row."""
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(pairs=(("source", _result_register_selector(QConst(1))),)),
-    )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
 
 
 def _build_azusa_extra_land_plays(m: re.Match[str]) -> SentenceOutcome:
@@ -1433,27 +1276,6 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_enters_tapped,
     ),
     Template(
-        tid="B4-cast-goblin-top-library",
-        name="you may cast Goblin spells from the top of your library",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^You may cast Goblin spells from the top of your library\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_cast_goblin_top_library,
-    ),
-    Template(
-        tid="B4-cast-graveyard-recost",
-        name="you may cast this card from graveyard by paying N life and discarding",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^You may cast this card from your graveyard by paying (?P<n>\d+) life "
-            r"and discarding a card in addition to paying its other costs\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_cast_graveyard_recost,
-    ),
-    Template(
         tid="B4-tutor-basri",
         name="you may search library/graveyard for Basri, Devoted Paladin",
         bucket=_BUCKET,
@@ -1499,11 +1321,12 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B4-opponent-spell-cost-mana",
-        name="opponent spells targeting this creature cost {N} more",
+        name="opponent spells targeting this creature or a creature or planeswalker you control "
+        "cost {N} more",
         bucket=_BUCKET,
         pattern=re.compile(
-            r"^Spells your opponents cast that target this creature cost "
-            r"\{(?P<n>\d+)\} more to cast\.$"
+            r"^Spells your opponents cast that target (?P<what>this creature|a creature or "
+            r"planeswalker you control) cost \{(?P<n>\d+)\} more to cast\.$"
         ),
         priority=_PRIORITY,
         build=_build_opponent_spell_cost_mana,
@@ -1582,36 +1405,6 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_reveal_one_from_among,
     ),
     Template(
-        tid="B4-cast-them-this-turn",
-        name="you may cast them this turn (result-register CAST + cost waiver)",
-        bucket=_BUCKET,
-        pattern=re.compile(r"^You may cast them this turn\.$"),
-        priority=_PRIORITY,
-        build=_build_cast_them_this_turn,
-    ),
-    Template(
-        tid="B4-look-play-top-of-library",
-        name="look at top card any time AND play lands from top (two optionals, C15)",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^You may look at the top card of your library any time, and "
-            r"you may play lands from the top of your library\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_look_and_play_top_of_library,
-    ),
-    Template(
-        tid="B4-play-that-card-until",
-        name="you may play that card until you exile another (result-register CAST; duration lossy)",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^You may play that card until you exile another card with "
-            r"this enchantment\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_play_that_card_until,
-    ),
-    Template(
         tid="B4-azusa-extra-land-plays",
         name="you may play two additional lands each of your turns (ADD_LAND_PLAY)",
         bucket=_BUCKET,
@@ -1667,9 +1460,39 @@ TEMPLATES: tuple[Template, ...] = (
     ),
 )
 
+#: The permission sentences of this bucket moved to templates_b19 with Verb.PERMIT (ontology round
+#: R13); Furious Rise's waits for an event-ended duration and stays unparsed.
+_MOVED_TO_B19: Final[str] = (
+    "templates_b19 reads it (ontology round R13, DESIGN_ATOM_ONTOLOGY §17: the permission verb)"
+)
+
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "You may choose new targets for the copy.",
         "No copy-targeting grammar construct",
+    ),
+    ("You may cast Goblin spells from the top of your library.", _MOVED_TO_B19),
+    ("You may cast them this turn.", _MOVED_TO_B19),
+    (
+        (
+            "You may cast this card from your graveyard by paying N life and discarding a card "
+            "in addition to paying its other costs."
+        ),
+        _MOVED_TO_B19,
+    ),
+    (
+        (
+            "You may look at the top card of your library any time, and you may play lands "
+            "from the top of your library."
+        ),
+        _MOVED_TO_B19,
+    ),
+    (
+        "You may play that card until you exile another card with this enchantment.",
+        (
+            "An event-ended duration (\"until you exile another card with this enchantment\"): "
+            "the end-of-next-turn approximation is stronger than printed in that end step "
+            "(ontology round R13)"
+        ),
     ),
 )

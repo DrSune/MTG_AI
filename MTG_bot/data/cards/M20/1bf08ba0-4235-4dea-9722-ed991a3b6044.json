@@ -5,8 +5,8 @@
  "name": "Kethis, the Hidden Hand",
  "text_sha": "2b74e0648edb9b99700fa24320e8723abcc5525ce2dfa8deab5131b988e47cbd",
  "needs_atom": {
-  "missing": "'Exile two legendary cards from your graveyard: Until end of turn, each legendary card in your graveyard gains \"You may play this card from your graveyard.\"': the cost is expressible since ontology round R11 (DESIGN_ATOM_ONTOLOGY 15): CostExile(Selector(QConst(2), CHOOSE, FAtom(SUPERTYPE_EQ 'Legendary'), zones=(Zone(GRAVEYARD, YOU),))). Still missing: no node grants cards in a graveyard a play permission until end of turn: GRANT_ABILITY targets objects, and a 'you may play/cast this card from your graveyard' permission is not live from the graveyard (B-100: Demonic Embrace's graveyard-cast row needs its source on the battlefield until the R5-2 permission lane; a land play needs R5-3 play_lands). The first sentence maps: 'Legendary spells you cast cost {1} less to cast.' = CostModifier(SUPERTYPE_EQ Legendary, YOU, CostDeltaReduceGeneric 1) as Watcher of the Spheres.",
-  "author": "claude-r11-cost-twins",
-  "date": "2026-11-14"
+  "missing": "'Exile two legendary cards from your graveyard: Until end of turn, each legendary card in your graveyard gains \"You may play this card from your graveyard.\"': the cost is expressible since ontology round R11 (CostExile(Selector(QConst(2), CHOOSE, FAtom(SUPERTYPE_EQ 'Legendary'), zones=(Zone(GRAVEYARD, YOU),)))), and since round R13 the permission is a resolving PERMIT with lands True and a duration (DESIGN_ATOM_ONTOLOGY 17; a granted static PERMIT is refused as its second encoding). Still missing: the set it covers is fixed when the effect begins, because 'gains' changes characteristics (CR 611.2c), while R13's resolving PERMIT over an ALL population reads it live, as a rules change (a legendary card put into the graveyard later that turn would be playable: stronger than printed); a designation of every legendary card there at resolution has no form. The first sentence maps: 'Legendary spells you cast cost {1} less to cast.' = CostModifier(SUPERTYPE_EQ Legendary, YOU, CostDeltaReduceGeneric 1) as Watcher of the Spheres.",
+  "author": "claude-ontology-r13",
+  "date": "2026-11-17"
  }
 }

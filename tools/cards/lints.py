@@ -64,7 +64,9 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     QConst,
+    QPartyCount,
     QUnbounded,
     ReplacementAbility,
     Selector,
@@ -154,7 +156,7 @@ _VERBS = {
     "lose": (Verb.LOSE_LIFE,),
     "gain": (Verb.GAIN_LIFE,),
     "sacrifice": (Verb.SACRIFICE,),
-    "mill": (Verb.MILL, Verb.MOVE_ZONE),
+    "mill": (Verb.MOVE_ZONE,),
     "scry": (Verb.SCRY,),
 }
 _SUBJECT = re.compile(r"\b(each opponent|target opponent|that player|its controller|defending player|"
@@ -275,7 +277,7 @@ def _is_discard(atom: Atom) -> bool:
 
 
 def _is_mill(atom: Atom) -> bool:
-    return atom.verb is Verb.MILL or (atom.verb is Verb.MOVE_ZONE and str(atom.args.get("journal_kind")) == "MILL")
+    return atom.verb is Verb.MOVE_ZONE and str(atom.args.get("journal_kind")) == "MILL"
 
 
 def _performs(stem: str, verb: Verb, atom: Atom) -> bool:
@@ -283,7 +285,7 @@ def _performs(stem: str, verb: Verb, atom: Atom) -> bool:
         return False
     if stem == "discard" and verb is Verb.MOVE_ZONE:
         return _is_discard(atom)
-    if stem == "mill" and verb is Verb.MOVE_ZONE:
+    if stem == "mill":
         return _is_mill(atom)
     return True
 
@@ -528,9 +530,21 @@ def printed_numbers(raw: RawCard) -> set[int]:
     return {n for n in nums if n >= 2}
 
 
-def _tree_numbers(node: Any) -> Iterator[int]:
+def _tree_numbers(node: Any) -> Iterator[int | tuple[int, ...]]:
     """The QConst values of a subtree, its costs left out (the costs check reads those), and the
-    one Food token's (its "You gain 3 life" is reminder text; ``food`` checks the whole token)."""
+    one Food token's (its "You gain 3 life" is reminder text; ``food`` checks the whole token),
+    each as the numbers the text may print for it: a negated comparison at N is "N - 1 or less"
+    (CR 107.1) or "unless ... N or more", and "a full party" is a party of four (CR 700.8), which
+    prints none."""
+    compared = node.inner if isinstance(node, FNot) else node
+    if isinstance(compared, FAtom) and compared.pred is FAtomPred.QTY_GE:
+        n = compared.count.value if isinstance(compared.count, QConst) else None
+        if n is None:
+            yield from _tree_numbers(compared.count)
+        elif not (isinstance(compared.quantity, QPartyCount) and n == 4):
+            yield (n - 1, n) if compared is not node else n
+        yield from _tree_numbers(compared.quantity)
+        return
     if isinstance(node, QConst):
         yield node.value
     elif (type(node).__name__ == "Cost" or isinstance(node, BackFace)
@@ -548,7 +562,12 @@ def _tree_numbers(node: Any) -> Iterator[int]:
 
 
 def amounts(raw: RawCard, card: CardRecord) -> list[str]:
-    extra = sorted({n for n in _tree_numbers(_front(card)) if isinstance(n, int) and n >= 2} - printed_numbers(raw))
+    printed = printed_numbers(raw)
+    extra = sorted({
+        max(options) for item in _tree_numbers(_front(card))
+        for options in [item if isinstance(item, tuple) else (item,)]
+        if not any(n < 2 or n in printed for n in options)
+    })
     if not extra:
         return []
     return [(f"the tree holds {extra} but the text never prints {'it' if len(extra) == 1 else 'them'}: "

@@ -38,6 +38,7 @@ are neutral; each one is teaching the agent something.
 | **The label target's step: eta = 0.5 / se (`LOGODDS_PER_SE`: a one-standard-error error moves the log-odds by at most 0.5) and the magnet weight alpha (0 by default)** (2026-11-06, PLAN_LEARNING §1.1, §13) | `tools/selfplay/search.py` `mmd_target` | A step size and a regulariser chosen by hand. The owner's 45/30/25 example converges on the shared answer only in the target's linear regime (eta of about 0.05 per outcome unit there; KNOWLEDGE/2026-11-06/186). Remove when the distillation loss sets the step from measured label noise and B*_distill, with the magnet's anneal measured (Phase 1). |
 | **Self-play gate: freeze when a gate match vs the newest frozen version scores `--gate-score` with its 95% lower bound above 0.5; the teacher stage ends at `--teacher-gate` or after `--teacher-iters` updates** (2026-11-04) | `tools/selfplay/learner.py` `_eval_tick` (`--gate-score`, `--gate-deals`, `--teacher-gate`, `--teacher-iters`) | Hand-set curriculum schedule. Replace with a league whose opponent sampling follows measured win rates (prioritised fictitious self-play) so no freeze threshold is needed. |
 | **PPO throttle: no new training games while a full next batch (`--steps`) is waiting** (2026-11-04) | `tools/selfplay/learner.py` `next_job` | Flow control so batches stay on-policy when workers outrun the trainer; it idles workers. Remove when the trainer keeps up (faster update) or when idle capacity is given other work (value games, evals). |
+| **Game watchdog: a game that holds its worker 600 s without handing the baton back is voided (`void-timeout`)** (2026-11-17, the bug hunt's fault 6) | `tools/selfplay/actor.py` `HANG_S`, `Worker._run` | A safety rail against a rollout that never ends (NORTH_STAR §3 (b)), not a rule: nothing in the engine bounds one call, and a hung call stopped every game of its worker and any evaluation waiting for one of them, silently. The limit is about 200 times the longest legitimate stretch measured (3.25 s: a whole heuristic game, over 600 at nice 19 beside a training run), so no slow healthy game is voided; a hang costs its worker that long, and the batch goes on without the hung game once a full batch has ended behind it (`learner._release`). Remove when the engine bounds its own work per call (an operation budget in the executor that ends a runaway as a void game, recorded), so a game cannot hang. |
 | **The heuristic's mulligan rule** (2026-11-06, with the London mulligan) | `tools/selfplay/heuristic.py` `_mulligan`, `_mulligan_bottom` | An authored keep policy, not a rule of the game, in the anchor opponent and the BC teacher: keep a hand of five cards or fewer, or a bigger one with at least two lands and at least two other cards; the card a mulligan puts on the bottom is a land while lands outnumber the rest (a copy of the land held most), else the highest mana value card. The network learns its own mulligan by PPO and imitates this one only in teacher inter-play. Remove it with the heuristic as anchor and teacher: a league of frozen versions as the fixed opponents, and runs that start from a trained network. |
 | **Simulator data: each capture seat records a share 0.4 of its decisions; capture games are half network against itself, half against the heuristic; games whose seed is a multiple of 25 are held out** (2026-11-06, E0) | `tools/selfplay/learner.py` `capture` (`--capture-p`); `tools/selfplay/simulator.py` `HOLDOUT` | Collection knobs of E0's offline data. Remove when the simulator retrains on a sliding window of the league's own recent games (PLAN_LEARNING §4), held-out games drawn there. |
 | **Entropy bonus in outcome PPO: 0.004 in r27, 0.0075 in r26** (2026-11-10, r26; r20-r23 ran 0.002; r27 since 2026-11-12) | `tools/selfplay/ppo.py` `ppo_train` (`--ent`); the unit text in `KNOWLEDGE/2026-11-10/189` §9 and the command in `KNOWLEDGE/2026-11-11/191` §2 | The one term in the loss that is not winning, sized by hand. Without it this learner lowers its own entropy by about 0.003 per update at lr 2e-5 (r25), and 0.002 does nothing against that (one update measured term by term, 189 §8). 0.0075 was the size whose measured push balances the fall; it overshot, and r26's entropy rose to 0.43-0.45 (189 §10-11). At r27's 0.004 an action costing 0.3 points of win probability keeps about 15% of the best action's weight (191 §2). It is one level for every kind of decision: r27's mulligan, the binary choice with the noisiest gradient, may carry what r26's bonus put there (191 §7). Remove when exploration no longer hangs on sampling noise: targets from search (PLAN_LEARNING Phase 2), or a learner whose entropy holds without it. |
@@ -51,7 +52,8 @@ are neutral; each one is teaching the agent something.
   live in two-player verified play):
   - a target-player slot with no legal player still resolves instead of the ability being removed
     (CR 603.3d);
-  - `CONTROLLER_COUNT_GT` sums all opponents at three or more seats;
+  - "an opponent controls more creatures than you" (Garruk, Unleashed; since ontology round R12
+    the comparison of two counts) sums all opponents at three or more seats;
   - party size can count one multi-class creature several times;
   - `templates_b6` emits `Verb.DISCARD`, which has no handler.
 - **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
@@ -114,43 +116,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Casting, the stack and targets
 
-- **The CAST atom has no target channel.** `verbs._v_cast` (verbs.py:1872) calls `stack.cast_card`
-  without targets, because the CAST role table has only `source` and `cost`. `cast_card` then
-  validates the empty designation (stack.py:1546) and raises `ValueError: executor: cast: illegal
-  target selection: selection:count_below_min:0<1` for any spell with a required target, whose
-  caster should choose it as the spell is cast (CR 601.2c).
-  - Reached through Chandra, Flame's Catalyst's -2 ("You may cast target red instant or sorcery
-    card from your graveyard"). Latent in training: Chandra herself is engine-unsupported, so no
-    verified, compiled or castable M21 pool deals her (B-99). Ten verified red spells it can target
-    raise when cast this way: Destructive Tampering, Scorching Dragonfire, Shock, Soul Sear, Sure
-    Strike, Traitorous Greed, Turn to Slag, Unleash Fury, Volcanic Geyser, Volcanic Salvo. The
-    may-offer
-    still offers "fire" (`query.cast_designee_ok`, query.py:844, checks the card and its payment,
-    not its targets), so a game that gets there is voided (`tools/selfplay/rig.py:161`). Conspicuous
-    Snoop (Goblin spells) and the Mystic Forge draft (artifact and colorless spells) reach no
-    targeted spell in the M21 or M20 verified pools; a Goblin kindred instant or a colorless removal
-    spell would raise the same way.
-  - Repro: `tools/scenarios/known_bugs/chandra_catalyst_recasts_a_targeted_spell.json`.
-  - Not small, and owned by the ontology round: it is the "target and X channel on effect casts"
-    that gate round 3 requires of R5-2 (DESIGN_ATOM_ONTOLOGY §9). The fix needs: an ask of the
-    caster for each target as the spell is cast (a `target:` ask like the trigger lane's,
-    `binding._designate`), with several slots threaded as `cast` threads them
-    (`slot_designations`); "fire" and the activation target offered only for a card whose targets
-    can be chosen (`query.cast_designee_ok`); a target's cost increase priced (`cast_card` builds
-    its plan before any target exists, stack.py:1556, where `cast` re-prices, stack.py:1220, V29);
-    and the targets checked again on resolution (CR 608.2b; both lanes do since 2026-11-10,
-    `stack.resolve_top`). Each changes what the network is asked.
-  - The X half: `_v_cast` passes X = 0 unless the ability announced an X, so Chandra's -2, which
-    pays the spell's mana cost, recasts Volcanic Geyser with X = 0 (the caster chooses X, CR
-    601.2b; 107.3b makes X = 0 only when no mana cost is paid, as for Idol of Endurance).
-- **B-99 [fixer 3, 2026-10-29; renumbered from B-75 (phasing took it) and then B-97 (R5-1 took it) at the integration merges] Chandra, Flame's Catalyst's "If that spell would be put into your
-  graveyard, exile it instead" is not applied.** Her -2 casts a red instant or sorcery from your
-  graveyard through `stack.cast_card`; the rider's replacement (`B5b-repl-graveyard-exile`) is never
-  registered for that cast, so the spell resolves into the graveyard and can be recast. Stronger than
-  printed, but Chandra, Flame's Catalyst is not castable yet, so nothing exploits it today. Repro:
-  `tools/scenarios/chandra_catalyst_recast_draw_journalled_once.json` (its note says where the card
-  should land: exile; it lands in the graveyard). Owner of the fix: the ontology round, which is
-  redesigning replacements created at resolution (DESIGN_ATOM_ONTOLOGY §10).
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
 - **Target recheck gap (not reachable in current games)**: Enthralling Hold's "as you cast it"
@@ -764,7 +729,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       `WAS_CAST_THIS_TURN`, `INSTANT_OR_SORCERY_CAST_`, `NOT_FIRST_DRAW_THIS_STEP` and
       `ATTACK_AGAINST_COUNT_GE`;
     - five comparators are one property comparison: `CMC_GE`, `COLOR_COUNT_GE`,
-      `CONTROLLER_COUNT_GT`, `LIFE_LEAD_OVER_START_GE` and `NAME_PARTITION_COUNT_GE`;
+      `CONTROLLER_COUNT_GT`, `LIFE_LEAD_OVER_START_GE` and `NAME_PARTITION_COUNT_GE` (**done**,
+      ontology round R12: `FAtomPred.QTY_GE` replaced eleven threshold predicates,
+      DESIGN_ATOM_ONTOLOGY §16);
     - `FIGHT` is two damage atoms.
   - Owner, 2026-10-27: components that "capture a lot of [the cards'] functionality, such that our
     model needs to learn less atomised components", so the network shares structure. Track it with
@@ -885,31 +852,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       of two events, which no template composes.
     - Leyline of Combustion (M20): "you and/or at least one permanent you control" triggers once per
       spell, not per targeted object, and "that player" needs a referent for the event's actor.
-- **B-100 [fixer 3, 2026-10-30; renumbered from B-76 (the defender entry took it) and then B-98 (R5-6 took it) at the integration merges] Two permission rows do nothing until the R5 permission lane.**
-  Weaker than printed; never a crash and never a phantom option.
-  - Radha, Heart of Keld's "you may play lands from the top of your library" compiles to a free
-    row whose CAST is filtered to lands. A land is never cast (CR 305.1: playing it is a special
-    action), so the row can do nothing: the CAST head refuses with a cast-gap ledger row, the
-    may-offer narrows to skip, and `query.legal_activations` no longer offers the row
-    (`query.inert_row`). R5-3's `play_lands` makes it playable.
-  - Demonic Embrace's "You may cast this card from your graveyard ..." is refused
-    (`compiler.casts_itself_from_another_zone`, a KNOWN-GAP row), so the card is engine-unsupported
-    until R5-2's permission lane (PERMIT_CAST) brings it back.
-  - Furious Rise's "You may play that card until you exile another card with this enchantment."
-    is suppressed at assembly (`compiler._is_result_anaphoric_cast_permission`, KNOWN-GAP "play
-    permission"); by the 2026-10-02 decision (KNOWLEDGE/2026-10-02/08) the card stays
-    engine-supported, so in castable and compiled games its end-step trigger only exiles your top
-    card (weaker than printed; not in the verified pool). Checked 2026-11-12: the trigger, its
-    intervening "if" and the exile are right; what is missing needs the lane:
-    - a permission to play a card from exile, cast it or play it as a land (CR 305.1): no verb (R5-2
-      PERMIT_CAST was never implemented), no executor state, no menu row (`executor.menu` offers
-      land drops and casts from hand, and activated abilities, only);
-    - its window, which ends when the next card is exiled with Furious Rise (CR 607.2a): an
-      event-ended duration with no carrier. R5-8 proposed `DurationUntilEndOfNextTurn` as the
-      approximation (divergence D15, never added); that duration now exists (Teferi, Timeless
-      Voyager, 1cac720).
-    Known-bug pack `tools/scenarios/known_bugs/furious_rise_play_the_exiled_card.json` (fails
-    today: the exiled card is not offered on your next turn).
+- **B-100 [fixer 3, 2026-10-30] Furious Rise's "You may play that card until you exile another
+  card with this enchantment." is unparsed.** Weaker than printed (the exiled card is never
+  playable), never a crash. The permission exists since ontology round R13 (Verb.PERMIT,
+  DESIGN_ATOM_ONTOLOGY §17; Radha, Heart of Keld and Demonic Embrace, the entry's other two cards,
+  play as printed); what is missing is the window, which ends when the next card is exiled with
+  Furious Rise (CR 607.2a): an event-ended duration with no carrier. `DurationUntilEndOfNextTurn`
+  would be stronger than printed in the end step that exiles the next card (gate round 3 on R5-8),
+  so the sentence stays unparsed and the card leaves the `compiled` pool (M21 and THB). Known-bug
+  pack `tools/scenarios/known_bugs/furious_rise_play_the_exiled_card.json`.
 - **B-113 [2026-11-12] REVEAL `until` (ontology R5-13's redesign of FIRST_MATCH) plays
   Transmogrify (1cac720); the rest of the family does not compile.**
   - Transmogrify: `REVEAL(controller=<that creature's controller>, count=1, until=TYPE_EQ
@@ -994,7 +945,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 - **"The player or planeswalker it's attacking"** (Scorch Spitter) is the attacked object, not the
   defending player: it needs a referent over `Executor.attacked` that survives removal from combat.
 - **"Defending player controls an Island / no Walls"** (Sea Monster, Serpent of the Endless Sea,
-  Siege Dragon): CONTROLLER_COUNT_GE counts only "you"; it needs a `who` slot. The search plans
+  Siege Dragon): the comparison's `who` reads only some opponent's own zones (ontology round R12);
+  "defending player" needs its own value there. The search plans
   attacks before combat opens (`search.plan_attacks` at `pre_combat`), when there is no defending
   player yet, so a "can't attack unless defending player ..." restriction would drop out of its
   plans; decide it at the declaration.
@@ -1065,10 +1017,8 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   turn" is `LifeLostEvent.ordinal` since 2026-11-13 (DESIGN_ATOM_ONTOLOGY §12).
 - **FAtom never checks a required `count` in its generic slot loop** (2026-11-13): the loop in
   `FAtom.__post_init__` leaves `count` out of the slots it requires, so the bare form of every
-  count-taking predicate builds (`FAtom(LIFE_LEAD_OVER_START_GE)`, pinned as legal by
-  `test_ability_tree_r10.test_life_lead_bare_count_builds_and_roundtrips`) and fails only at
-  evaluation, on an assert. EVENT_THIS_TURN, SUBJECT_OF_EVENT_THIS_TURN and LIFE_TOTAL_GE check it
-  by hand. A validator accepting a form with no meaning: require `count` wherever the rules row
+  count-taking predicate builds and fails only at evaluation, on an assert. EVENT_THIS_TURN,
+  SUBJECT_OF_EVENT_THIS_TURN and the comparison (QTY_GE, ontology round R12) check it by hand. A validator accepting a form with no meaning: require `count` wherever the rules row
   does, after a census that no tree builds a bare one.
 - **The life family's wordings still unparsed** (2026-11-13, `reports/life_family_2026-11-13/
   census.txt`): "you gain twice that much life instead" (M13 Rhox Faithmender, ORI Alhammarret's
@@ -1076,8 +1026,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   until the life lane asks the CR 616.1 order (Open engine faults, Effects); "If an opponent would
   gain life, that player loses that much life instead" (ORI Tainted Remedy) needs a non-YOU actor in
   `replacement_for_life_gained`; the life totals relative to the starting life (Cosmos Elixir,
-  Path of Bravery, Elenda, Happily Ever After, Righteous Valkyrie, Angel of Destiny, Ayli) are
-  LIFE_LEAD_OVER_START_GE with templates to write; FDN Vanguard Seraph needs surveil, ELD Deathless
+  Path of Bravery, Elenda, Happily Ever After, Righteous Valkyrie, Angel of Destiny, Ayli) are the
+  comparison with QPropField.STARTING_LIFE (ontology round R12: `conditions.py` reads the phrases;
+  their sentences' other halves still have no template); FDN Vanguard Seraph needs surveil, ELD Deathless
   Knight its "return this card from your graveyard to your hand"; M13 Elderscale Wurm a damage floor
   and a set-life verb (CR 119.5, as M20 Loxodon Lifechanter).
 - **Lure has no atom** (round-3 verification, 2026-11-06): Prized Unicorn (M20, needs-atom) "All
@@ -1182,18 +1133,56 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
       THB escape costs), not 16; what is still blocked, and why: "The cost twins still blocked"
       below;
     - entering with counters, and "that targets you";
-    - R5-2 (PERMIT_CAST, the permission lane), its own lane. It covers M21's Furious Rise,
-      Conspicuous Snoop and Radha, and M20's Golos and Mystic Forge;
+    - the permission lane. Built (ontology round R13, Verb.PERMIT, DESIGN_ATOM_ONTOLOGY §17,
+      gate round 13 pending): M21's Conspicuous Snoop, Radha, the two Chandras, Demonic Embrace;
+      M20's Golos and Mystic Forge mapped, not verified; Furious Rise and Kethis wait ("The
+      permission lane still blocked");
     - the Leylines' opening-hand action, last: every Leyline needs a second piece.
   - **Side findings:**
     - A second copy of the same emblem does nothing (`Executor.get_emblem`), likely wrong under
       CR 114. Handed to wave 2C's emblem work.
     - packages.py does not read a life-gain replacement as a life consumer, reads chosen-quality
       filters as unknown, and never puts a card of 3+ colours in a pair deck.
+- **The permission lane still blocked** (2026-11-17, ontology round R13, DESIGN_ATOM_ONTOLOGY
+  §17; census `reports/permit_2026-11-17/`). Of the 28 permission cards of M21, M20 and FDN
+  (KNOWLEDGE 209 §6), these wait on another piece:
+  - M21 Furious Rise: an event-ended window (B-100).
+  - M20 Kethis, the Hidden Hand: "each legendary card in your graveyard gains 'You may play this
+    card from your graveyard'" fixes its set when it begins (CR 611.2c, it changes
+    characteristics); a resolving PERMIT over an ALL population reads it live (a rules change).
+    Needs a designation of every card that passes a filter at resolution.
+  - M20 Chandra, Awakened Inferno: a turn-long die-to-exile replacement made by a resolving
+    ability (R5-12's REPLACE); Chandra, Acolyte of Flame: a delayed trigger that remembers objects.
+  - ZNR Valakut Exploration (partly compiled: the engine, castable and all pools deal it, never
+    compiled or verified): its permission compiles ("for as long as it remains exiled"), its
+    end-step sentence that puts the exiled cards into the graveyard does not, so in those pools an
+    exiled card stays playable for the rest of the game (stronger than printed; the fresh-eyes
+    review's finding 6). The fix is that sentence.
+  - FDN: Muldrotha (one play per permanent type), Etali (any number of casts as it resolves, from
+    every player's exiled cards) and Tinybones (cards you don't own: `ability_tree._permit_zones`
+    names only yours), Quilled Greatwurm (six counters removed from among creatures, a removal
+    cost the IR refuses), Vizier of the Menagerie (its mana rider), Zul Ashur (ward), the
+    flashback cards whose spell sentence is unparsed (Bulk Up, Inspiration from Beyond, Mystical
+    Teachings, Revenge of the Rats, Electroduplicate, Self-Reflection), Chandra, Flameshaper,
+    Kellan.
+  - FDN High Fae Trickster: "as though they had flash" changes when, not where (FLASHPERM,
+    KNOWLEDGE 209 §7); a card's own optional alternative cost (M20 Sephara) is a SpellAbility
+    piece, not a permission.
+  - A filter on the `result` register ("cast a creature spell from among them") and a PERMIT
+    reading another register are refused until a card brings them.
+- **The OptionalEffect around ADD_LAND_PLAY, GRANT_ACTIVATION and MANA_POLICY** (2026-11-17,
+  divergence D32; gate round 13). §10's R5-2 point 8 ruled every permission-like atom bare (its
+  "you may" is its use); ontology round R13 made PERMIT so and left the three wrapped in M21 Azusa,
+  Lost but Seeking, Teferi, Master of Time and Chromatic Orrery, all verified. Deferred: unwrapping
+  re-bakes the three verified trees (each leaves the verified pool until a blind review passes it
+  again), and the wrap asks nothing in play (`layers` unwraps a static's OptionalEffect, its use
+  being the choice). Do it with the next round that re-verifies M21 cards; then `OptionalEffect`
+  can refuse all four, as it refuses PERMIT.
 - **The cost twins still blocked** (2026-11-14, ontology R11, DESIGN_ATOM_ONTOLOGY §15;
   `reports/cost_twins_2026-11-14/census.txt` §1a). Of the 75 printed exile and remove-counter cost
   items, 13 trees changed; the rest wait on another piece each:
-  - M21 prints none. M20 Kethis, the Hidden Hand: the graveyard play permission (R5-2, R5-3).
+  - M21 prints none. M20 Kethis, the Hidden Hand: its permission's set is fixed at resolution
+    (CR 611.2c; "The permission lane still blocked").
   - FDN Feldon's Cane: "Shuffle your graveyard into your library" has no template, and written as
     a MOVE_ZONE into the library then a SHUFFLE it would ask its owner an order the shuffle
     discards (divergence D19, a phantom ask): it waits for D19's fold.
@@ -1207,7 +1196,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     Hoard), foreshadow (Ominous Seas), pressure (Hellion Crucible), storage (Mage-Ring Network).
     Amounts no lane pays: X (M15 Cruel Sadist), "all" (ZNR Relic Amulet), "any number" (Mage-Ring
     Network); a kind the payer picks (WAR Soul Diviner: a counter-kind ask with O_VALUE tokens).
-  - The 22 THB escape costs: a cast from the graveyard with an alternative cost (R5-2's lane);
+  - The 22 THB escape costs: the cast is the card's own static PERMIT over the graveyard with the
+    escape cost as `alternative` (ontology round R13); they wait on a template and on "escapes
+    with" counters;
     KHM Stalwart Valkyrie's alternative cost; KHM Weigh Down's and ORI Skaab Goliath's additional
     exile costs (no template for "As an additional cost to cast this spell, exile ...").
   - Clauses with no template (the cost parses): KHM Dread Rider, Vault Robber, Spectral Steel; M19
@@ -1300,6 +1291,57 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `tools/scenarios/mapped/M20/goblin_ringleader_all_goblins_no_choice.json`); Mu Yanling's -8
     carries its emblem in the GET_EMBLEM (EmblemSpec, ontology gate round 7; pack
     `tools/scenarios/mapped/M20/mu_yanling_sky_dancer_emblem_islands_draw.json`).
+- **Re-verify the cards ontology round R12 re-baked** (2026-11-17, the one quantity comparison,
+  DESIGN_ATOM_ONTOLOGY §16, pending gate round 12; tree shas changed, no stamp touched, so each is
+  out of the verified pool until a blind review passes it again; `get_supply("verified", <set>)`:
+  M21 275 -> 245, M20 277 -> 262, FDN 190 -> 181; on main f59fb8f0 merged, M20 279 -> 264 and FDN
+  193 -> 184, the same 58 cards; `reports/quantity_comparison_2026-11-17/blast_radius_merged.txt`):
+  - M21 (30): Adherent of Hope, Basri's Lieutenant, Celestial Enforcer, Chromatic Orrery, Chrome
+    Replicator, Drowsing Tyrannodon, Eliminate, Fabled Passage, Fierce Empath, Gadrak, Garruk's
+    Uprising, Garruk, Unleashed, Historian of Zhalfir, Idol of Endurance, Jolrael, Leafkin Avenger,
+    Legion's Judgment, Liliana, Waker of the Dead, Lofty Denial, Makeshift Battalion, Ornery
+    Dilophosaur, Pursued Whale, Sanctum of All, Speaker of the Heavens, Subira, Terror of the Peaks,
+    Thieves' Guild Enforcer, Tide Skimmer, Turret Ogre, Ugin, the Spirit Dragon (compiler trees);
+  - M20 (15, records re-mapped by `ontology-r12` where the card has one): Ajani, Strength of the
+    Pride, Angel of Vitality, Boreal Elemental, Cavalier of Night, Cryptic Caves, Elvish Reclaimer,
+    Eternal Isolation, Faerie Miscreant, Gnarlback Rhino, Goblin Bird-Grabber, Goblin Smuggler,
+    Leafkin Druid, Omnath, Locus of the Roil, Twinblade Paladin, Winged Words;
+  - FDN (8): Angel of Vitality, Crypt Feaster, Fierce Empath, Garruk's Uprising, Gnarlback Rhino,
+    Goblin Smuggler, Raise the Past, Twinblade Paladin;
+  - reprint stamps to re-stamp after their homes (5): ELD Fabled Passage, WAR Makeshift Battalion,
+    WAR Turret Ogre (M21 homes), ORI Faerie Miscreant, FDN Cryptic Caves (M20 homes);
+  - their card packs that need the record moved to `tools/scenarios/mapped/<SET>/` (23: FDN Crypt
+    Feaster 1 and 4, Gnarlback Rhino 1 and 4, Raise the Past 1; M20 Ajani 1-4, Cavalier of Night 3,
+    Cryptic Caves 1-3, Elvish Reclaimer 2-3, Eternal Isolation 1-2, Faerie Miscreant 1, Gnarlback
+    Rhino 1, Leafkin Druid 1, Omnath 1-2, Winged Words 1); after re-verification they go back to
+    `cards/<SET>/`;
+  - newly mapped, never verified: M20 Field of the Dead and Season of Growth (packs in
+    `mapped/M20/`), FDN Knight of Grace and Knight of Malice (gate round 12, packs in
+    `mapped/FDN/`); the 26 records of mapping batches M1-M8 that held folded predicates re-mapped
+    into the comparison (they were unverified); 22 cards of the 19 sets now compile whole (THB's heroes, ZNR's Rogues, FDN Lunar
+    Insight, ...) and wait for their first review.
+- **The last known power also answers a departure trigger's target choice** (gate round 12,
+  2026-11-17): `binding._put` builds the context of a trigger's target choice with its event, so a
+  comparison of the power of a creature that left reads it as it last existed (CR 603.10a), as the
+  trigger's condition does; KEYWORD_HAS and HAS_COUNTER read the same way. No tree of the 19 sets
+  chooses a target that way today; decide with the first card whether a target choice looks back.
+- **What ontology round R12 left without a form** (2026-11-17, DESIGN_ATOM_ONTOLOGY §16):
+  - "becomes the target of a spell" (M20 Gargos, ELD Bonecrusher Giant, WAR Fblthp, M19 Departed
+    Deckhand, ZNR Myriad Construct) needs the targeting event to say whether the targeting object is
+    a spell or an ability: a slot of that event, not TARGETS;
+  - "a spell that targets you" (M20 Cerulean Drake, ORI Psychic Rebuttal) needs a filter that names
+    a player ("you"), which TARGETS' filter cannot say today;
+  - FDN Luminous Rebuke's "This spell costs {3} less to cast if it targets a tapped creature": the
+    cost is priced before the targets are chosen, and `_affordable_target_slots` scans only
+    battlefield hosts; the self cost modifier needs the cast's targets first (CR 601.2c before
+    601.2f);
+  - "an opponent has N or less" (no FNot form: it is not "no opponent has N + 1 or more") and
+    another player's life ("an opponent has 10 or less life") have no `who` value;
+  - a '*' power or toughness the engine has no number for (a characteristic-defining ability off
+    the battlefield, CR 208.2a: Kinetic Augur in a graveyard) raises when a comparison reads it:
+    computing such abilities in every zone is the fix; no compiled card of the 19 sets asks it
+    today (Squad Rallier's and Militia Bugler's "creature card with power 2 or less" do not
+    compile).
 - **Re-verify the cards the trigger-timing fixes changed** (2026-11-12, trigger lane; tree shas
   changed, verified stamps left untouched, so each left the verified pool, the pool training runs
   deal, once a run pins this code. Verified deckable pools measured on the tree merged with main
@@ -1417,10 +1459,9 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   and its notes call it weaker than printed because no ability on the stack could be targeted.
   Since B-110 closed (abilities on the stack are targets, `stack.stack_abilities`), its whole
   text plays; M21 Sublime Epiphany's packs `sublime_epiphany_1/2` show the same target.
-- **M20 Mystic Forge (needs-atom): re-map it.** Its permission cast can be countered (851d652; its
-  pack `pack_forge_cast_can_be_countered.json` passed against its draft with the old counter window,
-  so re-run it with a response cast while the spell waits on the stack); the target half is "The
-  CAST atom has no target channel" under the engine faults.
+- **M20 Mystic Forge and Golos, Tireless Pilgrim go to G2** (2026-11-17): re-mapped onto
+  Verb.PERMIT (ontology round R13), not verified; packs `tools/scenarios/mapped/M20/mystic_forge_*`
+  and `golos_*`.
 - **FDN Joraga Invocation can go back to G2**: it was refused because a must-be-blocked
   requirement forced the first able blocker; the defender chooses since 62a1ae2 (2026-11-06).
 - **FDN round 1 record findings** (2026-11-06; neither card is verified):
@@ -1714,6 +1755,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### What the network sees
 
+- **A permission shows only as the rows it offers** (2026-11-17, ontology round R13). A card a
+  permission lets the seat play is an option of the act ask (its entity carries its zone; a
+  `:via:` row points at the permission's source), but no card column says "playable from here"
+  outside that ask: in an attack, block or priority ask the network cannot tell which exiled
+  cards Chandra, Heart of Fire's [+1] left playable this turn, or that Snoop's top card is
+  castable. Candidate: one card column, the number of permissions covering it now (zero-filled
+  on load). Not changed by round R13, so old checkpoints compute what they did.
 - **An ability whose source is a token that ceased to exist is not shown** (2026-11-17, the
   bug-hunt fix for dead tokens). `features.encode` (~571) shows an ability on the stack as its
   source's entity only while the source is a world card, and the trigger-order options that name

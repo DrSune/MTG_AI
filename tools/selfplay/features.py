@@ -17,7 +17,8 @@ float16):
 * ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot), the
                          step, whether the other player has just passed, an arrange ask's end
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
-* ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index, a value
+* ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index (an activated
+                         ability's; which of one source's different waiting triggers), a value
                          option's component token (a quality ask's colour or creature type)
 * ``opts_f``    [K, 2]   number value, kicked
 
@@ -468,7 +469,7 @@ def _parse_option(tok: str) -> tuple:
         return OPT_INDEX[tok], None, None, 0, 0.0, 0.0
     if tok.startswith("land:"):
         return OPT_INDEX["land"], _handle(tok[5:]), None, 0, 0.0, 0.0
-    if tok.startswith("cast:"):  # cast:<card>[:k][:x<N>] (router.py; no :x for X = 0)
+    if tok.startswith("cast:"):  # cast:<card>[:via:<source>][:k][:x<N>] (menu.py; no :x for X = 0)
         rest, x = tok[5:], 0.0
         head, sep, tail = rest.rpartition(":x")
         if sep and tail.isdigit():
@@ -476,8 +477,13 @@ def _parse_option(tok: str) -> tuple:
         kicked = rest.endswith(":k")
         if kicked:
             rest = rest[:-2]
-        return (OPT_INDEX["cast_kicked" if kicked else "cast"], _handle(rest), None, 0, x,
-                1.0 if kicked else 0.0)
+        # A cast through a permission at another cost, or with a rider, points its second
+        # entity at the permission's source (Omniscience, the flashback card itself): two cost
+        # paths of one card are two options the network tells apart (AGENTS §10). Its zone is
+        # the card entity's own (a graveyard, exile, the top of a library).
+        rest, _, via = rest.partition(":via:")
+        return (OPT_INDEX["cast_kicked" if kicked else "cast"], _handle(rest),
+                _handle(via) if via else None, 0, x, 1.0 if kicked else 0.0)
     if tok.startswith("act:"):
         parts = tok.split(":")
         h = _handle(f"{parts[1]}:{parts[2]}") if len(parts) >= 3 else None
@@ -488,6 +494,11 @@ def _parse_option(tok: str) -> tuple:
         b, _, x = b.partition(":x")
         return OPT_INDEX["cast_at"], _handle(a), _handle(b), 0, float(int(x)) if x.isdigit() else 0.0, 0.0
     if tok.startswith("card:"):
+        # card:12:2, the second different trigger of card:12 waiting to be ordered (CR 603.3b,
+        # binding._resolution_order): the source's entity, told apart by the ability column
+        k = tok.split(":")[2] if tok.count(":") == 2 else ""
+        return OPT_INDEX["card"], _handle(tok), None, int(k) - 1 if k.isdigit() else 0, 0.0, 0.0
+    if tok.startswith("ability:"):  # an ability on the stack as a target (Tale's End): its entity
         return OPT_INDEX["card"], _handle(tok), None, 0, 0.0, 0.0
     if tok.startswith("player:"):
         return OPT_INDEX["player"], _handle(tok), None, 0, 0.0, 0.0
@@ -563,8 +574,9 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     if ask.kind == "scry" and ctx.revealed is not None:
         source = ctx.revealed
     parsed = [_OPTS[o.token] for o in ask.options[:MAX_OPTIONS]]
-    offered = {p[1] for p in parsed if p[1] is not None and p[1].namespace == "card"}
-    offered |= {p[2] for p in parsed if p[2] is not None and p[2].namespace == "card"}
+    # an ability offered as a target is marked on its stack entity, as a spell is
+    offered = {h for p in parsed for h in p[1:3]
+               if h is not None and h.namespace in ("card", "ability")}
     if ask.kind == "divide" and len(site_cards) == 2:
         # divide:<blocker>:<attacker>:<turn>: the attacker's damage is divided (the source), the
         # amounts offered go to the blocker

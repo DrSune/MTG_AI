@@ -39,6 +39,7 @@ from MTG_bot.core.ability_tree import (
     CostTap,
     CounterKind,
     EtBState,
+    FAnd,
     FAtom,
     FAtomPred,
     FOr,
@@ -102,6 +103,19 @@ BF_ANY = Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)
 CREATURE_F = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
 INSTANT_F = FAtom(FAtomPred.TYPE_EQ, string_value="Instant")
 INSTANT_OR_SORCERY = FOr((INSTANT_F, FAtom(FAtomPred.TYPE_EQ, string_value="Sorcery")))
+
+def cast_with(cost: Cost | None = None) -> Atom:
+    """A CAST atom whose cost roles say what ``stack.cast_card`` pays (ontology round R13): an
+    empty Cost is ``alternative`` ("without paying its mana cost", CR 118.9), a Cost with parts
+    ``additional`` (CR 601.2f), None the mana cost. Its ``source`` is not read by cast_card."""
+    pairs: list[tuple[str, object]] = [
+        ("source", Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()),
+                            zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result")),
+    ]
+    if cost is not None:
+        pairs.append(("additional" if cost.parts else "alternative", cost))
+    return Atom(verb=Verb.CAST, args=AtomArgs(pairs=tuple(pairs)))
+
 
 
 def oid() -> str:
@@ -790,16 +804,16 @@ class TestCastTriggerFeed(StackCase):
         from MTG_bot.core.executor.stack import cast_card
 
         exiled = self.tiny("FromExile", seat=self.p1, zone=ZONE_EXILE)
-        cast_card(self.ex, self.p1, exiled, cost_override=Cost(()))
+        cast_card(self.ex, self.p1, exiled, atom=cast_with(Cost(())))
         self.assertEqual(self.world.players[self.p0].life, life0 + 1)  # fired
 
     def test_a_spell_that_targets_the_watcher_fires_it(self):
         # M20 Gnarlback Rhino: "Whenever you cast a spell that targets this creature, ..." is
-        # a CastSpellEvent whose filter is TARGETS_SOURCE. The matcher reads the cast spell's
+        # a CastSpellEvent whose filter is TARGETS(IS_SOURCE). The matcher reads the cast spell's
         # declared targets, not the trigger's own target bindings.
         watcher = self.watch(
             CastSpellEvent(
-                FAtom(pred=FAtomPred.TARGETS_SOURCE),
+                FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE)),
                 actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         )
@@ -833,7 +847,7 @@ class TestEffectCast(StackCase):
         return OptionalEffect(
             Atom(
                 verb=Verb.CAST,
-                args=AtomArgs(pairs=(("source", sel), ("cost", Cost(())))),
+                args=AtomArgs(pairs=(("source", sel), ("alternative", Cost(())))),
             )
         )
 
@@ -907,7 +921,7 @@ class TestEffectCast(StackCase):
             effect=atom(Verb.DEAL_DAMAGE, target=any_target(), amount=QConst(2)),
             zone=ZONE_EXILE,
         )
-        cast_card(self.ex, self.p0, shock, cost_override=Cost(()), targets=(self.p1,))
+        cast_card(self.ex, self.p0, shock, atom=cast_with(Cost(())), targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 18)
         self.assertEqual(self.world.zone_of(shock).kind, ZONE_GRAVEYARD)
         # off-population still validated:
@@ -927,7 +941,7 @@ class TestEffectCast(StackCase):
                         amount=QConst(1),
                     ),
                 ),
-                cost_override=Cost(()),
+                atom=cast_with(Cost(())),
                 targets=(self.p1,),  # player, not creature
             )
 
@@ -961,7 +975,7 @@ class TestEffectCast(StackCase):
                         "source",
                         Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,)),
                     ),
-                    ("cost", Cost(())),
+                    ("alternative", Cost(())),
                 )
             ),
         )

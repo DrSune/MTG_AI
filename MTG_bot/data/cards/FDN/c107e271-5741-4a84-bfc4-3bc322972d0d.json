@@ -33,7 +33,7 @@
         "tag": "FAtom",
         "pred": {
          "tag": "FAtomPred",
-         "name": "CONTROLLER_COUNT_GE"
+         "name": "QTY_GE"
         },
         "string_value": null,
         "color": null,
@@ -45,43 +45,92 @@
         "counter_kind": null,
         "keyword": null,
         "who": null,
-        "inner_filter": {
-         "tag": "FAnd",
-         "children": [
-          {
-           "tag": "FAtom",
-           "pred": {
-            "tag": "FAtomPred",
-            "name": "TYPE_EQ"
-           },
-           "string_value": "Creature",
-           "color": null,
-           "colors": [],
-           "count": null,
-           "counter_kind": null,
-           "keyword": null,
-           "who": null,
-           "inner_filter": null
+        "inner_filter": null,
+        "quantity": {
+         "tag": "QCount",
+         "selector": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
           },
-          {
-           "tag": "FAtom",
-           "pred": {
-            "tag": "FAtomPred",
-            "name": "POWER_GE"
-           },
-           "string_value": null,
-           "color": null,
-           "colors": [],
-           "count": {
-            "tag": "QConst",
-            "value": 4
-           },
-           "counter_kind": null,
-           "keyword": null,
-           "who": null,
-           "inner_filter": null
-          }
-         ]
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QConst",
+              "value": 4
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "POWER"
+             }
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
         }
        }
       ]
@@ -265,7 +314,7 @@
  "mapping": {
   "author": "claude-mapper-m4",
   "date": "2026-11-17",
-  "draft_py": "# FDN Courageous Goblin: \"Whenever this creature attacks while you control a creature with power 4\n# or greater, this creature gets +1/+0 and gains menace until end of turn.\"\n# \"While you control ...\" qualifies the trigger event (MAPPER_GUIDE: not an intervening \"if\"; read\n# once as the attackers are declared): M21 Ornery Dilophosaur's CONTROLLER_COUNT_GE over a\n# creature with power 4 or greater, as a conjunct of the DeclareAttackersEvent filter (Tide\n# Skimmer's slot). Effect: this creature +1/+0 (Umara Mystic) and menace until end of turn, in\n# printed order.\nSELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nbrave = TriggeredAbility(\n    event=DeclareAttackersEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.IS_SOURCE),\n                FAtom(\n                    pred=FAtomPred.CONTROLLER_COUNT_GE,\n                    count=QConst(value=1),\n                    inner_filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n                        ),\n                    ),\n                ),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.MODIFY_PT, {\n                'duration': DurationEot(),\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                'target': SELF,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.MENACE),\n                'duration': DurationEot(),\n                'target': SELF,\n            }),\n        ),\n    ),\n)\nabilities = [brave, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=DeclareAttackersEvent(\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.IS_SOURCE),\n                    FAtom(\n                        pred=FAtomPred.QTY_GE,\n                        count=QConst(value=1),\n                        quantity=QCount(\n                            selector=Selector(\n                                count=QUnbounded(),\n                                mode=SelectorMode.ALL,\n                                filter=FAnd(\n                                    children=(\n                                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                        FAtom(\n                                            pred=FAtomPred.QTY_GE,\n                                            count=QConst(value=4),\n                                            field=QPropField.POWER,\n                                        ),\n                                    ),\n                                ),\n                                zones=(\n                                    Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                                ),\n                            ),\n                        ),\n                    ),\n                ),\n            ),\n        ),\n        condition=None,\n        effect=Seq(\n            steps=(\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                    'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.MENACE),\n                    'duration': DurationEot(),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Whenever this creature attacks while you control a creature with power 4 or greater, this creature gets +1/+0 and gains menace until end of turn.",
@@ -273,7 +322,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "'While you control a creature with power 4 or greater' qualifies the event (read once at the declaration): Ornery Dilophosaur's CONTROLLER_COUNT_GE in the DeclareAttackersEvent filter. +1/+0 and menace until end of turn on this creature. Packs: tools/scenarios/mapped/FDN/courageous_goblin_no_bonus_without_your_big_creature.json, tools/scenarios/mapped/FDN/courageous_goblin_bonus_and_menace_end_with_the_turn.json."
+  "notes": "'While you control a creature with power 4 or greater' qualifies the event (read once at the declaration): Ornery Dilophosaur's comparison over number_you_control(...) in the DeclareAttackersEvent filter. +1/+0 and menace until end of turn on this creature. Packs: tools/scenarios/mapped/FDN/courageous_goblin_no_bonus_without_your_big_creature.json, tools/scenarios/mapped/FDN/courageous_goblin_bonus_and_menace_end_with_the_turn.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "ca52db193d9b8873a7df2380d9ba8fcf6ffc77d64d84f233d627276d8481e59c"

@@ -1,0 +1,342 @@
+compiler trees changed (104), per set: {'DOM': 1, 'ELD': 6, 'FDN': 13, 'IKO': 3, 'M11': 1, 'M13': 2, 'M14': 1, 'M15': 2, 'M19': 1, 'M20': 8, 'M21': 32, 'ORI': 3, 'THB': 8, 'WAR': 7, 'ZNR': 16}
+   DOM Ghitu Lavarunner
+   ELD Epic Downfall
+   ELD Fabled Passage
+   ELD Giant Killer // Chop Down
+   ELD Glass Casket
+   ELD Reave Soul
+   ELD Shimmer Dragon
+   FDN Angel of Vitality
+   FDN Billowing Shriekmass
+   FDN Cephalid Inkmage
+   FDN Dragonmaster Outcast
+   FDN Dreadwing Scavenger
+   FDN Fierce Empath
+   FDN Flamewake Phoenix
+   FDN Garruk's Uprising
+   FDN Ghitu Lavarunner
+   FDN Gnarlback Rhino
+   FDN Goblin Smuggler
+   FDN Lunar Insight
+   FDN Twinblade Paladin
+   IKO Blade Banish
+   IKO Easy Prey
+   IKO Spelleater Wolverine
+   M11 Serra Ascendant
+   M13 Intrepid Hero
+   M13 Jace's Phantasm
+   M14 Woodborn Behemoth
+   M15 Pillar of Light
+   M15 Soul of Ravnica
+   M19 Colossal Majesty
+   M20 Angel of Vitality
+   M20 Boreal Elemental
+   M20 Elvish Reclaimer
+   M20 Gnarlback Rhino
+   M20 Goblin Bird-Grabber
+   M20 Goblin Smuggler
+   M20 Season of Growth
+   M20 Twinblade Paladin
+   M21 Adherent of Hope
+   M21 Basri's Lieutenant
+   M21 Celestial Enforcer
+   M21 Chromatic Orrery
+   M21 Chrome Replicator
+   M21 Conspicuous Snoop
+   M21 Drowsing Tyrannodon
+   M21 Eliminate
+   M21 Fabled Passage
+   M21 Fierce Empath
+   M21 Furious Rise
+   M21 Gadrak, the Crown-Scourge
+   M21 Garruk's Uprising
+   M21 Garruk, Unleashed
+   M21 Historian of Zhalfir
+   M21 Idol of Endurance
+   M21 Jolrael, Mwonvuli Recluse
+   M21 Leafkin Avenger
+   M21 Legion's Judgment
+   M21 Liliana, Waker of the Dead
+   M21 Lofty Denial
+   M21 Makeshift Battalion
+   M21 Ornery Dilophosaur
+   M21 Pursued Whale
+   M21 Sanctum of All
+   M21 Speaker of the Heavens
+   M21 Subira, Tulzidi Caravanner
+   M21 Terror of the Peaks
+   M21 Thieves' Guild Enforcer
+   M21 Tide Skimmer
+   M21 Turret Ogre
+   M21 Ugin, the Spirit Dragon
+   ORI Deep-Sea Terror
+   ORI Elemental Bond
+   ORI Reave Soul
+   THB Furious Rise
+   THB Hero of the Games
+   THB Hero of the Nyxborn
+   THB Hero of the Pride
+   THB Hero of the Winds
+   THB Heroes of the Revel
+   THB Triumphant Surge
+   THB Warden of the Chained
+   WAR Challenger Troll
+   WAR Kasmina, Enigmatic Mentor
+   WAR Kiora, Behemoth Beckoner
+   WAR Law-Rune Enforcer
+   WAR Makeshift Battalion
+   WAR The Wanderer
+   WAR Turret Ogre
+   ZNR Archpriest of Iona
+   ZNR Blackbloom Rogue // Blackbloom Bog
+   ZNR Bloodchief's Thirst
+   ZNR Chilling Trap
+   ZNR Coveted Prize
+   ZNR Expedition Champion
+   ZNR Expedition Healer
+   ZNR Expedition Skulker
+   ZNR Linvala, Shield of Sea Gate
+   ZNR Magmatic Channeler
+   ZNR Nimana Skitter-Sneak
+   ZNR Nimble Trapfinder
+   ZNR Smite the Monstrous
+   ZNR Sneaking Guide
+   ZNR Squad Commander
+   ZNR Vanquish the Weak
+trees with records applied changed (117), per set: {'DOM': 1, 'ELD': 6, 'FDN': 16, 'IKO': 3, 'M11': 1, 'M13': 2, 'M14': 1, 'M15': 2, 'M19': 1, 'M20': 17, 'M21': 32, 'ORI': 4, 'THB': 8, 'WAR': 7, 'ZNR': 16}
+   DOM Ghitu Lavarunner compiler -> compiler unverified
+   ELD Epic Downfall compiler -> compiler unverified
+   ELD Fabled Passage compiler -> compiler verified
+   ELD Giant Killer // Chop Down compiler -> compiler unverified
+   ELD Glass Casket compiler -> compiler unverified
+   ELD Reave Soul compiler -> compiler unverified
+   ELD Shimmer Dragon compiler -> compiler unverified
+   FDN Angel of Vitality compiler -> compiler verified
+   FDN Billowing Shriekmass compiler -> compiler unverified
+   FDN Cephalid Inkmage compiler -> compiler unverified
+   FDN Crypt Feaster record -> record verified
+   FDN Cryptic Caves record -> record verified
+   FDN Dragonmaster Outcast compiler -> compiler unverified
+   FDN Dreadwing Scavenger compiler -> compiler unverified
+   FDN Fierce Empath compiler -> compiler verified
+   FDN Flamewake Phoenix compiler -> compiler unverified
+   FDN Garruk's Uprising compiler -> compiler verified
+   FDN Ghitu Lavarunner compiler -> compiler unverified
+   FDN Gnarlback Rhino record -> record verified
+   FDN Goblin Smuggler compiler -> compiler verified
+   FDN Lunar Insight compiler -> compiler unverified
+   FDN Raise the Past record -> record verified
+   FDN Twinblade Paladin compiler -> compiler verified
+   IKO Blade Banish compiler -> compiler unverified
+   IKO Easy Prey compiler -> compiler unverified
+   IKO Spelleater Wolverine compiler -> compiler unverified
+   M11 Serra Ascendant compiler -> compiler unverified
+   M13 Intrepid Hero compiler -> compiler unverified
+   M13 Jace's Phantasm compiler -> compiler unverified
+   M14 Woodborn Behemoth compiler -> compiler unverified
+   M15 Pillar of Light compiler -> compiler unverified
+   M15 Soul of Ravnica compiler -> compiler unverified
+   M19 Colossal Majesty compiler -> compiler unverified
+   M20 Ajani, Strength of the Pride record -> record verified
+   M20 Angel of Vitality record -> record verified
+   M20 Boreal Elemental compiler -> compiler verified
+   M20 Cavalier of Night record -> record verified
+   M20 Cryptic Caves record -> record verified
+   M20 Elvish Reclaimer record -> record verified
+   M20 Eternal Isolation record -> record verified
+   M20 Faerie Miscreant record -> record verified
+   M20 Field of the Dead needs-atom record -> record unverified
+   M20 Gnarlback Rhino record -> record verified
+   M20 Goblin Bird-Grabber compiler -> compiler verified
+   M20 Goblin Smuggler compiler -> compiler verified
+   M20 Leafkin Druid record -> record verified
+   M20 Omnath, Locus of the Roil record -> record verified
+   M20 Season of Growth needs-atom record -> record unverified
+   M20 Twinblade Paladin record -> record verified
+   M20 Winged Words record -> record verified
+   M21 Adherent of Hope compiler -> compiler verified
+   M21 Basri's Lieutenant compiler -> compiler verified
+   M21 Celestial Enforcer compiler -> compiler verified
+   M21 Chromatic Orrery compiler -> compiler verified
+   M21 Chrome Replicator compiler -> compiler verified
+   M21 Conspicuous Snoop compiler -> compiler unverified
+   M21 Drowsing Tyrannodon compiler -> compiler verified
+   M21 Eliminate compiler -> compiler verified
+   M21 Fabled Passage compiler -> compiler verified
+   M21 Fierce Empath compiler -> compiler verified
+   M21 Furious Rise compiler -> compiler unverified
+   M21 Gadrak, the Crown-Scourge compiler -> compiler verified
+   M21 Garruk's Uprising compiler -> compiler verified
+   M21 Garruk, Unleashed compiler -> compiler verified
+   M21 Historian of Zhalfir compiler -> compiler verified
+   M21 Idol of Endurance compiler -> compiler verified
+   M21 Jolrael, Mwonvuli Recluse compiler -> compiler verified
+   M21 Leafkin Avenger compiler -> compiler verified
+   M21 Legion's Judgment compiler -> compiler verified
+   M21 Liliana, Waker of the Dead compiler -> compiler verified
+   M21 Lofty Denial compiler -> compiler verified
+   M21 Makeshift Battalion compiler -> compiler verified
+   M21 Ornery Dilophosaur compiler -> compiler verified
+   M21 Pursued Whale compiler -> compiler verified
+   M21 Sanctum of All compiler -> compiler verified
+   M21 Speaker of the Heavens compiler -> compiler verified
+   M21 Subira, Tulzidi Caravanner compiler -> compiler verified
+   M21 Terror of the Peaks compiler -> compiler verified
+   M21 Thieves' Guild Enforcer compiler -> compiler verified
+   M21 Tide Skimmer compiler -> compiler verified
+   M21 Turret Ogre compiler -> compiler verified
+   M21 Ugin, the Spirit Dragon compiler -> compiler verified
+   ORI Deep-Sea Terror compiler -> compiler unverified
+   ORI Elemental Bond compiler -> compiler unverified
+   ORI Faerie Miscreant record -> record verified
+   ORI Reave Soul compiler -> compiler unverified
+   THB Furious Rise compiler -> compiler unverified
+   THB Hero of the Games compiler -> compiler unverified
+   THB Hero of the Nyxborn compiler -> compiler unverified
+   THB Hero of the Pride compiler -> compiler unverified
+   THB Hero of the Winds compiler -> compiler unverified
+   THB Heroes of the Revel compiler -> compiler unverified
+   THB Triumphant Surge compiler -> compiler unverified
+   THB Warden of the Chained compiler -> compiler unverified
+   WAR Challenger Troll compiler -> compiler unverified
+   WAR Kasmina, Enigmatic Mentor compiler -> compiler unverified
+   WAR Kiora, Behemoth Beckoner compiler -> compiler unverified
+   WAR Law-Rune Enforcer compiler -> compiler unverified
+   WAR Makeshift Battalion compiler -> compiler verified
+   WAR The Wanderer compiler -> compiler unverified
+   WAR Turret Ogre compiler -> compiler verified
+   ZNR Archpriest of Iona compiler -> compiler unverified
+   ZNR Blackbloom Rogue // Blackbloom Bog compiler -> compiler unverified
+   ZNR Bloodchief's Thirst compiler -> compiler unverified
+   ZNR Chilling Trap compiler -> compiler unverified
+   ZNR Coveted Prize compiler -> compiler unverified
+   ZNR Expedition Champion compiler -> compiler unverified
+   ZNR Expedition Healer compiler -> compiler unverified
+   ZNR Expedition Skulker compiler -> compiler unverified
+   ZNR Linvala, Shield of Sea Gate compiler -> compiler unverified
+   ZNR Magmatic Channeler compiler -> compiler unverified
+   ZNR Nimana Skitter-Sneak compiler -> compiler unverified
+   ZNR Nimble Trapfinder compiler -> compiler unverified
+   ZNR Smite the Monstrous compiler -> compiler unverified
+   ZNR Sneaking Guide compiler -> compiler unverified
+   ZNR Squad Commander compiler -> compiler unverified
+   ZNR Vanquish the Weak compiler -> compiler unverified
+compiler: fewer unparsed sentences (33):
+   DOM Ghitu Lavarunner 1 -> 0
+   ELD Epic Downfall 1 -> 0
+   ELD Glass Casket 1 -> 0
+   ELD Shimmer Dragon 2 -> 1
+   FDN Billowing Shriekmass 2 -> 1
+   FDN Cephalid Inkmage 2 -> 1
+   FDN Dragonmaster Outcast 1 -> 0
+   FDN Dreadwing Scavenger 2 -> 1
+   FDN Flamewake Phoenix 3 -> 2
+   FDN Ghitu Lavarunner 1 -> 0
+   FDN Gnarlback Rhino 1 -> 0
+   FDN Lunar Insight 1 -> 0
+   IKO Easy Prey 2 -> 1
+   IKO Spelleater Wolverine 1 -> 0
+   M13 Jace's Phantasm 1 -> 0
+   M14 Woodborn Behemoth 1 -> 0
+   M15 Pillar of Light 1 -> 0
+   M19 Colossal Majesty 1 -> 0
+   M20 Elvish Reclaimer 2 -> 1
+   M20 Gnarlback Rhino 1 -> 0
+   M20 Season of Growth 2 -> 1
+   ORI Deep-Sea Terror 1 -> 0
+   THB Hero of the Games 1 -> 0
+   THB Hero of the Nyxborn 1 -> 0
+   THB Hero of the Pride 1 -> 0
+   THB Hero of the Winds 1 -> 0
+   THB Heroes of the Revel 2 -> 1
+   THB Warden of the Chained 1 -> 0
+   WAR Kasmina, Enigmatic Mentor 2 -> 1
+   WAR Law-Rune Enforcer 1 -> 0
+   ZNR Blackbloom Rogue // Blackbloom Bog 1 -> 0
+   ZNR Magmatic Channeler 3 -> 2
+   ZNR Nimana Skitter-Sneak 1 -> 0
+compiler: newly compiling whole (22), per set: {'DOM': 1, 'ELD': 2, 'FDN': 4, 'IKO': 1, 'M13': 1, 'M14': 1, 'M15': 1, 'M19': 1, 'M20': 1, 'ORI': 1, 'THB': 5, 'WAR': 1, 'ZNR': 2}
+   DOM Ghitu Lavarunner
+   ELD Epic Downfall
+   ELD Glass Casket
+   FDN Dragonmaster Outcast
+   FDN Ghitu Lavarunner
+   FDN Gnarlback Rhino
+   FDN Lunar Insight
+   IKO Spelleater Wolverine
+   M13 Jace's Phantasm
+   M14 Woodborn Behemoth
+   M15 Pillar of Light
+   M19 Colossal Majesty
+   M20 Gnarlback Rhino
+   ORI Deep-Sea Terror
+   THB Hero of the Games
+   THB Hero of the Nyxborn
+   THB Hero of the Pride
+   THB Hero of the Winds
+   THB Warden of the Chained
+   WAR Law-Rune Enforcer
+   ZNR Blackbloom Rogue // Blackbloom Bog
+   ZNR Nimana Skitter-Sneak
+verified cards leaving the verified pool (58: 53 home stamps, 5 reprint stamps):
+   ELD Fabled Passage reprint stamp
+   FDN Angel of Vitality home stamp
+   FDN Crypt Feaster home stamp
+   FDN Cryptic Caves reprint stamp
+   FDN Fierce Empath home stamp
+   FDN Garruk's Uprising home stamp
+   FDN Gnarlback Rhino home stamp
+   FDN Goblin Smuggler home stamp
+   FDN Raise the Past home stamp
+   FDN Twinblade Paladin home stamp
+   M20 Ajani, Strength of the Pride home stamp
+   M20 Angel of Vitality home stamp
+   M20 Boreal Elemental home stamp
+   M20 Cavalier of Night home stamp
+   M20 Cryptic Caves home stamp
+   M20 Elvish Reclaimer home stamp
+   M20 Eternal Isolation home stamp
+   M20 Faerie Miscreant home stamp
+   M20 Gnarlback Rhino home stamp
+   M20 Goblin Bird-Grabber home stamp
+   M20 Goblin Smuggler home stamp
+   M20 Leafkin Druid home stamp
+   M20 Omnath, Locus of the Roil home stamp
+   M20 Twinblade Paladin home stamp
+   M20 Winged Words home stamp
+   M21 Adherent of Hope home stamp
+   M21 Basri's Lieutenant home stamp
+   M21 Celestial Enforcer home stamp
+   M21 Chromatic Orrery home stamp
+   M21 Chrome Replicator home stamp
+   M21 Drowsing Tyrannodon home stamp
+   M21 Eliminate home stamp
+   M21 Fabled Passage home stamp
+   M21 Fierce Empath home stamp
+   M21 Gadrak, the Crown-Scourge home stamp
+   M21 Garruk's Uprising home stamp
+   M21 Garruk, Unleashed home stamp
+   M21 Historian of Zhalfir home stamp
+   M21 Idol of Endurance home stamp
+   M21 Jolrael, Mwonvuli Recluse home stamp
+   M21 Leafkin Avenger home stamp
+   M21 Legion's Judgment home stamp
+   M21 Liliana, Waker of the Dead home stamp
+   M21 Lofty Denial home stamp
+   M21 Makeshift Battalion home stamp
+   M21 Ornery Dilophosaur home stamp
+   M21 Pursued Whale home stamp
+   M21 Sanctum of All home stamp
+   M21 Speaker of the Heavens home stamp
+   M21 Subira, Tulzidi Caravanner home stamp
+   M21 Terror of the Peaks home stamp
+   M21 Thieves' Guild Enforcer home stamp
+   M21 Tide Skimmer home stamp
+   M21 Turret Ogre home stamp
+   M21 Ugin, the Spirit Dragon home stamp
+   ORI Faerie Miscreant reprint stamp
+   WAR Makeshift Battalion reprint stamp
+   WAR Turret Ogre reprint stamp
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a fact the round changes (0):
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->13', 'FDN': '190->181', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '277->262', 'M21': '275->245', 'ORI': '24->23', 'THB': '16->16', 'WAR': '22->20', 'ZNR': '14->14'}

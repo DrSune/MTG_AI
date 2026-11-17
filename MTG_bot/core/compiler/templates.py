@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     QConst,
     Quantity,
+    ReplacementAbility,
     Selector,
     SelectorMode,
     TokenSpec,
@@ -226,6 +227,16 @@ class KickerEffectOutcome:
     pred: Filter | None = None
 
 
+@dataclass(frozen=True)
+class RiderOutcome:
+    """A spell's rider sentence: "If that spell would be put into your graveyard, exile it
+    instead." (``ability_tree.spell_rider``). It is no ability of its own: the compiler folds it
+    into the ``replace`` role of the cast verb (CAST, PERMIT) of the ability printed before it,
+    and leaves it unparsed when there is none (DESIGN_ATOM_ONTOLOGY §17)."""
+
+    rider: ReplacementAbility
+
+
 SentenceOutcome = Union[
     KeywordOutcome,
     RuleReminderOutcome,
@@ -235,6 +246,7 @@ SentenceOutcome = Union[
     MetaOutcome,
     AdditionalCostOutcome,
     ActivationGateOutcome,
+    RiderOutcome,
 ]
 
 # ---------------------------------------------------------------------------
@@ -320,12 +332,15 @@ class TemplateRegistry:
 
         Never raises on multiple matches — the compiler is responsible
         for ambiguity detection.  Propagates exceptions from
-        ``template.build`` (a template bug is not a match failure).
+        ``template.build`` (a template bug is not a match failure). A build
+        that returns None declines: its pattern matched words outside the
+        vocabulary it reads (templates_b19's card kinds), so it is no match.
         """
         matches: list[Match] = []
         for template in self.all():
             m = template.pattern.fullmatch(sentence)
             if m is not None:
                 outcome = template.build(m)
-                matches.append(Match(template=template, outcome=outcome))
+                if outcome is not None:
+                    matches.append(Match(template=template, outcome=outcome))
         return tuple(matches)

@@ -275,10 +275,8 @@ def _token_creator() -> at.CardRecord:
         died,
         zones=(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU),),
     )
-    condition = at.FAtom(
-        at.FAtomPred.CONTROLLER_COUNT_GE,
-        inner_filter=at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Artifact"),
-        count=at.QConst(4),
+    condition = at.at_least(
+        4, quantity=at.number_you_control(at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Artifact"))
     )
     trigger = at.TriggeredAbility(
         at.TurnPhaseEvent(
@@ -398,7 +396,7 @@ def _all_nodes() -> list[tuple[str, object]]:
     tap = at.Atom(at.Verb.TAP, at.AtomArgs(pairs=(("target", src),)))
     untap = at.Atom(at.Verb.UNTAP, at.AtomArgs(pairs=(("target", src),)))
     mill = at.Atom(
-        at.Verb.MILL,
+        at.Verb.DRAW,
         at.AtomArgs(
             pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(4)))
         ),
@@ -410,7 +408,8 @@ def _all_nodes() -> list[tuple[str, object]]:
         ("QX", at.QX()),
         ("QUnbounded", at.QUnbounded()),
         ("QCount", at.QCount(src)),
-        ("QProp-str", at.QProp("controller", at.QPropField.CARDS_IN_HAND)),
+        ("QProp-str", at.QProp("controller", at.QPropField.LIFE)),
+        ("QDistinct", at.QDistinct(src, at.QPropField.NAME)),
         ("QProp-selector", at.QProp(src, at.QPropField.POWER, at.QAgg.MAX)),
         ("QProp-event", at.QProp("event", at.QPropField.AMOUNT)),
         ("QBin-add", at.QBin(at.QBinOp.ADD, at.QConst(1), at.QX())),
@@ -426,7 +425,7 @@ def _all_nodes() -> list[tuple[str, object]]:
             "QBin-min",
             at.QBin(
                 at.QBinOp.MIN,
-                at.QProp("controller", at.QPropField.CARDS_IN_LIBRARY),
+                at.QProp("controller", at.QPropField.STARTING_LIFE),
                 at.QConst(7),
             ),
         ),
@@ -501,14 +500,14 @@ def _all_nodes() -> list[tuple[str, object]]:
         ),
         ("FAtom-COLOR_HAS", at.FAtom(at.FAtomPred.COLOR_HAS, color="B")),
         ("FAtom-COLOR_IN", at.FAtom(at.FAtomPred.COLOR_IN, colors=("W", "U"))),
+        ("FAtom-QTY_GE-colors", at.at_least(2, field=at.QPropField.COLOR)),
+        ("FNot-QTY_GE-mana-value", at.at_most(3, field=at.QPropField.MANA_VALUE)),
+        ("FAtom-QTY_GE-mana-value", at.at_least(6, field=at.QPropField.MANA_VALUE)),
+        ("FAtom-QTY_GE-toughness", at.at_least(4, field=at.QPropField.TOUGHNESS)),
         (
-            "FAtom-COLOR_COUNT_GE",
-            at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(2)),
+            "FAtom-TARGETS",
+            at.FAtom(at.FAtomPred.TARGETS, inner_filter=at.FAtom(at.FAtomPred.IS_SOURCE)),
         ),
-        ("FAtom-CMC_LE", at.FAtom(at.FAtomPred.CMC_LE, count=at.QConst(3))),
-        ("FAtom-CMC_GE", at.FAtom(at.FAtomPred.CMC_GE, count=at.QConst(6))),
-        ("FAtom-PT_LE", at.FAtom(at.FAtomPred.PT_LE, count=at.QConst(2))),
-        ("FAtom-PT_GE", at.FAtom(at.FAtomPred.PT_GE, count=at.QConst(1))),
         (
             "FAtom-KEYWORD_HAS",
             at.FAtom(at.FAtomPred.KEYWORD_HAS, keyword=at.Keyword.FLYING),
@@ -538,26 +537,27 @@ def _all_nodes() -> list[tuple[str, object]]:
             at.FAtom(at.FAtomPred.CONTROLLER_IS, who=at.ControllerRef.TARGET_PLAYER),
         ),
         (
-            "FAtom-CMC_LE-dynamic-count",
-            at.FAtom(
-                at.FAtomPred.CMC_LE,
-                count=at.QProp("controller", at.QPropField.CARDS_IN_HAND),
+            "FNot-QTY_GE-dynamic-count",
+            at.at_most(
+                at.number_in(at.Zone(at.ZoneKind.HAND, at.ControllerRef.YOU)),
+                field=at.QPropField.MANA_VALUE,
             ),
         ),
         (
-            "FAtom-CONTROLLER_COUNT_GE",
-            at.FAtom(
-                at.FAtomPred.CONTROLLER_COUNT_GE,
-                inner_filter=at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Artifact"),
-                count=at.QConst(4),
+            "FAtom-QTY_GE-you-control",
+            at.at_least(
+                4,
+                quantity=at.number_you_control(
+                    at.FAtom(at.FAtomPred.TYPE_EQ, string_value="Artifact")
+                ),
             ),
         ),
         (
-            "FAtom-CONTROLLER_COUNT_LE",
-            at.FAtom(
-                at.FAtomPred.CONTROLLER_COUNT_LE,
-                inner_filter=at.FAtom(at.FAtomPred.IS_PERMANENT),
-                count=at.QConst(0),
+            "FAtom-QTY_GE-an-opponent",
+            at.at_least(
+                8,
+                quantity=at.number_in(at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)),
+                who=at.ControllerRef.OPPONENT,
             ),
         ),
         ("FAtom-IS_SOURCE", at.FAtom(at.FAtomPred.IS_SOURCE)),
@@ -847,8 +847,8 @@ def _all_nodes() -> list[tuple[str, object]]:
                             ),
                             (
                                 "power",
-                                at.QProp(
-                                    "controller", at.QPropField.CARDS_IN_GRAVEYARD
+                                at.number_in(
+                                    at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
                                 ),
                             ),
                         )
@@ -869,7 +869,6 @@ def _all_nodes() -> list[tuple[str, object]]:
         ),
         ("ActivatedAbility", at.ActivatedAbility(at.Cost(parts=(at.CostTap(),)), mill)),
         ("SpellAbility", at.SpellAbility(at.SpellKind.SORCERY, at.Seq((mill, untap)))),
-        ("KeywordAbility-SCRY", at.KeywordAbility(at.Keyword.SCRY, (at.QConst(3),))),
         (
             "KeywordAbility-PROTECTION",
             at.KeywordAbility(
@@ -1087,7 +1086,7 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
         ),
         (
             "QProp player-field with non-controller",
-            lambda: at.QProp("event", at.QPropField.CARDS_IN_HAND),
+            lambda: at.QProp("event", at.QPropField.LIFE),
         ),
         (
             "QProp bad referent type",
@@ -1097,7 +1096,7 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
         ),  # type: ignore[arg-type]
         (
             "QProp aggregation on singular referent",
-            lambda: at.QProp("controller", at.QPropField.CARDS_IN_HAND, at.QAgg.MAX),
+            lambda: at.QProp("controller", at.QPropField.LIFE, at.QAgg.MAX),
         ),
         ("QCount with non-selector", lambda: at.QCount(at.QConst(1))),  # type: ignore[arg-type]
         ("FAtom missing required slot", lambda: at.FAtom(at.FAtomPred.TYPE_EQ)),
@@ -1137,16 +1136,13 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
             lambda: at.FAtom(at.FAtomPred.COLOR_IN, colors=("W", "X")),
         ),
         (
-            "FAtom COLOR_COUNT_GE zero",
-            lambda: at.FAtom(at.FAtomPred.COLOR_COUNT_GE, count=at.QConst(0)),
+            "FAtom non-quantity count",
+            lambda: at.FAtom(at.FAtomPred.QTY_GE, count="2", field=at.QPropField.POWER),  # type: ignore[arg-type]
         ),
-        ("FAtom non-quantity count", lambda: at.FAtom(at.FAtomPred.CMC_LE, count="2")),  # type: ignore[arg-type]
         (
             "FAtom bad inner_filter",
-            lambda: at.FAtom(
-                at.FAtomPred.CONTROLLER_COUNT_GE, inner_filter="x", count=at.QConst(1)
-            ),
-        ),  # type: ignore[arg-type]
+            lambda: at.FAtom(at.FAtomPred.TARGETS, inner_filter="x"),  # type: ignore[arg-type]
+        ),
         (
             "Atom missing required role",
             lambda: at.Atom(at.Verb.DRAW, at.AtomArgs(pairs=(("target", src),))),
@@ -1219,8 +1215,8 @@ def _validation_cases() -> list[tuple[str, Callable[[], object]]]:
             ),
         ),
         (
-            "KeywordAbility SCRY without param",
-            lambda: at.KeywordAbility(at.Keyword.SCRY),
+            "KeywordAbility PROTECTION without param",
+            lambda: at.KeywordAbility(at.Keyword.PROTECTION),
         ),
         (
             "KeywordAbility FLYING with param",
@@ -1561,16 +1557,17 @@ def test_verb_count_in_spec_range() -> None:
     # docs/DESIGN_CARD_POOL.md plans roughly 60 verbs; a ceiling below that
     # keeps the closed vocabulary from growing unnoticed (raising it is a
     # deliberate edit: 51 for ATTACK_POLICY, Drowsing Tyrannodon's "can attack
-    # as though it didn't have defender", 2026-11-12).
-    assert 30 <= len(at.Verb) <= 51
+    # as though it didn't have defender", 2026-11-12; 52 for PERMIT, the
+    # permission to play cards from a zone, ontology round R13).
+    assert 30 <= len(at.Verb) <= 52
 
 
 def test_keyword_enum_is_closed_pool_set() -> None:
-    # The 24 distinct MTGJSON keyword strings of the M21 pool normalize to
-    # exactly these 23 ("Hexproof from" -> HEXPROOF + Filter param).
+    # The keyword abilities of the pool ("Hexproof from" -> HEXPROOF + Filter
+    # param). Scry and mill are keyword actions and battalion an ability word
+    # (ontology round R12's I0): none is a member.
     expected = {
         "FLYING",
-        "SCRY",
         "VIGILANCE",
         "LIFELINK",
         "FLASH",
@@ -1580,7 +1577,6 @@ def test_keyword_enum_is_closed_pool_set() -> None:
         "REACH",
         "HEXPROOF",
         "PROTECTION",
-        "MILL",
         "DEFENDER",
         "HASTE",
         "FIGHT",
@@ -1590,7 +1586,6 @@ def test_keyword_enum_is_closed_pool_set() -> None:
         "EQUIP",
         "INDESTRUCTIBLE",
         "TREASURE",
-        "BATTALION",
         "MENACE",
     }
     assert {k.name for k in at.Keyword} == expected
@@ -1741,7 +1736,7 @@ def test_synthetic_token_creator() -> None:
     assert trigger.event.phase is at.Phase.END_TURN
     assert trigger.condition is not None
     assert isinstance(trigger.condition, at.FAtom)
-    assert trigger.condition.pred is at.FAtomPred.CONTROLLER_COUNT_GE
+    assert trigger.condition.pred is at.FAtomPred.QTY_GE
     atom = trigger.effect
     assert isinstance(atom, at.Atom)
     assert atom.verb is at.Verb.CREATE_TOKEN

@@ -1,7 +1,9 @@
 {
+ "set": "M21",
  "world": {
   "life": 20,
-  "seed": 7
+  "seed": 7,
+  "library_top": true
  },
  "cards": [
   {
@@ -11,32 +13,49 @@
    "controller": 0
   },
   {
+   "key": "lib1",
+   "name": "Spare Library One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib2",
+   "name": "Spare Library Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
    "key": "ct",
    "real": "Crash Through",
-   "zone": "hand",
+   "zone": "library",
    "controller": 0
   }
  ],
- "mana": {
-  "0": {
-   "R": 10,
-   "C": 10,
-   "B": 10,
-   "G": 10,
-   "U": 10,
-   "W": 10
-  }
- },
  "steps": [
+  {
+   "op": "loyalty",
+   "key": "cf",
+   "set": 8,
+   "seat": 0
+  },
   {
    "op": "activate",
    "key": "cf",
-   "idx": 4,
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "act",
    "seat": 0,
-   "decisions": [
-    "fire"
-   ],
-   "expect_raise": "illegal activation: ability:not_activated:SpellAbility"
+   "words": [
+    "cast:ct:via:cf"
+   ]
   }
  ],
  "expect": {
@@ -44,11 +63,12 @@
    "1": 20
   },
   "zone": {
-   "ct": "hand"
+   "ct": "graveyard",
+   "cf": "graveyard"
   },
   "hand": {
-   "0": 1
+   "0": 7
   }
  },
- "notes": "B-49 follow-up #1 negative (was branch chandra_flame_s_catalyst:02, the free-cast fire branch). The [-8]'s 'Until end of turn, you may cast spells from your hand without paying their mana costs.' compiled as a free empty-cost activation at idx 4 that cast Crash Through from hand for nothing, any turn, as often as wanted. It is part of the [-8] (CR 611.2a) and is now suppressed (the card is engine-unsupported until CAST has a duration role), so idx 4 is the cast carrier: refused, and Crash Through stays in hand."
+ "notes": "The [-8]: 'Discard your hand, then draw seven cards. Until end of turn, you may cast spells from your hand without paying their mana costs.' Seeded at 8 loyalty, Chandra goes to the graveyard as the cost is paid (CR 704.5i) and the ability resolves anyway (CR 113.7a): seven cards drawn, Crash Through on top among them. Its permission is an effect of the resolved ability (CR 611.2a), so it outlives her: with no mana in the pool the menu offers Crash Through through it (cast:ct:via:cf, a free cast, CR 118.9) and it resolves (draw a card: hand 7). Before ontology round R13 the permission was suppressed (B-49 follow-up #1: its free activation cast for nothing on any turn) and the card was engine-unsupported."
 }

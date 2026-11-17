@@ -165,7 +165,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -177,73 +177,97 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAtom",
-      "pred": {
-       "tag": "FAtomPred",
-       "name": "TYPE_EQ"
-      },
-      "string_value": "Land",
-      "color": null,
-      "colors": [],
-      "count": null,
-      "counter_kind": null,
-      "keyword": null,
-      "who": null,
-      "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Land",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
      }
     }
    }
   ]
  },
- "verified": {
-  "tree_sha": "edad3aa913985e08c69fca12198c2a947b37cd2062658629b5e5d75326b8e3cc",
-  "probe_sha": "2b0c9bebbbbe1ef1cabed4ebcde5788b5f772a6f713d597ece1c39e814538076",
-  "date": "2026-11-14",
-  "reviewer": "reprint-wave-2026-11-14",
+ "mapping": {
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(parts=(CostTap(),)),\n        effect=A(Verb.ADD_MANA, {\n            'amount': QConst(value=1),\n            'color': 'C',\n            'controller': ControllerRef.YOU,\n        }),\n    ),\n    # [1]\n    ActivatedAbility(\n        cost=Cost(\n            parts=(\n                CostManaGeneric(amount=QConst(value=1)),\n                CostSacrifice(\n                    target=Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.IS_SOURCE),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n                CostTap(),\n            ),\n        ),\n        effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=5),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n]\n",
   "clauses": [
    {
     "clause": "{T}: Add {C}.",
-    "status": "OK",
-    "evidence": "[activate [0] from battlefield]: card becomes tapped, you: mana C+1.",
-    "issue": ""
+    "ir": "[activate [0] from battlefield]: card becomes tapped, you: mana C+1."
    },
    {
     "clause": "{1}, {T}, Sacrifice this land: Draw a card.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: 'ability [1] not activatable from battlefield: condition:false' (fewer than five lands). Pack cryptic_caves_five_lands_draws: with the Caves + 4 lands, {1} is spent, the Caves goes to the graveyard and you draw one card; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result. G3 pack cryptic_caves_draw_needs_untapped_caves.json PASS (five lands, the Caves tapped for {C}: the draw ability is refused 'cost:tap:source_tapped', nothing drawn, Caves stays); FAILS on the dropped-{T} mutant (the tapped Caves still sacrifices and draws).",
-    "issue": ""
+    "ir": "Trace: 'ability [1] not activatable from battlefield: condition:false' (fewer than five lands). Pack cryptic_caves_five_lands_draws: with the Caves + 4 lands, {1} is spent, the Caves goes to the graveyard and you draw one card; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result. G3 pack cryptic_caves_draw_needs_untapped_caves.json PASS (five lands, the Caves tapped for {C}: the draw ability is refused 'cost:tap:source_tapped', nothing drawn, Caves stays); FAILS on the dropped-{T} mutant (the tapped Caves still sacrifices and draws)."
    },
    {
     "clause": "Activate only if you control five or more lands.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace shows only the refusal on the small standard board (condition:false). Packs: five lands -> allowed (cryptic_caves_five_lands_draws); four own lands + two opponent lands -> refused 'condition:false' (cryptic_caves_four_lands_refused); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
-    "issue": ""
+    "ir": "Trace shows only the refusal on the small standard board (condition:false). Packs: five lands -> allowed (cryptic_caves_five_lands_draws); four own lands + two opponent lands -> refused 'condition:false' (cryptic_caves_four_lands_refused); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result."
    }
   ],
-  "packs": [
-   "tools/scenarios/cards/M20/cryptic_caves_1.json",
-   "tools/scenarios/cards/M20/cryptic_caves_2.json",
-   "tools/scenarios/cards/M20/cryptic_caves_3.json"
-  ],
-  "mutation": {
-   "mutants": 14,
-   "killed": 3,
-   "score": 0.21428571428571427,
-   "survived": [
-    "drop cost part 0 (CostManaGeneric) at 1/1/cost",
-    "drop cost part 1 (CostSacrifice) at 1/1/cost",
-    "drop cost part 2 (CostTap) at 1/1/cost",
-    "amount+1 at 1/1/cost/parts/0/amount",
-    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
-    "widen filter (drop part 1) at 1/1/cost/parts/1/target/filter",
-    "controller YOU->OPPONENT at 1/1/cost/parts/1/target/filter/children/0/who",
-    "amount+1 at 1/1/effect/args/amount",
-    "controller YOU->OPPONENT at 1/1/effect/args/controller",
-    "amount+1 at 1/1/condition/count",
-    "amount-1 at 1/1/condition/count"
-   ]
-  },
-  "reprint_of": "M20"
+  "g0_warnings": [],
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-14 by reprint-wave-2026-11-14 (reprint stamp of M20) tree, same meaning; it waits for re-verification."
+ },
+ "probe": {
+  "sha": "2b0c9bebbbbe1ef1cabed4ebcde5788b5f772a6f713d597ece1c39e814538076"
  }
 }

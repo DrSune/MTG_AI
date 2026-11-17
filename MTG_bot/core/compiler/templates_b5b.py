@@ -84,6 +84,9 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -1201,33 +1204,6 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-def _build_repl_graveyard_exile(m: re.Match[str]) -> SentenceOutcome:
-    """Chandra, Flame's Catalyst [−2]: "If that spell would be put into
-    your graveyard, exile it instead."
-
-    "that spell" is the ability's target (IS_ANY_TARGET).
-    """
-    return AbilityOutcome(
-        ability=ReplacementAbility(
-            event=ZoneChangeEvent(
-                from_zone=Zone(ZoneKind.STACK, ControllerRef.ANY),
-                to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
-                subject=FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            ),
-            condition=None,
-            action=Atom(
-                verb=Verb.MOVE_ZONE,
-                args=AtomArgs(
-                    pairs=(
-                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
-                        ("target", _event_referent()),
-                    )
-                ),
-            ),
-        )
-    )
-
-
 def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
     """Lofty Denial: "If you control a creature with flying, counter that
     spell unless its controller pays {4} instead."
@@ -1249,15 +1225,16 @@ def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    you_control_a_flier = FAtom(
-        pred=FAtomPred.CONTROLLER_COUNT_GE,
-        inner_filter=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+    you_control_a_flier = at_least(
+        1,
+        quantity=number_you_control(
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                )
             )
         ),
-        count=QConst(1),
     )
     return KickerEffectOutcome(effect=counter, replaces=True, pred=you_control_a_flier)
 
@@ -1291,8 +1268,8 @@ def _build_repl_draw_not_first(m: re.Match[str]) -> SentenceOutcome:
 def _build_cant_attack_unless_artifacts(m: re.Match[str]) -> SentenceOutcome:
     """Gadrak can't attack unless you control four or more artifacts.
 
-    The "unless" gate is ``StaticAbility.condition`` = FNot(CONTROLLER_COUNT_GE
-    Artifact), never a duration; the restriction is a PREVENT_EFFECT over
+    The "unless" gate is ``StaticAbility.condition`` = FNot(the comparison "you
+    control four or more artifacts"), never a duration; the restriction is a PREVENT_EFFECT over
     DeclareAttackersEvent with the source as event filter. "Gadrak" is the
     self-referent (IS_SOURCE)."""
     is_source = FAtom(pred=FAtomPred.IS_SOURCE)
@@ -1309,10 +1286,11 @@ def _build_cant_attack_unless_artifacts(m: re.Match[str]) -> SentenceOutcome:
         ability=StaticAbility(
             effect=atom,
             condition=FNot(
-                inner=FAtom(
-                    pred=FAtomPred.CONTROLLER_COUNT_GE,
-                    inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact"),
-                    count=QConst(4),
+                inner=at_least(
+                    4,
+                    quantity=number_you_control(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact")
+                    ),
                 )
             ),
         )
@@ -2297,8 +2275,7 @@ def _build_peer_half_library(m: re.Match[str]) -> SentenceOutcome:
 
     Draw: DRAW controller=TARGET_PLAYER, amount = half the target player's
     library. "their" is the spell's player target, so the count is a QCount
-    over Zone(LIBRARY, TARGET_PLAYER), not QProp CARDS_IN_LIBRARY (that
-    field is pinned to the ability controller).
+    over Zone(LIBRARY, TARGET_PLAYER), the one form of a zone's size (divergence D28).
 
     Life loss: ``EachPlayer(TARGET_PLAYER, LOSE_LIFE(YOU, ceil(LIFE / 2)))``.
     A life total is read only through QProp(controller, LIFE), so the step
@@ -2403,26 +2380,24 @@ def _build_double_counters_on_target(m: re.Match[str]) -> SentenceOutcome:
 def _build_then_if_opponent_more_creatures(m: re.Match[str]) -> SentenceOutcome:
     """``Then if an opponent controls more creatures than you, put a loyalty
     counter on Garruk.`` (Garruk, Unleashed [−2] s2) — the "Then "
-    continuation merges into the [−2] ActivatedAbility. Conditional on
-    CONTROLLER_COUNT_GT, a two-filter comparison (both required):
-    inner_filter counts the creatures an opponent controls,
-    right_inner_filter counts yours. "an opponent" is ControllerRef.OPPONENT
-    (the executor evaluates each opponent). Then-branch: one LOYALTY
-    counter on Garruk, the ability's source."""
+    continuation merges into the [−2] ActivatedAbility. Conditional on the
+    comparison "the creatures your opponents control number at least yours
+    plus one" (more than: CR 107.1, integers). Two-player reading: with several
+    opponents their creatures are counted together, where "an opponent" means
+    one of them (BACKLOG). Then-branch: one LOYALTY counter on Garruk, the
+    ability's source."""
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
     gated = Conditional(
-        pred=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GT,
-            inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
-                )
-            ),
-            right_inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                )
+        pred=at_least(
+            QBin(QBinOp.ADD, number_you_control(creature), QConst(1)),
+            quantity=number_in(
+                Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                FAnd(
+                    children=(
+                        creature,
+                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),
+                    )
+                ),
             ),
         ),
         then_effect=Atom(
@@ -2499,7 +2474,7 @@ def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
     control six or more Shrines, that ability triggers an additional
     time.`` (Sanctum of All s2) — an AbilityTriggerEvent over the triggering
     ability's source: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)
-    for "another". "while you control six or more Shrines" (CONTROLLER_COUNT_GE)
+    for "another". "while you control six or more Shrines" (the comparison)
     is part of that event, read as the Shrine's ability triggers: it is in the
     event's filter, not the condition, which only an intervening "if" is (CR
     603.4). The effect is TRIGGER_ADDITIONAL with its count axis, QConst(1) for
@@ -2512,10 +2487,11 @@ def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
                         FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
                         FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
                         FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
-                        FAtom(
-                            pred=FAtomPred.CONTROLLER_COUNT_GE,
-                            count=QConst(6),
-                            inner_filter=FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
+                        at_least(
+                            6,
+                            quantity=number_you_control(
+                                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine")
+                            ),
                         ),
                     )
                 )
@@ -2971,17 +2947,6 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_repl_die_exile,
     ),
     Template(
-        tid="B5b-repl-graveyard-exile",
-        name="if that spell would be put into your graveyard, exile it instead",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^If that spell would be put into your graveyard, "
-            r"exile it instead\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_repl_graveyard_exile,
-    ),
-    Template(
         tid="B5b-counter-unless-pays",
         name="counter that spell unless its controller pays {N} instead",
         bucket=_BUCKET,
@@ -3293,7 +3258,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-then-if-opponent-more-creatures",
-        name="then if an opponent controls more creatures than you, loyalty counter (CONTROLLER_COUNT_GT)",
+        name="then if an opponent controls more creatures than you, loyalty counter (the comparison)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Then if an opponent controls more creatures than you, put a "

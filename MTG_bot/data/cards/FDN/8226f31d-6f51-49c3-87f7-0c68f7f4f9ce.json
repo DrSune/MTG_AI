@@ -59,7 +59,7 @@
               "tag": "FAtom",
               "pred": {
                "tag": "FAtomPred",
-               "name": "POWER_GE"
+               "name": "QTY_GE"
               },
               "string_value": null,
               "color": null,
@@ -71,7 +71,11 @@
               "counter_kind": null,
               "keyword": null,
               "who": null,
-              "inner_filter": null
+              "inner_filter": null,
+              "field": {
+               "tag": "QPropField",
+               "name": "POWER"
+              }
              }
             ]
            },
@@ -131,7 +135,7 @@
  "mapping": {
   "author": "claude-mapper-M2",
   "date": "2026-11-17",
-  "draft_py": "# Make Your Move: \"Destroy target artifact, enchantment, or creature with power 4 or greater.\"\n# ZNR Broken Wings' shape (\"Destroy target artifact, enchantment, or creature with flying.\") with\n# the creature's qualifier POWER_GE 4 (Leafkin Avenger's \"creature with power 4 or greater\").\n# \"with power 4 or greater\" qualifies only \"creature\" (an artifact or enchantment of any kind is\n# a legal target).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n                    FAnd(children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n                    )),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FOr(\n                    children=(\n                        FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                FAtom(\n                                    pred=FAtomPred.QTY_GE,\n                                    count=QConst(value=4),\n                                    field=QPropField.POWER,\n                                ),\n                            ),\n                        ),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
   "clauses": [
    {
     "clause": "Destroy target artifact, enchantment, or creature with power 4 or greater.",
@@ -139,7 +143,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "ZNR/FDN Broken Wings' shape with 'creature with power 4 or greater' (POWER_GE 4). G1's target slot offers the 4/4s, artifacts and enchantments, not the 3/3, 2/2s or 1/1."
+  "notes": "ZNR/FDN Broken Wings' shape with 'creature with power 4 or greater' (power 4 or greater (at_least(4, field=POWER))). G1's target slot offers the 4/4s, artifacts and enchantments, not the 3/3, 2/2s or 1/1. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "219f7fd064d1a0d9b72754dc4bdaca894f835250b1aa9a39a53e7c280e117abc"

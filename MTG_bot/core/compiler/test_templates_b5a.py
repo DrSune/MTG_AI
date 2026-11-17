@@ -68,9 +68,13 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    at_least,
     canonical_json,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.compiler.compiler import _is_rule_reminder, compile_card
+from MTG_bot.core.compiler.conditions import life_over_start
 from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import (
     AdditionalCostOutcome,
@@ -1217,14 +1221,18 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertIsInstance(ability.event, DeclareAttackersEvent)
         self.assertIsNone(ability.condition)
         parts = ability.event.filter.children if isinstance(ability.event.filter, FAnd) else ()
-        cond = next(
-            (p for p in parts if isinstance(p, FAtom) and p.pred is FAtomPred.CONTROLLER_COUNT_GE),
-            None,
+        three_attack = at_least(
+            3,
+            quantity=number_you_control(
+                FAnd(
+                    (
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.IS_ATTACKING),
+                    )
+                )
+            ),
         )
-        if cond is None:
-            self.fail(f"expected a CONTROLLER_COUNT_GE in the event filter, got {ability.event!r}")
-        if not isinstance(cond.count, QConst) or cond.count.value != 3:
-            self.fail(f"expected group-of-three gate, got {cond.count!r}")
+        self.assertIn(three_attack, parts)  # the group of three, in the event's filter
         atom = _as_atom(ability.effect)
         self.assertEqual(atom.verb, Verb.PUT_COUNTER)
         p = _pairs_dict(atom)
@@ -1232,8 +1240,8 @@ class TestStructuralAssertions(unittest.TestCase):
 
     def test_snoop_top_goblin_grant(self) -> None:
         """B5a-snoop-top-goblin-abilities: StaticAbility whose condition is
-        ZONE_COUNT_GE over the library TOP (count=1, inner_filter
-        Goblin-subtype) and whose effect is a GRANT_ABILITY on self with an
+        the comparison "the Goblin cards on top of your library number one or
+        more" and whose effect is a GRANT_ABILITY on self with an
         inert StaticAbility payload (see the builder docstring)."""
         outcome = self._match_outcome("B5a-snoop-top-goblin-abilities")
         if not isinstance(outcome, AbilityOutcome):
@@ -1241,18 +1249,16 @@ class TestStructuralAssertions(unittest.TestCase):
         ability = outcome.ability
         if not isinstance(ability, StaticAbility):
             self.fail(f"expected StaticAbility, got {type(ability).__name__}")
-        cond = ability.condition
-        if not isinstance(cond, FAtom) or cond.pred is not FAtomPred.ZONE_COUNT_GE:
-            self.fail(f"expected ZONE_COUNT_GE condition, got {cond!r}")
-        assert cond.zone is not None and cond.count is not None
-        self.assertIs(cond.zone.kind, ZoneKind.LIBRARY)
-        self.assertIs(cond.zone.position, ZonePosition.TOP)
-        if not isinstance(cond.count, QConst) or cond.count.value != 1:
-            self.fail(f"expected TOP-window count 1, got {cond.count!r}")
-        assert cond.inner_filter is not None
-        assert isinstance(cond.inner_filter, FAtom)
-        self.assertIs(cond.inner_filter.pred, FAtomPred.SUBTYPE_EQ)
-        self.assertEqual(cond.inner_filter.string_value, "Goblin")
+        self.assertEqual(
+            ability.condition,
+            at_least(
+                1,
+                quantity=number_in(
+                    Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
+                ),
+            ),
+        )
         atom = _as_atom(ability.effect)
         self.assertEqual(atom.verb, Verb.GRANT_ABILITY)
         p = _pairs_dict(atom)
@@ -1263,7 +1269,7 @@ class TestStructuralAssertions(unittest.TestCase):
             )
 
     def test_destroy_power_ge(self) -> None:
-        """B5a-destroy-power-ge: EffectOutcome, DESTROY verb, POWER_GE filter."""
+        """B5a-destroy-power-ge: EffectOutcome, DESTROY verb, power comparison filter."""
         outcome = self._match_outcome("B5a-destroy-power-ge")
         eff = _as_effect(outcome)
         atom = _as_atom(eff.effect)
@@ -1275,16 +1281,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.mode, SelectorMode.TARGET)
         if not isinstance(target.filter, FAnd):
             self.fail(f"expected FAnd filter, got {type(target.filter)}")
-        preds = [
-            child
-            for child in target.filter.children
-            if isinstance(child, FAtom) and child.pred == FAtomPred.POWER_GE
-        ]
-        self.assertEqual(len(preds), 1)
-        self.assertIsInstance(preds[0].count, QConst)
-        if not isinstance(preds[0].count, QConst):
-            self.fail(f"expected QConst, got {type(preds[0].count)}")
-        self.assertEqual(preds[0].count.value, 4)
+        self.assertIn(at_least(4, field=QPropField.POWER), target.filter.children)
 
     def test_double_power(self) -> None:
         """B5a-double-power: MODIFY_PT +X/+0, X = the target's power; doubling
@@ -1377,28 +1374,17 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(cond.pred, FAtomPred.DIED_THIS_TURN)
 
     def test_activate_only_flying(self) -> None:
-        """B5a-activate-only-flying: gate, CONTROLLER_COUNT_GE(FAnd(Creature, flying))."""
+        """B5a-activate-only-flying: gate, "you control one or more creatures with flying"."""
         outcome = self._match_outcome("B5a-activate-only-flying")
         if not isinstance(outcome, ActivationGateOutcome):
             self.fail(f"expected ActivationGateOutcome, got {type(outcome)}")
-        cond = outcome.condition
-        if not isinstance(cond, FAtom):
-            self.fail(f"expected FAtom condition, got {type(cond)}")
-        self.assertEqual(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(cond.count, QConst(1))
-        inner = cond.inner_filter
-        if not isinstance(inner, FAnd):
-            self.fail(f"expected FAnd inner filter, got {type(inner)}")
-        self.assertEqual(len(inner.children), 2)
-        first, second = inner.children
-        if not isinstance(first, FAtom):
-            self.fail(f"expected FAtom, got {type(first)}")
-        self.assertEqual(first.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(first.string_value, "Creature")
-        if not isinstance(second, FAtom):
-            self.fail(f"expected FAtom, got {type(second)}")
-        self.assertEqual(second.pred, FAtomPred.KEYWORD_HAS)
-        self.assertEqual(second.keyword, Keyword.FLYING)
+        flier = FAnd(
+            (
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
+        )
+        self.assertEqual(outcome.condition, at_least(1, quantity=number_you_control(flier)))
 
     def test_counter_unless_sps(self) -> None:
         """B5a-counter-unless-sps: COUNTER_SPELL, FOr(Instant,Sorcery), unless {3}."""
@@ -1455,7 +1441,7 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(cmg.amount, QConst(1))
 
     def test_aslong_opp_gy_count_structure(self) -> None:
-        """ZONE_COUNT_GE in StaticAbility.condition, effect =
+        """The comparison read for some opponent in StaticAbility.condition, effect =
         Seq(MODIFY_PT, GRANT deathtouch) on the self selector."""
         outcome = self._match_outcome("B5a-aslong-opp-gy-count")
         if not isinstance(outcome, AbilityOutcome):
@@ -1463,16 +1449,16 @@ class TestStructuralAssertions(unittest.TestCase):
         ab = outcome.ability
         if not isinstance(ab, StaticAbility):
             self.fail(f"expected StaticAbility, got {type(ab)}")
-        cond = ab.condition
-        if not isinstance(cond, FAtom):
-            self.fail(f"expected FAtom condition, got {type(cond)}")
-        self.assertEqual(cond.pred, FAtomPred.ZONE_COUNT_GE)
-        self.assertEqual(cond.who, ControllerRef.OPPONENT)
-        self.assertEqual(cond.count, QConst(8))
-        assert cond.zone is not None
-        self.assertEqual(cond.zone.kind, ZoneKind.GRAVEYARD)
-        self.assertEqual(cond.zone.controller, ControllerRef.OPPONENT)
-        self.assertEqual(cond.inner_filter, FAnd(children=()))
+        # an opponent has eight or more cards in their graveyard: "your" graveyard read for some
+        # opponent as "you"
+        self.assertEqual(
+            ab.condition,
+            at_least(
+                8,
+                quantity=number_in(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+                who=ControllerRef.OPPONENT,
+            ),
+        )
         eff = ab.effect
         if not isinstance(eff, Seq):
             self.fail(f"expected Seq effect, got {type(eff)}")
@@ -2053,7 +2039,7 @@ class TestB5aJsonCrossCheck(unittest.TestCase):
 
 
 class TestB5aRound9BStructures(unittest.TestCase):
-    """Speaker gate (LIFE_LEAD_OVER_START_GE) and Drowsing defender-strip
+    """Speaker gate (life over the starting life total) and Drowsing defender-strip
     (LOSE_ABILITY under the as-long-as condition, DurationWhileCondition)."""
 
     @classmethod
@@ -2071,13 +2057,8 @@ class TestB5aRound9BStructures(unittest.TestCase):
             "starting life total and only as a sorcery."
         )
         assert isinstance(outcome, ActivationGateOutcome)
-        cond = outcome.condition
-        assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
-        # The threshold rides `count` verbatim.
-        self.assertEqual(cond.count, QConst(7))
-        self.assertIsNone(cond.who)
-        self.assertIsNone(cond.inner_filter)
+        # your life total is at least your starting life total plus 7 (CR 103.4, ledger F11)
+        self.assertEqual(outcome.condition, life_over_start(7))
         # "... and only as a sorcery" is the gate's window slot.
         self.assertIs(outcome.window, ActivationWindow.SORCERY)
 
@@ -2103,10 +2084,7 @@ class TestB5aRound9BStructures(unittest.TestCase):
             ab for ab in res.card.abilities if isinstance(ab, ActivatedAbility)
         ]
         self.assertEqual(len(activated), 1)
-        cond = activated[0].condition
-        assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.LIFE_LEAD_OVER_START_GE)
-        self.assertEqual(cond.count, QConst(7))
+        self.assertEqual(activated[0].condition, life_over_start(7))
         self.assertIs(activated[0].timing, ActivationWindow.SORCERY)
 
     def test_drowsing_attacks_as_though_no_defender(self) -> None:
@@ -2117,20 +2095,15 @@ class TestB5aRound9BStructures(unittest.TestCase):
         ab_out = _as_ability(outcome)
         ab = ab_out.ability
         assert isinstance(ab, StaticAbility)
-        # The as-long-as lives on the StaticAbility condition —
-        # CONTROLLER_COUNT_GE(1, Creature & POWER_GE 4) (count=1 = "a creature")
-        cond = ab.condition
-        assert isinstance(cond, FAtom)
-        self.assertIs(cond.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(cond.count, QConst(1))
-        inner = cond.inner_filter
-        assert isinstance(inner, FAnd)
-        type_a, power_ge = inner.children
-        assert isinstance(type_a, FAtom) and isinstance(power_ge, FAtom)
-        self.assertEqual(type_a.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(type_a.string_value, "Creature")
-        self.assertEqual(power_ge.pred, FAtomPred.POWER_GE)
-        self.assertEqual(power_ge.count, QConst(4))
+        # The as-long-as lives on the StaticAbility condition: one or more creatures you control
+        # with power 4 or greater ("a creature")
+        big = FAnd(
+            (
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                at_least(4, field=QPropField.POWER),
+            )
+        )
+        self.assertEqual(ab.condition, at_least(1, quantity=number_you_control(big)))
         # effect: ATTACK_POLICY AS_NO_DEFENDER on self (CR 609.4) -- the
         # keyword stays, so it is still "a creature with defender" (B-80)
         atom = _as_atom(ab.effect)
