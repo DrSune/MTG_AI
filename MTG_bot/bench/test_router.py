@@ -386,6 +386,21 @@ def test_a_target_is_offered_when_its_cost_increase_is_payable() -> None:
     assert game.executor.attachments.get(_handle(game, "Rousing Read", zone=ZONE_BATTLEFIELD)) == whale
 
 
+def test_bad_deal_asks_the_opponent_for_its_discards() -> None:
+    # CR 701.9b: the discarding player chooses. The verified Bad Deal ("Each opponent discards two
+    # cards") asks the opponent's seat, one card per ask, never its caster's (engine wave E2,
+    # checked for mapper M3's report: the count-one form was lifted onto the caster's ask).
+    game, supply = _arranged(hand0=("Bad Deal",), field0=("Swamp",) * 6,
+                             hand1=("Walking Corpse", "Shock", "Brash Taunter"))
+    caster, opponent = _Picker(), _Picker()
+    router = SeatRouter(game, [caster, opponent], _lenses(), supply=supply)
+    game.executor.decisions.provider = router.answer
+    _play_row(router, game, f"cast:{_handle(game, 'Bad Deal')}")
+    assert [ask.site.split(":")[:3] for ask in opponent.asks] == [["discard", "player", "1"]] * 2
+    assert not any(ask.kind == "discard" for ask in caster.asks)
+    assert len(game.world.players[P1].zone(ZONE_HAND).entries) == 1
+
+
 def test_two_targets_that_together_cost_too_much_are_never_offered_together() -> None:
     # Bug hunt 2026-11-17. Frost Breath ({2}{U}, "Tap up to two target creatures") at the
     # opponent's two Pursued Whales ("{3} more" each): six Islands pay for one Whale, not both

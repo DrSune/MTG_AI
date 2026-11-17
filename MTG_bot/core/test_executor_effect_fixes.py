@@ -100,6 +100,40 @@ def leave_and_return(r, key):
     r.run_step({"op": "enter", "key": key})
 
 
+class TestTheDiscardingPlayerChooses(unittest.TestCase):
+    """CR 701.9b: the discarding player chooses. Engine wave E2, from mapper M3: a record's "each
+    opponent discards a card" (the plural controller role, Bad Deal's form with one card) was
+    lifted onto the asking ONE_OF channel by the canonicalizer, which asks the caster, over every
+    hand. It now stays the hand lane's pick (compiler._another_players_hand_pick)."""
+
+    def test_each_opponent_chooses_the_card_it_discards(self):
+        from MTG_bot.core.ability_tree import SpellAbility, SpellKind
+        from MTG_bot.core.compiler.compiler import _promote_liftable_picks
+
+        r = runner([bear("mine", 0, zone="hand"), bear("a", 1, zone="hand"), bear("b", 1, zone="hand"),
+                    {"key": "spell", "name": "Spell", "type": "Sorcery", "zone": "graveyard",
+                     "controller": 0}])
+        discard = Atom(Verb.MOVE_ZONE, AtomArgs((
+            ("cards", Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                               zones=(Zone(ZoneKind.HAND, ControllerRef.ANY),))),
+            ("controller", ControllerRef.OPPONENT),
+            ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT)),
+            ("from", Zone(ZoneKind.HAND, ControllerRef.OPPONENT)),
+        )))
+        (spell,) = _promote_liftable_picks([SpellAbility(kind=SpellKind.SORCERY, effect=discard)], "Probe")
+        asked = []
+
+        def provider(vocab, what):
+            asked.append((what.split(":")[0], r.ex.decisions.asking_seat))
+            return vocab[-1]
+
+        r.ex.decisions.provider = provider
+        r.ex.apply_effect(spell.effect, source=r.handles["spell"], controller=r.p0)
+        self.assertEqual(asked, [("discard", r.p1)])
+        zones = {k: r.world.zone_of(r.handles[k]).kind for k in ("mine", "a", "b")}
+        self.assertEqual(zones, {"mine": "hand", "a": "hand", "b": "graveyard"})
+
+
 class TestPreventionScope(unittest.TestCase):
     """Engine wave E2 (found mapping FDN Fleeting Flight, whose record rightly scopes its
     prevention to its target): a prevention whose condition names neither the ability's targets

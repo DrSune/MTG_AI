@@ -1369,10 +1369,9 @@ PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
         # NOT the effect controller (CR 701.8a "that player chooses";
         # Goremand/Run Afoul "of their choice"), so the controller-primed
         # ONE_OF lane cannot answer these honestly.
+        # (A discard is never lifted, by structure: _another_players_hand_pick.)
         ("Goremand", "SACRIFICE"),  # "each opponent sacrifices"
         ("Run Afoul", "SACRIFICE"),  # "of their choice with flying"
-        ("Liliana's Steward", "MOVE_ZONE"),  # "target opponent discards"
-        ("Liliana, Waker of the Dead", "MOVE_ZONE"),  # "+1 each player discards"
         ("Keral Keep Disciples", "DEAL_DAMAGE"),
         # ^ forced-direction node: "1 damage to each opponent" is NO
         # decision at all — the singleton PLAYER pick auto-fills, so an
@@ -1404,6 +1403,25 @@ def _filter_carries_is_source(filter_: Filter | None) -> bool:
     if isinstance(filter_, FNot):
         return _filter_carries_is_source(filter_.inner)
     return False
+
+
+def _another_players_hand_pick(atom: Atom) -> bool:
+    """A move out of a hand that a player other than the effect's controller makes ("each
+    opponent discards a card", "target opponent discards a card", "each player discards a
+    card"): the player whose hand it is chooses the cards (CR 701.9b), and the executor's hand
+    lane asks each of them (``verbs._hand_picks``). The asking ONE_OF channel asks the effect's
+    controller, so such a pick is never lifted onto it (the caster would pick the opponent's
+    discard, from every hand). A pick the caster makes ("You choose a card from it. That player
+    discards that card", Duress) names the cards it chose (a referent) and is not lifted either."""
+    who = atom.args.get("controller")
+    frm = atom.args.get("from")
+    return (
+        atom.verb is Verb.MOVE_ZONE
+        and isinstance(frm, Zone)
+        and frm.kind is ZoneKind.HAND
+        and who is not None
+        and who is not ControllerRef.YOU
+    )
 
 
 def _is_liftable_pick(node: Selector, in_cost: bool) -> bool:
@@ -1446,6 +1464,8 @@ def _pick_ask_promotions(
     if type(node).__name__.startswith("Cost") and type(node).__name__ != "CostLoyalty":
         in_cost = True
     if isinstance(node, Atom):
+        if _another_players_hand_pick(node):
+            return node  # its player's own pick, asked by the hand lane (CR 701.9b)
         verb = node.verb.name
     if isinstance(node, Selector):
         key = (name, verb or "")
