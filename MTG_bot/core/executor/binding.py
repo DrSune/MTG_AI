@@ -2017,19 +2017,20 @@ class TriggerBinder:
 
     @classmethod
     def _reads_player_anaphora(cls, node: _AnyTrigger) -> bool:
-        """Is the trigger's one designation a designated player read through a role or a
-        filter, the encoding of the "that player" anaphora (TARGET_PLAYER, divergence D18:
-        Massacre Wurm's "that player loses 2 life")? That is what a DAMAGE or DIES firing
-        pre-binds to its event's object (:meth:`_put`). A printed TARGET slot (Pitchburn Devils'
-        "any target"; the collector walks Optional and Seq wrappers, so Goblin Arsonist's
-        may-wrapped damage is seen), an EachPlayer run as the designated player (Run Afoul's
+        """Is the trigger's one designation a TARGET_PLAYER read through a role or a filter,
+        the encoding of the "that player" anaphora (divergence D18: Massacre Wurm's "that player
+        loses 2 life")? That is what a DAMAGE or DIES firing pre-binds to its event's object
+        (:meth:`_put`). A printed TARGET slot (Pitchburn Devils' "any target"; the collector
+        walks Optional and Seq wrappers, so Goblin Arsonist's may-wrapped damage is seen), a
+        TARGET_OPPONENT read (the anaphora is never "target opponent",
+        ``query.player_target_slot``), an EachPlayer run as the designated player (Run Afoul's
         "target opponent sacrifices") and a selector over that player's zone (Tormod's Crypt's
         "target player's graveyard") are printed targets, which the trigger's controller
         chooses as it goes on the stack (CR 603.3d, 115.1)."""
         from MTG_bot.core.executor.query import _rotation_player_refs  # cycle-free at call time
 
-        selectors, reads_player, _opponent_only = cls._designation_slots(node)
-        if selectors or not reads_player:
+        selectors, reads_player, opponent_only = cls._designation_slots(node)
+        if selectors or not reads_player or opponent_only:
             return False
         for inner in own_nodes(node.effect):
             if _rotation_player_refs(inner):

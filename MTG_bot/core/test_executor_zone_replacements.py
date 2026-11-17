@@ -212,6 +212,25 @@ class TestFromAnywhere(ZoneReplacementCase):
         self.ex.fire_triggers()  # a priority check: both die at once
         self.assertEqual((self.zone(leyline), self.zone(theirs)), (ZONE_GRAVEYARD, ZONE_EXILE))
 
+    def test_a_card_two_lanes_of_the_check_put_away_is_replaced_once(self) -> None:
+        """A creature Aura with lethal damage and attached to nothing is in two lanes of one
+        check (CR 704.5g, 704.5m): its move is replaced once, it never reaches the graveyard and
+        so never dies (no dies trigger)."""
+        self.permanent("Leyline", LEYLINE)
+        self.give("Watcher", SpellKind.CREATURE, zone=ZONE_BATTLEFIELD, type_line="Creature",
+                  types=("Creature",), power="1", toughness="1", extra_abilities=(TriggeredAbility(
+                      event=CreatureDiesEvent(FAnd(())), condition=None,
+                      effect=atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1))),))
+        aura = self.give("Wandering Aura", SpellKind.ENCHANTMENT, zone=ZONE_BATTLEFIELD, seat=self.p1,
+                         type_line="Enchantment Creature — Aura", types=("Enchantment", "Creature"),
+                         power="2", toughness="2")
+        self.world.cards[aura].identity = replace(self.world.cards[aura].identity, keywords=("ENCHANT",))
+        self.ex.mark_damage(aura, 2)
+        self.ex.fire_triggers()  # a priority check: the state-based actions
+        self.assertEqual(self.zone(aura), ZONE_EXILE)
+        self.assertEqual(self.world.players[self.p0].life, 20)
+        self.assertNotIn(("STATE_CHECK", str(aura), "UNATTACHED"), [e[1:4] for e in self.ex.events])
+
     def test_a_token_is_no_card(self) -> None:
         """Leyline of the Void names cards: a token dies as usual (and then ceases to exist)."""
         self.permanent("Leyline", LEYLINE)

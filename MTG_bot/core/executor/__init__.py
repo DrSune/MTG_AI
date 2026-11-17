@@ -1794,9 +1794,10 @@ class Executor:
 
             def to_graveyard(card: Handle, why: str, replaced_why: str) -> None:
                 owner = self.world.controller_of(card)
-                repl = decided.pop(card, None)  # one lane takes a card listed in two
-                if repl is not None:
-                    replaced.append((card, repl))
+                if card in decided:
+                    if any(card == c for c, _repl in replaced):
+                        return  # listed in two lanes (a creature Aura dying unattached)
+                    replaced.append((card, decided[card]))
                     self.events.append(
                         (len(self.events), "STATE_CHECK", str(card), replaced_why)
                     )

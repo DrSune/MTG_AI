@@ -501,6 +501,21 @@ class TestTargetPlayerSacrifices(DesignationCase):
         self.assertEqual(self.world.zone_of(theirs).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(mine).kind, ZONE_BATTLEFIELD)
 
+    def test_target_opponent_read_by_a_role_is_a_printed_target(self):
+        """"When this creature dies, target opponent loses 2 life": the "that player" anaphora
+        the DIES pre-bind serves is never "target opponent", so the opponent is designated (one
+        here: forced), and the dead creature's controller loses nothing."""
+        martyr = self.world.add_card(card_id("Martyr", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.attach(martyr, TriggeredAbility(
+            event=CreatureDiesEvent(FAtom(FAtomPred.IS_SOURCE)), condition=None,
+            effect=atom(Verb.LOSE_LIFE, controller=ControllerRef.TARGET_OPPONENT, amount=QConst(2))),
+            name="Martyr")
+        self.never_ask()
+        self.ex.execute(atom(Verb.DESTROY, target=Selector(QConst(1), SelectorMode.TARGET, UNIV,
+                                                            zones=(BF_ANY,))),
+                        source=martyr, controller=self.p0, bindings={"target": martyr})
+        self.assertEqual((self.world.players[self.p0].life, self.world.players[self.p1].life), (20, 18))
+
     def test_a_damage_trigger_asks_its_target_too(self):
         """"Whenever this creature deals damage, target player sacrifices a creature": its
         controller chooses the player; the dealer never stands for it (the DAMAGE pre-bind)."""
