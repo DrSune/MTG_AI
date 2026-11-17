@@ -663,16 +663,18 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         #   kind only (verbs.py _v_move_zone), so their controller fields are dead;
         # - a REST partition is the complement of the ONE_OF pick, its count is never read
         #   (selectors.py REST branch, query.py "count ignored (like ALL)", verbs.py partition lane);
-        # - a CHOOSE over the one zone Zone(PLAYER, YOU) has one player to pick, so every count >= 1
-        #   picks that player (selectors.py CHOOSE branch, ``ordered[:k]``; a static's population is
-        #   enumerate_candidates, which reads no count). Cost selectors are left out.
+        # - a CHOOSE or ONE_OF over the one zone Zone(PLAYER, YOU) has one player to pick, so every
+        #   count >= 1 picks that player (selectors.py CHOOSE branch, ``ordered[:k]``; the ONE_OF
+        #   branch resolves k of n best effort and query.py gives ONE_OF no exact-count gate; a
+        #   static's population is enumerate_candidates, which reads no count: FDN Crystal
+        #   Barricade's "You have hexproof"). Cost selectors are left out.
         if isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE and (
                 node.args.get("pop_order") == "TOP"
                 or getattr(node.args.get("from"), "kind", None) is ZoneKind.HAND):
             dead |= {(*path, "args", "from", "controller"), (*path, "args", "destination", "controller")}
         if isinstance(node, Selector) and node.referent is None and (
                 node.mode is SelectorMode.REST
-                or node.mode is SelectorMode.CHOOSE and len(node.zones) == 1
+                or node.mode in (SelectorMode.CHOOSE, SelectorMode.ONE_OF) and len(node.zones) == 1
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))

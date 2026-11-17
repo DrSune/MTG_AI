@@ -154,10 +154,10 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | Selector(referent="event") under a trigger that gathers objects (`ability_tree.gathers_objects`: a flagged declaration or zone change): every object the event gathered ("they"), the same C2 bytes as "it" | M20 Angelic Guardian (compiler, B2b-attackers-gain-keyword-eot; record re-mapped) | **low-volume**: 1 tree; the census's M21 and ZNR hold none |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostExile, one per cost (`target`: a CHOOSE selector, a literal count, one zone: `Zone(BATTLEFIELD, ANY)` for the source or a permanent the payer controls, the payer's graveyard or hand; the source is `IS_SOURCE` alone, count 1): the source on the battlefield; the source in your graveyard (the ability then works there, CR 113.6m); N [other] [<type>] cards from your graveyard | compiler B13-activated-cost-item: M20 Hanged Executioner (record re-mapped), M11 Brittle Effigy, ELD Inquisitive Puppet; FDN Suspicious Shambler, M15 Soul of Zendikar; DOM Fungal Plots, KHM Egon's back face | 7 trees (5 whole); 50 printed exile cost items in the 19 sets, 22 of them THB escape (`reports/cost_twins_2026-11-14/census.txt`) |
 | 2026-11-14, gate round 11 (FIX-THEN-GO, §15) | Cost.parts x CostRemoveCounter, one per kind per cost (`counter_kind` but LOYALTY, `target` the source or a permanent the payer controls, a literal `count`) | M20 Barkhide Troll (record); compiler: ELD Steelbane Hydra, Tome of Legends, M12 Pentavus, M19 Transmogrifying Wand, ZNR Throne of Makindi | 6 trees (2 whole); 25 printed remove-counter cost items |
-| 2026-11-17, gate round 12 (pending, §16) | FAtom QTY_GE x `field` (POWER, TOUGHNESS, MANA_VALUE, COLOR: `ability_tree.COMPARED_FIELDS`), the judged object's characteristic; "N or less" only as its FNot at N + 1 | B11 noun phrases ("with power|toughness|mana value N or less|greater"), M21 Legion's Judgment, Eliminate, Subira, Ugin; ZNR Bloodchief's Thirst; ELD Epic Downfall | 46 trees (16 of them the FNot form); `reports/quantity_comparison_2026-11-17/census.txt` |
-| 2026-11-17, gate round 12 (pending, §16) | FAtom QTY_GE x `quantity` (QCount, QDistinct, QPartyCount, a QProp over an ALL selector aggregated, your LIFE: `ability_tree._measures_the_game`) [x `who` OPPONENT over a count of "your" zone] | M21 Sanctum of All, Fabled Passage, Speaker of the Heavens (STARTING_LIFE), Thieves' Guild Enforcer (`who`); ZNR party (5); M20 Field of the Dead (QDistinct) | 68 trees (who 4, QDistinct 1, party 5, life 7) |
-| 2026-11-17, gate round 12 (pending, §16) | FAtom TARGETS x `inner_filter` (required): one of the judged spell's or ability's targets passes it | IS_SOURCE: Gnarlback Rhino (M20, FDN), Pursued Whale, the THB heroes (5); a filter: M20 Season of Growth (record), WAR Kasmina | 12 trees (2 with a filter) |
-| 2026-11-17, gate round 12 (pending, §16) | QDistinct x `field` (COLOR, NAME, MANA_VALUE: `ability_tree.DISTINCT_FIELDS`) | M21 Chromatic Orrery (COLOR), Chrome Replicator (NAME, in the count), M20 Field of the Dead (NAME), FDN Lunar Insight (MANA_VALUE) | **low-volume**: 5 trees |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom QTY_GE x `field` (POWER, TOUGHNESS, MANA_VALUE, COLOR: `ability_tree.COMPARED_FIELDS`), the judged object's characteristic; "N or less" only as its FNot at N + 1 | B11 noun phrases ("with power|toughness|mana value N or less|greater"), M21 Legion's Judgment, Eliminate, Subira, Ugin; ZNR Bloodchief's Thirst; ELD Epic Downfall | 46 trees (16 of them the FNot form); `reports/quantity_comparison_2026-11-17/census.txt` |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom QTY_GE x `quantity` (QCount, QDistinct, QPartyCount, a QProp over an ALL selector summed, your LIFE: `ability_tree._measures_the_game`) [x `who` OPPONENT over a count of "your" zone] | M21 Sanctum of All, Fabled Passage, Speaker of the Heavens (STARTING_LIFE), Thieves' Guild Enforcer (`who`); ZNR party (5); M20 Field of the Dead (QDistinct) | 68 trees (who 4, QDistinct 1, party 5, life 7) |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | FAtom TARGETS x `inner_filter` (required): one of the judged spell's or ability's targets passes it | IS_SOURCE: Gnarlback Rhino (M20, FDN), Pursued Whale, the THB heroes (5); a filter: M20 Season of Growth (record), WAR Kasmina | 12 trees (2 with a filter) |
+| 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | QDistinct x `field` (COLOR, NAME, MANA_VALUE: `ability_tree.DISTINCT_FIELDS`) | M21 Chromatic Orrery (COLOR), Chrome Replicator (NAME, in the count), M20 Field of the Dead (NAME), FDN Lunar Insight (MANA_VALUE) | **low-volume**: 5 trees |
 
 ## 6. Identity + conformance
 
@@ -2027,7 +2027,7 @@ Re-run on 586fa91a with the gate's fixes each undone in turn (the source in one 
 permanents, one whole zone, one exile and one removal of a kind per cost, the raise on a short
 segment): 5 of 5 killed, and M17 killed (`mutate_gate11.py`, `mutants_gate11.txt`).
 
-## 16. Round R12 — one quantity comparison; TARGETS, QDistinct and zone counts made general (2026-11-17; DRAFT, PENDING gate round 12)
+## 16. Round R12 — one quantity comparison; TARGETS, QDistinct and zone counts made general (2026-11-17; gate round 12 FIX-THEN-GO, fixed)
 
 Proposals I1, I9 and I0 of KNOWLEDGE/2026-11-17/210 (the component-sharing review the owner asked
 for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and scripts:
@@ -2040,8 +2040,9 @@ for). Branch `worktree-agent-a6b3b1412af16b3da` on 30736aba. Evidence and script
 - `FAtomPred.QTY_GE`: the judged object's characteristic, or a quantity the game measures, is at
   least `count`. Two new optional FAtom slots, exactly one of them set: `field` (POWER, TOUGHNESS,
   MANA_VALUE or COLOR, the number of the object's colours: `COMPARED_FIELDS`, CR 208.1, 202.3,
-  105.2) or `quantity` (a QCount, QDistinct or QPartyCount, a QProp over an ALL selector with
-  SUM/MAX/MIN, or your LIFE: `_measures_the_game`). `who` is OPPONENT or absent
+  105.2) or `quantity` (a QCount, QDistinct or QPartyCount, a population's total (a QProp over
+  an ALL selector with SUM), or your LIFE: `_measures_the_game`; a greatest or least value is a
+  second form of a count, gate round 12). `who` is OPPONENT or absent
   (`COMPARED_PLAYERS`), and only over a QCount of "your" zones with no referent: the count read for
   each opponent in turn, as EachPlayer rotates "you", true when one of them has it ("an opponent
   has eight or more cards in their graveyard").
@@ -2099,9 +2100,12 @@ QPropField 12 -> 11 (+COLOR, NAME, STARTING_LIFE), Verb 51 -> 49, Keyword 23 -> 
 a player's life as `field`, QDistinct of POWER, QProp of COLOR or NAME, a literal, an X, the
 source's own power (directly or through a referent selector, QProp or QDistinct) or a negated life
 as `quantity`; "or less" as a pick count or a number on the measured side; a threshold of 0; "1 + N";
-a target player in a QThisTurn; the negation of a comparison of two measures; TARGETS without its
-filter; `who` over another player's zone, `who` YOU, `who` with `field`, `who` over life, `who`
-against a measured threshold.
+a target player in a QThisTurn; the negation of a comparison of two measures, directly or through
+FAnd and FOr; a double negation; "N + 0"; an ALL selector with a count; a population's greatest or
+least value; a battlefield population whose zone names a controller (control is an overlay,
+`Executor.controller_of`: Zone(BATTLEFIELD, ANY) and CONTROLLER_IS in the filter), on either side
+and under `who`; TARGETS without its filter; `who` over another player's zone, `who` YOU, `who`
+with `field`, `who` over life, `who` against a measured threshold.
 
 **Alternatives rejected.**
 - An operator enum (GE, LE, GT, EQ): over integers LE and GT are FNot and +1 of GE, second
@@ -2177,3 +2181,38 @@ targets you" (Cerulean Drake, Psychic Rebuttal) needs a filter that names a play
 Rebuke's "costs {3} less if it targets a tapped creature" is priced before targets are chosen;
 "more creatures than you" sums all opponents at three seats (BACKLOG); an opponent's "N or
 less" has no form.
+
+**Gate round 12 (FIX-THEN-GO, 2026-11-17), fixed on the branch after main d61005d5 and 0b309e22
+were merged** (the reviewer's evidence: the session scratchpad's `gate12/`).
+- MAJOR-1, the merge red (213 engine and 3 tools failures): 20 unverified FDN records of mapping
+  batches M1-M7 held folded predicates and no longer decoded. Re-mapped through `cardtool write`
+  with their authors (tree translated, draft re-rendered, clauses and notes reworded), equal, all
+  20, to the reviewer's mechanical translation; Dragonmaster Outcast's and Ghitu Lavarunner's equal
+  to the compiler's whole trees; Mentor of the Meek and Gate Colossus keep their creature noun. The
+  translation is a repeatable script outside the repository (the round's report names it) for
+  batches M6 and M8. G0's number check reads "N or less" as the comparison at N + 1, negated.
+  Knight of Grace and Knight of Malice (FDN), whose needs-atom notes asked for this round's
+  battlefield count of any controller, mapped (packs `mapped/FDN/knight_of_*`). The needs-atom
+  notes and pack notes that named a folded predicate reworded; the stale stamps' evidence is left
+  as it was verified.
+- MAJOR-2: a population's greatest or least value as `quantity` (a second form of ferocious), and
+  Zone(BATTLEFIELD, YOU) as a counted population (a second, and wrong, "you control": the zone
+  reads the owner's battlefield), both refused, on both sides and under `who`.
+- MAJOR-3: G3 offers `who` dropped ("you have eight ...") and the bare measure of a "measure + 1"
+  threshold ("at least as many" for "more than") as critical mutants; no flip reaches either.
+- MINOR: tests that kill the battery's TARGETS any->all, COLOR read as 0/1 and reads_no_subject
+  mutants on their own; FNot refuses the negation of two measures through FAnd and FOr, and a
+  double negation; "N + 0" and an ALL selector's count refused; BACKLOG: the last known power also
+  answers a departure trigger's target choice.
+- Merged numbers (`tree_dump.py` on main 0b309e22 and on the branch, `tree_diff.py`): 104 compiler
+  trees and 134 with records applied change (FDN 33 with the re-mapped records); 22 cards newly
+  whole; the same **58 stamps out** (53 home, 5 reprint), none in: M21 275 -> 245, M20 279 -> 264,
+  FDN 193 -> 184, ELD 14 -> 13, ORI 24 -> 23, WAR 22 -> 20. The fixes change no stamp.
+- The coordinator's additions: G3 offers no count change on a CHOOSE or ONE_OF over your one
+  player (FDN Crystal Barricade's "You have hexproof", from mapper M6: an equivalent critical
+  mutant; its critical survivors are now none), and E2's pack that needs Leafkin Druid's record
+  runs from `mapped/M20/`.
+- For round R13 (Mystic Forge, `templates_b19._kind`): "colorless" is `at_most(0,
+  field=QPropField.COLOR)`, FNot of the comparison at 1; "artifact spells and colorless spells" is
+  `FOr(TYPE_EQ Artifact, at_most(0, field=COLOR))`.
+

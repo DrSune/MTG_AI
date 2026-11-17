@@ -348,7 +348,9 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       field=POWER))))`; "there are seven or more cards in your graveyard" `at_least(7,
       quantity=number_in(Zone(GRAVEYARD, YOU)))`; "the number of cards in your hand" is
       `number_in(Zone(HAND, YOU))`, never a QProp field (divergence D28); "creatures you control have
-      total power 8 or greater" a `QProp(<your creatures>, POWER, SUM)`; "N different names / mana
+      total power 8 or greater" a `QProp(<your creatures>, POWER, SUM)` (a total only: "the
+      greatest power" is the count of the creatures that pass the comparison); a population on
+      the battlefield is `Zone(BATTLEFIELD, ANY)`, its controller a CONTROLLER_IS in the filter; "N different names / mana
       values / colours among ..." `QDistinct(<selector>, NAME | MANA_VALUE | COLOR)`.
     - "you have N or more life" is `at_least(N, quantity=QProp('controller', LIFE))`; relative to
       the starting life total (CR 103.4: 40 in Commander) it adds `QProp('controller',

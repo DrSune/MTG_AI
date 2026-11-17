@@ -359,6 +359,29 @@ def test_choose_over_your_player_zone_count_is_dead_in_a_static() -> None:
         assert _game(pack, _mutant(halo, HALO_TARGET, QConst(n))) == real
 
 
+BARRICADE_TARGET = "1/0/effect/args/target/count"
+
+
+def test_one_of_over_your_player_zone_count_is_dead() -> None:
+    """FDN Crystal Barricade's "You have hexproof" is a ONE_OF over your one player (gate round 12,
+    from mapper M6): every count >= 1 picks you, so G3 offers no count change there, and the
+    card's survivors (no pack) leave nothing critical."""
+    barricade = _card("Crystal Barricade", "FDN")
+    assert ("amount+1", BARRICADE_TARGET) not in _where(barricade)
+    pack = _pack([{"key": "b", "real": "Crystal Barricade", "zone": "battlefield", "controller": 0},
+                  {"key": "bolt", "real": "Burst Lightning", "zone": "hand", "controller": 1}],
+                 [{"op": "end_turn"}, {"op": "advance_turn"},
+                  {"op": "cast", "key": "bolt", "controller": 1, "decisions": ["player:0"],
+                   "expect_raise": "target"}],
+                 {"1": {"R": 1}}, code="FDN")
+    real = _game(pack)
+    for n in (2, 3):
+        assert _game(pack, _mutant(barricade, BARRICADE_TARGET, QConst(n))) == real
+    sup = _supply("FDN")
+    report = gates.g3(sup, "FDN", _oid("Crystal Barricade", "FDN"))
+    assert [s for s in report["survived"] if gates.is_critical(s[0])] == []
+
+
 EMPATH_REVEAL = "1/0/effect/inner/steps/1/args"
 TRACK_REVEAL = "1/0/effect/steps/0/steps/1/args"
 

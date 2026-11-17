@@ -64,6 +64,7 @@ from MTG_bot.core.ability_tree import (
     EventSpec,
     FAnd,
     FAtom,
+    FAtomPred,
     Filter,
     FNot,
     FOr,
