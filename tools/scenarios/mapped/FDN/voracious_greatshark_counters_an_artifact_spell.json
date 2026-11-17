@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "voracious_greatshark_counters_an_artifact_spell",
+ "notes": "M4 mapper. Printed: 'Flash. When this creature enters, counter target artifact or creature spell.' On seat 1's turn seat 1 casts Goldvein Pick (a noncreature artifact spell) and holds priority; in response seat 0 flashes in Voracious Greatshark, whose trigger counters it: the Pick goes to seat 1's graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shark", "real": "Voracious Greatshark", "zone": "hand", "controller": 0},
+  {"key": "pick", "real": "Goldvein Pick", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 3}},
+  {"op": "mana", "seat": 1, "add": {"C": 2}},
+  {"op": "cast", "key": "pick", "controller": 1, "hold": true},
+  {"op": "cast", "key": "shark", "controller": 0, "decisions": ["pick"]}
+ ],
+ "expect": {
+  "zone": {"shark": "battlefield", "pick": "graveyard"}
+ }
+}

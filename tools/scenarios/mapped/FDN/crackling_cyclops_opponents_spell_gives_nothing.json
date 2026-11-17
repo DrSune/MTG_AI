@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "crackling_cyclops_opponents_spell_gives_nothing",
+ "notes": "M4 mapper. Printed: 'Whenever you cast a noncreature spell, this creature gets +3/+0 until end of turn.' Seat 1 casts Opt (a noncreature spell) on seat 0's turn: the Cyclops' controller did not cast it, so it stays 0/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cyc", "real": "Crackling Cyclops", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 1, "add": {"U": 1}},
+  {"op": "cast", "key": "opt", "controller": 1, "decisions": ["top"]}
+ ],
+ "expect": {
+  "zone": {"opt": "graveyard"},
+  "power": {"cyc": 0},
+  "toughness": {"cyc": 4}
+ }
+}

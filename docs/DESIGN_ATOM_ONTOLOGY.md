@@ -146,7 +146,7 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-12, gate round 6 | Conditional `then:DelayedTrigger` ("<step>. When you do, Y": the "if you do" gate, CR 118.12, around a reflexive trigger, CR 603.12), accepted only where `ability_tree._reflexive_misplaced` holds (§11 R6-1) | M21 Tolarian Kraken (compiler, B2b-do-tap-or-untap); M20 Cavalier of Night and Sorin, Imperious Bloodlord (records) | **low-volume**: 1 compiled card, 2 records (NUMBERS.md 2026-11-12, trigger timing); 22 reflexive sentences on 21 cards of the 19 sets, 19 unparsed |
 | 2026-11-12, gate round 6 | DelayedTrigger `reflexive` (`duration` and `event` both absent, no `condition`, no `once_per_event`) | the same three | the same; `reports/ontology_census_2026-11-12_triggertiming_post_full.json` |
 | 2026-11-13, gate round 7 | GET_EMBLEM x `emblem` (EmblemSpec: the emblem's abilities) x `controller` (who gets it, CR 114.2: YOU, ALL_OPPONENTS or TARGET_OPPONENT only, `ability_tree.EMBLEM_RECIPIENTS`; never under EachPlayer) | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead, M19 Ajani, Adversary of Tyrants (compiler, `compiler._emblem_sentences`); M20 Mu Yanling, Sky Dancer and FDN Vivien Reid (records) | 6 trees, all `controller` YOU; 24 emblem texts in the 19 sets (26 entries), 20 of the 26 sentences that make one unparsed (NUMBERS.md 2026-11-13) |
-| 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record) | **low-volume**: 1 record; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
+| 2026-11-13, gate round 7 | MOVE_ZONE x `cards` ALL over the top of a library: the cards of the open look window that pass the filter ("put all Goblin cards revealed this way into your hand"), the window's REST after it | M20 Goblin Ringleader (record); since 2026-11-17 M21 See the Truth (compiler, B5b-cast-elsewhere-instead: "put each of those cards into your hand instead", no filter, the then-arm of its "instead" Conditional) | **low-volume**: 1 record, 1 compiled tree; 4 cards print "all ... revealed this way ... and the rest" (ORI Sylvan Messenger, M14 Garruk, Caller of Beasts, KHM Alrund unparsed) |
 | 2026-11-13, gate round 9 (GO) | EtBState `effect` CHOOSE_NAME x `quality` (COLOR, CREATURE_TYPE; `ability_tree.CHOSEN_QUALITIES`): "As this permanent enters, choose a color\|creature type" (§13 R9-1); accepted only as an unconditioned EtBState's own effect (`ability_tree.chosen_quality_fault`) | compiler B17-etb-choose-quality: 20 printings of 17 cards (M20 Diamond Knight and Icon of Ancestry by record, the compiler's tree) | 11 trees: 6 whole (M20 Diamond Knight, Icon of Ancestry; FDN and M19 Diamond Mare; ORI Prism Ring; KHM Rally the Ranks), 5 partly; the 9 whose reader does not compile are refused (NUMBERS.md 2026-11-13, `reports/chosen_quality_2026-11-13/census.txt`) |
 | 2026-11-13, gate round 9 (GO) | FAtom NAME_CHOSEN x `string_value` (the same vocabulary): in a CastSpellEvent `filter` (B17-cast-chosen-counter, frame B13-cast-chosen), an anthem's ALL selector (B17-chosen-anthem), a look's ONE_OF pick (B17-reveal-chosen-type); read only on the object that chose it (CR 607.2d) | cast: M20 Diamond Knight, FDN and M19 Diamond Mare, ORI Prism Ring; anthem: M20 Icon of Ancestry, KHM Rally the Ranks, M15 Obelisk of Urd, ELD and FDN Heraldic Banner, M12 and FDN Adaptive Automaton ("Other"); pick: M20 Icon of Ancestry | cast 4 trees, anthem 7, pick 1 (**low-volume**); 17 more "of the chosen" sentences on 15 printings unread: 14 need a piece (BACKLOG), and KHM Crippling Fear's, Alrund's and IKO Umori's choose at resolution or a card type |
 | 2026-11-13, gate round 10 (FIX-THEN-GO, §14) | TriggeredAbility `once_per_event` x ZoneChangeEvent ("whenever one or more <objects> enter / leave <zone>": one trigger for the objects one event moves, CR 603.2c), accepted only where `ability_tree.gathers_occurrences` holds (not on a self or attached subject) | M20 Woodland Champion (compiler, B2b-tokens-enter-that-many-counters; record re-mapped), M19 Desecrated Tomb (compiler, B13-one-or-more-leave-graveyard) | **low-volume**: 2 trees; 4 zone-change "one or more" sentences in the 19 sets (THB Devourer of Memory's clause and KHM Elvish Warmaster's sentence unparsed), none in M21 or FDN (NUMBERS.md 2026-11-13, round 10) |
@@ -773,7 +773,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     13 record trees, 0 verified cards in or out of 1,144; 600 seeded heuristic games (200 each,
     M21, M20, FDN; 275, 277 and 190 deckable): 600/600 identical replay digests, journal dumps and
     raw event logs, 0 crashes either side (`replay_4da972f1.txt`).
-- R13 round 13 (adversarial, pending): Verb.PERMIT, CAST's cost roles and the spell's rider (§17), branch `worktree-agent-a4af16b825120dda1` with main fba0ea20 merged. A fresh-eyes review of the code diff (one reviewer, 2026-11-17) found 3 MAJOR, 3 MINOR and 1 NIT, fixed but one MINOR (logged): §17, "The fresh-eyes review".
+- R13 round 13 (adversarial, pending): Verb.PERMIT, CAST's cost roles and the spell's rider (§17), branch `worktree-agent-a4af16b825120dda1` with main 4739cfef merged (engine wave C1 included). A fresh-eyes review of the code diff (one reviewer, 2026-11-17) found 3 MAJOR, 3 MINOR and 1 NIT, fixed but one MINOR (logged): §17, "The fresh-eyes review".
 - BINDING STATE: rounds 1–11 complete; further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
@@ -2033,7 +2033,7 @@ KNOWLEDGE 209 §6-§7's first package for M21, M20 and FDN: "permission to cast 
 another zone" (28 cards of the three sets, 19 needing only it; `reports/completion_2026-11-17/
 worklist.json`), and the "exile it instead" paired with it. §10's R5-2 v3 (PERMIT_CAST), R5-3
 (play_lands) and R5-12's rider were designed and never built; gate rounds 2-4's findings on them
-stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main fba0ea20 merged.
+stand and are met here. Branch `worktree-agent-a4af16b825120dda1`, main 4739cfef merged (engine wave C1 included).
 Scripts and outputs: `reports/permit_2026-11-17/`.
 
 **How plays were legal before (the root cause).** `legality.spell_castable` cast only from the
@@ -2086,10 +2086,12 @@ retired: Omniscience is the static PERMIT over the hand with `alternative=Cost()
 graveyard, exile it instead" (CR 614.1a, 614.6) and flashback's "exile it instead of putting it
 anywhere else any time it would leave the stack" are a cast verb's `replace` role, exactly the two
 values `spell_riders()` returns. The engine applies the frame's rider wherever the spell leaves the
-stack (`stack.exit_zone` :294: resolution, a fizzle, COUNTER_SPELL). A card-level replacement of a
-zone change from the stack is refused (B-99's tree). No `Verb.REPLACE`: a rider exists only on the
-spell its verb casts; R5-12's resolving replacements (Chandra, Awakened Inferno's die-to-exile) stay
-their own piece.
+stack (`stack.exit_zone` :295: resolution, a fizzle, COUNTER_SPELL), before engine wave C1's
+replacements of the move from anywhere (`stack._put_off_the_stack`, `verbs._move_all`): every rider
+exiles, so whichever the controller applies first (CR 616.1) the spell is exiled. A card-level
+replacement of a zone change from the stack is refused (B-99's tree). No `Verb.REPLACE`: a rider
+exists only on the spell its verb casts; R5-12's resolving replacements (Chandra, Awakened
+Inferno's die-to-exile) stay their own piece.
 
 **R13-4 The engine.**
 - `executor/permits.py`: `paths` (:162), every way a seat may cast a card now, one per cost path
@@ -2102,15 +2104,15 @@ their own piece.
   with `via` only for a path that is not plain (another cost, a rider). Timing is the card's
   (`legality.card_window_reason`): a permission changes where from and at what cost, never when
   (CR 601.3).
-- A land played from another zone is the turn's land play (CR 305.2a; `stack.land_playable` :259,
-  `play_land` :1285). A cast through a path (`stack.cast` :714) pays the path's cost
+- A land played from another zone is the turn's land play (CR 305.2a; `stack.land_playable` :260,
+  `play_land` :1316). A cast through a path (`stack.cast` :715) pays the path's cost
   (`legality.spell_castable` :1582; X is 0 unless the alternative has an X, CR 107.3b), uses one of
   its plays (`permits.use`) and journals the zone it came from.
-- `stack.cast_card` (:1080), CAST's lane: asks the caster for X (:1224) and for each target (:1250)
+- `stack.cast_card` (:1111), CAST's lane: asks the caster for X (:1255) and for each target (:1281)
   as the spell is cast (CR 601.2b-c), prices a target-dependent cost after its targets; the
   may-offer is offered only for a card whose targets can be chosen and whose cost can be paid
   (`query._cast_option_payable`).
-- `verbs._v_permit` (:1991). The library pop (`pop_order` TOP) writes `result` (`verbs.py:228`):
+- `verbs._v_permit` (:2000). The library pop (`pop_order` TOP) writes `result` (`verbs.py:245`):
   "exile the top three cards ... you may play them" reads all three.
 
 **R13-5 What the network sees.** A permission's play is a land or cast row: the card's entity
@@ -2141,7 +2143,7 @@ over the top of a library 8, over the hand 4, over exile 1, over exile and a gra
 `result` register 4; TARGET over a graveyard 3) and 2 CASTs (ZNR Coveted Prize's ONE_OF over the
 hand with `alternative`; M21 Chandra, Flame's Catalyst's TARGET over the graveyard with the rider).
 
-**Blast radius** (`tree_dump.py`, `tree_diff.py` against main fba0ea20):
+**Blast radius** (`tree_dump.py`, `tree_diff.py` against main 4739cfef, engine wave C1 included; the same against fba0ea20):
 - 35 compiler trees change in 11 sets, and 2 M20 records are mapped (Golos, Tireless Pilgrim;
   Mystic Forge; unverified). 10 cards newly compile whole (10E and M19 Crucible of Worlds, DOM
   Squee, FDN Omniscience, Sphinx of Forgotten Lore, Think Twice, M12 and M14 Garruk's Horde, M13
@@ -2163,7 +2165,10 @@ hand with `alternative`; M21 Chandra, Flame's Catalyst's TARGET over the graveya
   abuse screen: no repeatable activation, no trigger loop, two win-rate outliers, both low and
   neither a permission card (M21 Discontinuity, Spirit of Malevolence). D6 flagged a resolved
   permission live at game end over exiled cards (4 games): D6 now knows a resolved permission
-  outlives its source and covers cards off the battlefield (CR 611.2a, 601.3; a test).
+  outlives its source and covers cards off the battlefield (CR 611.2a, 601.3; a test). With it,
+  the M21 and FDN soaks' remaining hits (two replacement records for one damage event, a delayed
+  trigger pending at the end, a mandate_block layer) are classes main fba0ea20's soak on the same seeds
+  shows too (`soak_main_*.json`, `soak_branch_*.json`).
 
 **Tests and packs.** `test_ability_tree_permit.py` (20 cases: accepted shapes, zones, durations,
 static rules, roles, one encoding of "may play", refusals), `test_executor_permit.py` (18:

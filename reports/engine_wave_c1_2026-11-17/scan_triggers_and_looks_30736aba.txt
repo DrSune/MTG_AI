@@ -1,0 +1,5 @@
+COND_IN_LOOK_WINDOW M21 | Garruk, Savage Herald | VERIFIED | pred: FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counter_kind=None, keyword=None, who=
+TRIGGER_REFS_DIFFER M21 | Kitesail Freebooter | VERIFIED | binding: ['TARGET_OPPONENT'] | shared: ['TARGET_OPPONENT', 'TARGET_PLAYER']
+COND_IN_LOOK_WINDOW M21 | Track Down | VERIFIED | pred: FOr(children=(FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counter_kind=None, keyw
+COND_IN_LOOK_WINDOW M20 | Risen Reef | VERIFIED | pred: FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Land', color=None, colors=(), count=None, counter_kind=None, keyword=None, who=None
+COND_IN_LOOK_WINDOW ORI | Llanowar Empath | - | pred: FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counter_kind=None, keyword=None, who=

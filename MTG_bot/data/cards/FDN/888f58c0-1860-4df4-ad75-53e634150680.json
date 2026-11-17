@@ -1,0 +1,323 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "888f58c0-1860-4df4-ad75-53e634150680",
+ "name": "Tragic Banshee",
+ "text_sha": "8c5ab4c3c2e3d6519600cf031dd7d0a392545839ddd169fcaa6fed57b917833a",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "DIED_THIS_TURN"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MODIFY_PT"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "duration",
+         {
+          "tag": "DurationEot"
+         }
+        ],
+        [
+         "power",
+         {
+          "tag": "PtDelta",
+          "direction": {
+           "tag": "PtDirection",
+           "name": "DECREASE"
+          },
+          "magnitude": {
+           "tag": "QConst",
+           "value": 13
+          }
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "OPPONENT"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "toughness",
+         {
+          "tag": "PtDelta",
+          "direction": {
+           "tag": "PtDirection",
+           "name": "DECREASE"
+          },
+          "magnitude": {
+           "tag": "QConst",
+           "value": 13
+          }
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MODIFY_PT"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "duration",
+         {
+          "tag": "DurationEot"
+         }
+        ],
+        [
+         "power",
+         {
+          "tag": "PtDelta",
+          "direction": {
+           "tag": "PtDirection",
+           "name": "DECREASE"
+          },
+          "magnitude": {
+           "tag": "QConst",
+           "value": 1
+          }
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "OPPONENT"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Creature",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "toughness",
+         {
+          "tag": "PtDelta",
+          "direction": {
+           "tag": "PtDirection",
+           "name": "DECREASE"
+          },
+          "magnitude": {
+           "tag": "QConst",
+           "value": 1
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Tragic Banshee: \"Morbid — When this creature enters, target creature an opponent controls\n# gets -1/-1 until end of turn. If a creature died this turn, that creature gets -13/-13 until end\n# of turn instead.\"  M21 Life Goes On's \"instead\" (verified): Conditional(DIED_THIS_TURN, then the\n# replacing effect, else the first), read as the ability resolves; one TARGET slot read by both\n# branches (\"that creature\"). Morbid is an ability word (no condition of its own here: the \"if\"\n# is not an intervening one).\nFOE = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.TARGET,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nwail = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Conditional(\n        pred=FAtom(pred=FAtomPred.DIED_THIS_TURN),\n        then_effect=A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=13)),\n            'target': FOE,\n            'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=13)),\n        }),\n        else_effect=A(Verb.MODIFY_PT, {\n            'duration': DurationEot(),\n            'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n            'target': FOE,\n            'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n        }),\n    ),\n)\nabilities = [wail, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Morbid — When this creature enters, target creature an opponent controls gets -1/-1 until end of turn.",
+    "ir": "abilities[0].event, abilities[0].effect.else_effect"
+   },
+   {
+    "clause": "If a creature died this turn, that creature gets -13/-13 until end of turn instead.",
+    "ir": "abilities[0].effect.pred, abilities[0].effect.then_effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Life Goes On's 'instead' (verified): Conditional(DIED_THIS_TURN, -13/-13, else -1/-1), read as the ability resolves, one TARGET slot read by both branches. Morbid is an ability word. Packs: tools/scenarios/mapped/FDN/tragic_banshee_morbid_minus_thirteen.json, tools/scenarios/mapped/FDN/tragic_banshee_morbid_ends_with_the_turn.json."
+ },
+ "probe": {
+  "sha": "f8f593e019e2fc086cfd6f4dff834a88361458ea9ebd78e758f04fec94c38023"
+ }
+}

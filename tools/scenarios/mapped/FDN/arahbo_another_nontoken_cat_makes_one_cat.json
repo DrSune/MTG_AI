@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "arahbo_another_nontoken_cat_makes_one_cat",
+ "notes": "M4 mapper. Printed: 'Other Cats you control get +1/+1. Whenever Arahbo or another nontoken Cat you control enters, create a 1/1 white Cat creature token.' With Arahbo on the battlefield, seat 0's Cat enters: one Cat token (the token, a Cat too, does not trigger it again). Seat 0's non-Cat Bear and seat 1's Cat enter: no token. Seat 0's Cat is 3/3 with the anthem; the Bear, seat 1's Cat and Arahbo itself are not pumped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "arahbo", "real": "Arahbo, the First Fang", "zone": "battlefield", "controller": 0},
+  {"key": "cat", "name": "Your Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "ocat", "name": "Opp Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "cat"},
+  {"op": "enter", "key": "bear"},
+  {"op": "enter", "key": "ocat"}
+ ],
+ "expect": {
+  "tokens": {"Cat": 1},
+  "power": {"cat": 3, "bear": 2, "ocat": 2, "arahbo": 2},
+  "toughness": {"cat": 3, "bear": 2, "ocat": 2, "arahbo": 2}
+ }
+}

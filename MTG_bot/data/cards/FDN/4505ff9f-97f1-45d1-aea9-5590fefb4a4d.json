@@ -1,0 +1,245 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4505ff9f-97f1-45d1-aea9-5590fefb4a4d",
+ "name": "Prayer of Binding",
+ "text_sha": "edc0d64c80e0957c266294d9c30640a9b898621c0795235495157bbeb8ac3137",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLASH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QAtMost",
+            "n": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "OPPONENT"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_PERMANENT"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "EXILE"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OWNER"
+           }
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationUntilLeaves",
+           "source": "source"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Prayer of Binding: \"Flash. When this enchantment enters, exile up to one target nonland\n# permanent an opponent controls until this enchantment leaves the battlefield. You gain 2 life.\"\n# The trigger is the compiler's B13-etb+B11-exile-np-until-leaves (ontology R5-1, CR 610.3) with\n# \"up to one\" (QAtMost(1), Barrin's form) and the moved object under MOVE_ZONE's `cards`; \"You gain\n# 2 life.\" is the trigger's second step. The compiler hung it on the cast carrier (orphaned,\n# BACKLOG): the record replaces the whole tree, the carrier effect-less.\nbinding = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QAtMost(n=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                            FAtom(pred=FAtomPred.IS_PERMANENT),\n                            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n                'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                'duration': DurationUntilLeaves(),\n            }),\n            A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [binding, SpellAbility(kind=SpellKind.ENCHANTMENT)]\n",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this enchantment enters, exile up to one target nonland permanent an opponent controls until this enchantment leaves the battlefield.",
+    "ir": "abilities[0].event, abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "You gain 2 life.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): atom MOVE_ZONE(cards,destination,duration)"
+  ],
+  "notes": "The compiler's exile-until-leaves trigger (R5-1) with 'up to one' (QAtMost(1)) and the moved object under MOVE_ZONE's cards; 'You gain 2 life.' is the trigger's second step (the compiler had hung it on the cast carrier, orphaned: the record replaces the whole tree, carrier effect-less). Pack: tools/scenarios/mapped/FDN/prayer_of_binding_exiled_permanent_returns_when_it_leaves.json."
+ },
+ "probe": {
+  "sha": "264a55a1d54a3b37b01bf732b6166c9ac3d2537156c55ab6fdc271291ca77af5"
+ }
+}

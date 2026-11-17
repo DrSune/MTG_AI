@@ -41,15 +41,17 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # 2026-11-12: Transmogrify's reveal-until tail added three referent surfaces (its
 # REVEAL controller and EachPlayer ref, "that creature's controller", and the
 # MOVE_ZONE of "that card"): referent 35 -> 38, total 144 -> 147.
+# 2026-11-17: See the Truth's "put each of those cards into your hand instead" is an ALL over
+# the looked-at cards, no longer a count-1 result referent: referent 38 -> 37, total 147 -> 146.
 # 2026-11-17, ontology round R13 (Verb.PERMIT): the permission rows' CHOOSE surfaces left (Radha's
 # and Idol of Endurance's CASTs, core 21 -> 19; Conspicuous Snoop's CAST and Chandra, Heart of
 # Fire's second SEARCH, its [-9] now one search over both zones, count 13 -> 11); Chandra, Heart of
-# Fire's two PERMITs read the result register (referent 38 -> 40) and Demonic Embrace's own
-# graveyard cast discards a card as an additional cost (cost 25 -> 26): total 147 -> 146.
-TOTAL_SURFACES = 146
+# Fire's two PERMITs read the result register (referent 37 -> 39) and Demonic Embrace's own
+# graveyard cast discards a card as an additional cost (cost 25 -> 26): total 146 -> 145.
+TOTAL_SURFACES = 145
 CORE_LIFTABLE = 19
 SELF_DESIGNATION = 50
-ANAPHORIC_REFERENT = 40
+ANAPHORIC_REFERENT = 39
 COST_VICTIM = 26
 COUNT_NOT_ONE = 11
 

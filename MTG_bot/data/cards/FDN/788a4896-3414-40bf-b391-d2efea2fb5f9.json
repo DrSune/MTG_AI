@@ -1,0 +1,313 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "788a4896-3414-40bf-b391-d2efea2fb5f9",
+ "name": "Springbloom Druid",
+ "text_sha": "cb99310c645a1ed50ec04d8d55c5fa6d7b71475aec5f29b37a1da2fcb5625e15",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SACRIFICE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Land",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "SEARCH"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QAtMost",
+               "n": 2
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "CHOOSE"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "SUPERTYPE_EQ"
+                 },
+                 "string_value": "Basic",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Land",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "LIBRARY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                }
+               }
+              ]
+             }
+            ],
+            [
+             "destination",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ],
+            [
+             "tapped_on_enter",
+             {
+              "tag": "Bool",
+              "value": true
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "SHUFFLE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "zone",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m4",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Springbloom Druid: \"When this creature enters, you may sacrifice a land. If you do, search\n# your library for up to two basic land cards, put them onto the battlefield tapped, then\n# shuffle.\"  M21 Crypt Lurker's optional sacrifice of a permanent you control (CHOOSE, a land\n# here), \"If you do\" as Conditional(MAY_DONE) (MAPPER_GUIDE), and FDN Burnished Hart's search\n# (QAtMost(2) basic lands onto the battlefield tapped, then shuffle).\nramp = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.SACRIFICE, {\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=Seq(\n                    steps=(\n                        A(Verb.SEARCH, {\n                            'cards': Selector(\n                                count=QAtMost(n=2),\n                                mode=SelectorMode.CHOOSE,\n                                filter=FAnd(\n                                    children=(\n                                        FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                    ),\n                                ),\n                                zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                            ),\n                            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                            'tapped_on_enter': True,\n                        }),\n                        A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n                    ),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [ramp, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "When this creature enters, you may sacrifice a land.",
+    "ir": "abilities[0].event, abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "If you do, search your library for up to two basic land cards, put them onto the battlefield tapped, then shuffle.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Crypt Lurker's optional sacrifice (a land you control), 'If you do' as Conditional(MAY_DONE), Burnished Hart's search (QAtMost(2) basic lands, tapped, then shuffle). Packs: tools/scenarios/mapped/FDN/springbloom_druid_trades_a_land_for_two_basics_tapped.json, tools/scenarios/mapped/FDN/springbloom_druid_no_sacrifice_no_search.json."
+ },
+ "probe": {
+  "sha": "a47220bb6752907b775677d3b1b6ed150eb73f5a42e3390deb62bdffedfd16df"
+ }
+}

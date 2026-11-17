@@ -1,4 +1,2 @@
 base: ask rows 34 | decisions 128 | ask kinds seen ['act', 'act_second_main', 'arrange', 'attack', 'block', 'choose', 'discard', 'mana', 'may', 'mulligan', 'mulligan_bottom', 'order', 'priority', 'scry', 'target'] | tokens (128, 43, 64)
-base rc=0
 branch: ask rows 34 (checkpoint 34 ) | decisions 128 | encodings equal: True | tokens equal: True | logits equal: True | value equal: True
-branch rc=0

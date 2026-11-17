@@ -21,7 +21,7 @@ lives in :mod:`.selectors`.
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 
 from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
@@ -112,18 +112,48 @@ _ANY_COLOR_VOCAB = ("W", "U", "B", "R", "G")
 # ------------------------------------------------------------------- handlers
 
 
-def _move_to(
+def _replaced_moves(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -> set[Handle]:
+    """Replacement before apply for the moves of one event, each ``(card, player, kind)``:
+    ``card`` into ``player``'s ``kind`` zone from wherever it is (CR 614.1a, 614.6: Containment
+    Priest's enter, FDN Dryad Militant's "into a graveyard from anywhere", Scorching Dragonfire's
+    death by any cause). Every card is asked before any of them moves, so a replacement whose
+    source moves in the same event applies to all of them (a wrath that destroys Leyline of the
+    Void exiles the opponents' cards it destroys beside it: Rest in Peace's ruling). A replaced
+    move does not happen: an audit row says so, and the record's action runs after this atom
+    with the card bound as ``event`` (``Executor._run_effect``'s drain), within the same event.
+    Every verb that moves a card asks this first (a draw has its own lane). Returns the replaced
+    cards."""
+    replaced: set[Handle] = set()
+    if ctx.replacements is None:
+        return replaced
+    for card, player, kind in moves:
+        repl = ctx.replacements.replacement_for_zone_change(card, kind, player, ctx.replaced_seq)
+        if repl is not None:
+            ctx.pending_replacements.append((repl, card))
+            ctx.events.append((len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source)))
+            replaced.add(card)
+    return replaced
+
+
+def _move_all(
     ctx: ExecCtx,
-    card: Handle,
-    player: Handle,
-    kind: str,
+    moves: Sequence[tuple[Handle, Handle, str]],
     journal_kind: str = "MOVE",
-) -> None:
+) -> list[Handle]:
+    """Move each ``(card, player, kind)`` of one event, in order, but the moves a replacement
+    replaced (:func:`_replaced_moves`); returns the cards that moved."""
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
-    src = ctx.world.zone_of(card)
-    ctx.world.move_to_zone(card, player, kind)
-    ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+    replaced = _replaced_moves(ctx, moves)
+    moved: list[Handle] = []
+    for card, player, kind in moves:
+        if card in replaced:
+            continue
+        src = ctx.world.zone_of(card)
+        ctx.world.move_to_zone(card, player, kind)
+        ctx.events.append((len(ctx.events), journal_kind, str(card), f"{src.kind}->{kind}"))
+        moved.append(card)
+    return moved
 
 
 def _hand_picks(ctx: ExecCtx, sel: Selector, player: Handle, discard: bool) -> list[Handle]:
@@ -208,24 +238,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             raise ValueError("executor: MOVE pop_order=TOP needs from=LIBRARY")
         player = role_player(ctx, atom)
         n = amount(ctx, atom, "amount")
-        lib = ctx.world.players[player].zone(ZONE_LIBRARY)
-        dest_zone = ctx.world.players[player].zone(dest_kind)
-        popped: list[Handle] = []
-        for _ in range(min(n, len(lib.entries))):
-            card = lib.entries.pop()  # top of library, zone order
-            dest_zone.entries.append(card)
-            popped.append(card)
-            ctx.events.append(
-                (
-                    len(ctx.events),
-                    journal_kind,
-                    str(card),
-                    f"{ZONE_LIBRARY}->{dest_kind}",
-                )
-            )
+        top = list(reversed(ctx.world.players[player].zone(ZONE_LIBRARY).entries))[:n]
+        moved = _move_all(ctx, [(card, player, dest_kind) for card in top], journal_kind)  # top first
         # The moved cards are the result register, as in every other lane: "Exile the top three
         # cards of your library. Until end of turn, you may play cards exiled this way."
-        ctx.bindings["result"] = sorted(popped)
+        ctx.bindings["result"] = sorted(moved)
         return
     if isinstance(frm, Zone) and frm.kind is ZoneKind.HAND:
         # The discard shape: EVERY player the controller role denotes discards
@@ -259,7 +276,6 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                 for player in apnap_order(ctx.world, players):
                     cards.extend(_hand_picks(ctx, sel, player, dest_kind == ZONE_GRAVEYARD))
         hands = {p: ctx.world.players[p].zone(ZONE_HAND).entries for p in players}
-        moved: list = []
         # Cards put from a hand into a library (Cavalier of Gales: "put two cards from your hand
         # on top of your library in any order") go in the order their owner arranges.
         bottom = _bottom_put(dest_ir, dest_kind)
@@ -267,24 +283,27 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             placing = _library_order(ctx, atom, cards, "BOTTOM" if bottom else "TOP")
         else:
             placing = sorted(cards)
-        for card in reversed(placing) if bottom else placing:
+        order = list(reversed(placing) if bottom else placing)
+        owners: dict[Handle, Handle] = {}
+        for card in order:
             owner = next((p for p, hand in hands.items() if card in hand), None)
             if owner is None:
                 raise ValueError(
                     f"executor: MOVE_ZONE discard card {card} is not in the hand of "
                     f"{', '.join(str(p) for p in players) or 'any discarding player'}"
                 )
-            # CR 701.9a: from its owner's hand to that player's graveyard.
-            _move_to(ctx, card, owner, dest_kind, journal_kind)
+            owners[card] = owner
+        # CR 701.9a: from its owner's hand to that player's graveyard. A discard a replacement
+        # sends elsewhere is still a discard (Leyline of the Void's ruling).
+        for card in _move_all(ctx, [(card, owners[card], dest_kind) for card in order], journal_kind):
             if bottom:
-                entries = ctx.world.players[owner].zone(dest_kind).entries
+                entries = ctx.world.players[owners[card]].zone(dest_kind).entries
                 entries.remove(card)
                 entries.insert(0, card)
-            moved.append(card)
         # The DISCARDED SET is the result register, written even when empty:
         # "discard ..., then draw that many" (THAT_MANY_COUNT, Kinetic Augur)
         # reads 0, not a missing antecedent.
-        ctx.bindings["result"] = sorted(moved)
+        ctx.bindings["result"] = sorted(order)
         return
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
     cards = ctx.binding_handles("cards")
@@ -298,17 +317,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             # key. The moved set is the result register, as in every other
             # lane, so "Exile target card from a graveyard. If it was a
             # creature card, ..." (Scavenging Ooze) judges the exiled card.
-            moved_targets: list = []
-            for card in role_handles(ctx, atom, "target"):
-                _move_to(
-                    ctx,
-                    card,
-                    ctx.world.controller_of(card),
-                    dest_kind,
-                    journal_kind,
-                )
-                moved_targets.append(card)
-            ctx.bindings["result"] = moved_targets
+            targets = list(role_handles(ctx, atom, "target"))
+            _move_all(
+                ctx,
+                [(card, ctx.world.controller_of(card), dest_kind) for card in targets],
+                journal_kind,
+            )
+            ctx.bindings["result"] = targets
             return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
@@ -341,14 +356,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             and universal
         ):
             owner = zone_owner(ctx, dest_ir, owner=ctx.controller)
-            lib = ctx.world.players[owner].zone(ZONE_LIBRARY)
-            n = min(n, len(lib.entries))
-            if owner == ctx.controller:
-                ctx.world.draw(ctx.controller, n)  # top = last entry, zone order
-            else:
-                for _ in range(n):
-                    card = lib.entries.pop()
-                    ctx.world.players[owner].zone(ZONE_HAND).entries.append(card)
+            top = list(reversed(ctx.world.players[owner].zone(ZONE_LIBRARY).entries))[:n]
+            replaced = _replaced_moves(ctx, [(card, owner, ZONE_HAND) for card in top])
+            for card in top:  # top first (zone order)
+                if card in replaced:
+                    continue
+                ctx.world.move_card(card, ctx.world.players[owner].zone(ZONE_HAND))
+                if owner != ctx.controller:
                     ctx.events.append(
                         (len(ctx.events), "MOVE", str(card), "library->hand")
                     )
@@ -373,32 +387,21 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     else:
         placing = sorted(cards) if bottom_dest else list(cards)
     stayed: set[Handle] = set()
-    for card in reversed(placing) if bottom_dest else placing:
-        # The owner's zone always (CR 400.3); a battlefield controller other than
-        # the owner becomes a control entry below, never a zone (CR 108.3).
-        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
+    order = list(reversed(placing) if bottom_dest else placing)
+    # The owner's zone always (CR 400.3); a battlefield controller other than
+    # the owner becomes a control entry below, never a zone (CR 108.3).
+    dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in order}
+    # Replacement before apply for the moves themselves: a replaced enter never makes a
+    # permanent (no placement, no tapped_on_enter stamp: Containment Priest), a replaced move
+    # into a graveyard never reaches it (Dryad Militant).
+    replaced = _replaced_moves(ctx, [(card, dests[card][0], dest_kind) for card in order])
+    for card in order:
+        if card in replaced:
+            continue
+        target_player, new_controller = dests[card]
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
-            # Replacement before apply for the ENTER move itself (Containment
-            # Priest): a live ZoneChangeEvent replacement consumes the ETB (the
-            # permanent never becomes a permanent, no battlefield placement, no
-            # tapped_on_enter stamp), and the action (EXILE referent=event) runs
-            # as a journalled nested effect with the moving card bound, as in
-            # the life lane.
-            repl = (
-                ctx.replacements.replacement_for_zone_change(
-                    card, src.kind, dest_kind, ctx.replaced_seq
-                )
-                if ctx.replacements is not None
-                else None
-            )
-            if repl is not None:
-                ctx.pending_replacements.append((repl, card))
-                ctx.events.append(
-                    (len(ctx.events), "ZONE_REPLACED", str(card), str(repl.source))
-                )
-                continue
             # CR 303.4f: the player the Aura enters under chooses its host, which
             # is the controller when that is not the owner (whose zone it joins).
             enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
@@ -528,18 +531,20 @@ def _v_move_zone_until(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _to_graveyard(ctx: ExecCtx, atom: Atom) -> None:
-    for card in role_handles(ctx, atom, "target"):
-        _move_to(ctx, card, ctx.world.controller_of(card), ZONE_GRAVEYARD)
+    cards = role_handles(ctx, atom, "target")
+    _move_all(ctx, [(card, ctx.world.controller_of(card), ZONE_GRAVEYARD) for card in cards])
 
 
 def _v_destroy(ctx: ExecCtx, atom: Atom) -> None:
     """CR 701.7a: destroy moves a permanent to its owner's graveyard. CR 702.12b: a permanent
     with indestructible can't be destroyed, so it stays where it is (a sacrifice is no
     destruction: SACRIFICE keeps _to_graveyard)."""
-    for card in role_handles(ctx, atom, "target"):
-        if ctx.layers is not None and ctx.layers.keyword_of(card, Keyword.INDESTRUCTIBLE):
-            continue
-        _move_to(ctx, card, ctx.world.controller_of(card), ZONE_GRAVEYARD)
+    cards = [
+        card
+        for card in role_handles(ctx, atom, "target")
+        if ctx.layers is None or not ctx.layers.keyword_of(card, Keyword.INDESTRUCTIBLE)
+    ]
+    _move_all(ctx, [(card, ctx.world.controller_of(card), ZONE_GRAVEYARD) for card in cards])
 
 
 def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
@@ -1781,9 +1786,13 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
     stayed: set[Handle] = set()
+    # The owner's zone, a non-owner controller as a control entry.
+    dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in cards}
+    replaced = _replaced_moves(ctx, [(card, dests[card][0], dest_kind) for card in cards])
     for card in cards:
-        # The owner's zone, a non-owner controller as a control entry.
-        target_player, new_controller = move_destination(ctx, dest_ir, dest_kind, card)
+        if card in replaced:
+            continue
+        target_player, new_controller = dests[card]
         src = ctx.world.zone_of(card)
         host: Handle | None = None
         if dest_kind == ZONE_BATTLEFIELD:
@@ -2487,19 +2496,18 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
     existing, so that row alone is anchored to the SOURCE, and CR 704.5q's
     unattached-aura check is what physically ends it; any other row lasts
     its duration, CR 611.2a). ``UntilLeaves`` pairs its referent anchor
-    exactly like :func:`_apply_pt`. The controller slot is the STRICT YOU
-    of the corpus (CR 611.2a "you gain control"); any other ControllerRef
-    RAISES — flag, never guess. When the effective
+    exactly like :func:`_apply_pt`. The ``controller`` role is the one player
+    who gains control (:func:`selectors.role_player`; CR 110.2, layer 2 of CR
+    613.1b; the owner never changes, CR 108.3): "you" the ability's controller,
+    "target opponent" the player designated (FDN Harmless Offering), "an
+    opponent" the one opponent (FDN Wishclaw Talisman). With several opponents
+    "an opponent" is the controller's choice, which no ask makes: it raises
+    (B-108), never the first seat. When the effective
     controller actually changes mid-combat the creature leaves combat
     (CR 506.4a, applied inside :meth:`Executor.gain_control`)."""
     if ctx.executor is None:
         raise ValueError(f"executor: {atom.verb.name} needs an executor-backed ExecCtx")
-    ctrl = atom.args.get("controller")
-    if ctrl is not None and ctrl is not ControllerRef.YOU:
-        raise NotImplementedError(
-            f"executor: GAIN_CONTROL controller {ctrl!r} has no meaning "
-            "in this runtime (corpus vocabulary is YOU)"
-        )
+    recipient = role_player(ctx, atom)
     duration = atom.args.get("duration")
     assert duration is None or isinstance(duration, Duration)
     if duration is not None and not isinstance(
@@ -2525,12 +2533,20 @@ def _v_gain_control(ctx: ExecCtx, atom: Atom) -> None:
         and isinstance(target, Selector)
         and _names_the_attached(target.filter)
     ):
+        if atom.args.get("controller") is not ControllerRef.YOU:
+            # The entry follows the Aura's controller (Executor._recompute_control): it is
+            # "You control enchanted creature". Another player named there has no card to
+            # test its reading.
+            raise NotImplementedError(
+                "executor: GAIN_CONTROL of the enchanted permanent for a player other than "
+                "the Aura's controller has no reading here"
+            )
         anchor = ctx.source
     if isinstance(duration, DurationUntilLeaves):
         anchor = referent_handle(duration.source, ctx)
     gained: list[Handle] = []
     for card in role_handles(ctx, atom, "target"):
-        if ctx.executor.gain_control(card, ctx.controller, tag, anchor):
+        if ctx.executor.gain_control(card, recipient, tag, anchor):
             gained.append(card)
     if gained:
         ctx.executor.layers.recompute()  # "you control" scopes re-anchor NOW
@@ -2685,7 +2701,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         from MTG_bot.core.executor.stack import exit_zone
 
         # its rider exiles it instead (Chandra, Flame's Catalyst's [-2]; flashback, CR 702.34a)
-        _move_to(ctx, spell, ctx.world.controller_of(spell), exit_zone(frame, ZONE_GRAVEYARD))
+        _move_all(ctx, [(spell, ctx.world.controller_of(spell), exit_zone(frame, ZONE_GRAVEYARD))])
     ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
 
 

@@ -1910,32 +1910,47 @@ def _build_transmog_shuffle_rest(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_cast_elsewhere_instead(m: re.Match[str]) -> SentenceOutcome:
     """``If this spell was cast from anywhere other than your hand, put
-    each of those cards into your hand instead.`` (See the Truth s3) —
-    Conditional on the cast zone (CAST_THIS_TURN_FROM, negated for
-    "anywhere other than your hand") moving the whole result set to hand.
-    Lossy: "instead" — the grammar has no branch-exclusion marker, so the
-    Conditional is a sibling step after the one-and-rest split rather than
-    a replacement of it (ReplacementAbility is event-shaped, not
-    cast-zone-shaped). A referent selector is always CHOOSE/QConst(1)/
-    neutral zone, so the executor applies the register's plurality per
-    object."""
-    cond = FNot(
-        inner=FAtom(
-            pred=FAtomPred.CAST_THIS_TURN_FROM,
-            zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
-            who=ControllerRef.YOU,
+    each of those cards into your hand instead.`` (See the Truth s3).
+
+    The "instead" rewrites the spell's own previous instruction ("Put one of
+    those cards into your hand and the rest on the bottom ..."; CR 608.2c), as
+    in Life Goes On: the arm KickerEffectOutcome(pred, replaces=True) folds into
+    Conditional(not cast from your hand, every looked-at card into your hand,
+    else=the one-and-rest split). "Each of those cards" is every card of the
+    open look window: an ALL over the top of the library, Goblin Ringleader's
+    form ("Put all Goblin cards revealed this way into your hand") with no
+    filter. The condition is a history question about the spell itself: it
+    was cast (WAS_CAST_THIS_TURN, Containment Priest's "it wasn't cast"
+    twin: a copy is never cast, CR 707.10), and not from your hand
+    (CAST_THIS_TURN_FROM, negated)."""
+    cond = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY),
+            FNot(
+                inner=FAtom(
+                    pred=FAtomPred.CAST_THIS_TURN_FROM,
+                    zone=Zone(ZoneKind.HAND, ControllerRef.YOU),
+                    who=ControllerRef.YOU,
+                )
+            ),
         )
+    )
+    every_looked = Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(children=()),
+        zones=_looked_top_library().zones,
     )
     move = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
             pairs=(
-                ("cards", _result_selector()),
+                ("cards", every_looked),
                 ("destination", Zone(ZoneKind.HAND, ControllerRef.YOU)),
             )
         ),
     )
-    return EffectOutcome(effect=Conditional(pred=cond, then_effect=move))
+    return KickerEffectOutcome(effect=move, replaces=True, pred=cond)
 
 
 def _build_gain_control_eot(m: re.Match[str]) -> SentenceOutcome:
