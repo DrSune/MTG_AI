@@ -29,12 +29,14 @@ Bradley-Terry over the ladder games, uniform random = 0.
 Every number goes to <run>/metrics.jsonl; checkpoints to <run>/*.pt. Each start of the learner
 (a resume too) appends what ran, from which code, where and when to <run>/manifest.json.
 
-The commit: last.pt holds the learner's weights and the run's state together (one atomic write,
-``checkpoint``); state.pkl is a copy of that state for the scripts that watch a run. A resume
-continues from the last commit, so everything after it happens again: the running evaluation
-restarts (its spec is part of the state), and the job ids continue past every game already
-logged, so no deal is dealt twice. A freeze is committed at once (``_eval_tick``), so a frozen
-version on disk is always in the state that a resume loads.
+The commit: last.pt holds the learner's weights, its card table and the run's state together (one
+atomic write, ``checkpoint``); state.pkl is a copy of that state for the scripts that watch a run.
+A resume continues from the last commit, so everything after it happens again: the running
+evaluation restarts (its spec is part of the state), and the job ids continue past every game
+already logged, so no deal is dealt twice. An evaluation that ends is committed at once, a freeze
+with it (``_eval_tick``), so a frozen version on disk is always in the state that a resume loads,
+and an evaluation already logged is never played again. A resume continues the run's own network
+and card table: a table changes only by a new run's explicit --init ... --refresh-table.
 """
 
 from __future__ import annotations
@@ -48,12 +50,13 @@ import pickle
 import platform
 import random
 import re
+import shutil
 import signal
 import socket
 import subprocess
 import sys
 import time
-from collections import Counter, defaultdict, deque
+from collections import Counter, OrderedDict, defaultdict, deque
 from datetime import datetime
 from multiprocessing.connection import wait
 from pathlib import Path
@@ -79,14 +82,26 @@ TRAIN_SET = "M21"  # the set training games are dealt from (--mix-sets adds othe
 EVAL_SEED0 = 900_000
 #: --search-record: targets per shard file (each ~16 KB, so ~320 MB a shard)
 TARGETS_PER_SHARD = 20_000
-# Gates draw a fresh block of deals each time (GATE_SEED0 + GATE_STRIDE * gate number):
-# re-testing a learner on the same deals until one snapshot clears the bar selects luck on those
-# deals. A gate plays at most GATE_STRIDE deals (parse), so the blocks never overlap.
+# Gates draw a fresh block of deals each time (GATE_SEED0 + RUN_STRIDE * --seed + GATE_STRIDE *
+# gate number): re-testing a learner on the same deals until one snapshot clears the bar selects
+# luck on those deals. A gate plays at most GATE_STRIDE deals (parse), so the blocks never overlap.
 GATE_SEED0 = 2_000_000
 GATE_STRIDE = 1000
+# --seed moves a run's training deals and gate blocks by RUN_STRIDE each: a run started from
+# another run's checkpoint neither trains again on the deals its ancestors trained on nor gates on
+# the blocks they were frozen on (r28's v2 was selected on block 39, which every run from v2
+# replayed at its 40th gate). Before 2026-11-17 the gate blocks ignored --seed.
+RUN_STRIDE = 1_000_000_000
+#: what makes a run's card table, at its start only (a resume continues the committed table)
+TABLE_FLAGS = ("refresh_table", "extend_sets", "mask_names")
 TRAIN_SEED0 = 10_000_000
 BC_SEED0 = 5_000_000
 CAPTURE_SEED0 = 30_000_000  # + 1,000,000 x --seed: each capture run deals its own games
+
+
+def _sets(text: str) -> list[str]:
+    """A comma list of set codes (--extend-sets, --mix-sets)."""
+    return [code for code in text.split(",") if code]
 
 
 def table_records(sets: list[str]) -> dict[str, Any]:
@@ -266,7 +281,29 @@ class Learner:
         torch.manual_seed(args.seed)
         self.np_rng = np.random.default_rng(args.seed)  # BC's steps (ppo.steps)
         self.rng = random.Random(args.seed)
-        if args.init:
+        self.table_flags = {f: getattr(args, f) for f in TABLE_FLAGS}  # the run's start's
+        if args.resume:
+            # the run's own network and card table, as its last commit holds them: the rows are
+            # part of what the network computes (197 C4), and --init, --refresh-table and
+            # --extend-sets made the run's first table only. Rebuilt from them and the compile of
+            # the moment, the rows changed under the same weights at a restart, silently (a
+            # refresh of r28's v2 rebuilds 118). A new table is a new run's act (refresh_table)
+            self.model, self.table, extra = M.load(str(Path(args.resume) / "last.pt"), self.device)
+            # so a resume asking for a table change its start did not make is refused, never
+            # ignored (a new --mix-sets set would deal cards the table lacks, as the unknown card).
+            # The start's flags travel in the commit; a commit from before 2026-11-17 has none
+            start = (extra.get("state") or {}).get("table_flags")
+            if start:
+                asked = [f for f in ("refresh_table", "mask_names") if getattr(args, f)
+                         and not start[f]]
+                if set(_sets(args.extend_sets)) - set(_sets(start["extend_sets"])):
+                    asked.append("extend_sets")
+                if asked:
+                    raise ValueError(f"--resume {args.resume}: {asked} act at a run's start, "
+                                     f"which had {[start[f] for f in asked]}; a new table is a new "
+                                     f"run: --init {Path(args.resume) / 'last.pt'} with them")
+                self.table_flags = start
+        elif args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init,
                       "extra": {k: v for k, v in extra.items() if k != "state"}})
@@ -317,6 +354,10 @@ class Learner:
         self.log({"event": "model", "params": n_params, "config": self.model.config,
                   "device": str(self.device), "args": vars(args)})
         self.traj: dict[tuple[int, int], list] = {}
+        # training games in the order they were issued: None while one plays, then its rows and
+        # its result, until the batch takes it (_release); the decisions of the ended ones
+        self.held: OrderedDict[int, tuple | None] = OrderedDict()
+        self.held_rows = 0
         self.buffer: list = []
         self.bc: list = []
         self.eval_jobs: deque = deque()
@@ -375,18 +416,22 @@ class Learner:
         return net
 
     def _load_net(self, path: str | Path) -> torch.nn.Module:
-        """Another checkpoint as a network this learner can play: every seat's features are
-        encoded with the learner's card table, so the checkpoint's own table must be a prefix of
-        it (the same cards and components at the same rows: CardTable.refresh and extend only
-        append); its rows are then the learner's, as the learner reads them (M.extend_cards: new
-        cards unknown, new components zero)."""
+        """Another checkpoint (a frozen version, --opp-ckpt) as a network this learner can play.
+        Every seat's features are encoded with the learner's card table, so the checkpoint's
+        cards and components must be a prefix of it (the same card at the same row, the same
+        token at the same id: CardTable.refresh and extend only append). A network is its
+        weights and its card rows (197 C4): the cards its table holds keep their rows, so it
+        computes what it computed when saved; a card it lacks gets the learner's row, read as an
+        extended table reads it (M.extend_cards: name unknown, new components zero)."""
         net, table, _ = M.load(str(path), self.device)
         for name in ("oracle_ids", "ir_vocab"):
             mine, theirs = getattr(self.table, name), getattr(table, name)
             if theirs != mine[:len(theirs)]:
                 raise ValueError(f"{path}: its card table's {name} is not a prefix of the "
                                  "learner's; the learner's features would name other cards to it")
-        return M.extend_cards(net, self.table).eval()
+        own = FT.CardTable(self.table.oracle_ids, self.table.names, self.table.ir_vocab,
+                           table.ir + self.table.ir[len(table.ir):])
+        return M.extend_cards(net, own).eval()
 
     def update(self) -> dict:
         """One PPO update: hand the batch to the trainer process (its own CUDA context) and keep
@@ -403,6 +448,7 @@ class Learner:
                                        daemon=True)
             self.trainer.start()
         buf, self.buffer = self.buffer, []
+        self._release()  # the games that ended past the batch's last start the next one
         t0 = time.perf_counter()
         self.tconn.send(("update", pack_buffer(buf)))
         send_s = time.perf_counter() - t0
@@ -522,11 +568,11 @@ class Learner:
             # PPO wants on-policy batches. Workers keep playing during an update; once a full
             # next batch is waiting they get no new training games until the update takes it,
             # else a trainer slower than the workers makes every batch larger than the last.
-            if len(self.buffer) >= self.args.steps:
-                self.counts["throttled"] += 1
-                return None
-            return self.curriculum_job()
+            return None if self._throttled() else self.curriculum_job()
         return None
+
+    def _throttled(self) -> bool:
+        return self.phase == "ppo" and len(self.buffer) >= self.args.steps
 
     def search_opts(self) -> dict:
         a = self.args
@@ -544,7 +590,7 @@ class Learner:
         a = self.args
         # --seed moves the deals: a run started from another run's checkpoint must not train
         # again on the decks and shuffles its ancestors trained on
-        seed = TRAIN_SEED0 + 1_000_000_000 * a.seed + self.gid + 1
+        seed = TRAIN_SEED0 + RUN_STRIDE * a.seed + self.gid + 1
         if self.stage == "teacher":
             opp = "heuristic"
         else:
@@ -569,6 +615,7 @@ class Learner:
         job["group"] = "heuristic" if opp == "heuristic" else "self" if opp == "learner" else (
             "frozen" if opp == self.versions[-1] else "past")
         self._mix(job)
+        self.held[job["gid"]] = None
         return job
 
     def _mix(self, job: dict) -> None:
@@ -590,6 +637,10 @@ class Learner:
             self.conns[wid].send(("jobs", jobs))
             self.pending_need.pop(wid, None)
         else:
+            # a request is refused once: serve() asks again for it on every pass (_flush_needs),
+            # which counted every pass, about 20 a second, as a refusal
+            if wid not in self.pending_need and self._throttled():
+                self.counts["throttled"] += 1
             self.pending_need[wid] = n
 
     def _flush_needs(self) -> None:
@@ -778,6 +829,7 @@ class Learner:
         # the learner's asks answered by the fallback (never trained on); not the opponent's
         self.counts["overflow"] += sum(n for s, n in zip(r["seats"], r.get("overflow", [0, 0]),
                                                          strict=True) if s == "learner")
+        rows, result = [], None
         for seat in (0, 1):
             steps = self.traj.pop((r["gid"], seat), None)
             if not steps:
@@ -791,13 +843,39 @@ class Learner:
             # the game, the step and the seat ride along for --collect (held-out games, game
             # phase; the two seats of a self game share its id)
             for i, ((f, act, logp, v), ad) in enumerate(zip(steps, adv, strict=True)):
-                self.buffer.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps), seat))
+                rows.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps), seat))
         if not void:  # one entry a game: the results of its learner seats, both in a self game
             seats = r["seats"]
             zs = [self.reward(r["outcome"], r["winner"], s)
                   for s in (0, 1) if seats[s] == "learner"]
-            self.train_results.append((r.get("group") or seats[1 - seats.index("learner")], zs,
-                                       r["turns"], r["set_code"]))
+            result = (r.get("group") or seats[1 - seats.index("learner")], zs, r["turns"],
+                      r["set_code"])
+        self.held[r["gid"]] = (rows, result)  # a late one, or one issued elsewhere, goes last
+        self.held_rows += len(rows)
+        self._release()
+
+    def _release(self) -> None:
+        """Training games join the batch in the order they were issued, never in the order they
+        end. The games that end first are the short ones whenever games started together (a
+        run's start, a resume, and the end of every gate, whose jobs went first and paused the
+        training games: 190 §1.8, hunt 4), and the long ones after such a pause; a batch was a
+        skewed sample of games around every gate. A batch is the run of games issued after the
+        last batch's, to --steps decisions, its last game whole. A game still playing holds the
+        ones issued after it until a full batch has ended behind it: then it is late (hung, or
+        its result lost) and joins the batch it ends in, so no game stalls the training. At r28's
+        sizes (about 27k decisions in flight, 139k a batch) only the far tail is ever late; a
+        smoke run whose games in flight hold a batch's decisions sees it often."""
+        while self.held and len(self.buffer) < self.args.steps:
+            gid, game = next(iter(self.held.items()))
+            if game is None and self.held_rows < self.args.steps:
+                return  # it still plays, and holds the games issued after it
+            del self.held[gid]
+            if game is None:
+                continue  # late: when it ends, it goes last (_finish_train)
+            self.held_rows -= len(game[0])
+            self.buffer += game[0]
+            if game[1] is not None:
+                self.train_results.append(game[1])
 
     # ------------------------------------------------------------------ BC
 
@@ -1033,7 +1111,7 @@ class Learner:
     def freeze(self, src: torch.nn.Module, it: int) -> str:
         """A new frozen version from ``src``, the learner's weights after update ``it`` (saved as
         <run>/v<k>.pt). The caller commits it (``checkpoint``) and then logs it
-        (``_log_freeze``): a file that no commit lists is overwritten by the next freeze."""
+        (``_freeze_row``): a file that no commit lists is overwritten by the next freeze."""
         name = f"v{len(self.versions)}"
         net = self._copy(src)
         self.models[name] = net
@@ -1042,15 +1120,14 @@ class Learner:
                {"it": it, "frozen_at": self.it, "stage": self.stage})
         return name
 
-    def _log_freeze(self, name: str, it: int, stage: str) -> None:
-        self.log({"event": "freeze", "version": name, "it": it, "frozen_at": self.it,
-                  "stage": stage})
+    def _freeze_row(self, name: str, it: int, stage: str) -> dict:
+        return {"event": "freeze", "version": name, "it": it, "frozen_at": self.it, "stage": stage}
 
     def queue_eval(self, kind: str, tag: str, seat: str, opponents: list[str],
                    deals: int) -> None:
         seed0 = EVAL_SEED0
         if kind in ("gate", "teacher"):  # both decide a freeze: never on the ladder's deals
-            seed0 = GATE_SEED0 + GATE_STRIDE * self.n_gates
+            seed0 = GATE_SEED0 + RUN_STRIDE * self.args.seed + GATE_STRIDE * self.n_gates
             self.n_gates += 1
         self.eval_queue.append((kind, tag, seat, opponents, deals, seed0))
 
@@ -1073,47 +1150,52 @@ class Learner:
         return ["random", "heuristic"] + ([prev] if prev else [])
 
     def _eval_tick(self) -> None:
-        """Called once per iteration: finish a completed evaluation, start the next one. A
-        freeze is committed at once, with the new version's ladder queued (``checkpoint``), and
-        only then logged; ``best.pt`` is the gate's snapshot, the network the gate scored."""
+        """Called once per iteration: finish a completed evaluation, start the next one. An
+        evaluation that ends is committed as ended (``checkpoint``), with what it decided (a
+        freeze, the new version's ladder queued, its rating games), and only then logged: a
+        resume never plays it again on its deals nor logs it twice (a failed gate committed as
+        running gave a near-miss a second draw: hunt 4). ``best.pt`` is the gate's snapshot, the
+        network the gate scored."""
         a = self.args
         if self.eval_meta and not self.eval_pending and self.eval_rows:
             ev = self.eval_summary()
             kind, seat, opps = self.eval_kind["kind"], self.eval_kind["seat"], self.eval_kind["opps"]
             snap_it = self.eval_meta["it"]  # the evaluated snapshot's update
             ev["kind"] = kind
-            self.log(ev)
+            rows = [ev]  # its events, logged once its end is committed
             self.eval_meta, self.eval_kind, self.eval_spec = {}, {}, None  # this one is over
             if kind == "ladder":
                 self.elo_games += self._eval_rows_as_games(seat)
-                self._log_elo()
             elif kind == "teacher":
                 res = ev.get("heuristic", {})
                 passed = res.get("score", 0) >= a.teacher_gate and res.get("ci95", [0])[0] > 0.5
-                self.log({"event": "teacher_gate", "it": self.it, "score": res.get("score"),
-                          "ci95": res.get("ci95"), "passed": passed})
+                rows.append({"event": "teacher_gate", "it": self.it, "score": res.get("score"),
+                             "ci95": res.get("ci95"), "passed": passed})
                 if passed or self.it >= a.teacher_iters:
                     name = self.freeze(self.models["eval"], snap_it)
                     self.stage = "selfplay"
                     self.queue_eval("ladder", f"ladder:{name}", name,
                                     self._ladder_opponents(name), a.ladder_deals)
-                    self.checkpoint()
-                    self._log_freeze(name, snap_it, "teacher")
-                    self.log({"event": "stage", "stage": "selfplay", "it": self.it,
-                              "frozen": name, "forced": not passed})
+                    rows += [self._freeze_row(name, snap_it, "teacher"),
+                             {"event": "stage", "stage": "selfplay", "it": self.it,
+                              "frozen": name, "forced": not passed}]
             elif kind == "gate":
                 res = ev.get(opps[0], {})
                 passed = res.get("score", 0) >= a.gate_score and res.get("ci95", [0])[0] > 0.5
-                self.log({"event": "gate", "it": self.it, "vs": opps[0], "score": res.get("score"),
-                          "ci95": res.get("ci95"), "passed": passed})
+                rows.append({"event": "gate", "it": self.it, "vs": opps[0],
+                             "score": res.get("score"), "ci95": res.get("ci95"), "passed": passed})
                 if passed:
                     name = self.freeze(self.models["eval"], snap_it)
                     self.queue_eval("ladder", f"ladder:{name}", name,
                                     self._ladder_opponents(name), a.ladder_deals)
                     M.save(str(self.run / "best.pt"), self.models["eval"], self.table,
                            {"it": snap_it, "version": name, "gate": res})
-                    self.checkpoint()
-                    self._log_freeze(name, snap_it, self.stage)
+                    rows.append(self._freeze_row(name, snap_it, self.stage))
+            self.checkpoint()
+            for row in rows:
+                self.log(row)
+            if kind == "ladder":
+                self._log_elo()
         if not self.eval_pending and not self.eval_meta and self.eval_queue:
             self.eval_spec = self.eval_queue.popleft()
             kind, tag, seat, opps, deals, *rest = self.eval_spec
@@ -1137,7 +1219,7 @@ class Learner:
                       "eval_queue": [q[1] for q in self.eval_queue]})
         else:
             v0 = self.freeze(self.model, 0)  # the starting policy (BC or --init)
-            self._log_freeze(v0, 0, "")
+            self.log(self._freeze_row(v0, 0, ""))
             if not a.collect:
                 self.queue_eval("ladder", "ladder:heuristic", "heuristic", ["random"],
                                 a.ladder_deals)
@@ -1155,10 +1237,10 @@ class Learner:
                 self.log({"event": "collect", "rows": len(self.buffer), "out": a.collect})
                 return
             t1 = time.time()
+            res, self.train_results = self.train_results, []  # the batch's games (_release)
             st = self.update()
             # over the whole iteration: the workers also play while the update runs
             tp = self.throughput(t0, g0, d0)
-            res, self.train_results = self.train_results, []
             wr: dict[str, list] = defaultdict(list)
             by_set: dict[str, list] = defaultdict(list)
             for group, zs, _, set_code in res:  # the group as the job drew it (curriculum_job)
@@ -1203,12 +1285,13 @@ class Learner:
     def run_state(self) -> dict:
         """Everything --resume needs besides the weights and the versions' files: the stage, the
         version list, the rating games, the job ids (training seeds), the opponent draws, the
-        gate deal blocks, and the evaluations: the running one first (it starts again), then
-        the queued ones."""
+        gate deal blocks, the evaluations (the running one first: it starts again; then the
+        queued ones), and the flags its card table was made with at its start."""
         return {"it": self.it, "stage": self.stage, "versions": list(self.versions),
                 "elo_games": list(self.elo_games), "pool": self.args.pool, "gid": self.gid,
                 "rng": self.rng.getstate(), "n_gates": self.n_gates,
-                "eval_queue": [self.eval_spec] * bool(self.eval_spec) + list(self.eval_queue)}
+                "eval_queue": [self.eval_spec] * bool(self.eval_spec) + list(self.eval_queue),
+                "table_flags": dict(self.table_flags)}
 
     def checkpoint(self) -> None:
         """The run's commit (module docstring): last.pt with the learner's weights and the run
@@ -1223,9 +1306,13 @@ class Learner:
     def load_state(self, run_dir: str) -> dict:
         """Restore a run's last commit: the learner's weights and the run state from last.pt
         (state.pkl for runs committed before the state travelled in last.pt), every frozen
-        version (v<k>.pt), and job ids past every game the run logged after its commit."""
+        version (v<k>.pt), and job ids past every game the run logged after its commit. The
+        learner serves the run's own card table (``__init__``: --resume)."""
         src = Path(run_dir)
-        model, _, extra = M.load(str(src / "last.pt"), self.device)
+        model, table, extra = M.load(str(src / "last.pt"), self.device)
+        if table.to_json() != self.table.to_json():
+            raise ValueError(f"--resume {run_dir}: the learner's card table is not the run's own "
+                             "(last.pt); a resume never changes a run's card rows")
         st = extra.get("state")
         if st is None:
             with (src / "state.pkl").open("rb") as fh:
@@ -1240,10 +1327,10 @@ class Learner:
         self.model.load_state_dict(model.state_dict())
         self.weights_changed(self.model)
         for name in st["versions"]:
-            net = self._load_net(src / f"{name}.pt")
-            self.models[name] = net
-            if src != self.run:
-                M.save(str(self.run / f"{name}.pt"), net, self.table, {"resumed_from": run_dir})
+            self.models[name] = self._load_net(src / f"{name}.pt")
+            if src != self.run:  # the version's file, its own card rows with it
+                M.atomic_write(self.run / f"{name}.pt",
+                               lambda tmp, name=name: shutil.copyfile(src / f"{name}.pt", tmp))
         self.versions = list(st["versions"])
         self.stage = st["stage"]
         self.elo_games = list(st["elo_games"])
@@ -1367,7 +1454,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--refresh-table", action="store_true",
                    help="rebuild the --init card table's rows of M21 and every --extend-sets set "
                         "from the current compile (after an engine/compiler change re-compiled "
-                        "cards, or cards were mapped); new components learnable")
+                        "cards, or cards were mapped); new components learnable. At a run's "
+                        "start only: a resume keeps the run's own table")
     p.add_argument("--extend-sets", default="",
                    help="comma list of sets whose castable cards join the card table (names "
                         "unknown, components in the trained vocabulary)")
