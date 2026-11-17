@@ -12,7 +12,10 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Nothing trains since 2026-11-17 13:57.** r28 (`KNOWLEDGE/2026-11-12/199`, r27's configuration on
+**Running since 2026-11-17 ~15:50: the exploitability probe** (`KNOWLEDGE/2026-11-17/211`), part of the
+bug hunt. An exploiter trained only against r28's v2 for 4 machine-hours (`--iters 80` backstop), as
+the transient unit `mtg-probe` with its guard, from the worktree `/home/sune/Desktop/MTG_AI-probe`
+(pinned at 9485faae, do not edit it), into `runs/selfplay/probe_exploit_v2/`. No other training. r28 (`KNOWLEDGE/2026-11-12/199`, r27's configuration on
 the fixed trainer, from r27's v1) ended at update 1845. It gained +39 Elo over its init (v1 at 352,
 v2 at 1000) and was flat after 1000 (199 §9). Its v2 is pinned as `runs/r28_looks/r28_v2.pt`. Gate
 B did not run at r28's read at 400 (`KNOWLEDGE/2026-11-12/196` §10), but its reopening rule is met
