@@ -62,6 +62,15 @@ zones is a new object). Three tables:
   Bag of Holding (verified) or Hoarding Dragon that left and came back returned its earlier
   life's cards too (CR 607.2a). E1 (1f2410b9) ties the link to the object's current life.
 - *Tests.* One pack for each table, each failing on main.
+- **The stack frame** (found after the hunt by gate 13's reviewer; **EXPLOITABLE**; identical on
+  fdd1a021).
+  - Unsubstantiate (M21, verified, dealt) returned a spell to its owner's hand but left its stack
+    frame, so the spell still resolved. Shock plus Unsubstantiate on your own Shock dealt 2 damage
+    and kept Shock in hand.
+  - The same move skips flashback's exile, which should fire whenever the spell would leave the
+    stack (CR 702.34a), not only when it resolves, fizzles or is countered.
+  - Round 13's author fixes it at the cause: every move of a spell off the stack ends its frame
+    and applies the leave-the-stack replacements.
 
 **C. Layers ordered by registration, not by the rules** (CR 613; hunter 3).
 - **Printed keywords** were layer records, stamped when the creature entered and folded in the
@@ -170,7 +179,7 @@ The faults fall into seven patterns. Each pattern hid a class, not one card, so 
 
 | Pattern | Faults it hid | Guard |
 |---|---|---|
-| **One life per card.** Every pack and test put a card onto the battlefield once. CR 400.7 was tested on the object map (206), never on side tables keyed by a handle | B (three tables) and A | A 400.7 audit: every handle-keyed table or read declares its behaviour (cleared on departure, or read through `LastKnown`), and a test lists them. E1's review already found two more reads (`CAST_THIS_TURN_FROM`, the 704.5n Equipment lane). Second-life packs for cards that link to their past |
+| **One life per card.** Every pack and test put a card onto the battlefield once. CR 400.7 was tested on the object map (206), never on side tables keyed by a handle | B (three tables and the stack frame) and A | A 400.7 audit: every handle-keyed table or read declares its behaviour (cleared on departure, or read through `LastKnown`), and a test lists them. E1's review already found two more reads (`CAST_THIS_TURN_FROM`, the 704.5n Equipment lane). Second-life packs for cards that link to their past |
 | **A fixture that is not the real thing.** The "loses flying" packs used a creature given flying by an effect, never printed flying. Leafkin's packs activated a mana ability, which real games stopped doing on 2026-11-11. No pack can set up a permanent controlled by a non-owner | C, F(a), D | Packs take the game's own paths: a lint rejects a pack step real games never take. E2's test that every verified mana ability is priced. The pack vocabulary gains control by a non-owner |
 | **State checked, not events.** Tests of entering with counters checked the counters, never the journal row a watcher needs | G | An effect's test checks its journal rows. A G3 mutant that drops a row must be killed by a watcher |
 | **The engine and its tests shared one reading of the rules.** The damage order was written to the pre-2024 rule, and its tests pinned the same reading | E | Rules areas are re-read against the pinned CR text. A rules change since an area was written is a hunt item |
@@ -212,7 +221,8 @@ the next one should too.
 | Wave | Branch head | State |
 |---|---|---|
 | E1 (A, B, G, Angelic Destiny, "exiled with") | 1f2410b9 | fresh-eyes review of the additions running |
-| E2 (C, D, E, F, the mappers' faults) | b4eeb7c6 | review fixes in, main merged; its report pending |
+| E2 (C, D, E, F, the mappers' faults) | d3798ad7 | **merged** (68d59bf2). 600 seeded games: 233 differ (124 the division, 22 a trample-over, 14 Leafkin, 1 a negative power, 72 renamed asks only), 0 crashes, 9 winners changed; r28 v2 bitwise on every old ask; 1 of 5,671 trees changed (ORI Liliana, unverified) |
+| Round 13 (the stack frame, with its own gate conditions) | f01b303f | fixing; merges after round 12 |
 | T1 (H) | d7d2e108 | finishing (r28 read-only check) |
 | Recurrence guards (§3: the 400.7 audit, the token invariant, the pack-path lint, control by a non-owner) | — | after E1 and E2 merge |
 | Confirmation (the hunters' repros on merged main, the soak with the new invariant, the exploit scan of the probe's games) | — | after the guards |

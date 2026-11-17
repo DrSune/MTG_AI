@@ -279,7 +279,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Beginning of combat on your turn; PUT_COUNTER count QProp('source', POWER) on another target creature you control; 'That creature' is the compiler's 'Untap that creature.' referent ('target') with haste until end of turn. First strike, reach compiled. ENGINE, weaker than printed at negative power: PUT_COUNTER adds a negative count as it is (removes counters) where CR 107.1b makes it 0 (known bug pack tools/scenarios/known_bugs/halana_and_alena_negative_power_puts_no_counters.json). packs in tools/scenarios/mapped/FDN/: halana_and_alena_counters_equal_power_haste_this_turn."
+  "notes": "Beginning of combat on your turn; PUT_COUNTER count QProp('source', POWER) on another target creature you control; 'That creature' is the compiler's 'Untap that creature.' referent ('target') with haste until end of turn. First strike, reach compiled. ENGINE, fixed by engine wave E2 (2026-11-17): PUT_COUNTER added a negative count as it is (removed counters) where CR 107.1b makes it 0 (selectors.effect_number now). packs in tools/scenarios/mapped/FDN/: halana_and_alena_counters_equal_power_haste_this_turn, halana_and_alena_negative_power_puts_no_counters (was known_bugs)."
  },
  "probe": {
   "sha": "cea0c2450cffa3ebca878b2bb1ea98435806911ebe6385b97bb0c73bb25b62a2"

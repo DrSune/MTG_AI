@@ -47,10 +47,8 @@
       "block": {
         "corpse": "dino"
       },
-      "trample": {
-        "dino": [
-          1
-        ]
+      "divide": {
+        "corpse": 3
       }
     }
   ],

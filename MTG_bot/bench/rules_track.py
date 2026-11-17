@@ -269,8 +269,8 @@ def _render_step(step: dict, labels: dict[str, str], runner: Any, supply: Any, o
         tgt = f" targeting {', '.join(targets)}" if targets else ""
         return f'Seat {step.get("seat", 0)} activates {L(step["key"])}\'s ability "{text(line)}"{tgt}; it resolves.{choices}'
     if op == "combat":
-        if any(step.get(k) for k in ("order", "trample", "policy")):
-            raise Unrenderable("combat damage-order/trample lanes")
+        if any(step.get(k) for k in ("divide", "policy")):
+            raise Unrenderable("combat damage-division/policy lanes")
         if step.get("respond") or step.get("respond_to_triggers"):
             raise Unrenderable("combat response windows")  # their steps happen inside the combat
         if step.get("decisions"):

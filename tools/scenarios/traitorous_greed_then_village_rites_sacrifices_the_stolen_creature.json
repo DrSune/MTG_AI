@@ -1,0 +1,23 @@
+{
+ "name": "traitorous_greed_then_village_rites_sacrifices_the_stolen_creature",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt2). P0 steals P1's Ogre with Traitorous Greed (two mana, here BB) and pays Village Rites' additional cost 'sacrifice a creature' with it: a player sacrifices a permanent they control (CR 701.21a), and P0 controls the Ogre, which P1 owns. The Ogre goes to its owner's graveyard and P0 draws two. Failed before the fix: the cost read the controller off the zone that holds the card, which names its owner, so Village Rites was never castable.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "greed", "real": "Traitorous Greed", "zone": "hand", "controller": 0},
+  {"key": "rites", "real": "Village Rites", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "lib1", "name": "Library One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "lib2", "name": "Library Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 4}},
+ "steps": [
+  {"op": "cast", "key": "greed", "real": "Traitorous Greed", "targets": ["ogre"], "decisions": ["B", "B"]},
+  {"op": "cast", "key": "rites", "real": "Village Rites"}
+ ],
+ "expect": {
+  "zone": {"ogre": "graveyard", "rites": "graveyard", "greed": "graveyard"},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {"B": 1}}
+ }
+}

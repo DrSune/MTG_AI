@@ -165,7 +165,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "ENGINE (weaker than printed): a triggered ability whose only target sits in a combat event slot (IS_ANY_TARGET in DeclareBlockersEvent.filter, the form Sneaking Guide and Goblin Smuggler use as activations) is never designated: binding._designation_slots reads TARGET Selectors and designated players only, and query._designation_only_slot serves activation_target_slots alone. No target is chosen, so the paid {R} does nothing (and the trigger is not removed when no creature can be targeted, CR 603.3d). Repro (fails today, run with cardtool runpack FDN): tools/scenarios/known_bugs/frenzied_goblin_trigger_target_cant_block_never_designated.json."
+  "notes": "ENGINE, fixed by engine wave E2 (2026-11-17): a triggered ability whose only target sits in a combat event slot (IS_ANY_TARGET in DeclareBlockersEvent.filter, the form Sneaking Guide and Goblin Smuggler use as activations) was never designated, so the paid {R} did nothing; it now designates that target as it goes on the stack and is removed with none to choose (CR 603.3d). Pack: tools/scenarios/mapped/FDN/frenzied_goblin_trigger_targets_a_creature_that_cannot_block.json (was known_bugs)."
  },
  "probe": {
   "sha": "31949eae063928d05bd6c7ae7f9713cd50048149352f8a1303dc6dd45df8a0b0"

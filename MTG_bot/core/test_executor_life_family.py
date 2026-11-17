@@ -337,7 +337,7 @@ def test_a_trampling_lifelinker_and_its_blocker_are_one_gain(angel, life) -> Non
         cards.append(_real("angel", "Angel of Vitality"))
     r = _runner("FDN", cards)
     r.run_step({"op": "combat", "seat": 0, "attack": {"lt": True}, "block": {"wall": "lt"},
-                "trample": {"lt": [0]}})
+                "divide": {"wall": 2}})
     assert _gains(r) == [life - 20] and r.world.players[r.p0].life == life
     assert r.world.players[r.p1].life == 17
     assert _plus_counters(r, "pm") == 1

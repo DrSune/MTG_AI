@@ -1,0 +1,17 @@
+{
+ "name": "leafkin_druid_adds_two_with_four_creatures",
+ "set": "M20",
+ "notes": "The other branch of leafkin_druid_pays_from_the_menu: controlling four or more creatures, Leafkin Druid adds {G}{G} instead, so it alone pays Greenwood Sentinel ({1}{G}) from the menu. The payer prices the Conditional by the branch the state picks as the ability is activated (a mana ability resolves at once, CR 605.3a-b).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Bear One", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Bear Two", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "c3", "name": "Bear Three", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "gs", "real": "Greenwood Sentinel", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:gs"]}
+ ],
+ "expect": {"zone": {"gs": "battlefield"}, "tapped": {"druid": true}, "mana_pool": {"0": {}}}
+}

@@ -1,0 +1,26 @@
+{
+ "name": "colossus_hammer_flier_that_entered_after_the_hammer_loses_flying",
+ "set": "M20",
+ "notes": "Bug hunt 2026-11-17 (hunt3 F1). 'Equipped creature gets +10/+10 and loses flying.' The Hammer enters first, then a real flier (Air Elemental, its flying a compiled keyword record) enters, and the Hammer is equipped to it. A printed ability is not an effect with a timestamp (CR 613.1, 613.7): the Hammer's loss removes it whatever entered first. The ground 2/2 is offered the block. Failed before the fix: the flier's own keyword record, registered after the Hammer's static, gave flying back.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "hand", "controller": 0},
+  {"key": "air", "real": "Air Elemental", "zone": "hand", "controller": 0},
+  {"key": "grd", "name": "Ground Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hammer"},
+  {"op": "enter", "key": "air"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 8}},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["air"]},
+  {"op": "combat", "seat": 0, "attack": {"air": true}}
+ ],
+ "expect": {
+  "attached": {"hammer": "air"},
+  "power": {"air": 14},
+  "block_asks": {"grd": "<air>,NONE"},
+  "life": {"0": 20, "1": 6}
+ }
+}

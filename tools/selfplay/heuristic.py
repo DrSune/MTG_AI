@@ -30,6 +30,9 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   survive.
 * block: a free kill, else chump the biggest attacker when the attack is lethal, else a block
   it survives, else no block.
+* divide (a blocked creature's combat damage among its blockers): a trampler gives each blocker
+  lethal damage and the rest to the player when it can; otherwise it kills the most valuable
+  blockers it can (never wasting damage on an indestructible one), the rest on a survivor.
 * scry/discard/sacrifice/mana/one_of: small land-count and mana-value rules (see the methods).
 * name: the opponent's most expensive card in a public zone (battlefield, graveyard, exile).
 * quality (a colour or a creature type chosen as a permanent enters): the one most of its own cards
@@ -581,9 +584,39 @@ class HeuristicAgent:
             return None
         return max(cards, key=lambda x: (float(self.world.cards[x[1]].identity.cmc or 0), -x[0]))[0]
 
-    def _trample(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
-        nums = [(i, int(t)) for i, t in enumerate(tokens) if t.lstrip("-").isdigit()]
-        return max(nums, key=lambda x: x[1])[0] if nums else None
+    def _divide(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
+        """How much of a blocked creature's combat damage goes to one of its blockers (CR
+        510.1c), asked blocker by blocker: the amount :meth:`_division` plans for it, or the
+        offered amount nearest it."""
+        parts = ask.site.split(":")  # divide:<blocker>:<attacker>:<turn>
+        blocker, dealer = _handle(":".join(parts[1:3])), _handle(":".join(parts[3:5]))
+        if dealer is None or dealer not in self.world.cards:
+            return None
+        want = self._division(dealer).get(blocker, 0)
+        nums = [int(t) for t in tokens]
+        return min(range(len(nums)), key=lambda i: (abs(nums[i] - want), nums[i]))
+
+    def _division(self, dealer: Handle) -> dict[Handle, int]:
+        """A trampler that can assign every blocker lethal damage does, and the rest goes to what
+        it attacks (CR 702.19b). Otherwise the damage kills the most valuable blockers it can (an
+        indestructible one never dies of it, Brash Taunter turns it back), and what is left goes
+        to the most valuable blocker still alive, else to one already dead."""
+        blockers = sorted(b for b in self.ex.blocked_by.get(dealer, ())
+                          if b in self.world.cards and self.world.zone_of(b).kind == ZONE_BATTLEFIELD)
+        need = {b: self.ex.lethal_damage(dealer, b) for b in blockers}
+        power = self._pt(dealer)[0]
+        if "TRAMPLE" in self._kw(dealer) and sum(need.values()) <= power:
+            return need
+        mortal = [b for b in blockers if "INDESTRUCTIBLE" not in self._kw(b)]
+        plan = dict.fromkeys(blockers, 0)
+        left = power
+        for b in sorted(mortal, key=lambda b: (-self._value(b), b)):
+            if need[b] <= left:
+                plan[b], left = need[b], left - need[b]
+        rest = ([b for b in mortal if not plan[b]] or [b for b in blockers if plan[b]] or blockers)
+        if left and rest:
+            plan[max(rest, key=lambda b: (self._value(b), b))] += left
+        return plan
 
     def _policy(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
         return tokens.index("UNBLOCKED") if "UNBLOCKED" in tokens else None

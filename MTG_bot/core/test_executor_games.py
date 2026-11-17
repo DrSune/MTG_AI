@@ -2344,8 +2344,12 @@ class StallRuleTest(unittest.TestCase):
         # when the loop asked at every priority point and the random player
         # stopped tapping mana by hand (5b-2); double-run identical each time. 2026-11-13: 35
         # with a new loser when Siege Striker's "you may tap any number" lost its may (gate
-        # round 7, m1: one ask fewer for the random players); double-run identical.
-        self.assertEqual(game.turns, 35)
+        # round 7, m1: one ask fewer for the random players); double-run identical. 2026-11-17:
+        # 39, the same loser, when a blocked creature's controller came to divide its combat
+        # damage among its blockers as it chooses (CR 510.1c; engine wave E2): at turn 32 the
+        # random player's 2 damage went to the first-striking blocker, where the lethal-first
+        # order the rules dropped sent it to the other; double-run identical.
+        self.assertEqual(game.turns, 39)
         self.assertEqual(game.reason, "game over: player:1(life<=0)")
 
     def test_stall_run_is_deterministic(self) -> None:

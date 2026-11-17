@@ -1,0 +1,131 @@
+{
+ "name": "jolrael_base_pt_overrides_kinetic_augur_power",
+ "set": "M21",
+ "notes": "Bug hunt 2026-11-17 (hunt3 F5). Kinetic Augur's power is a characteristic-defining ability (three instants in the graveyard: 3/4). Jolrael's {4}{G}{G}: 'Until end of turn, creatures you control have base power and toughness X/X' (X = 7 cards in hand) sets P/T in layer 7b, after every 7a CDA whatever the timestamps (CR 613.4a-b): the Augur is 7/7. Failed before the fix (3/7): the ledger told 7a from 7b by timestamp alone, and stamped a verb's entry with the raw event count where a static's took the journal clock, two clocks; four turns in, Jolrael's set (8) sorted before the CDA (23).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "jol",
+   "real": "Jolrael, Mwonvuli Recluse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "aug",
+   "real": "Kinetic Augur",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "i0",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "i1",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "i2",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "h0",
+   "name": "Filler0",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h1",
+   "name": "Filler1",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h2",
+   "name": "Filler2",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h3",
+   "name": "Filler3",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "h4",
+   "name": "Filler4",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "enter",
+   "key": "aug",
+   "decisions": [
+    "NONE"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 6
+   }
+  },
+  {
+   "op": "activate",
+   "key": "jol",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 7
+  },
+  "power": {
+   "aug": 7
+  },
+  "toughness": {
+   "aug": 7
+  }
+ }
+}

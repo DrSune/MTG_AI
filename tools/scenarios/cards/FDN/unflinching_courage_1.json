@@ -10,7 +10,7 @@
  "mana": {"0": {"G": 1, "W": 1, "C": 1}},
  "steps": [
   {"op": "cast", "key": "uc", "real": "Unflinching Courage", "controller": 0, "targets": ["bear"]},
-  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"blk": "bear"}, "trample": {"bear": [0]}}
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"blk": "bear"}, "divide": {"blk": 2}}
  ],
  "expect": {
   "attached": {"uc": "bear"},

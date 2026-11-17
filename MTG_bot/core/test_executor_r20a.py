@@ -32,6 +32,8 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationPermanent,
     FAnd,
+    FAtom,
+    FAtomPred,
     QConst,
     Selector,
     SelectorMode,
@@ -60,6 +62,11 @@ from MTG_bot.core.test_executor_binding import (
 
 def atom(verb, **roles) -> Atom:
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))
+
+
+#: "Prevent all damage that would be dealt to it": a prevention scoped to its ability's target
+#: names it (FDN Fleeting Flight's record); a universal condition prevents all damage (CR 611.2c).
+_IT = FAtom(FAtomPred.IS_ANY_TARGET)
 
 
 class R20aCase(unittest.TestCase):
@@ -165,8 +172,8 @@ class LifelinkTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationPermanent(),
             ),
             source=shield,
@@ -303,8 +310,8 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationEot(),
             ),
             source=holder,
@@ -332,8 +339,8 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationPermanent(),
             ),
             source=holder,
@@ -359,9 +366,9 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
+                condition=_IT,
                 event=DamageDealtEvent(
-                    amount=_unbounded(), filter=FAnd(()), combat=True
+                    amount=_unbounded(), filter=_IT, combat=True
                 ),
                 duration=DurationPermanent(),
             ),

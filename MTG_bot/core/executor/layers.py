@@ -16,9 +16,10 @@ the executor's settle pass → :meth:`LayerRegistry.recompute`):
     QProp POWER/TOUGHNESS and the dies snapshot read the ledger, so they see
     layer modifiers too.
   * **keyword / ability grants feed derived maps** rebuilt in recompute —
-    printed identity keywords first, then live layers in LAYER-SEQ (first
-    application-timestamp) order, so a later loss removes an earlier grant
-    and a later grant re-applies over an earlier loss:
+    printed keywords first (the identity's and the permanent's own keyword
+    records: printed values, not timestamped effects, CR 613.1), then live
+    layers in LAYER-SEQ (timestamp) order, so a later loss removes an
+    earlier grant and a later grant re-applies over an earlier loss:
     :meth:`LayerRegistry.keyword_of` (a keyword removal matches printed AND
     granted keywords by name) and
     :meth:`LayerRegistry.granted_abilities` (what :mod:`legality` folds into
@@ -132,6 +133,24 @@ def _lose_matches_ability(payload: object, node: object) -> bool:
     equal to the one the LOSE names is what gets lost (a printed non-keyword
     ability is not in the granted map, so a LOSE leaves it alone)."""
     return repr(payload) == repr(node)
+
+
+_ITSELF = FAtom(pred=FAtomPred.IS_SOURCE)
+
+
+def _defines_own_pt(layer: LayerRecord) -> bool:
+    """Is a P/T-setting static a characteristic-defining ability (CR 604.3a)? One the permanent
+    has itself (printed, or given to a token by the effect that made it), that sets its own
+    power or toughness, under no condition (Kinetic Augur's "power is equal to the number of
+    instant and sorcery cards in your graveyard"). It applies in layer 7a, before every other
+    effect that sets P/T, whatever their timestamps (CR 613.4a)."""
+    return (
+        layer.from_static
+        and layer.condition is None
+        and layer.duration is None
+        and layer.selector is not None
+        and layer.selector.filter == _ITSELF
+    )
 
 
 def _validate_activation_grant(atom: Atom) -> None:
@@ -366,6 +385,16 @@ class LayerRegistry:
             if layer.source == handle and layer.from_static and layer.status != "expired":
                 layer.controller = controller
                 self.executor.ledger.rebind_controller(layer.ledger_ids.values(), controller)
+
+    def restamp(self, handle: Handle) -> None:
+        """``handle`` receives a new timestamp (CR 613.7e: an Aura or Equipment becoming
+        attached), and so do the effects of its own static abilities, in the order they had
+        (CR 613.7a). Their P/T entries are recorded again at the next recompute, stamped then."""
+        for layer in sorted(self.records, key=lambda l: l.seq):
+            if layer.source == handle and layer.from_static and layer.status != "expired":
+                self._seq += 1
+                layer.seq = self._seq
+                self._unmaterialize(layer)
 
     def register_rule(
         self,
@@ -914,11 +943,9 @@ class LayerRegistry:
                 toughness_delta += t_delta
                 power_set = p_set if p_set is not None else power_set
                 toughness_set = t_set if t_set is not None else toughness_set
-            kind = (
-                "set"
-                if (power_set is not None or toughness_set is not None)
-                else "delta"
-            )
+            kind = "delta"
+            if power_set is not None or toughness_set is not None:
+                kind = "cda" if _defines_own_pt(layer) else "set"
             linked = layer.ledger_ids.get(target)
             if linked is not None:
                 # The value is re-read on EVERY pass. A static's effect is
@@ -1039,10 +1066,10 @@ class LayerRegistry:
     # ------------------------------------------------------------- derived
 
     def _rebuild_maps(self) -> None:
-        """Rebuild keyword / granted-ability views: printed identity
-        keywords as the base, then LIVE layers in seq order — grants add,
-        losses remove, later seq wins (continuous effects timestamp-order,
-        the same principle as the PT stack)."""
+        """Rebuild keyword / granted-ability views: the printed keywords as
+        the base, then LIVE effects in seq order — grants add, losses
+        remove, later seq wins (continuous effects timestamp-order, the
+        same principle as the PT stack)."""
         world = self.world
         keywords: dict[Handle, list[str]] = {
             handle: list(card.identity.keywords)
@@ -1050,10 +1077,17 @@ class LayerRegistry:
         }
         granted: dict[Handle, list[GrantedAbility]] = {}
         types: dict[Handle, list[str]] = {}
-
-        for layer in sorted(self.records, key=lambda l: l.seq):
-            if layer.status != "live":
-                continue
+        live = [layer for layer in sorted(self.records, key=lambda l: l.seq) if layer.status == "live"]
+        # CR 613.1: an object's values start from the printed card (a token's from the effect
+        # that made it); the continuous effects then apply in timestamp order (613.7). Its own
+        # keyword abilities are part of that start, not effects with a timestamp, so a loss
+        # removes them whenever the object entered (Colossus Hammer's "loses flying" on a flier
+        # that entered after the Hammer).
+        for layer in live:
+            if layer.kind == "keyword":
+                for target in layer.targets:
+                    self._apply_add(keywords, granted, target, layer.payload, layer)
+        for layer in live:
             if layer.kind == "static":
                 # Players too: "You have hexproof" (Leyline of Sanctity) is a player's keyword,
                 # as a resolved grant to "you" is (CR 702.11c).
@@ -1079,7 +1113,7 @@ class LayerRegistry:
             elif layer.kind == "lose":
                 for target in layer.targets:
                     self._apply_remove(keywords, granted, target, layer.payload)
-            else:  # "keyword" / "grant"
+            elif layer.kind == "grant":
                 for target in layer.targets:
                     self._apply_add(keywords, granted, target, layer.payload, layer)
 

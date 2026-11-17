@@ -7,7 +7,7 @@
  "steps":[
   {"op":"loyalty","key":"viv","set":6},
   {"op":"activate","key":"viv","idx":2,"seat":0,"targets":["bear"]},
-  {"op":"combat","seat":0,"attack":{"bear":true},"block":{"wall":"bear"},"trample":{"bear":[0]}},
+  {"op":"combat","seat":0,"attack":{"bear":true},"block":{"wall":"bear"},"divide":{"wall":2}},
   {"op":"advance_turn"},
   {"op":"advance_turn"}],
  "expect":{"zone":{"viv":"graveyard","wall":"graveyard"},"life":{"1":10},"power":{"bear":2},"toughness":{"bear":2}}}
