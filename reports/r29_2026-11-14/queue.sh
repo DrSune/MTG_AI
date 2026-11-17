@@ -208,8 +208,13 @@ done
 rm -f "$O/decision.json"
 say "$("$PY" reports/r29_2026-11-14/decide.py "$O" 2>&1)"
 choice=$(sed -nE 's/^ "resume": "([ab])",$/\1/p' "$O/decision.json" 2>/dev/null)
-if [ "$PAUSE" = 1 ] && [ -n "$choice" ]; then
+# The decision starts the main run once: a later run of the queue must not restart a main run its
+# guard has since stopped. After a reboot, start.sh resumes it by hand, as r28's did.
+if [ -f "$O/resume.done" ]; then
+  say "the main run was started at $(cat "$O/resume.done"): not again (start.sh $choice resumes it by hand)"
+elif [ "$PAUSE" = 1 ] && [ -n "$choice" ]; then
   if start_arm "$choice" 6000; then
+    date -Is > "$O/resume.done"
     say "arm $choice goes on as the main run (--iters 6000): $(sed -nE 's/^ "why": "(.*)",$/\1/p' "$O/decision.json")"
   else
     say "arm $choice: start.sh refused (above): nothing resumed"

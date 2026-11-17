@@ -200,3 +200,22 @@ The owner asked whether strategy cycles would show up as Elo gain.
 
 **If B9 flags a cycle:** the remedy is prioritized past opponents (BACKLOG), registered as a
 change before it is used.
+
+## 8. Added before any data (2026-11-17): how the queue reads §3 and §5
+
+- **An arm ended by the progress check counts as killed, like a guard stop.** That covers 30
+  minutes with no new iter row, or more than 2 restarts. The check stands in for K7, a kill
+  criterion (§3). Otherwise a B that crash-loops would leave no snapshot, no read could veto it,
+  and it would still resume as the main run. In `decide.py` this is `KILLED`.
+- **The decision starts the main run once** (`resume.done`). A later run of the queue does not
+  restart a main run its guard has since stopped. After a reboot, `start.sh` resumes it by hand.
+- **The scripts were smoked end to end with PAUSE=1** (2026-11-17), against a stand-in r28: both
+  pre-flights, r28's stop, both arms' snapshots and stops, B1's pairs, B2's ratings on L, the
+  decision and the resume. Two more smokes: an arm that cannot start, which ended by its restart
+  count, and a queue restarted mid-arm, which kept its machine time. The learner's resume fix
+  (d8f00365) came out of this work.
+- **Before launch:**
+  - the worktree `/home/sune/Desktop/MTG_AI-r29`, pinned at the launch commit, with its `.venv`
+    link;
+  - each arm's `preregistration.json`;
+  - `tools/check.sh` green at that commit.
