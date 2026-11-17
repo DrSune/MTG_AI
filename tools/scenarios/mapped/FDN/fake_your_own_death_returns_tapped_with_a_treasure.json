@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "fake_your_own_death_returns_tapped_with_a_treasure",
+ "notes": "Printed: 'Until end of turn, target creature gets +2/+0 and gains \"When this creature dies, return it to the battlefield tapped under its owner's control and you create a Treasure token.\"' Seat 0 casts it on its 2/2 (now 4/2); 2 damage kills it. The granted trigger returns it to the battlefield tapped under seat 0's control, a new object (2/2, no damage, no +2/+0), and seat 0 creates a Treasure. Seat 0 then casts Giant Growth on it with no other mana: the automatic payment sacrifices the Treasure ({G}), so the Treasure was seat 0's. The returned 2/2 gets +3/+3: 5/5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "controller": 0, "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 2},
+  {"op": "cast", "key": "gg", "real": "Giant Growth", "controller": 0, "targets": ["bear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "gg": "graveyard", "bear": "battlefield"},
+  "tapped": {"bear": true},
+  "controller": {"bear": 0},
+  "tokens": {"Treasure": 0},
+  "power": {"bear": 5},
+  "toughness": {"bear": 5},
+  "mana_pool": {"0": {}}
+ }
+}

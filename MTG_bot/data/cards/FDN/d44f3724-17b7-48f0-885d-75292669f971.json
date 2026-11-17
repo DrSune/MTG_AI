@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d44f3724-17b7-48f0-885d-75292669f971",
+ "name": "Fiery Annihilation",
+ "text_sha": "9bd36d32401c0f785a98401e197a4b0d598cd4455476aae9df0a9dce8e53311a",
+ "needs_atom": {
+  "missing": "'Exile up to one target Equipment attached to that creature.': a target whose legal set reads another target of the same spell ('that creature' is the first target, chosen before it, CR 601.2c). IS_ATTACHED_TO referent='target' inside a TARGET selector raises at designation (query.spell_target_slots -> legality.enumerate_candidates -> quantity._eval_atom: 'IS_ATTACHED_TO referent target needs exactly one designation, got None'), since the slots are made independently (census 209 package TARGETLINK). The other two sentences map today: the compiler's DEAL_DAMAGE 5 to target creature, and Scorching Dragonfire's verified card-level death replacement (B-77). A filter that drops 'attached to that creature' would let it exile any Equipment: stronger than printed.",
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17"
+ }
+}

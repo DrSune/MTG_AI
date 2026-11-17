@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "grow_from_the_ashes_kicked_fetches_two_basics",
+ "notes": "Printed: 'Kicker {2}. ... If this spell was kicked, instead search your library for two basic land cards, put them onto the battlefield, then shuffle.' Kicked ({4}{G}): seat 0 finds two basic lands, the Forest and the Island of its choice among three basics, and both enter untapped; the Plains and a nonbasic land stay in the library.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "desert", "name": "Desert", "type": "Land — Desert", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "real": "Grow from the Ashes", "controller": 0, "kicked": true, "decisions": ["forest", "island"]}
+ ],
+ "expect": {
+  "zone": {"gfta": "graveyard", "forest": "battlefield", "island": "battlefield", "plains": "library", "desert": "library"},
+  "tapped": {"forest": false, "island": false},
+  "controller": {"forest": 0, "island": 0},
+  "kick_rows": {"gfta": {"kicked": true}},
+  "mana_pool": {"0": {}}
+ }
+}

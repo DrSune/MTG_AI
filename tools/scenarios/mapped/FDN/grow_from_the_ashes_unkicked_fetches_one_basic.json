@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "grow_from_the_ashes_unkicked_fetches_one_basic",
+ "notes": "Printed: 'Search your library for a basic land card, put it onto the battlefield, then shuffle.' Unkicked: seat 0 finds one basic land, the Forest of its choice among the Forest and the Plains, and it enters untapped. The Plains, a nonbasic land and a creature card stay in the library.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "desert", "name": "Desert", "type": "Land — Desert", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "real": "Grow from the Ashes", "controller": 0, "decisions": ["forest"]}
+ ],
+ "expect": {
+  "zone": {"gfta": "graveyard", "forest": "battlefield", "plains": "library", "desert": "library", "beast": "library"},
+  "tapped": {"forest": false},
+  "controller": {"forest": 0},
+  "kick_rows": {"gfta": {"kicked": false}},
+  "mana_pool": {"0": {}}
+ }
+}

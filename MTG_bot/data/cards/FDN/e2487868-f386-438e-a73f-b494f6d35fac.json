@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e2487868-f386-438e-a73f-b494f6d35fac",
+ "name": "Genesis Wave",
+ "text_sha": "e153e1fd1d37136bbf6485628f63c41386f5c7159508541c79404435d080d868",
+ "needs_atom": {
+  "missing": "'You may put any number of permanent cards with mana value X or less from among them onto the battlefield. Then put all cards revealed this way that weren't put onto the battlefield into your graveyard.': a zero-to-all choice over a REVEAL window (the top X, REVEAL count=QX()), then the rest of that window. No node expresses it: ONE_OF takes only an int QConst/QAtMost count with its first pick mandatory (no zero, no X ceiling); a CHOOSE QUnbounded over Zone(LIBRARY, YOU, TOP) is never asked (selectors._choose_lift_allowed refuses positional zones) and moves the zone's top card only, and it keeps no window, so a REST after it moves one card. A try of that shape: X=3 put the top card onto the battlefield unasked and milled only the next one; X=0 milled the top card though nothing was revealed. ALL would remove the printed choice.",
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17"
+ }
+}

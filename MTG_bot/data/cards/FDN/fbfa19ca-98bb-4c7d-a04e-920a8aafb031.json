@@ -1,0 +1,270 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fbfa19ca-98bb-4c7d-a04e-920a8aafb031",
+ "name": "Felling Blow",
+ "text_sha": "473dc53ef41475de1fdfde93a17d72b893f95e7bd4ec4949819adb21c82a4d9f",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QProp",
+           "referent": "result",
+           "field": {
+            "tag": "QPropField",
+            "name": "POWER"
+           },
+           "agg": {
+            "tag": "QAgg",
+            "name": "FIRST"
+           }
+          }
+         ],
+         [
+          "dealer",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "OPPONENT"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Felling Blow: \"Put a +1/+1 counter on target creature you control. Then that creature deals damage\n# equal to its power to target creature an opponent controls.\"\n# M21 Hunter's Edge (verified, the same two sentences with \"you don't control\"): the compiler's\n# PUT_COUNTER is kept; the second sentence is Hunter's Edge's DEAL_DAMAGE (dealer and amount the\n# result register, the creature the counter went on) with the target filter \"creature an opponent\n# controls\" (B11-destroy-np's FAnd(CONTROLLER_IS OPPONENT, TYPE_EQ Creature)).\ncounter = compiled[0].effect\ndamage = A(Verb.DEAL_DAMAGE, {\n    'amount': QProp(referent='result', field=QPropField.POWER),\n    'dealer': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n        referent='result',\n    ),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(counter, damage)))]\n",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature you control.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Then that creature deals damage equal to its power to target creature an opponent controls.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Hunter's Edge (verified) with the second target 'creature an opponent controls' (FAnd(CONTROLLER_IS OPPONENT, TYPE_EQ Creature)); the compiler's PUT_COUNTER is kept."
+ },
+ "probe": {
+  "sha": "0092bbb25c38b6139175f56746c26e01ae39fdb12449d8bae85c92feebd1a0f4"
+ }
+}

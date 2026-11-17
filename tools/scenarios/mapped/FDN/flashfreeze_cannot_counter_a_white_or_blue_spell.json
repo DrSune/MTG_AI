@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "flashfreeze_cannot_counter_a_white_or_blue_spell",
+ "notes": "Printed: 'Counter target RED OR GREEN spell.' Seat 0 casts Savannah Lions (white) and, holding priority, Opt (blue). Flashfreeze cannot target either (refused, nothing paid); both resolve: the Lions enter and Opt draws a card.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "U": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "lions", "real": "Savannah Lions", "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["lions"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "opt", "real": "Opt", "hold": true, "decisions": ["top"]},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["opt"], "expect_raise": "illegal target"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"lions": "battlefield", "opt": "graveyard", "ff": "hand"},
+  "hand": {"0": 1, "1": 1},
+  "mana_pool": {"1": {"U": 1, "C": 1}}
+ }
+}

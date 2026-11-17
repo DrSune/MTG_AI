@@ -1,0 +1,202 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "eb1dfa29-7371-4cb6-bfa2-16f7820b69be",
+ "name": "Refute",
+ "text_sha": "695634538c8f6e1d406b9e45b3a1092742caf615bd4a7282ccff813426f4cb16",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "COUNTER_SPELL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "STACK_KIND_EQ"
+            },
+            "string_value": "SPELL",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "STACK"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Refute: \"Counter target spell. Draw a card, then discard a card.\"\n# Sentence 1 is the compiler's COUNTER_SPELL (B5a-counter-spell), kept. Sentence 2 is the exact\n# sentence's parse in an activated frame (B3-seq-draw-discard, M21 Obsessive Stitcher, verified):\n# DRAW 1, then a MOVE_ZONE of one card you choose from your hand to your graveyard.\ncounter = compiled[0].effect\ndraw = A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU})\ndiscard = A(Verb.MOVE_ZONE, {\n    'cards': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),\n    ),\n    'controller': ControllerRef.YOU,\n    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(counter, draw, discard)))]\n",
+  "clauses": [
+   {
+    "clause": "Counter target spell.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Draw a card, then discard a card.",
+    "ir": "abilities[0].effect.steps[1], abilities[0].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler's COUNTER_SPELL is kept; 'Draw a card, then discard a card.' is the exact sentence's parse in an activated frame (B3-seq-draw-discard, M21 Obsessive Stitcher). The probe board has no spell on the stack. Pack: tools/scenarios/mapped/FDN/refute_counters_then_draws_and_discards.json."
+ },
+ "probe": {
+  "sha": "a5829d415d62fdd76bad59e1d8fee599622154416de062064a6b06dfc5095c0d"
+ }
+}

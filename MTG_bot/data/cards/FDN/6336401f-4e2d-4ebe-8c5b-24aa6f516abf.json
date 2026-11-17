@@ -1,0 +1,238 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6336401f-4e2d-4ebe-8c5b-24aa6f516abf",
+ "name": "Fleeting Flight",
+ "text_sha": "6a5b094c481e77ff0336e0185388e2f6f772a1a005f9a74170d51ab5a51feb88",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PUT_COUNTER"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "counter_kind",
+          {
+           "tag": "CounterKind",
+           "name": "PLUS_1_PLUS_1"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_ANY_TARGET"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "DamageDealtEvent",
+           "amount": {
+            "tag": "QUnbounded"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_ANY_TARGET"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "combat": true
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Fleeting Flight: \"Put a +1/+1 counter on target creature. It gains flying until end of turn.\n# Prevent all combat damage that would be dealt to it this turn.\"\n# Sentence 1: B5b-put-counter (Feat of Resistance's \"on target creature you control\") without\n# \"you control\". Sentence 2: B5b-it-gains-kw-eot (Basri Ket's \"It gains indestructible until end of\n# turn\", the result register: the creature the counter went on) with FLYING. Sentence 3: Pack\n# Leader's PREVENT_EFFECT of combat damage this turn, scoped to \"it\", the spell's target, as M21\n# Frost Breath's \"those creatures\" (IS_ANY_TARGET on the condition and on the event's filter).\ncounter = A(Verb.PUT_COUNTER, {\n    'count': QConst(value=1),\n    'counter_kind': CounterKind.PLUS_1_PLUS_1,\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\nflying = A(Verb.GRANT_ABILITY, {\n    'ability': KeywordAbility(keyword=Keyword.FLYING),\n    'duration': DurationEot(),\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.CHOOSE,\n        filter=FAnd(children=()),\n        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n        referent='result',\n    ),\n})\nprevent = A(Verb.PREVENT_EFFECT, {\n    'condition': FAtom(pred=FAtomPred.IS_ANY_TARGET),\n    'duration': DurationEot(),\n    'event': DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        combat=True,\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=(counter, flying, prevent)))]\n",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "It gains flying until end of turn.",
+    "ir": "abilities[0].effect.steps[1]"
+   },
+   {
+    "clause": "Prevent all combat damage that would be dealt to it this turn.",
+    "ir": "abilities[0].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "PUT_COUNTER on target creature; 'It gains flying' on the result register (B5b-it-gains-kw-eot); 'Prevent all combat damage that would be dealt to it this turn' is Pack Leader's PREVENT_EFFECT (combat damage, until end of turn) scoped to the target as Frost Breath's (IS_ANY_TARGET on the condition and the event filter). G1 does not show the prevention. Packs: tools/scenarios/mapped/FDN/fleeting_flight_*.json (blocked by a 4/4 it takes nothing and deals 3; an untargeted attacker dies; noncombat damage still kills it; gone next turn)."
+ },
+ "probe": {
+  "sha": "c0beac335a9ff39c5d1f14c42ed6f84c923f73d6853683ac7593ef5c17935246"
+ }
+}

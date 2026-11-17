@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "fleeting_flight_noncombat_damage_not_prevented",
+ "notes": "Printed: 'Prevent all COMBAT damage that would be dealt to it this turn.' Seat 0 casts Fleeting Flight on its 2/2 in the main phase (a 3/3 with flying). Then 3 noncombat damage is dealt to it: not prevented, it dies.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "duelist", "name": "Duelist", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["duelist"]},
+  {"op": "deal_damage", "source": "pinger", "target": "duelist", "amount": 3}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "duelist": "graveyard"},
+  "damage_received": {"duelist": 3}
+ }
+}

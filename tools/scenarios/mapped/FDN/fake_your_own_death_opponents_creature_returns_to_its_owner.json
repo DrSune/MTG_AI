@@ -1,0 +1,24 @@
+{"set": "FDN", "name": "fake_your_own_death_opponents_creature_returns_to_its_owner",
+ "notes": "Printed: '... gains \"When this creature dies, return it to the battlefield tapped under its owner's control and YOU create a Treasure token.\"' 'You' is the granted trigger's controller: the creature's controller as it died (CR 603.3a), not the player who cast Fake Your Own Death. Seat 0 casts it on seat 1's 2/2; 2 damage kills it. It returns tapped under seat 1's control and seat 1 creates the Treasure: seat 1 then casts Giant Growth on it with no other mana, paid by sacrificing that Treasure.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "controller": 0, "targets": ["obear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "obear", "amount": 2},
+  {"op": "cast", "key": "gg", "real": "Giant Growth", "controller": 1, "targets": ["obear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "gg": "graveyard", "obear": "battlefield"},
+  "tapped": {"obear": true},
+  "controller": {"obear": 1},
+  "tokens": {"Treasure": 0},
+  "power": {"obear": 5},
+  "mana_pool": {"1": {}}
+ }
+}

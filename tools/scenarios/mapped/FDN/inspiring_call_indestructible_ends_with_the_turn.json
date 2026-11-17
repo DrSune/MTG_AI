@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "inspiring_call_indestructible_ends_with_the_turn",
+ "notes": "Printed: 'Those creatures gain indestructible UNTIL END OF TURN.' Seat 0's Alpha has a +1/+1 counter; Inspiring Call draws one card and makes it indestructible. On the next turn that is gone: 5 damage kills it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ic", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "alpha", "name": "Alpha", "type": "Creature — Elf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "ic", "real": "Inspiring Call", "controller": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "pinger", "target": "alpha", "amount": 5}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"ic": "graveyard", "alpha": "graveyard"},
+  "hand": {"0": 1}
+ }
+}

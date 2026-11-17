@@ -1,0 +1,293 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c442e8b0-a0a4-4839-8049-125b91b15c99",
+ "name": "Heroic Reinforcements",
+ "text_sha": "dd44a609a515cc8bde9f5e0cd45cf31c4758f02aeedda6e14f36514e78def665",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Soldier",
+           "type_line": "Creature — Soldier",
+           "types": [
+            "Creature"
+           ],
+           "subtypes": [
+            "Soldier"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "keywords": [],
+           "abilities": [],
+           "colors": [
+            "W"
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "HASTE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Heroic Reinforcements: \"Create two 1/1 white Soldier creature tokens. Until end of turn, creatures\n# you control get +1/+1 and gain haste.\"\n# Sentence 1 is the compiler's CREATE_TOKEN, kept. Sentence 2 is M20 Overcome's verified shape (by\n# slot): MODIFY_PT +1/+1 and GRANT_ABILITY(HASTE), each until end of turn over ALL creatures you\n# control, after the tokens (so the two Soldiers get it too, in printed order).\ncreate = compiled[0].effect\nyours = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(steps=(\n            create,\n            A(Verb.MODIFY_PT, {\n                'duration': DurationEot(),\n                'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n                'target': yours,\n                'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.HASTE),\n                'duration': DurationEot(),\n                'target': yours,\n            }),\n        )),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 white Soldier creature tokens.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Until end of turn, creatures you control get +1/+1 and gain haste.",
+    "ir": "abilities[0].effect.steps[1], abilities[0].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler's CREATE_TOKEN is kept, then M20 Overcome's shape (by slot): +1/+1 and HASTE until end of turn over ALL creatures you control, after the tokens (G1: the Soldiers are 2/2 with haste, the opponent's creatures unchanged)."
+ },
+ "probe": {
+  "sha": "98a9c24489aef3816675629b6daabf7097f790b348d28db45b7b33caff69d043"
+ }
+}

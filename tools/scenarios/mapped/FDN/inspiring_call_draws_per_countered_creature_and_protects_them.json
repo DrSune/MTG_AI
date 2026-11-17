@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "inspiring_call_draws_per_countered_creature_and_protects_them",
+ "notes": "Printed: 'Draw a card for each creature you control with a +1/+1 counter on it. Those creatures gain indestructible until end of turn.' Seat 0 controls Alpha (one +1/+1 counter), Beta (two) and Gamma (none); seat 1's Omega has a +1/+1 counter. Inspiring Call draws 2 (Alpha and Beta; not Gamma, not the opponent's Omega). Then 5 damage to each of the four: Alpha and Beta survive (indestructible), Gamma and Omega die.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ic", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "alpha", "name": "Alpha", "type": "Creature — Elf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "beta", "name": "Beta", "type": "Creature — Elf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "gamma", "name": "Gamma", "type": "Creature — Elf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "omega", "name": "Omega", "type": "Creature — Orc", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "ic", "real": "Inspiring Call", "controller": 0},
+  {"op": "deal_damage", "source": "pinger", "target": "alpha", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "beta", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "gamma", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "omega", "amount": 5}
+ ],
+ "expect": {
+  "zone": {"ic": "graveyard", "alpha": "battlefield", "beta": "battlefield", "gamma": "graveyard", "omega": "graveyard"},
+  "hand": {"0": 2},
+  "damage": {"alpha": 5, "beta": 5}
+ }
+}
