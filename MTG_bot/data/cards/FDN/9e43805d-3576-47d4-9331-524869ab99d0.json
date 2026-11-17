@@ -112,7 +112,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -124,43 +124,92 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": [
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "TYPE_EQ"
-        },
-        "string_value": "Creature",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "POWER_GE"
-        },
-        "string_value": null,
-        "color": null,
-        "colors": [],
-        "count": {
-         "tag": "QConst",
-         "value": 4
-        },
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
-       }
-      ]
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "QTY_GE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": {
+           "tag": "QConst",
+           "value": 4
+          },
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null,
+          "field": {
+           "tag": "QPropField",
+           "name": "POWER"
+          }
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
      }
     },
     "effect": {
@@ -299,7 +348,7 @@
  "mapping": {
   "author": "claude-mapper-fdn-m5",
   "date": "2026-11-17",
-  "draft_py": "# FDN Flamewake Phoenix: \"Flying, haste. This creature attacks each combat if able. Ferocious — At the\n# beginning of combat on your turn, if you control a creature with power 4 or greater, you may pay\n# {R}. If you do, return this card from your graveyard to the battlefield.\"\n# [0]: M20 Rubblebelt Recluse's verified MANDATE_ATTACK static, word for word.\n# [1]: Dire Fleet Warmonger's verified \"beginning of combat on your turn\"; the intervening \"if\" is\n# the condition, M21 Furious Rise's verified \"if you control a creature with power 4 or greater\";\n# effect: Ghostly Pilferer's \"you may pay ... If you do, ...\" at {R}, then M21 Silversmote Ghoul's\n# verified \"return this card from your graveyard to the battlefield\" (untapped here). The effect moves\n# its own card out of the graveyard, so the ability works only there (CR 113.6m,\n# binding.functions_from_graveyard). Flying and haste are compiled.\nmust_attack = StaticAbility(\n    effect=A(Verb.MANDATE_ATTACK, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nferocious = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.COMBAT,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=1),\n        inner_filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n            ),\n        ),\n    ),\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.PAY, {\n                    'cost': Cost(parts=(CostManaColor(color='R', amount=QConst(value=1)),)),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [must_attack, ferocious, *compiled]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FLYING),\n    KeywordAbility(keyword=Keyword.HASTE),\n]\nabilities = [\n    # [0] : M20 Rubblebelt Recluse's verified MANDATE_ATTACK static, word for word.\n    StaticAbility(\n        effect=A(Verb.MANDATE_ATTACK, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n    # [1] : Dire Fleet Warmonger's verified \"beginning of combat on your turn\"; the intervening \"if\" is\n    TriggeredAbility(\n        event=TurnPhaseEvent(\n            phase=Phase.COMBAT,\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QConst(value=4),\n                                field=QPropField.POWER,\n                            ),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        effect=Seq(\n            steps=(\n                OptionalEffect(\n                    inner=A(Verb.PAY, {\n                        'cost': Cost(parts=(CostManaColor(color='R', amount=QConst(value=1)),)),\n                    }),\n                ),\n                Conditional(\n                    pred=FAtom(pred=FAtomPred.MAY_DONE),\n                    then_effect=A(Verb.MOVE_ZONE, {\n                        'cards': Selector(\n                            count=QConst(value=1),\n                            mode=SelectorMode.CHOOSE,\n                            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                        ),\n                        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n                    }),\n                ),\n            ),\n        ),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Flying, haste",
@@ -319,7 +368,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Rubblebelt Recluse's verified MANDATE_ATTACK; Ferocious: beginning of combat on your turn, Furious Rise's 'if you control a creature with power 4 or greater' as the condition, Ghostly Pilferer's may-pay {R} and Silversmote Ghoul's 'return this card from your graveyard to the battlefield' (works from the graveyard only, CR 113.6m). Flying, haste compiled. packs in tools/scenarios/mapped/FDN/: flamewake_phoenix_ferocious_returns_it_and_it_attacks, flamewake_phoenix_no_ferocious_stays_in_the_graveyard, flamewake_phoenix_declined_or_opponents_turn_stays."
+  "notes": "Rubblebelt Recluse's verified MANDATE_ATTACK; Ferocious: beginning of combat on your turn, Furious Rise's 'if you control a creature with power 4 or greater' as the condition, Ghostly Pilferer's may-pay {R} and Silversmote Ghoul's 'return this card from your graveyard to the battlefield' (works from the graveyard only, CR 113.6m). Flying, haste compiled. packs in tools/scenarios/mapped/FDN/: flamewake_phoenix_ferocious_returns_it_and_it_attacks, flamewake_phoenix_no_ferocious_stays_in_the_graveyard, flamewake_phoenix_declined_or_opponents_turn_stays. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "23e5c164d42fe6f8356eb0b736fe35f0fd0ced3bbacf5be4c7515cc699bc4427"

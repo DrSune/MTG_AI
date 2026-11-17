@@ -120,7 +120,7 @@
   "clauses": [
    {
     "clause": "Return all creature cards with mana value 2 or less from your graveyard to the battlefield.",
-    "ir": "abilities[0].effect (MOVE_ZONE cards=ALL FAnd(TYPE_EQ Creature, CMC_LE 2) in GRAVEYARD/YOU -> BATTLEFIELD; Zombify destination convention)"
+    "ir": "abilities[0].effect (MOVE_ZONE cards=ALL FAnd(TYPE_EQ Creature, mana value 2 or less (at_most(2, field=MANA_VALUE))) in GRAVEYARD/YOU -> BATTLEFIELD; Zombify destination convention)"
    }
   ],
   "g0_warnings": [],

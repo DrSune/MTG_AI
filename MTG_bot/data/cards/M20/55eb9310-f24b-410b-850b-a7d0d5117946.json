@@ -190,7 +190,7 @@
    },
    {
     "clause": "If you control four or more creatures, add {G}{G} instead.",
-    "ir": "abilities[0].effect (pred CONTROLLER_COUNT_GE 4 Creature; then_effect adds {G}{G})"
+    "ir": "abilities[0].effect (pred at_least(4, quantity=number_you_control(...)) Creature; then_effect adds {G}{G})"
    }
   ],
   "g0_warnings": [],

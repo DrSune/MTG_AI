@@ -1,0 +1,11 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12. A white card in a graveyard is no permanent: Knight of Malice stays 2/2 (the count reads the battlefield only).",
+ "cards": [
+  {"key": "knight", "real": "Knight of Malice", "zone": "battlefield", "controller": 0},
+  {"key": "dead", "name": "Dawn Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["W"], "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {"power": {"knight": 2}, "toughness": {"knight": 2}}
+}

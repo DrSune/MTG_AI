@@ -68,22 +68,29 @@
             "inner_filter": null
            },
            {
-            "tag": "FAtom",
-            "pred": {
-             "tag": "FAtomPred",
-             "name": "CMC_LE"
-            },
-            "string_value": null,
-            "color": null,
-            "colors": [],
-            "count": {
-             "tag": "QConst",
-             "value": 2
-            },
-            "counter_kind": null,
-            "keyword": null,
-            "who": null,
-            "inner_filter": null
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QConst",
+              "value": 3
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "MANA_VALUE"
+             }
+            }
            }
           ]
          },
@@ -132,15 +139,15 @@
  "mapping": {
   "author": "claude-mapper-m3",
   "date": "2026-11-17",
-  "draft_py": "# FDN Driver of the Dead: \"When this creature dies, return target creature card with mana value 2\n# or less from your graveyard to the battlefield.\"\n# M20 Cavalier of Night's verified dies trigger (\"When this creature dies, return target creature\n# card with mana value 3 or less from your graveyard to the battlefield.\") with 2: CreatureDiesEvent\n# IS_SOURCE, MOVE_ZONE of a TARGET creature card with CMC_LE 2 from your graveyard (the `cards`\n# role) to the battlefield.\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(children=(\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FAtom(pred=FAtomPred.CMC_LE, count=QConst(value=2)),\n            )),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [dies, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n        condition=None,\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(\n                            inner=FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QConst(value=3),\n                                field=QPropField.MANA_VALUE,\n                            ),\n                        ),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n        }),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "When this creature dies, return target creature card with mana value 2 or less from your graveyard to the battlefield.",
-    "ir": "abilities[0] (CreatureDiesEvent IS_SOURCE; MOVE_ZONE TARGET creature card CMC_LE 2 from your graveyard to the battlefield)"
+    "ir": "abilities[0] (CreatureDiesEvent IS_SOURCE; MOVE_ZONE TARGET creature card mana value 2 or less (at_most(2, field=MANA_VALUE)) from your graveyard to the battlefield)"
    }
   ],
   "g0_warnings": [],
-  "notes": "M20 Cavalier of Night's verified dies trigger with mana value 2 or less (CMC_LE 2): a TARGET creature card from your graveyard to the battlefield. Packs: tools/scenarios/mapped/FDN/driver_of_the_dead_offers_only_your_two_drops.json, tools/scenarios/mapped/FDN/driver_of_the_dead_returns_a_mana_value_two_creature.json."
+  "notes": "M20 Cavalier of Night's verified dies trigger with mana value 2 or less (mana value 2 or less (at_most(2, field=MANA_VALUE))): a TARGET creature card from your graveyard to the battlefield. Packs: tools/scenarios/mapped/FDN/driver_of_the_dead_offers_only_your_two_drops.json, tools/scenarios/mapped/FDN/driver_of_the_dead_returns_a_mana_value_two_creature.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "d19a26cd82bfea070f2bf1f62d354061fdbe6e7a70cec86e098720fe3f170aea"

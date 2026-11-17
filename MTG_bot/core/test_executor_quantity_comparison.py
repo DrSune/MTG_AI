@@ -169,7 +169,7 @@ START = QProp(referent="controller", field=QPropField.STARTING_LIFE)
 @pytest.mark.parametrize(("build", "says"), [
     # the judged object's own property read through a referent: `field` is its one form
     (lambda: at_least(4, quantity=QProp(referent=referent_sel("source"), field=QPropField.POWER,
-                                        agg=at.QAgg.MAX)), "no referent"),
+                                        agg=at.QAgg.SUM)), "no referent"),
     (lambda: at_least(2, quantity=QDistinct(referent_sel("source"), QPropField.COLOR)), "no referent"),
     # with `who` the threshold is read for the opponent too: only a number may stand there
     (lambda: at_least(QBin(QBinOp.ADD, number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)), QConst(1)),
@@ -187,6 +187,29 @@ START = QProp(referent="controller", field=QPropField.STARTING_LIFE)
     # a sum's literal is its last operand
     (lambda: at_least(QBin(QBinOp.ADD, QConst(1), MINE), quantity=THEIRS), "canonical order"),
     (lambda: at_least(QBin(QBinOp.ADD, QConst(7), START), quantity=LIFE), "canonical order"),
+    # gate round 12: a population's greatest or least value is a second form of a count ("you
+    # control a creature with power 4 or greater"); only its total (SUM) is a measure
+    (lambda: at_least(4, quantity=QProp(referent=MINE.selector, field=QPropField.POWER, agg=at.QAgg.MAX)),
+     "no measure"),
+    (lambda: at_least(1, quantity=QProp(referent=MINE.selector, field=QPropField.POWER, agg=at.QAgg.MIN)),
+     "no measure"),
+    # gate round 12: control is an overlay, the battlefield one zone: Zone(BATTLEFIELD, YOU) as a
+    # counted population would be a second (and wrong) "you control", on either side and under who
+    (lambda: at_least(2, quantity=number_in(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU), CREATURE)),
+     "BATTLEFIELD, ANY"),
+    (lambda: at_least(2, quantity=number_in(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU), CREATURE),
+                      who=ControllerRef.OPPONENT), "BATTLEFIELD, ANY"),
+    (lambda: at_least(QBin(QBinOp.ADD, number_in(Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU), CREATURE),
+                           QConst(1)), quantity=THEIRS), "BATTLEFIELD, ANY"),
+    # the negation of two measures compared, through an FAnd or FOr (De Morgan)
+    (lambda: FNot(FAnd((at_least(THEIRS, quantity=MINE), FAtom(pred=FAtomPred.IS_TOKEN)))), "never negated"),
+    (lambda: FNot(at.FOr((at_least(THEIRS, quantity=MINE), FAtom(pred=FAtomPred.IS_TOKEN)))), "never negated"),
+    # N + 0, a double negation, an ALL selector's count
+    (lambda: at_least(QBin(QBinOp.ADD, MINE, QConst(0)), quantity=THEIRS), r"N \+ 0"),
+    (lambda: FNot(FNot(FAtom(pred=FAtomPred.IS_TOKEN))), "double negation"),
+    (lambda: at_least(2, quantity=at.QCount(at.Selector(QConst(3), at.SelectorMode.ALL, CREATURE,
+                                                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)))),
+     "QUnbounded"),
 ])
 def test_one_form_per_comparison(build, says) -> None:
     with pytest.raises(ValueError, match=says):
@@ -295,6 +318,26 @@ class UndefinedPowerTest(BindingCase):
         self.assertFalse(eval_filter(at_least(1, field=QPropField.POWER), rock, ctx))
 
 
+def test_a_measured_comparison_reads_no_subject() -> None:
+    # the measured form qualifies an event or an ability without judging an object (MAPPER_GUIDE,
+    # one slot per event); the field form judges the object it is asked about
+    assert at.reads_no_subject(at_least(2, quantity=MINE))
+    assert not at.reads_no_subject(at_least(2, field=QPropField.POWER))
+
+
+class ColourCountTest(BindingCase):
+    """The comparison of COLOR reads the number of the object's colours (CR 105.2), not whether it
+    has one: "multicolored" is two or more."""
+
+    def test_two_colours_are_two(self) -> None:
+        ctx = ctx_for(self.ex, source=self.watch, controller=self.p0)
+        both = self.world.add_card(card_id("Both", "1", "1", colors=("W", "U")), self.p0, ZONE_BATTLEFIELD)
+        one = self.world.add_card(card_id("One", "1", "1", colors=("W",)), self.p0, ZONE_BATTLEFIELD)
+        self.assertTrue(eval_filter(at_least(2, field=QPropField.COLOR), both, ctx))
+        self.assertFalse(eval_filter(at_least(2, field=QPropField.COLOR), one, ctx))
+        self.assertFalse(eval_filter(at_least(3, field=QPropField.COLOR), both, ctx))
+
+
 class DistinctTest(BindingCase):
     """QDistinct: the number of different colours (a two-coloured permanent gives two), names and
     mana values (a land's is 0) among the permanents you control; and two of them sharing a name
@@ -350,6 +393,18 @@ class CastTargetsTest(StackCase):
     def test_a_spell_at_theirs_or_at_a_player_does_not(self) -> None:
         self.assertEqual(self.shoot(self.theirs), 0)
         self.assertEqual(self.shoot(self.p1), 0)
+
+    def test_one_of_its_targets_is_enough(self) -> None:
+        # "a spell that targets a creature you control": one of the spell's targets (CR 115.1)
+        twin = self.give("Twin Shock", at.SpellKind.INSTANT,
+                         cost=at.Cost((at.CostManaColor("R", QConst(1)),)),
+                         effect=atom(at.Verb.DEAL_DAMAGE, amount=QConst(1), target=at.Selector(
+                             QConst(2), at.SelectorMode.TARGET, CREATURE,
+                             zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))))
+        life = self.world.players[self.p0].life
+        self.mana(self.p0, R=1)
+        cast(self.ex, self.p0, twin, targets=(self.mine, self.theirs))
+        self.assertEqual(self.world.players[self.p0].life - life, 1)
 
 
 if __name__ == "__main__":

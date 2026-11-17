@@ -48,11 +48,14 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     Keyword,
     KeywordAbility,
     OptionalEffect,
     Phase,
     QAtMost,
+    QBin,
+    QBinOp,
     QConst,
     QProp,
     QPropField,
@@ -119,6 +122,9 @@ def _ints(node: Any) -> set[int]:
                 for _, v in x.pairs:
                     visit(v)
                 return
+            if (isinstance(x, FNot) and isinstance(x.inner, FAtom) and x.inner.pred is FAtomPred.QTY_GE
+                    and isinstance(x.inner.count, QConst)):
+                out.add(abs(x.inner.count.value - 1))  # "N or less": the comparison at N + 1, negated
             for f in dataclasses.fields(x):
                 visit(getattr(x, f.name))
         elif isinstance(x, (tuple, list, frozenset)):
@@ -781,6 +787,18 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 other = Atom(move.verb, AtomArgs(tuple(
                     (r, other if r == "destination" else v) for r, v in move.args.pairs if r != "arrange")))
             cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}", other))
+        elif isinstance(node, FAtom) and node.pred is FAtomPred.QTY_GE and (
+                node.who is not None or _measure_plus_one(node.count) is not None):
+            # The comparison's two likely mapping errors (ontology round R12): "an opponent has N"
+            # read as "you have N" (`who` dropped: an opponent's zone and `who` YOU are refused,
+            # so no flip reaches it), and "more than" read as "at least as many" (the + 1 dropped
+            # from a measured threshold, which amount-1 cannot reach: N + 0 is refused).
+            if node.who is not None:
+                cands.append((f"controller who {node.who.name}->none (your own zone)",
+                              dataclasses.replace(node, who=None)))
+            bare = _measure_plus_one(node.count)
+            if bare is not None:
+                cands.append(("amount: more than -> at least as many", dataclasses.replace(node, count=bare)))
         elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET and path not in twins:
             cands.append(("target->all", dataclasses.replace(node, mode=SelectorMode.ALL, count=QUnbounded())))
         elif isinstance(node, Seq) and len(node.steps) >= 2:
@@ -811,6 +829,14 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 continue
             seen.add(key)
             yield op, "/".join(str(p) for p in path), mutant
+
+
+def _measure_plus_one(count: Any) -> Any:
+    """The measure of a "more than <measure>" threshold (QBin(ADD, <measure>, 1)), or None."""
+    if isinstance(count, QBin) and count.op is QBinOp.ADD and count.right == QConst(1) \
+            and not isinstance(count.left, QConst):
+        return count.left
+    return None
 
 
 @contextmanager

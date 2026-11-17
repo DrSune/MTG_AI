@@ -221,30 +221,48 @@
             "inner_filter": null
            },
            {
-            "tag": "FAtom",
-            "pred": {
-             "tag": "FAtomPred",
-             "name": "CMC_LE"
-            },
-            "string_value": null,
-            "color": null,
-            "colors": [],
-            "count": {
-             "tag": "QProp",
-             "referent": "source",
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QBin",
+              "op": {
+               "tag": "QBinOp",
+               "name": "ADD"
+              },
+              "left": {
+               "tag": "QProp",
+               "referent": "source",
+               "field": {
+                "tag": "QPropField",
+                "name": "POWER"
+               },
+               "agg": {
+                "tag": "QAgg",
+                "name": "FIRST"
+               }
+              },
+              "right": {
+               "tag": "QConst",
+               "value": 1
+              }
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
              "field": {
               "tag": "QPropField",
-              "name": "POWER"
-             },
-             "agg": {
-              "tag": "QAgg",
-              "name": "FIRST"
+              "name": "MANA_VALUE"
              }
-            },
-            "counter_kind": null,
-            "keyword": null,
-            "who": null,
-            "inner_filter": null
+            }
            }
           ]
          },
@@ -293,7 +311,7 @@
  "mapping": {
   "author": "claude-mapper-m4",
   "date": "2026-11-17",
-  "draft_py": "# FDN Alesha, Who Laughs at Fate.\n# \"Whenever Alesha attacks, put a +1/+1 counter on it.\" DeclareAttackersEvent(IS_SOURCE), M21\n# Spellgorger Weird's counter on this creature.\n# \"Raid — At the beginning of your end step, if you attacked this turn, return target creature card\n# with mana value less than or equal to Alesha's power from your graveyard to the battlefield.\"\n# M21 Silversmote Ghoul's end-step trigger, the compiler's raid condition (FDN Goblin Boarders,\n# B14), M21 Rise Again's return; the mana-value bound is CMC_LE with a dynamic threshold, Alesha's\n# power (QProp('source', POWER); FAtom's count slot takes QProp).\nSELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ngrow = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': SELF,\n    }),\n)\nraid = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n            FAtom(\n                pred=FAtomPred.EVENT_THIS_TURN,\n                count=QConst(value=1),\n                event=DeclareAttackersEvent(filter=FAnd(children=())),\n            ),\n        ),\n    ),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(\n                        pred=FAtomPred.CMC_LE,\n                        count=QProp(referent='source', field=QPropField.POWER),\n                    ),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\nabilities = [grow, raid, *compiled]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n        condition=None,\n        effect=A(Verb.PUT_COUNTER, {\n            'count': QConst(value=1),\n            'counter_kind': CounterKind.PLUS_1_PLUS_1,\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n    # [1]\n    TriggeredAbility(\n        event=TurnPhaseEvent(\n            phase=Phase.END_TURN,\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.TURN_OF, who=ControllerRef.YOU),\n                FAtom(\n                    pred=FAtomPred.EVENT_THIS_TURN,\n                    count=QConst(value=1),\n                    event=DeclareAttackersEvent(filter=FAnd(children=())),\n                ),\n            ),\n        ),\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(\n                            inner=FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QBin(\n                                    op=QBinOp.ADD,\n                                    left=QProp(referent='source', field=QPropField.POWER),\n                                    right=QConst(value=1),\n                                ),\n                                field=QPropField.MANA_VALUE,\n                            ),\n                        ),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n        }),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "First strike",
@@ -309,7 +327,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Attack trigger: DeclareAttackersEvent(IS_SOURCE), Spellgorger Weird's counter on this creature. Raid: Silversmote Ghoul's end-step trigger with the compiler's raid condition (Goblin Boarders, B14) and Rise Again's return; the bound is CMC_LE with a dynamic threshold, QProp('source', POWER) (FAtom's count slot), read with Alesha's power as the target is chosen and checked. Packs: tools/scenarios/mapped/FDN/alesha_raid_offers_creatures_up_to_her_power.json, tools/scenarios/mapped/FDN/alesha_raid_returns_the_chosen_creature.json, tools/scenarios/mapped/FDN/alesha_raid_bound_is_her_current_power.json."
+  "notes": "Attack trigger: DeclareAttackersEvent(IS_SOURCE), Spellgorger Weird's counter on this creature. Raid: Silversmote Ghoul's end-step trigger with the compiler's raid condition (Goblin Boarders, B14) and Rise Again's return; the bound is negated comparison of MANA_VALUE (at_most) with a dynamic threshold, QProp('source', POWER) (FAtom's count slot), read with Alesha's power as the target is chosen and checked. Packs: tools/scenarios/mapped/FDN/alesha_raid_offers_creatures_up_to_her_power.json, tools/scenarios/mapped/FDN/alesha_raid_returns_the_chosen_creature.json, tools/scenarios/mapped/FDN/alesha_raid_bound_is_her_current_power.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "aba5120fe0f966cabf306609e194fd1d3ab63446a4af0b76ea047e02116a2c90"

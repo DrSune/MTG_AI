@@ -414,9 +414,7 @@
     "ir": "abilities[1]"
    }
   ],
-  "g0_warnings": [
-   "numbers in the text but not in the tree: [3]"
-  ],
+  "g0_warnings": [],
   "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-12 by claude-sonnet-verifier-wave1b-B tree, same meaning; it waits for re-verification."
  },
  "probe": {

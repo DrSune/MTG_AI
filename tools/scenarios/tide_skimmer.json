@@ -44,5 +44,5 @@
    ]
   }
  },
- "notes": "Attack with TWO flyers (Skimmer + Pegasus) -> the CONTROLLER_COUNT_GE(2, FLYING+IS_ATTACKING) gate draws exactly one card. One flyer would not (count gate printed as threshold 2)."
+ "notes": "Attack with TWO flyers (Skimmer + Pegasus) -> the comparison at_least(2, number_you_control(FLYING+IS_ATTACKING)) gate draws exactly one card. One flyer would not (count gate printed as threshold 2)."
 }

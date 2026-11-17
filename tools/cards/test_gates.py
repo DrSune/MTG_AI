@@ -258,18 +258,25 @@ def test_discard_shape_from_and_destination_controllers_are_dead() -> None:
         assert _game(pack, _mutant(rain, where, ControllerRef.OPPONENT)) == real, where
 
 
-def test_an_opponents_graveyard_count_has_one_encoding() -> None:
+WHO_NONE = "controller who OPPONENT->none (your own zone)"
+
+
+def test_an_opponents_graveyard_count_and_its_likely_misreading() -> None:
     # "an opponent has eight or more cards in their graveyard" (ontology round R12): the count of
-    # "your" graveyard read for each opponent in turn. Its who and its zone's controller have no
-    # other legal value (who YOU would be a second "you", another zone a count no player owns), so
-    # G3 offers no mutant there and the validator refuses one written by hand.
+    # "your" graveyard read for each opponent in turn. who YOU and an opponent's zone are refused (a
+    # second "you", a count no player owns), so no flip reaches the likely mapping error, `who`
+    # dropped ("you have eight ..."): G3 offers it as a critical mutant of its own (gate round 12,
+    # MAJOR-3), and a board with eight cards in one graveyard only tells the two apart.
     tge = _card("Thieves' Guild Enforcer")
-    offered = {where for _op, where in _where(tge) if where.startswith("1/1/condition")}
-    assert offered == {"1/1/condition/count"}
+    offered = {(op, where) for op, where in _where(tge) if where.startswith("1/1/condition")}
+    assert offered == {("amount+1", "1/1/condition/count"), ("amount-1", "1/1/condition/count"),
+                       (WHO_NONE, "1/1/condition")}
+    assert gates.is_critical(WHO_NONE)
     for where, new in (("1/1/condition/who", ControllerRef.YOU),
                        ("1/1/condition/quantity/selector/zones/0/controller", ControllerRef.OPPONENT)):
         with pytest.raises(ValueError, match="who"):
             _mutant(tge, where, new)
+    yours = _mutant(tge, "1/1/condition", dataclasses.replace(_at(tge, "1/1/condition"), who=None))
     for full in (0, 1):  # eight cards in your graveyard only, then in the opponent's only
         gy = [{"key": f"g{i}", "name": f"Dead {i}", "type": "Sorcery", "zone": "graveyard", "controller": full}
               for i in range(8)]
@@ -278,6 +285,18 @@ def test_an_opponents_graveyard_count_has_one_encoding() -> None:
         real = _game(pack)
         enforcer = next(o for o in real[0].values() if o[0] == "Thieves' Guild Enforcer")
         assert enforcer[5] == ((3, 2) if full == 1 else (1, 1))
+        assert _game(pack, yours) != real  # the misreading reads the other graveyard
+
+
+def test_more_than_is_not_at_least_as_many() -> None:
+    # Garruk, Unleashed's -2: "if an opponent controls more creatures than you" is the comparison
+    # at <your creatures> + 1; G3 offers the bare measure ("at least as many"), critical, since
+    # amount-1 cannot reach it (N + 0 is refused).
+    garruk = _card("Garruk, Unleashed")
+    found = [(op, where) for op, where in _where(garruk) if op == "amount: more than -> at least as many"]
+    assert len(found) == 1 and gates.is_critical(found[0][0])
+    node = _at(garruk, found[0][1])
+    assert node.count.right == QConst(1)
 
 
 WAKER_REST = "1/1/effect/steps/1/steps/1/args/cards/count"

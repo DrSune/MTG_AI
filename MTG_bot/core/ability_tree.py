@@ -1295,7 +1295,9 @@ class FNot:
             raise ValueError(
                 f"FNot: inner must be a Filter, got {type(self.inner).__name__}"
             )
-        if _compares_two_measures(self.inner):
+        if isinstance(self.inner, FNot):
+            raise ValueError("FNot: a double negation is its inner filter; write that")
+        if _negates_two_measures(self.inner):
             # "A < B" is at_least(A + 1, quantity=B), never "not B <= A": two measures compared
             # are written the way round that needs no negation (the larger side measured)
             raise ValueError(
@@ -1609,15 +1611,17 @@ COMPARED_PLAYERS = frozenset({ControllerRef.OPPONENT})
 
 def _measures_the_game(q: object) -> bool:
     """Is ``q`` a quantity the game measures, so that it may be compared: a count or a distinct
-    count of a population, a population's total, greatest or least value, or your life total?
-    A literal, an X or an arithmetic of them is the threshold's (``count``), so that "N or less" has
-    one form (FNot of the comparison, never "N is at least <quantity>"); the judged object's own
-    property is ``field``."""
+    count of a population, a population's total (SUM: "total power 8 or greater"), or your life
+    total? A literal, an X or an arithmetic of them is the threshold's (``count``), so that "N or
+    less" has one form (FNot of the comparison, never "N is at least <quantity>"); the judged
+    object's own property is ``field``. A population's greatest or least value is not: "the
+    greatest power among your creatures is 4 or greater" is "you control a creature with power 4
+    or greater", the count of the creatures that pass the comparison."""
     if isinstance(q, (QCount, QDistinct, QPartyCount)):
         return True
     if isinstance(q, QProp):
         if isinstance(q.referent, Selector):
-            return q.agg is not QAgg.FIRST
+            return q.agg is QAgg.SUM
         return q.referent == "controller" and q.field is QPropField.LIFE
     return False
 
@@ -1647,6 +1651,17 @@ def _compares_two_measures(f: object) -> bool:
     )
 
 
+def _negates_two_measures(f: object) -> bool:
+    """Does negating the filter ``f`` negate a comparison of two measures? Through the boolean
+    nodes (FAnd, FOr, FNot: De Morgan reaches the comparison either way), never into a quantity's
+    or selector's own filter, which is another population's test."""
+    if isinstance(f, (FAnd, FOr)):
+        return any(_negates_two_measures(c) for c in f.children)
+    if isinstance(f, FNot):
+        return _negates_two_measures(f.inner)
+    return _compares_two_measures(f)
+
+
 def _check_compared_side(atom_pred: str, side: str, q: object) -> None:
     """A side of the comparison is a number the game has now: not a choice count ("up to N",
     "any number", "N or more" as a pick), no designation (a TARGET pick or a target player
@@ -1664,12 +1679,26 @@ def _check_compared_side(atom_pred: str, side: str, q: object) -> None:
                     f"FAtom: {atom_pred} {side}: {n.op.name} takes its operands in canonical order "
                     "(a literal last: N + 1, never 1 + N)"
                 )
+            if n.op is QBinOp.ADD and QConst(0) in (n.left, n.right):
+                raise ValueError(f"FAtom: {atom_pred} {side}: N + 0 is N; write N")
             stack.extend((n.left, n.right))
     for n in walk(q):
         if isinstance(n, Selector) and n.referent is None and n.mode is not SelectorMode.ALL:
             raise ValueError(
                 f"FAtom: {atom_pred} {side}: a {n.mode.name} selector picks; a comparison reads "
                 "a population (ALL) or a referent"
+            )
+        if isinstance(n, Selector) and n.mode is SelectorMode.ALL and n.count != QUnbounded():
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: an ALL selector reads every object; its count is "
+                "QUnbounded"
+            )
+        if isinstance(n, Zone) and n.kind is ZoneKind.BATTLEFIELD and n.controller is not ControllerRef.ANY:
+            # control is an overlay (GAIN_CONTROL, Executor.controller_of), the battlefield one
+            # zone: "you control" is CONTROLLER_IS YOU in the filter (number_you_control)
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: a population on the battlefield is Zone(BATTLEFIELD, "
+                "ANY), its controller a CONTROLLER_IS in the filter"
             )
         if dataclasses.is_dataclass(n) and any(
             isinstance(v, ControllerRef) and v in DESIGNATED_PLAYER_REFS
