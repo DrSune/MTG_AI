@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d4246e4d-390d-4925-a5a8-89cd096a237c",
+ "name": "Sphinx of the Final Word",
+ "text_sha": "2b428f2e200c664fca068fb014d8e610ce4872f6a08fdaeb7a0638c69dd533a6",
+ "verified": {
+  "tree_sha": "44ef6f89a6d61add666602f13a80a98407ecbd7d16f7fee4b54fc8c0a4dc848d",
+  "probe_sha": "5e17979a55debf7940af6cfc081237fc33da75b49d22894709d443fa1e8a9de9",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave2",
+  "clauses": [
+   {
+    "clause": "This spell can't be countered.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counterspell exists in the trace. Pack A03_1: Cancel at the Sphinx spell does nothing and the Sphinx enters.",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[stimulus: this creature attacks and opp_giant blocks it] no DECLARE_BLOCKERS row; 'opp is dealt 5 damage (combat)': the ground Giant could not block (the same stimulus on non-fliers shows the block). Pack A03_5 pins it too.",
+    "issue": ""
+   },
+   {
+    "clause": "Hexproof (This creature can't be the target of spells or abilities your opponents control.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace shows 'keywords +HEXPROOF' and no targeting attempt. Pack A03_4: the opponent's Unsummon cannot target it, mine can.",
+    "issue": ""
+   },
+   {
+    "clause": "Instant and sorcery spells you control can't be countered.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No counterspell in the trace; the 'you cast an instant or sorcery' stimulus is not answered. Packs A03_2 (my instant and sorcery are not countered), A03_3 (the opponent's are), A03_1 (my creature spell is).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/sphinx_of_the_final_word_1.json",
+   "tools/scenarios/cards/FDN/sphinx_of_the_final_word_2.json",
+   "tools/scenarios/cards/FDN/sphinx_of_the_final_word_3.json",
+   "tools/scenarios/cards/FDN/sphinx_of_the_final_word_4.json",
+   "tools/scenarios/cards/FDN/sphinx_of_the_final_word_5.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 2,
+   "score": 0.3333333333333333,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/event/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/event/filter",
+    "controller YOU->OPPONENT at 1/1/effect/args/event/filter/children/1/who"
+   ]
+  }
+ }
+}

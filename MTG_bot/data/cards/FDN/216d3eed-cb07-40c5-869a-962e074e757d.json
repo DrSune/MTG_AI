@@ -230,5 +230,45 @@
  },
  "probe": {
   "sha": "2da5d445604db52d75efc05d0bf13c40b4efec31ed810e62fd758d9147777447"
+ },
+ "verified": {
+  "tree_sha": "f7247ed5289506dcb63aef8e67e45cbec7fcdb7fbda42fa8aa60e6fc8abd1824",
+  "probe_sha": "568865224cd4873a5eefaa8dcdcf7e07cf49789fe71272edf34b3984b8eadd39",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave2",
+  "clauses": [
+   {
+    "clause": "Each creature you control gets +3/+3 until end of turn",
+    "status": "OK",
+    "evidence": "[cast] change: you_bear: P/T 2/2 -> 5/5; you_giant: P/T 4/4 -> 7/7, nothing for the opponent's creatures or my relic and charm; 'after the turn ends: you_bear: P/T 5/5 -> 2/2', 'you_giant: P/T 7/7 -> 4/4'.",
+    "issue": ""
+   },
+   {
+    "clause": "and must be blocked this turn if able",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe casts the sorcery and runs no combat. Packs A06_1 (each attacker must be blocked, no 'no block' offered), A06_2 (it ends with the turn), A06_3 (not for a creature that enters later), A06_4 ('if able': a flier the ground blocker cannot block). A06_5 pins the +3/+3 to creatures only (a Vehicle and the opponent's Ogre stay 3/3).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/joraga_invocation_1.json",
+   "tools/scenarios/cards/FDN/joraga_invocation_2.json",
+   "tools/scenarios/cards/FDN/joraga_invocation_3.json",
+   "tools/scenarios/cards/FDN/joraga_invocation_4.json",
+   "tools/scenarios/cards/FDN/joraga_invocation_5.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 8,
+   "score": 0.5714285714285714,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/cards/filter/children/0/who",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration"
+   ]
+  }
  }
 }

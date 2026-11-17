@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jor", "real": "Joraga Invocation", "zone": "hand", "controller": 0},
+  {"key": "a1", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Late Hasty", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["HASTE"], "zone": "hand", "controller": 0},
+  {"key": "b1", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Joraga Invocation", "key": "jor"},
+  {"op": "enter", "key": "late"},
+  {"op": "combat", "seat": 0, "attack": {"late": true, "a1": false}, "block": {"b1": null}}
+ ],
+ "expect": {
+  "zone": {"jor": "graveyard", "a1": "battlefield", "late": "battlefield", "b1": "battlefield"},
+  "attackers": {"late": true, "a1": false},
+  "blocked": {"late": []},
+  "block_asks": {"b1": "<late>,NONE"},
+  "power": {"a1": 5, "late": 2},
+  "toughness": {"a1": 5, "late": 2},
+  "life": {"1": 18}
+ },
+ "notes": "FDN Joraga Invocation, printed: 'Each creature you control gets +3/+3 until end of turn and must be blocked this turn if able.' It affects the creatures I control as it resolves (the Bear, 5/5) and not one that enters afterwards: the hasty creature put onto the battlefield after the spell is a plain 2/2, and nobody has to block it: the Giant is offered it and 'no block'."
+}

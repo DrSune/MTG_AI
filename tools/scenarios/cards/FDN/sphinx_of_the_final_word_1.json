@@ -1,0 +1,87 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sph",
+   "real": "Sphinx of the Final Word",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "turtle",
+   "real": "Aegis Turtle",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c2",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 3,
+   "C": 5
+  },
+  "1": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Sphinx of the Final Word",
+   "key": "sph",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "real": "Cancel",
+   "key": "c1",
+   "controller": 1,
+   "targets": [
+    "sph"
+   ]
+  },
+  {
+   "op": "cast",
+   "real": "Aegis Turtle",
+   "key": "turtle",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "real": "Cancel",
+   "key": "c2",
+   "controller": 1,
+   "targets": [
+    "turtle"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sph": "battlefield",
+   "turtle": "graveyard",
+   "c1": "graveyard",
+   "c2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ },
+ "notes": "FDN Sphinx of the Final Word, printed: 'This spell can't be countered.' The opponent's Cancel targets the Sphinx spell and resolves, and the Sphinx is not countered: it resolves and enters the battlefield. The Sphinx's own static does not cover other spells: with it on the battlefield, a second Cancel does counter my creature spell (Aegis Turtle), so Cancel itself works and the protection is only the Sphinx's ('instant and sorcery spells you control')."
+}

@@ -1,0 +1,64 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "troll",
+   "real": "Barkhide Troll",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 2,
+   "C": 1
+  },
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Barkhide Troll",
+   "key": "troll"
+  },
+  {
+   "op": "activate",
+   "key": "troll",
+   "idx": 1,
+   "seat": 0,
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "real": "Shock",
+   "key": "shock",
+   "controller": 1,
+   "targets": [
+    "troll"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "troll": "graveyard",
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ },
+ "notes": "M20 Barkhide Troll, printed: '{1}, Remove a +1/+1 counter from this creature: This creature gains hexproof until end of turn.' The counter is removed as a cost, when the ability is activated (CR 602.2b), so it is gone before anyone can respond: while the ability waits on the stack the Troll is already a 2/2 with no hexproof, the opponent's Shock can target it, and its two damage kill it. Had the counter stayed until resolution the Troll would be 3/3 and live."
+}
