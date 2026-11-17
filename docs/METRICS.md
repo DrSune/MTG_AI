@@ -537,8 +537,8 @@ Two consequences of Rule 2 stated now:
 Combat is where badness is provable rather than arguable, because a large fraction of combat errors
 are strictly dominated. **Scope declaration, and this is load-bearing:** the general "minimum damage
 the defender can let through" problem is **not a bipartite assignment problem and is NP-hard** once
-multi-blocking, trample, deathtouch, menace and attacker-controlled damage-assignment order are
-present. Any claim that it is a sub-millisecond exact matching is wrong.
+multi-blocking, trample, deathtouch, menace and the attacker's free division of its damage among
+its blockers (CR 510.1c) are present. Any claim that it is a sub-millisecond exact matching is wrong.
 
 So the combat family is defined over a **declared, versioned, restricted subset**
 `combat_scope_v1`: positions where no attacker has trample, deathtouch or menace, no blocker has

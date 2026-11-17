@@ -166,8 +166,15 @@ Pack vocabulary (all keys required as noted):
                                             attacks that planeswalker)
               "may": {key: bool},
               "block": {blockerKey: attackerKey|null},  per-blocker pick
-              "order": {attackerKey: [slot...]},        order asks
-              "trample": {attackerKey: [amount...]},    excess asks
+              "divide": {blockerKey: amount|[amount...]},  the damage the
+                                            blocked attacker's controller
+                                            assigns that blocker (CR 510.1c,
+                                            702.19b), one per damage step; an
+                                            unanswered one assigns its lethal
+                                            damage or what is left, if less
+                                            (Executor.lethal_damage: blockers
+                                            are asked in Handle order, so it
+                                            is the old lethal-first default)
               "policy": {attackerKey: "UNBLOCKED"|
                                   "AS_BLOCKED"},        damage-assignment policy
               "respond": {STEP: [step...]},  steps run when that combat step
@@ -297,7 +304,7 @@ from MTG_bot.core.executor.legality import (
 )
 from MTG_bot.core.executor.query import cast_designee_ok
 from MTG_bot.core.executor.stack import cast, cast_card, play_land
-from MTG_bot.core.identity import CardIdentity
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
@@ -357,9 +364,9 @@ def _bf_target():
 #: Any other word must be one the ask offers, or the pack fails (a silent fallback would let a
 #: shifted queue pass).
 FIRST_LEGAL = "first-legal"
-#: The asks a combat step's maps describe: the combat itself (attackers, blockers, damage order,
-#: trample excess, damage policy). An unspecified one keeps the combat op's default.
-COMBAT_DECLARATIONS = ("attack:", "block:", "order:", "trample:", "policy:")
+#: The asks a combat step's maps describe: the combat itself (attackers, blockers, the division
+#: of a blocked creature's damage, damage policy). An unspecified one keeps the combat op's default.
+COMBAT_DECLARATIONS = ("attack:", "block:", "divide:", "policy:")
 #: The steps of the combat phase in order (CR 506.1), as a combat step's windows name them.
 COMBAT_STEPS = (
     BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOCKERS, FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT,
@@ -370,7 +377,7 @@ COMBAT_STEPS = (
 WORLD_KEYS = frozenset({"life", "seed", "library_top", "players"})
 _ANY_STEP = ("op", "decisions", "hold", "expect_raise", "eval_reclassification", "comment")
 COMBAT_KEYS = frozenset(
-    {*_ANY_STEP, "seat", "attack", "may", "block", "order", "trample", "policy", "respond",
+    {*_ANY_STEP, "seat", "attack", "may", "block", "divide", "policy", "respond",
      "respond_to_triggers"}
 )
 PERMISSION_CAST_KEYS = frozenset({*_ANY_STEP, "key", "from", "controller", "targets", "x"})
@@ -965,10 +972,10 @@ class ScenarioRunner:
         """Run the whole COMBAT phase answering the engine's asks from the
         pack's answer maps ONLY. Site tags carry handles (attack:<card>:
         <turn>, may:<card>). ``block`` maps a blocker key to the attacker
-        key it picks (or "NONE"); ``order`` maps an attacker key to the
-        list of positional picks its ordering asks consume in slot order;
-        ``trample`` maps an attacker key to the list of excess amounts its
-        recipient asks consume in order (the player takes the rest);
+        key it picks (or "NONE"); ``divide`` maps a blocker key to the
+        damage its attacker assigns it (a list: one per damage step), and an
+        unanswered division assigns the blocker its lethal damage or what is
+        left (``Executor.lethal_damage``; blockers are asked in Handle order);
         ``policy`` maps an attacker key to AS_BLOCKED/UNBLOCKED. An
         unspecified block defaults to NONE. An answer the vocabulary does
         not offer is never forced: the ask takes its first legal word and
@@ -983,6 +990,11 @@ class ScenarioRunner:
         controller was never shown to choose. A pack installs none, so its
         defaults are unchanged."""
         unknown = set(step) - COMBAT_KEYS
+        if unknown & {"order", "trample"}:
+            raise PackError(
+                "combat: the order and trample lanes are gone (2026-11-17, CR 510.1c): a blocked "
+                "creature's damage is divided blocker by blocker, \"divide\": {blockerKey: amount}"
+            )
         if unknown:
             raise PackError(f"combat: unknown keys {sorted(unknown)}; it takes {sorted(COMBAT_KEYS)}")
         outer = self.ex.decisions.provider
@@ -1001,10 +1013,9 @@ class ScenarioRunner:
         for key, go in step.get("block", {}).items():
             word = "NONE" if go is None else str(self.handles[go])
             answers[f"block:{self.handles[key]}"] = word
-        for key, picks in step.get("order", {}).items():
-            queues[f"order:{self.handles[key]}"] = [str(p) for p in picks]
-        for key, amounts in step.get("trample", {}).items():
-            queues[f"trample:{self.handles[key]}"] = [str(a) for a in amounts]
+        for key, amounts in step.get("divide", {}).items():
+            amounts = amounts if isinstance(amounts, list) else [amounts]
+            queues[f"divide:{self.handles[key]}"] = [str(a) for a in amounts]
         for key, word in step.get("policy", {}).items():
             answers[f"policy:{self.handles[key]}"] = word
         # A combat step may also carry a generic ``decisions`` script: the
@@ -1028,9 +1039,9 @@ class ScenarioRunner:
             if got is None:
                 for k, q in queues.items():
                     if what == k or what.startswith(k + ":"):
-                        got = q.pop(0) if q else vocab[0]
+                        got = q.pop(0) if q else None  # used up: the division's default
                         break
-            if got is None and script:
+            if got is None and script and not what.startswith("divide:"):
                 got = script.pop(0)
                 if got in self.handles:
                     got = str(self.handles[got])
@@ -1045,8 +1056,10 @@ class ScenarioRunner:
                     got = "skip"
                 elif what.startswith("block:"):
                     got = "NONE"
-                elif what.startswith(("order:", "trample:")):
-                    got = "0"
+                elif what.startswith("divide:"):  # divide:<blocker>:<attacker>:<turn>
+                    _kind, b_ns, b_i, a_ns, a_i, _turn = what.split(":")
+                    want = self.ex.lethal_damage(Handle(a_ns, int(a_i)), Handle(b_ns, int(b_i)))
+                    got = min(vocab, key=lambda v: (abs(int(v) - want), int(v)))
                 else:
                     got = "DECLINE"
             return got if got in vocab else vocab[0]

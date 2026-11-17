@@ -82,9 +82,11 @@ SEAT_IN_TAG = frozenset(
 )
 #: Engine ask kinds keyed by an object; the decider comes from the engine hook only.
 #: ``quality``: a colour or a creature type chosen as a permanent enters (CR 614.12a),
-#: ``quality:<permanent>:<COLOR|CREATURE_TYPE>``.
+#: ``quality:<permanent>:<COLOR|CREATURE_TYPE>``. ``divide``: how much of a blocked creature's
+#: combat damage goes to one of its blockers (CR 510.1c, 702.19b),
+#: ``divide:<blocker>:<attacker>:<turn>``, asked of the attacker's controller.
 OBJECT_IN_TAG = frozenset(
-    {"attack", "block", "order", "trample", "policy", "may", "mana", "choose", "one_of", "name",
+    {"attack", "block", "divide", "policy", "may", "mana", "choose", "one_of", "name",
      "enchant", "quality"}
 )
 SITE_KINDS = SEAT_IN_TAG | OBJECT_IN_TAG
@@ -184,6 +186,11 @@ def engine_ask(
     kind = ask_kind(what)
     subject = tag_handle(what)
     about = lens.describe(executor, subject, offered=True) if subject is not None else "the effect"
+    attacker = "the attacker"
+    if kind == "divide":  # divide:<blocker>:<attacker>:<turn>
+        dealer = _handle_token(":".join(what.split(":")[3:5]))
+        if dealer is not None:
+            attacker = lens.describe(executor, dealer, offered=True)
 
     def label(token: str) -> str:
         if "@" in token:
@@ -209,6 +216,8 @@ def engine_ask(
             return _COLORS[token]
         if kind == "x" and token.isdigit():
             return f"X = {token}"
+        if kind == "divide" and token.isdigit():
+            return f"{token} damage"
         if kind == "choose" and token.isdigit() and subject is not None:
             modes = _bullets(lens.text(executor_text(lens, executor, subject)))
             if len(modes) == len(vocab):
@@ -240,12 +249,16 @@ def engine_ask(
             f"{about} enters the battlefield: choose a "
             f"{'color' if what.endswith(':COLOR') else 'creature type'}."
         ),
-        "order": f"{about}: choose the damage assignment order.",
+        "divide": (
+            f"Combat damage: how much of {attacker}'s remaining combat "
+            f"damage goes to {about}, which blocks it? (Choose any division among its blockers; "
+            "with trample, what you leave after the last blocker goes to what it attacks, once "
+            "every blocker has lethal damage.)"
+        ),
         "trigger": (
             "Several of your triggered abilities go on the stack at once (CR 603.3b): choose the "
             "one that resolves first; the rest follow in the order you choose next."
         ),
-        "trample": f"{about}: choose how much excess damage to assign.",
         "x": f"{about}: announce the value of X for the ability.",
         "policy": f"{about}: choose how to assign its combat damage.",
         "mulligan": (

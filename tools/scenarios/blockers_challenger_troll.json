@@ -62,11 +62,6 @@
     "wall_a": "troll",
     "wall_b": "cub",
     "wall_c": "cub"
-   },
-   "order": {
-    "cub": [
-     "0"
-    ]
    }
   }
  ],

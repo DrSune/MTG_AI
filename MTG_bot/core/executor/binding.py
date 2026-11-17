@@ -2135,7 +2135,14 @@ class TriggerBinder:
         n candidates cannot fill it; ``QAtLeast``/QX in a trigger TARGET
         raises.
         """
+        from MTG_bot.core.executor.query import combat_target_selector  # cycle-free at call time
+
         selectors, reads_target_player, _ = self._designation_slots(node)
+        if not selectors and any(combat_target_selector(n) for n in own_nodes(node.effect)):
+            # CR 115.1, 603.3d: its only target sits in a combat slot (FDN Frenzied Goblin's
+            # "target creature can't block this turn"); the slot walker makes it a slot, as it
+            # does for an activated ability (query._designation_only_slot).
+            return self._designate_slots(node, ctx)
         if not selectors and not reads_target_player:
             return True  # no designation to make
         if len(selectors) > 1 or (selectors and reads_target_player):

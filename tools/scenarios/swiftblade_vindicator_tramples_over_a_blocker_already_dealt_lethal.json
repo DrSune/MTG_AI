@@ -1,0 +1,19 @@
+{
+ "name": "swiftblade_vindicator_tramples_over_a_blocker_already_dealt_lethal",
+ "set": "FDN",
+ "notes": "CR 702.19b: lethal damage counts the damage already marked. Swiftblade Vindicator (1/1 double strike, vigilance, trample) is blocked by an indestructible 0/1 wall. First-strike step: its 1 damage must go to the wall, its lethal damage (a one-word menu, not asked). Regular step: the wall survived with lethal damage marked, so none more is needed: the menu runs from 0, and the division's default (the blocker's lethal damage) sends the 1 damage over to seat 1. Found by the engine wave E2 review: the wall had to take 1 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vind", "real": "Swiftblade Vindicator", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Stone Wall", "type": "Creature — Wall", "power": "0", "toughness": "1", "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vind": true}, "block": {"wall": "vind"}}
+ ],
+ "expect": {
+  "blocked": {"vind": ["wall"]},
+  "zone": {"wall": "battlefield", "vind": "battlefield"},
+  "damage": {"wall": 1},
+  "life": {"0": 20, "1": 19}
+ }
+}

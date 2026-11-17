@@ -582,8 +582,8 @@ class Executor:
         # ``blocked_by``: attacker -> the creatures blocking it, in DECLARE
         # order (CR 509.1b: one attacker per blocker, so a handle appears in
         # exactly one list; multiple blockers per attacker ARE legal — the
-        # assignment order is asked per attacker, CR 510.1). Cleared with
-        # the attack record at end of combat; replayed state.
+        # attacker's controller divides its damage among them, CR 510.1c).
+        # Cleared with the attack record at end of combat; replayed state.
         self.blocked_by: dict[Handle, list[Handle]] = {}
         # DISPATCHED MANDATE_BLOCK ledger (the static shape rides layers'
         # "mandate_block" records; Canopy Stalker's rule line).
@@ -1435,7 +1435,7 @@ class Executor:
                 # object that entered without being cast has X 0 (CR 107.3g). A
                 # negative result gives no counters (107.1b).
                 from MTG_bot.core.executor.legality import ctx_for
-                from MTG_bot.core.executor.quantity import resolve
+                from MTG_bot.core.executor.selectors import effect_number
 
                 qctx = ctx_for(
                     self,
@@ -1443,7 +1443,7 @@ class Executor:
                     controller=self.world.controller_of(card),
                     x_value=self.etb_x.get(card, 0),
                 )
-                n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
+                n = effect_number(quantity, qctx)
                 if not n:
                     continue
                 if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
@@ -2864,22 +2864,23 @@ class Executor:
           creature REMAINS blocked (the block triggers already fired and
           stand; CR 506.5a-style blocked status is untouched) — the policy
           only reroutes the ASSIGNMENT.
-        * Multiple blockers: the ORDER is asked per attacker (site
-          ``order:<card>:<slot>:<turn>``) as a POSITIONAL pick from the
-          Handle-sorted remaining candidates at each slot — the exact
-          decision surface of the permutation index, with a ≤n-word
-          vocabulary at every ask (one ask over whole orders would need n!
-          words).
-        * LETHAL per blocker is toughness-minus-marked (CR 704.2, the
-          marked ledger keeps the first-strike step's scars) or 1 from a
-          DEATHTOUCH dealer (CR 702.2b).
-        * TRAMPLE (CR 702.19): once every blocker is covered lethal, the
-          excess is asked RECIPIENT BY RECIPIENT in order — each blocker
-          gets ``trample:<card>:<slot>:<turn>`` from 0..remaining, the
-          defending player takes the rest (the composition space of the
-          announcement, enumerated with ≤(excess+1)-word vocabularies).
-        * Without trample the whole damage must hit the blockers: greedy
-          lethal-first in order, the final survivor soaking any excess.
+        * Several blockers: the controller divides the damage among them as
+          they choose (CR 510.1c), with no lethal-first order (gone from the
+          rules in 2024). Asked blocker by blocker in Handle order, site
+          ``divide:<blocker>:<dealer>:<turn>``: how much of what is left goes
+          to that blocker, 0 up to the rest; the last blocker takes what is
+          left. One blocker takes it all, unasked.
+        * TRAMPLE (CR 702.19b): the last blocker is asked too, and what is
+          left after it goes to the attacked object, but only once every
+          blocker is assigned lethal damage (:meth:`lethal_damage`): the
+          last blocker's menu runs from its lethal damage to the rest, or is
+          the rest alone when a blocker before it got less. A trampler may
+          so keep all of its damage on its blockers (702.19b's last
+          sentence). Its planeswalker gone, the rest stays on the blockers
+          (702.19f).
+        Every menu holds only amounts that leave a legal announcement (CR
+        510.1e), the composition space enumerated with ≤(power+1)-word
+        vocabularies.
         """
         world = self.world
         defender = self.defending_player
@@ -2942,98 +2943,42 @@ class Executor:
             # CR 510.1c: blocked with no creature blocking it, no
             # trample: it assigns no combat damage.
             return ()
-        ordered = list(blockers)
-        if len(ordered) > 1:
-            picked: list[Handle] = []
-            remaining = sorted(ordered)
-            for slot in range(len(ordered)):
-                vocab = tuple(str(i) for i in range(len(remaining)))
-                ctx = self._ctx(
-                    source=dealer,
-                    controller=controller,
-                    bindings=None,
-                    decisions=(),
-                )
-                # The LAST slot has exactly one remaining creature: its
-                # "0" is taken without asking.
-                answer = offer_or_autopick(
-                    ctx, vocab, f"order:{dealer}:{slot}:{world.turn}"
-                )
-                chosen = remaining[int(answer)]
-                picked.append(chosen)
-                remaining.remove(chosen)
-            ordered = picked
-        deathtouch = self.layers.keyword_of(dealer, Keyword.DEATHTOUCH)
-
-        def lethal_of(b: Handle) -> int:
-            if deathtouch:
-                return 1  # CR 702.2b: any nonzero damage from the source
-            _p, toughness = self.ledger.effective_pt(
-                world.cards[b].identity, b, world.cards[b].counters
-            )
-            return max(1, (toughness or 1) - self.damage.get(b, 0))
-
-        if not self.layers.keyword_of(dealer, Keyword.TRAMPLE):
-            plan: list[tuple[int, Handle]] = []
-            left = power
-            for b in ordered:
-                share = min(lethal_of(b), left)
-                if share:
-                    plan.append((share, b))
-                left -= share
-                if left == 0:
-                    break
-            if left:  # no trample: the last blocker absorbs the excess
-                plan[-1] = (plan[-1][0] + left, plan[-1][1])
-            return tuple(plan)
-        needs = [lethal_of(b) for b in ordered]
-        covered = sum(needs)
-        if power <= covered:  # not enough to reach lethal everywhere: greedy
-            plan = []
-            left = power
-            for b, need in zip(ordered, needs):
-                share = min(need, left)
-                if share:
-                    plan.append((share, b))
-                left -= share
-            return tuple(plan)
-        plan = [(need, b) for b, need in zip(ordered, needs) if need]
-        excess = power - covered
-        for slot, b in enumerate(ordered):
-            if excess == 0:
-                break
-            vocab = tuple(str(v) for v in range(excess + 1))
-            ctx = self._ctx(
-                source=dealer, controller=controller, bindings=None, decisions=()
-            )
-            give = int(
-                ctx.take_decision(vocab, f"trample:{dealer}:{slot}:{world.turn}")
-            )
+        # CR 702.19b: a trampler's rest may go to what it attacks, once every blocker is
+        # assigned lethal damage; with that gone (702.19f), and without trample, the blockers
+        # take it all.
+        over = attacked is not None and self.layers.keyword_of(dealer, Keyword.TRAMPLE)
+        plan: list[tuple[int, Handle]] = []
+        left = power
+        all_lethal = True
+        ordered = sorted(blockers)
+        for i, blocker in enumerate(ordered):
+            low, high = 0, left
+            if i == len(ordered) - 1:
+                low = min(self.lethal_damage(dealer, blocker), left) if over and all_lethal else left
+            ctx = self._ctx(source=dealer, controller=controller, bindings=None, decisions=())
+            vocab = tuple(str(n) for n in range(low, high + 1))
+            give = int(offer_or_autopick(ctx, vocab, f"divide:{blocker}:{dealer}:{world.turn}"))
+            all_lethal = all_lethal and give >= self.lethal_damage(dealer, blocker)
             if give:
-                # MERGE into the blocker's lethal entry (never a duplicate
-                # recipient row - one announcement line per receiver)
-                for i, (a, h) in enumerate(plan):
-                    if h == b:
-                        plan[i] = (a + give, b)
-                        break
-                else:
-                    plan.append((give, b))
-                excess -= give
-        if excess and attacked is not None:
-            plan.append((excess, attacked))
-        elif excess:
-            # CR 702.19b/f: its planeswalker left combat, so the excess
-            # can only go to the blockers: the last one in order takes it.
-            last = ordered[-1]
-            for i, (a, h) in enumerate(plan):
-                if h == last:
-                    plan[i] = (a + excess, last)
-                    break
-            else:
-                plan.append((excess, last))
+                plan.append((give, blocker))
+            left -= give
+        if left:
+            assert attacked is not None  # the last menu gave the rest to a blocker otherwise
+            plan.append((left, attacked))
         # CR 510.1: damage assignment is simultaneous within the step; the
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
+
+    def lethal_damage(self, dealer: Handle, blocker: Handle) -> int:
+        """The damage still lethal to ``blocker`` from ``dealer`` for a combat damage assignment
+        (CR 702.19b, 120.6): its toughness minus the damage already marked on it (the
+        first-strike step's included), or any nonzero amount from a source with deathtouch (CR
+        702.2c); none when what is marked is already lethal (an indestructible blocker that
+        survived the first-strike step)."""
+        card = self.world.cards[blocker]
+        _power, toughness = self.ledger.effective_pt(card.identity, blocker, card.counters)
+        short = max(0, (toughness or 0) - self.damage.get(blocker, 0))
+        return min(short, 1) if self.layers.keyword_of(dealer, Keyword.DEATHTOUCH) else short
 
     def _damage_wave(self, dealers: list[Handle]) -> None:
         """One combat-damage substep: EVERY dealer's legal assignment is
@@ -3232,7 +3177,12 @@ class Executor:
             )
         if aura == host:
             raise ValueError(f"attach_aura: {aura} cannot attach to itself")
-        self.attachments[aura] = host
+        if self.attachments.get(aura) != host:  # CR 701.3b: to its own host, nothing happens
+            self.attachments[aura] = host
+            # CR 613.7e, 701.3c: it receives a new timestamp as it becomes attached, and so do
+            # its static abilities' effects (613.7a): the Hammer's "loses flying" applies after
+            # an Aura's flying granted before it was attached.
+            self.layers.restamp(aura)
         self.layers.recompute()  # "equipped creature" scopes re-read the table
 
     # ------------------------------------------------ CR 702.26 phasing

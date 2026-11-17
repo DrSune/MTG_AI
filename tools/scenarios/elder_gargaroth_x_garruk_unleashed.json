@@ -53,10 +53,8 @@
    "block": {
     "wall": "g"
    },
-    "trample": {
-     "g": [
-      0
-     ]
+    "divide": {
+     "wall": 5
     }
   }
  ],

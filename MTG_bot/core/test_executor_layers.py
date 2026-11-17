@@ -47,7 +47,7 @@ from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.legality import ability_playable, activate
 from MTG_bot.core.executor.query import choose_options, legal_activations
 from MTG_bot.core.identity import CardIdentity
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, GameWorld
+from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_GRAVEYARD, ZONE_LIBRARY, GameWorld
 
 _ORACLE = iter(range(1, 1 << 16))
 
@@ -553,6 +553,82 @@ class TestChooseOrder(LayerCase):
                 controller=self.p0,
                 decisions=("3",),
             )
+
+
+class TestTimestamps(LayerCase):
+    """CR 613.1 and 613.7 (bug hunt 2026-11-17, hunt3 F1 and F5): an object's printed values first,
+    then the continuous effects in timestamp order, sublayer by sublayer in layer 7 (613.4); one
+    clock stamps every P/T entry; an Aura or Equipment gets a new timestamp as it becomes attached
+    (613.7e)."""
+
+    def test_a_printed_keyword_is_lost_whatever_entered_first(self):
+        # "Creatures you control lose flying", then a flier enters: its printed flying is no
+        # effect with a later timestamp, so the loss removes it.
+        loses = atom(Verb.LOSE_ABILITY, target=scope_you(), ability=KeywordAbility(Keyword.FLYING))
+        self.attach(self.banner, [StaticAbility(effect=loses)])
+        self.attach(self.alpha, [], keywords=(KeywordAbility(Keyword.FLYING),))
+        self.assertFalse(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
+        self.grant([self.alpha], KeywordAbility(Keyword.FLYING))  # an effect: later, it wins
+        self.assertTrue(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
+
+    def _turns(self, n):
+        # Turns emit phase markers: the journal clock runs ahead of the raw event count.
+        for player in (self.p0, self.p1):
+            for _ in range(n):
+                self.world.add_card(card_id("Library Card", "1", "1"), player, ZONE_LIBRARY)
+        for _ in range(n):
+            self.ex.advance_turn()
+
+    def test_a_static_set_and_a_later_verb_set_order_on_one_clock(self):
+        # Two 7b sets apply in timestamp order (CR 613.4b, 613.7): the later "becomes 3/3" wins
+        # over "Creatures you control have base power and toughness 1/1".
+        self._turns(3)
+        base = atom(Verb.SET_PT, target=scope_you(), power=QConst(1), toughness=QConst(1))
+        self.attach(self.banner, [StaticAbility(effect=base)])
+        self.assertEqual(self.pt(self.alpha), (1, 1))
+        self.ex.execute(
+            atom(Verb.SET_PT, target=target_sel(), power=QConst(3), toughness=QConst(3)),
+            source=self.banner,
+            controller=self.p0,
+            bindings={"target": self.alpha},
+        )
+        self.assertEqual(self.pt(self.alpha), (3, 3))
+
+    def test_a_characteristic_defining_power_applies_before_every_set(self):
+        # Kinetic Augur's shape, its static the later of the two: layer 7a still applies first
+        # (CR 613.4a), so the earlier "base power and toughness 5/5" (7b) decides.
+        self.ex.execute(
+            atom(Verb.SET_PT, target=target_sel(), power=QConst(5), toughness=QConst(5)),
+            source=self.banner,
+            controller=self.p0,
+            bindings={"target": self.alpha},
+        )
+        self._turns(3)
+        itself = Selector(QConst(1), SelectorMode.CHOOSE, FAtom(FAtomPred.IS_SOURCE), zones=(BF_ANY,))
+        cda = atom(Verb.SET_PT, target=itself, power=_your_graveyard_count())
+        self.attach(self.alpha, [StaticAbility(effect=cda)])
+        self.assertEqual([c.kind for c in self.ex.ledger.changes_for(self.alpha)], ["set", "cda"])
+        self.assertEqual(self.pt(self.alpha), (5, 5))
+
+    def test_an_equipment_gets_a_new_timestamp_as_it_becomes_attached(self):
+        equipped = Selector(
+            QUnbounded(),
+            SelectorMode.ALL,
+            FAnd((FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), CREATURE)),
+            zones=(BF_ANY,),
+        )
+        loses = atom(Verb.LOSE_ABILITY, target=equipped, ability=KeywordAbility(Keyword.FLYING))
+        self.attach(self.banner, [StaticAbility(effect=loses)])  # "equipped creature loses flying"
+        self.grant([self.alpha], KeywordAbility(Keyword.FLYING))  # after the Equipment entered
+        self.ex.attach_aura(self.banner, self.alpha)  # ... and before it became attached
+        self.assertFalse(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
+        self.grant([self.alpha], KeywordAbility(Keyword.FLYING))  # after it became attached
+        self.assertTrue(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
+        self.ex.attach_aura(self.banner, self.alpha)  # CR 701.3b: to its own host, nothing
+        self.assertTrue(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
+        self.ex.attach_aura(self.banner, self.beta)  # elsewhere and back: new timestamps
+        self.ex.attach_aura(self.banner, self.alpha)
+        self.assertFalse(self.ex.layers.keyword_of(self.alpha, Keyword.FLYING))
 
 
 def _etb_event():
