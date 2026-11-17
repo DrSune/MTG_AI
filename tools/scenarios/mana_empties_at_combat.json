@@ -1,12 +1,43 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "for", "real": "Forest", "zone": "battlefield", "controller": 0},
-  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "activate", "key": "for", "idx": 0, "seat": 0},
-  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1
+   }
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   }
+  }
  ],
- "expect": {"tapped": {"for": true}, "life": {"1": 18}, "mana_pool": {"0": {}}},
- "notes": "V2 (2026-10-29). CR 500.5: the G tapped in the first main phase empties as the main phase ends; it is gone by combat."}
+ "expect": {
+  "life": {
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "V2 (2026-10-29). CR 500.5: mana in the pool in the first main phase empties as the main phase ends; it is gone by combat. The mana op stands in for a source tapped there (no game makes mana but while paying since 2026-11-11, and a payment leaves no mana over)."
+}

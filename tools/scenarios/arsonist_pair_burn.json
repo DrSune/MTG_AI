@@ -44,7 +44,7 @@
    "amount": 2,
    "decisions": [
     "v"
-   ]
+   , "fire"]
   },
   {
    "op": "deal_damage",
@@ -53,7 +53,7 @@
    "amount": 2,
    "decisions": [
     "player:1"
-   ]
+   , "fire"]
   }
  ],
  "expect": {

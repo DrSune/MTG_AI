@@ -1,15 +1,96 @@
 {
  "set": "M20",
- "world": {"life": 20, "seed": 7},
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
-  {"key": "c1", "name": "Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
-  {"key": "c2", "name": "Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
-  {"key": "o1", "name": "Opp Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
-  {"key": "o2", "name": "Opp Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
-  {"key": "a1", "name": "Relic", "type": "Artifact", "zone": "battlefield", "controller": 0}
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Bear A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Bear B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Bear A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "name": "Opp Bear B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "a1",
+   "name": "Relic",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sc",
+   "real": "Sedge Scorpion",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "spider",
+   "real": "Canopy Spider",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
- "steps": [{"op": "activate", "key": "druid", "idx": 0, "seat": 0}],
- "expect": {"mana_pool": {"0": {"G": 1}}, "tapped": {"druid": true}},
- "notes": "Leafkin Druid (M20): three creatures you control (and an artifact) plus two of the opponent's: fewer than four creatures you control, so tapping it adds only {G}."
+ "steps": [
+  {
+   "op": "cast",
+   "key": "spider",
+   "tap": true,
+   "expect_raise": "cannot pay it"
+  },
+  {
+   "op": "cast",
+   "key": "sc",
+   "tap": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sc": "battlefield",
+   "spider": "hand"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "tapped": {
+   "druid": true
+  }
+ },
+ "notes": "Leafkin Druid (M20): three creatures you control (and an artifact) plus two of the opponent's: fewer than four creatures you control, so its tap adds only {G}. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). It cannot pay Canopy Spider's {1}{G}, and it pays Sedge Scorpion's {G} with nothing left over."
 }

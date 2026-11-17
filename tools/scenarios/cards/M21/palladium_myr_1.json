@@ -1,23 +1,69 @@
 {
  "set": "M21",
- "world": {"life": 20, "seed": 7},
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "myr", "real": "Palladium Myr", "zone": "hand", "controller": 0}
+  {
+   "key": "myr",
+   "real": "Palladium Myr",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tome",
+   "real": "Mazemind Tome",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"C": 3}},
+ "mana": {
+  "0": {
+   "C": 3
+  }
+ },
  "steps": [
-  {"op": "cast", "real": "Palladium Myr", "key": "myr"},
-  {"op": "activate", "key": "myr", "idx": 0, "seat": 0, "expect_raise": "summoning sickness"},
-  {"op": "end_turn"},
-  {"op": "advance_turn"},
-  {"op": "end_turn"},
-  {"op": "advance_turn"},
-  {"op": "activate", "key": "myr", "idx": 0, "seat": 0}
+  {
+   "op": "cast",
+   "real": "Palladium Myr",
+   "key": "myr"
+  },
+  {
+   "op": "cast",
+   "key": "tome",
+   "tap": true,
+   "expect_raise": "cannot pay it"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "tome",
+   "tap": true
+  }
  ],
  "expect": {
-  "zone": {"myr": "battlefield"},
-  "tapped": {"myr": true},
-  "mana_pool": {"0": {"C": 2}}
+  "zone": {
+   "myr": "battlefield",
+   "tome": "battlefield"
+  },
+  "tapped": {
+   "myr": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
  },
- "notes": "Printed Palladium Myr (artifact creature): '{T}: Add {C}{C}.' The turn it enters it cannot tap for mana (summoning sickness, CR 302.6). On my next turn it taps for exactly two colorless mana."
+ "notes": "Printed Palladium Myr (artifact creature): '{T}: Add {C}{C}.' Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer tapping a source (CR 605.3a), so the pack casts with \"tap\": true. The turn it enters it cannot pay Mazemind Tome's {2} (summoning sickness, CR 302.6). On my next turn it pays exactly that {2} (the pool is empty after)."
 }

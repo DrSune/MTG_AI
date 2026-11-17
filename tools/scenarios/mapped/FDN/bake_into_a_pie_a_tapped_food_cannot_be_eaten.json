@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "bake_into_a_pie_a_tapped_food_cannot_be_eaten",
+ "notes": "The one Food's {T} (templates.food_token(), the R_FOOD ruling: '{2}, {T}, Sacrifice this token: You gain 3 life.'), the part no other pack reaches: a pack cannot start an engine-made token tapped, and no verified card taps an artifact. Bake into a Pie destroys the Victim and makes the Food (card:14). With {2} in the pool another effect taps the Food (the tap op), and the menu then offers nothing: a tapped Food cannot pay its {T}, so it is not eaten (life 20, the Food stays, the {2} stays). Its {2}, the sacrifice and the 3 life are pinned by bake_into_a_pie_destroys_and_bakes_a_food.json. With both packs the gates' G3 counts the one Food proven (gates._verified_tokens, test_gates).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pie", "real": "Bake into a Pie", "zone": "hand", "controller": 0},
+  {"key": "victim", "name": "Victim", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Bake into a Pie", "key": "pie", "targets": ["victim"]},
+  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": true},
+  {"op": "tap", "key": "card:14", "hold": true},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0"], "expect_raise": "words no ask took"}
+ ],
+ "expect": {
+  "zone": {"pie": "graveyard", "victim": "graveyard"},
+  "life": {"0": 20, "1": 20},
+  "tokens": {"Food": 1},
+  "mana_pool": {"0": {"C": 2}}
+ }
+}

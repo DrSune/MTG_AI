@@ -1,7 +1,7 @@
 {
  "name": "gift_of_paradise_enchanted_land_taps_for_two_of_one_color",
  "set": "M20",
- "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts Gift of Paradise on its Forest (gains 3: 23), then taps the Forest for the granted ability choosing blue: P0's pool holds exactly two blue. The Forest is tapped.",
+ "notes": "Printed: 'Enchant land. When this Aura enters, you gain 3 life. Enchanted land has \"{T}: Add two mana of any one color.\"' P0 casts Gift of Paradise on its Forest (gains 3: 23). Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The Forest's own {T}: Add {G} cannot pay Metropolis Sprite's {1}{U}; its granted ability, two blue, pays it exactly: the Sprite enters and the Forest taps. Until 2026-11-17 the payer read a permanent's first mana ability only, so the granted one never paid on a basic land.",
  "world": {
   "life": 20,
   "seed": 7
@@ -17,6 +17,12 @@
    "key": "f1",
    "real": "Forest",
    "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sprite",
+   "real": "Metropolis Sprite",
+   "zone": "hand",
    "controller": 0
   }
  ],
@@ -37,18 +43,15 @@
    ]
   },
   {
-   "op": "activate",
-   "key": "f1",
-   "idx": -1,
-   "seat": 0,
-   "decisions": [
-    "U"
-   ]
+   "op": "cast",
+   "key": "sprite",
+   "tap": true
   }
  ],
  "expect": {
   "zone": {
-   "gift": "battlefield"
+   "gift": "battlefield",
+   "sprite": "battlefield"
   },
   "attached": {
    "gift": "f1"
@@ -61,9 +64,7 @@
    "f1": true
   },
   "mana_pool": {
-   "0": {
-    "U": 2
-   },
+   "0": {},
    "1": {}
   }
  }

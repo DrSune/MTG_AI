@@ -39,31 +39,13 @@
  },
  "steps": [
   {
-   "op": "activate",
-   "key": "t1",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "B"
-   ]
-  },
-  {
    "op": "cast",
    "real": "Eliminate",
    "key": "el",
    "targets": [
     "small"
    ],
-   "decisions": []
-  },
-  {
-   "op": "activate",
-   "key": "t2",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "U"
-   ]
+   "tap": true
   }
  ],
  "expect": {
@@ -71,13 +53,14 @@
    "t1": "ceased",
    "small": "graveyard",
    "el": "graveyard",
-   "t2": "ceased"
+   "t2": "battlefield"
+  },
+  "tokens": {
+   "Treasure": 1
   },
   "mana_pool": {
-   "0": {
-    "U": 1
-   }
+   "0": {}
   }
  },
- "notes": "blindspot-twin (Prismite any-color): each Treasure activation asks the color vocab (W U B R G C); gold 'B' funds the {1}{B} Eliminate (null 'W' makes the SAME cast illegal - legality raise falsifies the null replay); gold 'U' leaves mana_pool {U} where null would leave {W}. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token (games.identity_of kept is_token), so a sacrificed Treasure ceases to exist (CR 704.5d, V35) instead of lying in the graveyard: its zone expectation is 'ceased' (was 'graveyard', which encoded the token-in-graveyard gap)."
+ "notes": "Treasure's 'Add one mana of any color' pays a coloured symbol: the pool's {R} pays Eliminate's {1}, and its {B} can only come from a Treasure. Mana abilities are no menu rows (2026-11-11): the payer sacrifices a Treasure while a cost is paid, choosing its colour (CR 605.3a), so the pack casts with \"tap\": true. One Treasure (the payer takes the lowest Handle) is sacrificed for {B}, the other stays, and nothing floats. A sacrificed Treasure is a token that left the battlefield, so it ceases to exist (CR 704.5d): its zone is 'ceased'."
 }

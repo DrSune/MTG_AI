@@ -23,6 +23,9 @@ waves found most often (KNOWLEDGE/2026-11-14/207). They run inside gate G0, so a
   or dies" is two adjacent triggered abilities with one effect; "N damage to that creature's
   controller" is the referent read over the players, and "its controller" names a target only
   where its ability designates one.
+- ``designation``: a population ("creatures you control gain hexproof", a referent-free ALL in
+  the ``target`` role) beside a designation in one ability, where the engine reads the
+  designation instead (selectors.role_handles reads the binding first; mapper M6's repro).
 
 Each check returns plain-language findings; an empty list is a pass. ``EXCEPTIONS`` lists the
 justified exceptions by oracle id, each with its reason. Over every verified card of M21, M20 and
@@ -46,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     BackFace,
     CardRecord,
+    Choose,
     ControllerRef,
     CostExile,
     CostLife,
@@ -57,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CreatureDiesEvent,
+    DamageDealtEvent,
     DeclareAttackersEvent,
     DeclareBlockersEvent,
     DelayedTrigger,
@@ -84,6 +89,7 @@ from MTG_bot.core.ability_tree import (
 )
 from MTG_bot.core.compiler.ingest import RawCard
 from MTG_bot.core.compiler.templates import food_token
+from MTG_bot.core.executor.selectors import _filter_has_referent, graveyard_sweep_shape
 
 #: (lint, oracle id) -> why the finding is right to ignore. Add one only with the reason, and say
 #: so in the card's review; a lint that needs many is a wrong lint.
@@ -729,8 +735,68 @@ def its_controller(raw: RawCard, card: CardRecord) -> list[str]:
     return found
 
 
+# ----------------------------------------------------------------------------- designation
+def _scopes(ability: Any) -> list[list[Any]]:
+    """The node sets one designation is bound across (the ``target`` binding): the ability's
+    own nodes, or for a "choose one" each mode's, since only the chosen mode designates (CR
+    601.2b-c; stack._plan_cast_designation, binding._declare_mode). Modes chosen together
+    ("choose two") share one."""
+    body = ability.action if isinstance(ability, ReplacementAbility) else ability.effect
+    if isinstance(body, Choose) and body.count == QConst(1):
+        return [[ability, *own_nodes(option)] for option in body.options]
+    return [_own(ability)]
+
+
+def _population_reads_designation(atom: Atom) -> bool:
+    """An ALL Selector in the atom's ``target`` role that ``selectors.role_handles`` resolves
+    from the designation bound under that role, never itself: no referent of its own or in its
+    filter, not a player zone alone, not the whole-graveyard sweep (its exemptions)."""
+    value = atom.args.get("target")
+    return (isinstance(value, Selector) and value.mode is SelectorMode.ALL and value.referent is None
+            and not (len(value.zones) == 1 and value.zones[0].kind is ZoneKind.PLAYER)
+            and not _filter_has_referent(value.filter)
+            and not graveyard_sweep_shape(value, atom.verb, atom.args.get("destination")))
+
+
+def _binds_players_only(ability: Any, nodes: list[Any]) -> bool:
+    """Every object the scope designates is a player: its targets are over player zones, and it
+    is no damage or dies trigger reading "that player" with no printed target, which binds the
+    dealer or the dead creature, a card (binding.TriggerBinder._put)."""
+    targets = [n for n in nodes if isinstance(n, Selector) and n.mode is SelectorMode.TARGET and n.referent is None]
+    if any(z.kind is not ZoneKind.PLAYER for t in targets for z in t.zones):
+        return False
+    return targets or not (isinstance(ability, TriggeredAbility)
+                           and isinstance(ability.event, (DamageDealtEvent, CreatureDiesEvent)))
+
+
+def designation(raw: RawCard, card: CardRecord) -> list[str]:
+    """One tree shape, two meanings: a referent-free ALL in the ``target`` role is a population
+    ("creatures you control gain hexproof"), but beside a designation ``role_handles`` reads the
+    designation instead (binding first; the payments' ``all_bf()`` idiom needs it), so the effect
+    acts on the designated object only (BACKLOG, the "Up to" entry; mapper M6's repro). A card
+    population beside designated players resolves itself (role_handles' player_into_cards)."""
+    found = []
+    for ability in (n for a in _front(card) for n in walk(a) if isinstance(n, _ABILITIES)):
+        for nodes in _scopes(ability):
+            if not _designates(nodes):
+                continue
+            players = _binds_players_only(ability, nodes)
+            for atom in nodes:
+                if not (isinstance(atom, Atom) and _population_reads_designation(atom)):
+                    continue
+                zones = atom.args.get("target").zones
+                if players and all(z.kind not in (ZoneKind.PLAYER, ZoneKind.ANY) for z in zones):
+                    continue
+                found.append(f"a {type(ability).__name__} designates a target, and its {atom.verb.name} over "
+                             "every object of a population (ALL, no referent) in the target role would act on "
+                             "that designation instead: no encoding gives a population beside a designation "
+                             "yet, so record needs-atom (\"ENGINE: ...\")")
+    return found
+
+
 LINTS = {"players": players, "costs": costs, "amounts": amounts, "carrier": carrier,
-         "food": food, "two_events": two_events, "its_controller": its_controller}
+         "food": food, "two_events": two_events, "its_controller": its_controller,
+         "designation": designation}
 
 
 def lint(raw: RawCard, card: CardRecord) -> list[str]:

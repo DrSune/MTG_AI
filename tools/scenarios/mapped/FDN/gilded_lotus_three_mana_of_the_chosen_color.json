@@ -1,16 +1,43 @@
 {
  "set": "FDN",
  "name": "gilded_lotus_three_mana_of_the_chosen_color",
- "notes": "M8 mapper. Printed: '{T}: Add three mana of any one color.' Seat 0 taps Gilded Lotus and chooses green: three green mana, nothing else, and the Lotus is tapped.",
- "world": {"life": 20, "seed": 7},
+ "notes": "M8 mapper. Printed: '{T}: Add three mana of any one color.' Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The Lotus pays Llanowar Elves' {G}: it makes three green, one is spent, and the other two stay in the pool (no step ends to empty them).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "lotus", "real": "Gilded Lotus", "zone": "battlefield", "controller": 0}
+  {
+   "key": "lotus",
+   "real": "Gilded Lotus",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elves",
+   "real": "Llanowar Elves",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "activate", "key": "lotus", "idx": 0, "seat": 0, "decisions": ["G"], "hold": true}
+  {
+   "op": "cast",
+   "key": "elves",
+   "tap": true
+  }
  ],
  "expect": {
-  "mana_pool": {"0": {"G": 3}},
-  "tapped": {"lotus": true}
+  "mana_pool": {
+   "0": {
+    "G": 2
+   }
+  },
+  "tapped": {
+   "lotus": true
+  },
+  "zone": {
+   "elves": "battlefield"
+  }
  }
 }

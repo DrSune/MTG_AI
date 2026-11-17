@@ -1,23 +1,86 @@
 {
  "set": "FDN",
  "name": "new_horizons_land_taps_for_two_of_one_color",
- "notes": "M7 mapper. Printed: 'Enchant land. When this Aura enters, put a +1/+1 counter on target creature you control. Enchanted land has \"{T}: Add two mana of any one color.\"' Seat 0 casts New Horizons on its Odd Desert (a land with no mana ability of its own); the enters trigger puts a +1/+1 counter on Your Bear. Then seat 0 activates the Desert's granted ability: the Desert taps and seat 0 adds two blue mana (one colour, chosen once).",
- "world": {"life": 20, "seed": 7},
+ "notes": "M7 mapper. Printed: 'Enchant land. When this Aura enters, put a +1/+1 counter on target creature you control. Enchanted land has \"{T}: Add two mana of any one color.\"' Seat 0 casts New Horizons on its Odd Desert (a land with no mana ability of its own); the enters trigger puts a +1/+1 counter on Your Bear. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The Desert's granted ability makes two blue, one colour chosen once, which pays Fog Bank's {1}{U} exactly: the Desert taps.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "horizons", "real": "New Horizons", "zone": "hand", "controller": 0},
-  {"key": "desert", "name": "Odd Desert", "type": "Land — Desert", "zone": "battlefield", "controller": 0, "cmc": 0},
-  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+  {
+   "key": "horizons",
+   "real": "New Horizons",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "desert",
+   "name": "Odd Desert",
+   "type": "Land — Desert",
+   "zone": "battlefield",
+   "controller": 0,
+   "cmc": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fog",
+   "real": "Fog Bank",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
  "steps": [
-  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 2}},
-  {"op": "cast", "key": "horizons", "controller": 0, "targets": ["desert"], "decisions": ["bear"]},
-  {"op": "activate", "key": "desert", "idx": -1, "seat": 0, "decisions": ["U"]}
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "horizons",
+   "controller": 0,
+   "targets": [
+    "desert"
+   ],
+   "decisions": [
+    "bear"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "fog",
+   "tap": true
+  }
  ],
  "expect": {
-  "zone": {"horizons": "battlefield"},
-  "attached": {"horizons": "desert"},
-  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
-  "tapped": {"desert": true},
-  "mana_pool": {"0": {"U": 2}}
+  "zone": {
+   "horizons": "battlefield",
+   "fog": "battlefield"
+  },
+  "attached": {
+   "horizons": "desert"
+  },
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "tapped": {
+   "desert": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
  }
 }

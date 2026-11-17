@@ -29,21 +29,13 @@
  "mana": {},
  "steps": [
   {
-   "op": "activate",
-   "key": "t1",
-   "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "R"
-   ]
-  },
-  {
    "op": "cast",
    "real": "Shock",
    "key": "sk",
    "targets": [
     "small"
-   ]
+   ],
+   "tap": true
   }
  ],
  "expect": {
@@ -59,5 +51,5 @@
    "0": 0
   }
  },
- "notes": "MANA-COLOR TRAIN twin (2026-10-08 volume wave, fail-core 45): the any-color Treasure ask answered 'R' (vocab[3], != vocab[0] W). PROOF BY CHAIN: pool starts EMPTY, Shock's {R} is payable ONLY with the asked RED mana — null 'W' makes the SAME cast illegal (legality raise falsifies zone/hand lanes: Shock stays in hand, Small Prey stays on battlefield). Zero seeded mana, zero extra asks. Gold colors taught so far in this atom: W/U/B/U (treasure packs), U (sanctum); this pack adds R. re-pinned 2026-10-30 (fixer 3): the runner now flags a pack-placed token record as a token (games.identity_of kept is_token), so a sacrificed Treasure ceases to exist (CR 704.5d, V35) instead of lying in the graveyard: its zone expectation is 'ceased' (was 'graveyard', which encoded the token-in-graveyard gap)."
+ "notes": "Treasure's any-colour mana pays a {R}: the pool starts EMPTY and only the Treasure, making red, pays Shock's {R}. Mana abilities are no menu rows (2026-11-11): the payer sacrifices a Treasure while a cost is paid, choosing its colour (CR 605.3a), so the pack casts with \"tap\": true. Shock kills Small Prey; nothing floats. A sacrificed Treasure is a token that left the battlefield, so it ceases to exist (CR 704.5d): its zone is 'ceased'."
 }

@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ee579a32-a048-4335-b966-231ba731cdea",
+ "name": "Phyrexian Arena",
+ "text_sha": "75b9213dcaf5841f9f5cfac6eb4249a1b863713976b732974f0bfd9e433ba4e7",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "UPKEEP"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Phyrexian Arena (FDN), an enchantment for {1}{B}{B}.\n# \"At the beginning of your upkeep, you draw a card and lose 1 life.\"\n# Event: the compiler's own \"At the beginning of your upkeep\" (frame B13-upkeep: TurnPhaseEvent\n#   UPKEEP with actor CONTROLLER_IS YOU; `parse \"At the beginning of your upkeep, draw a card.\"`).\n# Effect: M20 Audacious Thief's verified \"you draw a card and you lose 1 life\" (a Seq in printed\n#   order: DRAW 1 then LOSE_LIFE 1, both YOU); Wardens of the Cycle's mapped mode is the same.\n# The compiled cast carrier (SpellAbility ENCHANTMENT) is kept as it is.\nupkeep = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.UPKEEP,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n            A(Verb.LOSE_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [upkeep, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your upkeep, you draw a card and lose 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "3cbbed7067be997a0965e157cc34965805d84d58b83b091bf941774a1ed68b96"
+ }
+}

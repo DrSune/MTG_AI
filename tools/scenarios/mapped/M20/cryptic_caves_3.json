@@ -1,24 +1,94 @@
 {
  "set": "M20",
  "name": "cryptic_caves_draw_needs_untapped_caves",
- "world": {"life": 20, "seed": 7},
- "notes": "G3 (drop cost part 2 (CostTap) at 1/1/cost). Printed: '{T}: Add {C}. {1}, {T}, Sacrifice this land: Draw a card. Activate only if you control five or more lands.' The draw ability costs {T} too. With the Caves and four other lands (five lands) and {W} floating, seat 0 taps the Caves for {C}; the draw ability is then refused (an already-tapped land cannot pay {T}), so the Caves stays on the battlefield, tapped, no card is drawn and the mana stays in the pool.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 (drop cost part 2 (CostTap) at 1/1/cost). Printed: '{T}: Add {C}. {1}, {T}, Sacrifice this land: Draw a card. Activate only if you control five or more lands.' The draw ability costs {T} too. With the Caves and four other lands (five lands): the pool's {W} and the Caves' {C} pay Concordia Pegasus's {1}{W} (Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act); the four synthetic Plains make no mana), so the Caves is tapped. With {C} floating for its {1}, the draw ability is then refused (an already-tapped land cannot pay {T}): the Caves stays on the battlefield, no card is drawn and the mana stays in the pool.",
  "cards": [
-  {"key": "caves", "real": "Cryptic Caves", "zone": "battlefield", "controller": 0},
-  {"key": "l1", "name": "Plains A", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
-  {"key": "l2", "name": "Plains B", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
-  {"key": "l3", "name": "Plains C", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
-  {"key": "l4", "name": "Plains D", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0}
+  {
+   "key": "caves",
+   "real": "Cryptic Caves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "name": "Plains A",
+   "type": "Basic Land — Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "name": "Plains B",
+   "type": "Basic Land — Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "name": "Plains C",
+   "type": "Basic Land — Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "name": "Plains D",
+   "type": "Basic Land — Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "peg",
+   "real": "Concordia Pegasus",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"W": 1}},
+ "mana": {
+  "0": {
+   "W": 1
+  }
+ },
  "steps": [
-  {"op": "activate", "key": "caves", "idx": 0, "seat": 0},
-  {"op": "activate", "key": "caves", "idx": 1, "seat": 0, "expect_raise": "cost:tap:source_tapped"}
+  {
+   "op": "cast",
+   "key": "peg",
+   "tap": true
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "caves",
+   "idx": 1,
+   "seat": 0,
+   "expect_raise": "cost:tap:source_tapped"
+  }
  ],
  "expect": {
-  "zone": {"caves": "battlefield"},
-  "tapped": {"caves": true},
-  "hand": {"0": 0},
-  "mana_pool": {"0": {"W": 1, "C": 1}}
+  "zone": {
+   "caves": "battlefield",
+   "peg": "battlefield"
+  },
+  "tapped": {
+   "caves": true
+  },
+  "hand": {
+   "0": 0
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  }
  }
 }

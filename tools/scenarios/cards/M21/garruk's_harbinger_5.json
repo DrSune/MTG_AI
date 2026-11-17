@@ -32,7 +32,8 @@
    },
    "may": {
     "h": true
-   }
+   },
+   "decisions": ["first-legal"]
   }
  ],
  "expect": {

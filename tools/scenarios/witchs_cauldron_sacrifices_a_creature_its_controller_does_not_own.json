@@ -1,0 +1,21 @@
+{
+ "name": "witchs_cauldron_sacrifices_a_creature_its_controller_does_not_own",
+ "set": "M21",
+ "notes": "Cause D of KNOWLEDGE/2026-11-17/212 (a cost read ownership where the rules say control), set up directly with the runner's controlled_by: seat 1 owns the Ogre and seat 0 controls it (the engine's own GAIN_CONTROL overlay). Witch's Cauldron: '{1}{B}, {T}, Sacrifice a creature: You gain 1 life and draw a card.' A player sacrifices a permanent they control (CR 701.21a), so seat 0 may sacrifice the Ogre, its only creature: the Ogre goes to its OWNER's graveyard (CR 400.3), seat 0 gains 1 and draws 1. Before E2's fix (c3e3a28a) the cost found no creature seat 0 could sacrifice and the activation was refused; until 2026-11-17 a pack could reach a non-owner's control only by casting Traitorous Greed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "c", "real": "Witch's Cauldron", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "controlled_by": 0}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "activate", "key": "c", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"ogre": "graveyard"},
+  "graveyard": {"0": [], "1": ["Ogre"]},
+  "tapped": {"c": true},
+  "life": {"0": 21, "1": 20},
+  "hand": {"0": 1}
+ }
+}

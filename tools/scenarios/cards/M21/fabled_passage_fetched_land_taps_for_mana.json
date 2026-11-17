@@ -1,7 +1,7 @@
 {
  "set": "M21",
  "name": "fabled_passage_fetched_land_taps_for_mana",
- "notes": "Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.' The fetched Forest is a land with its own mana ability (CR 305.6, 113.6): with four lands it untaps and taps for {G}. Until 2026-11-06 a card put onto the battlefield from the library got no abilities (binding.py registered only cards that already had a record), so fetched and ramped lands made no mana; found reviewing r19's games.",
+ "notes": "Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle. Then if you control four or more lands, untap that land.' The fetched Forest is a land with its own mana ability (CR 305.6, 113.6): with four lands it untaps, and it alone can pay Skyway Sniper's {G}. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). Until 2026-11-06 a card put onto the battlefield from the library got no abilities, so fetched and ramped lands made no mana.",
  "world": {
   "life": 20,
   "seed": 7
@@ -36,6 +36,12 @@
    "real": "Forest",
    "zone": "library",
    "controller": 0
+  },
+  {
+   "key": "sniper",
+   "real": "Skyway Sniper",
+   "zone": "hand",
+   "controller": 0
   }
  ],
  "steps": [
@@ -49,21 +55,25 @@
    ]
   },
   {
-   "op": "activate",
-   "key": "forest",
-   "idx": 0,
-   "seat": 0
+   "op": "cast",
+   "key": "sniper",
+   "tap": true
   }
  ],
  "expect": {
   "zone": {
    "fp": "graveyard",
-   "forest": "battlefield"
+   "forest": "battlefield",
+   "sniper": "battlefield"
+  },
+  "tapped": {
+   "forest": true,
+   "p1": false,
+   "p2": false,
+   "p3": false
   },
   "mana_pool": {
-   "0": {
-    "G": 1
-   }
+   "0": {}
   }
  }
 }

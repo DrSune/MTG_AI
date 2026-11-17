@@ -11,27 +11,17 @@
    "controller": 0
   },
   {
-   "key": "o",
-   "real": "Opt",
+   "key": "fi",
+   "real": "Frantic Inventory",
    "zone": "hand",
    "controller": 0
   }
  ],
  "steps": [
   {
-   "op": "activate",
-   "key": "v",
-   "idx": 0,
-   "seat": 0
-  },
-  {
    "op": "cast",
-   "key": "o",
-   "real": "Opt",
-   "controller": 0,
-   "decisions": [
-    "bottom"
-   ]
+   "key": "fi",
+   "tap": true
   }
  ],
  "mana": {
@@ -44,21 +34,24 @@
    "v": true
   },
   "zone": {
-   "o": "graveyard",
+   "fi": "graveyard",
    "v": "battlefield"
   },
   "library": {
    "0": [
+    "Library 4",
     "Library 3",
     "Library 2",
     "Library 1",
-    "Library 0",
-    "Library 5"
+    "Library 0"
    ]
   },
   "hand": {
    "0": 1
+  },
+  "mana_pool": {
+   "0": {}
   }
  },
- "notes": "{T}: Add {C} runs through the real pay+run path and the Arcanist ends tapped. The mana-pool amount and the THIS_MANA instant/sorcery restriction have NO observable harness lane -> asserted by completion only, limitation recorded in findings (no divergence evidence). | EVAL-GRANULARITY REPAIR 2026-10-05: gold flipped to the ACTIVE scry call with a falsifiable library lane; null policy (top) now FAILS the pack."
+ "notes": "Vodalian Arcanist: '{T}: Add {C}. Spend this mana only to cast an instant or sorcery spell.' Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The pool's {U} pays Frantic Inventory's {U}, and its {1} can only come from the Arcanist, whose {C} may pay an instant: the Arcanist taps and Inventory draws one card (none of its name in the graveyard). Its refusal for a creature spell is vodalian_arcanist_2.json."
 }

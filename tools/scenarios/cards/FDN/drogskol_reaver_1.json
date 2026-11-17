@@ -31,7 +31,8 @@
    "attack": {
     "r": true,
     "ll2": true
-   }
+   },
+   "decisions": ["first-legal"]
   }
  ],
  "expect": {

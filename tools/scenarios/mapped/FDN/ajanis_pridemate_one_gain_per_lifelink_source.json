@@ -9,7 +9,7 @@
   {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "2", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"lt": true, "l2": true}, "block": {"wall": "lt"}, "divide": {"wall": 2}}
+  {"op": "combat", "seat": 0, "attack": {"lt": true, "l2": true, "pm": false}, "block": {"wall": "lt"}, "divide": {"wall": 2}, "decisions": ["first-legal"]}
  ],
  "expect": {
   "life": {"0": 27, "1": 15},

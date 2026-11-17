@@ -26,7 +26,8 @@
    "attack": {
     "s1": true,
     "s2": true
-   }
+   },
+   "decisions": ["first-legal", "first-legal", "first-legal"]
   }
  ],
  "expect": {

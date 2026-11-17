@@ -10,7 +10,7 @@
   {"key": "oknight", "name": "Opp White Knight", "type": "Creature — Knight", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"linden": true, "knight": true, "bear": true}, "block": {"oknight": null}},
+  {"op": "combat", "seat": 0, "attack": {"linden": true, "knight": true, "bear": true}, "block": {"oknight": null}, "decisions": ["first-legal"]},
   {"op": "end_turn"},
   {"op": "advance_turn"},
   {"op": "combat", "seat": 1, "attack": {"oknight": true}, "block": {"linden": null, "knight": null, "bear": null}}

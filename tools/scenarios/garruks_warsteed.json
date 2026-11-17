@@ -23,7 +23,7 @@
    "key": "w",
    "decisions": [
     "fire"
-   ]
+   , "0"]
   }
  ],
  "expect": {

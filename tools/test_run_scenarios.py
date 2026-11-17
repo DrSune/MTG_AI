@@ -285,3 +285,140 @@ def test_the_silent_pass_guards_hold_for_a_test_permission_cast(tmp_path, words,
     assert fails == [] if error is None else any(error in f for f in fails), fails
     unread = _run(tmp_path, {**pack, "expect": {"powr": {"bear": 3}}})
     assert any("never checks: ['powr']" in f for f in unread), unread
+
+
+# ------------------------------------------- the game's own path (KNOWLEDGE/2026-11-17/212 §3)
+
+FOREST = _card("f", "Forest", "battlefield")
+
+
+def test_a_mana_ability_is_never_activated_by_a_step(tmp_path) -> None:
+    """Mana abilities are no menu rows since 2026-11-11: a game activates one only while a cost
+    is paid, so a step that activates one tests a path no game takes (M20 Leafkin Druid's packs
+    did, while the payer never priced its mana). A cast the payer pays is the game's path."""
+    activate = {"cards": [FOREST], "steps": [{"op": "activate", "key": "f", "idx": 0, "seat": 0}]}
+    fails = _run(tmp_path, activate)
+    assert _fails_with(fails, "a mana ability is no menu row"), fails
+    paid = {"cards": [FOREST, _card("rg", "Ranger's Guile", "hand"), _creature("bear", 0)],
+            "steps": [{"op": "cast", "key": "rg", "targets": ["bear"], "tap": True}],
+            "expect": {"tapped": {"f": True}, "zone": {"rg": "graveyard"}, "mana_pool": {"0": {}}}}
+    assert _run(tmp_path, paid) == []
+
+
+def test_a_trigger_never_waits_off_the_stack(tmp_path) -> None:
+    """hold_triggers kept a trigger off the stack while the next step acted, which no game does
+    (CR 117.5); "hold" keeps it on the stack for the next steps to respond to."""
+    card = {"key": "c", "name": "C", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand",
+            "controller": 0}
+    fails = _run(tmp_path, {"cards": [card], "steps": [{"op": "enter", "key": "c", "hold_triggers": True}]})
+    assert _fails_with(fails, "hold_triggers is gone"), fails
+
+
+def test_an_ask_after_the_words_are_used_up_raises(tmp_path) -> None:
+    """M21 Alpine Houndmaster: "you may search your library for a card named Alpine Watchdog
+    and/or a card named Igneous Cur". The step's one word answers the may-offer, and the search's
+    pick then raises with its words, which expect_raise can pin; the runner used to answer it with
+    its first word (c80f45f7). In a combat, an ask no map or word claims raises too (M21 Feline
+    Sovereign's "up to one target artifact or enchantment that player controls")."""
+    hound = {"cards": [_card("h", "Alpine Houndmaster", "hand"), _card("wd", "Alpine Watchdog", "library")],
+             "world": {**TWO, "library_top": True},
+             "steps": [{"op": "enter", "key": "h", "decisions": ["fire"],
+                        "expect_raise": "needs a decision from ('card:1', 'NONE')"}]}
+    assert _run(tmp_path, hound) == []
+    relic = {"key": "relic", "name": "Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+    combat = {"op": "combat", "seat": 0, "attack": {"fs": True}}
+    cat = {"cards": [_card("fs", "Feline Sovereign", "battlefield"), relic],
+           "steps": [{**combat, "expect_raise": "no answer map or decision word of the combat step"}]}
+    assert _run(tmp_path, cat) == []
+    named = {**cat, "steps": [{**combat, "decisions": ["relic"]}], "expect": {"zone": {"relic": "graveyard"}}}
+    assert _run(tmp_path, named) == []
+
+
+def test_the_words_of_a_held_cast_answer_no_later_step(tmp_path) -> None:
+    """A held cast resolves in a later step, whose words answer what it asks then. Its own words
+    rode the stack frame raw and answered that resolution literally (c80f45f7): Opt's scry took
+    the cast step's "bottom" over the resolving step's "top"."""
+    opt = {"cards": [_card("opt", "Opt", "hand"), _card("lib", "Shock", "library")],
+           "world": {**TWO, "library_top": True}, "mana": {"0": {"U": 1}},
+           "steps": [{"op": "cast", "key": "opt", "hold": True}, {"op": "pass", "decisions": ["top"]}],
+           "expect": {"zone": {"lib": "hand"}}}
+    assert _run(tmp_path, opt) == []
+    leaked = {**opt, "steps": [{"op": "cast", "key": "opt", "hold": True, "decisions": ["bottom"]},
+                               {"op": "pass", "decisions": ["top"]}]}
+    assert _run(tmp_path, leaked) == []
+
+
+def test_a_refused_cast_taps_nothing(tmp_path) -> None:
+    """"tap": the payer taps the sources after the targets are chosen (CR 601.2c, 601.2g), so a
+    designation the spell refuses (Swift Response's "target tapped creature" at an untapped one)
+    leaves the Plains untapped and the pool empty; c80f45f7 tapped first."""
+    pack = {"cards": [_card("p1", "Plains", "battlefield"), _card("p2", "Plains", "battlefield"),
+                      _card("sr", "Swift Response", "hand"), _creature("bear", 1)],
+            "steps": [{"op": "cast", "key": "sr", "targets": ["bear"], "tap": True, "expect_raise": "illegal target"}],
+            "expect": {"tapped": {"p1": False, "p2": False}, "mana_pool": {"0": {}}, "zone": {"sr": "hand"}}}
+    assert _run(tmp_path, pack) == []
+
+
+def test_expect_raise_holds_inside_a_combat_window(tmp_path) -> None:
+    """A refusal is the assertion of a step in a combat window too: Swift Response at an untapped
+    creature, cast in the declare-attackers window, is refused; before, the refusal escaped the
+    combat and failed the pack (c80f45f7). A step there that should raise and does not fails."""
+    respond = [{"op": "mana", "seat": 1, "add": {"W": 2}},
+               {"op": "cast", "key": "sr", "controller": 1, "targets": ["idle"], "expect_raise": "illegal target"}]
+    pack = {"cards": [_creature("a", 0), _creature("idle", 0), _card("sr", "Swift Response", "hand", 1)],
+            "steps": [{"op": "combat", "seat": 0, "attack": {"a": True, "idle": False},
+                       "respond": {"DECLARE_ATTACKERS": respond}}],
+            "expect": {"zone": {"sr": "hand"}, "life": {"1": 18}}}
+    assert _run(tmp_path, pack) == []
+    fails = _run(tmp_path, {**pack, "steps": [{**pack["steps"][0], "respond": {"DECLARE_ATTACKERS": [
+        respond[0], {**respond[1], "targets": ["a"]}]}}]})
+    assert any("expected raise 'illegal target', but it succeeded" in f for f in fails), fails
+
+
+def test_a_permanent_another_seat_controls(tmp_path) -> None:
+    """"controlled_by": seat 1 owns the bear and seat 0 controls it, through the engine's own
+    control overlay. It attacks for seat 0 in the opening turn, as a setup permanent does
+    (CR 302.6), and is seat 0's to sacrifice to Village Rites (CR 701.21a; cause D of KNOWLEDGE
+    212, a cost read ownership); it dies to its owner's graveyard. A card off the battlefield
+    has no controller apart from its owner."""
+    bear = {**_creature("bear", 1), "controlled_by": 0}
+    pack = {"cards": [bear, _card("vr", "Village Rites", "hand")],
+            "steps": [{"op": "combat", "seat": 0, "attack": {"bear": True}},
+                      {"op": "mana", "seat": 0, "add": {"B": 1}}, {"op": "cast", "key": "vr"}],
+            "expect": {"life": {"1": 18}, "zone": {"bear": "graveyard"},
+                       "graveyard": {"1": ["Bear"], "0": ["Village Rites"]}, "hand": {"0": 2}}}
+    assert _run(tmp_path, pack) == []
+    assert _run(tmp_path, {"cards": [bear], "expect": {"controller": {"bear": 0}}}) == []
+    hand = {**_creature("bear", 1), "zone": "hand", "controlled_by": 0}
+    assert _fails_with(_run(tmp_path, {"cards": [hand]}), "controlled_by: only a permanent")
+
+
+def test_a_tap_by_another_effect(tmp_path) -> None:
+    """The tap op taps a permanent as "tap target artifact" does, a pack card or an object an
+    effect made, named by its handle (the one Food's {T}: bake_into_a_pie_a_tapped_food_cannot_
+    be_eaten). A card off the battlefield, or a key that names nothing, is refused."""
+    pack = {"cards": [_creature("bear", 0)], "steps": [{"op": "tap", "key": "bear"}], "expect": {"tapped": {"bear": True}}}
+    assert _run(tmp_path, pack) == []
+    assert _run(tmp_path, {**pack, "steps": [{"op": "tap", "key": "card:0"}]}) == []
+    fails = _run(tmp_path, {"cards": pack["cards"], "steps": [{"op": "tap", "key": "card:99"}]})
+    assert _fails_with(fails, "no card 'card:99'"), fails
+    hand = {**_creature("bear", 0), "zone": "hand"}
+    fails = _run(tmp_path, {"cards": [hand], "steps": [{"op": "tap", "key": "bear"}]})
+    assert _fails_with(fails, "only a permanent is tapped"), fails
+
+
+def test_the_revealed_lane_reads_whose_card_a_reveal_showed(tmp_path) -> None:
+    """M21 Garruk, Savage Herald's +1: "Reveal the top card of your library. If it's a creature
+    card, put it into your hand." The lane reads the REVEAL rows (a reveal moves nothing and
+    journals none), so a pack tells your top card from the opponent's (M20 Diviner's Lockbox's
+    REVEAL-controller mutant changed nothing else)."""
+    beast = {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3",
+             "toughness": "3", "zone": "library", "controller": 0}
+    theirs = {**beast, "key": "theirs", "name": "Their Beast", "controller": 1}
+    pack = {"cards": [_card("g", "Garruk, Savage Herald", "battlefield"), beast, theirs],
+            "world": {**TWO, "library_top": True},
+            "steps": [{"op": "loyalty", "key": "g", "set": 5}, {"op": "activate", "key": "g", "idx": 0, "seat": 0}],
+            "expect": {"revealed": {"beast": True, "theirs": False}, "zone": {"beast": "hand"}}}
+    assert _run(tmp_path, pack) == []
+    fails = _run(tmp_path, {**pack, "expect": {"revealed": {"beast": False, "theirs": True}}})
+    assert fails == ["revealed[beast]: expected False, got True", "revealed[theirs]: expected True, got False"]

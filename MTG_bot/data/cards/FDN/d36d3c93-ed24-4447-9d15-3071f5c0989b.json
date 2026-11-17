@@ -4,9 +4,287 @@
  "oracle_id": "d36d3c93-ed24-4447-9d15-3071f5c0989b",
  "name": "Hoarding Dragon",
  "text_sha": "258fb0497a6847a3cf075e0363fa12aef559158057b2d2c219b8b5a5e1abe18a",
- "needs_atom": {
-  "missing": "ENGINE: IS_EXILED_WITH_SOURCE (quantity.py) counts every journalled exile whose cause is the source's card handle, across the card's lives, not only those of the current object (CR 400.7, 607.2a). A Hoarding Dragon that exiled an artifact, left the battlefield and came back, then exiled a second one, returns both to hand when it dies: stronger than printed (the first stays exiled for good). Known-bug draft and packs: tools/scenarios/known_bugs/2026-11-17/exiled_with_source_spans_lives/ (pack_a_returned_dragon_forgets_its_first_card.json: zone[relic] expected exile, got hand; hand 2, expected 1). The rest plays right on one life (pack_one_life_exiles_an_artifact_and_returns_it_on_death.json passes and kills a graveyard-destination mutant). Draft: enters OptionalEffect(Seq(SEARCH CHOOSE 1 TYPE_EQ Artifact from Zone(LIBRARY, YOU) to Zone(EXILE, OWNER), SHUFFLE)) as Solemn Simulacrum's search; dies (CreatureDiesEvent IS_SOURCE) OptionalEffect(MOVE_ZONE cards ALL IS_EXILED_WITH_SOURCE over Zone(EXILE, ANY) to Zone(HAND, OWNER)), M20 Bag of Holding's verified selector, which shares the fault (a Bag that left and came back returns its earlier life's cards). A CHOOSE 1 there would still offer the first life's card. Flying compiles.",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Seq",
+      "steps": [
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SEARCH"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "cards",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "TYPE_EQ"
+             },
+             "string_value": "Artifact",
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           }
+          ],
+          [
+           "destination",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "EXILE"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OWNER"
+            }
+           }
+          ]
+         ]
+        }
+       },
+       {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SHUFFLE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "zone",
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           }
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "MOVE_ZONE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "cards",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_EXILED_WITH_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "EXILE"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ],
+        [
+         "destination",
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "HAND"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "OWNER"
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
   "author": "claude-mapper-m3",
-  "date": "2026-11-17"
+  "date": "2026-11-17",
+  "draft_py": "# FDN Hoarding Dragon: \"Flying. When this creature enters, you may search your library for an\n# artifact card, exile it, then shuffle. When this creature dies, you may put the exiled card into\n# its owner's hand.\"\n# Enters: M21 Solemn Simulacrum's verified \"you may search your library for a basic land card, put\n# that card onto the battlefield tapped, then shuffle.\" (B2b-etb-basic-land: OptionalEffect(Seq(\n# SEARCH, SHUFFLE)), no `controller` role on SEARCH) with an artifact card and the destination\n# exile, Zone(EXILE, OWNER) as every compiled exile writes it (M21 Necromentia's SEARCH exiles).\n# Dies: M21 Solemn Simulacrum's \"When this creature dies, you may ...\" (OptionalEffect) with the\n# move of \"the exiled card\", the card the linked enters ability exiled (CR 607.2a): M20 Bag of\n# Holding's verified IS_EXILED_WITH_SOURCE selector over every exile zone (an ALL: the card is\n# named, not chosen), to its owner's hand.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                }),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n            ),\n        ),\n    ),\n)\ndies = TriggeredAbility(\n    event=CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=OptionalEffect(\n        inner=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),\n                zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.ANY),),\n            ),\n            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n        }),\n    ),\n)\nabilities = [etb, dies, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "When this creature enters, you may search your library for an artifact card, exile it, then shuffle.",
+    "ir": "abilities[0] (OptionalEffect: SEARCH an artifact card to exile, SHUFFLE)"
+   },
+   {
+    "clause": "When this creature dies, you may put the exiled card into its owner's hand.",
+    "ir": "abilities[1] (OptionalEffect: MOVE_ZONE the card exiled with this creature to its owner's hand)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "71a92bf9bdbd7438ebf0a5608607dd0726a43039b78772795a68dc8767b05863"
  }
 }

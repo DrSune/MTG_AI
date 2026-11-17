@@ -722,7 +722,7 @@ class TestWasAttackingIsLastKnown(FixerCase):
     it was attacking. Otherwise, <B>." (+3 life, else +1 here.) "It" is the creature that died (a
     bare Conditional's object test), judged as it last existed: it left combat as it left the
     battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a, 608.2h;
-    known_bugs/2026-11-17/garna_was_attacking). Raider attacks."""
+    the pack mapped/FDN/garna_attacker_dies_draws.json). Raider attacks."""
 
     def setUp(self):
         super().setUp()
@@ -1643,10 +1643,11 @@ class TestAsEntersChoice(unittest.TestCase):
         }
         runner = ScenarioRunner(pack, get_supply("all", "M21"))
         halo = runner.handles["h"]
-        # Held triggers stay queued: before the fix the name waited in one.
-        runner.run_step({"op": "enter", "key": "h", "hold_triggers": True, "decisions": ["Runed Halo"]})
+        # The step holds priority, so a trigger would wait on the stack: before the fix the name
+        # waited in one.
+        runner.run_step({"op": "enter", "key": "h", "hold": True, "decisions": ["Runed Halo"]})
         self.assertEqual(runner.ex.name_choices.get((halo, None)), "Runed Halo")
-        self.assertEqual(runner.world.triggers, [])
+        self.assertEqual((runner.world.triggers, runner.ex.stack.frames), ([], []))
         runner.run_step({"op": "move", "key": "h", "to": "graveyard"})
         self.assertNotIn((halo, None), runner.ex.name_choices)
 

@@ -8,5 +8,5 @@
   {"key": "rb", "zone": "battlefield", "controller": 1, "name": "Relic B", "type": "Artifact"}
  ],
  "mana": {},
- "steps": [{"op": "combat", "seat": 0, "attack": {"fs": true, "cat": true}, "block": {"wall": "cat"}}],
+ "steps": [{"op": "combat", "seat": 0, "attack": {"fs": true, "cat": true}, "block": {"wall": "cat"}, "decisions": ["ra"]}],
  "expect": {"life": {"1": 18}, "damage": {"wall": 2}, "graveyard": {"1": ["Relic A"]}, "zone": {"rb": "battlefield"}}}

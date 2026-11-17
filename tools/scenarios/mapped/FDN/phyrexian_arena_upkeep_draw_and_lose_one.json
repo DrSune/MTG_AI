@@ -1,0 +1,42 @@
+{
+ "set": "FDN",
+ "name": "phyrexian_arena_upkeep_draw_and_lose_one",
+ "notes": "M6 mapper. Printed: 'At the beginning of your upkeep, you draw a card and lose 1 life.' The Arena enters on seat 0's turn 1 (from hand). Seat 1's upkeep in turn 2 triggers nothing. In seat 0's upkeep of turn 3 seat 0 draws a card and loses 1 life, then draws again in its draw step: 2 cards, 19 life; seat 1 drew once (turn 2) and keeps 20 life. (Its record waited on the G1 probe's GameOver at setup, fixed 2026-11-17.)",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "arena",
+   "real": "Phyrexian Arena",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "arena"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "arena": "battlefield"
+  },
+  "hand": {
+   "0": 2,
+   "1": 1
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  }
+ }
+}

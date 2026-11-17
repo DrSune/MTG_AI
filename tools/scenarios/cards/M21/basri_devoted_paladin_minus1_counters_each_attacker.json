@@ -8,7 +8,7 @@
  ],
  "steps": [
   {"op": "activate", "key": "basri", "idx": 1, "seat": 0},
-  {"op": "combat", "seat": 0, "attack": {"wolf": true, "bear": true, "ox": false}}
+  {"op": "combat", "seat": 0, "attack": {"wolf": true, "bear": true, "ox": false}, "decisions": ["first-legal"]}
  ],
  "expect": {
   "counters": {"wolf": {"PLUS_1_PLUS_1": 1}, "bear": {"PLUS_1_PLUS_1": 1}, "ox": {}, "basri": {"LOYALTY": 3}},

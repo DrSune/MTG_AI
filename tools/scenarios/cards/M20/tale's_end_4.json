@@ -38,7 +38,6 @@
   {
    "op": "enter",
    "key": "elk",
-   "hold_triggers": true,
    "hold": true
   },
   {

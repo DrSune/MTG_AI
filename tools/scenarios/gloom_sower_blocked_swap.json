@@ -57,7 +57,8 @@
       "block": {
         "w1": "sower",
         "w2": "sower"
-      }
+      },
+      "decisions": ["first-legal"]
     }
   ],
   "expect": {

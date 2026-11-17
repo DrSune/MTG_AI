@@ -9,7 +9,7 @@
  "steps": [
   {"op": "enter", "key": "h", "decisions": ["Shock"]},
   {"op": "move", "key": "h", "to": "hand"},
-  {"op": "enter", "key": "h", "hold_triggers": true, "decisions": ["Runed Halo"]},
+  {"op": "enter", "key": "h", "hold": true, "decisions": ["Runed Halo"]},
   {"op": "cast", "real": "Shock", "key": "s", "controller": 1, "targets": ["p0"]}
  ],
  "expect": {"life": {"0": 18}, "zone": {"s": "graveyard", "h": "battlefield"}},

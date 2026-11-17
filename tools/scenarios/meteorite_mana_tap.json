@@ -25,18 +25,10 @@
  },
  "steps": [
   {
-   "op": "activate",
-   "key": "m",
-   "idx": 1,
-   "seat": 0,
-   "decisions": [
-    "U"
-   ]
-  },
-  {
    "op": "cast",
    "real": "Keen Glidemaster",
-   "key": "kg"
+   "key": "kg",
+   "tap": true
   }
  ],
  "expect": {
@@ -61,5 +53,5 @@
    "1": 20
   }
  },
- "notes": "Meteorite's UNTESTED second head (2026-10-08 Part-2 set): the printed {T}: 'Add one mana of any color' ask \u2014 the existing meteorite.json only exercises the ETB damage target. Answered 'U' (vocab[1] \u2260 vocab[0] W): seeded 1C + the asked blue pays Keen Glidemaster's {1}{U}; null W leaves the 2/1 uncast (zone/hand falsify) and the tap lane holds regardless. Meteorite starts on the battlefield (its ETB damage already 'happened' \u2014 prior turn), so this pack isolates the mana ask. Same frozen EVAL family as meteorite.json."
+ "notes": "Meteorite's second head: the printed '{T}: Add one mana of any color'. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The pool's {C} pays Keen Glidemaster's {1}, and only Meteorite, making blue, pays its {U}: the 2/1 enters and Meteorite taps. Meteorite starts on the battlefield (its ETB damage already 'happened', a prior turn), so this pack isolates its mana ability."
 }

@@ -4,9 +4,192 @@
  "oracle_id": "3fb83218-e18d-405d-91c8-46b5e4e672a9",
  "name": "Garna, Bloodfist of Keld",
  "text_sha": "3bfff6fe3239da56f5acf316de2d05179810042f693f0ca318ff9d9e4a0bf0d8",
- "needs_atom": {
-  "missing": "ENGINE: 'draw a card if it was attacking. Otherwise, Garna deals 1 damage to each opponent' reads the dying creature's attacking status as it last existed (CR 608.2h, 506.4). IS_ATTACKING reads only the live attack record (quantity.py: handle in executor.attackers), which the dead creature has already left (Executor._remove_from_combat), never LastKnown.attacking; and a bare Conditional judges a non-characteristic predicate such as IS_ATTACKING on the source, not on the event's object (executor._conditional_subject). Both trees the IR allows deal 1 damage to each opponent when an attacker dies and never draw: tools/scenarios/known_bugs/2026-11-17/garna_was_attacking/ (draft_conditional.py: one CreatureDiesEvent with Conditional(IS_ATTACKING, draw, else the damage); draft_split.py: two CreatureDiesEvent triggers split on IS_ATTACKING / FNot(IS_ATTACKING), a shape no ruling covers; pack_attacker_dies_draws.json fails on both). Needs IS_ATTACKING read from the departure LKI on a dies event, and a Conditional judged on the event's object (or a ruling for the split).",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CreatureDiesEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_ATTACKING"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DRAW"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 1
+         }
+        ],
+        [
+         "controller",
+         {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DEAL_DAMAGE"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "amount",
+         {
+          "tag": "QConst",
+          "value": 1
+         }
+        ],
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QUnbounded"
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "ALL"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": []
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "PLAYER"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "OPPONENT"
+            }
+           }
+          ]
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
   "author": "claude-mapper-fdn-m5",
-  "date": "2026-11-17"
+  "date": "2026-11-17",
+  "draft_py": "# FDN Garna, Bloodfist of Keld: \"Whenever another creature you control dies, draw a card if it was\n# attacking. Otherwise, Garna deals 1 damage to each opponent.\"\n# One triggered ability, as printed (M5 mapper's draft_conditional, written after engine wave E1).\n# Event: \"another creature you control dies\" (CreatureDiesEvent: CONTROLLER_IS YOU, a creature,\n# FNot(IS_SOURCE)). Effect: an effect-level branch, judged as the ability resolves (CR 608.2c),\n# on \"it\", the creature that died, by its last known information (CR 603.10a, 608.2h): E1 made\n# IS_ATTACKING read LastKnown.attacking and a bare Conditional judge it on the event's object.\n# \"draw a card\" (then) / \"Garna deals 1 damage to each opponent\" (else: DEAL_DAMAGE over every\n# opponent player, Zone(PLAYER, OPPONENT)).\n# Not the two-trigger draft (draft_split.py, IS_ATTACKING / FNot(IS_ATTACKING) in two event\n# filters): the text has one ability whose \"if\" is no intervening \"if\" (it does not follow the\n# trigger condition, CR 603.4) but an instruction with an \"Otherwise\", so the branch belongs in\n# the effect; the split makes two abilities from one (an ability that counts or counters\n# triggers sees two) and a second encoding of an effect branch (MAPPER_GUIDE: only an intervening\n# \"if\" is a condition, and an event filter holds what qualifies the trigger itself).\ntrigger = TriggeredAbility(\n    event=CreatureDiesEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=Conditional(\n        pred=FAtom(pred=FAtomPred.IS_ATTACKING),\n        then_effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        else_effect=A(Verb.DEAL_DAMAGE, {\n            'amount': QConst(value=1),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.OPPONENT),),\n            ),\n        }),\n    ),\n)\nabilities = [trigger, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control dies, draw a card if it was attacking.",
+    "ir": "abilities[0] (CreatureDiesEvent; Conditional IS_ATTACKING on the dead creature -> DRAW 1)"
+   },
+   {
+    "clause": "Otherwise, Garna deals 1 damage to each opponent.",
+    "ir": "abilities[0] (the Conditional's else: DEAL_DAMAGE 1 to every opponent)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "09767ad48fe3d6c383f7567323511f5629c2c6ccfdef5fdf3e61865f54a5e8fb"
  }
 }

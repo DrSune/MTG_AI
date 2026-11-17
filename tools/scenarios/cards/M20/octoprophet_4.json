@@ -39,7 +39,7 @@
    "decisions": [
     "bottom",
     "bottom"
-   ]
+   , "b"]
   }
  ],
  "expect": {

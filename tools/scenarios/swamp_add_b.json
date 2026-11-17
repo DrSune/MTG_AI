@@ -25,22 +25,11 @@
  ],
  "steps": [
   {
-   "op": "activate",
-   "key": "s1",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "s2",
-   "idx": 0,
-   "seat": 0
-  },
-  {
-   "op": "activate",
-   "key": "g",
-   "idx": 1,
-   "seat": 0
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:g:1"
+   ]
   }
  ],
  "expect": {
@@ -55,5 +44,5 @@
    "0": 1
   }
  },
- "notes": "Printed: '({T}: Add {B}.)' Pool starts EMPTY; two taps stock exactly B:2 - proven spendable by the Ghoul's printed {1}{B} (legality raises if the mana never entered the pool). Both Swamps end tapped."
+ "notes": "Printed: '({T}: Add {B}.)' With an empty pool, the menu offers Silversmote Ghoul's '{1}{B}, Sacrifice this creature: Draw a card.' only because the two Swamps can pay it; the payer taps both (mana abilities are no menu rows since 2026-11-11, CR 605.3a), the Ghoul is sacrificed and its controller draws."
 }

@@ -7,7 +7,7 @@
   {"key": "v2", "name": "Cloud Viper", "type": "Creature — Snake", "power": 1, "toughness": 1, "keywords": ["FLYING", "DEATHTOUCH"], "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"skim": true, "fang": false, "v1": true, "v2": true}}
+  {"op": "combat", "seat": 0, "attack": {"skim": true, "fang": false, "v1": true, "v2": true}, "decisions": ["first-legal", "first-legal"]}
  ],
  "expect": {
   "hand": {"0": 1},

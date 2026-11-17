@@ -14,7 +14,7 @@
   {"op": "advance_turn"},
   {"op": "loyalty", "key": "basri", "set": 7},
   {"op": "activate", "key": "basri", "idx": 2, "seat": 0},
-  {"op": "combat", "seat": 0}
+  {"op": "combat", "seat": 0, "decisions": ["first-legal"]}
  ],
  "expect": {
   "tokens": {"Soldier": 2},

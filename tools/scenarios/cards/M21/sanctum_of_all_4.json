@@ -75,7 +75,7 @@
    "op": "advance_turn",
    "decisions": [
     "skip"
-   ]
+   , "first-legal"]
   }
  ],
  "expect": {

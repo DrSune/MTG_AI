@@ -1,11 +1,48 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7},
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
  "cards": [
-  {"key": "pr", "real": "Prismite", "zone": "battlefield", "controller": 0}
+  {
+   "key": "pr",
+   "real": "Prismite",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sniper",
+   "real": "Skyway Sniper",
+   "zone": "hand",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"C": 2}},
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
  "steps": [
-  {"op": "activate", "key": "pr", "idx": 0, "seat": 0, "decisions": ["G"]}
+  {
+   "op": "cast",
+   "key": "sniper",
+   "tap": true,
+   "expect_raise": "cannot pay it"
+  }
  ],
- "expect": {"mana_pool": {"0": {"G": 1}}, "tapped": {"pr": false}},
- "notes": "Printed: '{2}: Add one mana of any color.' Exactly {2} (two colorless here) pays for it; the pool then holds one green, and Prismite does not tap."}
+ "expect": {
+  "mana_pool": {
+   "0": {
+    "C": 2
+   }
+  },
+  "tapped": {
+   "pr": false
+  },
+  "zone": {
+   "sniper": "hand"
+  }
+ },
+ "notes": "Printed: '{2}: Add one mana of any color.' THIS PACK PINS A SCAFFOLD, NOT THE PRINTED TEXT. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer choosing the source and its colour (CR 605.3a), so the pack pays through a cast with \"tap\": true or the menu (act). The payer never pays a mana cost of a mana ability (BACKLOG 'Automatic payment': the filters are given up; test_executor_legality's priced-mana-ability test lists Prismite), so in a game Prismite's filter never makes mana: with {C}{C} in the pool, Skyway Sniper's {G} cannot be paid. The day the payer pays filters this pack fails: rewrite it to the printed text (the {C}{C} become {G}, the Sniper enters). Until 2026-11-17 it activated the filter directly, a path no game takes."
+}

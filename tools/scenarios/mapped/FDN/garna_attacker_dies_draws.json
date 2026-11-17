@@ -1,0 +1,68 @@
+{
+ "set": "FDN",
+ "name": "garna_attacker_dies_draws",
+ "notes": "M5 mapper. Printed: 'Whenever another creature you control dies, draw a card if it was attacking. Otherwise, Garna deals 1 damage to each opponent.' Seat 0's Bear attacks alone (Garna stays home) and Opp Giant (4/4) blocks and kills it: the Bear died attacking, judged by its last known information (CR 603.10a, 608.2h), so seat 0 draws a card and seat 1 takes nothing. Engine wave E1 made IS_ATTACKING read LastKnown.attacking and a bare Conditional judge it on 'it' (before, every death dealt the damage). The other branch: garna_a_creature_that_was_not_attacking_dies_deals_one.json.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "garna",
+   "real": "Garna, Bloodfist of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Opp Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true,
+    "garna": false
+   },
+   "block": {
+    "giant": "bear"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "bear": true,
+   "garna": false
+  },
+  "zone": {
+   "bear": "graveyard",
+   "garna": "battlefield"
+  },
+  "damage": {
+   "giant": 2
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

@@ -1,15 +1,20 @@
-{"set": "M21",
+{
+ "set": "M21",
  "world": {"life": 20, "seed": 7},
- "cards": [{"key": "v", "real": "Llanowar Visionary", "zone": "hand", "controller": 0}],
+ "cards": [
+  {"key": "v", "real": "Llanowar Visionary", "zone": "hand", "controller": 0},
+  {"key": "lgo", "real": "Life Goes On", "zone": "hand", "controller": 0}
+ ],
  "mana": {"0": {"G": 1, "C": 2}},
  "steps": [
   {"op": "cast", "real": "Llanowar Visionary", "key": "v"},
   {"op": "end_turn"},
   {"op": "advance_turn"},
-  {"op": "activate", "key": "v", "idx": 1, "seat": 0, "expect_raise": "summoning sickness"},
+  {"op": "cast", "key": "lgo", "tap": true, "expect_raise": "cannot pay it"},
   {"op": "end_turn"},
   {"op": "advance_turn"},
-  {"op": "activate", "key": "v", "idx": 1, "seat": 0}
+  {"op": "cast", "key": "lgo", "tap": true}
  ],
- "expect": {"zone": {"v": "battlefield"}, "tapped": {"v": true}, "mana_pool": {"0": {"G": 1}}},
- "notes": "V1 (2026-10-29). Printed: '{T}: Add {G}.' CR 302.6: a creature's {T} ability needs the creature under its controller's control continuously since THEIR most recent turn began. Cast on seat 0's turn 1, it is still sick on seat 1's turn 2 (refused), and ready on seat 0's turn 3, where it taps for G."}
+ "expect": {"zone": {"v": "battlefield", "lgo": "graveyard"}, "tapped": {"v": true}, "mana_pool": {"0": {}}, "life": {"0": 24}},
+ "notes": "V1 (2026-10-29). Printed: '{T}: Add {G}.' CR 302.6: a creature's {T} ability needs the creature under its controller's control continuously since THEIR most recent turn began. Mana abilities are no menu rows (2026-11-11): a game activates one only while a cost is paid, the payer tapping a source (CR 605.3a), so the pack casts with \"tap\": true. Cast on seat 0's turn 1, it still cannot pay for the instant Life Goes On ({G}) on seat 1's turn 2 (refused), and on seat 0's turn 3 it pays exactly its {G} (the pool is empty after): the Visionary taps and seat 0 gains 4."
+}

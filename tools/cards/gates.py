@@ -293,8 +293,13 @@ _ACTOR_YOU = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
 
 
 def _verified_tokens() -> list[TokenSpec]:
-    """Token specs on the M21 golden trees (the BUGCATCH-verified pool): a card creating a
-    byte-identical token (a Treasure, a Soldier) need not re-prove the token's own abilities."""
+    """Token specs proven elsewhere, so a card creating a byte-identical token (a Treasure, a
+    Soldier, a Food) need not re-prove the token's own abilities: those on the M21 golden trees
+    (the BUGCATCH-verified pool), and the one Food (``lints.FOOD``, the R_FOOD ruling; the
+    ``food`` lint refuses every other Food spec), every part of which two suite packs pin:
+    mapped/FDN bake_into_a_pie_destroys_and_bakes_a_food ({2}, the sacrifice, the 3 life) and
+    bake_into_a_pie_a_tapped_food_cannot_be_eaten ({T}). A golden token record proves nothing
+    here: FDN's own Food record compiles to no ability at all (test_gates)."""
     if not _TOKENS:
         from MTG_bot.core.compiler.compiler import compile_pool
         from MTG_bot.core.compiler.coverage import build_full_registry
@@ -302,7 +307,7 @@ def _verified_tokens() -> list[TokenSpec]:
 
         pool = compile_pool(ingest_pool(HERE.parents[1] / "MTG_bot" / "data" / "M21.json"),
                             build_full_registry())
-        seen: list[TokenSpec] = []
+        seen: list[TokenSpec] = [lints.FOOD]
         for card in pool.cards.values():
             seen += [n for n in walk(card) if isinstance(n, TokenSpec) and n not in seen]
         _TOKENS.extend(seen)
@@ -651,7 +656,7 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         if isinstance(node, Atom) and node.verb is Verb.SEARCH:
             dead.add((*path, "args", "controller"))
         if isinstance(node, TokenSpec) and node in _verified_tokens():
-            dead.add(path)  # a token byte-identical to one the M21 goldens verify: proven there
+            dead.add(path)  # a token byte-identical to one proven elsewhere (_verified_tokens)
         if isinstance(node, Cost):
             in_cost.add(path)
         if type(node).__name__ == "CostDeltaReduceGeneric" and isinstance(getattr(node, "amount", None), QConst) \
@@ -678,6 +683,20 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))
+        # - a ONE_OF partition after the one SEARCH of its Seq picks among the cards that search
+        #   found (Executor._run_effect's search_partition, selectors.resolve_selector's
+        #   search_found lane; a library-TOP zone reads a look window instead): after a search for
+        #   one card it has one card at most, so every count >= 1 picks it (FDN Campus Guide's
+        #   "put that card on top").
+        if isinstance(node, Seq) and any(_partition_step(step) for step in node.steps):
+            searches = [i for i, step in enumerate(node.steps)
+                        if isinstance(step, Atom) and step.verb is Verb.SEARCH]
+            if len(searches) == 1 and node.steps[searches[0]].args.get("cards").count == QConst(1):
+                dead |= {(*path, "steps", i, "args", "cards", "count")
+                         for i, step in enumerate(node.steps) if i > searches[0] and _partition_step(step)
+                         and (sel := step.args.get("cards")).mode is SelectorMode.ONE_OF and sel.referent is None
+                         and not any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP
+                                     for z in sel.zones)}
         # Proven in test_gates.py like the above:
         # - SEARCH and MOVE_ZONE put a card into its OWNER's hand, library, graveyard or exile,
         #   whatever player the destination names (CR 400.3; selectors.move_destination):

@@ -621,7 +621,8 @@ def test_battlesong_berserker_targets_one_of_the_attackers_it_gathered() -> None
     each; the last-known lookup of a gathered object's own row must not run there (the gate
     round 10 fixes' first version raised AttributeError in 7 of 100 FDN replays)."""
     r = _runner("FDN", [_real("berserker", "Battlesong Berserker"), _creature("bear")])
-    r.run_step({"op": "combat", "seat": 0, "attack": {"berserker": True, "bear": True}})
+    r.run_step({"op": "combat", "seat": 0, "attack": {"berserker": True, "bear": True},
+                "decisions": ["first-legal"]})  # its target: either attacker
     r.ex.layers.recompute()
     menace = [k for k in ("berserker", "bear")
               if r.ex.layers.keyword_of(r.handles[k], Keyword.MENACE)]
@@ -644,7 +645,8 @@ def test_angelic_guardian_not_a_creature_put_onto_the_battlefield_attacking() ->
     """CR 508.4: Skyknight Vanguard's Soldier enters attacking but was never declared, so it is
     not one of "they"."""
     r = _runner("M20", [_real("guardian", "Angelic Guardian"), _real("knight", "Skyknight Vanguard")])
-    r.run_step({"op": "combat", "seat": 0, "attack": {"guardian": True, "knight": True}})
+    r.run_step({"op": "combat", "seat": 0, "attack": {"guardian": True, "knight": True},
+                "decisions": ["first-legal"]})  # the order of the two attack triggers
     soldier = next(h for h, c in r.world.cards.items() if c.identity.name == "Soldier")
     assert _indestructible(r, "guardian") and _indestructible(r, "knight")
     r.ex.layers.recompute()
