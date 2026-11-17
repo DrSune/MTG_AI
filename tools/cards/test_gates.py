@@ -185,9 +185,9 @@ def test_the_clause_trace_takes_a_tree_path_or_the_label_its_sentence_takes() ->
     import corpus
 
     def card(code: str, name: str) -> tuple[Any, Any]:
-        sc = corpus.compile_set(code)
-        oid = sc.by_name(name)
-        return sc.raw[oid], sc.results[oid].card
+        # the printed facts and the cast carrier alone, not the card's record: one ability
+        raw = next(r for r in ingest_pool(DATA / f"{code}.json").values() if r.identity.name == name)
+        return raw, corpus.printed_only(raw).card
 
     raw, hare = card("FDN", "Hare Apparent")
     etb, rule = raw.sentences

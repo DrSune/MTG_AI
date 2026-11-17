@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "bake_into_a_pie_destroys_and_bakes_a_food",
+ "notes": "M5 mapper. Printed: 'Destroy target creature. Create a Food token. (It's an artifact with \"{2}, {T}, Sacrifice this token: You gain 3 life.\")' Seat 0 destroys Opp Giant and makes one Food for itself; it pays {2}, {T} and sacrifices the Food: seat 0 gains 3 (seat 1 nothing) and no Food is left. A Food with {1} is not activatable (the 'words no ask took' refusal), as the ruling's food_needs_2_mana shows.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pie", "real": "Bake into a Pie", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "real": "Bake into a Pie", "key": "pie", "targets": ["giant"]},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0"], "expect_raise": "words no ask took"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}, "hold": true},
+  {"op": "act", "seat": 0, "words": ["act:card:14:0"]}
+ ],
+ "expect": {
+  "zone": {"pie": "graveyard", "giant": "graveyard"},
+  "life": {"0": 23, "1": 20},
+  "tokens": {"Food": 0},
+  "mana_pool": {"0": {}}
+ }
+}
