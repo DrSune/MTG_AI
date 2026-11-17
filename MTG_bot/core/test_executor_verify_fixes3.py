@@ -838,6 +838,47 @@ class TestExiledWithIsTheAbilitysLife(FixerCase):
         self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
         self.assertEqual(self.world.zone_of(second).kind, ZONE_EXILE)
 
+    def test_a_synthetic_moment_reads_the_source_as_it_is_now(self):
+        # A trigger on another ability triggering resolves from a synthetic event at clock -1
+        # (binding.py's AbilityTriggerEvent lane): no moment, so it reads "exiled with" in the
+        # source's present life. Failed on c80f45f7: -1 read as before the source ever entered,
+        # and the card its enters ability exiled stayed in exile.
+        from MTG_bot.core.ability_tree import (
+            FAtom,
+            FAtomPred,
+            QUnbounded,
+            Selector,
+            SelectorMode,
+            TriggeredAbility,
+            ZoneChangeEvent,
+        )
+        from MTG_bot.core.test_executor_binding import enter, record_of
+
+        is_source = FAtom(FAtomPred.IS_SOURCE)
+        exile_one = TriggeredAbility(
+            event=ZoneChangeEvent(Zone(ZoneKind.ANY, ControllerRef.ANY),
+                                  Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY), subject=is_source),
+            condition=None,
+            effect=atom(Verb.MOVE_ZONE,
+                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                       zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+                        destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+        )
+        give_back = atom(Verb.MOVE_ZONE,
+                         cards=Selector(QUnbounded(), SelectorMode.ALL,
+                                        FAtom(FAtomPred.IS_EXILED_WITH_SOURCE),
+                                        zones=(Zone(ZoneKind.EXILE, ControllerRef.ANY),)),
+                         destination=Zone(ZoneKind.HAND, ControllerRef.OWNER))
+        ring = self.world.add_card(card_id("Ring", type_line="Enchantment"), self.p0, ZONE_HAND)
+        first = self.world.add_card(card_id("First"), self.p0, ZONE_GRAVEYARD)
+        self.ex.attach_card(ring, record_of([exile_one], oid=self.world.cards[ring].identity.oracle_id))
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        to = Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)
+        self.ex.apply_effect(enter(to), source=ring, controller=self.p0, bindings={"cards": ring})
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_EXILE)
+        self.ex.apply_effect(give_back, source=ring, controller=self.p0, origin_clock=-1)
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
+
 
 class TestV29TargetDependentTax(unittest.TestCase):
     def test_the_tax_detector_reads_targets_anywhere_in_a_filter(self):

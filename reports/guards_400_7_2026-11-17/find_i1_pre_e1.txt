@@ -1,0 +1,8 @@
+# find_i1.py on 7c5598f8^ (95ad8a24), seeds 1-300 per set, stress decks, verified pools
+# (M21 1-60 run separately: none)
+M20 64 ['token Soldier in graveyard'] None
+M20 270 ['token Wolf in graveyard'] None
+M20 296 ['token Elemental in graveyard'] None
+FDN 27 ['token Dog in graveyard'] None
+FDN 101 ['token Zombie in graveyard'] None
+FDN 118 ['token Cat in graveyard'] None

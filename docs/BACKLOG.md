@@ -281,16 +281,29 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   COUNTER_PLACED row; one put onto the battlefield by an effect is seeded during the binder's
   lifecycle, after its boundary closed, and writes none. No verified trigger reads a loyalty
   placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement.
-- **"Exiled with ~" places an exile in the life it arrived in, not the life of the ability that
-  made it** (2026-11-17, wave E1's review; latent, CR 607.2a, 400.7). `IS_EXILED_WITH_SOURCE`
-  reads the life of the reading ability (`ExecCtx.origin_clock`: its trigger event or its
-  activation), but the journal's exile row names only the source's handle, so an exile made by
-  an ability of an earlier life that resolved after the source came back counts for the new
-  life: a Bag of Holding returned while its discard trigger waited lets the new Bag return that
-  card. Also a delayed trigger reads the life at its own event, not its creator's (CR 603.7d),
-  and `dataclasses.replace(ctx, source=...)` (fight, lifelink, replacement actions) carries one
-  ability's origin onto another source. No verified card reaches these. Fix: the exile row
-  carries the origin of the ability that made it.
+  - Graded 2026-11-17 (the CR 400.7 audit, 212 §3): WEAKER, latent. A verified card can make the
+    missing row (M20 Brought Back returns a planeswalker that died this turn; M21 Ugin's -10,
+    unverified on main a7b7ac35, puts one from a hand), but the only verified watchers of a
+    placement (Mazemind Tome, Nine Lives, Wildwood Scourge) read their own counters or +1/+1
+    counters, so no game plays differently. A returned planeswalker is seeded with its printed
+    loyalty as a new object, rightly.
+- **Three moments "exiled with ~" still reads wrong** (2026-11-17, the residue of wave E1's
+  review and of the CR 400.7 audit's fresh-eyes review; latent, CR 603.7d, 607.2a). Since the
+  audit an exile row carries the moment its ability came from (`GameEvent.origin`), and
+  `IS_EXILED_WITH_SOURCE` places the exile in the life of that moment: a Bag of Holding that
+  died and was Brought Back while its discard trigger waited no longer returns that card (pack
+  `bag_of_holding_returned_while_its_trigger_waits_keeps_out_that_card`; STRONGER, reachable in
+  the M20 pool). Left, none reached by a card of the 19 sets (Bag of Holding is the one
+  verified reader):
+  - a delayed trigger's moment is its own event, so one an earlier life created that exiles
+    after the source came back places its exile in the new life (fix: it carries its creator's
+    origin, `TriggerBinder.schedule_delayed`);
+  - a trigger of the source on an object that entered in the same event as the source takes
+    that object's row, which can come before the source's own entry row, so its exile falls
+    in the life before (fix: compare lives by the event, `GameEvent.batch`, not the row);
+  - a cost an effect asks for inside a resolution (`legality.pay_costs` through `apply_effect`)
+    runs with no origin, so its exile is placed when it arrived (fix: pass the resolving
+    context's origin).
 - **An Equipment unattached by a state-based action is not attached to a creature that dies in
   the same check** (2026-11-17, the audit of handle-keyed state after the attachment fix; not
   live in the verified pools). The CR 704.5n lane of `Executor._state_checks` pops the edge
@@ -298,6 +311,24 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   "Whenever equipped creature dies" (Malefic Scythe) misses a creature with protection from it
   dealt lethal damage (CR 704.3: the actions are simultaneous, and the creature was equipped
   as it died).
+  - Graded 2026-11-17 (the CR 400.7 audit): WEAKER (the Scythe misses a soul counter), latent.
+    Malefic Scythe (M21) is the one verified watcher. A creature dies of lethal damage at the
+    check right after the damage, and the M21 pool's only grant of protection from black (Feat
+    of Resistance) deals none, so the two never meet in one check; no verified card turns an
+    equipped creature into a noncreature as it dies. Fix: pop the edges after the check's
+    departures are snapshotted.
+- **CAST_THIS_TURN_FROM reads every cast of the card this turn for an object off the stack and
+  the battlefield** (2026-11-17, named by wave E1's review; graded in the CR 400.7 audit: WRONG,
+  latent). `quantity.py`'s lane reads the object's own cast row (`_object_cast_row`) on the
+  stack or the battlefield, but a card that has left them answers from any of this turn's CAST
+  rows of its handle, where the rules read the object it was (CR 400.7, 608.2h): a card cast
+  from a graveyard, returned to hand and cast from hand would read as cast from the graveyard.
+  The side depends on the card (a bonus for a graveyard cast is stronger, See the Truth's "other
+  than your hand" weaker). Only the verified Archfiend's Vessel reads it off the battlefield, at
+  its intervening "if" (CR 603.4) after it died: that condition was true as it triggered, an
+  older row can only add to it, and nothing in the M21 pool casts a creature card from a
+  graveyard, so no game plays differently. Fix: read the cast row of the card's last stack or
+  battlefield residency.
 
 ### Effects, zones and replacements
 
@@ -1747,6 +1778,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature dies, draw a card" on a token, a sacrificed token's activated ability (Mask of
   Immolation's, as before the fix). Rare in the verified pools. Candidate: the entity of its last
   known information (`Executor.departed_lki[source].identity`), as a card in no zone.
+  - Graded 2026-11-17 (the CR 400.7 audit, 212 §3): not a rules fault (the engine resolves the
+    ability, CR 113.7a) but blindness to a public object (AGENTS §10): WRONG, with no side, as
+    both seats decide without it, and nothing a network can steer for. Reached by verified cards:
+    M21 Infernal Scarring's granted trigger on a creature token, M20 Mask of Immolation's
+    sacrifice on a token. Left here because the fix changes what the network sees: a run's call.
 - **A trigger on the stack shows no event-derived number** (2026-11-13, ontology round R10). The
   card's tokens show a gathered trigger (`@once_per_event bool:True`, `QPropField.THAT_MANY_COUNT`,
   the `event` referent), and the trigger on the stack is its source's entity with its ability

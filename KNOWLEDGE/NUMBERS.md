@@ -5,6 +5,20 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-17 (the recurrence guards for causes A and B of KNOWLEDGE 212 §3: the CR 400.7 registry of the executor's handle-keyed containers and its random-game test; "exiled with" placed in the life of the ability that exiled; the soak's live invariant I1; branch `worktree-agent-aee2edc561a82da47` on c80f45f7, main a7b7ac35 and 1fb4463f merged; evidence `reports/guards_400_7_2026-11-17/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| containers of the executor and its helpers holding a card's handle | **40** filled by 40 random games per verified pool (M21, M20, FDN) at 1fb4463f, **0** missing from `Executor.OBJECT_TABLES` (47 entries: departure 22, kept 13, derived 6, lki 5, stack 1); the test's 7 games fill the same 40 | `.venv/bin/python reports/guards_400_7_2026-11-17/seeds.py . 40 <out.json>` | `seeds.txt`; the test fails below MIN_FILLED 34 |
+| I1, a token outside the battlefield where the game loop stops: the soak, 300 games per verified pool, seeds 1-300, stress | 7c5598f8^ (95ad8a24) **6 of 900** (M21 0, M20 3, FDN 3); c80f45f7 **0 of 900**; the branch before and after the 1fb4463f merge **0 of 900** each | `bash reports/guards_400_7_2026-11-17/soak3.sh <checkout> <tag> 300`, then `soak_counts.py` | the new soak.py copied into the scratch checkouts; `soak_counts.txt` |
+| I1 with fault A put back into the branch's engine (7c5598f8^'s pending_references in `_cease_tokens`), before the 1fb4463f merge | **4 of 450** (M21 7, 82; FDN 91, 99; seeds 1-150 per pool) | `make_mutant_a.py <copy>`, `find_i1_par.py <copy> 1 150` | FDN 91 lost its dead Cat at 1fb4463f, so no seed is pinned |
+| D1-D6 soak hits (B-73's classes), not triaged here | final branch: M21 13 games, M20 16, FDN 21 (d3 phantom placements most, d5, d6); c80f45f7: 8, 3, 11; 7c5598f8^: 9, 0, 14 | the same soak | pre-existing; d3 grew with wave 3's pools |
+| pack `bag_of_holding_returned_while_its_trigger_waits_keeps_out_that_card` | **FAIL** on c80f45f7, a7b7ac35 and 1fb4463f (Spare A back in hand, hand 3), **PASS** on the branch | `.venv/bin/python reports/guards_400_7_2026-11-17/onepack.py <checkout> <pack>` | `pack_on_c80f45f7.txt` |
+| `test_a_synthetic_moment_reads_the_source_as_it_is_now` | **FAIL** on a7b7ac35 and 1fb4463f ('exile' != 'hand'), PASS on the branch | the branch's test file in a scratch checkout of main | |
+| blast radius, 200 seeded heuristic games per verified pool | against c80f45f7 (branch at a5df0852) and against 1fb4463f (the final branch): **600 of 600** identical replay digests, journals and event logs each, 0 crashes | `bash reports/guards_400_7_2026-11-17/blast.sh <base> <tag>` (E1's replay_abg.py) | `replay_compare_c80f45f7.txt`, `replay_compare_1fb4463f.txt` |
+| reach in the verified pools at 1fb4463f | "exiled with" readers: Bag of Holding (Idol of Endurance unverified); a return of any permanent card: Brought Back (M20); CAST_THIS_TURN_FROM: Archfiend's Vessel; a leaves trigger on an attached object: Malefic Scythe; M21 protection grants: Baneslayer Angel, Feat of Resistance, Feline Sovereign, Runed Halo, Sparkhunter Masticore; delayed triggers: Basri Ket and Basri, Devoted Paladin (neither names an object; Subira's, verified at c80f45f7, did not either) | `census.py .`, `census4.py .`, `census2.py .` | `census*.txt` |
+| `tools/check.sh` at 5984e17f | pytest MTG_bot **6689 passed** / 39 deselected / 71 subtests; pytest tools **344 passed**; packs **796/796**; CHECK GREEN | `bash tools/check.sh` | |
+
 ## 2026-11-17 (the one quantity comparison; TARGETS, QDistinct and zone counts made general: ontology R12 = KNOWLEDGE/2026-11-17/210 I1 + I9 + I0, gate round 12 FIX-THEN-GO, fixed; DESIGN_ATOM_ONTOLOGY §16; branch `worktree-agent-a6b3b1412af16b3da` on 30736aba, main d61005d5, 0b309e22, e32e0b88, f59fb8f0, c80f45f7 and bd7beb33 merged)
 
 | Number | Value | Command | Notes |

@@ -42,6 +42,7 @@ import random
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from itertools import combinations
+from typing import ClassVar
 
 from MTG_bot.core.ability_tree import (
     CHOSEN_QUALITIES,
@@ -954,6 +955,7 @@ class Executor:
                 effect.verb.name,
                 self.events[start:],
                 combat=self._combat_wave_open,
+                origin=ctx.origin_clock,
             )
             # Replacements consumed during the atom run (the replaced event
             # never happened) queue their ACTION here, so it is journalled
@@ -1166,6 +1168,93 @@ class Executor:
             raise NotImplementedError(
                 f"executor: effect {type(effect).__name__} not implemented (12e)"
             )
+
+    #: CR 400.7: "An object that moves from one zone to another becomes a new object with no
+    #: memory of, or relation to, its previous existence", but a card keeps its handle in every
+    #: zone. So each container of the executor and its helpers that holds a card's handle says
+    #: here what becomes of that entry when the card changes zones, by its first word:
+    #:   departure - the departure hook ends it (:meth:`_on_zone_changes`, TriggerBinder._lifecycle);
+    #:   lki - it outlives the object on purpose, and is read as the object last existed
+    #:         (``LastKnown``) or by the clock of the object's life;
+    #:   stack - the stack's exit path ends it;
+    #:   derived - rebuilt from the other state at every recompute or read;
+    #:   kept - it is not the object's state, or a rule keeps it: the reason says which.
+    #: ``test_executor_object_tables`` plays random games and fails on a container holding a
+    #: card's handle that is not named here, so a table added later fails until its author
+    #: decides (KNOWLEDGE/2026-11-17/212 §3).
+    OBJECT_TABLES: ClassVar[dict[str, str]] = {
+        "Executor.damage": "departure: marked damage is the old object's (CR 120.6)",
+        "Executor.damage_deathtouch": "departure: with its damage (CR 702.2b)",
+        "Executor.etb_x": "departure: a cast's X reaches the permanent the spell became (CR 400.7d)",
+        "Executor.name_choices": "departure: a returned permanent chooses again; LastKnown.choices",
+        "Executor.attachments": "departure: TriggerBinder.detach drops every edge of a permanent "
+        "that leaves; LastKnown.attached keeps what was attached",
+        "Executor.attackers": "departure: removed from combat (CR 506.4)",
+        "Executor.attacked": "departure: removed from combat (CR 506.4)",
+        "Executor.blocked_by": "departure: removed from combat (CR 506.4)",
+        "Executor.mandates": "departure: a resolved 'attacks if able' named the old object",
+        "Executor.mandate_block": "departure: a resolved 'blocks if able' named the old object",
+        "Executor.damage_policies": "departure: a resolved damage assignment rule",
+        "Executor.loyalty_clock": "departure: a returned planeswalker is a new permanent (CR 606.3)",
+        "Executor.control_entries": "departure: the control effects on, or anchored to, it end",
+        "Executor.control_overlay": "derived: from control_entries",
+        "Executor.control_gained_turn": "kept: a control change older than the object's entry, "
+        "so the sickness read (CR 302.6, legality) answers as for the new object",
+        "Executor.first_strikers": "kept: one combat damage step's dealers; one that left the "
+        "battlefield left combat (CR 506.4)",
+        "Executor.phased_out": "kept: phasing is not a zone change (CR 702.26d), and nothing "
+        "moves a phased-out permanent (CR 702.26b)",
+        "Executor.departed_lki": "lki: the last departure's snapshot, replaced by the next; "
+        "LastKnown.left names the departure it answers for",
+        "Executor._loop_sources": "kept: the trigger-loop tripwire's count, reset when the stack "
+        "empties",
+        "Executor._returns_due": "lki: return rows within one event (ReturnRegistry.rows)",
+        "TriggerBinder.attached": "departure: detach unbinds the old object's triggers, "
+        "_register binds the new one's",
+        "TriggerBinder.attached_graveyard": "departure: unbound as the card leaves the graveyard "
+        "(CR 113.6m)",
+        "TriggerBinder.handle_record": "kept: the card's compiled record, its printed text in "
+        "every zone; a ceased token's is dropped",
+        "TriggerBinder.firings": "kept: a triggered ability exists apart from its source (CR "
+        "113.7a); it reads a departed object by LastKnown",
+        "TriggerBinder.delayed": "kept: a delayed trigger exists apart from its source (CR "
+        "603.7); none names an object",
+        "TriggerBinder.quarantined": "kept: the trigger-loop safety rail holds the card for the game",
+        "TriggerBinder._gathered_queued": "kept: keyed by the event too, which one life sees",
+        "TriggerBinder._kw_nodes": "derived: the trigger node a keyword makes, alike for every life",
+        "LayerRegistry.records": "departure: detach_source, forget_departed and "
+        "forget_materialized end the effects of and on a permanent that leaves; a resolved "
+        "PERMIT knows the cards it named off the battlefield by its clock (permits._found, "
+        "moved_since); expired records stay for the fingerprint",
+        "LayerRegistry._resolved": "departure: as records",
+        "LayerRegistry._keywords": "derived: at every recompute",
+        "LayerRegistry._granted": "derived: at every recompute",
+        "LayerRegistry._types": "derived: at every recompute",
+        "ReplacementRegistry.replacements": "departure: detach_source and forget_departed",
+        "ReplacementRegistry.preventions": "departure: detach_source, forget_departed and "
+        "expire_leaves",
+        "DurationLedger._changes": "departure: forget and expire_leaves expire the entries on "
+        "and anchored to it; expired ones stay for the fingerprint",
+        "DurationLedger._by_id": "departure: as _changes",
+        "DurationLedger._meta": "departure: as _changes",
+        "ReturnRegistry.rows": "lki: a row knows its object by its entry clock, and still_there "
+        "refuses a new object (CR 610.3)",
+        "ReturnRegistry._staged": "lki: rows within one atom, before their entry clock is known",
+        "EventJournal.events": "lki: the game's history; a read of one object keeps the rows of "
+        "its life (_object_cast_row, _last_battlefield_entry, IS_EXILED_WITH_SOURCE by "
+        "GameEvent.origin, departure_lki); CAST_THIS_TURN_FROM off the stack and the "
+        "battlefield does not yet (BACKLOG)",
+        "EventJournal._open": "kept: the open atom boundaries' snapshots, empty between ops",
+        "SpellStack.frames": "stack: a frame ends as its object leaves the stack: it resolves, is "
+        "countered or fizzles (stack.resolve_top), or an effect moves it (verbs._off_the_stack)",
+        "GameWorld.cards": "kept: the object map, one CardState per card in every zone; the "
+        "departure hook clears its counters (CR 122.2) and tapped flag (CR 110.5d), and a token "
+        "off the battlefield ceases (CR 704.5d)",
+        "GameWorld._zone_cache": "derived: re-validated at every read (GameWorld.zone_of)",
+        "GameWorld.players": "kept: the zones, where each object is (CR 400.1), and a commander "
+        "designation, which the card keeps in every zone (CR 903.3)",
+        "GameWorld.triggers": "kept: a waiting trigger exists apart from its source (CR 113.7a)",
+    }
 
     def _on_zone_changes(self, events: list[GameEvent]) -> None:
         """The bookkeeping for the zone changes one atom boundary journalled, in

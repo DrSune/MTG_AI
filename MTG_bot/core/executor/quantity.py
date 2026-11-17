@@ -1530,13 +1530,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # column, so "exiled with this artifact" is a cause read, not a heuristic. NOT
         # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are
         # objects. The exile is the card's last arrival there (a card that left exile and came
-        # back is a new object), made in the life of the source the reading ability came from:
-        # from the source's last entry onto the battlefield before that ability triggered or was
-        # activated (``ExecCtx.origin_clock``; outside a resolution, now) to its next entry. A
-        # returned Bag of Holding returns none of the cards its earlier life exiled; a Hoarding
-        # Dragon's dies trigger returns its own life's card though a new Dragon has entered
-        # since. A source that never entered reads every exile it made. (An exile is placed in
-        # the life it arrived in, not the life of the ability that made it: BACKLOG.)
+        # back is a new object), made by an ability of the life of the source the reading
+        # ability came from: from the source's last entry onto the battlefield at or before
+        # that ability triggered or was activated (``ExecCtx.origin_clock``; outside a
+        # resolution, now) to its next entry. The exile's life is the moment the exiling
+        # ability came from (``GameEvent.origin``; its arrival for an exile no ability's
+        # resolution made). A returned Bag of Holding returns none of the cards its earlier
+        # life exiled, the discard its earlier life's trigger exiled after the return included;
+        # a Hoarding Dragon's dies trigger returns its own life's card though a new Dragon has
+        # entered since. A source that never entered reads every exile it made.
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1558,10 +1560,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 arrival = e
         if arrival is None or arrival.cause != ctx.source:
             return False
-        moment = ctx.origin_clock or jrn.clock
+        # A moment of 0 or less is none: outside a resolution, or a synthetic event's -1 (the
+        # AbilityTriggerEvent lane's); it reads as now, and an exile as made when it arrived.
+        moment = ctx.origin_clock if ctx.origin_clock > 0 else jrn.clock
         begun = max((c for c in entries if c <= moment), default=0)
         ended = min((c for c in entries if c > begun), default=None)
-        return begun < arrival.clock and (ended is None or arrival.clock < ended)
+        made = arrival.origin if arrival.origin > 0 else arrival.clock  # an ETB trigger's: begun
+        return begun <= made and (ended is None or made < ended)
     if pred is FAtomPred.IS_ATTACKING:
         # CR 506.4: the executor's live attack record, the attacker
         # set the COMBAT skeleton fills at declaration and clears at end

@@ -224,6 +224,12 @@ class GameEvent:
     # emitted outside an atom. Replays and forks re-derive it, so it stays out of ``dump()`` and
     # no fingerprint or game log changes.
     batch: int = 0
+    # The moment the ability whose atom made the row came from (``ExecCtx.origin_clock``: a
+    # trigger's event, an activation), so a row says which life of its cause made it (CR 607.2a:
+    # "exiled with ~" is the life the exiling ability came from, IS_EXILED_WITH_SOURCE). 0 for a
+    # row no ability's resolution made: it was made at its own clock. Kept out of ``dump()``
+    # like ``batch``.
+    origin: int = 0
 
     # Typed views onto the documented per-kind data layouts (one cast
     # site per shape, right here, instead of one per matcher branch).
@@ -413,13 +419,14 @@ class EventJournal:
         cause_verb: str,
         data: tuple[object, ...] = (),
         batch: int = 0,
+        origin: int = 0,
     ) -> GameEvent:
         if kind == KIND_ZONE_CHANGE and batch == 0:
             # A zone change is an occurrence of its atom boundary's event (CR 603.2c): a row
             # without one would be gathered with every other such row of the game.
             raise ValueError("journal: a ZONE_CHANGE row is journalled by its atom boundary")
         self._clock += 1
-        event = GameEvent(self._clock, kind, subject, cause, cause_verb, data, batch)
+        event = GameEvent(self._clock, kind, subject, cause, cause_verb, data, batch, origin)
         self.events.append(event)
         return event
 
@@ -579,13 +586,15 @@ class EventJournal:
         cause_verb: str,
         new_12a_tuples: list[tuple[object, ...]],
         combat: int = 0,
+        origin: int = 0,
     ) -> list[GameEvent]:
         """Diff the world against ``before`` and emit every triggered-rule
         event the atom caused. Returns the newly appended events. ``combat``
         names the combat damage step the atom deals damage in (0: none); its
         DAMAGE rows carry it (``GameEvent.combat_step``). Every row carries the boundary's
         ``batch`` (a shared event's, :meth:`one_event`), a drawn card's its own
-        (``GameEvent.batch``)."""
+        (``GameEvent.batch``), and ``origin``, the moment the resolving ability came from
+        (``GameEvent.origin``)."""
         start = len(self.events)
         world = self.world
         after = self._capture()
@@ -599,7 +608,7 @@ class EventJournal:
             nonlocal batch
             if not own and not batch:
                 batch = self._clock + 1
-            self._emit(kind, subject, cause, cause_verb, data, own or batch)
+            self._emit(kind, subject, cause, cause_verb, data, own or batch, origin)
 
         # --- zone membership: moves, ETBs, deaths, draws, token creates.
         for card, (owner, kind) in after.zones.items():

@@ -1,0 +1,12 @@
+M21 done
+M20 done
+FDN done
+40 containers; not in the registry: []
+cover: ['M21:20', 'FDN:3', 'M21:37', 'M21:6', 'M21:7', 'M21:35', 'M20:5']
+M21:20 28 adds ['DurationLedger._by_id', 'DurationLedger._changes', 'EventJournal.events', 'Executor._loop_sources', 'Executor.attachments', 'Executor.attacked', 'Executor.attackers', 'Executor.blocked_by', 'Executor.control_entries', 'Executor.control_gained_turn', 'Executor.control_overlay', 'Executor.damage', 'Executor.departed_lki', 'Executor.loyalty_clock', 'GameWorld._zone_cache', 'GameWorld.cards', 'GameWorld.players', 'LayerRegistry._granted', 'LayerRegistry._keywords', 'LayerRegistry._resolved', 'LayerRegistry.records', 'ReplacementRegistry.preventions', 'ReplacementRegistry.replacements', 'SpellStack.frames', 'TriggerBinder._kw_nodes', 'TriggerBinder.attached', 'TriggerBinder.attached_graveyard', 'TriggerBinder.handle_record']
+FDN:3 23 adds ['Executor.first_strikers', 'GameWorld.triggers', 'ReturnRegistry.rows', 'TriggerBinder._gathered_queued', 'TriggerBinder.firings']
+M21:37 23 adds ['Executor.etb_x', 'Executor.name_choices', 'TriggerBinder.delayed']
+M21:6 19 adds ['Executor.phased_out']
+M21:7 22 adds ['LayerRegistry._types']
+M21:35 21 adds ['Executor.damage_deathtouch']
+M20:5 21 adds ['DurationLedger._meta']
