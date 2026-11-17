@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "slumbering_cerberus_stays_tapped_in_your_untap_step",
+ "notes": "M6 mapper. Printed: 'This creature doesn't untap during your untap step. Morbid — At the beginning of each end step, if a creature died this turn, untap this creature.' The Cerberus attacks on turn 1 (seat 1 takes 4) and stays tapped. No creature dies in turns 1, 2 or 3, so morbid never untaps it, and seat 0's untap step in turn 3 leaves it tapped; seat 0's Bear, tapped too, untaps there.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cerberus", "real": "Slumbering Cerberus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"cerberus": true, "bear": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "attackers": {"cerberus": true, "bear": true},
+  "tapped": {"cerberus": true, "bear": false},
+  "life": {"0": 20, "1": 14}
+ }
+}

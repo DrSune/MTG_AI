@@ -4,7 +4,7 @@ Pins the whole-M21 contract of ``_is_liftable_pick``:
 
 * every entity CHOOSE surface of the pool falls in exactly one bucket of
   the predicate's decision order: cost > referent > self-designation >
-  count!=1 > liftable core;
+  count!=1 > another player's hand > liftable core;
 * every core surface with an answerable lane lands on the asking ONE_OF
   channel; the gap-blocked surfaces (PICK_ASK_FORCE_SILENT, gap ledger
   L-27..L-29) stay on the silent CHOOSE lane, never a phantom ask;
@@ -44,7 +44,11 @@ from MTG_bot.core.compiler.ingest import ingest_pool
 # 2026-11-17: See the Truth's "put each of those cards into your hand instead" is an ALL over
 # the looked-at cards, no longer a count-1 result referent: referent 38 -> 37, total 147 -> 146.
 TOTAL_SURFACES = 146
-CORE_LIFTABLE = 21
+# 2026-11-17 (engine wave E2): a move out of another player's hand is that player's pick (CR
+# 701.9b, compiler._another_players_hand_pick): Liliana's Steward's and Liliana, Waker of the
+# Dead's discards left the core (21 -> 19) and their PICK_ASK_FORCE_SILENT rows.
+HAND_PICK = 2
+CORE_LIFTABLE = 19
 SELF_DESIGNATION = 50
 ANAPHORIC_REFERENT = 37
 COST_VICTIM = 25
@@ -55,8 +59,6 @@ COUNT_NOT_ONE = 13
 GAP_BLOCKED_EXPECT = {
     ("Goremand", "SACRIFICE"),
     ("Run Afoul", "SACRIFICE"),
-    ("Liliana's Steward", "MOVE_ZONE"),
-    ("Liliana, Waker of the Dead", "MOVE_ZONE"),
     ("Keral Keep Disciples", "DEAL_DAMAGE"),
     ("Runed Halo", "GRANT_ABILITY"),
     ("Furious Rise", "MOVE_ZONE"),
@@ -64,30 +66,31 @@ GAP_BLOCKED_EXPECT = {
 }
 
 
-def _walk(obj, in_cost: bool, verb: str | None):
-    """Yield (nearest_atom_verb, in_cost, Selector) for every Selector in
-    an ability tree, tracking the cost subtree and the enclosing Atom's verb
-    (the FORCE_* override key)."""
+def _walk(obj, in_cost: bool, verb: str | None, atom=None):
+    """Yield (nearest_atom_verb, in_cost, Selector, nearest Atom) for every Selector in an
+    ability tree, tracking the cost subtree and the enclosing Atom (its verb is the FORCE_*
+    override key)."""
     if isinstance(obj, Selector):
-        yield verb, in_cost, obj
+        yield verb, in_cost, obj, atom
         return
     if isinstance(obj, tuple):
         for item in obj:
-            yield from _walk(item, in_cost, verb)
+            yield from _walk(item, in_cost, verb, atom)
         return
     if not is_dataclass(obj) or isinstance(obj, type):
         return
     own_verb = getattr(obj, "verb", None)
-    verb = own_verb.name if own_verb is not None else verb
+    if own_verb is not None:
+        verb, atom = own_verb.name, obj
     in_cost = in_cost or isinstance(obj, Cost)
     for f in fields(obj):
         value = getattr(obj, f.name, None)
         if value is None or isinstance(value, (str, bytes, int, float, bool)):
             continue
-        yield from _walk(value, in_cost, verb)
+        yield from _walk(value, in_cost, verb, atom)
 
 
-def _classify(selector: Selector, in_cost: bool) -> str:
+def _classify(selector: Selector, in_cost: bool, atom) -> str:
     """The predicate's own decision order — a total function on surfaces."""
     if in_cost:
         return "cost"
@@ -97,6 +100,8 @@ def _classify(selector: Selector, in_cost: bool) -> str:
         return "selfref"
     if not (isinstance(selector.count, QConst) and selector.count.value == 1):
         return "count"
+    if atom is not None and comp._another_players_hand_pick(atom):
+        return "hand"
     return "core"
 
 
@@ -151,6 +156,7 @@ class PromotionPredicateCensus(unittest.TestCase):
             "referent": [],
             "selfref": [],
             "count": [],
+            "hand": [],
             "core": [],
         }
         # An emblem's surfaces are counted once, in the GET_EMBLEM of the card that makes it: its
@@ -160,10 +166,10 @@ class PromotionPredicateCensus(unittest.TestCase):
             if name in emblem_entries:
                 continue
             for ab in card.abilities:
-                for verb, in_cost, sel in _walk(ab, False, None):
+                for verb, in_cost, sel, atom in _walk(ab, False, None):
                     if sel.mode is not SelectorMode.CHOOSE:
                         continue
-                    bucket = _classify(sel, in_cost)
+                    bucket = _classify(sel, in_cost, atom)
                     cls.surfaces[bucket].append((name, str(verb)))
 
     def test_partition_counts_are_the_enumeration(self):
@@ -173,6 +179,7 @@ class PromotionPredicateCensus(unittest.TestCase):
                 "referent": len(self.surfaces["referent"]),
                 "selfref": len(self.surfaces["selfref"]),
                 "count": len(self.surfaces["count"]),
+                "hand": len(self.surfaces["hand"]),
                 "core": len(self.surfaces["core"]),
             },
             {
@@ -180,6 +187,7 @@ class PromotionPredicateCensus(unittest.TestCase):
                 "referent": ANAPHORIC_REFERENT,
                 "selfref": SELF_DESIGNATION,
                 "count": COUNT_NOT_ONE,
+                "hand": HAND_PICK,
                 "core": CORE_LIFTABLE,
             },
         )
@@ -255,7 +263,7 @@ class PromotionPredicateCensus(unittest.TestCase):
                 self.assertEqual(
                     len(base_w), len(live_w), f"{name}: promotion changed tree shape"
                 )
-                for (verb_b, _c_b, sel_b), (verb_l, _c_l, sel_l) in zip(base_w, live_w):
+                for (verb_b, _c_b, sel_b, _a_b), (verb_l, _c_l, sel_l, _a_l) in zip(base_w, live_w):
                     if (
                         sel_b.mode is SelectorMode.CHOOSE
                         and sel_l.mode is SelectorMode.ONE_OF
@@ -275,13 +283,14 @@ class PromotionPredicateCensus(unittest.TestCase):
                 f"sits on {sel.zones[0].controller.name} seats — no candidate is "
                 "answerable at the controller seat this ask fires at",
             )
-        # Self-check: the scan refuses the menu of a real L-27 row (had the
-        # predicate promoted it, the loop above would fail).
+        # Self-check: the scan refuses the menu of another player's hand (had the predicate
+        # promoted Liliana's Steward's "target opponent discards a card", the loop above would
+        # fail).
         caught = {
             (name, verb)
-            for name, verb in GAP_BLOCKED_EXPECT
+            for name, verb in self.surfaces["hand"]
             for ab in self.base[name].abilities
-            for verb_w, _ic, sel in _walk(ab, False, None)
+            for verb_w, _ic, sel, _atom in _walk(ab, False, None)
             if sel.mode is SelectorMode.CHOOSE
             and str(verb_w) == verb
             and not _menu_decidable_at_active_seat(sel)

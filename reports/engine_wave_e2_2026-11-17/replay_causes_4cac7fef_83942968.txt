@@ -1,0 +1,252 @@
+ 124 division       {'FDN': 54, 'M20': 36, 'M21': 34}
+  72 same play      {'FDN': 28, 'M20': 21, 'M21': 23}
+  22 trample over   {'FDN': 10, 'M20': 7, 'M21': 5}
+  14 Leafkin Druid  {'M20': 14}
+   1 107.1b         {'M21': 1}
+total 233
+winner changed: 9
+   FDN_17 (division): winner 0 -> 1
+   FDN_101 (division): winner 0 -> 1
+   FDN_176 (division): winner 0 -> 1
+   M20_91 (Leafkin Druid): winner 1 -> 0
+   M20_132 (division): winner 1 -> 0
+   M20_136 (Leafkin Druid): winner 1 -> 0
+   M20_153 (Leafkin Druid): winner 1 -> 0
+   M20_161 (Leafkin Druid): winner 0 -> 1
+   M21_148 (division): winner 1 -> 0
+
+Each game's first difference:
+  FDN_6 [division] row 428 main: DAMAGE card:13[Twinblade Paladin] by card:93[Fire Elemental] (DEAL_DAMAGE) (2, 147) | branch: DAMAGE card:46[Prideful Parent] by card:93[Fire Elemental] (DEAL_DAMAGE) (2, 147)
+  FDN_10 [division] row 376 main: DAMAGE card:79[Gleaming Barrier] by card:120[Dog] (DEAL_DAMAGE) (2, 121) | branch: DAMAGE card:116[Gleaming Barrier] by card:120[Dog] (DEAL_DAMAGE) (2, 121)
+  FDN_12 [division] row 280 main: DAMAGE card:38[Heartfire Immolator] by card:66[Spitfire Lagac] (DEAL_DAMAGE) (2, 96) | branch: DAMAGE card:57[Brazen Scourge] by card:66[Spitfire Lagac] (DEAL_DAMAGE) (3, 96)
+  FDN_17 [division] row 330 main: DAMAGE card:23[Dragonlord's Servant] by card:97[Spitfire Lagac] (DEAL_DAMAGE) (3, 110) | branch: DAMAGE card:27[Angel of Vitality] by card:97[Spitfire Lagac] (DEAL_DAMAGE) (2, 110)
+  FDN_18 [trample over] row 401 main: DAMAGE card:114[Gleaming Barrier] by card:7[Bear Cub] (DEAL_DAMAGE) (5, 161) | branch: DAMAGE card:114[Gleaming Barrier] by card:7[Bear Cub] (DEAL_DAMAGE) (4, 161)
+  FDN_21 [trample over] row 341 main: DAMAGE card:98[Drakuseth, Maw of Flames] by card:2[Ghalta, Primal Hunger] (DEAL_DAMAGE) (12, 124) | branch: DAMAGE card:98[Drakuseth, Maw of Flames] by card:2[Ghalta, Primal Hunger] (DEAL_DAMAGE) (7, 124)
+  FDN_22 [same play] ask main: order:card:65:0:16 -> 0 | branch: divide:card:31:card:65:16 -> 1
+  FDN_23 [same play] ask main: order:card:29:0:15 -> 0 | branch: divide:card:94:card:29:15 -> 1
+  FDN_26 [division] row 411 main: DAMAGE card:77[Prideful Parent] by card:12[Aggressive Mammoth] (DEAL_DAMAGE) (6, 153) | branch: DAMAGE card:77[Prideful Parent] by card:12[Aggressive Mammoth] (DEAL_DAMAGE) (3, 153)
+  FDN_30 [same play] ask main: order:card:12:0:13 -> 0 | branch: divide:card:60:card:12:13 -> 1
+  FDN_34 [division] row 563 main: DAMAGE card:4[Gleaming Barrier] by card:74[Skeleton Archer] (DEAL_DAMAGE) (3, 165) | branch: DAMAGE card:6[Volley Veteran] by card:74[Skeleton Archer] (DEAL_DAMAGE) (2, 165)
+  FDN_37 [division] row 288 main: DAMAGE card:50[Spinner of Souls] by card:98[Quakestrider Ceratops] (DEAL_DAMAGE) (3, 109) | branch: DAMAGE card:50[Spinner of Souls] by card:98[Quakestrider Ceratops] (DEAL_DAMAGE) (7, 109)
+  FDN_38 [division] row 332 main: DAMAGE card:72[Spinner of Souls] by card:23[Ghalta, Primal Hunger] (DEAL_DAMAGE) (4, 127) | branch: DAMAGE card:72[Spinner of Souls] by card:23[Ghalta, Primal Hunger] (DEAL_DAMAGE) (3, 127)
+  FDN_40 [same play] ask main: order:card:93:0:18 -> 0 | branch: divide:card:4:card:93:18 -> 2
+  FDN_42 [division] row 255 main: DAMAGE card:120[Knight] by card:0[Diamond Mare] (DEAL_DAMAGE) (2, 83) | branch: DAMAGE card:121[Knight] by card:0[Diamond Mare] (DEAL_DAMAGE) (2, 83)
+  FDN_44 [division] row 301 main: DAMAGE card:120[Knight] by card:35[Spitfire Lagac] (DEAL_DAMAGE) (2, 101) | branch: DAMAGE card:121[Knight] by card:35[Spitfire Lagac] (DEAL_DAMAGE) (2, 101)
+  FDN_46 [division] row 233 main: DAMAGE card:79[Nullpriest of Oblivion] by card:27[Gnarlback Rhino] (DEAL_DAMAGE) (1, 94) | branch: DAMAGE card:99[Battlesong Berserker] by card:27[Gnarlback Rhino] (DEAL_DAMAGE) (4, 94)
+  FDN_47 [trample over] row 231 main: DAMAGE card:119[Dawnwing Marshal] by card:3[Tajuru Pathwarden] (DEAL_DAMAGE) (5, 84) | branch: DAMAGE card:119[Dawnwing Marshal] by card:3[Tajuru Pathwarden] (DEAL_DAMAGE) (2, 84)
+  FDN_50 [same play] ask main: order:card:49:0:17 -> 0 | branch: divide:card:71:card:49:17 -> 4
+  FDN_54 [division] row 355 main: DAMAGE card:15[Aegis Turtle] by card:116[Skeleton Archer] (DEAL_DAMAGE) (3, 116) | branch: DAMAGE card:26[Enigma Drake] by card:116[Skeleton Archer] (DEAL_DAMAGE) (3, 116)
+  FDN_57 [same play] ask main: order:card:12:0:17 -> 0 | branch: divide:card:96:card:12:17 -> 1
+  FDN_59 [trample over] row 224 main: DAMAGE card:68[Bishop's Soldier] by card:43[Ghalta, Primal Hunger] (DEAL_DAMAGE) (15, 87) | branch: DAMAGE card:68[Bishop's Soldier] by card:43[Ghalta, Primal Hunger] (DEAL_DAMAGE) (2, 87)
+  FDN_60 [trample over] row 443 main: DAMAGE card:25[Wildwood Scourge] by card:85[Pelakka Wurm] (DEAL_DAMAGE) (7, 156) | branch: DAMAGE card:25[Wildwood Scourge] by card:85[Pelakka Wurm] (DEAL_DAMAGE) (6, 156)
+  FDN_62 [division] row 418 main: DAMAGE card:27[Battle-Rattle Shaman] by card:85[Cathar Commando] (DEAL_DAMAGE) (2, 148) | branch: DAMAGE card:39[Swab Goblin] by card:85[Cathar Commando] (DEAL_DAMAGE) (2, 148)
+  FDN_63 [division] row 357 main: DAMAGE card:9[Leonin Skyhunter] by card:66[Druid of the Cowl] (DEAL_DAMAGE) (1, 114) | branch: DAMAGE card:55[Felidar Savior] by card:66[Druid of the Cowl] (DEAL_DAMAGE) (1, 114)
+  FDN_68 [division] row 293 main: DAMAGE card:0[Helpful Hunter] by card:91[Wildwood Scourge] (DEAL_DAMAGE) (1, 107) | branch: DAMAGE card:37[Elementalist Adept] by card:91[Wildwood Scourge] (DEAL_DAMAGE) (2, 107)
+  FDN_69 [division] row 100 main: DAMAGE card:25[Aegis Turtle] by card:89[Diamond Mare] (DEAL_DAMAGE) (1, 37) | branch: DAMAGE card:34[Empyrean Eagle] by card:89[Diamond Mare] (DEAL_DAMAGE) (1, 37)
+  FDN_74 [same play] ask main: order:card:84:0:18 -> 0 | branch: divide:card:25:card:84:18 -> 2
+  FDN_76 [same play] ask main: order:card:88:0:14 -> 0 | branch: divide:card:43:card:88:14 -> 1
+  FDN_77 [division] row 320 main: DAMAGE card:104[Storm Fleet Spy] by card:46[Spitfire Lagac] (DEAL_DAMAGE) (3, 105) | branch: DAMAGE card:104[Storm Fleet Spy] by card:46[Spitfire Lagac] (DEAL_DAMAGE) (2, 105)
+  FDN_78 [trample over] row 413 main: DAMAGE card:80[Ancestor Dragon] by card:25[Zetalpa, Primal Dawn] (DEAL_DAMAGE) (4, 175) | branch: DAMAGE card:80[Ancestor Dragon] by card:25[Zetalpa, Primal Dawn] (DEAL_DAMAGE) (2, 175)
+  FDN_79 [division] row 286 main: DAMAGE card:19[Aegis Turtle] by card:81[Marauding Blight-Priest] (DEAL_DAMAGE) (1, 89) | branch: DAMAGE card:120[Cat] by card:81[Marauding Blight-Priest] (DEAL_DAMAGE) (1, 89)
+  FDN_81 [trample over] row 291 main: DAMAGE card:110[Diamond Mare] by card:52[Gnarlback Rhino] (DEAL_DAMAGE) (4, 107) | branch: DAMAGE card:110[Diamond Mare] by card:52[Gnarlback Rhino] (DEAL_DAMAGE) (3, 107)
+  FDN_82 [division] row 385 main: DAMAGE card:74[Storm Fleet Spy] by card:59[Ghalta, Primal Hunger] (DEAL_DAMAGE) (4, 141) | branch: DAMAGE card:74[Storm Fleet Spy] by card:59[Ghalta, Primal Hunger] (DEAL_DAMAGE) (2, 141)
+  FDN_85 [division] row 329 main: DAMAGE card:12[Diregraf Ghoul] by card:83[Spinner of Souls] (DEAL_DAMAGE) (2, 108) | branch: DAMAGE card:12[Diregraf Ghoul] by card:83[Spinner of Souls] (DEAL_DAMAGE) (1, 108)
+  FDN_87 [same play] ask main: order:card:9:0:13 -> 0 | branch: divide:card:71:card:9:13 -> 1
+  FDN_90 [same play] ask main: order:card:100:0:18 -> 0 | branch: divide:card:41:card:100:18 -> 1
+  FDN_91 [division] row 321 main: DAMAGE card:22[Dragonlord's Servant] by card:64[Suspicious Shambler] (DEAL_DAMAGE) (3, 111) | branch: DAMAGE card:54[Goblin Smuggler] by card:64[Suspicious Shambler] (DEAL_DAMAGE) (2, 111)
+  FDN_94 [division] row 176 main: DAMAGE card:11[Gleaming Barrier] by card:106[Nullpriest of Oblivion] (DEAL_DAMAGE) (2, 61) | branch: DAMAGE card:23[Goblin Boarders] by card:106[Nullpriest of Oblivion] (DEAL_DAMAGE) (2, 61)
+  FDN_95 [trample over] row 262 main: DAMAGE card:22[Diamond Mare] by card:90[Ghalta, Primal Hunger] (DEAL_DAMAGE) (15, 91) | branch: DAMAGE card:22[Diamond Mare] by card:90[Ghalta, Primal Hunger] (DEAL_DAMAGE) (4, 91)
+  FDN_97 [division] row 442 main: DAMAGE card:80[Dauntless Veteran] by card:53[Aggressive Mammoth] (DEAL_DAMAGE) (4, 168) | branch: DAMAGE card:80[Dauntless Veteran] by card:53[Aggressive Mammoth] (DEAL_DAMAGE) (2, 168)
+  FDN_98 [division] row 352 main: DAMAGE card:37[Gleaming Barrier] by card:71[Fire Elemental] (DEAL_DAMAGE) (1, 118) | branch: DAMAGE card:121[Dog] by card:71[Fire Elemental] (DEAL_DAMAGE) (1, 118)
+  FDN_99 [division] row 362 main: DAMAGE card:26[Exclusion Mage] by card:102[Cathar Commando] (DEAL_DAMAGE) (2, 141) | branch: DAMAGE card:36[Bigfin Bouncer] by card:102[Cathar Commando] (DEAL_DAMAGE) (2, 141)
+  FDN_101 [division] row 248 main: DAMAGE card:20[Diamond Mare] by card:85[Druid of the Cowl] (DEAL_DAMAGE) (1, 91) | branch: DAMAGE card:44[Wildwood Scourge] by card:85[Druid of the Cowl] (DEAL_DAMAGE) (1, 91)
+  FDN_102 [division] row 450 main: DAMAGE card:10[Quakestrider Ceratops] by card:99[Thornweald Archer] (DEAL_DAMAGE) (1, 162) | branch: DAMAGE card:10[Quakestrider Ceratops] by card:99[Thornweald Archer] (DEAL_DAMAGE) (7, 162)
+  FDN_103 [division] row 345 main: DAMAGE card:5[Dauntless Veteran] by card:112[Gnarlback Rhino] (DEAL_DAMAGE) (2, 124) | branch: DAMAGE card:20[Magnigoth Sentry] by card:112[Gnarlback Rhino] (DEAL_DAMAGE) (4, 124)
+  FDN_104 [same play] ask main: order:card:0:0:15 -> 0 | branch: divide:card:75:card:0:15 -> 3
+  FDN_108 [division] row 304 main: DAMAGE card:24[Felidar Savior] by card:79[Skeleton Archer] (DEAL_DAMAGE) (1, 114) | branch: DAMAGE card:24[Felidar Savior] by card:79[Skeleton Archer] (DEAL_DAMAGE) (3, 114)
+  FDN_109 [division] row 308 main: DAMAGE card:71[Llanowar Elves] by card:57[Tajuru Pathwarden] (DEAL_DAMAGE) (3, 92) | branch: DAMAGE card:71[Llanowar Elves] by card:57[Tajuru Pathwarden] (DEAL_DAMAGE) (1, 92)
+  FDN_111 [same play] ask main: order:card:113:0:18 -> 0 | branch: divide:card:11:card:113:18 -> 2
+  FDN_112 [same play] ask main: order:card:58:0:17 -> 0 | branch: divide:card:81:card:58:17 -> 1
+  FDN_114 [division] row 231 main: DAMAGE card:69[Aegis Turtle] by card:34[Volley Veteran] (DEAL_DAMAGE) (2, 79) | branch: DAMAGE card:69[Aegis Turtle] by card:34[Volley Veteran] (DEAL_DAMAGE) (1, 79)
+  FDN_116 [division] row 357 main: DAMAGE card:0[Aegis Turtle] by card:67[Raging Redcap] (DEAL_DAMAGE) (1, 95) | branch: DAMAGE card:16[Mystic Archaeologist] by card:67[Raging Redcap] (DEAL_DAMAGE) (1, 95)
+  FDN_117 [division] row 364 main: DAMAGE card:30[Dragonlord's Servant] by card:112[Volley Veteran] (DEAL_DAMAGE) (3, 143) | branch: DAMAGE card:30[Dragonlord's Servant] by card:112[Volley Veteran] (DEAL_DAMAGE) (2, 143)
+  FDN_118 [same play] ask main: order:card:32:0:17 -> 0 | branch: divide:card:101:card:32:17 -> 1
+  FDN_123 [division] row 336 main: DAMAGE card:74[Spectral Sailor] by card:5[Ghalta, Primal Hunger] (DEAL_DAMAGE) (10, 137) | branch: DAMAGE card:74[Spectral Sailor] by card:5[Ghalta, Primal Hunger] (DEAL_DAMAGE) (1, 137)
+  FDN_126 [same play] ask main: order:card:83:0:14 -> 0 | branch: divide:card:13:card:83:14 -> 2
+  FDN_128 [division] row 339 main: DAMAGE card:0[Dawnwing Marshal] by card:87[Druid of the Cowl] (DEAL_DAMAGE) (1, 118) | branch: DAMAGE card:9[Vampire Spawn] by card:87[Druid of the Cowl] (DEAL_DAMAGE) (1, 118)
+  FDN_130 [division] row 291 main: DAMAGE card:15[Elementalist Adept] by card:102[Solemn Simulacrum] (DEAL_DAMAGE) (1, 101) | branch: DAMAGE card:15[Elementalist Adept] by card:102[Solemn Simulacrum] (DEAL_DAMAGE) (3, 101)
+  FDN_132 [same play] ask main: order:card:22:0:13 -> 0 | branch: divide:card:64:card:22:13 -> 1
+  FDN_134 [division] row 507 main: DAMAGE card:87[Imperious Perfect] by card:29[Bigfin Bouncer] (DEAL_DAMAGE) (2, 183) | branch: DAMAGE card:87[Imperious Perfect] by card:29[Bigfin Bouncer] (DEAL_DAMAGE) (1, 183)
+  FDN_137 [division] row 366 main: DAMAGE card:65[Wildwood Scourge] by card:23[Ball Lightning] (DEAL_DAMAGE) (4, 119) | branch: DAMAGE card:65[Wildwood Scourge] by card:23[Ball Lightning] (DEAL_DAMAGE) (2, 119)
+  FDN_138 [division] row 290 main: DAMAGE card:63[Wildwood Scourge] by card:2[Diregraf Ghoul] (DEAL_DAMAGE) (2, 94) | branch: DAMAGE card:110[Marauding Blight-Priest] by card:2[Diregraf Ghoul] (DEAL_DAMAGE) (2, 94)
+  FDN_139 [same play] ask main: order:card:22:0:15 -> 0 | branch: divide:card:71:card:22:15 -> 4
+  FDN_141 [division] row 225 main: DAMAGE card:13[Raging Redcap] by card:99[Druid of the Cowl] (DEAL_DAMAGE) (1, 80) | branch: DAMAGE card:33[Swab Goblin] by card:99[Druid of the Cowl] (DEAL_DAMAGE) (1, 80)
+  FDN_145 [same play] ask main: order:card:61:0:18 -> 0 | branch: divide:card:15:card:61:18 -> 1
+  FDN_146 [division] row 639 main: DAMAGE card:23[Llanowar Elves] by card:60[Swab Goblin] (DEAL_DAMAGE) (1, 236) | branch: DAMAGE card:44[Elementalist Adept] by card:60[Swab Goblin] (DEAL_DAMAGE) (2, 236)
+  FDN_147 [division] row 711 main: DAMAGE card:63[Diamond Mare] by card:37[Aggressive Mammoth] (DEAL_DAMAGE) (6, 270) | branch: DAMAGE card:63[Diamond Mare] by card:37[Aggressive Mammoth] (DEAL_DAMAGE) (3, 270)
+  FDN_149 [same play] ask main: order:card:69:0:18 -> 0 | branch: divide:card:24:card:69:18 -> 3
+  FDN_150 [division] row 445 main: DAMAGE card:12[Mystic Archaeologist] by card:109[Spinner of Souls] (DEAL_DAMAGE) (1, 157) | branch: DAMAGE card:36[Exclusion Mage] by card:109[Spinner of Souls] (DEAL_DAMAGE) (2, 157)
+  FDN_156 [trample over] row 211 main: DAMAGE card:82[Storm Fleet Spy] by card:2[Brazen Scourge] (DEAL_DAMAGE) (3, 84) | branch: DAMAGE card:82[Storm Fleet Spy] by card:2[Brazen Scourge] (DEAL_DAMAGE) (2, 84)
+  FDN_158 [same play] ask main: order:card:25:0:17 -> 0 | branch: divide:card:85:card:25:17 -> 4
+  FDN_160 [same play] ask main: order:card:68:0:16 -> 0 | branch: divide:card:120:card:68:16 -> 1
+  FDN_166 [division] row 428 main: DAMAGE card:0[Diamond Mare] by card:86[Thornweald Archer] (DEAL_DAMAGE) (1, 153) | branch: DAMAGE card:15[Goblin Boarders] by card:86[Thornweald Archer] (DEAL_DAMAGE) (1, 153)
+  FDN_167 [same play] ask main: order:card:90:0:16 -> 0 | branch: divide:card:7:card:90:16 -> 4
+  FDN_169 [division] row 314 main: DAMAGE card:5[Fierce Empath] by card:78[Scavenging Ooze] (DEAL_DAMAGE) (1, 102) | branch: DAMAGE card:5[Fierce Empath] by card:78[Scavenging Ooze] (DEAL_DAMAGE) (2, 102)
+  FDN_171 [trample over] row 310 main: DAMAGE card:51[Helpful Hunter] by card:88[Goblin Boarders] (DEAL_DAMAGE) (4, 110) | branch: DAMAGE card:51[Helpful Hunter] by card:88[Goblin Boarders] (DEAL_DAMAGE) (1, 110)
+  FDN_172 [division] row 358 main: DAMAGE card:106[Searslicer Goblin] by card:54[Aggressive Mammoth] (DEAL_DAMAGE) (3, 123) | branch: DAMAGE card:106[Searslicer Goblin] by card:54[Aggressive Mammoth] (DEAL_DAMAGE) (1, 123)
+  FDN_173 [division] row 416 main: DAMAGE card:5[Wildwood Scourge] by card:103[Bear Cub] (DEAL_DAMAGE) (2, 156) | branch: DAMAGE card:5[Wildwood Scourge] by card:103[Bear Cub] (DEAL_DAMAGE) (1, 156)
+  FDN_176 [division] row 407 main: DAMAGE card:9[Scavenging Ooze] by card:116[Elvish Regrower] (DEAL_DAMAGE) (2, 160) | branch: DAMAGE card:27[Rapacious Dragon] by card:116[Elvish Regrower] (DEAL_DAMAGE) (3, 160)
+  FDN_177 [division] row 419 main: DAMAGE card:83[Ajani's Pridemate] by card:0[Gigantosaurus] (DEAL_DAMAGE) (6, 138) | branch: DAMAGE card:83[Ajani's Pridemate] by card:0[Gigantosaurus] (DEAL_DAMAGE) (3, 138)
+  FDN_178 [division] row 385 main: DAMAGE card:94[Swab Goblin] by card:2[Spinner of Souls] (DEAL_DAMAGE) (2, 139) | branch: DAMAGE card:94[Swab Goblin] by card:2[Spinner of Souls] (DEAL_DAMAGE) (3, 139)
+  FDN_179 [same play] ask main: order:card:94:0:18 -> 0 | branch: divide:card:34:card:94:18 -> 1
+  FDN_180 [division] row 141 main: DAMAGE card:31[Gleaming Barrier] by card:62[Ajani's Pridemate] (DEAL_DAMAGE) (2, 57) | branch: DAMAGE card:48[Diamond Mare] by card:62[Ajani's Pridemate] (DEAL_DAMAGE) (2, 57)
+  FDN_183 [division] row 168 main: DAMAGE card:63[Gleaming Barrier] by card:8[Diamond Mare] (DEAL_DAMAGE) (1, 67) | branch: DAMAGE card:72[Imperious Perfect] by card:8[Diamond Mare] (DEAL_DAMAGE) (1, 67)
+  FDN_184 [same play] ask main: order:card:95:0:20 -> 0 | branch: divide:card:120:card:95:20 -> 4
+  FDN_185 [same play] ask main: order:card:65:0:16 -> 0 | branch: divide:card:11:card:65:16 -> 4
+  FDN_186 [division] row 323 main: DAMAGE card:85[Battle-Rattle Shaman] by card:37[Tajuru Pathwarden] (DEAL_DAMAGE) (2, 113) | branch: DAMAGE card:85[Battle-Rattle Shaman] by card:37[Tajuru Pathwarden] (DEAL_DAMAGE) (1, 113)
+  FDN_193 [same play] ask main: order:card:84:0:20 -> 0 | branch: divide:card:41:card:84:20 -> 1
+  FDN_195 [same play] ask main: order:card:74:0:14 -> 0 | branch: divide:card:19:card:74:14 -> 1
+  FDN_197 [division] row 388 main: DAMAGE card:84[Imperious Perfect] by card:53[Maalfeld Twins] (DEAL_DAMAGE) (2, 129) | branch: DAMAGE card:84[Imperious Perfect] by card:53[Maalfeld Twins] (DEAL_DAMAGE) (3, 129)
+  FDN_199 [same play] ask main: order:card:65:0:16 -> 0 | branch: divide:card:6:card:65:16 -> 3
+  M20_1 [Leafkin Druid] row 315 main: TAP_STATE card:11[Island] by card:11[Island] (TAP) (True,) | branch: TAP_STATE card:50[Mountain] by card:50[Mountain] (TAP) (True,)
+  M20_7 [division] row 421 main: DAMAGE card:81[Salvager of Ruin] by card:54[Ironroot Warlord] (DEAL_DAMAGE) (1, 136) | branch: DAMAGE card:81[Salvager of Ruin] by card:54[Ironroot Warlord] (DEAL_DAMAGE) (2, 136)
+  M20_9 [same play] ask main: order:card:43:0:13 -> 0 | branch: divide:card:84:card:43:13 -> 2
+  M20_15 [division] row 263 main: DAMAGE card:66[Savannah Sage] by card:50[Stone Golem] (DEAL_DAMAGE) (2, 102) | branch: DAMAGE card:66[Savannah Sage] by card:50[Stone Golem] (DEAL_DAMAGE) (3, 102)
+  M20_18 [same play] ask main: (end) | branch: (end)
+  M20_19 [same play] ask main: order:card:14:0:23 -> 0 | branch: divide:card:81:card:14:23 -> 1
+  M20_20 [same play] ask main: order:card:89:0:18 -> 0 | branch: divide:card:5:card:89:18 -> 2
+  M20_23 [division] row 113 main: DAMAGE card:42[Canopy Spider] by card:120[?] (DEAL_DAMAGE) (1, 45) | branch: DAMAGE card:56[Greenwood Sentinel] by card:120[?] (DEAL_DAMAGE) (1, 45)
+  M20_24 [trample over] row 170 main: DAMAGE card:13[Steadfast Sentry] by card:87[Voracious Hydra] (DEAL_DAMAGE) (4, 66) | branch: DAMAGE card:13[Steadfast Sentry] by card:87[Voracious Hydra] (DEAL_DAMAGE) (2, 66)
+  M20_25 [same play] ask main: order:card:90:0:16 -> 0 | branch: divide:card:41:card:90:16 -> 1
+  M20_33 [division] row 301 main: DAMAGE card:65[Stone Golem] by card:17[Feral Abomination] (DEAL_DAMAGE) (1, 115) | branch: DAMAGE card:65[Stone Golem] by card:17[Feral Abomination] (DEAL_DAMAGE) (4, 115)
+  M20_34 [division] row 336 main: DAMAGE card:12[Thicket Crasher] by card:83[Frilled Sea Serpent] (DEAL_DAMAGE) (4, 126) | branch: DAMAGE card:12[Thicket Crasher] by card:83[Frilled Sea Serpent] (DEAL_DAMAGE) (1, 126)
+  M20_36 [division] row 327 main: DAMAGE card:32[Yarok's Fenlurker] by card:105[Stone Golem] (DEAL_DAMAGE) (1, 117) | branch: DAMAGE card:45[Goblin Ringleader] by card:105[Stone Golem] (DEAL_DAMAGE) (2, 117)
+  M20_37 [division] row 380 main: DAMAGE card:93[Creeping Trailblazer] by card:36[Yarok's Wavecrasher] (DEAL_DAMAGE) (2, 140) | branch: DAMAGE card:112[Sage's Row Denizen] by card:36[Yarok's Wavecrasher] (DEAL_DAMAGE) (3, 140)
+  M20_45 [trample over] row 348 main: DAMAGE card:26[Marauding Raptor] by card:96[Silverback Shaman] (DEAL_DAMAGE) (5, 122) | branch: DAMAGE card:26[Marauding Raptor] by card:96[Silverback Shaman] (DEAL_DAMAGE) (3, 122)
+  M20_47 [division] row 351 main: DAMAGE card:42[Bishop of Wings] by card:75[Pack Mastiff] (DEAL_DAMAGE) (2, 102) | branch: DAMAGE card:42[Bishop of Wings] by card:75[Pack Mastiff] (DEAL_DAMAGE) (1, 102)
+  M20_50 [same play] ask main: order:card:102:0:26 -> 0 | branch: divide:card:54:card:102:26 -> 1
+  M20_53 [trample over] row 243 main: DAMAGE card:21[Ember Hauler] by card:82[Voracious Hydra] (DEAL_DAMAGE) (4, 67) | branch: DAMAGE card:21[Ember Hauler] by card:82[Voracious Hydra] (DEAL_DAMAGE) (2, 67)
+  M20_54 [division] row 213 main: DAMAGE card:2[Frost Lynx] by card:65[Fortress Crab] (DEAL_DAMAGE) (1, 85) | branch: DAMAGE card:49[Wildfire Elemental] by card:65[Fortress Crab] (DEAL_DAMAGE) (1, 85)
+  M20_58 [division] row 529 main: DAMAGE card:68[Steadfast Sentry] by card:124[Soldier] (DEAL_DAMAGE) (1, 174) | branch: DAMAGE card:70[Dread Presence] by card:124[Soldier] (DEAL_DAMAGE) (1, 174)
+  M20_60 [trample over] row 428 main: DAMAGE card:57[Vorstclaw] by card:70[Aggressive Mammoth] (DEAL_DAMAGE) (8, 168) | branch: DAMAGE card:57[Vorstclaw] by card:70[Aggressive Mammoth] (DEAL_DAMAGE) (7, 168)
+  M20_61 [Leafkin Druid] row 170 main: TAP_STATE card:17[Swiftwater Cliffs] by card:17[Swiftwater Cliffs] (TAP) (True,) | branch: TAP_STATE card:28[Wind-Scarred Crag] by card:28[Wind-Scarred Crag] (TAP) (True,)
+  M20_64 [division] row 317 main: DAMAGE card:48[Impassioned Orator] by card:70[Mammoth Spider] (DEAL_DAMAGE) (1, 115) | branch: DAMAGE card:49[Battalion Foot Soldier] by card:70[Mammoth Spider] (DEAL_DAMAGE) (1, 115)
+  M20_65 [same play] ask main: order:card:73:0:16 -> 0 | branch: divide:card:31:card:73:16 -> 1
+  M20_68 [Leafkin Druid] row 312 main: TURN_PHASE None by player:1 (TURN) ('COMBAT', player:1) | branch: TAP_STATE card:83[Tranquil Cove] by card:83[Tranquil Cove] (TAP) (True,)
+  M20_70 [Leafkin Druid] row 51 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:24[Thornwood Falls] by card:24[Thornwood Falls] (TAP) (True,)
+  M20_76 [trample over] row 232 main: DAMAGE card:51[Vivien's Crocodile] by card:88[Thicket Crasher] (DEAL_DAMAGE) (5, 81) | branch: DAMAGE card:51[Vivien's Crocodile] by card:88[Thicket Crasher] (DEAL_DAMAGE) (3, 81)
+  M20_78 [same play] ask main: order:card:38:0:15 -> 0 | branch: divide:card:72:card:38:15 -> 1
+  M20_81 [division] row 311 main: DAMAGE card:120[?] by card:108[Feral Abomination] (DEAL_DAMAGE) (1, 113) | branch: DAMAGE card:120[?] by card:108[Feral Abomination] (DEAL_DAMAGE) (3, 113)
+  M20_82 [same play] ask main: order:card:119:0:12 -> 0 | branch: divide:card:13:card:119:12 -> 2
+  M20_84 [division] row 284 main: DAMAGE card:81[Leafkin Druid] by card:39[Silverback Shaman] (DEAL_DAMAGE) (3, 112) | branch: DAMAGE card:81[Leafkin Druid] by card:39[Silverback Shaman] (DEAL_DAMAGE) (2, 112)
+  M20_86 [Leafkin Druid] row 164 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:23[Forest] by card:23[Forest] (TAP) (True,)
+  M20_87 [division] row 469 main: DAMAGE card:13[Salvager of Ruin] by card:117[Thirsting Bloodlord] (DEAL_DAMAGE) (1, 168) | branch: DAMAGE card:13[Salvager of Ruin] by card:117[Thirsting Bloodlord] (DEAL_DAMAGE) (2, 168)
+  M20_88 [Leafkin Druid] row 245 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:42[Island] by card:42[Island] (TAP) (True,)
+  M20_91 [Leafkin Druid] row 128 main: TAP_STATE card:43[Plains] by card:43[Plains] (TAP) (True,) | branch: TAP_STATE card:38[Forest] by card:38[Forest] (TAP) (True,)
+  M20_94 [same play] ask main: order:card:32:0:21 -> 0 | branch: divide:card:89:card:32:21 -> 4
+  M20_95 [same play] ask main: order:card:32:0:17 -> 0 | branch: divide:card:91:card:32:17 -> 3
+  M20_96 [division] row 359 main: DAMAGE card:13[Snapping Drake] by card:94[Keldon Raider] (DEAL_DAMAGE) (2, 119) | branch: DAMAGE card:13[Snapping Drake] by card:94[Keldon Raider] (DEAL_DAMAGE) (3, 119)
+  M20_101 [same play] ask main: order:card:35:0:17 -> 0 | branch: divide:card:103:card:35:17 -> 3
+  M20_102 [division] row 357 main: DAMAGE card:18[Greenwood Sentinel] by card:87[Sedge Scorpion] (DEAL_DAMAGE) (1, 108) | branch: DAMAGE card:42[Mammoth Spider] by card:87[Sedge Scorpion] (DEAL_DAMAGE) (1, 108)
+  M20_103 [same play] ask main: order:card:113:0:20 -> 0 | branch: divide:card:41:card:113:20 -> 2
+  M20_104 [Leafkin Druid] row 205 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:16[Swamp] by card:16[Swamp] (TAP) (True,)
+  M20_108 [division] row 313 main: DAMAGE card:4[Yoked Ox] by card:117[Stone Golem] (DEAL_DAMAGE) (4, 112) | branch: DAMAGE card:11[Apostle of Purifying Light] by card:117[Stone Golem] (DEAL_DAMAGE) (1, 112)
+  M20_112 [trample over] row 253 main: DAMAGE card:26[Barony Vampire] by card:92[Ethereal Elk] (DEAL_DAMAGE) (3, 82) | branch: DAMAGE card:26[Barony Vampire] by card:92[Ethereal Elk] (DEAL_DAMAGE) (2, 82)
+  M20_114 [division] row 608 main: DAMAGE card:73[Savage Gorger] by card:20[Rubblebelt Recluse] (DEAL_DAMAGE) (2, 230) | branch: DAMAGE card:73[Savage Gorger] by card:20[Rubblebelt Recluse] (DEAL_DAMAGE) (5, 230)
+  M20_116 [same play] ask main: order:card:54:0:15 -> 0 | branch: divide:card:63:card:54:15 -> 1
+  M20_117 [same play] ask main: order:card:1:0:15 -> 0 | branch: divide:card:75:card:1:15 -> 3
+  M20_121 [same play] ask main: order:card:44:0:19 -> 0 | branch: divide:card:75:card:44:19 -> 2
+  M20_122 [division] row 392 main: DAMAGE card:19[Inspiring Captain] by card:111[Frilled Sea Serpent] (DEAL_DAMAGE) (3, 150) | branch: DAMAGE card:19[Inspiring Captain] by card:111[Frilled Sea Serpent] (DEAL_DAMAGE) (2, 150)
+  M20_123 [Leafkin Druid] row 185 main: TAP_STATE card:7[Forest] by None (UNTAP_STEP) (False,) | branch: TAP_STATE card:11[Leafkin Druid] by card:11[Leafkin Druid] (TAP) (True,)
+  M20_125 [division] row 499 main: DAMAGE card:62[Prismite] by card:10[Hostile Minotaur] (DEAL_DAMAGE) (1, 148) | branch: DAMAGE card:62[Prismite] by card:10[Hostile Minotaur] (DEAL_DAMAGE) (2, 148)
+  M20_129 [same play] ask main: order:card:73:0:12 -> 0 | branch: divide:card:20:card:73:12 -> 1
+  M20_130 [division] row 497 main: DAMAGE card:88[Skyknight Vanguard] by card:54[Ethereal Elk] (DEAL_DAMAGE) (1, 166) | branch: DAMAGE card:105[Chandra's Embercat] by card:54[Ethereal Elk] (DEAL_DAMAGE) (1, 166)
+  M20_132 [division] row 415 main: DAMAGE card:79[Nimble Birdsticker] by card:13[Diamond Knight] (DEAL_DAMAGE) (2, 160) | branch: DAMAGE card:97[Barony Vampire] by card:13[Diamond Knight] (DEAL_DAMAGE) (2, 160)
+  M20_136 [Leafkin Druid] row 51 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:32[Temple of Mystery] by card:32[Temple of Mystery] (TAP) (True,)
+  M20_140 [same play] ask main: (end) | branch: (end)
+  M20_141 [trample over] row 413 main: DAMAGE card:120[?] by card:105[Silverback Shaman] (DEAL_DAMAGE) (5, 143) | branch: DAMAGE card:120[?] by card:105[Silverback Shaman] (DEAL_DAMAGE) (1, 143)
+  M20_144 [division] row 285 main: DAMAGE card:19[Chandra's Spitfire] by card:105[Fortress Crab] (DEAL_DAMAGE) (1, 100) | branch: DAMAGE card:39[Rapacious Dragon] by card:105[Fortress Crab] (DEAL_DAMAGE) (1, 100)
+  M20_145 [same play] ask main: (end) | branch: (end)
+  M20_147 [division] row 320 main: DAMAGE card:70[Walking Corpse] by card:45[Silverback Shaman] (DEAL_DAMAGE) (2, 115) | branch: DAMAGE card:88[Dread Presence] by card:45[Silverback Shaman] (DEAL_DAMAGE) (3, 115)
+  M20_151 [division] row 387 main: DAMAGE card:69[Sorcerer of the Fang] by card:31[Rubblebelt Recluse] (DEAL_DAMAGE) (3, 129) | branch: DAMAGE card:69[Sorcerer of the Fang] by card:31[Rubblebelt Recluse] (DEAL_DAMAGE) (2, 129)
+  M20_153 [Leafkin Druid] row 52 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:58[Forest] by card:58[Forest] (TAP) (True,)
+  M20_161 [Leafkin Druid] row 234 main: TARGETING card:115[Feral Abomination] by card:67[Disentomb] (TARGET) (card:67[Disentomb], player:1) | branch: TAP_STATE card:90[Island] by card:90[Island] (TAP) (True,)
+  M20_162 [division] row 334 main: DAMAGE card:96[Feral Abomination] by card:5[Daybreak Chaplain] (DEAL_DAMAGE) (1, 127) | branch: DAMAGE card:104[Ironclad Krovod] by card:5[Daybreak Chaplain] (DEAL_DAMAGE) (1, 127)
+  M20_164 [division] row 230 main: DAMAGE card:65[Pack Mastiff] by card:38[Blood Burglar] (DEAL_DAMAGE) (2, 70) | branch: DAMAGE card:65[Pack Mastiff] by card:38[Blood Burglar] (DEAL_DAMAGE) (3, 70)
+  M20_165 [division] row 336 main: DAMAGE card:55[Starfield Mystic] by card:70[Imperial Outrider] (DEAL_DAMAGE) (1, 115) | branch: DAMAGE card:56[Starfield Mystic] by card:70[Imperial Outrider] (DEAL_DAMAGE) (1, 115)
+  M20_167 [division] row 280 main: DAMAGE card:63[Chandra's Embercat] by card:2[Prismite] (DEAL_DAMAGE) (2, 98) | branch: DAMAGE card:63[Chandra's Embercat] by card:2[Prismite] (DEAL_DAMAGE) (1, 98)
+  M20_170 [Leafkin Druid] row 242 main: TURN_PHASE None by player:0 (TURN) ('COMBAT', player:0) | branch: TAP_STATE card:56[Plains] by card:56[Plains] (TAP) (True,)
+  M20_175 [division] row 275 main: DAMAGE card:68[Sorcerer of the Fang] by card:44[Bishop of Wings] (DEAL_DAMAGE) (1, 78) | branch: DAMAGE card:103[Greenwood Sentinel] by card:44[Bishop of Wings] (DEAL_DAMAGE) (1, 78)
+  M20_176 [division] row 104 main: DAMAGE card:69[Leafkin Druid] by card:50[Sorcerer of the Fang] (DEAL_DAMAGE) (1, 40) | branch: DAMAGE card:75[Gravedigger] by card:50[Sorcerer of the Fang] (DEAL_DAMAGE) (1, 40)
+  M20_178 [Leafkin Druid] row 314 main: TAP_STATE card:82[Dismal Backwater] by card:82[Dismal Backwater] (TAP) (True,) | branch: TAP_STATE card:78[Swiftwater Cliffs] by card:78[Swiftwater Cliffs] (TAP) (True,)
+  M20_180 [division] row 218 main: DAMAGE card:110[Griffin Sentinel] by card:41[Sage's Row Denizen] (DEAL_DAMAGE) (2, 79) | branch: DAMAGE card:118[Griffin Protector] by card:41[Sage's Row Denizen] (DEAL_DAMAGE) (2, 79)
+  M20_181 [division] row 263 main: DAMAGE card:2[Pack Mastiff] by card:69[Silverback Shaman] (DEAL_DAMAGE) (2, 89) | branch: DAMAGE card:16[Dread Presence] by card:69[Silverback Shaman] (DEAL_DAMAGE) (3, 89)
+  M20_184 [division] row 394 main: DAMAGE card:75[Yoked Ox] by card:58[Barkhide Troll] (DEAL_DAMAGE) (3, 112) | branch: DAMAGE card:94[Yoked Ox] by card:58[Barkhide Troll] (DEAL_DAMAGE) (3, 112)
+  M20_186 [division] row 321 main: DAMAGE card:18[Voracious Hydra] by card:92[Dread Presence] (DEAL_DAMAGE) (1, 115) | branch: DAMAGE card:120[Wolf] by card:92[Dread Presence] (DEAL_DAMAGE) (3, 115)
+  M20_195 [same play] ask main: (end) | branch: (end)
+  M20_197 [same play] ask main: order:card:49:0:23 -> 0 | branch: divide:card:78:card:49:23 -> 2
+  M20_198 [division] row 206 main: DAMAGE card:60[Sage's Row Denizen] by card:40[Stone Golem] (DEAL_DAMAGE) (3, 83) | branch: DAMAGE card:60[Sage's Row Denizen] by card:40[Stone Golem] (DEAL_DAMAGE) (1, 83)
+  M21_0 [same play] ask main: order:card:120:0:15 -> 0 | branch: divide:card:67:card:120:15 -> 1
+  M21_3 [same play] ask main: order:card:14:0:19 -> 0 | branch: divide:card:67:card:14:19 -> 2
+  M21_6 [division] row 363 main: DAMAGE card:86[Igneous Cur] by card:22[Sigiled Contender] (DEAL_DAMAGE) (2, 99) | branch: DAMAGE card:107[Prismite] by card:22[Sigiled Contender] (DEAL_DAMAGE) (1, 99)
+  M21_7 [division] row 405 main: DAMAGE card:3[Heartfire Immolator] by card:118[Sporeweb Weaver] (DEAL_DAMAGE) (1, 132) | branch: DAMAGE card:22[Rambunctious Mutt] by card:118[Sporeweb Weaver] (DEAL_DAMAGE) (1, 132)
+  M21_9 [same play] ask main: order:card:72:0:18 -> 0 | branch: divide:card:20:card:72:18 -> 3
+  M21_10 [same play] ask main: order:card:95:0:20 -> 0 | branch: divide:card:27:card:95:20 -> 3
+  M21_22 [same play] ask main: order:card:23:0:19 -> 0 | branch: divide:card:86:card:23:19 -> 2
+  M21_23 [same play] ask main: order:card:114:0:32 -> 0 | branch: divide:card:15:card:114:32 -> 2
+  M21_24 [division] row 204 main: DAMAGE card:13[Onakke Ogre] by card:87[Pridemalkin] (DEAL_DAMAGE) (4, 65) | branch: DAMAGE card:13[Onakke Ogre] by card:87[Pridemalkin] (DEAL_DAMAGE) (2, 65)
+  M21_28 [division] row 368 main: DAMAGE card:7[Palladium Myr] by card:60[Daybreak Charger] (DEAL_DAMAGE) (2, 118) | branch: DAMAGE card:7[Palladium Myr] by card:60[Daybreak Charger] (DEAL_DAMAGE) (5, 118)
+  M21_33 [same play] ask main: order:card:66:0:14 -> 0 | branch: divide:card:38:card:66:14 -> 1
+  M21_35 [same play] ask main: order:card:49:0:19 -> 0 | branch: divide:card:62:card:49:19 -> 1
+  M21_37 [division] row 173 main: DAMAGE card:19[Speaker of the Heavens] by card:107[Alpine Watchdog] (DEAL_DAMAGE) (1, 65) | branch: DAMAGE card:25[Vito, Thorn of the Dusk Rose] by card:107[Alpine Watchdog] (DEAL_DAMAGE) (3, 65)
+  M21_38 [division] row 405 main: DAMAGE card:4[Seasoned Hallowblade] by card:84[Keral Keep Disciples] (DEAL_DAMAGE) (1, 129) | branch: DAMAGE card:4[Seasoned Hallowblade] by card:84[Keral Keep Disciples] (DEAL_DAMAGE) (3, 129)
+  M21_39 [division] row 238 main: DAMAGE card:51[Staunch Shieldmate] by card:76[Caged Zombie] (DEAL_DAMAGE) (2, 92) | branch: DAMAGE card:53[Concordia Pegasus] by card:76[Caged Zombie] (DEAL_DAMAGE) (2, 92)
+  M21_41 [107.1b] row 530 main: LIFE_LOST player:0 by card:6[Conclave Mentor] (GAIN_LIFE) (1,) | branch: LIFE_LOST player:0 by card:111[Massacre Wurm] (LOSE_LIFE) (2,)
+  M21_42 [division] row 323 main: DAMAGE card:68[Library Larcenist] by card:53[Canopy Stalker] (DEAL_DAMAGE) (2, 109) | branch: DAMAGE card:77[Vodalian Arcanist] by card:53[Canopy Stalker] (DEAL_DAMAGE) (1, 109)
+  M21_45 [same play] ask main: order:card:114:0:16 -> 0 | branch: divide:card:3:card:114:16 -> 2
+  M21_54 [same play] ask main: order:card:47:0:13 -> 0 | branch: divide:card:65:card:47:13 -> 1
+  M21_56 [same play] ask main: order:card:115:0:22 -> 0 | branch: divide:card:38:card:115:22 -> 2
+  M21_62 [division] row 289 main: DAMAGE card:50[Hobblefiend] by card:108[Trufflesnout] (DEAL_DAMAGE) (1, 106) | branch: DAMAGE card:50[Hobblefiend] by card:108[Trufflesnout] (DEAL_DAMAGE) (2, 106)
+  M21_66 [same play] ask main: order:card:8:0:11 -> 0 | branch: divide:card:86:card:8:11 -> 1
+  M21_69 [division] row 359 main: DAMAGE card:39[Falconer Adept] by card:81[Garruk's Gorehorn] (DEAL_DAMAGE) (3, 123) | branch: DAMAGE card:39[Falconer Adept] by card:81[Garruk's Gorehorn] (DEAL_DAMAGE) (5, 123)
+  M21_78 [same play] ask main: order:card:104:0:18 -> 0 | branch: divide:card:25:card:104:18 -> 3
+  M21_87 [division] row 494 main: DAMAGE card:43[Library Larcenist] by card:82[Solemn Simulacrum] (DEAL_DAMAGE) (1, 181) | branch: DAMAGE card:45[Skyscanner] by card:82[Solemn Simulacrum] (DEAL_DAMAGE) (1, 181)
+  M21_93 [division] row 427 main: DAMAGE card:8[Vito, Thorn of the Dusk Rose] by card:90[Blood Glutton] (DEAL_DAMAGE) (3, 137) | branch: DAMAGE card:38[Liliana's Devotee] by card:90[Blood Glutton] (DEAL_DAMAGE) (3, 137)
+  M21_100 [division] row 257 main: DAMAGE card:25[Jeskai Elder] by card:65[Spellgorger Weird] (DEAL_DAMAGE) (2, 89) | branch: DAMAGE card:51[Drowsing Tyrannodon] by card:65[Spellgorger Weird] (DEAL_DAMAGE) (2, 89)
+  M21_101 [same play] ask main: order:card:66:0:18 -> 0 | branch: divide:card:34:card:66:18 -> 1
+  M21_105 [division] row 272 main: DAMAGE card:96[Liliana's Steward] by card:9[Colossal Dreadmaw] (DEAL_DAMAGE) (5, 94) | branch: DAMAGE card:96[Liliana's Steward] by card:9[Colossal Dreadmaw] (DEAL_DAMAGE) (2, 94)
+  M21_109 [division] row 363 main: DAMAGE card:75[Scavenging Ooze] by card:12[Sabertooth Mauler] (DEAL_DAMAGE) (2, 136) | branch: DAMAGE card:100[Liliana's Devotee] by card:12[Sabertooth Mauler] (DEAL_DAMAGE) (3, 136)
+  M21_111 [division] row 268 main: DAMAGE card:15[Speaker of the Heavens] by card:112[Wildwood Patrol] (DEAL_DAMAGE) (2, 94) | branch: DAMAGE card:15[Speaker of the Heavens] by card:112[Wildwood Patrol] (DEAL_DAMAGE) (1, 94)
+  M21_113 [same play] ask main: order:card:118:0:14 -> 0 | branch: divide:card:2:card:118:14 -> 1
+  M21_114 [same play] ask main: order:card:10:0:15 -> 0 | branch: divide:card:83:card:10:15 -> 2
+  M21_115 [division] row 352 main: DAMAGE card:94[Wall of Runes] by card:46[Historian of Zhalfir] (DEAL_DAMAGE) (4, 91) | branch: DAMAGE card:94[Wall of Runes] by card:46[Historian of Zhalfir] (DEAL_DAMAGE) (2, 91)
+  M21_117 [trample over] row 380 main: DAMAGE card:98[Chandra's Pyreling] by card:43[Elder Gargaroth] (DEAL_DAMAGE) (6, 138) | branch: DAMAGE card:98[Chandra's Pyreling] by card:43[Elder Gargaroth] (DEAL_DAMAGE) (3, 138)
+  M21_118 [division] row 399 main: DAMAGE card:65[Wildwood Scourge] by card:58[Elder Gargaroth] (DEAL_DAMAGE) (4, 129) | branch: DAMAGE card:65[Wildwood Scourge] by card:58[Elder Gargaroth] (DEAL_DAMAGE) (1, 129)
+  M21_120 [division] row 418 main: DAMAGE card:11[Vodalian Arcanist] by card:107[Rambunctious Mutt] (DEAL_DAMAGE) (3, 164) | branch: DAMAGE card:29[Pitchburn Devils] by card:107[Rambunctious Mutt] (DEAL_DAMAGE) (1, 164)
+  M21_125 [division] row 365 main: DAMAGE card:6[Selfless Savior] by card:83[Predatory Wurm] (DEAL_DAMAGE) (1, 110) | branch: DAMAGE card:20[Falconer Adept] by card:83[Predatory Wurm] (DEAL_DAMAGE) (3, 110)
+  M21_129 [same play] ask main: order:card:45:0:13 -> 0 | branch: divide:card:89:card:45:13 -> 1
+  M21_131 [division] row 367 main: DAMAGE card:13[Keen Glidemaster] by card:105[Solemn Simulacrum] (DEAL_DAMAGE) (1, 128) | branch: DAMAGE card:40[Deathbloom Thallid] by card:105[Solemn Simulacrum] (DEAL_DAMAGE) (2, 128)
+  M21_134 [same play] ask main: order:card:67:0:20 -> 0 | branch: divide:card:29:card:67:20 -> 1
+  M21_137 [trample over] row 349 main: DAMAGE card:30[Speaker of the Heavens] by card:88[Wildwood Patrol] (DEAL_DAMAGE) (4, 94) | branch: DAMAGE card:30[Speaker of the Heavens] by card:88[Wildwood Patrol] (DEAL_DAMAGE) (1, 94)
+  M21_139 [same play] ask main: order:card:97:0:18 -> 0 | branch: divide:card:22:card:97:18 -> 4
+  M21_148 [division] row 370 main: DAMAGE card:62[Anointed Chorister] by card:23[Wildwood Patrol] (DEAL_DAMAGE) (1, 113) | branch: DAMAGE card:101[Predatory Wurm] by card:23[Wildwood Patrol] (DEAL_DAMAGE) (4, 113)
+  M21_150 [division] row 321 main: DAMAGE card:20[Jeskai Elder] by card:103[Chandra's Incinerator] (DEAL_DAMAGE) (4, 114) | branch: DAMAGE card:20[Jeskai Elder] by card:103[Chandra's Incinerator] (DEAL_DAMAGE) (2, 114)
+  M21_151 [division] row 370 main: DAMAGE card:67[Vodalian Arcanist] by card:48[Garruk's Warsteed] (DEAL_DAMAGE) (3, 114) | branch: DAMAGE card:81[Walking Corpse] by card:48[Garruk's Warsteed] (DEAL_DAMAGE) (2, 114)
+  M21_153 [division] row 323 main: DAMAGE card:12[Skyway Sniper] by card:119[Chandra's Incinerator] (DEAL_DAMAGE) (5, 125) | branch: DAMAGE card:12[Skyway Sniper] by card:119[Chandra's Incinerator] (DEAL_DAMAGE) (2, 125)
+  M21_154 [trample over] row 394 main: DAMAGE card:43[Tempered Veteran] by card:104[Battle-Rattle Shaman] (DEAL_DAMAGE) (5, 131) | branch: DAMAGE card:43[Tempered Veteran] by card:104[Battle-Rattle Shaman] (DEAL_DAMAGE) (2, 131)
+  M21_156 [trample over] row 413 main: DAMAGE card:87[Bolt Hound] by card:51[Elder Gargaroth] (DEAL_DAMAGE) (6, 142) | branch: DAMAGE card:87[Bolt Hound] by card:51[Elder Gargaroth] (DEAL_DAMAGE) (2, 142)
+  M21_161 [division] row 378 main: DAMAGE card:65[Wall of Runes] by card:3[Storm Caller] (DEAL_DAMAGE) (3, 116) | branch: DAMAGE card:67[Pursued Whale] by card:3[Storm Caller] (DEAL_DAMAGE) (3, 116)
+  M21_165 [same play] ask main: order:card:115:0:20 -> 0 | branch: divide:card:20:card:115:20 -> 2
+  M21_168 [division] row 310 main: DAMAGE card:60[Skyway Sniper] by card:33[Historian of Zhalfir] (DEAL_DAMAGE) (2, 117) | branch: DAMAGE card:60[Skyway Sniper] by card:33[Historian of Zhalfir] (DEAL_DAMAGE) (1, 117)
+  M21_174 [division] row 335 main: DAMAGE card:83[Archfiend's Vessel] by card:13[Walking Corpse] (DEAL_DAMAGE) (1, 129) | branch: DAMAGE card:83[Archfiend's Vessel] by card:13[Walking Corpse] (DEAL_DAMAGE) (2, 129)
+  M21_179 [division] row 270 main: DAMAGE card:8[Selfless Savior] by card:73[Predatory Wurm] (DEAL_DAMAGE) (1, 94) | branch: DAMAGE card:23[Palladium Myr] by card:73[Predatory Wurm] (DEAL_DAMAGE) (2, 94)
+  M21_180 [division] row 599 main: DAMAGE card:13[Spirit of Malevolence] by card:99[Chrome Replicator] (DEAL_DAMAGE) (1, 220) | branch: DAMAGE card:28[Solemn Simulacrum] by card:99[Chrome Replicator] (DEAL_DAMAGE) (2, 220)
+  M21_183 [division] row 328 main: DAMAGE card:84[Scavenging Ooze] by card:8[Silversmote Ghoul] (DEAL_DAMAGE) (2, 124) | branch: DAMAGE card:84[Scavenging Ooze] by card:8[Silversmote Ghoul] (DEAL_DAMAGE) (1, 124)
+  M21_185 [division] row 193 main: DAMAGE card:103[Daybreak Charger] by card:3[Lorescale Coatl] (DEAL_DAMAGE) (1, 64) | branch: DAMAGE card:103[Daybreak Charger] by card:3[Lorescale Coatl] (DEAL_DAMAGE) (3, 64)
+  M21_186 [trample over] row 222 main: DAMAGE card:85[Liliana's Scrounger] by card:9[Garruk's Gorehorn] (DEAL_DAMAGE) (8, 84) | branch: DAMAGE card:85[Liliana's Scrounger] by card:9[Garruk's Gorehorn] (DEAL_DAMAGE) (2, 84)
+  M21_188 [same play] ask main: order:card:95:0:24 -> 0 | branch: divide:card:17:card:95:24 -> 3
+  M21_190 [same play] ask main: order:card:83:0:16 -> 0 | branch: divide:card:9:card:83:16 -> 2
+  M21_192 [division] row 184 main: DAMAGE card:17[Snarespinner] by card:104[Kinetic Augur] (DEAL_DAMAGE) (2, 74) | branch: DAMAGE card:50[Burlfist Oak] by card:104[Kinetic Augur] (DEAL_DAMAGE) (2, 74)
+  M21_195 [same play] ask main: order:card:3:0:15 -> 0 | branch: divide:card:72:card:3:15 -> 3
+  M21_198 [division] row 493 main: DAMAGE card:24[Concordia Pegasus] by card:103[Teferi's Protege] (DEAL_DAMAGE) (1, 187) | branch: DAMAGE card:54[Trufflesnout] by card:103[Teferi's Protege] (DEAL_DAMAGE) (1, 187)
+146 games: totals differ in 0

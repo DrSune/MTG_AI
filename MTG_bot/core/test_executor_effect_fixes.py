@@ -100,6 +100,127 @@ def leave_and_return(r, key):
     r.run_step({"op": "enter", "key": key})
 
 
+class TestANegativeNumberIsZero(unittest.TestCase):
+    """CR 107.1b: a calculation that yields a negative number for an effect gives 0 (engine wave
+    E2, from mapper M5: Halana and Alena at power -2 removed two counters where it puts none).
+    One place, selectors.effect_number, for every verb's number."""
+
+    def test_no_effect_does_a_negative_number_of_things(self):
+        from MTG_bot.core.ability_tree import QProp, QPropField
+
+        minus_two = QProp(referent="source", field=QPropField.POWER)  # "X is its power", at -2
+        target = Selector(QConst(1), SelectorMode.TARGET, UNIV, zones=(BF_ANY,))
+        for verb, roles in (
+            (Verb.PUT_COUNTER, (("count", minus_two), ("counter_kind", CounterKind.PLUS_1_PLUS_1),
+                                ("target", target))),
+            (Verb.REMOVE_COUNTER, (("count", minus_two),
+                                   ("counter_kind", CounterKind.PLUS_1_PLUS_1), ("target", target))),
+            (Verb.GAIN_LIFE, (("amount", minus_two), ("controller", ControllerRef.YOU))),
+            (Verb.LOSE_LIFE, (("amount", minus_two), ("controller", ControllerRef.YOU))),
+            (Verb.MODIFY_PT, (("power", PtDelta(PtDirection.DECREASE, minus_two)),
+                              ("target", target))),
+        ):
+            bear_ = bear("bear", 0)
+            bear_["counters"] = {"PLUS_1_PLUS_1": 3}
+            r = runner([bear_, {"key": "src", "name": "Weakling", "type": "Creature — Imp",
+                                "power": "0", "toughness": "3", "zone": "battlefield",
+                                "controller": 0}])
+            r.ex.execute(Atom(Verb.MODIFY_PT, AtomArgs((
+                ("power", PtDelta(PtDirection.DECREASE, QConst(2))), ("target", target)))),
+                source=r.handles["src"], controller=r.p0, bindings={"target": r.handles["src"]})
+            self.assertEqual(pt(r, "src"), (-2, 3))
+            before = (dict(r.world.cards[r.handles["bear"]].counters), pt(r, "bear"),
+                      r.world.players[r.p0].life)
+            r.ex.execute(Atom(verb, AtomArgs(roles)), source=r.handles["src"], controller=r.p0,
+                         bindings={"target": r.handles["bear"]})
+            after = (dict(r.world.cards[r.handles["bear"]].counters), pt(r, "bear"),
+                     r.world.players[r.p0].life)
+            self.assertEqual(after, before, verb.name)
+
+
+class TestTheDiscardingPlayerChooses(unittest.TestCase):
+    """CR 701.9b: the discarding player chooses. Engine wave E2, from mapper M3: a record's "each
+    opponent discards a card" (the plural controller role, Bad Deal's form with one card) was
+    lifted onto the asking ONE_OF channel by the canonicalizer, which asks the caster, over every
+    hand. It now stays the hand lane's pick (compiler._another_players_hand_pick)."""
+
+    def test_each_opponent_chooses_the_card_it_discards(self):
+        from MTG_bot.core.ability_tree import SpellAbility, SpellKind
+        from MTG_bot.core.compiler.compiler import _promote_liftable_picks
+
+        r = runner([bear("mine", 0, zone="hand"), bear("a", 1, zone="hand"), bear("b", 1, zone="hand"),
+                    {"key": "spell", "name": "Spell", "type": "Sorcery", "zone": "graveyard",
+                     "controller": 0}])
+        discard = Atom(Verb.MOVE_ZONE, AtomArgs((
+            ("cards", Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                               zones=(Zone(ZoneKind.HAND, ControllerRef.ANY),))),
+            ("controller", ControllerRef.OPPONENT),
+            ("destination", Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT)),
+            ("from", Zone(ZoneKind.HAND, ControllerRef.OPPONENT)),
+        )))
+        (spell,) = _promote_liftable_picks([SpellAbility(kind=SpellKind.SORCERY, effect=discard)], "Probe")
+        asked = []
+
+        def provider(vocab, what):
+            asked.append((what.split(":")[0], r.ex.decisions.asking_seat))
+            return vocab[-1]
+
+        r.ex.decisions.provider = provider
+        r.ex.apply_effect(spell.effect, source=r.handles["spell"], controller=r.p0)
+        self.assertEqual(asked, [("discard", r.p1)])
+        zones = {k: r.world.zone_of(r.handles[k]).kind for k in ("mine", "a", "b")}
+        self.assertEqual(zones, {"mine": "hand", "a": "hand", "b": "graveyard"})
+
+
+class TestPreventionScope(unittest.TestCase):
+    """Engine wave E2 (found mapping FDN Fleeting Flight, whose record rightly scopes its
+    prevention to its target): a prevention whose condition names neither the ability's targets
+    (IS_ANY_TARGET) nor what the instruction before it acted on (IS_RESULT) modifies the rules
+    (CR 611.2c), covering what its condition matches when the event happens. It was locked onto
+    the spell's targets, so a targeted spell's "creatures you control" protected its target only,
+    and the effect ended when that target left (``forget_departed``: Tectonic Rift's "Creatures
+    without flying can't block this turn" once a regenerated target land left)."""
+
+    def cast(self, r, prevention):
+        # "Target creature gets +1/+0 until end of turn. <prevention>": a constructed tree.
+        creature = FAtom(FAtomPred.TYPE_EQ, string_value="Creature")
+        pump = Atom(Verb.MODIFY_PT, AtomArgs((
+            ("duration", DurationEot()), ("power", PtDelta(PtDirection.INCREASE, QConst(1))),
+            ("target", Selector(QConst(1), SelectorMode.TARGET, creature, zones=(BF_ANY,))),
+        )))
+        r.ex.apply_effect(Seq(steps=(pump, prevention)), source=r.handles["spell"], controller=r.p0,
+                     bindings={"target": [r.handles["bear"]]})
+
+    def test_a_targeted_spell_prevents_damage_to_every_creature_its_condition_names(self):
+        r = runner([bear("bear", 0), bear("other", 0), bear("theirs", 1),
+                    {"key": "spell", "name": "Spell", "type": "Instant", "zone": "graveyard",
+                     "controller": 0}])
+        yours = FAnd((FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                      FAtom(FAtomPred.TYPE_EQ, string_value="Creature")))
+        self.cast(r, Atom(Verb.PREVENT_EFFECT, AtomArgs((
+            ("condition", yours), ("duration", DurationEot()),
+            ("event", DamageDealtEvent(amount=QUnbounded(), filter=yours)),
+        ))))
+        ctx = r.ex._ctx(source=r.handles["theirs"], controller=r.p1, bindings=None, decisions=())
+        prevented = {k: r.ex.replacements.prevented_card_damage(ctx, r.handles[k], combat=False)
+                     is not None for k in ("bear", "other", "theirs")}
+        self.assertEqual(prevented, {"bear": True, "other": True, "theirs": False})
+
+    def test_the_effect_stays_when_the_target_leaves(self):
+        r = runner([bear("bear", 0), bear("runner", 0), bear("giant", 1),
+                    {"key": "spell", "name": "Spell", "type": "Sorcery", "zone": "graveyard",
+                     "controller": 0}])
+        nonflyer = FAnd((FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                         FNot(FAtom(FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING))))
+        self.cast(r, Atom(Verb.PREVENT_EFFECT, AtomArgs((
+            ("condition", UNIV), ("duration", DurationEot()),
+            ("event", DeclareBlockersEvent(filter=nonflyer)),
+        ))))
+        r.run_step({"op": "move", "key": "bear", "to": "hand"})
+        self.assertTrue(r.ex.replacements.prevents_block_declaration(
+            r.handles["giant"], r.handles["runner"]))
+
+
 class TestCR4007NewObject(unittest.TestCase):
     def test_pump_does_not_follow_the_creature_back(self):
         # Titanic Growth: "Target creature gets +4/+4 until end of turn." Bounced and replayed

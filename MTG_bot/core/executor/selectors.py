@@ -1416,8 +1416,18 @@ def last_known_controller(ctx: ExecCtx, handle: Handle) -> Handle:
 
 
 def amount(ctx: ExecCtx, atom: Atom, role: str) -> int:
+    """An atom's number role (damage, life, cards, counters, mana, triggers): :func:`effect_number`."""
     quantity = atom.args.get(role)
     if quantity is None:
         raise ValueError(f"executor: {atom.verb.name} missing role {role!r}")
     assert isinstance(quantity, Quantity)
-    return resolve(quantity, ctx)
+    return effect_number(quantity, ctx)
+
+
+def effect_number(quantity: Quantity, ctx: ExecCtx) -> int:
+    """A number an effect uses (how much damage, life, how many cards, counters, tokens, turns):
+    CR 107.1b, a calculation that yields a negative number gives 0 (Halana and Alena at power -2
+    put no counter, never remove two). Its exceptions, an effect that doubles, triples or sets a
+    life total or a creature's power or toughness, read their quantity elsewhere (SET_PT, a
+    token's P/T); a comparison reads :func:`resolve` itself, negative values included."""
+    return max(0, resolve(quantity, ctx))

@@ -1,0 +1,26 @@
+{
+ "name": "colossus_hammer_then_an_aura_gives_flying_back",
+ "set": "M20",
+ "notes": "The twin of colossus_hammer_attached_after_an_aura_removes_its_flying, in the other order: the Hammer is equipped to the bear first, then Angelic Gift ('Enchanted creature has flying') enchants it. The Gift's flying has the later timestamp (CR 613.7e: the Aura's as it becomes attached), so it applies after the Hammer's loss and the bear flies: the ground 2/2 is never offered the block. Pins that the new timestamp on attaching is the Aura's too, not only the Equipment's.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "hand", "controller": 0},
+  {"key": "gift", "real": "Angelic Gift", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "lib", "name": "Library Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "grd", "name": "Ground Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 8, "W": 2}},
+ "steps": [
+  {"op": "enter", "key": "hammer"},
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "cast", "key": "gift", "real": "Angelic Gift", "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "attached": {"hammer": "bear", "gift": "bear"},
+  "power": {"bear": 12},
+  "not_asked_to_block": ["grd"],
+  "life": {"0": 20, "1": 8}
+ }
+}

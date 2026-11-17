@@ -1,0 +1,14 @@
+{
+ "name": "leafkin_druid_pays_from_the_menu",
+ "set": "M20",
+ "notes": "Bug hunt 2026-11-17 (hunt5). Mana abilities are no menu rows (2026-11-11): a cast is paid by the sources the engine taps (BACKLOG 'Automatic payment'). Leafkin Druid's '{T}: Add {G}. If you control four or more creatures, add {G}{G} instead.' is a Conditional, which the payer never priced, so the Druid made no mana in a real game; its packs had activated it directly. Controlling fewer than four creatures, it adds {G} and pays Sedge Scorpion ({G}): the menu offers the cast (the act op) and taps the Druid. Woodland Mystic's '{T}: Add {G}' always did (the control).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
+  {"key": "sc", "real": "Sedge Scorpion", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:sc"]}
+ ],
+ "expect": {"zone": {"sc": "battlefield"}, "tapped": {"druid": true}}
+}

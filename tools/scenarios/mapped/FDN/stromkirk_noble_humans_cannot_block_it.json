@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "stromkirk_noble_humans_cannot_block_it",
+ "notes": "M6 mapper. Printed: 'This creature can't be blocked by Humans. Whenever this creature deals combat damage to a player, put a +1/+1 counter on it.' The Noble attacks. Seat 1's Human Soldier has no legal block and is never asked; seat 1's Bear, not a Human, may block it, and does: the Noble (1/1) dies, deals no combat damage to a player, and gets no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "noble", "real": "Stromkirk Noble", "zone": "battlefield", "controller": 0},
+  {"key": "ohuman", "name": "Opp Guard", "type": "Creature — Human Soldier", "power": "1", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"noble": true}, "block": {"obear": "noble"}}
+ ],
+ "expect": {
+  "attackers": {"noble": true},
+  "not_asked_to_block": ["ohuman"],
+  "blocked": {"noble": ["obear"]},
+  "zone": {"noble": "graveyard", "obear": "battlefield"},
+  "damage": {"obear": 1},
+  "life": {"0": 20, "1": 20}
+ }
+}

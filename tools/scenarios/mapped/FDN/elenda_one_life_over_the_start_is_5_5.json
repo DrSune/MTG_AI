@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "elenda_one_life_over_the_start_is_5_5",
+ "notes": "M6 mapper. Printed: 'Lifelink ... As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has menace. Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.' Both players start at 20. Elenda (lifelink) deals 1 damage to seat 1's Wall (another effect's damage, Elenda its source): seat 0 gains 1, 21 life, one more than the start, so Elenda is 5/5; the +5/+5 needs 10 more.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elenda", "real": "Elenda, Saint of Dusk", "zone": "battlefield", "controller": 0},
+  {"key": "owall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "30", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "elenda", "target": "owall", "amount": 1}
+ ],
+ "expect": {
+  "life": {"0": 21, "1": 20},
+  "damage": {"owall": 1},
+  "power": {"elenda": 5},
+  "toughness": {"elenda": 5}
+ }
+}
