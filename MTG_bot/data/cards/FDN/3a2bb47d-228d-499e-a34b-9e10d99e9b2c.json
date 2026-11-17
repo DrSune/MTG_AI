@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3a2bb47d-228d-499e-a34b-9e10d99e9b2c",
+ "name": "Fog Bank",
+ "text_sha": "563a7154d5a085c08429c8c337afaf6482d3793b612805147d683ad5331c1cd2",
+ "needs_atom": {
+  "missing": "Prevention of combat damage dealt BY this creature ('Prevent all combat damage that would be dealt to and dealt by this creature'): the IR writes it as PREVENT_EFFECT over DamageDealtEvent(source=IS_SOURCE, combat=True), but the engine refuses a prevention with a source filter (replacements.prevented_card_damage raises 'damage-prevention source filter is later phase (C-4 damage surface)'; the probe of that draft raises in 4 variants), and its prevention lane reads card victims only, so combat damage this creature deals to a player would never be prevented. The 'dealt to' half maps today (PREVENT_EFFECT, condition IS_SOURCE, DamageDealtEvent(QUnbounded, filter=IS_SOURCE, combat=True), Pack Leader's form); Defender and Flying compile.",
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17"
+ }
+}

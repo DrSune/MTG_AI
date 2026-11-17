@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "kitesail_corsair_flies_only_while_attacking",
+ "notes": "M7 mapper. Printed: 'This creature has flying as long as it's attacking.' Seat 0's turn: Kitesail Corsair attacks; it has flying, so Opp Bear (ground) is never offered a block, while Opp Bird (flying) is offered it and declines; seat 1 takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "corsair", "real": "Kitesail Corsair", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "bird", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"corsair": true}, "block": {"bear": null, "bird": null}}
+ ],
+ "expect": {
+  "attackers": {"corsair": true},
+  "not_asked_to_block": ["bear"],
+  "block_asks": {"bird": "<corsair>,NONE"},
+  "life": {"1": 18}
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "name": "dropkick_bomber_grant_ends_with_the_turn",
+ "notes": "M7 mapper. Printed: '{R}: Until end of turn, another target Goblin you control gains flying and \"When this creature deals combat damage, sacrifice it.\"' Seat 0 activates on its Goblin Raider and does not attack. On seat 0's next turn both grants are gone: the Raider (2/2 with the anthem) attacks without flying, so Opp Ogre is offered the block (it declines); the Raider deals 2 combat damage to seat 1 and is not sacrificed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bomber", "real": "Dropkick Bomber", "zone": "battlefield", "controller": 0},
+  {"key": "raider", "name": "Goblin Raider", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "bomber", "idx": 1, "seat": 0, "targets": ["raider"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"raider": true, "bomber": false}, "block": {"ogre": null}}
+ ],
+ "expect": {
+  "attackers": {"raider": true},
+  "block_asks": {"ogre": "<raider>,NONE"},
+  "life": {"1": 18},
+  "zone": {"raider": "battlefield", "bomber": "battlefield"}
+ }
+}

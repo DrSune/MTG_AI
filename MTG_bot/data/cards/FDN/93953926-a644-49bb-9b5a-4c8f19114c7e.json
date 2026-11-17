@@ -1,0 +1,522 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "93953926-a644-49bb-9b5a-4c8f19114c7e",
+ "name": "Demolition Field",
+ "text_sha": "5dae1c4580b16c0c9f37ea12c6130ba4fea0c8dcfff1aefc942fa5d18a8d541d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ADD_MANA"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "color",
+        {
+         "tag": "String",
+         "value": "C"
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      },
+      {
+       "tag": "CostSacrifice",
+       "target": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "BATTLEFIELD"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "OPPONENT"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "SUPERTYPE_EQ"
+               },
+               "string_value": "Basic",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "EachPlayer",
+       "ref": {
+        "tag": "Selector",
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "mode": {
+         "tag": "SelectorMode",
+         "name": "CHOOSE"
+        },
+        "filter": {
+         "tag": "FAnd",
+         "children": []
+        },
+        "zones": [
+         {
+          "tag": "Zone",
+          "kind": {
+           "tag": "ZoneKind",
+           "name": "ANY"
+          },
+          "controller": {
+           "tag": "ControllerRef",
+           "name": "ANY"
+          }
+         }
+        ],
+        "referent": "target"
+       },
+       "effect": {
+        "tag": "OptionalEffect",
+        "inner": {
+         "tag": "Seq",
+         "steps": [
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SEARCH"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "cards",
+              {
+               "tag": "Selector",
+               "count": {
+                "tag": "QConst",
+                "value": 1
+               },
+               "mode": {
+                "tag": "SelectorMode",
+                "name": "CHOOSE"
+               },
+               "filter": {
+                "tag": "FAnd",
+                "children": [
+                 {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "SUPERTYPE_EQ"
+                  },
+                  "string_value": "Basic",
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 },
+                 {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "TYPE_EQ"
+                  },
+                  "string_value": "Land",
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 }
+                ]
+               },
+               "zones": [
+                {
+                 "tag": "Zone",
+                 "kind": {
+                  "tag": "ZoneKind",
+                  "name": "LIBRARY"
+                 },
+                 "controller": {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                }
+               ]
+              }
+             ],
+             [
+              "destination",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          },
+          {
+           "tag": "Atom",
+           "verb": {
+            "tag": "Verb",
+            "name": "SHUFFLE"
+           },
+           "args": {
+            "tag": "AtomArgs",
+            "pairs": [
+             [
+              "zone",
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "LIBRARY"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               }
+              }
+             ]
+            ]
+           }
+          }
+         ]
+        }
+       }
+      },
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "SEARCH"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "CHOOSE"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": [
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "SUPERTYPE_EQ"
+                 },
+                 "string_value": "Basic",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                },
+                {
+                 "tag": "FAtom",
+                 "pred": {
+                  "tag": "FAtomPred",
+                  "name": "TYPE_EQ"
+                 },
+                 "string_value": "Land",
+                 "color": null,
+                 "colors": [],
+                 "count": null,
+                 "counter_kind": null,
+                 "keyword": null,
+                 "who": null,
+                 "inner_filter": null
+                }
+               ]
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "LIBRARY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                }
+               }
+              ]
+             }
+            ],
+            [
+             "destination",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "SHUFFLE"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "zone",
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "LIBRARY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              }
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\n\n\ndef basic_land_search():\n    \"\"\"search their/your library for a basic land card, put it onto the battlefield, then shuffle\n    (YOU-relative: an EachPlayer rotates it to that land's controller).\"\"\"\n    return Seq(\n        steps=(\n            A(Verb.SEARCH, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            }),\n            A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n        ),\n    )\n\n\nTHAT_LANDS_CONTROLLER = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAnd(children=()),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='target',\n)\ndemolish = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(target=SELF))),\n    effect=Seq(\n        steps=(\n            A(Verb.DESTROY, {\n                'target': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.TARGET,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                            FNot(inner=FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic')),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            }),\n            EachPlayer(ref=THAT_LANDS_CONTROLLER, effect=OptionalEffect(inner=basic_land_search())),\n            OptionalEffect(inner=basic_land_search()),\n        ),\n    ),\n)\n# compiled: [0] {T}: Add {C}.\nabilities = [compiled[0], demolish]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Add {C}.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}, {T}, Sacrifice this land: Destroy target nonbasic land an opponent controls.",
+    "ir": "abilities[1].cost, abilities[1].effect.steps[0]"
+   },
+   {
+    "clause": "That land's controller may search their library for a basic land card, put it onto the battlefield, then shuffle.",
+    "ir": "abilities[1].effect.steps[1]"
+   },
+   {
+    "clause": "You may search your library for a basic land card, put it onto the battlefield, then shuffle.",
+    "ir": "abilities[1].effect.steps[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "'That land's controller' is EachPlayer(ref=Selector(referent='target')) (Transmogrify's form); the rotated player is asked its may (checked: seat 1 asked first). Packs: tools/scenarios/mapped/FDN/demolition_field_both_players_search.json, tools/scenarios/mapped/FDN/demolition_field_targets_only_opponents_nonbasic.json, tools/scenarios/mapped/FDN/demolition_field_both_decline.json."
+ },
+ "probe": {
+  "sha": "42285b1cc57bd12ad3b4173a6e3380d2582b0249fa5c29f90b7868f1a273d143"
+ }
+}
