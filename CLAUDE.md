@@ -12,8 +12,12 @@ play time, with the distillation parked (DECISIONS D21).
 
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
 
-**Running since 2026-11-17 20:21: r29** (`KNOWLEDGE/2026-11-14/208`, §9 the pre-launch record),
-its A/B first.
+**Nothing trains (2026-11-17, 22:25).** r29's first launch at 20:21 failed: neither arm wrote an
+update in 30 minutes (208 §10). Finished games never reached the training buffer. An agent is
+fixing the cause, and r29 relaunches after a GPU smoke reaches 2 updates. The relaunch uses the same
+queue, worktree and steps described below, from a new pinned commit.
+
+**r29** (`KNOWLEDGE/2026-11-14/208`, §9 the pre-launch record), its A/B first.
 - **How it runs.** The queue is the transient unit `mtg-r29`, from the worktree
   `/home/sune/Desktop/MTG_AI-r29`, pinned at launch commit c13165e9 (do not edit it).
   - Both pre-flights run first. Then arm A (`--p-self 0`), then arm B (`--p-self 0.55`), each

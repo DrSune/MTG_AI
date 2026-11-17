@@ -298,3 +298,27 @@ segment below:
   4, nine batches) resumes after the A/B.
 - **Smoke.** `start.sh`'s start and resume were smoked on main's code at 1fb4463f: CPU, 2 updates,
   then a resume to 3, with no refusal.
+
+## 10. Launch 1 failed (2026-11-17 20:21-22:25): no update in either arm
+
+**What happened.** The queue started at c13165e9, and both pre-flights passed. Neither arm then
+wrote an iter row.
+- **Arm A.** The learner refreshed its table (155 rows, 36 tokens) and froze v0. After that its
+  progress rows read `buffer 0 of 139264` for 30 minutes.
+- **The games.** 3,905 training games finished and were logged (`train_rows.jsonl`), but none of
+  their rows reached the buffer. Game ids ran to 35,068, against 3,905 finished.
+  - That is 2.2 games per second, against r28's about 8.
+  - The unit used 8h50m of CPU in those 30 minutes.
+- **The stops.** The progress check (§3, §8) ended arm A, then arm B, which did the same. The queue
+  went on to the reads with no snapshots. It was stopped by hand at 22:25, during B2's rating of
+  the init.
+
+**What it means.**
+- No r29 training update happened, so no r29 result exists. The registration stands, and the
+  relaunch is still before any data.
+- The failed attempt's directories are kept for the diagnosis, renamed with `_failed1`.
+- The cause is under investigation. The suspect is the release of finished games in issue order
+  (T1, 5411f386): a CPU smoke at small scale passed, and the GPU probe before T1 ran.
+- A relaunch needs:
+  - the fix, with a GPU smoke at r29's real flags that reaches 2 iter rows;
+  - fresh run directories.
