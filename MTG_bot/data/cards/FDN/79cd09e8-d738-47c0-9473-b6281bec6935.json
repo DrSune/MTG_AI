@@ -200,7 +200,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Choose(count 1): Burn Bright's +2/+0 until end of turn to creatures you control; Krenko's Command's two 1/1 red Goblins. The probe plays both modes."
+  "notes": "Choose(count 1): Burn Bright's +2/+0 until end of turn to creatures you control; Krenko's Command's two 1/1 red Goblins. The probe plays both modes. packs in tools/scenarios/mapped/FDN/: goblin_surprise_pump_locks_in_its_creatures (CR 611.2c)."
  },
  "probe": {
   "sha": "65fe288c575141615c1863bbeca914447e65c17873541f4bf7832b12806da13b"

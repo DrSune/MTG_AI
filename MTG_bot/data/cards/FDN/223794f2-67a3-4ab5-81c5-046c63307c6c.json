@@ -232,7 +232,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Choose(count 1): Liliana's Steward's TARGET_OPPONENT discard at Mind Rot's count 2; Beyeen Veil's opponents' creatures -1/-1 until end of turn. packs in tools/scenarios/mapped/FDN/: seekers_folly_opponent_chooses_two."
+  "notes": "Choose(count 1): Liliana's Steward's TARGET_OPPONENT discard at Mind Rot's count 2; Beyeen Veil's opponents' creatures -1/-1 until end of turn. packs in tools/scenarios/mapped/FDN/: seekers_folly_opponent_chooses_two, seekers_folly_shrink_locks_in_its_creatures (CR 611.2c)."
  },
  "probe": {
   "sha": "7420364bc1a4c2bd62a4c1f798d8a6c128d6eac5edc2fef4c25eb6713a409743"

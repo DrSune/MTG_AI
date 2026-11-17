@@ -287,7 +287,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Choose(count 1): Chandra's Magmutt's 'target player or planeswalker' (4); Heroic Intervention's INDESTRUCTIBLE grant over permanents you control; Gale Swooper's target grant with DOUBLE_STRIKE; all grants until end of turn. packs in tools/scenarios/mapped/FDN/: boros_charm_four_to_a_planeswalker."
+  "notes": "Choose(count 1): Chandra's Magmutt's 'target player or planeswalker' (4); Heroic Intervention's INDESTRUCTIBLE grant over permanents you control; Gale Swooper's target grant with DOUBLE_STRIKE; all grants until end of turn. packs in tools/scenarios/mapped/FDN/: boros_charm_four_to_a_planeswalker, boros_charm_indestructible_locks_in_its_permanents (CR 611.2c)."
  },
  "probe": {
   "sha": "52c04cb255c18f52cc9010c394012b3b445fbd5b900fc63e17366e9db0f82011"
