@@ -1,0 +1,22 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Grow from the Ashes (kicked), printed: 'search your library for two basic land cards, put them onto the battlefield, then shuffle.' Seat 0's library holds only ONE basic land (a Forest) and a nonbasic Jungle Hollow: the search finds the one there is (no crash, no second land, the Hollow is not taken), puts it onto the battlefield untapped, and the library is shuffled.",
+ "cards": [
+  {"key": "gfa", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "hollow", "real": "Jungle Hollow", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest"]}
+ ],
+ "expect": {
+  "zone": {"gfa": "graveyard", "forest": "battlefield", "hollow": "library"},
+  "tapped": {"forest": false},
+  "controller": {"forest": 0},
+  "kick_rows": {"gfa": {"kicked": true}},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Faebloom Trick, printed: 'Create two 1/1 blue Faerie creature tokens with flying. When you do, tap target creature an opponent controls.' The spell itself has no target: with no creature on the opponent's side it can still be cast and creates its two tokens (the reflexive trigger finds no target and is removed, CR 603.3d, 603.12). Seat 0's own creature is not a legal target and is not tapped.",
+ "cards": [
+  {"key": "trick", "real": "Faebloom Trick", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "trick", "real": "Faebloom Trick"}
+ ],
+ "expect": {
+  "zone": {"trick": "graveyard"},
+  "tokens": {"Faerie": 2},
+  "tapped": {"mine": false},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

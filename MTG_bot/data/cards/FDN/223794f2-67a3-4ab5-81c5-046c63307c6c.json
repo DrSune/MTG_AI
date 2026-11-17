@@ -236,5 +236,46 @@
  },
  "probe": {
   "sha": "7420364bc1a4c2bd62a4c1f798d8a6c128d6eac5edc2fef4c25eb6713a409743"
+ },
+ "verified": {
+  "tree_sha": "c5612ad0036ac80005f640c31d9f175d1fc3ca2fc16e636ff5e56e2b980ebd0b",
+  "probe_sha": "7420364bc1a4c2bd62a4c1f798d8a6c128d6eac5edc2fef4c25eb6713a409743",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "[cast modes=[0] targets=['opp']] shows only the discard; [cast modes=[1]] shows only the -1/-1: one mode per cast. Pack D05_2 (passes): it is a sorcery, refused on the opponent's turn ('window:not_your_turn').",
+    "issue": ""
+   },
+   {
+    "clause": "• Target opponent discards two cards.",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[0]): 1..1 of [opp]; events 'opp_spare moves hand -> graveyard (by card/MOVE_ZONE)' and 'opp_trick moves hand -> graveyard'; change 'opp: hand 2 -> 0'; my hand changes only by the spell. The probe's opponent holds exactly two cards, so the count and the chooser are not told apart there: pack D05_1 (passes) gives the opponent three cards, they choose which two go (B and C), A stays, exactly two are discarded and my own spare card stays. Pack D05_3 (passes): the discard ask is addressed to the opponent (player:1) and offers the opponent's cards, as CR 701.9b has it. Pack D05_5 (passes, three players): the caster picks one opponent (seat 2) and only that opponent discards; the other opponent keeps its hand.",
+    "issue": ""
+   },
+   {
+    "clause": "• Creatures your opponents control get -1/-1 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast modes=[1]] changes 'opp_bear: P/T 2/2 -> 1/1', 'opp_giant: 4/4 -> 3/3', 'opp_tapped: 3/3 -> 2/2', 'opp_flier: zone battlefield -> graveyard' (1/1 dies at 0 toughness); my creatures and relics unchanged; 'after the turn ends: opp_bear 1/1 -> 2/2, opp_giant 3/3 -> 4/4, opp_tapped 2/2 -> 3/3': wears off at end of turn. Pack D05_4 (passes, three players): both opponents' creatures get -1/-1, the caster's own does not.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/seeker's_folly_1.json",
+   "tools/scenarios/cards/FDN/seeker's_folly_2.json",
+   "tools/scenarios/cards/FDN/seeker's_folly_3.json",
+   "tools/scenarios/cards/FDN/seeker's_folly_4.json",
+   "tools/scenarios/cards/FDN/seeker's_folly_5.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "amount+1 at 1/0/effect/options/0/args/cards/count"
+   ]
+  }
  }
 }

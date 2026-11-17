@@ -1,0 +1,19 @@
+{
+ "name": "H04_corsair_captain_treasure_stays_until_used",
+ "set": "FDN",
+ "note": "Corsair Captain: one Treasure token is created when it enters and stays on the battlefield (untapped, unsacrificed) until its own ability is used.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "captain", "zone": "hand", "controller": 0, "real": "Corsair Captain"}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Corsair Captain", "key": "captain"}
+ ],
+ "expect": {
+  "zone": {"captain": "battlefield"},
+  "tokens": {"Treasure": 1},
+  "power": {"captain": 2},
+  "toughness": {"captain": 2}
+ }
+}

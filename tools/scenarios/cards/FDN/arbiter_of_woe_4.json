@@ -1,0 +1,78 @@
+{
+ "set": "FDN",
+ "name": "G05_4",
+ "notes": "Printed (FDN Arbiter of Woe): 'As an additional cost to cast this spell, sacrifice a creature. Flying. When this creature enters, each opponent discards a card and loses 2 life. You draw a card and gain 2 life.' 'Sacrifice a creature' is a creature I CONTROL, not one I own: I steal the opponent's Bear and the opponent steals my Giant. The Bear is my only creature, so it is the sacrifice (it goes to its owner's, the opponent's, graveyard); my Giant, which the opponent controls, stays on the battlefield under them.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aow",
+   "real": "Arbiter of Woe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mygiant",
+   "name": "My Giant",
+   "type": "Creature — Giant",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "4",
+   "toughness": "4"
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "obear",
+   "seat": 0
+  },
+  {
+   "op": "gain_control",
+   "key": "mygiant",
+   "seat": 1
+  },
+  {
+   "op": "cast",
+   "real": "Arbiter of Woe",
+   "key": "aow"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aow": "battlefield",
+   "obear": "graveyard",
+   "mygiant": "battlefield"
+  },
+  "controller": {
+   "mygiant": 1
+  },
+  "graveyard": {
+   "0": [],
+   "1": [
+    "Opp Bear"
+   ]
+  },
+  "life": {
+   "0": 22,
+   "1": 18
+  }
+ }
+}

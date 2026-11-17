@@ -1,0 +1,19 @@
+{
+ "name": "H10_infestation_sage_leaving_without_dying_makes_no_insect",
+ "set": "FDN",
+ "note": "Infestation Sage: the trigger is for dying only (CR 700.4). P0's Sage is returned to hand and another copy is exiled: neither dies, so no Insect token is created. Then the first one enters again: still no token until something dies.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "sage1", "zone": "battlefield", "controller": 0, "real": "Infestation Sage"},
+  {"key": "sage2", "zone": "battlefield", "controller": 0, "real": "Infestation Sage"}
+ ],
+ "steps": [
+  {"op": "move", "key": "sage1", "to": "hand"},
+  {"op": "move", "key": "sage2", "to": "exile"},
+  {"op": "enter", "key": "sage1"}
+ ],
+ "expect": {
+  "zone": {"sage1": "battlefield", "sage2": "exile"},
+  "tokens": {"Insect": 0}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "name": "H09_icewind_elemental_discards_exactly_one_even_with_a_full_hand",
+ "set": "FDN",
+ "note": "Icewind Elemental: exactly one card is drawn and exactly one discarded, whatever else P0 holds. P0 holds the Elemental and two other cards: afterwards the hand is the two others plus the drawn card minus the one chosen (hand 2), the graveyard holds only the chosen card, and the unchosen cards stay in hand.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "elemental", "zone": "hand", "controller": 0, "real": "Icewind Elemental"},
+  {"key": "keep", "zone": "hand", "controller": 0, "name": "Keep", "power": "1", "toughness": "1", "type": "Creature"},
+  {"key": "toss", "zone": "hand", "controller": 0, "name": "Toss", "power": "1", "toughness": "1", "type": "Creature"}
+ ],
+ "mana": {"0": {"U": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Icewind Elemental", "key": "elemental", "decisions": ["toss"]}
+ ],
+ "expect": {
+  "zone": {"keep": "hand", "toss": "graveyard", "elemental": "battlefield"},
+  "hand": {"0": 2},
+  "graveyard": {"0": ["Toss"]},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,53 @@
+{
+ "set": "FDN",
+ "name": "F03_6",
+ "notes": "Mindsparker. Printed: 'First strike (This creature deals combat damage before creatures without first strike.)' Mindsparker (3/2) attacks and the opposing Foe (3/3) blocks: the first-strike damage kills the Foe before it deals any, so Mindsparker survives undamaged. Nobody takes player damage (20 / 20).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ms",
+   "real": "Mindsparker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ms": true
+   },
+   "block": {
+    "foe": "ms"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "ms": [
+    "foe"
+   ]
+  },
+  "zone": {
+   "foe": "graveyard",
+   "ms": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

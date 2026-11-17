@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite, printed: 'target attacking or blocking creature'. In the main phase no creature is attacking or blocking, so neither creature is a legal target: the cast is refused, Smite stays in hand with its mana, and nothing is damaged.",
+ "cards": [
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 0, "targets": ["theirs"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 0, "targets": ["mine"], "expect_raise": "illegal target"}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "theirs": "battlefield", "smite": "hand"},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {"W": 1}}
+ }
+}

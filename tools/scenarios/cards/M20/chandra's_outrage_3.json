@@ -1,0 +1,20 @@
+{
+ "name": "H06_chandras_outrage_fizzles_when_its_only_target_is_gone",
+ "set": "M20",
+ "note": "Chandra's Outrage has one target, the creature. The opponent's 2/2 leaves the battlefield in response (put into its graveyard): on resolution the only target is illegal, so the spell does nothing at all: it deals no damage to the creature's controller either (life stays 20 and 20), and it goes to its owner's graveyard.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "victim", "zone": "battlefield", "controller": 1, "name": "Victim", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "other", "zone": "battlefield", "controller": 1, "name": "Other", "power": "2", "toughness": "2", "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["victim"], "hold": true},
+  {"op": "move", "key": "victim", "to": "graveyard"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 20},
+  "zone": {"outrage": "graveyard", "victim": "graveyard", "other": "battlefield"}
+ }
+}

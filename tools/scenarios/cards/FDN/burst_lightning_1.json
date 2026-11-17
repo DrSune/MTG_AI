@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "burst_lightning_two_damage_to_a_planeswalker",
+ "notes": "Printed: 'Burst Lightning deals 2 damage to any target.' A planeswalker is a legal target (any target): seat 1's Vivien Reid (printed loyalty 5) loses 2 loyalty (3 left) when the spell is cast unkicked with a single {R}. Seat 1's life stays 20 and its Bear is not damaged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bl", "real": "Burst Lightning", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Vivien Reid", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "bl", "targets": ["pw"]}
+ ],
+ "expect": {
+  "zone": {"bl": "graveyard", "pw": "battlefield", "bear": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20},
+  "kick_rows": {"bl": {"kicked": false}},
+  "mana_pool": {"0": {}}
+ }
+}

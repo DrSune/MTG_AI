@@ -1,0 +1,15 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Wardens of the Cycle (FDN), mode 1 printed: 'You draw a card and you lose 1 life.' Your own Bear dies this turn; at your end step the Morbid trigger fires and mode 1 is chosen: you draw exactly one card (hand 0 -> 1) and lose exactly 1 life (20 -> 19); the opponent is untouched.",
+ "cards": [
+  {"key": "wotc", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "wotc", "target": "bear", "amount": 5},
+  {"op": "end_turn", "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "wotc": "battlefield"},
+  "life": {"0": 19, "1": 20},
+  "hand": {"0": 1, "1": 0}
+ }}

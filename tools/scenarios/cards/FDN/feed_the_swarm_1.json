@@ -1,0 +1,25 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Feed the Swarm, printed: 'Destroy target creature or enchantment an opponent controls. You lose life equal to that permanent's mana value.' Seat 1 controls a mana value 3 creature, a mana value 4 enchantment and a mana value 5 artifact; seat 0 controls its own creature and enchantment. Seat 0's own creature and enchantment and seat 1's artifact are not legal targets (each cast is refused). Targeting seat 1's creature destroys it (graveyard) and seat 0, the caster, loses exactly 3 life; seat 1 loses none and its other permanents stay.",
+ "cards": [
+  {"key": "fts", "real": "Feed the Swarm", "zone": "hand", "controller": 0},
+  {"key": "theirc", "name": "Their Creature", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "battlefield", "controller": 1},
+  {"key": "theire", "name": "Their Enchantment", "type": "Enchantment", "cmc": 4, "zone": "battlefield", "controller": 1},
+  {"key": "theira", "name": "Their Artifact", "type": "Artifact", "cmc": 5, "zone": "battlefield", "controller": 1},
+  {"key": "minec", "name": "My Creature", "type": "Creature — Bear", "power": "2", "toughness": "2", "cmc": 2, "zone": "battlefield", "controller": 0},
+  {"key": "minee", "name": "My Enchantment", "type": "Enchantment", "cmc": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["minec"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["minee"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["theira"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["theirc"]}
+ ],
+ "expect": {
+  "zone": {"fts": "graveyard", "theirc": "graveyard", "theire": "battlefield", "theira": "battlefield", "minec": "battlefield", "minee": "battlefield"},
+  "life": {"0": 17, "1": 20},
+  "graveyard": {"0": ["Feed the Swarm"], "1": ["Their Creature"]},
+  "mana_pool": {"0": {}}
+ }
+}

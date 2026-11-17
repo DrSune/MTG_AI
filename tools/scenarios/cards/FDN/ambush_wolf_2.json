@@ -1,0 +1,68 @@
+{
+ "set": "FDN",
+ "name": "G09_2",
+ "notes": "Printed (FDN Ambush Wolf): 'Flash. When this creature enters, exile up to one target card from a graveyard.' 'Up to one': I choose no target (NONE): every card stays in its graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aw",
+   "real": "Ambush Wolf",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o1",
+   "name": "Opp Fallen A",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Fallen B",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "aw",
+   "decisions": [
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aw": "battlefield",
+   "mine": "graveyard",
+   "o1": "graveyard",
+   "o2": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "My Fallen"
+   ],
+   "1": [
+    "Opp Fallen A",
+    "Opp Fallen B"
+   ]
+  }
+ }
+}

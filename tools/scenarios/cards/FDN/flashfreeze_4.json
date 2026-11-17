@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Flashfreeze, printed: 'Counter target red or green spell.' Seat 0 casts Tatyova, Benthic Druid, a green and blue creature spell: it is a green spell (green is among its colours), so Flashfreeze may target it, and it is countered: it goes to the graveyard and never enters.",
+ "cards": [
+  {"key": "tat", "real": "Tatyova, Benthic Druid", "zone": "hand", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "C": 3}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "tat", "real": "Tatyova, Benthic Druid", "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["tat"]}
+ ],
+ "expect": {
+  "zone": {"tat": "graveyard", "ff": "graveyard"},
+  "graveyard": {"0": ["Tatyova, Benthic Druid"], "1": ["Flashfreeze"]},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

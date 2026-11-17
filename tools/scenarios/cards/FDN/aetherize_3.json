@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "aetherize_an_attacking_token_ceases_to_exist",
+ "notes": "Printed: 'Return all attacking creatures to their owner's hand.' Seat 0 attacks with a Soldier token and a Knight card; seat 1 casts Aetherize after attackers are declared. The Knight card goes to seat 0's hand, but the token cannot stay in a hand: it ceases to exist (CR 111.7, 704.5d), so seat 0's hand holds only the Knight and no token is left anywhere. No combat damage is dealt.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "tok", "name": "Soldier", "type": "Creature", "power": "1", "toughness": "1", "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "knight", "name": "Knight Card", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "aeth", "real": "Aetherize", "zone": "hand", "controller": 1},
+  {"key": "l1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l2", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l3", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l4", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"tok": true, "knight": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "aeth", "real": "Aetherize", "controller": 1, "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"tok": "ceased", "knight": "hand", "aeth": "graveyard"},
+  "tokens": {"Soldier": 0},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 1, "1": 0}
+ }
+}

@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Essence Scatter, printed: 'Counter target creature spell.' Seat 0 activates Shivan Dragon's {R}: +1/+0 ability: a creature's ability, but not a creature spell. It waits on the stack: Essence Scatter cannot target it (refused) and the ability resolves.",
+ "cards": [
+  {"key": "dragon", "real": "Shivan Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "es", "real": "Essence Scatter", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "dragon", "idx": 0, "seat": 0, "hold": true},
+  {"op": "cast", "key": "es", "real": "Essence Scatter", "controller": 1, "targets": ["ability:dragon"], "expect_raise": "illegal target"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"dragon": "battlefield", "es": "hand"},
+  "power": {"dragon": 6},
+  "hand": {"1": 1},
+  "mana_pool": {"0": {}, "1": {"U": 1, "C": 1}}
+ }
+}

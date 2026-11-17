@@ -98,5 +98,28 @@
  },
  "probe": {
   "sha": "67364fd0f05c64f538f3bbdadde9d355d94e93dbfde606d2b5b967503b4b5b6e"
+ },
+ "verified": {
+  "tree_sha": "5f793d95f2d8c3ab1c690e2691d4cd5413d5d9411f83031df9dc99d65b7c6ce0",
+  "probe_sha": "67364fd0f05c64f538f3bbdadde9d355d94e93dbfde606d2b5b967503b4b5b6e",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Put all creature cards from all graveyards onto the battlefield under your control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace [cast]: 'you_fallen moves graveyard -> battlefield' and 'opp_fallen moves graveyard -> battlefield' (both creature cards, one from each graveyard; the non-creature you_used / opp_used stay), mana B-2 C-7 for {7}{B}{B}, 'card moves stack -> graveyard'. The probe's snapshot reads ownership, never a control change, so 'under your control' is not shown. Pack B05_1 PASSES: both creature cards (the opponent's included) enter under seat 0's control (the 'controller' lane), the instant and the artifact card stay in their graveyards, nothing else moves. Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/rise_of_the_dark_realms_1.json"
+  ],
+  "mutation": {
+   "mutants": 2,
+   "killed": 2,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

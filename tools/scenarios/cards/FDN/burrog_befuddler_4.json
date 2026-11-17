@@ -1,0 +1,68 @@
+{
+ "set": "FDN",
+ "name": "G07_4",
+ "notes": "Printed (FDN Burrog Befuddler): 'Flash. When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.' Flash from the act menu: on the opponent's turn the cast is a row of my menu ({1}{U} spent) and its trigger shrinks the opponent's Giant to 3 power.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Burrog Befuddler",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature — Giant",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:bb",
+    "ogiant"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "battlefield"
+  },
+  "power": {
+   "obear": 2,
+   "ogiant": 3
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

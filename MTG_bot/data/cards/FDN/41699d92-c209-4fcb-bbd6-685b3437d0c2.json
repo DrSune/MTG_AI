@@ -218,5 +218,41 @@
  },
  "probe": {
   "sha": "af97d272609c0bf70b4073ffb612e57e1b507171856a790477e2eed0d7540dbf"
+ },
+ "verified": {
+  "tree_sha": "49a82c5ce7bd1d6264fc28832b5787a350a4a98719a2f95f8914f73f5b12b0db",
+  "probe_sha": "af97d272609c0bf70b4073ffb612e57e1b507171856a790477e2eed0d7540dbf",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree is the compiler's own Raid shape: ZoneChangeEvent(IS_SOURCE) with condition FAnd(TURN_OF YOU, EVENT_THIS_TURN count 1 DeclareAttackersEvent), DEAL_DAMAGE 2 to a TARGET Selector over FOr(Creature, Planeswalker, Player). The probe never attacks before the Raider enters: the [cast] and 'enters during the opponent's turn' variants show no trigger, and no later stimulus re-enters it, so the trigger, its target slot and its damage are never seen. Packs: H01_1 (2 damage to a creature, raid on), H01_2 (a player), H01_5 (a planeswalker loses 2 loyalty), H01_3 (no attack: nothing), H01_4 (only the opponent attacked: nothing).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/gorehorn_raider_1.json",
+   "tools/scenarios/cards/FDN/gorehorn_raider_2.json",
+   "tools/scenarios/cards/FDN/gorehorn_raider_3.json",
+   "tools/scenarios/cards/FDN/gorehorn_raider_4.json",
+   "tools/scenarios/cards/FDN/gorehorn_raider_5.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 1,
+   "score": 0.1111111111111111,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/condition",
+    "controller YOU->OPPONENT at 1/0/condition/children/0/who",
+    "amount+1 at 1/0/condition/children/1/count",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count"
+   ]
+  }
  }
 }

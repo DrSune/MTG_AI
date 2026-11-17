@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "F00_2",
+ "notes": "Linden, the Steadfast Queen. Printed: 'Whenever a white creature YOU control attacks, you gain 1 life.' On the opponent's turn the opponent's white creature attacks seat 0: it is not a creature Linden's controller controls, so nobody gains life. Seat 0 takes 2 (18), seat 1 stays at 20.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "linden",
+   "real": "Linden, the Steadfast Queen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe Knight",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "W"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "foe": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "tapped": {
+   "foe": true
+  }
+ }
+}

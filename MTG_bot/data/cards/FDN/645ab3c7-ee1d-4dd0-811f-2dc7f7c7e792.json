@@ -312,5 +312,64 @@
  },
  "probe": {
   "sha": "a6daf6151613dcb127d497e3477c659dca2fd71f468bb34ea7d5db1e7327296e"
+ },
+ "verified": {
+  "tree_sha": "66e6aed19e66dc8a74012e8b22ab846a833a116d8d514f9c87bcdc4623d2db6a",
+  "probe_sha": "a6daf6151613dcb127d497e3477c659dca2fd71f468bb34ea7d5db1e7327296e",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Kicker {2}",
+    "status": "OK",
+    "evidence": "[cast]: 'you casts card', mana C-2 G-1 ({2}{G}). [cast kicked]: 'you casts card kicked', mana C-4 G-1: five mana, exactly {2} more. Pack A04_3 refuses a kicked cast paid with four mana and casts the same mana unkicked; pack A04_2 casts it kicked with exactly five.",
+    "issue": ""
+   },
+   {
+    "clause": "Search your library for a basic land card, put it onto the battlefield, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard library holds no basic land, so neither [cast] nor [cast kicked] shows a search, a move or a shuffle (only the cast and the card going to the graveyard). Covered by pack A04_1: with Forest, Island, Mountain and the nonbasic Jungle Hollow in your library and a Swamp in the opponent's, the ask offers exactly the three basics (not Jungle Hollow, not the opponent's Swamp); the Island comes onto the battlefield untapped under your control, the rest stay, the opponent's library is untouched. Pack A04_5 pins the unkicked menu: exactly the three basics in your library, none of the nonbasic land, the basic in hand, the basic in the graveyard or the opponent's library basic.",
+    "issue": "Observation, no new fault: the unkicked SEARCH uses SelectorMode.ONE_OF where the kicked branch uses CHOOSE (the same difference the verified FDN Evolving Wilds record notes); both ask for one pick among the basics. Engine-wide (BACKLOG B-107): no search offers 'fail to find' (CR 701.19b), which makes the card slightly weaker, never stronger."
+   },
+   {
+    "clause": "If this spell was kicked, instead search your library for two basic land cards, put them onto the battlefield, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not reached by the probe (no basic land to find, see above). Covered by pack A04_2: kicked (kick_rows kicked true, five mana), the two picks are the Forest and the Island, both on the battlefield untapped under your control, the Mountain stays in the library (exactly two lands, not one, not three), the opponent's library is untouched. Pack A04_4: with only one basic land in the library, the kicked search finds that one (no crash, no second land, the nonbasic stays), then shuffles. Pack A04_6 pins the kicked first pick's menu the same way. Pack A04_7: the lands really enter: Tatyova's landfall triggers once for each of the two lands (+2 life, +2 cards).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_1.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_2.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_3.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_4.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_5.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_6.json",
+   "tools/scenarios/cards/FDN/grow_from_the_ashes_7.json"
+  ],
+  "mutation": {
+   "mutants": 22,
+   "killed": 5,
+   "score": 0.22727272727272727,
+   "survived": [
+    "drop step 0 at 1/1/effect/then_effect",
+    "drop step 1 at 1/1/effect/then_effect",
+    "amount+1 at 1/1/effect/then_effect/steps/0/args/cards/count",
+    "amount-1 at 1/1/effect/then_effect/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/1/effect/then_effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/1/effect/then_effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/1/effect/then_effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/1/effect/then_effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/then_effect/steps/0/args/destination/controller",
+    "drop step 0 at 1/1/effect/else_effect",
+    "drop step 1 at 1/1/effect/else_effect",
+    "amount+1 at 1/1/effect/else_effect/steps/0/args/cards/count",
+    "widen filter (drop part 0) at 1/1/effect/else_effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/1/effect/else_effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/1/effect/else_effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/1/effect/else_effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/else_effect/steps/0/args/destination/controller"
+   ]
+  }
  }
 }

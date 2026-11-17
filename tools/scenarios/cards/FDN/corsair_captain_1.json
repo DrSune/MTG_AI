@@ -1,0 +1,17 @@
+{
+ "name": "H04_corsair_captain_buffs_only_your_other_pirates",
+ "set": "FDN",
+ "note": "Corsair Captain: 'Other Pirates you control get +1/+1.' The Captain is on the battlefield with P0's Pirate (2/2 -> 3/3), P0's non-Pirate Bear (stays 2/2), the opponent's Pirate (stays 2/2), and the Captain itself (2/2, 'other'). When the Captain leaves, the buff goes with it.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "captain", "zone": "battlefield", "controller": 0, "real": "Corsair Captain"},
+  {"key": "pirate", "zone": "battlefield", "controller": 0, "name": "Pirate", "power": "2", "toughness": "2", "type": "Creature — Pirate"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear"},
+  {"key": "rival", "zone": "battlefield", "controller": 1, "name": "Rival Pirate", "power": "2", "toughness": "2", "type": "Creature — Pirate"}
+ ],
+ "steps": [],
+ "expect": {
+  "power": {"captain": 2, "pirate": 3, "bear": 2, "rival": 2},
+  "toughness": {"captain": 2, "pirate": 3, "bear": 2, "rival": 2}
+ }
+}

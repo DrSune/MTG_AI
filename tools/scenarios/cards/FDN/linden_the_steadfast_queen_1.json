@@ -1,0 +1,63 @@
+{
+ "set": "FDN",
+ "name": "F00_1",
+ "notes": "Linden, the Steadfast Queen. Printed: 'Vigilance. Whenever a white creature you control attacks, you gain 1 life.' Seat 0 attacks with Linden (white), White Knight (white) and Red Bear (red): two white attackers, so two triggers (one for each attacking creature, CR 508.3a) and 2 life (22); the red attacker gives none. Vigilance: Linden stays untapped, the two others tap. Unblocked, 3+2+2 = 7 damage: seat 1 at 13.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "linden",
+   "real": "Linden, the Steadfast Queen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wk",
+   "name": "White Knight",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0,
+   "colors": [
+    "W"
+   ]
+  },
+  {
+   "key": "rb",
+   "name": "Red Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0,
+   "colors": [
+    "R"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "linden": true,
+    "wk": true,
+    "rb": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 13
+  },
+  "tapped": {
+   "linden": false,
+   "wk": true,
+   "rb": true
+  }
+ }
+}

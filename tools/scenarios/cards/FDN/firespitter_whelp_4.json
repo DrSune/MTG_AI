@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "E07_4_firespitter_whelp_each_opponent_takes_one",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.' A three-player game. Seat 0 casts Opt (an instant): each of its two opponents, seats 1 and 2, takes 1 damage (19 each). Seat 0 takes none.",
+ "world": {"life": 20, "seed": 7, "players": 3},
+ "cards": [
+  {"key": "whelp", "real": "Firespitter Whelp", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "opt", "controller": 0, "decisions": ["first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "zone": {"opt": "graveyard"},
+  "life": {"0": 20, "1": 19, "2": 19}
+ }
+}

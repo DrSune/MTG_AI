@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "burst_lightning_kicked_four_damage_to_a_planeswalker",
+ "notes": "Printed: 'Kicker {4}. Burst Lightning deals 2 damage to any target. If this spell was kicked, it deals 4 damage instead.' Cast kicked ({R} plus the {4} kicker, five mana) at seat 1's Vivien Reid (printed loyalty 5): 4 damage instead of 2 leaves 1 loyalty, and the cast is recorded as kicked.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bl", "real": "Burst Lightning", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Vivien Reid", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "bl", "targets": ["pw"], "kicked": true}
+ ],
+ "expect": {
+  "zone": {"bl": "graveyard", "pw": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 1}},
+  "life": {"0": 20, "1": 20},
+  "kick_rows": {"bl": {"kicked": true}},
+  "mana_pool": {"0": {}}
+ }
+}

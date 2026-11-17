@@ -291,5 +291,48 @@
  },
  "probe": {
   "sha": "52c04cb255c18f52cc9010c394012b3b445fbd5b900fc63e17366e9db0f82011"
+ },
+ "verified": {
+  "tree_sha": "35d0a8c7e06838bd22e5745c8fa35a2e9c5f6d3ebcff46acf1313cf5968a42a6",
+  "probe_sha": "52c04cb255c18f52cc9010c394012b3b445fbd5b900fc63e17366e9db0f82011",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one -",
+    "status": "OK",
+    "evidence": "Three casts announce one mode each ('cast modes=[0]', '[1]', '[2]'), each with its own slot or none; only the chosen mode's effect happens.",
+    "issue": ""
+   },
+   {
+    "clause": "Boros Charm deals 4 damage to target player or planeswalker.",
+    "status": "OK",
+    "evidence": "[cast modes=[0] targets=[you]]: 'you is dealt 4 damage (by card/DEAL_DAMAGE)', life 20 -> 16; [targets=[opp]]: opp 20 -> 16; the slot is 1..1 of [you, opp] - no creature is offered. The planeswalker half is not on the board: pack C10_1 (an opposing Vivien Reid goes 5 -> 1 loyalty; a creature target is refused).",
+    "issue": ""
+   },
+   {
+    "clause": "Permanents you control gain indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "[cast modes=[1]]: keywords +INDESTRUCTIBLE on you_bear, you_charm, you_giant, you_land and you_relic (creatures, an enchantment, a land, an artifact - everything of mine) and on none of the opponent's; all five lose it 'after the turn ends'. Pack C10_3 pins that a permanent entering afterwards is not covered (CR 611.2c) and that the opponent's permanents are not.",
+    "issue": ""
+   },
+   {
+    "clause": "Target creature gains double strike until end of turn.",
+    "status": "OK",
+    "evidence": "[cast modes=[2] targets=[you_bear]] and the five others (slot 1..1 of all six creatures): the target gets +DOUBLE_STRIKE and loses it 'after the turn ends'; nothing else changes. Pack C10_5: in combat the targeted 2/2 deals 2 + 2 and the untargeted creature deals its damage once.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/boros_charm_1.json",
+   "tools/scenarios/cards/FDN/boros_charm_2.json",
+   "tools/scenarios/cards/FDN/boros_charm_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

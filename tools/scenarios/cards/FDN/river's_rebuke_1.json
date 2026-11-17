@@ -1,0 +1,24 @@
+{"set": "FDN", "name": "rivers_rebuke_bounces_the_targets_nonland_permanents_to_their_owners_hands_and_leaves_lands_and_the_casters_own",
+ "notes": "Printed: 'Return all nonland permanents target player controls to their owner's hand.' Seat 0 casts River's Rebuke ({4}{U}{U}) targeting seat 1. Seat 1 controls its own creature, an artifact, a token creature, a land (Island), and a creature that seat 0 OWNS (taken with gain_control). Every nonland permanent seat 1 controls leaves the battlefield: its own creature and artifact go to seat 1's hand, the token ceases to exist, and the stolen creature goes to its OWNER's hand (seat 0's), not to the controller's. Seat 1's Island stays on the battlefield, and so do seat 0's own creature and land (the player is the target, not the caster).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rebuke", "real": "River's Rebuke", "zone": "hand", "controller": 0},
+  {"key": "mycreature", "name": "My Creature", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "myland", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "theircreature", "name": "Their Creature", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "theirrelic", "name": "Their Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "theirtoken", "name": "Their Token", "power": "1", "toughness": "1", "type": "Creature", "token": true, "zone": "battlefield", "controller": 1},
+  {"key": "theirland", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "stolen", "name": "Stolen Creature", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 4}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 1},
+  {"op": "cast", "key": "rebuke", "real": "River's Rebuke", "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"rebuke": "graveyard", "mycreature": "battlefield", "myland": "battlefield", "theircreature": "hand", "theirrelic": "hand", "theirtoken": "ceased", "theirland": "battlefield", "stolen": "hand"},
+  "hand": {"0": 1, "1": 2},
+  "graveyard": {"0": ["River's Rebuke"], "1": []},
+  "mana_pool": {"0": {}}
+ }}

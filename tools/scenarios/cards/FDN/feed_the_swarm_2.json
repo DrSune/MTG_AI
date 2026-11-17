@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Feed the Swarm, printed: 'Destroy target creature or enchantment an opponent controls. You lose life equal to that permanent's mana value.' Seat 0 targets seat 1's mana value 4 enchantment: it is destroyed (graveyard) and seat 0 loses exactly 4 life (20 -> 16). Seat 1's creature (mana value 3) is untouched and seat 1's life is unchanged.",
+ "cards": [
+  {"key": "fts", "real": "Feed the Swarm", "zone": "hand", "controller": 0},
+  {"key": "theirc", "name": "Their Creature", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "battlefield", "controller": 1},
+  {"key": "theire", "name": "Their Enchantment", "type": "Enchantment", "cmc": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["theire"]}
+ ],
+ "expect": {
+  "zone": {"fts": "graveyard", "theire": "graveyard", "theirc": "battlefield"},
+  "life": {"0": 16, "1": 20},
+  "graveyard": {"0": ["Feed the Swarm"], "1": ["Their Enchantment"]},
+  "mana_pool": {"0": {}}
+ }
+}

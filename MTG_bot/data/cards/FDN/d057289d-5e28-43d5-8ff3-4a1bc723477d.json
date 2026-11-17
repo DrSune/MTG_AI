@@ -84,5 +84,29 @@
  },
  "probe": {
   "sha": "c0df3fe4a21557eeb7655dd699db69273b928b1019a8f851e36f1f0b165c2ccf"
+ },
+ "verified": {
+  "tree_sha": "ac476a082e882568c5fc148b91029a95a7bd0c688b6b96e772450bdebca16704",
+  "probe_sha": "c0df3fe4a21557eeb7655dd699db69273b928b1019a8f851e36f1f0b165c2ccf",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Destroy all creatures.",
+    "status": "OK",
+    "evidence": "[cast] events 'you_bear / you_giant / opp_flier / opp_tapped / opp_bear / opp_giant moves battlefield -> graveyard (by card/DESTROY)' and 'dies' for each: every creature of both sides, tapped or not; no change to the relics, charms or lands. Pack D04_1 (passes): an artifact creature is destroyed, an indestructible creature survives (a destroy, not an exile or damage), a plain artifact and an enchantment stay, life unchanged. Pack D04_2 (passes): it is a sorcery, refused on the opponent's turn ('window:not_your_turn').",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/day_of_judgment_1.json",
+   "tools/scenarios/cards/FDN/day_of_judgment_2.json"
+  ],
+  "mutation": {
+   "mutants": 0,
+   "killed": 0,
+   "score": null,
+   "survived": []
+  }
  }
 }

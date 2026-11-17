@@ -1,0 +1,82 @@
+{
+ "set": "FDN",
+ "name": "F08_1",
+ "notes": "Halana and Alena, Partners. Printed: 'At the beginning of combat on your turn, put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power. That creature gains haste until end of turn.' Halana carries a +1/+1 counter (power 3), so X = 3 (not the printed 2 and not her toughness). The Bear is targeted: three counters (5/5) and haste; the Giant, the opposing Foe and Halana herself get neither.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "COMBAT",
+   "decisions": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ha": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bear": {
+    "PLUS_1_PLUS_1": 3
+   },
+   "giant": {},
+   "foe": {}
+  },
+  "power": {
+   "bear": 5,
+   "ha": 3
+  },
+  "toughness": {
+   "bear": 5
+  },
+  "battlefield_keywords": {
+   "Bear": [
+    "HASTE"
+   ],
+   "Giant": [],
+   "Foe": []
+  }
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "set": "FDN",
+ "name": "F10_1",
+ "notes": "Midnight Reaper. Printed: 'Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.' Seat 0's Bear dies: 1 damage to seat 0 (19) and one card. Seat 0's token Spirit dies: nothing. The opposing Foe dies: nothing. One trigger only: seat 0 at 19 with 1 card in hand.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Midnight Reaper",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Spirit",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "token": true
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "foe",
+   "target": "bear",
+   "amount": 2
+  },
+  {
+   "op": "deal_damage",
+   "source": "foe",
+   "target": "tok",
+   "amount": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "mr",
+   "target": "foe",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 19,
+   "1": 20
+  },
+  "hand": {
+   "0": 1
+  },
+  "zone": {
+   "bear": "graveyard",
+   "tok": "ceased",
+   "foe": "graveyard",
+   "mr": "battlefield"
+  }
+ }
+}

@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deadly Plot (FDN), mode 1 printed: 'Return target Zombie CREATURE card from your graveyard'. Seat 0's graveyard holds a Zombie creature card and a Zombie that is not a creature card (a tribal sorcery): the non-creature Zombie is refused as a target ('illegal target') and stays; the Zombie creature card returns, tapped.",
+ "cards": [
+  {"key": "plot", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "zomb", "name": "Grave Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "tribal", "name": "Zombie Rites", "type": "Tribal Sorcery — Zombie", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "plot", "real": "Deadly Plot", "targets": ["tribal"], "decisions": ["1"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "plot", "real": "Deadly Plot", "targets": ["zomb"], "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"plot": "graveyard", "zomb": "battlefield", "tribal": "graveyard"},
+  "tapped": {"zomb": true}
+ }}

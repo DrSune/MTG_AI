@@ -157,5 +157,41 @@
  },
  "probe": {
   "sha": "5249210f157c4bd28119768473fdc076d72a96fadeea19c81094903abf1f34d8"
+ },
+ "verified": {
+  "tree_sha": "555fb1b1529fc063392315e801fd84fbcedc2b5c5341c07aa1ad358b86be5922",
+  "probe_sha": "5249210f157c4bd28119768473fdc076d72a96fadeea19c81094903abf1f34d8",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "[cast modes=[0]] shows only damage to creatures and [cast modes=[1]] only damage to players: one mode per cast. Pack D07_1 (passes): it is a sorcery, refused on the opponent's turn ('window:not_your_turn').",
+    "issue": ""
+   },
+   {
+    "clause": "• Slagstorm deals 3 damage to each creature.",
+    "status": "OK",
+    "evidence": "[cast modes=[0]] 'you_bear / you_giant / opp_flier / opp_tapped / opp_bear / opp_giant is dealt 3 damage (by card/DEAL_DAMAGE)': every creature, both sides, exactly 3; the 4/4s end with 'damage 0 -> 3' and survive, the others die; no damage to relics, charms or players; 'after the turn ends: damage 3 -> 0'.",
+    "issue": ""
+   },
+   {
+    "clause": "• Slagstorm deals 3 damage to each player.",
+    "status": "OK",
+    "evidence": "[cast modes=[1]] events 'you is dealt 3 damage' and 'opp is dealt 3 damage'; changes 'opp: life 20 -> 17' and 'you: life 20 -> 17'; no creature touched. Pack D07_2 (passes, three players): all three players, the caster included, lose 3.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/slagstorm_1.json",
+   "tools/scenarios/cards/FDN/slagstorm_2.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

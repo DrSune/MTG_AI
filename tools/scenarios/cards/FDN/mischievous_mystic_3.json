@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "name": "F11_3",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your SECOND card each turn'. On seat 0's third turn the draw step is the first card and Quick Study draws the second and the third: a Faerie for the second only (one token, not two). Hand: 1 at the start, +1 draw step, -1 Quick Study, +2 = 3.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "qs",
+   "real": "Quick Study",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "qs",
+   "real": "Quick Study"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 3
+  },
+  "tokens": {
+   "Faerie": 1
+  }
+ }
+}

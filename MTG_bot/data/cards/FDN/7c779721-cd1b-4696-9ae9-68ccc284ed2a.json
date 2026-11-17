@@ -118,5 +118,33 @@
  },
  "probe": {
   "sha": "c17c1df9707bc1f9f6188673667d3983ba979f05f7c2239c5eab7cd32a52ee94"
+ },
+ "verified": {
+  "tree_sha": "9fb5e01aef8f547d7982b8d55ee0703d2c200978248e25c200e065fe82907cbb",
+  "probe_sha": "c17c1df9707bc1f9f6188673667d3983ba979f05f7c2239c5eab7cd32a52ee94",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Return all attacking creatures to their owner's hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe [cast]: the spell is cast and goes to the graveyard, but nothing attacks on the standard board, so no card moves (no ZONE_CHANGE row besides the spell). Tree reads as printed: ALL creatures that are attacking, any controller, to the owner's hand. Packs: C01_1 (two attackers return to their owner's hand; the creature kept home and the blocker stay), C01_2 (an attacker owned by the opponent but controlled by the attacker goes to its OWNER's hand).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/aetherize_1.json",
+   "tools/scenarios/cards/FDN/aetherize_2.json",
+   "tools/scenarios/cards/FDN/aetherize_3.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 1,
+   "score": 0.3333333333333333,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/cards/filter",
+    "zone HAND->BATTLEFIELD at 1/0/effect/args/destination"
+   ]
+  }
  }
 }

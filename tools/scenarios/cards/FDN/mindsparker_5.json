@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "F03_5",
+ "notes": "Mindsparker (three players). Printed: 'Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.' Seat 2, one of two opponents, casts Opt (a blue instant): the damage goes to that player, seat 2 (18), not to seat 1 and not to seat 0.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "ms",
+   "real": "Mindsparker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 2
+  }
+ ],
+ "mana": {
+  "2": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "controller": 2,
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20,
+   "2": 18
+  },
+  "zone": {
+   "opt": "graveyard"
+  }
+ }
+}

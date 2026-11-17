@@ -117,5 +117,30 @@
  },
  "probe": {
   "sha": "7a9526d574fd5267c23338a32a8e676b6d15da87a52dae1460f780d558e0378d"
+ },
+ "verified": {
+  "tree_sha": "ff4b81ab434646911f676e24776ac13c6b9a1522341da337f9c5170650ac2416",
+  "probe_sha": "7a9526d574fd5267c23338a32a8e676b6d15da87a52dae1460f780d558e0378d",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Seismic Rupture deals 2 damage to each creature without flying.",
+    "status": "OK",
+    "evidence": "[cast]: 'is dealt 2 damage (by card/DEAL_DAMAGE)' for you_bear, you_giant, opp_tapped, opp_bear, opp_giant: every creature of both sides that lacks flying, exactly 2; opp_flier (flying) is dealt nothing; the two 2/2 bears die, the larger ones keep 'damage 0 -> 2', which clears at end of turn; mana C-2 R-1 for {2}{R}. Pack B12_1 PASSES (3/3s keep 2 damage on both sides, a 2/2 dies, a reach creature is hit, two flyers untouched, no player damaged). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/seismic_rupture_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

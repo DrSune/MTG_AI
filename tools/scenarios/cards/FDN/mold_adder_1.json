@@ -1,0 +1,56 @@
+{
+ "set": "FDN",
+ "name": "F04_1",
+ "notes": "Mold Adder. Printed: 'Whenever an opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.' Seat 1 casts Opt (blue): the may is taken (fire): one counter, Mold Adder 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ma",
+   "real": "Mold Adder",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "controller": 1,
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ma": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "ma": 2
+  },
+  "toughness": {
+   "ma": 2
+  },
+  "zone": {
+   "opt": "graveyard"
+  }
+ }
+}

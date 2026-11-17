@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Felling Blow, printed: 'Then that creature deals damage equal to its power to target creature an opponent controls.' The creature is the source of the damage, so its deathtouch applies. Seat 0's 1/1 deathtouch creature gets the counter (2/2) and deals 2 damage to seat 1's 5/5, which dies; seat 1's other 5/5 is untouched.",
+ "cards": [
+  {"key": "fb", "real": "Felling Blow", "zone": "hand", "controller": 0},
+  {"key": "viper", "name": "Deathtouch Viper", "type": "Creature — Snake", "power": "1", "toughness": "1", "keywords": ["DEATHTOUCH"], "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Opp Two", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["viper", "opp1"]}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard", "viper": "battlefield", "opp1": "graveyard", "opp2": "battlefield"},
+  "counters": {"viper": {"PLUS_1_PLUS_1": 1}},
+  "power": {"viper": 2},
+  "graveyard": {"0": ["Felling Blow"], "1": ["Opp One"]},
+  "mana_pool": {"0": {}}
+ }
+}

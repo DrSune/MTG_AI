@@ -421,5 +421,51 @@
  },
  "probe": {
   "sha": "d703bdd16b17dbfe75d15e8594c585f755bce26d6d890615e1cf07f3e1b0bdf1"
+ },
+ "verified": {
+  "tree_sha": "d086a12b741c8c5ff121c4f0d6b372adc46df6aa8adfb8577c77a9a7331b6840",
+  "probe_sha": "d703bdd16b17dbfe75d15e8594c585f755bce26d6d890615e1cf07f3e1b0bdf1",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Attacking Vampires you control have deathtouch and lifelink.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Lifelink is seen on the Troublemakers itself ([this creature attacks alone, unblocked]: you gains 5 life by card/DEAL_DAMAGE, 20 -> 25; also when opp_giant blocks it). Deathtouch is never shown (its 5 damage is lethal to the 4/4 giant anyway) and neither is the 'attacking' limit nor the 'Vampires you control' limit. Pack E02_1: an attacking Vampire kills a 0/9 Wall (deathtouch) and gains 1 (lifelink), an attacking Bear does neither; E02_2: a Vampire that is not attacking has neither; E02_3: the opponent's attacking Vampire and my blocking Vampire have neither. E02_8: an attacking Vampire double-blocked may assign 1 deathtouch damage to each blocker: both die, lifelink gains 2.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever a Vampire you control dies, you may pay 2 life.",
+    "status": "OK",
+    "evidence": "[this card is dealt lethal damage]: trigger [1] fires on the Troublemakers' own death, ask may [fire, skip] -> fire, you loses 2 life (by card/LOSE_LIFE), 20 -> 18. [your creature (you_bear) dies] and [an opponent's creature (opp_bear) dies]: none. Pack E02_4: another Vampire's death triggers it; E02_6: the opponent's Vampire and my non-Vampire do not.",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, draw a card.",
+    "status": "OK",
+    "evidence": "Same variant: after the 2 life are paid, you draws you:Library 5#1 (hand 6 -> 7, library 6 -> 5). Pack E02_5: declining (skip) pays nothing and draws nothing; E02_7: with 1 life the 2 cannot be paid, so no draw.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/crossway_troublemakers_1.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_2.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_3.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_4.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_5.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_6.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_7.json",
+   "tools/scenarios/cards/FDN/crossway_troublemakers_8.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 21,
+   "score": 0.875,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter"
+   ]
+  }
  }
 }

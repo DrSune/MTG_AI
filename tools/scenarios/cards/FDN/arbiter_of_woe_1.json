@@ -1,0 +1,106 @@
+{
+ "set": "FDN",
+ "name": "G05_1",
+ "notes": "Printed (FDN Arbiter of Woe): 'As an additional cost to cast this spell, sacrifice a creature. Flying. When this creature enters, each opponent discards a card and loses 2 life. You draw a card and gain 2 life.' Cast paying {4}{B}{B} and sacrificing my Bear (the Giant and the opponent's Bear stay). The opponent, holding three cards, discards one of their choice and loses 2 (18); I draw one card and gain 2 (22).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aow",
+   "real": "Arbiter of Woe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "mygiant",
+   "name": "My Giant",
+   "type": "Creature — Giant",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "4",
+   "toughness": "4"
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o1",
+   "name": "Opp Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "name": "Opp Card C",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Arbiter of Woe",
+   "key": "aow",
+   "decisions": [
+    "mybear",
+    "o2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aow": "battlefield",
+   "mybear": "graveyard",
+   "mygiant": "battlefield",
+   "obear": "battlefield",
+   "o1": "hand",
+   "o2": "graveyard",
+   "o3": "hand"
+  },
+  "life": {
+   "0": 22,
+   "1": 18
+  },
+  "hand": {
+   "0": 1,
+   "1": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

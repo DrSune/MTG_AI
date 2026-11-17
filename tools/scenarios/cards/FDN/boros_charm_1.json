@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "boros_charm_four_damage_to_a_planeswalker_but_not_a_creature",
+ "notes": "Printed: 'Boros Charm deals 4 damage to target player or planeswalker.' First mode (token 0). A creature is not a legal target (refused before anything is paid). Seat 1's Vivien Reid (printed loyalty 5) is: 4 damage leaves 1 loyalty; seat 1's life stays 20 and its Bear takes no damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bc", "real": "Boros Charm", "zone": "hand", "controller": 0},
+  {"key": "pw", "real": "Vivien Reid", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "bc", "targets": ["bear"], "decisions": ["0"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "bc", "targets": ["pw"], "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"bc": "graveyard", "pw": "battlefield", "bear": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 1}},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

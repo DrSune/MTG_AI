@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "an_offer_you_cant_refuse_countering_your_own_spell_gives_you_the_treasures",
+ "notes": "Printed: 'Counter target noncreature spell. Its controller creates two Treasure tokens.' 'Its controller' is the countered spell's controller, whoever cast the Offer: seat 0 casts Giant Growth at its own Bear and answers it with its own An Offer You Can't Refuse. Giant Growth is countered (Bear stays 2/2) and seat 0 creates two Treasure tokens (seat 1 gets none). Seat 0 then casts two more Giant Growths with the Treasure mana alone (Bear 8/8), which works only if seat 0 controls both; both are sacrificed, none is left.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "gg1", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "gg2", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "gg3", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "offer", "real": "An Offer You Can't Refuse", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1}},
+ "steps": [
+  {"op": "cast", "key": "gg1", "controller": 0, "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "offer", "controller": 0, "targets": ["gg1"]},
+  {"op": "cast", "key": "gg2", "controller": 0, "targets": ["bear"], "tap": true},
+  {"op": "cast", "key": "gg3", "controller": 0, "targets": ["bear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"gg1": "graveyard", "offer": "graveyard", "gg2": "graveyard", "gg3": "graveyard"},
+  "power": {"bear": 8},
+  "toughness": {"bear": 8},
+  "tokens": {"Treasure": 0},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

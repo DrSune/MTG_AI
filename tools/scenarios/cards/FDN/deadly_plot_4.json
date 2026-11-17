@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deadly Plot (FDN), printed: 'Choose one'. The mode is chosen as the spell is cast and only the chosen mode needs a legal target (CR 601.2b-c). Step 1: no creature or planeswalker is on the battlefield (only an artifact), so mode 0 has no target, yet mode 1 casts and returns seat 0's Zombie from its graveyard. Step 2: the graveyard now holds no Zombie, so mode 1 has no target, yet mode 0 casts on the returned Zombie (a creature now) and destroys it. The artifact is never touched.",
+ "cards": [
+  {"key": "plot1", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "plot2", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Their Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "zomb", "name": "Grave Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2, "C": 6}},
+ "steps": [
+  {"op": "cast", "key": "plot1", "real": "Deadly Plot", "targets": ["zomb"], "decisions": ["1"]},
+  {"op": "cast", "key": "plot2", "real": "Deadly Plot", "targets": ["zomb"], "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"plot1": "graveyard", "plot2": "graveyard", "zomb": "graveyard", "relic": "battlefield"}
+ }}

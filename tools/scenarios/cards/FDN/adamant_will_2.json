@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "adamant_will_boosts_and_protects_only_the_target",
+ "notes": "Printed: 'Target creature gets +2/+2 and gains indestructible until end of turn.' Two creatures of seat 0 and one of seat 1: only the one targeted (seat 1's Bear) becomes 4/4 and indestructible. 5 damage is dealt to each of the three: the targeted Bear survives with the damage marked, the other two die.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "aw", "real": "Adamant Will", "zone": "hand", "controller": 0},
+  {"key": "mine1", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "mine2", "name": "My Other Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "aw", "targets": ["theirs"]},
+  {"op": "deal_damage", "source": "pinger", "target": "mine1", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "mine2", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "theirs", "amount": 5}
+ ],
+ "expect": {
+  "zone": {"aw": "graveyard", "mine1": "graveyard", "mine2": "graveyard", "theirs": "battlefield"},
+  "damage": {"theirs": 5},
+  "power": {"theirs": 4},
+  "toughness": {"theirs": 4},
+  "battlefield_keywords": {"Their Bear": ["INDESTRUCTIBLE"]},
+  "mana_pool": {"0": {}}
+ }
+}

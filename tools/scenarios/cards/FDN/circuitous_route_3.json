@@ -1,0 +1,17 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Circuitous Route (FDN), printed: 'up to two basic land cards and/or Gate cards'. Three basic Forests are in the library: after two picks the search is over, so the third Forest stays (never a third pick, never a draw). Both taken lands enter tapped.",
+ "cards": [
+  {"key": "route", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "Lib Forest One", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "f2", "name": "Lib Forest Two", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "f3", "name": "Lib Forest Three", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "route", "real": "Circuitous Route", "decisions": ["f1", "f3"]}
+ ],
+ "expect": {
+  "zone": {"route": "graveyard", "f1": "battlefield", "f3": "battlefield", "f2": "library"},
+  "tapped": {"f1": true, "f3": true},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]}
+ }}

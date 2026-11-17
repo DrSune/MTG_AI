@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "G00_2",
+ "notes": "Printed (FDN Bloodtithe Collector): 'Flying. When this creature enters, if an opponent lost life this turn, each opponent discards a card.' Nobody lost life this turn: the intervening 'if' is false, so the opponent keeps all three cards.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "btc",
+   "real": "Bloodtithe Collector",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "name": "Opp Card C",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "btc"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "btc": "battlefield",
+   "o1": "hand",
+   "o2": "hand",
+   "o3": "hand"
+  },
+  "hand": {
+   "0": 0,
+   "1": 3
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "graveyard": {
+   "0": [],
+   "1": []
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "E09_3_guttersnipe_each_opponent_takes_two",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.' A three-player game. Seat 0 casts Opt (an instant): each of its two opponents, seats 1 and 2, takes 2 damage (18 each). Seat 0 takes none.",
+ "world": {"life": 20, "seed": 7, "players": 3},
+ "cards": [
+  {"key": "snipe", "real": "Guttersnipe", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "opt", "controller": 0, "decisions": ["first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "zone": {"opt": "graveyard"},
+  "life": {"0": 20, "1": 18, "2": 18}
+ }
+}

@@ -177,5 +177,53 @@
  },
  "probe": {
   "sha": "ded0b097b0114c07e9f508a2a08d39d9f720ee4aa109860c4e4d0c8815ea69ff"
+ },
+ "verified": {
+  "tree_sha": "6f72a7c1094de08129a2ecedca524c75efa3c6fde10b1b61f6c098f3d568c3da",
+  "probe_sha": "ded0b097b0114c07e9f508a2a08d39d9f720ee4aa109860c4e4d0c8815ea69ff",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Search your library for up to two basic land cards and/or Gate cards",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] shows no search event at all (the spell just goes hand -> stack -> graveyard): the standard library holds no basic land card and no Gate. Packs D06_1 (library with two basic Forests, a Gate, a Desert and a creature card: a Gate and a Forest taken), D06_2 (one taken, then NONE), D06_3 (three Forests: only two can be taken), D06_4 (the first ask offers exactly the two Forests, the Gate and NONE: not the nonbasic non-Gate land, not the creature card) pass. Pack D06_5 (passes): it is a sorcery, refused on the opponent's turn ('window:not_your_turn'). Pack D06_6 (passes): zero is allowed (NONE at the first ask: nothing enters, the library keeps all its cards).",
+    "issue": ""
+   },
+   {
+    "clause": "put them onto the battlefield tapped",
+    "status": "NOT_EXERCISED",
+    "evidence": "No card moves in the trace. Packs D06_1..D06_3 (pass): every card taken is on the battlefield, tapped, under my control; the cards not taken stay in the library.",
+    "issue": ""
+   },
+   {
+    "clause": "then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Nothing is shown in the trace. The tree ends in SHUFFLE of my library after the SEARCH. A shuffle is not observable by a pack (the library lane can only pin an order or wildcard it, and a seeded order would come from the trace, not the text); the packs pin the library's size only. (G3's 'drop step' mutant of the SHUFFLE is not a critical operator, and no pack can tell it apart.)",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/circuitous_route_1.json",
+   "tools/scenarios/cards/FDN/circuitous_route_2.json",
+   "tools/scenarios/cards/FDN/circuitous_route_3.json",
+   "tools/scenarios/cards/FDN/circuitous_route_4.json",
+   "tools/scenarios/cards/FDN/circuitous_route_5.json",
+   "tools/scenarios/cards/FDN/circuitous_route_6.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 1,
+   "score": 0.125,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/cards/filter/children/0",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/cards/filter/children/0",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/destination/controller"
+   ]
+  }
  }
 }

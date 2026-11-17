@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "bite_down_target_restrictions",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' The first target must be a creature seat 0 controls, the second a creature or planeswalker seat 0 does not control. Naming an opposing creature for the first slot, or one of seat 0's own creatures for the second slot, is refused before anything is paid: Bite Down stays in hand with its mana, no damage is marked anywhere.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "mine1", "name": "My Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "mine2", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "bd", "targets": ["opp1", "opp2"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "bd", "targets": ["mine1", "mine2"], "expect_raise": "illegal target"}
+ ],
+ "expect": {
+  "zone": {"bd": "hand", "mine1": "battlefield", "mine2": "battlefield", "opp1": "battlefield", "opp2": "battlefield"},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {"G": 2}}
+ }
+}

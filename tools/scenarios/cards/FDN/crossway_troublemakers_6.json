@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "E02_6_crossway_troublemakers_only_your_vampires_dying_ask_anything",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' Two deaths: seat 0's Bear (a creature seat 0 controls, not a Vampire) and seat 1's Vampire (a Vampire, not one seat 0 controls). Neither triggers: the steps carry no decision words, so any may-ask would raise and fail the pack. Nobody loses or gains life, and no card is drawn by either seat.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Test Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ovamp", "name": "Opp Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 5},
+  {"op": "deal_damage", "source": "troub", "target": "ovamp", "amount": 5}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "ovamp": "graveyard"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 0, "1": 0}
+ }
+}

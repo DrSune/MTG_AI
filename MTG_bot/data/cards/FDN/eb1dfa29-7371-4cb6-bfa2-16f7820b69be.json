@@ -198,5 +198,44 @@
  },
  "probe": {
   "sha": "a5829d415d62fdd76bad59e1d8fee599622154416de062064a6b06dfc5095c0d"
+ },
+ "verified": {
+  "tree_sha": "fe6d528e60a16ef65d58b25cfc9bac54843b0a2da97cc18851d25ace575e4704",
+  "probe_sha": "a5829d415d62fdd76bad59e1d8fee599622154416de062064a6b06dfc5095c0d",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Counter target spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'cast skipped: a target slot needs 1, the board offers 0' (no spell on the stack). Tree read: COUNTER_SPELL over one TARGET with STACK_KIND_EQ SPELL on the stack. Packs PASS: B02_1 (a creature spell, Highborn Vampire, is countered: it goes to its owner's graveyard and never enters) and B02_2 (two spells on the stack: only the targeted LOWER one, Aegis Turtle, is countered; Giant Growth above it resolves, Bear 5/5). Wrong twins fail.",
+    "issue": ""
+   },
+   {
+    "clause": "Draw a card, then discard a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not in the trace. Tree read: DRAW 1 for YOU, then a one-card pick from YOUR hand to YOUR graveyard (the ONE_OF form the compiler gives a count-1 pick). Packs PASS: B02_1 (exactly one card drawn; the discard is chosen from the hand AFTER the draw, the drawn card is offered and discarded, hand ends at 2) and B02_2 (a different card of the caster's choice is discarded, the drawn card stays in hand). The opponent draws and discards nothing. Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/refute_1.json",
+   "tools/scenarios/cards/FDN/refute_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 3,
+   "score": 0.2727272727272727,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "drop step 2 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/controller",
+    "amount+1 at 1/0/effect/steps/2/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/2/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/steps/2/args/controller",
+    "zone GRAVEYARD->EXILE at 1/0/effect/steps/2/args/destination"
+   ]
+  }
  }
 }

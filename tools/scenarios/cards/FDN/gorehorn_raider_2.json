@@ -1,0 +1,21 @@
+{
+ "name": "H01_gorehorn_raider_raid_can_hit_a_player",
+ "set": "FDN",
+ "note": "Gorehorn Raider: 'any target' includes a player. P0 attacks with a 0/2 Scout, casts the Raider after combat and aims the trigger at the opponent (player:1): the opponent loses exactly 2 life (20 -> 18) and no creature is damaged.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "raider", "zone": "hand", "controller": 0, "real": "Gorehorn Raider"},
+  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "power": "0", "toughness": "2", "type": "Creature"},
+  {"key": "victim", "zone": "battlefield", "controller": 1, "name": "Victim", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"scout": true}},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 4}},
+  {"op": "cast", "real": "Gorehorn Raider", "key": "raider", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "attackers": {"scout": true},
+  "zone": {"raider": "battlefield", "victim": "battlefield"},
+  "life": {"0": 20, "1": 18}
+ }
+}

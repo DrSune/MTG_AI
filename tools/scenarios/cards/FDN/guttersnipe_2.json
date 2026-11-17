@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "E09_2_guttersnipe_only_your_own_spells",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.' Seat 1, the opponent, casts Opt ({U}, an instant). It is not a spell seat 0 cast: no trigger, no damage to anyone (20 and 20).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snipe", "real": "Guttersnipe", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "opt", "controller": 1, "decisions": ["first-legal", "first-legal"]}
+ ],
+ "expect": {
+  "zone": {"opt": "graveyard"},
+  "life": {"0": 20, "1": 20}
+ }
+}

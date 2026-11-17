@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Essence Scatter, printed: 'Counter target creature spell.' Two creature spells wait on the stack: seat 0's Highborn Vampire, then its Spectral Sailor (flash). Seat 1 targets only the Vampire: it is countered and goes to the graveyard; the Sailor is not targeted and resolves, entering the battlefield.",
+ "cards": [
+  {"key": "vamp", "real": "Highborn Vampire", "zone": "hand", "controller": 0},
+  {"key": "sailor", "real": "Spectral Sailor", "zone": "hand", "controller": 0},
+  {"key": "es", "real": "Essence Scatter", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "U": 1, "C": 3}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "vamp", "real": "Highborn Vampire", "hold": true},
+  {"op": "cast", "key": "sailor", "real": "Spectral Sailor", "hold": true},
+  {"op": "cast", "key": "es", "real": "Essence Scatter", "controller": 1, "targets": ["vamp"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard", "sailor": "battlefield", "es": "graveyard"},
+  "graveyard": {"0": ["Highborn Vampire"], "1": ["Essence Scatter"]},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

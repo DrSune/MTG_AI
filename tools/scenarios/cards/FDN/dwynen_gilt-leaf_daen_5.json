@@ -1,0 +1,72 @@
+{
+ "set": "FDN",
+ "name": "E10_5_dwynen_the_attacking_elves_are_counted_when_the_ability_resolves",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever Dwynen attacks, you gain 1 life for each attacking Elf you control.' Seat 0 attacks with Dwynen and two Elves. With Dwynen's trigger waiting on the stack, one Elf is put into the graveyard in response. The life gain counts the attacking Elves seat 0 controls as the ability resolves: Dwynen and the one Elf left, two, so seat 0 gains 2 (22), not the 3 there were when it triggered. The Elf that was removed is in the graveyard. The two attackers left deal 3 (Dwynen) + 3 (the Elf, 2/2 with Dwynen's bonus): seat 1 at 14.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dwynen",
+   "real": "Dwynen, Gilt-Leaf Daen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf1",
+   "name": "Elf One",
+   "type": "Creature — Elf Warrior",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "elf2",
+   "name": "Elf Two",
+   "type": "Creature — Elf Druid",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "dwynen": true,
+    "elf1": true,
+    "elf2": true
+   },
+   "respond_to_triggers": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "move",
+      "key": "elf1",
+      "to": "graveyard",
+      "hold": true
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "dwynen": true,
+   "elf1": true,
+   "elf2": true
+  },
+  "zone": {
+   "elf1": "graveyard",
+   "dwynen": "battlefield",
+   "elf2": "battlefield"
+  },
+  "life": {
+   "0": 22,
+   "1": 14
+  }
+ }
+}

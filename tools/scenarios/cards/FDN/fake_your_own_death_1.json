@@ -1,0 +1,27 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: 'Until end of turn, target creature gets +2/+0 and gains \"When this creature dies, return it to the battlefield tapped under its owner's control and you create a Treasure token.\"' Seat 0 targets its own 2/2: it is 4/2 (2 damage kills it). Seat 1's Pinger deals it 2 damage the same turn: it dies, then returns to the battlefield TAPPED under its owner's (seat 0's) control as a new object (a plain 2/2: no +2/+0, no damage, no granted ability) and seat 0 creates one Treasure token. A second creature that was not targeted dies the same turn from 2 damage and stays in the graveyard, with no second Treasure.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bystander", "name": "Bystander", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 2, "controller": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "bystander", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "bear": "battlefield", "bystander": "graveyard", "pinger": "battlefield"},
+  "tapped": {"bear": true},
+  "controller": {"bear": 0},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "tokens": {"Treasure": 1},
+  "graveyard": {"0": ["Fake Your Own Death", "Bystander"], "1": []},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

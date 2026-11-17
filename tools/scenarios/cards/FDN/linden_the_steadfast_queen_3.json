@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "name": "F00_3",
+ "notes": "Linden, the Steadfast Queen. Printed: 'Whenever a white creature YOU control attacks, you gain 1 life.' 'You' is Linden's CONTROLLER, not its owner: seat 1 gains control of Linden. On seat 0's turn seat 0's white Knight attacks (2 damage: seat 1 at 18) and Linden, now seat 1's, triggers for nothing of seat 0's. On seat 1's turn seat 1's white Knight attacks (seat 0 at 18) and Linden triggers for it: seat 1 gains 1 (19).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "linden",
+   "real": "Linden, the Steadfast Queen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Knight",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0,
+   "colors": [
+    "W"
+   ]
+  },
+  {
+   "key": "theirs",
+   "name": "Their Knight",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "colors": [
+    "W"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "linden",
+   "seat": 1
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mine": true,
+    "linden": false
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "theirs": true,
+    "linden": false
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 19
+  },
+  "controller": {
+   "linden": 1
+  }
+ }
+}

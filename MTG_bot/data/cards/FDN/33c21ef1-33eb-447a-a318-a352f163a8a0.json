@@ -167,5 +167,42 @@
  },
  "probe": {
   "sha": "f2501bb6cc0171233ffdbc890fe8ee97249c7ccb5397421f33781801a500c19b"
+ },
+ "verified": {
+  "tree_sha": "c5e5ebc5b31a2da69e153c3934cb23a2e66e3ec6fceb4969d51ca44861c4d3c4",
+  "probe_sha": "f2501bb6cc0171233ffdbc890fe8ee97249c7ccb5397421f33781801a500c19b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Joust Through deals 3 damage to target attacking or blocking creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'cast skipped: a target slot needs 1, the board offers 0' (the standard board has no attacking or blocking creature), so nothing of the card is shown. Tree read: DEAL_DAMAGE 3 over one TARGET of FAnd(FOr(IS_ATTACKING, IS_BLOCKING), TYPE_EQ Creature). Packs PASS: B01_1 (two attackers, one Joust Through each: the 3/3 dies, the 4/4 keeps exactly 3 damage; only the targeted creature is hit) and B01_2 (a BLOCKING creature is hit and dies; an idle creature, and a creature that attacked but is no longer attacking after combat, are refused 'illegal target' with nothing paid). Wrong twins fail.",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 1 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not in the trace (the cast is skipped). Tree read: GAIN_LIFE 1 for YOU. Packs PASS: B01_1 (the caster, seat 1, gains 1 per cast: 20 + 1 + 1 - 4 = 18, seat 0 stays 20) and B01_2 (the caster, seat 0, ends at 21, the opponent at 20). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/joust_through_1.json",
+   "tools/scenarios/cards/FDN/joust_through_2.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 4,
+   "score": 0.4,
+   "survived": [
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/amount",
+    "amount-1 at 1/0/effect/steps/0/args/amount",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "amount+1 at 1/0/effect/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/controller"
+   ]
+  }
  }
 }

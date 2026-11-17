@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "name": "F11_4",
+ "notes": "Mischievous Mystic. Printed: 'Whenever YOU draw your second card each turn'. On seat 1's turn seat 1 draws its draw-step card and then draws a second card with Opt: that is seat 1's second card, not seat 0's, so no Faerie.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "U": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "controller": 1,
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Faerie": 0
+  },
+  "zone": {
+   "opt": "graveyard"
+  }
+ }
+}

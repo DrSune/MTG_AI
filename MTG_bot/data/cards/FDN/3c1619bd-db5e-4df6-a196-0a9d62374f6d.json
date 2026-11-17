@@ -218,5 +218,45 @@
  },
  "probe": {
   "sha": "292fc9d15197ab4b4097eb589eb6cf7d04974d39c2e3420c4e32342776ae5711"
+ },
+ "verified": {
+  "tree_sha": "22709e623876e5c45de0d79e29d9afbee47daf414a91a3c02cb5160e22197074",
+  "probe_sha": "292fc9d15197ab4b4097eb589eb6cf7d04974d39c2e3420c4e32342776ae5711",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "When this creature enters, create a number of 1/1 white Rabbit creature tokens equal to the number of other creatures you control named Hare Apparent.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: ZoneChangeEvent(IS_SOURCE) -> CREATE_TOKEN count QCount(ALL Selector FAnd(CONTROLLER_IS YOU, NAME_EQ 'Hare Apparent', Creature, FNot(IS_SOURCE))), TokenSpec Rabbit, Creature — Rabbit, 1/1, colours ('W',). The probe board holds no other Hare Apparent, so every variant counts 0 and no token is ever created: the count, the token and the trigger's effect are never seen. Packs: H05_1 (one other: one Rabbit, 1/1, no keywords), H05_2 (two others: two), H05_3 (the opponent's Hare and other creatures do not count), H05_4 (counted as the trigger resolves), H05_5 (control, not ownership).",
+    "issue": ""
+   },
+   {
+    "clause": "A deck can have any number of cards named Hare Apparent.",
+    "status": "OK",
+    "evidence": "Deck-construction rule (CR 100.2a), the guide's own 'deck rule' label case (MAPPER_GUIDE 'Labelled sentences' names FDN Hare Apparent). It means nothing in a game, no tree node implements it, and the tree adds nothing for it, as it should. The deck builders read it off the printed sentence: games.deck_rule_copies('A deck can have any number of cards named Hare Apparent.', 'Hare Apparent') returns 60 (DECK_SIZE). The packet carries no clause map, so the record's label itself is not visible to me.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/hare_apparent_1.json",
+   "tools/scenarios/cards/FDN/hare_apparent_2.json",
+   "tools/scenarios/cards/FDN/hare_apparent_3.json",
+   "tools/scenarios/cards/FDN/hare_apparent_4.json",
+   "tools/scenarios/cards/FDN/hare_apparent_5.json",
+   "tools/scenarios/cards/FDN/hare_apparent_6.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 3,
+   "score": 0.375,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/count/selector/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/count/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/count/selector/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/tokens/power",
+    "amount+1 at 1/0/effect/args/tokens/toughness"
+   ]
+  }
  }
 }

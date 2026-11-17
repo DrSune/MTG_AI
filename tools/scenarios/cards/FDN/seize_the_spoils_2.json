@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "seize_the_spoils_treasure_is_tapped_and_sacrificed_for_one_mana_of_any_color",
+ "notes": "Printed: 'Create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")' Seat 0 casts Seize the Spoils ({2}{R}, discarding Spare) with exactly the mana it costs, so its only mana source afterwards is the Treasure it just created. It then casts Giant Growth ({G}) at its Bear and pays for it with that Treasure alone: the Treasure is tapped and sacrificed (it ceases to exist, no Treasure left) and makes exactly one mana, of the colour chosen (Green), so the pool is empty afterwards and the Bear is 5/5. Giant Growth could not be cast with no other mana, so the token really does make mana.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "spoils", "real": "Seize the Spoils", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "growth", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "d1", "name": "Drawn One", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "d2", "name": "Drawn Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "spoils", "real": "Seize the Spoils", "decisions": ["spare"]},
+  {"op": "cast", "key": "growth", "real": "Giant Growth", "targets": ["bear"], "tap": true, "decisions": ["G"]}
+ ],
+ "expect": {
+  "zone": {"spoils": "graveyard", "spare": "graveyard", "growth": "graveyard", "bear": "battlefield", "d1": "hand", "d2": "hand"},
+  "power": {"bear": 5},
+  "hand": {"0": 2, "1": 0},
+  "tokens": {"Treasure": 0},
+  "mana_pool": {"0": {}}
+ }}

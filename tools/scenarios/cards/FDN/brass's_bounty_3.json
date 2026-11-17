@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "brass_s_bounty_counts_the_lands_tapped_to_cast_it",
+ "notes": "Printed: 'For each land you control, create a Treasure token.' Seat 0 casts Brass's Bounty ({6}{R}) by tapping all seven of its Mountains. The spell counts the lands seat 0 controls as it resolves, tapped or not: seven Treasure tokens. The Mountains stay on the battlefield, tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brass's Bounty", "zone": "hand", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m3", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m4", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m5", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m6", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m7", "real": "Mountain", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "bb", "tap": true}
+ ],
+ "expect": {
+  "zone": {"bb": "graveyard", "m1": "battlefield", "m7": "battlefield"},
+  "tokens": {"Treasure": 7},
+  "tapped": {"m1": true, "m2": true, "m3": true, "m4": true, "m5": true, "m6": true, "m7": true},
+  "mana_pool": {"0": {}}
+ }
+}

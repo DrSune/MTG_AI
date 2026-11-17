@@ -1,0 +1,20 @@
+{
+ "name": "H05_hare_apparent_counts_creatures_only",
+ "set": "FDN",
+ "note": "Hare Apparent: 'the number of other CREATURES you control named Hare Apparent'. P0 controls a permanent named Hare Apparent that is not a creature (a land, as a permanent turned into a land by an effect would be) and no other Hare Apparent creature: casting a Hare Apparent counts nothing, so no Rabbit is created. With a real Hare Apparent creature beside it the count is exactly one.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "landhare", "zone": "battlefield", "controller": 0, "name": "Hare Apparent", "type": "Land"},
+  {"key": "mine1", "zone": "hand", "controller": 0, "real": "Hare Apparent"},
+  {"key": "mine2", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "mana": {"0": {"W": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Hare Apparent", "key": "mine1"},
+  {"op": "cast", "real": "Hare Apparent", "key": "mine2"}
+ ],
+ "expect": {
+  "tokens": {"Rabbit": 1},
+  "zone": {"mine1": "battlefield", "mine2": "battlefield", "landhare": "battlefield"}
+ }
+}

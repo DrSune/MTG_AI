@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Wardens of the Cycle (FDN), printed: 'if a creature died this turn'. Only a CREATURE dying counts: seat 0's own artifact goes to the graveyard this turn and no creature dies, so at the end step nothing triggers (no ask is raised, life stays 20, no card is drawn).",
+ "cards": [
+  {"key": "wotc", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"relic": "graveyard", "bear": "battlefield", "wotc": "battlefield"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 0}
+ }}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "E02_5_crossway_troublemakers_declined_pays_nothing_draws_nothing",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' Seat 0's Vampire dies to seat 1's Ogre. Seat 0 declines the may (skip): no life is paid (20) and, since it did not pay, no card is drawn (hand stays 0).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "vamp", "amount": 5, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard", "troub": "battlefield"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 0}
+ }
+}

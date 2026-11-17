@@ -1,0 +1,87 @@
+{
+ "set": "FDN",
+ "name": "F06_5",
+ "notes": "High-Society Hunter. Printed: 'Whenever another nontoken creature dies, draw a card.' Two of seat 0's nontoken creatures (Bear A and Bear B, attacking) die together in the combat damage step: one trigger for each, so two cards. The Hunter (kept home) and the two blockers live.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hunter",
+   "real": "High-Society Hunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Bear A",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Bear B",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Foe One",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "f2",
+   "name": "Foe Two",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hunter": false,
+    "a": true,
+    "b": true
+   },
+   "block": {
+    "f1": "a",
+    "f2": "b"
+   }
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "zone": {
+   "a": "graveyard",
+   "b": "graveyard",
+   "hunter": "battlefield",
+   "f1": "battlefield",
+   "f2": "battlefield"
+  },
+  "damage": {
+   "f1": 2,
+   "f2": 2
+  },
+  "counters": {
+   "hunter": {}
+  }
+ }
+}

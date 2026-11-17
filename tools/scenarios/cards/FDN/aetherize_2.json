@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "aetherize_returns_a_stolen_attacker_to_its_owner",
+ "notes": "Printed: 'Return all attacking creatures to their owner's hand.' Seat 1 owns Borrowed Beast, but seat 0 gained control of it on turn 1 and by turn 3 it has been under seat 0's control since the turn began, so it may attack. Seat 0 attacks with it; seat 1 casts Aetherize after attackers are declared. The Beast goes to its OWNER's hand (seat 1), not the controller's: seat 1 holds the card it drew on turn 2 plus the Beast, seat 0 only the card it drew on turn 3. Nothing is blocked and no combat damage is dealt.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "beast", "name": "Borrowed Beast", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "aeth", "real": "Aetherize", "zone": "hand", "controller": 1},
+  {"key": "l1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l2", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l3", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l4", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "gain_control", "key": "beast", "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"beast": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "aeth", "real": "Aetherize", "controller": 1, "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"beast": "hand", "aeth": "graveyard"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 1, "1": 2}
+ }
+}

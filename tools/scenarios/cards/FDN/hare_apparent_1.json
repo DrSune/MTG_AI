@@ -1,0 +1,20 @@
+{
+ "name": "H05_hare_apparent_one_other_hare_makes_one_rabbit",
+ "set": "FDN",
+ "note": "Hare Apparent: 'When this creature enters, create a number of 1/1 white Rabbit creature tokens equal to the number of other creatures you control named Hare Apparent.' P0 already controls one Hare Apparent and casts a second with exactly its cost ({1}{W}): one other Hare Apparent, so exactly one 1/1 Rabbit (the entering Hare does not count itself).",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "hare1", "zone": "battlefield", "controller": 0, "real": "Hare Apparent"},
+  {"key": "hare2", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Hare Apparent", "key": "hare2"}
+ ],
+ "expect": {
+  "tokens": {"Rabbit": 1},
+  "battlefield_pt": {"Rabbit": [1, 1]},
+  "battlefield_keywords": {"Rabbit": []},
+  "zone": {"hare1": "battlefield", "hare2": "battlefield"}
+ }
+}

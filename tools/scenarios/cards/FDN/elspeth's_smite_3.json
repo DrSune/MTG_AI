@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite, printed: 'If that creature would die this turn, exile it instead.' Seat 0's 4/4 attacker survives the Smite's 3 damage. Later the same turn (after combat) 1 more damage would kill it: it is exiled instead, never in the graveyard. A second creature that was never targeted dies the same turn from 2 damage and goes to its owner's graveyard.",
+ "cards": [
+  {"key": "a", "name": "Big Raider", "type": "Creature — Warrior", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "bystander", "name": "Bystander", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 1},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"a": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 1, "targets": ["a"], "tap": true}]}},
+  {"op": "deal_damage", "source": "pinger", "target": "a", "amount": 1, "controller": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "bystander", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"a": "exile", "bystander": "graveyard", "smite": "graveyard", "pinger": "battlefield"},
+  "graveyard": {"0": ["Bystander"], "1": ["Elspeth's Smite"]},
+  "life": {"0": 20, "1": 16},
+  "mana_pool": {"1": {}}
+ }
+}

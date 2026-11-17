@@ -272,5 +272,51 @@
  },
  "probe": {
   "sha": "c7b4c22139bc904afd5d653bc72037ecef2fcc5fb65f9dd54a25d3ca7928b83c"
+ },
+ "verified": {
+  "tree_sha": "b8af57f6c2af051138c292911f2d1679732c7f2b8c4cee8e486b932f5a562155",
+  "probe_sha": "c7b4c22139bc904afd5d653bc72037ecef2fcc5fb65f9dd54a25d3ca7928b83c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Draw a card for each creature you control with a +1/+1 counter on it.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No creature on the standard board has a +1/+1 counter, so [cast] draws nothing ('hand 7 -> 6' is the cast itself). Covered by packs: A09_1 (counts creatures, not counters: a creature with two counters counts once; a charge counter, a creature without counters and an opponent's creature with a +1/+1 counter do not count: exactly two cards, drawn by seat 0), A09_3 (none qualifies: nothing is drawn by either player). Pack A09_4: a noncreature permanent (an artifact) with a +1/+1 counter does not count: one card, and it does not gain indestructible.",
+    "issue": ""
+   },
+   {
+    "clause": "Those creatures gain indestructible until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No creature qualified in the probe, so no keyword was granted. Covered by packs: A09_1 (the two creatures with counters survive 9 damage, a creature without counters dies to 2, the charge-counter and opposing creatures do not gain it), A09_2 (the next turn the indestructible is gone: 9 damage kills it).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/inspiring_call_1.json",
+   "tools/scenarios/cards/FDN/inspiring_call_2.json",
+   "tools/scenarios/cards/FDN/inspiring_call_3.json",
+   "tools/scenarios/cards/FDN/inspiring_call_4.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 2,
+   "score": 0.13333333333333333,
+   "survived": [
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "amount+1 at 1/0/effect/steps/0/args/amount/left",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/amount/right/selector/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/amount/right/selector/filter/children/0/who",
+    "amount+1 at 1/0/effect/steps/0/args/amount/right/selector/filter/children/2/count",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/controller",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration",
+    "widen filter (drop part 0) at 1/0/effect/steps/1/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/args/target/filter/children/0/who",
+    "amount+1 at 1/0/effect/steps/1/args/target/filter/children/2/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "name": "F09_1",
+ "notes": "Stromkirk Bloodthief. Printed: 'At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.' The Bloodthief connects for 2 (combat damage is life lost): seat 1 at 18. At the end step the trigger targets the Highborn Vampire (chosen from the legal targets): one counter on it, none on the Bloodthief itself, on the opponent's Highborn Vampire or on the non-Vampire Bear.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hv",
+   "real": "Highborn Vampire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ohv",
+   "real": "Highborn Vampire",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": true,
+    "hv": false,
+    "bear": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN",
+   "decisions": [
+    "hv"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 18
+  },
+  "counters": {
+   "sb": {},
+   "hv": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "ohv": {},
+   "bear": {}
+  }
+ }
+}

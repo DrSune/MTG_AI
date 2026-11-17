@@ -1,0 +1,60 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Seeker's Folly (FDN) is a SORCERY: on the opponent's turn (turn 2) seat 0 holds {2}{B} and the cast (mode 1, no target needed) is refused for its timing; the card stays in hand.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Seeker's Folly",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Seeker's Folly",
+   "controller": 0,
+   "expect_raise": "window:not_your_turn",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

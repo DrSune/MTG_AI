@@ -272,5 +272,39 @@
  },
  "probe": {
   "sha": "3e1cfde427f868809c11762ba703862e4d03d1da8898e382d28b5cdcd7750f16"
+ },
+ "verified": {
+  "tree_sha": "50b3a9ca6cb312ee77df699c0b40d594bfaaa7a9914037f32eb4dc7c916f9789",
+  "probe_sha": "3e1cfde427f868809c11762ba703862e4d03d1da8898e382d28b5cdcd7750f16",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Target creature you control deals damage equal to its power to target creature you don't control.",
+    "status": "OK",
+    "evidence": "Two target slots: 1..1 of [you_bear, you_giant] (my creatures only) and 1..1 of [opp_flier, opp_tapped, opp_bear, opp_giant] (not mine). [cast targets=[you_bear, opp_flier]]: 'opp_flier is dealt 2 damage (by you_bear/DEAL_DAMAGE)' and it dies; you_giant deals 4 (by you_giant/DEAL_DAMAGE): opp_tapped and opp_giant die, all eight pairs show the dealer's power (2 or 4), the damage comes from the creature, and the creature takes none back. Packs: C04_2 (counters: power 4 from a 2/2), C04_3 (target restrictions), C04_4 (deathtouch and lifelink show the creature is the source), C04_5 (the dealer gone before resolution: no damage).",
+    "issue": ""
+   },
+   {
+    "clause": "... or planeswalker you don't control (the second target may be a planeswalker).",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard board has no planeswalker: the second slot lists only creatures. Pack C04_1: an opposing Vivien Reid (loyalty 5) bitten by a 4/4 goes to loyalty 1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/bite_down_1.json",
+   "tools/scenarios/cards/FDN/bite_down_2.json",
+   "tools/scenarios/cards/FDN/bite_down_3.json",
+   "tools/scenarios/cards/FDN/bite_down_4.json",
+   "tools/scenarios/cards/FDN/bite_down_5.json",
+   "tools/scenarios/cards/FDN/bite_down_6.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 15,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

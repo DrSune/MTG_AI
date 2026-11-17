@@ -200,5 +200,40 @@
  },
  "probe": {
   "sha": "72a3ab2a443b8a4c71af9591bec0706623dab24edcbbe8ef061290f3a8046384"
+ },
+ "verified": {
+  "tree_sha": "f8db333aca6fbdab3767ea1029949d17168b10939badf30c23cc24dad8cb200a",
+  "probe_sha": "72a3ab2a443b8a4c71af9591bec0706623dab24edcbbe8ef061290f3a8046384",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: 'keywords +FLYING' and the static section 'card keywords: FLYING'; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row and 'opp is dealt 3 damage (combat) (by card/DEAL_DAMAGE)': the non-flying, non-reach Giant could not block it (contrast the creatures without flying, where the same variant shows 'DECLARE_BLOCKERS opp_giant card, 1').",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 2 life for each Gate you control.",
+    "status": "OK",
+    "evidence": "[cast]: 'you gains 2 life (by card/GAIN_LIFE)', life 20 -> 22, with exactly one Gate under my control on the probe board ('Your Gate'); the opponent's Gate ('Opp Gate') adds nothing (it would have made 4). The same in the variant where it enters on the opponent's turn. The trace holds one data point (one Gate), so packs G03_1 (three Gates and non-Gate lands: 6 life, the opponent's Gate ignored), G03_2 (no Gate: nothing) and G03_3 (control, not ownership: a stolen Gate counts, a lent one does not) pin the per-Gate count.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/archway_angel_1.json",
+   "tools/scenarios/cards/FDN/archway_angel_2.json",
+   "tools/scenarios/cards/FDN/archway_angel_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 6,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/amount/right/selector/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/amount/right/selector/filter/children/0/who"
+   ]
+  }
  }
 }

@@ -1,0 +1,20 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Claws Out (FDN), printed: 'Affinity for Cats (This spell costs {1} less to cast for each Cat you control.) Creatures you control get +2/+2 until end of turn.' Seat 0 controls TWO Cats (and a Bear), seat 1 controls a Cat and an Ape. The cost is {3}{W}{W} less 2 = {1}{W}{W} (the opponent's Cat does not count): the pool of exactly three mana pays it and is empty afterwards. Seat 0's three creatures get +2/+2, the opponent's get nothing.",
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "cat1", "name": "My Cat One", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "cat2", "name": "My Cat Two", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ocat", "name": "Their Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ape", "name": "Their Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "claws", "real": "Claws Out"}
+ ],
+ "expect": {
+  "zone": {"claws": "graveyard"},
+  "mana_pool": {"0": {}},
+  "power": {"cat1": 4, "cat2": 3, "bear": 4, "ocat": 2, "ape": 3},
+  "toughness": {"cat1": 4, "cat2": 3, "bear": 4, "ocat": 2, "ape": 3}
+ }}

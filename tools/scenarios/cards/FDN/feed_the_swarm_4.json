@@ -1,0 +1,18 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Feed the Swarm, printed: 'Destroy target creature or enchantment an opponent controls. You lose life equal to that permanent's mana value.' The life loss is its own instruction, not conditional on the destruction: against an indestructible mana value 4 creature the creature survives (nothing is destroyed) and seat 0 still loses 4 life.",
+ "cards": [
+  {"key": "fts", "real": "Feed the Swarm", "zone": "hand", "controller": 0},
+  {"key": "tough", "name": "Indestructible Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 4, "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["tough"]}
+ ],
+ "expect": {
+  "zone": {"fts": "graveyard", "tough": "battlefield"},
+  "life": {"0": 16, "1": 20},
+  "graveyard": {"0": ["Feed the Swarm"], "1": []},
+  "mana_pool": {"0": {}}
+ }
+}

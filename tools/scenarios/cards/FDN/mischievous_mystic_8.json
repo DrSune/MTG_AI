@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "F11_8",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your SECOND card each turn'. The turn's cards count, not only those drawn while the Mystic is on the battlefield: seat 0 draws its first card of the turn with Opt, THEN the Mystic enters, then a second Opt draws the turn's second card: one Faerie.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "opt1",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "opt2",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "opt1",
+   "real": "Opt",
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "mm"
+  },
+  {
+   "op": "cast",
+   "key": "opt2",
+   "real": "Opt",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Faerie": 1
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

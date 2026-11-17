@@ -1,0 +1,17 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Goblin Surprise (FDN), mode 1 printed: 'Create two 1/1 red Goblin creature tokens.' The tokens are COLORED: a verified card that reads colour, Devout Decree ('target creature or planeswalker that's black or red'), is cast after the tokens exist. It is offered exactly the two Goblin tokens (handles card:15 and card:16, the only cards created after setup) and not the green Bear, and it exiles the first token (a token ceases to exist): one Goblin is left. FDN holds no verified card that tells red from black, so this shows the tokens are black-or-red, never colorless; 'red' itself rests on the tree.",
+ "cards": [
+  {"key": "gs", "real": "Goblin Surprise", "zone": "hand", "controller": 0},
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "W": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "gs", "real": "Goblin Surprise", "decisions": ["1"]},
+  {"op": "act", "seat": 0, "words": ["cast:dd", "card:15", "top"]}
+ ],
+ "expect": {
+  "zone": {"gs": "graveyard", "dd": "graveyard", "bear": "battlefield"},
+  "tokens": {"Goblin": 1},
+  "battlefield_pt": {"Goblin": [1, 1]}
+ }}

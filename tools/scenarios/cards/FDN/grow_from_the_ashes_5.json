@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Grow from the Ashes (unkicked), printed: 'Search your library for a basic land card, ...' The search offers the basic land cards in seat 0's LIBRARY, Forest (card:5), Island (card:6) and Mountain (card:7), and nothing else: not the nonbasic Jungle Hollow in the library (card:1), a Swamp in seat 0's hand (card:2), a Swamp in its graveyard (card:3) nor the Swamp in seat 1's library (card:4). The excluded cards are declared first so that any of them in the menu would show as a lower handle before card:5 and break the expected words. The step stops at that ask (expect_raise pins its words, and tolerates a trailing NONE); nothing has left the library.",
+ "cards": [
+  {"key": "gfa", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "hollow", "real": "Jungle Hollow", "zone": "library", "controller": 0},
+  {"key": "handswamp", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "gyswamp", "real": "Swamp", "zone": "graveyard", "controller": 0},
+  {"key": "oppswamp", "real": "Swamp", "zone": "library", "controller": 1},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "expect_raise": "needs a decision from ('card:5', 'card:6', 'card:7'"}
+ ],
+ "expect": {
+  "zone": {"forest": "library", "island": "library", "mountain": "library", "hollow": "library", "handswamp": "hand", "gyswamp": "graveyard", "oppswamp": "library"}
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "name": "H05_hare_apparent_counts_hares_you_control_not_hares_you_own",
+ "set": "FDN",
+ "note": "Hare Apparent: 'other creatures you control named Hare Apparent' reads control, not ownership. P0 controls a Hare Apparent that P1 owns (gain_control) and does not control the one it owns (P1 controls it): P0 casts a Hare Apparent and gets exactly one Rabbit (for the borrowed Hare), not zero and not two.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "borrowed", "zone": "battlefield", "controller": 1, "real": "Hare Apparent"},
+  {"key": "lent", "zone": "battlefield", "controller": 0, "real": "Hare Apparent"},
+  {"key": "mine", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "gain_control", "key": "borrowed", "seat": 0},
+  {"op": "gain_control", "key": "lent", "seat": 1},
+  {"op": "cast", "real": "Hare Apparent", "key": "mine"}
+ ],
+ "expect": {
+  "controller": {"borrowed": 0, "lent": 1, "mine": 0},
+  "tokens": {"Rabbit": 1}
+ }
+}

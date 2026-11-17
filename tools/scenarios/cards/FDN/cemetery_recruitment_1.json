@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "cemetery_recruitment_non_zombie_returns_without_drawing",
+ "notes": "Printed: 'Return target creature card from your graveyard to your hand. If it's a Zombie card, draw a card.' Seat 0's graveyard holds a Bear card (the target) and, as distractors, another Zombie card of its own and a Zombie card in seat 1's graveyard. The Bear is not a Zombie, so it returns to hand and no card is drawn: seat 0's hand is just the Bear, the Zombies stay in their graveyards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cr", "real": "Cemetery Recruitment", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Fallen Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "myz", "name": "My Other Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "oppz", "name": "Opp Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "key": "cr", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"bear": "hand", "myz": "graveyard", "oppz": "graveyard", "cr": "graveyard"},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

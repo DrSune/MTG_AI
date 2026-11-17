@@ -1,0 +1,65 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Feed the Swarm, printed: 'You lose life equal to that permanent's mana value.' A token has no mana cost, so its mana value is 0 (CR 202.3): destroying seat 1's token creature (it ceases to exist, CR 704.5d) costs seat 0 no life. The value is read as the token last existed, with no crash on a token that has already left the battlefield.",
+ "cards": [
+  {
+   "key": "fts",
+   "real": "Feed the Swarm",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Spirit",
+   "type": "Creature — Spirit",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 0,
+   "token": true,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "fts",
+   "real": "Feed the Swarm",
+   "targets": [
+    "tok"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fts": "graveyard",
+   "tok": "ceased"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tokens": {
+   "Spirit": 0
+  },
+  "graveyard": {
+   "0": [
+    "Feed the Swarm"
+   ],
+   "1": []
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

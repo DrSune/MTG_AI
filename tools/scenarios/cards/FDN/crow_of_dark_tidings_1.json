@@ -1,0 +1,21 @@
+{
+ "name": "H00_crow_enters_mills_two_of_your_own",
+ "set": "FDN",
+ "note": "Crow of Dark Tidings: 'When this creature enters or dies, mill two cards.' Cast from hand with exactly its cost ({2}{B}): the enters trigger puts the top two cards of ITS CONTROLLER's library into that player's graveyard, once. The opponent's library is untouched and the Crow itself stays on the battlefield.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Crow of Dark Tidings", "key": "crow"}
+ ],
+ "expect": {
+  "zone": {"crow": "battlefield"},
+  "graveyard": {"0": ["Library 5", "Library 4"], "1": []},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "hand": {"0": 0, "1": 0},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "E00_1_dazzling_angel_each_creature_entering_gains_one",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever another creature you control enters, you gain 1 life.' Support card: FDN Dragon Fodder (verified; 'Create two 1/1 red Goblin creature tokens.'). Seat 0's Angel is on the battlefield. Dragon Fodder puts two Goblin tokens onto the battlefield at once: each is another creature entering under seat 0's control, so the Angel triggers once for each, 20 + 1 + 1 = 22. Seat 1 gains nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "angel", "real": "Dazzling Angel", "zone": "battlefield", "controller": 0},
+  {"key": "fodder", "real": "Dragon Fodder", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "key": "fodder", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"fodder": "graveyard"},
+  "tokens": {"Goblin": 2},
+  "life": {"0": 22, "1": 20}
+ }
+}

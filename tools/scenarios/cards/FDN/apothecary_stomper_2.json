@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "apothecary_stomper_enters_and_puts_two_counters_on_a_creature_you_control",
+ "notes": "Printed: 'When this creature enters, choose one - Put two +1/+1 counters on target creature you control. / You gain 4 life.' Seat 0 casts the Stomper ({4}{G}{G}); when it enters the trigger's mode 0 is chosen and the target is seat 0's Bear: exactly two +1/+1 counters on it (4/4), none on the Stomper or on seat 1's Bear, and no life is gained.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "st", "real": "Apothecary Stomper", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "st", "decisions": ["0", "bear"]}
+ ],
+ "expect": {
+  "zone": {"st": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 2}, "st": {}, "obear": {}},
+  "power": {"bear": 4, "st": 4, "obear": 2},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

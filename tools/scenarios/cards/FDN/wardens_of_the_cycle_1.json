@@ -1,0 +1,15 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Wardens of the Cycle (FDN), printed: 'Morbid - At the beginning of your end step, if a creature died this turn, choose one - You gain 2 life. / You draw a card and you lose 1 life.' The opponent's Bear dies in seat 0's turn (any creature counts, not only yours). At seat 0's end step the trigger fires and mode 0 is chosen: seat 0 gains 2 life (20 -> 22), draws nothing and loses nothing.",
+ "cards": [
+  {"key": "wotc", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "wotc", "target": "bear", "amount": 5},
+  {"op": "end_turn", "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "wotc": "battlefield"},
+  "life": {"0": 22, "1": 20},
+  "hand": {"0": 0}
+ }}

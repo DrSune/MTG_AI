@@ -1,0 +1,95 @@
+{
+ "set": "FDN",
+ "name": "F08_7",
+ "notes": "Halana and Alena, Partners. Printed: '...put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power.' A negative number counts as 0 (CR 107.1b). The trigger waits; seat 1 casts two Stabs on Halana (2/3 -> 0/1 -> -2/-1: power -2, and she dies). The ability resolves with her last known power, -2, so X is 0: no counters on the Bear (and no -1/-1 counters either): it stays 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "stab1",
+   "real": "Stab",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "stab2",
+   "real": "Stab",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ha": false,
+    "bear": false
+   },
+   "decisions": [
+    "bear"
+   ],
+   "respond_to_triggers": {
+    "COMBAT": [
+     {
+      "op": "mana",
+      "seat": 1,
+      "add": {
+       "B": 2
+      },
+      "hold": true
+     },
+     {
+      "op": "cast",
+      "key": "stab1",
+      "real": "Stab",
+      "controller": 1,
+      "targets": [
+       "ha"
+      ],
+      "hold": true
+     },
+     {
+      "op": "cast",
+      "key": "stab2",
+      "real": "Stab",
+      "controller": 1,
+      "targets": [
+       "ha"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 2
+  },
+  "toughness": {
+   "bear": 2
+  },
+  "zone": {
+   "ha": "graveyard",
+   "stab1": "graveyard",
+   "stab2": "graveyard"
+  }
+ }
+}

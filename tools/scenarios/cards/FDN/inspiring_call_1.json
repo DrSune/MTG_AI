@@ -1,0 +1,26 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Inspiring Call, printed: 'Draw a card for each creature you control with a +1/+1 counter on it. Those creatures gain indestructible until end of turn.' Seat 0 controls Counter One (one +1/+1 counter), Counter Two (two +1/+1 counters: it counts once), a plain bear, and a bear with a charge counter (not a +1/+1 counter); seat 1 controls a creature with a +1/+1 counter (not seat 0's). Exactly two cards are drawn, by seat 0. Counter One and Counter Two are indestructible (9 damage marked on Counter One does not kill it), the others are not (the plain bear dies to 2 damage, the charge-counter and the opponent's creatures have no indestructible).",
+ "cards": [
+  {"key": "call", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Counter One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "c2", "name": "Counter Two", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "plain", "name": "Plain Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "charged", "name": "Charged Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"CHARGE": 1}},
+  {"key": "oppc", "name": "Opp Counter", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "call", "real": "Inspiring Call"},
+  {"op": "deal_damage", "source": "oppc", "target": "c1", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "oppc", "target": "plain", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"call": "graveyard", "c1": "battlefield", "c2": "battlefield", "plain": "graveyard", "charged": "battlefield", "oppc": "battlefield"},
+  "damage": {"c1": 9},
+  "battlefield_keywords": {"Counter One": ["INDESTRUCTIBLE"], "Counter Two": ["INDESTRUCTIBLE"], "Charged Bear": [], "Opp Counter": []},
+  "graveyard": {"0": ["Inspiring Call", "Plain Bear"], "1": []},
+  "hand": {"0": 2, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

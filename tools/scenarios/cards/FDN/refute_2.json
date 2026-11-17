@@ -1,0 +1,26 @@
+{"set": "FDN", "name": "refute_counters_only_the_targeted_spell_and_the_discard_is_the_casters_free_choice",
+ "notes": "Printed: 'Counter target spell. Draw a card, then discard a card.' Seat 0 casts Aegis Turtle ({U}) and, on top of it, Giant Growth ({G}) at its own Bear, both waiting on the stack. Seat 1 casts Refute at the LOWER spell, Aegis Turtle: only that spell is countered (it goes to its owner's graveyard and never enters). Refute resolves first, then Giant Growth resolves normally (the Bear is 5/5). Seat 1 draws one card (Drawn) and discards one of its choice: it discards Spare One, so the drawn card stays in its hand: hand = Spare Two + Drawn (2), graveyard = Refute + Spare One. Seat 0 draws and discards nothing.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "turtle", "real": "Aegis Turtle", "zone": "hand", "controller": 0},
+  {"key": "growth", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "refute", "real": "Refute", "zone": "hand", "controller": 1},
+  {"key": "h1", "name": "Spare One", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 1},
+  {"key": "h2", "name": "Spare Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 1},
+  {"key": "drawn", "name": "Drawn", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"U": 1, "G": 1}, "1": {"U": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "turtle", "hold": true},
+  {"op": "cast", "key": "growth", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "refute", "controller": 1, "targets": ["turtle"], "tap": true, "real": "Refute", "decisions": ["h1"]}
+ ],
+ "expect": {
+  "zone": {"turtle": "graveyard", "growth": "graveyard", "bear": "battlefield", "refute": "graveyard", "h1": "graveyard", "h2": "hand", "drawn": "hand"},
+  "power": {"bear": 5},
+  "hand": {"0": 0, "1": 2},
+  "graveyard": {"0": ["Aegis Turtle", "Giant Growth"], "1": ["Refute", "Spare One"]},
+  "mana_pool": {"0": {}, "1": {}},
+  "life": {"0": 20, "1": 20}
+ }}

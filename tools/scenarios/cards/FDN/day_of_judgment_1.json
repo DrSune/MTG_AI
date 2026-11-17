@@ -1,0 +1,19 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Day of Judgment (FDN), printed: 'Destroy all creatures.' Every creature on the battlefield is destroyed, whoever controls it, artifact creatures included. DESTROY is not exile or damage: an indestructible creature survives it. Non-creature permanents (an artifact, an enchantment) are untouched. Lands and players are untouched (life stays 20).",
+ "cards": [
+  {"key": "doj", "real": "Day of Judgment", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "golem", "name": "My Golem", "type": "Artifact Creature — Golem", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Their Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Their Stone Wall", "type": "Creature — Wall", "power": "0", "toughness": "1", "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "charm", "name": "Their Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "doj", "real": "Day of Judgment"}
+ ],
+ "expect": {
+  "zone": {"doj": "graveyard", "mine": "graveyard", "golem": "graveyard", "theirs": "graveyard", "wall": "battlefield", "relic": "battlefield", "charm": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }}

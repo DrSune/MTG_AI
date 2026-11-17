@@ -125,5 +125,36 @@
  },
  "probe": {
   "sha": "dd2cddfe18ccf57ed1a9fde159b99dd88471ab6ca1a9ef345393ce35d4cad6f0"
+ },
+ "verified": {
+  "tree_sha": "d2ddff7b83e7f8df2c646a5c9bf77d2f7d50ecda24b86c2f4c1ceef927ac0f19",
+  "probe_sha": "dd2cddfe18ccf57ed1a9fde159b99dd88471ab6ca1a9ef345393ce35d4cad6f0",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Counter target red or green spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's only line is 'cast skipped: a target slot needs 1, the board offers 0': no spell is ever on the stack to target, so no variant shows a counter, a target menu or a refusal. The tree reads right (COUNTER_SPELL, one TARGET over the stack, FAnd(FOr(COLOR_HAS G, COLOR_HAS R), STACK_KIND_EQ SPELL)). Covered by packs: A00_1 (a red spell is countered: it goes to its owner's graveyard and its effect never happens), A00_3 (two spells wait on the stack, only the targeted green one is countered, the red one resolves), A00_4 (a green-and-blue spell is a green spell: countered), A00_2 (a black spell is refused), A00_5 (a white and a colourless spell are refused), A00_6 (a red source's ability on the stack is not a spell: refused).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/flashfreeze_1.json",
+   "tools/scenarios/cards/FDN/flashfreeze_2.json",
+   "tools/scenarios/cards/FDN/flashfreeze_3.json",
+   "tools/scenarios/cards/FDN/flashfreeze_4.json",
+   "tools/scenarios/cards/FDN/flashfreeze_5.json",
+   "tools/scenarios/cards/FDN/flashfreeze_6.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

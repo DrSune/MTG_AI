@@ -204,5 +204,47 @@
  },
  "probe": {
   "sha": "ff8a8b7fc27a9b57d0b1c4b19838b51d20580485d603f64ed50c3740263aea1e"
+ },
+ "verified": {
+  "tree_sha": "dee1e495ade818319522a489a527eb0fcec76ab96ebc3900bd857434aea253b1",
+  "probe_sha": "de83bdc81653167e2c21d822a125bd1bca05e2acbaab27b2189682f64a65278c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trigger never fires in the trace: 'turns pass: your end step, ...' gives none (no opponent lost life before it), and the attack variants stop at combat. F09_1 (combat damage: counter on the chosen Vampire only), F09_2 (nobody lost life: none), F09_3 (only the controller lost life: none), F09_4 (life lost by an effect counts), F09_5 (the opponent's end step: none), F09_6 (the target menu: your Vampires only), F09_7 (life lost before the Bloodthief entered, same turn). F09_8 (losing exactly 1 life is enough: Skeleton Archer's 1 damage). F09_9 (three players: either opponent's life loss counts).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_1.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_2.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_3.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_4.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_5.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_6.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_7.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_8.json",
+   "tools/scenarios/cards/FDN/stromkirk_bloodthief_9.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 1,
+   "score": 0.09090909090909091,
+   "survived": [
+    "trigger scope: your turn -> each turn at 1/0/event",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/condition/count",
+    "controller OPPONENT->YOU at 1/0/condition/event/actor/who",
+    "amount+1 at 1/0/effect/args/count",
+    "target->all at 1/0/effect/args/target",
+    "amount+1 at 1/0/effect/args/target/count",
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/0/effect/args/target/filter/children/0/who"
+   ]
+  }
  }
 }

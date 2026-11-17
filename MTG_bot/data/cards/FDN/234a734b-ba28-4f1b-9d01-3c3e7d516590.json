@@ -286,5 +286,43 @@
  },
  "probe": {
   "sha": "f3e8cb4b0ad1a29a77615e1c3932be6523e27af7dc40d0be31eca678ee7d76a2"
+ },
+ "verified": {
+  "tree_sha": "14f1ab1cf4af07305ce170b411800ff3530e488a1f085d139b1caf5605ced068",
+  "probe_sha": "f3e8cb4b0ad1a29a77615e1c3932be6523e27af7dc40d0be31eca678ee7d76a2",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Counter target noncreature spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: 'cast skipped: a target slot needs 1, the board offers 0' - no spell is on the standard board, so nothing is cast or countered. Tree reads as printed: COUNTER_SPELL over one TARGET slot on the stack, filter STACK_KIND_EQ SPELL and not Creature. Packs: C00_1 (the opponent's Giant Growth is countered: graveyard, its Bear stays 2/2), C00_2 (my own spell), C00_3 (a creature spell is refused as a target).",
+    "issue": ""
+   },
+   {
+    "clause": "Its controller creates two Treasure tokens.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: nothing is countered, so no tokens are made. Tree: CREATE_TOKEN count 2, Treasure, controller = referent 'target' (the countered spell's controller). Packs: C00_1 (the opponent, whose spell was countered, gets two Treasures and pays a spell with one: one is left), C00_2 (countering my own spell gives me the two).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/an_offer_you_can't_refuse_1.json",
+   "tools/scenarios/cards/FDN/an_offer_you_can't_refuse_2.json",
+   "tools/scenarios/cards/FDN/an_offer_you_can't_refuse_3.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 3,
+   "score": 0.3333333333333333,
+   "survived": [
+    "drop keyword TREASURE at 0",
+    "drop step 1 at 1/0/effect",
+    "widen filter (drop part 0) at 1/0/effect/steps/0/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter",
+    "amount+1 at 1/0/effect/steps/1/args/count",
+    "amount-1 at 1/0/effect/steps/1/args/count"
+   ]
+  }
  }
 }

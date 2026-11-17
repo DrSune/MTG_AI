@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "adamant_will_survives_lethal_damage_through_the_end_of_turn",
+ "notes": "Printed: 'Target creature gets +2/+2 and gains indestructible until end of turn.' Seat 0's 2/2 Bear becomes a 4/4 indestructible creature; 4 damage is marked on it (lethal damage, but it is not destroyed). When the turn ends the damage is removed and the effect ends at the same time (CR 514.2), so the Bear is still on the battlefield, back to 2/2, not indestructible, with no damage marked. Seat 1's Bear is untouched (2/2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "aw", "real": "Adamant Will", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "aw", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 4},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"aw": "graveyard", "bear": "battlefield", "obear": "battlefield"},
+  "power": {"bear": 2, "obear": 2},
+  "toughness": {"bear": 2, "obear": 2},
+  "battlefield_keywords": {"My Bear": [], "Opp Bear": []},
+  "mana_pool": {"0": {}}
+ }
+}

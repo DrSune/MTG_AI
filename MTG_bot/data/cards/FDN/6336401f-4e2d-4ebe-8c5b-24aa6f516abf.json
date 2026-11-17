@@ -234,5 +234,47 @@
  },
  "probe": {
   "sha": "c0beac335a9ff39c5d1f14c42ed6f84c923f73d6853683ac7593ef5c17935246"
+ },
+ "verified": {
+  "tree_sha": "ad59cc838eaa0541e488bdaf6e5cb6478dcd8d0352ca38e0e78b471c47dc0a81",
+  "probe_sha": "c0beac335a9ff39c5d1f14c42ed6f84c923f73d6853683ac7593ef5c17935246",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature.",
+    "status": "OK",
+    "evidence": "[cast targets=...] for all six creatures (the menu is every creature): 'you_bear gets 1 PLUS_1_PLUS_1 counter(s) (by card/PUT_COUNTER)', 'counters {} -> {PLUS_1_PLUS_1: 1}; P/T 2/2 -> 3/3' (likewise you_giant 5/5, opp_flier 2/2, opp_tapped 4/4, opp_bear 3/3, opp_giant 5/5); the counter stays 'after the turn ends' (no P/T change then): one counter, on the target only.",
+    "issue": ""
+   },
+   {
+    "clause": "It gains flying until end of turn.",
+    "status": "OK",
+    "evidence": "'you_bear: ... keywords +FLYING' then 'after the turn ends: you_bear: keywords -FLYING' (the same for you_giant, opp_tapped, opp_bear, opp_giant); opp_flier already has printed flying: no keyword change and nothing removed at end of turn, correct. Pack A11_5 attacks with it: the ground creature is never offered a block.",
+    "issue": ""
+   },
+   {
+    "clause": "Prevent all combat damage that would be dealt to it this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe has no combat in any cast variant, so the prevention is never tested. Covered by packs: A11_1 (the blocker's 5 combat damage to the target is prevented, the target survives with no damage and deals its 3), A11_2 (non-combat damage is not prevented), A11_3 (only the target is protected: its fellow attacker takes 4 and dies), A11_4 (on the next turn combat damage kills it).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/fleeting_flight_1.json",
+   "tools/scenarios/cards/FDN/fleeting_flight_2.json",
+   "tools/scenarios/cards/FDN/fleeting_flight_3.json",
+   "tools/scenarios/cards/FDN/fleeting_flight_4.json",
+   "tools/scenarios/cards/FDN/fleeting_flight_5.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 6,
+   "score": 0.75,
+   "survived": [
+    "drop step 2 at 1/0/effect",
+    "until-end-of-turn->permanent at 1/0/effect/steps/2/args/duration"
+   ]
+  }
  }
 }

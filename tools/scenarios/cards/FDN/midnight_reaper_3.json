@@ -1,0 +1,77 @@
+{
+ "set": "FDN",
+ "name": "F10_3",
+ "notes": "Midnight Reaper. Printed: 'Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.' The Reaper and Bear A, both attacking, are blocked and die together: two creatures died, so two triggers: 2 damage to seat 0 (18) and two cards drawn.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Midnight Reaper",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Bear A",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Foe One",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "f2",
+   "name": "Foe Two",
+   "type": "Creature",
+   "power": "5",
+   "toughness": "5",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mr": true,
+    "a": true
+   },
+   "block": {
+    "f1": "mr",
+    "f2": "a"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "hand": {
+   "0": 2
+  },
+  "zone": {
+   "mr": "graveyard",
+   "a": "graveyard",
+   "f1": "battlefield",
+   "f2": "battlefield"
+  },
+  "damage": {
+   "f1": 3,
+   "f2": 2
+  }
+ }
+}
