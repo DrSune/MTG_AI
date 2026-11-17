@@ -8,8 +8,11 @@ docs/PLAN_CARD_ONBOARDING.md.
   the chosen supply mode. ``--unverified`` applies mapped card records that are not yet verified
   (the soak that comes before verification); without it, games see what real games see.
 - **Engine health:** crashes, grouped by exception and the card being played when it happened;
-  and the oracle-free anomaly detectors D1-D6 (``tools/audit/detectors.py``) on every game's
-  journal: life ledger, mana, counters, tokens, P/T recompute, lifecycle.
+  the oracle-free anomaly detectors D1-D6 (``tools/audit/detectors.py``) on every game's
+  journal: life ledger, mana, counters, tokens, P/T recompute, lifecycle; and the invariants of
+  the live world wherever the game loop stops (every priority point, the turn tops, the
+  declarations), which no journal can show: I1, no token outside the battlefield
+  (:func:`tokens_off_battlefield`).
 - **Abuse screen** (review candidates, not failures):
   - a card's win rate when cast, against the cards of the same mana value (z > 3 over at least
     20 casts);
@@ -53,6 +56,25 @@ def _supply(set_code: str, mode: str, unverified: bool) -> Any:
     return _SUPPLY
 
 
+def tokens_off_battlefield(world: Any) -> list[str]:
+    """Invariant I1 (CR 704.5d, 111.7-8): a token in any zone other than the battlefield, the stack
+    included, ceases to exist at the next state-based check, and the game checks before any player
+    gets priority (CR 704.3), so where a player holds priority or acts none is left. One line per
+    token found. Bug hunt 2026-11-17 (KNOWLEDGE 212 §2 A): a dead token stayed in a graveyard while
+    a trigger named it, and Scavenging Ooze ate it; 750 random games under invariants missed it
+    because none checked this."""
+    from MTG_bot.core.state import ZONE_BATTLEFIELD
+
+    return [
+        f"token {world.cards[card].identity.name} in {kind}"
+        for player in world.player_order
+        for kind, zone in world.players[player].zones.items()
+        if kind != ZONE_BATTLEFIELD
+        for card in zone.entries
+        if world.cards[card].identity.is_token
+    ]
+
+
 def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
     set_code, mode, unverified, deck_mode, seed = job
     import detectors as det
@@ -69,9 +91,15 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
     decks = deal_decks(seed, 1409, sup, deck_mode)
     game = _setup_game(seed, sup, decks)
     start_life = {str(h): int(p.life) for h, p in game.world.players.items()}
+    seen: set[str] = set()  # I1's findings, once per game
+
+    def invariants(g: Any, _boundary: str) -> bool:  # _play's stop_after: reads, never stops
+        seen.update(tokens_off_battlefield(g.world))
+        return False
+
     crash = None
     try:
-        _play(game, RandomPolicy(seed), game.world.player_order, TURN_CAP)
+        _play(game, RandomPolicy(seed), game.world.player_order, TURN_CAP, stop_after=invariants)
     except BaseException as error:  # noqa: BLE001 — a crash is the finding
         crash = {"error": f"{type(error).__name__}: {error}"[:200],
                  "attempted": game.attempted}
@@ -114,6 +142,7 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
             continue
         for hit in verdict.hits:
             hits.append({"detector": fn.__name__, "detail": str(hit.detail)[:160]})
+    hits.extend({"detector": "i1_tokens", "detail": detail[:160]} for detail in sorted(seen))
     return {"seed": seed, "turns": game.turns, "reason": game.reason, "loser": loser, "crash": crash,
             "casts": casts, "max_acts_per_turn": per_turn.most_common(3), "loops": loops, "hits": hits}
 
