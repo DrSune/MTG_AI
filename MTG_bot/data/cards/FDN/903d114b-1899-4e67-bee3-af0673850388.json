@@ -191,5 +191,35 @@
  },
  "probe": {
   "sha": "7798be9ff44fbf6dc6b21340ddd06dcbd8786da963d95818066729c91acb3a37"
+ },
+ "verified": {
+  "tree_sha": "9c66c4b6d75f090cd2b01a26d6458da5079f08aa046e0bf43aaf18a955ca6a14",
+  "probe_sha": "7798be9ff44fbf6dc6b21340ddd06dcbd8786da963d95818066729c91acb3a37",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 blue Faerie creature tokens with flying.",
+    "status": "OK",
+    "evidence": "All four [cast] variants: 'you:Faerie#1 moves new -> battlefield (by card/CREATE_TOKEN)' and the same for #2, then 'change: + you:Faerie#1 (battlefield, you, 1/1, FLYING)' and #2: exactly two tokens, 1/1, flying, under your control. The trace does not print colour or subtype; the tree's TokenSpec reads colors=('U',), subtypes=('Faerie',). Packs A02_1 and A02_2 pin the count at two (with and without an opposing creature on the board).",
+    "issue": ""
+   },
+   {
+    "clause": "When you do, tap target creature an opponent controls.",
+    "status": "OK",
+    "evidence": "[cast] / [cast | ask 1 -> ...]: the target menu is [opp_flier, opp_tapped, opp_bear, opp_giant]: only the opponent's creatures (not you_bear or you_giant, not the new Faeries, no artifact or enchantment). 'opp_flier becomes tapped (by card/TAP)', likewise opp_bear and opp_giant; opp_tapped was already tapped (no event, correct). The trace cannot show the reflexive timing (the target is chosen as the trigger goes on the stack, after the tokens, so the spell needs no target of its own): pack A02_2 casts it with no creature on the opponent's side and it still makes the tokens; pack A02_1 picks one of two opposing creatures and only that one is tapped.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/faebloom_trick_1.json",
+   "tools/scenarios/cards/FDN/faebloom_trick_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 11,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

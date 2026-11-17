@@ -1,0 +1,106 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Seeker's Folly (FDN), mode 0 printed: 'Target opponent discards two cards.' In a three-player game the caster picks ONE opponent: seat 2 is the target and chooses two of its three cards (B and C), keeps A; seat 1 (not the target) keeps all three of its cards; the caster's spare card stays. (Seat 0's hand holds its spare card and the card it drew in turn 1: with three players nobody skips the first draw, CR 103.8c.)",
+ "cards": [
+  {
+   "key": "folly",
+   "real": "Seeker's Folly",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Spare Card",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "x1",
+   "name": "Seat One Card X",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "x2",
+   "name": "Seat One Card Y",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "x3",
+   "name": "Seat One Card Z",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "a",
+   "name": "Seat Two Card A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 2
+  },
+  {
+   "key": "b",
+   "name": "Seat Two Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 2
+  },
+  {
+   "key": "c",
+   "name": "Seat Two Card C",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 2
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "folly",
+   "real": "Seeker's Folly",
+   "targets": [
+    "p2"
+   ],
+   "decisions": [
+    "0",
+    "b",
+    "c"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "folly": "graveyard",
+   "mine": "hand",
+   "x1": "hand",
+   "x2": "hand",
+   "x3": "hand",
+   "a": "hand",
+   "b": "graveyard",
+   "c": "graveyard"
+  },
+  "hand": {
+   "0": 2,
+   "1": 3,
+   "2": 1
+  }
+ }
+}

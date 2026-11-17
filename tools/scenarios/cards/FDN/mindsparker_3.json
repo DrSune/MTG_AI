@@ -1,0 +1,62 @@
+{
+ "set": "FDN",
+ "name": "F03_3",
+ "notes": "Mindsparker. Printed: 'Whenever an opponent casts a WHITE or BLUE instant or sorcery spell...'. Mortify is a white-black instant, and a spell with two colours is each of them: seat 1 casts it on its own Foe, and takes 2 (18).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ms",
+   "real": "Mindsparker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mortify",
+   "real": "Mortify",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "W": 1,
+    "B": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "mortify",
+   "real": "Mortify",
+   "controller": 1,
+   "targets": [
+    "foe"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "mortify": "graveyard",
+   "foe": "graveyard"
+  }
+ }
+}

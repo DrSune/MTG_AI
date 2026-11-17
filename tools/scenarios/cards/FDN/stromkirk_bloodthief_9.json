@@ -1,0 +1,58 @@
+{
+ "set": "FDN",
+ "name": "F09_9",
+ "notes": "Stromkirk Bloodthief (three players). Printed: 'if AN opponent lost life this turn'. Seat 0's Skeleton Archer deals 1 damage to seat 2, one of two opponents (19); seat 1 lost nothing. At seat 0's end step the Bloodthief gets its counter.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "archer",
+   "real": "Skeleton Archer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "archer",
+   "decisions": [
+    "player:2"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": false,
+    "archer": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20,
+   "2": 19
+  },
+  "counters": {
+   "sb": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "archer": {}
+  }
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "set": "FDN",
+ "name": "G07_1",
+ "notes": "Printed (FDN Burrog Befuddler): 'Flash. When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.' Flash: I cast it on the OPPONENT's turn (a creature without flash could not be). Its trigger targets the opponent's Giant: power 4 -> 3, toughness unchanged; the other creatures are untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Burrog Befuddler",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature — Giant",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Burrog Befuddler",
+   "key": "bb",
+   "decisions": [
+    "ogiant"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "battlefield"
+  },
+  "power": {
+   "obear": 2,
+   "ogiant": 3,
+   "mybear": 2,
+   "bb": 2
+  },
+  "toughness": {
+   "obear": 2,
+   "ogiant": 4,
+   "mybear": 2,
+   "bb": 1
+  }
+ }
+}

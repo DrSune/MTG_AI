@@ -1,0 +1,26 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: 'return it to the battlefield tapped under its OWNER's control and YOU create a Treasure token.' Seat 0 steals seat 1's 2/2 (control until the game ends, as Mind Control does), then casts the spell on it. Seat 1's Pinger kills it with 2 damage. It returns tapped under its OWNER's control (seat 1), but 'you' is the controller of the ability, seat 0, who controlled the creature when it died: seat 0 gets the Treasure. Proof: seat 0 (no lands, no mana left) casts Unsummon at the Pinger by tapping the Treasure.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "stolen", "name": "Stolen Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "unsummon", "real": "Unsummon", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 0},
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["stolen"]},
+  {"op": "deal_damage", "source": "pinger", "target": "stolen", "amount": 2, "controller": 1},
+  {"op": "cast", "key": "unsummon", "real": "Unsummon", "controller": 0, "targets": ["pinger"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "stolen": "battlefield", "pinger": "hand", "unsummon": "graveyard"},
+  "tapped": {"stolen": true},
+  "controller": {"stolen": 1},
+  "tokens": {"Treasure": 0},
+  "graveyard": {"0": ["Fake Your Own Death", "Unsummon"], "1": []},
+  "hand": {"0": 0, "1": 1},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

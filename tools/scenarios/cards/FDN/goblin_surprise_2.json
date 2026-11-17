@@ -1,0 +1,13 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Goblin Surprise (FDN), mode 1 printed: 'Create two 1/1 red Goblin creature tokens.' After the tokens exist, Devout Decree's target ask ('creature or planeswalker that's black or red') offers exactly the two tokens (card:15, card:16) and not the green Bear (card:2): the Goblin tokens carry a colour, black or red.",
+ "cards": [
+  {"key": "gs", "real": "Goblin Surprise", "zone": "hand", "controller": 0},
+  {"key": "dd", "real": "Devout Decree", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "W": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "gs", "real": "Goblin Surprise", "decisions": ["1"]},
+  {"op": "act", "seat": 0, "words": ["cast:dd"], "expect_raise": "it offers ('card:15', 'card:16')"}
+ ],
+ "expect": {}}

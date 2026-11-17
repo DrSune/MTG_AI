@@ -283,5 +283,60 @@
  },
  "probe": {
   "sha": "cea0c2450cffa3ebca878b2bb1ea98435806911ebe6385b97bb0c73bb25b62a2"
+ },
+ "verified": {
+  "tree_sha": "b02efa8abac113ad4f09c579bc7a4f799dc89671b80594c070bdde1eff4dc3d0",
+  "probe_sha": "cea0c2450cffa3ebca878b2bb1ea98435806911ebe6385b97bb0c73bb25b62a2",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "OK",
+    "evidence": "Cast: 'keywords +FIRST_STRIKE +REACH' (a printed keyword; the probe has no flying attacker). F08_6 (reach: blocks an attacking flier; first strike kills it first).",
+    "issue": ""
+   },
+   {
+    "clause": "First strike",
+    "status": "OK",
+    "evidence": "'this creature attacks and opp_giant blocks it': 'opp_giant is dealt 2 damage (combat) (by card/DEAL_DAMAGE)' before 'card is dealt 4 damage (combat)'.",
+    "issue": ""
+   },
+   {
+    "clause": "At the beginning of combat on your turn, put X +1/+1 counters on another target creature you control, where X is Halana and Alena's power.",
+    "status": "OK",
+    "evidence": "'this creature attacks alone, unblocked': 'ask target: [you_bear, you_giant] -> you_bear' (another creature you control: not Halana, not the opponent's), 'you_bear gets 2 PLUS_1_PLUS_1 counter(s)' (her power 2); 'on the opponent's turn, opp_bear attacks you -> none'. Power other than the printed one and X read as the ability resolves: F08_1 (power 3: three counters), F08_4 (a Giant Growth in response: five). The target menu pinned in F08_5, no other creature in F08_3. F08_7 (a negative power counts as 0: no counters).",
+    "issue": ""
+   },
+   {
+    "clause": "That creature gains haste",
+    "status": "OK",
+    "evidence": "'change: you_bear: ... keywords +HASTE' in every attack variant.",
+    "issue": ""
+   },
+   {
+    "clause": "(until end of turn)",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's trigger variants print no end-of-turn change, so the duration of the haste is not shown. F08_2 (the turn ends: haste gone, the counters stay).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_1.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_2.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_3.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_4.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_5.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_6.json",
+   "tools/scenarios/cards/FDN/halana_and_alena_partners_7.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration"
+   ]
+  }
  }
 }

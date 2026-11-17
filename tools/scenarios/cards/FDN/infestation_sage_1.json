@@ -1,0 +1,19 @@
+{
+ "name": "H10_infestation_sage_dies_into_one_flying_insect",
+ "set": "FDN",
+ "note": "Infestation Sage: 'When this creature dies, create a 1/1 black and green Insect creature token with flying.' The Sage (1/1) on the battlefield is dealt lethal damage and dies: exactly one Insect token appears, a 1/1 with flying, and the Sage is in the graveyard.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Infestation Sage"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "sage", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"sage": "graveyard"},
+  "tokens": {"Insect": 1},
+  "battlefield_pt": {"Insect": [1, 1]},
+  "battlefield_keywords": {"Insect": ["FLYING"]}
+ }
+}

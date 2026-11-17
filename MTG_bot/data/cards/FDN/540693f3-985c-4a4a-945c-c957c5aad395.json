@@ -336,5 +336,51 @@
  },
  "probe": {
   "sha": "7a92b6b71c206582f43b9c5caad6336eaba805d127d5851464abbcefdbb2fca4"
+ },
+ "verified": {
+  "tree_sha": "d52f60816b0c2fe54c36cb1fc76003683a432b2c469abd597ea2c55ce3d43eae",
+  "probe_sha": "7a92b6b71c206582f43b9c5caad6336eaba805d127d5851464abbcefdbb2fca4",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, sacrifice a creature.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask sacrifice: [you_bear, you_giant]' (only my creatures; the Arbiter itself is on the stack, the opponent's are not offered), 'you_bear moves battlefield -> graveyard (by card/SACRIFICE)', 'you_bear dies', paid while casting (before 'card moves stack -> battlefield'); the other variant sacrifices you_giant. Pack G05_2: with no creature of mine the cast is refused (cost:sacrifice:insufficient_candidates) and nothing is spent. Pack G05_4: 'a creature' is one I control, not one I own (a stolen Bear is the sacrifice and goes to its owner's graveyard; my Giant, controlled by the opponent, is not offered).",
+    "issue": ""
+   },
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: 'keywords +FLYING' and the static section 'card keywords: FLYING'; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row and 'opp is dealt 5 damage (combat) (by card/DEAL_DAMAGE)': the non-flying, non-reach Giant could not block it (contrast the creatures without flying, where the same variant shows 'DECLARE_BLOCKERS opp_giant card, 1').",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, each opponent discards a card and loses 2 life.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask one_of: [opp_spare, opp_trick]' (the opponent's hand; the other variant discards opp_trick), 'opp_spare moves hand -> graveyard', 'opp loses 2 life (by card/LOSE_LIFE)'; opp: life 20 -> 18, hand 2 -> 1. Pack G05_1 pins it with three cards in the opponent's hand, G05_3 with none.",
+    "issue": ""
+   },
+   {
+    "clause": "You draw a card and gain 2 life.",
+    "status": "OK",
+    "evidence": "[cast]: 'you draws you:Library 5#1', 'you gains 2 life (by card/GAIN_LIFE)'; you: life 20 -> 22, library 6 -> 5.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/arbiter_of_woe_1.json",
+   "tools/scenarios/cards/FDN/arbiter_of_woe_2.json",
+   "tools/scenarios/cards/FDN/arbiter_of_woe_3.json",
+   "tools/scenarios/cards/FDN/arbiter_of_woe_4.json"
+  ],
+  "mutation": {
+   "mutants": 24,
+   "killed": 23,
+   "score": 0.9583333333333334,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/additional_costs/0/parts/0/target/filter"
+   ]
+  }
  }
 }

@@ -174,5 +174,39 @@
  },
  "probe": {
   "sha": "a5b448621f77e0a6d2cec434cbcc7d2c1f15999d7cde1ab29947304af58e121f"
+ },
+ "verified": {
+  "tree_sha": "ccfafda3a7732ce2c4c2e73befae067a999cbd0477be1e91d59ee3de90ea7f8b",
+  "probe_sha": "a5b448621f77e0a6d2cec434cbcc7d2c1f15999d7cde1ab29947304af58e121f",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.",
+    "status": "OK",
+    "evidence": "'your creature (you_bear) dies': 'card's triggered ability [0] triggers', 'you is dealt 1 damage (by card/DEAL_DAMAGE)', 'you draws', 'you: life 20 -> 19; hand 6 -> 7'; 'an opponent's creature (opp_bear) dies -> none'; 'this card is dealt lethal damage': the same (the Reaper's own death). Two deaths at once: F10_3; the Reaper itself: F10_2.",
+    "issue": ""
+   },
+   {
+    "clause": "(nontoken: a token that dies does nothing)",
+    "status": "NOT_EXERCISED",
+    "evidence": "No token dies in the probe. F10_1 (your token Spirit dies: no damage, no card).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/midnight_reaper_1.json",
+   "tools/scenarios/cards/FDN/midnight_reaper_2.json",
+   "tools/scenarios/cards/FDN/midnight_reaper_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 8,
+   "score": 0.8,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 2) at 1/0/event/filter"
+   ]
+  }
  }
 }

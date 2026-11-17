@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fleeting Flight, printed: 'Put a +1/+1 counter on target creature. It gains flying until end of turn. Prevent all combat damage that would be dealt to it this turn.' Seat 0 attacks with a 2/2; seat 1 blocks with a 5/5. After blockers, seat 0 casts it on the attacker: a +1/+1 counter makes it 3/3. In the damage step the 5/5's 5 combat damage to it is prevented (no damage marked on it, it survives), while it deals its 3 to the blocker.",
+ "cards": [
+  {"key": "atk", "name": "Attacker", "type": "Creature — Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Big Blocker", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"atk": true}, "block": {"blk": "atk"},
+   "respond": {"DECLARE_BLOCKERS": [{"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["atk"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"atk": "battlefield", "blk": "battlefield", "ff": "graveyard"},
+  "damage": {"blk": 3},
+  "counters": {"atk": {"PLUS_1_PLUS_1": 1}},
+  "power": {"atk": 3},
+  "toughness": {"atk": 3},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

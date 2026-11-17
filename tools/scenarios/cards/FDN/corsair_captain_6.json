@@ -1,0 +1,18 @@
+{
+ "name": "H04_corsair_captain_buff_ends_when_it_leaves",
+ "set": "FDN",
+ "note": "Corsair Captain: 'Other Pirates you control get +1/+1' lasts only while the Captain is on the battlefield. With the Captain out, P0's Pirate is 3/3; the Captain is then returned to its owner's hand and the Pirate is its printed 2/2 again.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "captain", "zone": "battlefield", "controller": 0, "real": "Corsair Captain"},
+  {"key": "pirate", "zone": "battlefield", "controller": 0, "name": "Pirate", "power": "2", "toughness": "2", "type": "Creature — Pirate"}
+ ],
+ "steps": [
+  {"op": "move", "key": "captain", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"captain": "hand", "pirate": "battlefield"},
+  "power": {"pirate": 2},
+  "toughness": {"pirate": 2}
+ }
+}

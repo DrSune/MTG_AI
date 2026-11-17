@@ -197,5 +197,36 @@
  },
  "probe": {
   "sha": "05ee612564bb1ab9f402d3d0f7694dcd4c94eb3f8f19d913a5ab055a09e9eb23"
+ },
+ "verified": {
+  "tree_sha": "0f0093fe856af4e6fc62d4489a6d3c5a4bca7c67677b9f09b3d1398ce11264f5",
+  "probe_sha": "05ee612564bb1ab9f402d3d0f7694dcd4c94eb3f8f19d913a5ab055a09e9eb23",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords[0] FLYING. Probe [cast]: 'keywords +FLYING'; stimulus 'this creature attacks and opp_giant blocks it': no block row, the opponent takes the 3.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, draw a card, then discard a card.",
+    "status": "OK",
+    "evidence": "abilities[0]: ZoneChangeEvent(IS_SOURCE) -> Seq(DRAW 1 YOU, MOVE_ZONE hand YOU -> graveyard YOU with a ONE_OF Selector count 1 over your hand), the shape Teferi's Tutelage's identical sentence takes after the compiler's pick-promotion. Probe [cast]: the draw (Library 5#1 library -> hand) comes first, then 'ask one_of: [you_spare, you_trick, you_land_drop, you_cast_creature, you_cast_spell, you_cast_instant, you:Library 5#1]' (the 6 cards left in hand plus the drawn card), and the chosen card moves hand -> graveyard in every one of the seven answers, including the card just drawn; 'you: hand 7 -> 6; library 6 -> 5'. Pack H09_2 pins draw-before-discard with an empty hand, H09_1 and H09_3 the choice and the counts.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/icewind_elemental_1.json",
+   "tools/scenarios/cards/FDN/icewind_elemental_2.json",
+   "tools/scenarios/cards/FDN/icewind_elemental_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

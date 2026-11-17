@@ -1,0 +1,64 @@
+{
+ "set": "FDN",
+ "name": "G09_4",
+ "notes": "Printed (FDN Ambush Wolf): 'Flash. When this creature enters, exile up to one target card from a graveyard.' Flash from the act menu: on the opponent's turn the cast is a row of my menu ({2}{G} spent) and its trigger exiles the card I name.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aw",
+   "real": "Ambush Wolf",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Fallen A",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Fallen B",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:aw",
+    "o2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aw": "battlefield",
+   "o1": "graveyard",
+   "o2": "exile"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

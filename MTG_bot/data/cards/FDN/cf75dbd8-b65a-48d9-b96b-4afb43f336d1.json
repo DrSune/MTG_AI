@@ -182,5 +182,35 @@
  },
  "probe": {
   "sha": "e031c124581e5ee0bdfa4f940c2c5746bf7fc61ce247d1c92bc3dd860d7e198a"
+ },
+ "verified": {
+  "tree_sha": "7aea49fb32340e3fc9bfb17121084e831a5c0fbf52d816b1acad7f7d8211f1b0",
+  "probe_sha": "e031c124581e5ee0bdfa4f940c2c5746bf7fc61ce247d1c92bc3dd860d7e198a",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Return up to two target creature cards from your graveyard to your hand",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: target slot (cast) 0..1 of [you_fallen]: zero targets allowed, only the creature card of your own graveyard offered (not the instant, not the opponent's), [cast targets=['you_fallen']]: 'you_fallen moves graveyard -> hand'. The board has one creature card, so 'up to TWO' is not shown. Pack B07_1 PASSES (three creature cards on offer: two targeted ones return, the third stays) and B07_2 (a third target, a creature card in the opponent's graveyard and a non-creature card are each refused 'illegal target', nothing paid; one target alone is fine). Wrong twins fail.",
+    "issue": ""
+   },
+   {
+    "clause": "then discard a card.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'ask one_of' over the whole hand after the return (you_spare, you_trick, you_fallen the returned card, ...) with one pick moving hand -> graveyard (hand 7 -> 6 after the cast and one return, 7 -> 5 with no target); the pick is the caster's own and exactly one card. Packs B07_1 (discards the card just returned) and B07_2 (discards Spare) PASS.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/macabre_waltz_1.json",
+   "tools/scenarios/cards/FDN/macabre_waltz_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

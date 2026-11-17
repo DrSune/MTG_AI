@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "overrun_ends_with_the_turn_the_damaged_attacker_survives_the_cleanup",
+ "notes": "Printed: 'Creatures you control get +3/+3 and gain trample until end of turn.' Seat 0's 2/2 attacker (5/5 after Overrun) is blocked by seat 1's 4/1 and takes 4 damage. At the cleanup step the damage wears off and the +3/+3 ends at the same time (CR 514.2), so the attacker, now a 2/2 again, is still on the battlefield with no damage. In seat 1's turn every creature of seat 0 is back to its printed size: the attacker 2/2, the home creature 1/1, the late arrival 1/1, with no damage left anywhere.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Home Guard", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Late Arrival", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "overrun", "real": "Overrun", "zone": "hand", "controller": 0},
+  {"key": "blk", "name": "Sharp Blocker", "power": "4", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "overrun", "real": "Overrun"},
+  {"op": "enter", "key": "late"},
+  {"op": "combat", "seat": 0, "attack": {"att": true}, "block": {"blk": "att"}, "divide": {"blk": 1}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"overrun": "graveyard", "att": "battlefield", "home": "battlefield", "late": "battlefield", "blk": "graveyard"},
+  "power": {"att": 2, "home": 1, "late": 1},
+  "toughness": {"att": 2, "home": 1, "late": 1},
+  "life": {"0": 20, "1": 16}
+ }}

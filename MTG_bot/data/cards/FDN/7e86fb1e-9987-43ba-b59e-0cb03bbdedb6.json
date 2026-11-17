@@ -368,5 +368,52 @@
  },
  "probe": {
   "sha": "38a7ace4a95503bdf0f066de9ceb3d470e8d33d121e230ef1c18e8a41cf99b0b"
+ },
+ "verified": {
+  "tree_sha": "2cc78f13aad2b36f5a49da6a537f61fe9a8074187e9081573c25bcca94741f62",
+  "probe_sha": "38a7ace4a95503bdf0f066de9ceb3d470e8d33d121e230ef1c18e8a41cf99b0b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Gain control of target creature until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's snapshot reads ownership: no variant shows a control change, nor its end (the 'after the turn ends' lines list no controller). Covered by packs: A06_1 (a tapped opposing 3/3 becomes yours: controller lane 0, the other opposing creature stays seat 1's, it attacks seat 1 for 3), A06_2 (an untapped one: it attacks, and when the turn ends control returns to its owner), A06_3 (the Treasure).",
+    "issue": ""
+   },
+   {
+    "clause": "Untap that creature.",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_tapped']]: 'opp_tapped becomes untapped (by card/UNTAP)' and 'opp_tapped: tapped True -> False'; the other five targets were untapped (no event). Pack A06_1 starts the stolen creature tapped and attacks with it.",
+    "issue": ""
+   },
+   {
+    "clause": "It gains haste until end of turn.",
+    "status": "OK",
+    "evidence": "Every variant: '<target>: keywords +HASTE' (also on the already-untapped targets) and 'after the turn ends: <target>: keywords -HASTE'. Packs A06_1 and A06_2 attack with the stolen creature the turn it is taken; A06_2 shows no haste after the turn.",
+    "issue": ""
+   },
+   {
+    "clause": "Create a Treasure token.",
+    "status": "OK",
+    "evidence": "Every variant: 'you:Treasure moves new -> battlefield (by card/CREATE_TOKEN)' and 'change: + you:Treasure (battlefield, you, TREASURE)': one token, under your control; the TokenSpec equals the verified Treasure (sacrifice and tap for one mana of any colour). Pack A06_3 casts a spell paid only with it (it is sacrificed to pay); A06_1 counts one token.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/involuntary_employment_1.json",
+   "tools/scenarios/cards/FDN/involuntary_employment_2.json",
+   "tools/scenarios/cards/FDN/involuntary_employment_3.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 8,
+   "score": 0.7272727272727273,
+   "survived": [
+    "drop keyword TREASURE at 0",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/args/controller",
+    "until-end-of-turn->permanent at 1/0/effect/steps/0/args/duration"
+   ]
+  }
  }
 }

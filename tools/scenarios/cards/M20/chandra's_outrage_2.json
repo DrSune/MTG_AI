@@ -1,0 +1,19 @@
+{
+ "name": "H06_chandras_outrage_hits_the_opponent_who_controls_your_creature",
+ "set": "M20",
+ "note": "Chandra's Outrage: the 2 damage goes to the controller of the targeted creature. The target is a 3/3 that P0 owns but P1 controls (gain_control): it dies to the 4 damage and P1, its controller, loses 2 life (20 -> 18) while P0, its owner and the caster, loses nothing.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "stolen", "zone": "battlefield", "controller": 0, "name": "Stolen", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 1},
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["stolen"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"stolen": "graveyard", "outrage": "graveyard"}
+ }
+}

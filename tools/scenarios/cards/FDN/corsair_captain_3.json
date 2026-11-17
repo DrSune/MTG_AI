@@ -1,0 +1,21 @@
+{
+ "name": "H04_corsair_captain_enters_with_one_treasure_that_pays_one_mana",
+ "set": "FDN",
+ "note": "Corsair Captain: 'When this creature enters, create a Treasure token.' Cast with exactly its cost ({2}{U}): exactly one Treasure token appears (not none, not two). The Treasure then pays the {U} of Aegis Turtle by tapping (the automatic payer): it is sacrificed for it, one mana and no more, and the Turtle resolves.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "captain", "zone": "hand", "controller": 0, "real": "Corsair Captain"},
+  {"key": "turtle", "zone": "hand", "controller": 0, "real": "Aegis Turtle"}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Corsair Captain", "key": "captain"},
+  {"op": "cast", "real": "Aegis Turtle", "key": "turtle", "tap": true}
+ ],
+ "expect": {
+  "zone": {"captain": "battlefield", "turtle": "battlefield"},
+  "tokens": {"Treasure": 0},
+  "mana_pool": {"0": {}},
+  "hand": {"0": 0}
+ }
+}

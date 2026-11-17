@@ -1,0 +1,49 @@
+{
+ "set": "FDN",
+ "name": "F11_7",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your second card each turn'. Each turn counts, the opponent's too: on seat 1's turn seat 0 casts Quick Study (draw two): the second card makes a Faerie. Hand: Quick Study gone, two drawn: 2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "qs",
+   "real": "Quick Study",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "qs",
+   "real": "Quick Study"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Faerie": 1
+  },
+  "hand": {
+   "0": 2
+  }
+ }
+}

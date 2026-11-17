@@ -1,0 +1,55 @@
+{
+ "set": "FDN",
+ "name": "F11_1",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your second card each turn, create a 1/1 blue Faerie creature token with flying.' Seat 0 casts Quick Study (draw two) on the opening turn (seat 0 skips its draw step): the first card is the first, the second card is the second: one Faerie, a 1/1 with flying. Hand: Quick Study left, two cards drawn: 2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "qs",
+   "real": "Quick Study",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "qs",
+   "real": "Quick Study"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "tokens": {
+   "Faerie": 1
+  },
+  "battlefield_pt": {
+   "Faerie": [
+    1,
+    1
+   ]
+  },
+  "battlefield_keywords": {
+   "Faerie": [
+    "FLYING"
+   ]
+  }
+ }
+}

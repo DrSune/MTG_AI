@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Feed the Swarm, printed: 'target creature or enchantment an OPPONENT CONTROLS'. Control, not ownership, decides. Seat 0 controls a creature seat 1 owns (not a legal target: seat 0's own cast is refused); seat 1 controls a creature seat 0 owns (a legal target). Destroying the latter puts it into its OWNER's (seat 0's) graveyard and seat 0 loses its mana value, 3.",
+ "cards": [
+  {"key": "fts", "real": "Feed the Swarm", "zone": "hand", "controller": 0},
+  {"key": "stolen", "name": "Stolen Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 5, "zone": "battlefield", "controller": 1},
+  {"key": "lent", "name": "Lent Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "cmc": 3, "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 0},
+  {"op": "gain_control", "key": "lent", "seat": 1},
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["stolen"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fts", "real": "Feed the Swarm", "targets": ["lent"]}
+ ],
+ "expect": {
+  "zone": {"fts": "graveyard", "stolen": "battlefield", "lent": "graveyard"},
+  "controller": {"stolen": 0},
+  "life": {"0": 17, "1": 20},
+  "graveyard": {"0": ["Feed the Swarm", "Lent Bear"], "1": []},
+  "mana_pool": {"0": {}}
+ }
+}

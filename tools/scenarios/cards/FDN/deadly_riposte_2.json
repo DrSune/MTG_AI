@@ -1,0 +1,20 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deadly Riposte (FDN) is an INSTANT and 'target tapped creature' includes an attacker, which taps as it attacks (no vigilance). Seat 1 (the active player) attacks seat 0 with a 3/3 Ape; after attackers are declared seat 0 taps its two Plains and casts Deadly Riposte on the tapped Ape: it takes 3 and dies before blocks and damage, so seat 0 gains 2 and takes no combat damage (20 + 2 = 22).",
+ "cards": [
+  {"key": "rip", "real": "Deadly Riposte", "zone": "hand", "controller": 0},
+  {"key": "pl1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "pl2", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Their Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ape": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "rip", "real": "Deadly Riposte", "controller": 0, "targets": ["ape"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"rip": "graveyard", "ape": "graveyard"},
+  "tapped": {"pl1": true, "pl2": true},
+  "life": {"0": 22, "1": 20},
+  "turn_seats": [0, 1]
+ }}

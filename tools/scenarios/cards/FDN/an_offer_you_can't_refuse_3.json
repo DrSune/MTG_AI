@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "an_offer_you_cant_refuse_cannot_target_a_creature_spell",
+ "notes": "Printed: 'Counter target noncreature spell.' Seat 0 casts Savannah Lions (a creature spell) and holds priority; it may not target the Lions with its own An Offer You Can't Refuse (illegal target: nothing is paid, nothing is countered). The Lions stay on the stack and the Offer stays in hand with its mana in the pool.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0},
+  {"key": "offer", "real": "An Offer You Can't Refuse", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "lions", "controller": 0, "hold": true},
+  {"op": "cast", "key": "offer", "controller": 0, "targets": ["lions"], "expect_raise": "illegal target"}
+ ],
+ "expect": {
+  "zone": {"lions": "stack", "offer": "hand"},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {"U": 1}, "1": {}}
+ }
+}

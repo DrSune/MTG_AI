@@ -1,0 +1,21 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deathmark (FDN), printed: 'Destroy target green or white CREATURE.' The battlefield holds a green enchantment, a white artifact (neither is a creature: refused as targets), a red creature (refused), a colorless artifact creature (refused) and a green-and-white creature (a legal target, it is both). Casting it on the green-and-white creature destroys only that one.",
+ "cards": [
+  {"key": "dm", "real": "Deathmark", "zone": "hand", "controller": 0},
+  {"key": "genc", "name": "Green Charm", "type": "Enchantment", "colors": ["G"], "zone": "battlefield", "controller": 1},
+  {"key": "wart", "name": "White Relic", "type": "Artifact", "colors": ["W"], "zone": "battlefield", "controller": 1},
+  {"key": "red", "name": "Red Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "gol", "name": "Colorless Golem", "type": "Artifact Creature — Golem", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "gw", "name": "Selesnya Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G", "W"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "key": "dm", "real": "Deathmark", "targets": ["genc"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "targets": ["wart"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "targets": ["red"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "targets": ["gol"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "targets": ["gw"]}
+ ],
+ "expect": {
+  "zone": {"dm": "graveyard", "genc": "battlefield", "wart": "battlefield", "red": "battlefield", "gol": "battlefield", "gw": "graveyard"}
+ }}

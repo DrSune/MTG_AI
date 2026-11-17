@@ -1,0 +1,73 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Claws Out (FDN) is an INSTANT: on the opponent's turn (turn 2) seat 0 casts it ({3}{W}{W}, no Cat) and its Bear is a 4/4 until end of turn; the opponent's Bear is a 2/2.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Claws Out",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2,
+    "C": 3
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Claws Out",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard"
+  },
+  "power": {
+   "mine": 4,
+   "theirs": 2
+  },
+  "toughness": {
+   "mine": 4,
+   "theirs": 2
+  },
+  "turn_seats": [
+   0,
+   1
+  ]
+ }
+}

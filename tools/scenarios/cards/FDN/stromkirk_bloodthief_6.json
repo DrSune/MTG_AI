@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "F09_6",
+ "notes": "Stromkirk Bloodthief. Printed: 'target Vampire you control'. After the Bloodthief connects (seat 1 at 18) the end-step trigger asks for its target and offers exactly the Bloodthief (card:0) and the Highborn Vampire (card:1): not seat 1's Highborn Vampire (card:2) and not the Bear (card:3), who is not a Vampire.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hv",
+   "real": "Highborn Vampire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ohv",
+   "real": "Highborn Vampire",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": true,
+    "hv": false,
+    "bear": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN",
+   "expect_raise": "needs a decision from ('card:0', 'card:1')"
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 18
+  }
+ }
+}

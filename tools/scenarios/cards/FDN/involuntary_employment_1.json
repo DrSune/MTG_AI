@@ -1,0 +1,25 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Involuntary Employment, printed: 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn. Create a Treasure token.' Seat 1 controls a tapped 3/3 and another untapped 2/2. Seat 0 casts it on the tapped 3/3: seat 0 now controls it (only it: the other creature stays seat 1's), it is untapped and has haste, so seat 0 attacks seat 1 with it (20 -> 17) and it is tapped from attacking. Exactly one Treasure token is created.",
+ "cards": [
+  {"key": "ie", "real": "Involuntary Employment", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Turncoat Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true},
+  {"key": "other", "name": "Other Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "ie", "real": "Involuntary Employment", "targets": ["ogre"]},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}}
+ ],
+ "expect": {
+  "attackers": {"ogre": true},
+  "life": {"0": 20, "1": 17},
+  "zone": {"ie": "graveyard", "ogre": "battlefield", "other": "battlefield"},
+  "controller": {"ogre": 0, "other": 1},
+  "tapped": {"ogre": true, "other": false},
+  "tokens": {"Treasure": 1},
+  "graveyard": {"0": ["Involuntary Employment"], "1": []},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

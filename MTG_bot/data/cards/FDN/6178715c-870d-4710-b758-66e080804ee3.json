@@ -217,5 +217,59 @@
  },
  "probe": {
   "sha": "ace579f9f43433461345375c48ee852924645dc2d193b39033a9e30ae3489b9f"
+ },
+ "verified": {
+  "tree_sha": "07d7999e23d853f6917788f8b39c0599306380d911008c4faff5334329b9f285",
+  "probe_sha": "ace579f9f43433461345375c48ee852924645dc2d193b39033a9e30ae3489b9f",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "[cast modes=[0] targets=[...]] shows only 'X moves battlefield -> graveyard (by card/DESTROY)'; [cast modes=[1] targets=['you_fallen']] shows only 'you_fallen moves graveyard -> battlefield (by card/MOVE_ZONE)': one mode per cast, and the other mode's effect never happens in the same variant. Pack D00_4 (passes): only the chosen mode needs a legal target (mode 1 casts with no creature or planeswalker anywhere, mode 0 casts with no Zombie in the graveyard). Packs D00_5 (passes): it is an instant, cast on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "• Destroy target creature",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[0]): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: every creature of both sides, no relic or charm; every variant ends 'X moves battlefield -> graveyard (by card/DESTROY)' and 'X dies', and the spell goes to the graveyard.",
+    "issue": ""
+   },
+   {
+    "clause": "• Destroy target ... or planeswalker",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard board has no planeswalker, so the slot above lists creatures only and nothing shows a planeswalker as a target or destroyed. Pack D00_1 (runpack passes): a planeswalker is a legal target and is destroyed; an artifact is refused as a target and stays.",
+    "issue": ""
+   },
+   {
+    "clause": "• Return target ... creature card from your graveyard to the battlefield tapped.",
+    "status": "OK",
+    "evidence": "target slot (cast modes=[1]): 1..1 of [you_fallen]: my own graveyard only (opp_fallen, the opponent's card, is not offered); events 'you_fallen moves graveyard -> battlefield (by card/MOVE_ZONE)' and 'you_fallen becomes tapped (by card/MOVE_ZONE)'; change 'you_fallen: zone graveyard -> battlefield; tapped False -> True; P/T - -> 2/2'.",
+    "issue": ""
+   },
+   {
+    "clause": "• Return target Zombie creature card (the Zombie restriction)",
+    "status": "NOT_EXERCISED",
+    "evidence": "you_fallen is the only creature card in my graveyard and is itself the Zombie, so the slot [you_fallen] would read the same without the Zombie restriction. Pack D00_2 (runpack passes): a Bear creature card in my graveyard and the opponent's graveyard Zombie are both refused ('illegal target'); my Zombie returns tapped under my control and nothing else moves. Pack D00_3 (passes) adds a Zombie card that is not a creature card (a tribal sorcery): refused as a target.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/deadly_plot_1.json",
+   "tools/scenarios/cards/FDN/deadly_plot_2.json",
+   "tools/scenarios/cards/FDN/deadly_plot_3.json",
+   "tools/scenarios/cards/FDN/deadly_plot_4.json",
+   "tools/scenarios/cards/FDN/deadly_plot_5.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 7,
+   "score": 0.7777777777777778,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/options/1/args/cards/filter",
+    "widen filter (drop part 1) at 1/0/effect/options/1/args/cards/filter"
+   ]
+  }
  }
 }

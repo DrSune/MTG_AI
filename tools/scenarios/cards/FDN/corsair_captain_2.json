@@ -1,0 +1,20 @@
+{
+ "name": "H04_corsair_captain_two_captains_buff_each_other_and_the_pirate_twice",
+ "set": "FDN",
+ "note": "Corsair Captain is a Pirate itself, so a second Captain on the battlefield gets +1/+1 from the first and the first gets +1/+1 from the second (3/3 each), and P0's other Pirate gets +1/+1 from each of them (4/4). Neither Captain's own static touches itself ('other'). The second Captain's enters trigger makes one Treasure.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "first", "zone": "battlefield", "controller": 0, "real": "Corsair Captain"},
+  {"key": "second", "zone": "hand", "controller": 0, "real": "Corsair Captain"},
+  {"key": "pirate", "zone": "battlefield", "controller": 0, "name": "Pirate", "power": "2", "toughness": "2", "type": "Creature — Pirate"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "second"}
+ ],
+ "expect": {
+  "zone": {"first": "battlefield", "second": "battlefield"},
+  "power": {"first": 3, "second": 3, "pirate": 4},
+  "toughness": {"first": 3, "second": 3, "pirate": 4},
+  "tokens": {"Treasure": 1}
+ }
+}

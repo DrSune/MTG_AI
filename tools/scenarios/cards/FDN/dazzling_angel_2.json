@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "E00_2_dazzling_angel_another_creature_of_yours_only",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever another creature you control enters, you gain 1 life.' All three creatures are put onto the battlefield from the hand, none cast. The Angel itself enters first: 'another' leaves it out, so seat 0 stays at 20. Seat 0's Bear enters: 21. Seat 1's Bear enters under seat 1's control: it is not a creature seat 0 controls, so nobody gains: seat 0 21, seat 1 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "angel", "real": "Dazzling Angel", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "angel"},
+  {"op": "enter", "key": "bear"},
+  {"op": "enter", "key": "obear"}
+ ],
+ "expect": {
+  "zone": {"angel": "battlefield", "bear": "battlefield", "obear": "battlefield"},
+  "life": {"0": 21, "1": 20}
+ }
+}

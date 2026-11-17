@@ -232,5 +232,44 @@
  },
  "probe": {
   "sha": "30a17f3c3eebb2da1ad2f3cf2aee38a537cb8021d0d798b320199a737f3f3d35"
+ },
+ "verified": {
+  "tree_sha": "018fed7642d5ee949a3b4db63e0ec0b13c784e3139a63d55fcbdc871b99262a3",
+  "probe_sha": "30a17f3c3eebb2da1ad2f3cf2aee38a537cb8021d0d798b320199a737f3f3d35",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "First strike",
+    "status": "OK",
+    "evidence": "Cast: 'keywords +FIRST_STRIKE'. 'this creature attacks and opp_giant blocks it': 'opp_giant is dealt 3 damage (combat) (by card/DEAL_DAMAGE)' comes before 'card is dealt 4 damage (combat)'. F03_6 (first strike in a block: the blocker dies, Mindsparker undamaged).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus has the opponent cast a spell: every cast in the trace is yours ('you cast an instant or sorcery (Crash Through)', 'you cast a creature (Aegis Turtle)', 'on the opponent's turn, you cast an instant (Opt)' -> none), so neither the trigger nor its damage is shown. F03_1 (opponent's blue instant: 2 damage to that opponent only), F03_2 (white sorcery on its own turn), F03_3 (white-black instant), F03_4 (nothing qualifying: your own blue instant, the opponent's red instant, its white and blue creature spells). F03_5 (three players: the damage goes to the casting opponent only).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/mindsparker_1.json",
+   "tools/scenarios/cards/FDN/mindsparker_2.json",
+   "tools/scenarios/cards/FDN/mindsparker_3.json",
+   "tools/scenarios/cards/FDN/mindsparker_4.json",
+   "tools/scenarios/cards/FDN/mindsparker_5.json",
+   "tools/scenarios/cards/FDN/mindsparker_6.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 2,
+   "score": 0.3333333333333333,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "amount+1 at 1/0/effect/args/amount",
+    "amount-1 at 1/0/effect/args/amount"
+   ]
+  }
  }
 }

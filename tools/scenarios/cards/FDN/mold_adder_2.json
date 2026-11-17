@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "name": "F04_2",
+ "notes": "Mold Adder. Printed: 'Whenever an opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.' Any spell counts, not only instants: on its own turn seat 1 casts the black creature Diregraf Ghoul, the may is taken (fire): one counter (2/2). Then seat 1's blue-white Drogskol Reaver (a spell with two colours is each of them) adds a second: 3/3.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ma",
+   "real": "Mold Adder",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ghoul",
+   "real": "Diregraf Ghoul",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "reaver",
+   "real": "Drogskol Reaver",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "B": 1,
+    "W": 1,
+    "U": 1,
+    "C": 5
+   }
+  },
+  {
+   "op": "cast",
+   "key": "ghoul",
+   "real": "Diregraf Ghoul",
+   "controller": 1,
+   "decisions": [
+    "fire"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "reaver",
+   "real": "Drogskol Reaver",
+   "controller": 1,
+   "decisions": [
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ma": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "power": {
+   "ma": 3
+  },
+  "toughness": {
+   "ma": 3
+  },
+  "zone": {
+   "ghoul": "battlefield",
+   "reaver": "battlefield"
+  }
+ }
+}

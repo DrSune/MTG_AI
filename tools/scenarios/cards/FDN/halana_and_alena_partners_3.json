@@ -1,0 +1,45 @@
+{
+ "set": "FDN",
+ "name": "F08_3",
+ "notes": "Halana and Alena, Partners. Printed: 'put X +1/+1 counters on ANOTHER target creature YOU control'. Halana controls no other creature (the Foe is the opponent's), so the ability has no target and does nothing: no counters anywhere and nothing asked. Her printed first strike and reach stand.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ha": {},
+   "foe": {}
+  },
+  "battlefield_keywords": {
+   "Foe": [],
+   "Halana and Alena, Partners": [
+    "FIRST_STRIKE",
+    "REACH"
+   ]
+  }
+ }
+}

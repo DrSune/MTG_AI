@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Inspiring Call, printed: '... Those creatures gain indestructible until end of turn.' The indestructible is gone on the next turn: seat 0's creature with a +1/+1 counter, indestructible when the Call resolved, is dealt 9 damage on the next turn and dies (it goes to the graveyard).",
+ "cards": [
+  {"key": "call", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Counter One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "oppc", "name": "Opp Source", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "call", "real": "Inspiring Call"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "oppc", "target": "c1", "amount": 9, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"call": "graveyard", "c1": "graveyard"},
+  "graveyard": {"0": ["Inspiring Call", "Counter One"], "1": []}
+ }
+}

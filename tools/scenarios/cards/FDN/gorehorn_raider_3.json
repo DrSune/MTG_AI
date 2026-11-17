@@ -1,0 +1,21 @@
+{
+ "name": "H01_gorehorn_raider_without_an_attack_does_nothing",
+ "set": "FDN",
+ "note": "Gorehorn Raider: the trigger needs 'if you attacked this turn'. P0 has a creature but declines to attack, then casts the Raider after combat: nothing is dealt damage anywhere (no damage marks, both lives 20) and the Raider is simply on the battlefield. The decision word is never taken, so the trigger never targeted anything.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "raider", "zone": "hand", "controller": 0, "real": "Gorehorn Raider"},
+  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "power": "0", "toughness": "2", "type": "Creature"},
+  {"key": "victim", "zone": "battlefield", "controller": 1, "name": "Victim", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"scout": false}},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 4}},
+  {"op": "cast", "real": "Gorehorn Raider", "key": "raider"}
+ ],
+ "expect": {
+  "attackers": {"scout": false},
+  "zone": {"raider": "battlefield", "victim": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

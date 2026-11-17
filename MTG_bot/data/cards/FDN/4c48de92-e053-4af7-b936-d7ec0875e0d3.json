@@ -145,5 +145,37 @@
  },
  "probe": {
   "sha": "3acc65a9327ee3d01fc308cf6efc2301bbf003b33e8f9558b0e0c0749a6c1a11"
+ },
+ "verified": {
+  "tree_sha": "2cbb6497a1e69875956d5ac460ca750751091be192b7cf2cdad752a6926f98e6",
+  "probe_sha": "3acc65a9327ee3d01fc308cf6efc2301bbf003b33e8f9558b0e0c0749a6c1a11",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Only the keyword is shown ('keywords +FLASH'); every cast in the trace is in a main phase and the opponent's-turn entry is a MOVE_ZONE, not a cast. Pack G09_1 casts it on the opponent's turn. Pack G09_4 casts it from the act menu on the opponent's turn: the menu offers the row.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, exile up to one target card from a graveyard.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target: [you_fallen, you_used, opp_fallen, opp_used, NONE]' (any graveyard, mine too, and no target); each choice exiles exactly that card ('X is targeted', 'X moves graveyard -> exile (by card/MOVE_ZONE)'; 'zone graveyard -> exile') and nothing else; '-> NONE' exiles nothing. Packs G09_1..3 repeat it with other cards still in the graveyards.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/ambush_wolf_1.json",
+   "tools/scenarios/cards/FDN/ambush_wolf_2.json",
+   "tools/scenarios/cards/FDN/ambush_wolf_3.json",
+   "tools/scenarios/cards/FDN/ambush_wolf_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

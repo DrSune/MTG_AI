@@ -1,0 +1,22 @@
+{
+ "name": "H01_gorehorn_raider_raid_deals_two_to_a_creature",
+ "set": "FDN",
+ "note": "Gorehorn Raider: 'Raid — When this creature enters, if you attacked this turn, this creature deals 2 damage to any target.' P0 attacks with a 0/2 Scout (it deals no combat damage), then casts the Raider in the second main phase with exactly its cost ({4}{R}) and aims the trigger at the opponent's 3/3: that creature has exactly 2 damage marked (not 1, not 3) and survives; nobody's life changes.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "raider", "zone": "hand", "controller": 0, "real": "Gorehorn Raider"},
+  {"key": "scout", "zone": "battlefield", "controller": 0, "name": "Scout", "power": "0", "toughness": "2", "type": "Creature"},
+  {"key": "victim", "zone": "battlefield", "controller": 1, "name": "Victim", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"scout": true}},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 4}},
+  {"op": "cast", "real": "Gorehorn Raider", "key": "raider", "decisions": ["victim"]}
+ ],
+ "expect": {
+  "attackers": {"scout": true},
+  "zone": {"raider": "battlefield", "victim": "battlefield", "scout": "battlefield"},
+  "damage": {"victim": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

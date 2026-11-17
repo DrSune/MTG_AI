@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "E02_8_crossway_troublemakers_deathtouch_lifelink_vampire_double_blocked",
+ "notes": "G2 verifier, batch E. Printed: 'Attacking Vampires you control have deathtouch and lifelink.' Seat 0's Vampire (2/2) attacks and seat 1's two 0/9 Walls both block it. With deathtouch any nonzero damage is lethal (CR 702.2c), so seat 0 may assign 1 damage to each Wall (CR 510.1c): both Walls die. Lifelink counts all damage dealt, 2: seat 0 gains 2 (22). Troublemakers stays home.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "Wall One", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1},
+  {"key": "wall2", "name": "Wall Two", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vamp": true}, "block": {"wall1": "vamp", "wall2": "vamp"}, "divide": {"wall1": 1, "wall2": 1}}
+ ],
+ "expect": {
+  "blocked": {"vamp": ["wall1", "wall2"]},
+  "zone": {"wall1": "graveyard", "wall2": "graveyard", "vamp": "battlefield"},
+  "life": {"0": 22, "1": 20}
+ }
+}

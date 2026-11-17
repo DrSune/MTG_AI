@@ -1,0 +1,54 @@
+{
+ "set": "FDN",
+ "name": "F03_2",
+ "notes": "Mindsparker. Printed: 'Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.' On seat 1's own turn seat 1 casts Release the Dogs (a white sorcery): 2 damage to seat 1 (18); the four Dog tokens come as printed.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ms",
+   "real": "Mindsparker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dogs",
+   "real": "Release the Dogs",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "W": 1,
+    "C": 3
+   }
+  },
+  {
+   "op": "cast",
+   "key": "dogs",
+   "real": "Release the Dogs",
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "dogs": "graveyard"
+  },
+  "tokens": {
+   "Dog": 4
+  }
+ }
+}

@@ -1,0 +1,26 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Heroic Reinforcements, printed: 'Create two 1/1 white Soldier creature tokens. Until end of turn, creatures you control get +1/+1 and gain haste.' Seat 0 controls a 2/2 and a 4/4; seat 1 a 3/3. After it resolves there are exactly two Soldier tokens; seat 0's two creatures are 3/3 and 5/5 with haste; seat 1's creature is untouched (3/3, no haste). A creature that enters AFTER the spell resolved was not on the battlefield when it resolved, so it gets neither the +1/+1 nor haste (a 2/2 with no haste).",
+ "cards": [
+  {"key": "hr", "real": "Heroic Reinforcements", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "My Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "opp", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "late", "name": "Late Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "hr", "real": "Heroic Reinforcements"},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {
+  "zone": {"hr": "graveyard", "late": "battlefield"},
+  "tokens": {"Soldier": 2},
+  "power": {"bear": 3, "giant": 5, "opp": 3, "late": 2},
+  "toughness": {"bear": 3, "giant": 5, "opp": 3, "late": 2},
+  "battlefield_keywords": {"My Bear": ["HASTE"], "My Giant": ["HASTE"], "Opp Ogre": [], "Late Bear": []},
+  "graveyard": {"0": ["Heroic Reinforcements"], "1": []},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Faebloom Trick, printed: 'Create two 1/1 blue Faerie creature tokens with flying. When you do, tap target creature an opponent controls.' Seat 1 controls two untapped creatures and seat 0 one of its own. Resolving creates exactly two 1/1 flying Faerie tokens; then the reflexive trigger goes on the stack and its target is chosen from the opponent's creatures only (seat 0 picks the first): that one is tapped. The opponent's other creature and seat 0's own creature stay untapped.",
+ "cards": [
+  {"key": "trick", "real": "Faebloom Trick", "zone": "hand", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Opp Two", "type": "Creature — Bear", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "trick", "real": "Faebloom Trick", "decisions": ["opp1"]}
+ ],
+ "expect": {
+  "zone": {"trick": "graveyard"},
+  "tokens": {"Faerie": 2},
+  "tapped": {"opp1": true, "opp2": false, "mine": false},
+  "hand": {"0": 0},
+  "mana_pool": {"0": {}}
+ }
+}

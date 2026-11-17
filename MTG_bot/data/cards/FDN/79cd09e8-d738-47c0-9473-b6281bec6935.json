@@ -204,5 +204,51 @@
  },
  "probe": {
   "sha": "65fe288c575141615c1863bbeca914447e65c17873541f4bf7832b12806da13b"
+ },
+ "verified": {
+  "tree_sha": "f9f8d53de4a1869685c33aa18845a999af40409abee4f0b8e543fae9966312e5",
+  "probe_sha": "65fe288c575141615c1863bbeca914447e65c17873541f4bf7832b12806da13b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "[cast modes=[0]] shows only the pump and [cast modes=[1]] only the tokens: one mode per cast.",
+    "issue": ""
+   },
+   {
+    "clause": "• Creatures you control get +2/+0 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast modes=[0]] changes 'you_bear: P/T 2/2 -> 4/2', 'you_giant: 4/4 -> 6/4': power only, my creatures only (the opponent's are untouched); 'after the turn ends: you_bear 4/2 -> 2/2, you_giant 6/4 -> 4/4'. Pack D10_3 (passes): a noncreature artifact with printed 3/3 is not pumped, the opponent's Giant is not either. Pack D10_4 (passes): it is an instant, cast on the opponent's turn.",
+    "issue": ""
+   },
+   {
+    "clause": "• Create two 1/1 red Goblin creature tokens.",
+    "status": "OK",
+    "evidence": "[cast modes=[1]] events 'you:Goblin#1 moves new -> battlefield (by card/CREATE_TOKEN)' and 'you:Goblin#2 ...'; changes '+ you:Goblin#1 (battlefield, you, 1/1)', '+ you:Goblin#2 (battlefield, you, 1/1)': two tokens, mine, 1/1, named Goblin. The colour is in the next entry.",
+    "issue": ""
+   },
+   {
+    "clause": "The Goblin tokens are red",
+    "status": "NOT_EXERCISED",
+    "evidence": "No probe line prints a colour (the tree has colors=('R',), identical to the compiler's parse). Packs D10_1 and D10_2 (pass): Devout Decree ('black or red') is offered exactly the two Goblin tokens and not a green Bear, and exiles one: the tokens are colored black-or-red. FDN has no verified card that tells red from black, so 'red' itself rests on the tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/goblin_surprise_1.json",
+   "tools/scenarios/cards/FDN/goblin_surprise_2.json",
+   "tools/scenarios/cards/FDN/goblin_surprise_3.json",
+   "tools/scenarios/cards/FDN/goblin_surprise_4.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/options/0/args/target/filter"
+   ]
+  }
  }
 }

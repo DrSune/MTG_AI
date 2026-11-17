@@ -1,0 +1,82 @@
+{
+ "set": "FDN",
+ "name": "F06_1",
+ "notes": "High-Society Hunter. Printed: 'Whenever this creature attacks, you may sacrifice another creature. If you do, put a +1/+1 counter on this creature. Whenever another nontoken creature dies, draw a card.' Seat 0 attacks with the Hunter and takes the may (fire), sacrificing the Bear: one +1/+1 counter on the Hunter (6/4), one card drawn for the dying nontoken Bear. Only the Bear is sacrificed (the Giant stays); the flying Hunter is unblocked for 6: seat 1 at 14.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hunter",
+   "real": "High-Society Hunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hunter": true,
+    "bear": false,
+    "giant": false
+   },
+   "may": {
+    "hunter": true
+   },
+   "decisions": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "hunter": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bear": {},
+   "giant": {}
+  },
+  "zone": {
+   "bear": "graveyard",
+   "giant": "battlefield",
+   "foe": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 14
+  }
+ }
+}

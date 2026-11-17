@@ -1,0 +1,54 @@
+{
+ "set": "FDN",
+ "name": "F06_2",
+ "notes": "High-Society Hunter. Printed: 'Whenever this creature attacks, YOU MAY sacrifice another creature. If you do, put a +1/+1 counter on this creature.' The may is declined (skip): the Bear lives, no counter, no card drawn, and the Hunter hits for its printed 5 (seat 1 at 15).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hunter",
+   "real": "High-Society Hunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hunter": true,
+    "bear": false
+   },
+   "may": {
+    "hunter": false
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "hunter": {},
+   "bear": {}
+  },
+  "zone": {
+   "bear": "battlefield"
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "1": 15
+  }
+ }
+}

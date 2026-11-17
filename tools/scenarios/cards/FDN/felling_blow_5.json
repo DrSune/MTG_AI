@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Felling Blow, printed: 'Then that creature deals damage equal to its power to target creature an opponent controls.' A negative power counts as 0 when an effect uses it as a number (CR 107.1b): seat 0's -3/4 Weakling gets the counter (-2/5) and deals 0 damage: seat 1's 4/4 has no damage marked and seat 1's life is unchanged (nothing is healed).",
+ "cards": [
+  {"key": "fb", "real": "Felling Blow", "zone": "hand", "controller": 0},
+  {"key": "weak", "name": "Weakling", "type": "Creature — Wall", "power": "-3", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["weak", "opp1"]}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard", "weak": "battlefield", "opp1": "battlefield"},
+  "counters": {"weak": {"PLUS_1_PLUS_1": 1}, "opp1": {}},
+  "power": {"weak": -2},
+  "toughness": {"weak": 5},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

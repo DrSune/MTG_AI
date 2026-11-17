@@ -163,5 +163,40 @@
  },
  "probe": {
   "sha": "1f7ee703f66bb965401b7774d86d6410d7268d0b55b946e7a46c0424490b16d4"
+ },
+ "verified": {
+  "tree_sha": "3622dc91c37c09c5bf468ca452eb834d767a122e8bccdd1a390d767086c3d811",
+  "probe_sha": "1f7ee703f66bb965401b7774d86d6410d7268d0b55b946e7a46c0424490b16d4",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Choose one -",
+    "status": "OK",
+    "evidence": "The cast announces the mode: 'cast modes=[0]' with its own target slot (creatures) and 'cast modes=[1]' with a different one (artifacts); one mode per cast, only the chosen mode's slot exists.",
+    "issue": ""
+   },
+   {
+    "clause": "Abrade deals 3 damage to target creature.",
+    "status": "OK",
+    "evidence": "[cast modes=[0]] over all six creatures: 'opp_flier is dealt 3 damage (by card/DEAL_DAMAGE)' and dies, you_bear and opp_bear and opp_tapped die, you_giant and opp_giant (4/4) get 'damage 0 -> 3' and live; the damage is dealt by the spell, the slot lists no non-creature.",
+    "issue": ""
+   },
+   {
+    "clause": "Destroy target artifact.",
+    "status": "OK",
+    "evidence": "[cast modes=[1]] target slot 1..1 of [you_relic, opp_relic]: 'you_relic moves battlefield -> graveyard (by card/DESTROY)' and the same for opp_relic; the enchantments and creatures are not offered.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/abrade_1.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 7,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

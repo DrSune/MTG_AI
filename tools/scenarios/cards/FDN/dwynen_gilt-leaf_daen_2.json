@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "E10_2_dwynen_attacks_gain_one_life_for_each_attacking_elf_you_control",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever Dwynen attacks, you gain 1 life for each attacking Elf you control.' Seat 0 attacks with Dwynen, two Elves and a Goblin, and keeps a third Elf at home. Attacking Elves seat 0 controls: Dwynen itself and the two Elves, three. The Goblin is no Elf and the Elf at home is not attacking: seat 0 gains 3 (23). Damage dealt unblocked: Dwynen 3 + the two Elves 3 each + Goblin 2 = 11, seat 1 at 9.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dwynen", "real": "Dwynen, Gilt-Leaf Daen", "zone": "battlefield", "controller": 0},
+  {"key": "elf1", "name": "Elf One", "type": "Creature — Elf Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "elf2", "name": "Elf Two", "type": "Creature — Elf Druid", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "elf3", "name": "Elf Three", "type": "Creature — Elf Archer", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "goblin", "name": "My Goblin", "type": "Creature — Goblin", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dwynen": true, "elf1": true, "elf2": true, "goblin": true, "elf3": false}}
+ ],
+ "expect": {
+  "attackers": {"dwynen": true, "elf1": true, "elf2": true, "goblin": true, "elf3": false},
+  "life": {"0": 23, "1": 9}
+ }
+}

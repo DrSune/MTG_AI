@@ -1,0 +1,24 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Felling Blow, printed: 'target creature you control' and 'target creature an opponent controls'. The first target must be seat 0's own creature and the second a creature seat 1 controls: an opponent's creature in the first slot, and one of its own creatures (or the same creature) in the second slot, are refused. The legal pair works: the 2/2 gets the counter and deals 3 to the 4/4.",
+ "cards": [
+  {"key": "fb", "real": "Felling Blow", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Other Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Opp Two", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["opp2", "opp1"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["bear", "bear2"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["bear", "bear"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["bear", "opp1"]}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "bear2": {}, "opp1": {}, "opp2": {}},
+  "damage": {"opp1": 3},
+  "mana_pool": {"0": {}}
+ }
+}

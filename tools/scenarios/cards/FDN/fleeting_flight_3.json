@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fleeting Flight, printed: 'Prevent all combat damage that would be dealt to it this turn.' Only 'it' (the target) is protected. Seat 0 attacks with two 2/2s, each blocked by a 4/4. After blockers it targets the first attacker only: that one (now 3/3) takes no combat damage and survives, while the other 2/2 takes 4 and dies. The first attacker's 3 and the second's 2 damage land on their blockers.",
+ "cards": [
+  {"key": "atk1", "name": "Attacker One", "type": "Creature — Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "atk2", "name": "Attacker Two", "type": "Creature — Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "blk1", "name": "Blocker One", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "blk2", "name": "Blocker Two", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"atk1": true, "atk2": true}, "block": {"blk1": "atk1", "blk2": "atk2"},
+   "respond": {"DECLARE_BLOCKERS": [{"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["atk1"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"atk1": "battlefield", "atk2": "graveyard", "blk1": "battlefield", "blk2": "battlefield", "ff": "graveyard"},
+  "damage": {"blk1": 3, "blk2": 2},
+  "counters": {"atk1": {"PLUS_1_PLUS_1": 1}},
+  "life": {"0": 20, "1": 20},
+  "graveyard": {"0": ["Fleeting Flight", "Attacker Two"], "1": []}
+ }
+}

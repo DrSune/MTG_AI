@@ -289,5 +289,37 @@
  },
  "probe": {
   "sha": "98a9c24489aef3816675629b6daabf7097f790b348d28db45b7b33caff69d043"
+ },
+ "verified": {
+  "tree_sha": "fc0b870dc38179b87468c1971cabccda7329e094f0cbb0a57652e29c3b119873",
+  "probe_sha": "98a9c24489aef3816675629b6daabf7097f790b348d28db45b7b33caff69d043",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 white Soldier creature tokens.",
+    "status": "OK",
+    "evidence": "[cast]: 'you:Soldier#1 moves new -> battlefield (by card/CREATE_TOKEN)' and #2; they stand at 2/2 HASTE with the next clause's +1/+1 and haste ('+ you:Soldier#1 (battlefield, you, 2/2, HASTE)') and drop to 1/1 'after the turn ends': two tokens of base 1/1. Colour (white) and subtype are not printed by the trace; the TokenSpec reads colors=('W',), subtypes=('Soldier',). Packs A07_1/A07_2 count two tokens.",
+    "issue": ""
+   },
+   {
+    "clause": "Until end of turn, creatures you control get +1/+1 and gain haste.",
+    "status": "OK",
+    "evidence": "[cast]: 'you_bear: P/T 2/2 -> 3/3; keywords +HASTE', 'you_giant: P/T 4/4 -> 5/5; keywords +HASTE', the two tokens 1/1 -> 2/2 with HASTE; no opposing creature changes (only your creatures); every change reverts 'after the turn ends'. The trace cannot show the lock-in: pack A07_1 enters another creature after the spell resolved and it gets neither +1/+1 nor haste (and the opposing creature is untouched); pack A07_2 shows the effects gone next turn while the tokens stay.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/heroic_reinforcements_1.json",
+   "tools/scenarios/cards/FDN/heroic_reinforcements_2.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 14,
+   "score": 0.9333333333333333,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/1/args/target/filter"
+   ]
+  }
  }
 }

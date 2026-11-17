@@ -1,0 +1,20 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Claws Out (FDN), printed: 'costs {1} less to cast for each Cat you control': only GENERIC mana is reduced. Seat 0 controls five Cats: the cost {3}{W}{W} drops to {W}{W} and no further. A pool of two W and one extra colorless mana casts it, the two W are spent and the colorless mana is left over.",
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Cat One", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Cat Two", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "c3", "name": "Cat Three", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "c4", "name": "Cat Four", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "c5", "name": "Cat Five", "type": "Creature — Cat", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "claws", "real": "Claws Out"}
+ ],
+ "expect": {
+  "zone": {"claws": "graveyard"},
+  "mana_pool": {"0": {"C": 1}},
+  "power": {"c1": 3, "c5": 3},
+  "toughness": {"c1": 3, "c5": 3}
+ }}

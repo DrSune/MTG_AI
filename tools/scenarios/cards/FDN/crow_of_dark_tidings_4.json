@@ -1,0 +1,19 @@
+{
+ "name": "H00_crow_enters_and_later_dies_mills_two_each_time",
+ "set": "FDN",
+ "note": "Crow of Dark Tidings: both halves of 'enters or dies' fire, once each. It enters (mill two: Library 5 and Library 4) and later dies to lethal damage (mill two more: Library 3 and Library 2): the graveyard holds the Crow and those four cards, and two cards (Library 1 and Library 0) are left in the library.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": 1, "toughness": 1, "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "crow"},
+  {"op": "deal_damage", "source": "pinger", "target": "crow", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"crow": "graveyard"},
+  "graveyard": {"0": ["Crow of Dark Tidings", "Library 5", "Library 4", "Library 3", "Library 2"]},
+  "library": {"0": ["Library 1", "Library 0"]}
+ }
+}

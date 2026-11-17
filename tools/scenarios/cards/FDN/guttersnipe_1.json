@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "E09_1_guttersnipe_creature_and_artifact_spells_do_not_trigger",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.' Support cards: FDN Mazemind Tome ({2}, an artifact) and Bear Cub ({1}{G}, a creature), both verified. Seat 0 casts both: neither is an instant or a sorcery, no trigger, nobody takes damage (20 and 20).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snipe", "real": "Guttersnipe", "zone": "battlefield", "controller": 0},
+  {"key": "tome", "real": "Mazemind Tome", "zone": "hand", "controller": 0},
+  {"key": "cub", "real": "Bear Cub", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "tome", "controller": 0, "decisions": ["first-legal"]},
+  {"op": "cast", "key": "cub", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"tome": "battlefield", "cub": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

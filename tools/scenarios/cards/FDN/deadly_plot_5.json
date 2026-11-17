@@ -1,0 +1,63 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Deadly Plot (FDN) is an INSTANT: on the opponent's turn (turn 2) seat 0 casts it (mode 0) on the opponent's Bear and it is destroyed.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Deadly Plot",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "B": 1,
+    "C": 3
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Deadly Plot",
+   "controller": 0,
+   "targets": [
+    "theirs"
+   ],
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard",
+   "theirs": "graveyard"
+  },
+  "turn_seats": [
+   0,
+   1
+  ]
+ }
+}

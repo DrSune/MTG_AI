@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "cemetery_recruitment_zombie_returns_and_draws_a_card",
+ "notes": "Printed: 'Return target creature card from your graveyard to your hand. If it's a Zombie card, draw a card.' Seat 0's graveyard holds a Zombie card (the target) and a Bear card. The Zombie returns to hand and seat 0 draws exactly one card: its hand is the Zombie and the drawn card (2); the Bear stays in the graveyard. Seat 1 draws nothing.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cr", "real": "Cemetery Recruitment", "zone": "hand", "controller": 0},
+  {"key": "zom", "name": "Fallen Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Fallen Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "key": "cr", "targets": ["zom"]}
+ ],
+ "expect": {
+  "zone": {"zom": "hand", "bear": "graveyard", "cr": "graveyard"},
+  "hand": {"0": 2, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

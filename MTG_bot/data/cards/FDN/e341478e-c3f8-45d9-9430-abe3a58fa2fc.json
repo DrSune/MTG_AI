@@ -143,5 +143,37 @@
  },
  "probe": {
   "sha": "2f4da372d1ba08c172294ef29ac25515f1f24c2cf0ae740d34afe6aca04b7174"
+ },
+ "verified": {
+  "tree_sha": "9baaedcecaed6fbdaa57c03585f5d9c2e54d27697fadf4a9989383c810204185",
+  "probe_sha": "2f4da372d1ba08c172294ef29ac25515f1f24c2cf0ae740d34afe6aca04b7174",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Deadly Riposte deals 3 damage to target tapped creature",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_tapped']] target slot 1..1 of [opp_tapped]: the board's one tapped creature, untapped creatures not offered; event 'opp_tapped is dealt 3 damage (by card/DEAL_DAMAGE)' then 'opp_tapped dies' (a 3/3). Pack D02_1 (passes): my own tapped 4/4 is a legal target and is left with exactly 3 damage marked; an untapped creature, a tapped artifact and the opponent's untapped creature are refused. Pack D02_2 (passes): an instant, cast on the opponent's turn on a tapped attacker after attackers are declared: it dies before combat damage.",
+    "issue": ""
+   },
+   {
+    "clause": "and you gain 2 life",
+    "status": "OK",
+    "evidence": "[cast targets=['opp_tapped']] event 'you gains 2 life (by card/GAIN_LIFE)'; change 'you: life 20 -> 22'; the opponent's life is unchanged.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/deadly_riposte_1.json",
+   "tools/scenarios/cards/FDN/deadly_riposte_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 10,
+   "score": 0.9090909090909091,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

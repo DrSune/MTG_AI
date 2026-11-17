@@ -1,0 +1,19 @@
+{
+ "name": "H05_hare_apparent_two_other_hares_make_two_rabbits",
+ "set": "FDN",
+ "note": "Hare Apparent: the number of tokens is the number of OTHER Hare Apparents P0 controls. P0 controls two and casts a third: exactly two Rabbit tokens.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "hare1", "zone": "battlefield", "controller": 0, "real": "Hare Apparent"},
+  {"key": "hare2", "zone": "battlefield", "controller": 0, "real": "Hare Apparent"},
+  {"key": "hare3", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Hare Apparent", "key": "hare3"}
+ ],
+ "expect": {
+  "tokens": {"Rabbit": 2},
+  "zone": {"hare1": "battlefield", "hare2": "battlefield", "hare3": "battlefield"}
+ }
+}

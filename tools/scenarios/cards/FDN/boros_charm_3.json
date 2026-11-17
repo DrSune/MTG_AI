@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "boros_charm_double_strike_on_the_one_target_creature",
+ "notes": "Printed: 'Target creature gains double strike until end of turn.' Third mode (token 2). Seat 0 gives its 2/2 Duelist double strike and attacks with it and with a 3/3 Brawler that was not targeted; seat 1 has no blockers. The Duelist deals 2 in the first-strike damage step and 2 again in the regular step (4), the Brawler 3 once: seat 1 goes 20 -> 13.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bc", "real": "Boros Charm", "zone": "hand", "controller": 0},
+  {"key": "duelist", "name": "Duelist", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "brawler", "name": "Brawler", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "bc", "targets": ["duelist"], "decisions": ["2"]},
+  {"op": "combat", "seat": 0, "attack": {"duelist": true, "brawler": true}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 13},
+  "battlefield_keywords": {"Duelist": ["DOUBLE_STRIKE"], "Brawler": []},
+  "mana_pool": {"0": {}}
+ }
+}

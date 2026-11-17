@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Grow from the Ashes, printed: 'Kicker {2} (You may pay an additional {2} as you cast this spell.)' The kicker is exactly two more generic mana: with only the four mana of {2}{G} plus one, a kicked cast is refused (it needs five); the same four mana cast it unkicked and it finds one land.",
+ "cards": [
+  {"key": "gfa", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest", "island"], "expect_raise": "illegal"},
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "decisions": ["forest"]}
+ ],
+ "expect": {
+  "zone": {"gfa": "graveyard", "forest": "battlefield", "island": "library"},
+  "kick_rows": {"gfa": {"kicked": false}},
+  "mana_pool": {"0": {"C": 1}},
+  "hand": {"0": 0}
+ }
+}

@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: '... return it to the battlefield tapped under its owner's control ...' The creature ENTERS the battlefield again, so its own 'When this creature enters' trigger happens again. Seat 0's Vampire Spawn (2/3; 'When this creature enters, each opponent loses 2 life and you gain 2 life') is targeted (4/3) and killed by 3 damage: it returns tapped, and the new entry makes seat 1 lose 2 (20 -> 18) and seat 0 gain 2 (20 -> 22). One Treasure.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "spawn", "real": "Vampire Spawn", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["spawn"]},
+  {"op": "deal_damage", "source": "pinger", "target": "spawn", "amount": 3, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "spawn": "battlefield"},
+  "tapped": {"spawn": true},
+  "controller": {"spawn": 0},
+  "power": {"spawn": 2},
+  "tokens": {"Treasure": 1},
+  "life": {"0": 22, "1": 18},
+  "graveyard": {"0": ["Fake Your Own Death"], "1": []}
+ }
+}

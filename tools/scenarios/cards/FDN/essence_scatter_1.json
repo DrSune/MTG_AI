@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Essence Scatter, printed: 'Counter target creature spell.' Seat 0 casts Highborn Vampire (a creature spell, {3}{B}). Seat 1 answers with Essence Scatter while it waits on the stack: the Vampire is countered, goes to its owner's graveyard and never enters; Essence Scatter goes to its owner's graveyard and both pools are spent.",
+ "cards": [
+  {"key": "vamp", "real": "Highborn Vampire", "zone": "hand", "controller": 0},
+  {"key": "es", "real": "Essence Scatter", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "vamp", "real": "Highborn Vampire", "hold": true},
+  {"op": "cast", "key": "es", "real": "Essence Scatter", "controller": 1, "targets": ["vamp"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard", "es": "graveyard"},
+  "graveyard": {"0": ["Highborn Vampire"], "1": ["Essence Scatter"]},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

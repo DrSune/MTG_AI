@@ -1,0 +1,21 @@
+{
+ "name": "H01_gorehorn_raider_only_your_own_attack_counts",
+ "set": "FDN",
+ "note": "Gorehorn Raider: 'if you attacked this turn' is about its controller. On the opponent's turn the opponent attacks with a 0/2 creature, then the Raider enters under P0's control: P0 did not attack this turn, so nothing is dealt damage (no marks, both lives 20).",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "raider", "zone": "hand", "controller": 0, "real": "Gorehorn Raider"},
+  {"key": "oppy", "zone": "battlefield", "controller": 1, "name": "Oppy", "power": "0", "toughness": "2", "type": "Creature"},
+  {"key": "mine", "zone": "battlefield", "controller": 0, "name": "Mine", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oppy": true}},
+  {"op": "enter", "key": "raider"}
+ ],
+ "expect": {
+  "attackers": {"oppy": true},
+  "zone": {"raider": "battlefield", "mine": "battlefield", "oppy": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

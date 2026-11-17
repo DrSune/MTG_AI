@@ -1,0 +1,56 @@
+{
+ "set": "FDN",
+ "name": "F09_4",
+ "notes": "Stromkirk Bloodthief. Printed: 'if an opponent lost life this turn'. Life lost by an effect counts, not only damage: seat 0's Vampire Spawn enters ('each opponent loses 2 life and you gain 2 life': seat 0 22, seat 1 18). At seat 0's end step the counter goes on the Vampire Spawn (the chosen target), not on the Bloodthief.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vs",
+   "real": "Vampire Spawn",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "vs"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": false,
+    "vs": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN",
+   "decisions": [
+    "vs"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 18
+  },
+  "counters": {
+   "sb": {},
+   "vs": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ }
+}

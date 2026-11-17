@@ -185,5 +185,32 @@
  },
  "probe": {
   "sha": "9a498d975b53f76f60d38770c88ecae3984c70b89f1d8d6dbf6f971764f34719"
+ },
+ "verified": {
+  "tree_sha": "31c165790a5af67e0feec9acebeac78ef3677f3a8a39ab3120b4f1e99144305f",
+  "probe_sha": "9a498d975b53f76f60d38770c88ecae3984c70b89f1d8d6dbf6f971764f34719",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Chandra's Outrage deals 4 damage to target creature and 2 damage to that creature's controller.",
+    "status": "OK",
+    "evidence": "SpellAbility INSTANT, Seq: DEAL_DAMAGE 4 to a TARGET Selector over Creature; DEAL_DAMAGE 2 to ALL players whose controller-is is the referent 'target' (the ruling R_ITSCONTROLLER's exact shape). Probe: 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]'; every cast: the creature 'is dealt 4 damage', then its controller is dealt 2 ('you is dealt 2 damage' for you_bear and you_giant, 'opp is dealt 2 damage' for the four opponent creatures, life 20 -> 18 on the right side only), the creature dies after the spell has resolved. The probe's snapshot reads ownership, so a stolen creature, the response timing and the fizzle are in packs H06_1, H06_2, H06_3, H06_5; instant speed on the opponent's turn in H06_4.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra's_outrage_1.json",
+   "tools/scenarios/cards/M20/chandra's_outrage_2.json",
+   "tools/scenarios/cards/M20/chandra's_outrage_3.json",
+   "tools/scenarios/cards/M20/chandra's_outrage_4.json",
+   "tools/scenarios/cards/M20/chandra's_outrage_5.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

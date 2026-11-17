@@ -1,0 +1,64 @@
+{
+ "set": "FDN",
+ "name": "F06_6",
+ "notes": "High-Society Hunter. Printed: 'Flying'. Seat 0 attacks with the Hunter (the may declined): the opposing ground Foe is never asked to block it, and the Spider (reach) is asked (it may block or not: NONE) and declines: seat 1 takes 5 (15).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hunter",
+   "real": "High-Society Hunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "spider",
+   "name": "Spider",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "3",
+   "keywords": [
+    "REACH"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hunter": true
+   },
+   "may": {
+    "hunter": false
+   },
+   "block": {
+    "spider": null
+   }
+  }
+ ],
+ "expect": {
+  "not_asked_to_block": [
+   "foe"
+  ],
+  "block_asks": {
+   "spider": "<hunter>,NONE"
+  },
+  "life": {
+   "1": 15
+  }
+ }
+}

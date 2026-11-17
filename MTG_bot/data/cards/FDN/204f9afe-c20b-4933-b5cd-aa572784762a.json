@@ -239,5 +239,31 @@
  },
  "probe": {
   "sha": "1572eeed22d5285c72d1003cbd9f25d8cab27e8b714f09433a44fb10297bac46"
+ },
+ "verified": {
+  "tree_sha": "87d62ad4972a3a4508fdaeb9b160411c21edbe67acdff5d87714ccff7c7593c8",
+  "probe_sha": "1572eeed22d5285c72d1003cbd9f25d8cab27e8b714f09433a44fb10297bac46",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +3/+3 and gain trample until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: 'you_bear: P/T 2/2 -> 5/5; keywords +TRAMPLE', 'you_giant: P/T 4/4 -> 7/7; keywords +TRAMPLE', no opponent creature changes, 'after the turn ends' both revert (-TRAMPLE), mana C-2 G-3 for {2}{G}{G}{G}. Pack B10_1 PASSES (a 5/5 trampler blocked by a 4/1 kills it, tramples over 4 and survives 4 damage; home creature 4/4; the opponent's stay; a late creature gets nothing). Wrong twins fail. Pack B10_2 PASSES (the damaged 5/5 attacker survives the cleanup as a 2/2, CR 514.2; every creature is back to its printed size next turn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/overrun_1.json",
+   "tools/scenarios/cards/FDN/overrun_2.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 13,
+   "score": 0.9285714285714286,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

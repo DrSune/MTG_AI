@@ -1,0 +1,90 @@
+{
+ "set": "FDN",
+ "name": "G00_6",
+ "notes": "Printed (FDN Bloodtithe Collector): 'Flying. When this creature enters, if an opponent lost life this turn, each opponent discards a card.' Three players: my attacker hits seat 1 only (seat 1 goes to 17, seat 2 stays at 20). An opponent lost life, so EACH opponent discards a card, the one who lost no life included.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "atk",
+   "name": "My Attacker",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "3",
+   "toughness": "3"
+  },
+  {
+   "key": "btc",
+   "real": "Bloodtithe Collector",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Seat1 Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "a2",
+   "name": "Seat1 Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "b1",
+   "name": "Seat2 Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 2,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "b2",
+   "name": "Seat2 Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 2
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true
+   }
+  },
+  {
+   "op": "enter",
+   "key": "btc",
+   "decisions": [
+    "a2",
+    "b1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "btc": "battlefield",
+   "a1": "hand",
+   "a2": "graveyard",
+   "b1": "graveyard",
+   "b2": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 17,
+   "2": 20
+  }
+ }
+}

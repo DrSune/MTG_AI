@@ -1,0 +1,61 @@
+{
+ "set": "FDN",
+ "name": "F11_2",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your second card each turn'. On seat 0's third turn (two advance_turns) the draw step is the first card of the turn; Opt's draw is the second: one Faerie. Hand: 2 cards at the start, +1 draw step, -1 Opt, +1 Opt = 3.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "qs",
+   "real": "Quick Study",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 2,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 3
+  },
+  "tokens": {
+   "Faerie": 1
+  }
+ }
+}

@@ -222,5 +222,48 @@
  },
  "probe": {
   "sha": "4e23e33a7996b4063795e0e65fbc4ce473917b2bdbd24e204dcdbccd66b7965c"
+ },
+ "verified": {
+  "tree_sha": "68167e862e497aedcfab26332ba1f987ae82d3bb8131f838f13a664c89865e99",
+  "probe_sha": "4e23e33a7996b4063795e0e65fbc4ce473917b2bdbd24e204dcdbccd66b7965c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "Keyword present ('keywords +VIGILANCE'). [stimulus: this creature attacks alone, unblocked]: 'DECLARE_ATTACKERS card 1', 'opp is dealt 4 damage (combat)' and no 'card: tapped False -> True' change: attacking did not tap it.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, choose one -",
+    "status": "OK",
+    "evidence": "[cast]: 'card's triggered ability [0] triggers' after 'card moves stack -> battlefield'; the mode ask 'ask choose: [0, 1]' comes first and the target ask only for the chosen mode (mode 1 asks nothing else); it triggers on the opponent's turn too ('from your hand, the card enters during the opponent's turn'). No other event triggers it.",
+    "issue": ""
+   },
+   {
+    "clause": "Put two +1/+1 counters on target creature you control.",
+    "status": "OK",
+    "evidence": "[cast] mode 0: target ask [you_bear, you_giant, card] (my creatures only, itself included); 'you_bear gets 2 PLUS_1_PLUS_1 counter(s)', 2/2 -> 4/4; [cast | ask 2 -> you_giant] 4/4 -> 6/6 with 2 counters; [cast | ask 2 -> card] the Stomper itself 4/4 -> 6/6.",
+    "issue": ""
+   },
+   {
+    "clause": "You gain 4 life.",
+    "status": "OK",
+    "evidence": "[cast | ask 1 -> 1]: 'you gains 4 life (by card/GAIN_LIFE)', life 20 -> 24, no target asked.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/apothecary_stomper_1.json",
+   "tools/scenarios/cards/FDN/apothecary_stomper_2.json",
+   "tools/scenarios/cards/FDN/apothecary_stomper_3.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 13,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

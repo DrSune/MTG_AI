@@ -337,5 +337,50 @@
  },
  "probe": {
   "sha": "3d243668d1506c73a8ca2c359ddaa2625180f39f75fda629519bd8374a9241dc"
+ },
+ "verified": {
+  "tree_sha": "475fda943caa8f487f8f15c966ee678a935cef2ec08a63701112e41ba16e49cb",
+  "probe_sha": "3d243668d1506c73a8ca2c359ddaa2625180f39f75fda629519bd8374a9241dc",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Reach",
+    "status": "NOT_EXERCISED",
+    "evidence": "Only the keyword is shown ([cast]: keywords +REACH); no flyer attacks in the probe. Pack E10_4: on the opponent's turn a 1/1 flyer attacks and Dwynen is offered the block on it and blocks it.",
+    "issue": ""
+   },
+   {
+    "clause": "Other Elf creatures you control get +1/+1.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: you_spare (a 3/3 on the standard board) enters as 4/4, so it is an Elf here and gets +1/+1. [Static]: Dwynen himself stays 3/4 ('other'). The trace does not show non-Elves or the opponent's Elves (a standing bonus is no change in a variant's diff). Pack E10_1: +1/+1 for the other Elf I control only, not Dwynen, a Goblin of mine or the opponent's Elf.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever Dwynen attacks, you gain 1 life for each attacking Elf you control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[this creature attacks alone, unblocked] and [... opp_giant blocks it]: trigger [1] fires, you gain 1 life (20 -> 21), Dwynen counting himself. Only Dwynen attacks, so the count never exceeds one and cannot tell 'for each attacking Elf' from a flat 1. Pack E10_2: Dwynen, two Elves and a Goblin attack, a third Elf stays home: 3 life; E10_3: only another Elf attacks: no trigger. E10_5: the attacking Elves are counted as the ability resolves (one removed in response: 2, not 3).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/dwynen_gilt-leaf_daen_1.json",
+   "tools/scenarios/cards/FDN/dwynen_gilt-leaf_daen_2.json",
+   "tools/scenarios/cards/FDN/dwynen_gilt-leaf_daen_3.json",
+   "tools/scenarios/cards/FDN/dwynen_gilt-leaf_daen_4.json",
+   "tools/scenarios/cards/FDN/dwynen_gilt-leaf_daen_5.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 10,
+   "score": 0.6666666666666666,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 0) at 1/1/effect/args/amount/right/selector/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/amount/right/selector/filter",
+    "widen filter (drop part 2) at 1/1/effect/args/amount/right/selector/filter",
+    "widen filter (drop part 3) at 1/1/effect/args/amount/right/selector/filter"
+   ]
+  }
  }
 }

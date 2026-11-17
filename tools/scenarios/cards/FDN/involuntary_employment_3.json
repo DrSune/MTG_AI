@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Involuntary Employment, printed: '... Create a Treasure token.' The Treasure is the caster's (seat 0): with no mana left, seat 0 casts Unsummon at the stolen creature by tapping the Treasure (sacrificed to pay), returning it to its owner's hand.",
+ "cards": [
+  {"key": "ie", "real": "Involuntary Employment", "zone": "hand", "controller": 0},
+  {"key": "unsummon", "real": "Unsummon", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Turncoat Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "ie", "real": "Involuntary Employment", "targets": ["ogre"]},
+  {"op": "cast", "key": "unsummon", "real": "Unsummon", "controller": 0, "targets": ["ogre"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"ie": "graveyard", "unsummon": "graveyard", "ogre": "hand"},
+  "tokens": {"Treasure": 0},
+  "graveyard": {"0": ["Involuntary Employment", "Unsummon"], "1": []},
+  "hand": {"0": 0, "1": 1},
+  "mana_pool": {"0": {}}
+ }
+}

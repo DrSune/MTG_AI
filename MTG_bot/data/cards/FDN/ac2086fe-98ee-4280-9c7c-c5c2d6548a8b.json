@@ -266,5 +266,41 @@
  },
  "probe": {
   "sha": "fcce4ecf38966b26ae70fdf4a6453a6bc51c6b202cc38390321bd90036dc6e5d"
+ },
+ "verified": {
+  "tree_sha": "06444cce3a725831c378994b2163d571afd74ce3618a76e190513fb2c72e31e5",
+  "probe_sha": "fcce4ecf38966b26ae70fdf4a6453a6bc51c6b202cc38390321bd90036dc6e5d",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Kicker {4}",
+    "status": "OK",
+    "evidence": "[cast kicked targets=[...]]: 'you casts card kicked' with 'mana C-4 R-1' (the {4} kicker plus {R}); the unkicked casts cost 'mana R-1'. Both are offered for every target.",
+    "issue": ""
+   },
+   {
+    "clause": "Burst Lightning deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "Unkicked [cast targets=[...]]: slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, you, opp]: 2 damage by the spell to each creature ('damage 0 -> 2', the 2/2s and the 1/1 die), 'you: life 20 -> 18' and 'opp: life 20 -> 18'. No planeswalker is on the board: pack C12_1 (an opposing Vivien Reid goes 5 -> 3).",
+    "issue": ""
+   },
+   {
+    "clause": "If this spell was kicked, it deals 4 damage instead.",
+    "status": "OK",
+    "evidence": "[cast kicked targets=[...]]: 4 damage instead of 2 on every target ('you_giant moves battlefield -> graveyard', 'opp_tapped' and 'opp_giant' die, you 20 -> 16, opp 20 -> 16), not 2 + 4. Pack C12_2: kicked at an opposing Vivien Reid, loyalty 5 -> 1.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/burst_lightning_1.json",
+   "tools/scenarios/cards/FDN/burst_lightning_2.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 11,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

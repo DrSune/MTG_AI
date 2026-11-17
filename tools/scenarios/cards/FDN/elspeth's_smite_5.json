@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite, printed: 'deals 3 damage to target attacking or blocking creature. If that creature would die this turn, exile it instead.' Seat 0 attacks with a 2/2; seat 1 blocks it with a 3/3. After blockers are declared seat 0 (with a Plains) casts Smite at the blocker: 3 damage kills it, so it is exiled instead. The attacker stays blocked and deals no combat damage, so seat 1 stays at 20 and the attacker is unharmed.",
+ "cards": [
+  {"key": "atk", "name": "Attacker", "type": "Creature — Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Blocker", "type": "Creature — Soldier", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 0},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"atk": true}, "block": {"blk": "atk"},
+   "respond": {"DECLARE_BLOCKERS": [{"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 0, "targets": ["blk"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"blk": "exile", "atk": "battlefield", "smite": "graveyard"},
+  "graveyard": {"0": ["Elspeth's Smite"], "1": []},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

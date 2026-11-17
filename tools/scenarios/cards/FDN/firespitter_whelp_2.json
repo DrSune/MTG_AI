@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "E07_2_firespitter_whelp_an_artifact_spell_is_a_noncreature_spell",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.' Support card: FDN Mazemind Tome ({2}, an artifact). Seat 0 casts it: a noncreature spell that is neither an instant nor a sorcery, 1 damage to seat 1 (19), none to seat 0.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "whelp", "real": "Firespitter Whelp", "zone": "battlefield", "controller": 0},
+  {"key": "tome", "real": "Mazemind Tome", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "cast", "key": "tome", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"tome": "battlefield"},
+  "life": {"0": 20, "1": 19}
+ }
+}

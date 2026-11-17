@@ -1,0 +1,20 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deathmark (FDN) is a SORCERY: it cannot be cast on the opponent's turn. Turn 2 is seat 1's; seat 0 holds the mana and a legal target (a green creature) but the cast is refused for its timing ('not_your_turn') and nothing happens. Back on seat 0's own turn 3 the same cast works and destroys the target.",
+ "cards": [
+  {"key": "dm", "real": "Deathmark", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"B": 1}},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "controller": 0, "targets": ["bear"], "expect_raise": "window:not_your_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"B": 1}},
+  {"op": "cast", "key": "dm", "real": "Deathmark", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"dm": "graveyard", "bear": "graveyard"},
+  "turn_seats": [0, 1, 0]
+ }}

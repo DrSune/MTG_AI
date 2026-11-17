@@ -216,5 +216,44 @@
  },
  "probe": {
   "sha": "4b8a74575a9d1ff931813727f1b2127eccbcca89de59c7c8a3c489790e02f517"
+ },
+ "verified": {
+  "tree_sha": "360c740364c1e0afe5bfa38aa767db02c4bb87198ae0ff3981e5525d8a6ec126",
+  "probe_sha": "4b8a74575a9d1ff931813727f1b2127eccbcca89de59c7c8a3c489790e02f517",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Elspeth's Smite deals 3 damage to target attacking or blocking creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's only line is 'cast skipped: a target slot needs 1, the board offers 0': nothing on the standard board attacks or blocks, so no variant shows the damage or the menu. Covered by packs: A01_2 (exactly 3 damage marked on a 4/4 attacker, which survives), A01_1 (a 3/3 attacker is killed, a second attacker that was not targeted is unharmed), A01_5 (a blocking creature is a legal target and takes 3), A01_6 (in the main phase neither side's creature is a legal target: refused).",
+    "issue": ""
+   },
+   {
+    "clause": "If that creature would die this turn, exile it instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not reached by the probe (cast skipped, see above). Covered by packs: A01_1 (the 3/3 attacker dies to the 3 damage and is exiled, never in the graveyard), A01_5 (the same for a blocker), A01_3 (a 4/4 survives the spell, then 1 more damage the same turn exiles it, while an untargeted creature dying that turn goes to the graveyard), A01_4 (on the next turn it dies to the graveyard).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/elspeth's_smite_1.json",
+   "tools/scenarios/cards/FDN/elspeth's_smite_2.json",
+   "tools/scenarios/cards/FDN/elspeth's_smite_3.json",
+   "tools/scenarios/cards/FDN/elspeth's_smite_4.json",
+   "tools/scenarios/cards/FDN/elspeth's_smite_5.json",
+   "tools/scenarios/cards/FDN/elspeth's_smite_6.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 3,
+   "score": 0.42857142857142855,
+   "survived": [
+    "zone EXILE->GRAVEYARD at 1/0/action/args/destination",
+    "amount+1 at 1/1/effect/args/amount",
+    "amount-1 at 1/1/effect/args/amount",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

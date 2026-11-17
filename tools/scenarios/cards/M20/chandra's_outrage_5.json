@@ -1,0 +1,21 @@
+{
+ "name": "H06_chandras_outrage_the_controller_is_read_as_the_spell_resolves",
+ "set": "M20",
+ "note": "Chandra's Outrage: 'that creature's controller' is whoever controls the creature as the spell resolves. P0 casts it on the opponent's 5/5 and holds priority; in response P0 gains control of that creature (a steal). On resolution the creature is controlled by P0, so P0, not the opponent, takes the 2 damage (20 -> 18); the opponent's life stays 20; the creature, now P0's, has 4 damage marked.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "tough", "zone": "battlefield", "controller": 1, "name": "Tough", "power": "5", "toughness": "5", "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["tough"], "hold": true},
+  {"op": "gain_control", "key": "tough", "seat": 0}
+ ],
+ "expect": {
+  "controller": {"tough": 0},
+  "life": {"0": 18, "1": 20},
+  "damage": {"tough": 4},
+  "zone": {"tough": "battlefield", "outrage": "graveyard"}
+ }
+}

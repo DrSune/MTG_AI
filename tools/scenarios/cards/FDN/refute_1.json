@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "refute_counters_a_spell_then_draws_one_and_discards_the_drawn_card",
+ "notes": "Printed: 'Counter target spell. Draw a card, then discard a card.' Seat 0 casts Highborn Vampire (a creature spell, {3}{B}); it waits on the stack. Seat 1, holding Refute ({1}{U}{U}) and two spare cards, casts it at the Vampire. The Vampire is countered (it goes to its owner's graveyard, never enters). Seat 1 then draws exactly one card (the Drawn card on top of its library) and discards exactly one: the discard is chosen from the hand AFTER the draw, so the card just drawn is a legal pick, and discarding it leaves seat 1 with its two spare cards. Seat 0 draws and discards nothing.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "vamp", "real": "Highborn Vampire", "zone": "hand", "controller": 0},
+  {"key": "refute", "real": "Refute", "zone": "hand", "controller": 1},
+  {"key": "h1", "name": "Spare One", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 1},
+  {"key": "h2", "name": "Spare Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 1},
+  {"key": "drawn", "name": "Drawn", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}, "1": {"U": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "vamp", "hold": true},
+  {"op": "cast", "key": "refute", "controller": 1, "targets": ["vamp"], "tap": true, "real": "Refute", "decisions": ["drawn"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard", "refute": "graveyard", "drawn": "graveyard", "h1": "hand", "h2": "hand"},
+  "hand": {"0": 0, "1": 2},
+  "graveyard": {"0": ["Highborn Vampire"], "1": ["Refute", "Drawn"]},
+  "mana_pool": {"0": {}, "1": {}},
+  "life": {"0": 20, "1": 20}
+ }}

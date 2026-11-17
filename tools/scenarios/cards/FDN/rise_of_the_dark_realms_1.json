@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "rise_of_the_dark_realms_takes_every_creature_card_from_both_graveyards_under_its_casters_control",
+ "notes": "Printed: 'Put all creature cards from all graveyards onto the battlefield under your control.' Seat 0 casts Rise of the Dark Realms ({7}{B}{B}) with a creature card and an instant in its own graveyard and a creature card and an artifact (non-creature) card in seat 1's graveyard. Both creature cards go onto the battlefield and BOTH are controlled by seat 0 (the caster), including the one seat 1 owns; the two non-creature cards stay in their graveyards, and Rise itself goes to seat 0's graveyard (no creature card). Nothing else moves: seat 0's hand keeps its spare creature card.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rise", "real": "Rise of the Dark Realms", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare Creature", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "myspell", "name": "My Used Spell", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Fallen", "power": "3", "toughness": "3", "type": "Creature", "zone": "graveyard", "controller": 1},
+  {"key": "theirrelic", "name": "Their Used Relic", "type": "Artifact", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2, "C": 7}},
+ "steps": [
+  {"op": "cast", "key": "rise", "real": "Rise of the Dark Realms"}
+ ],
+ "expect": {
+  "zone": {"rise": "graveyard", "mine": "battlefield", "theirs": "battlefield", "myspell": "graveyard", "theirrelic": "graveyard", "spare": "hand"},
+  "controller": {"mine": 0, "theirs": 0},
+  "graveyard": {"0": ["Rise of the Dark Realms", "My Used Spell"], "1": ["Their Used Relic"]},
+  "hand": {"0": 1, "1": 0},
+  "power": {"mine": 2, "theirs": 3},
+  "mana_pool": {"0": {}}
+ }}

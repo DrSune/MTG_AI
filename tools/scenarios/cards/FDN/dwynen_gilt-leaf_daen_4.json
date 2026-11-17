@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "E10_4_dwynen_reach_blocks_a_flyer",
+ "notes": "G2 verifier, batch E. Printed: 'Reach (This creature can block creatures with flying.)' It is seat 1's turn. Seat 1's 1/1 flyer attacks. Dwynen (3/4, reach) is offered the block and takes it: the flyer is blocked by Dwynen, dies to its 3 damage, and Dwynen is marked with the flyer's 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dwynen", "real": "Dwynen, Gilt-Leaf Daen", "zone": "battlefield", "controller": 0},
+  {"key": "oflier", "name": "Opp Flyer", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oflier": true}, "block": {"dwynen": "oflier"}}
+ ],
+ "expect": {
+  "block_asks": {"dwynen": "<oflier>,NONE"},
+  "blocked": {"oflier": ["dwynen"]},
+  "zone": {"oflier": "graveyard", "dwynen": "battlefield"},
+  "damage": {"dwynen": 1},
+  "life": {"0": 20, "1": 20}
+ }
+}

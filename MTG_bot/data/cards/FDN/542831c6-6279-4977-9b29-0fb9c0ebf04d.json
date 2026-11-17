@@ -121,5 +121,47 @@
  },
  "probe": {
   "sha": "d857d9d3daec38e849abb7a3d802fc1d988f09109c66155b668d7e55d12c3bdf"
+ },
+ "verified": {
+  "tree_sha": "99af2398cce0b661789bd2d1a080ce4bc223c486fe61ae635dc8c663e733dd32",
+  "probe_sha": "d857d9d3daec38e849abb7a3d802fc1d988f09109c66155b668d7e55d12c3bdf",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "Cast: 'keywords +FLYING'. 'this creature attacks and opp_giant blocks it': no DECLARE_BLOCKERS row, 'opp is dealt 2 damage': the giant cannot block it. F11_6 (a ground creature is never asked to block it).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you draw your second card each turn, create a 1/1 Faerie creature token with flying.",
+    "status": "OK",
+    "evidence": "'you draw two cards, one after the other': 'card's triggered ability [0] triggers', 'you:Faerie moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Faerie (battlefield, you, 1/1, FLYING)' (one token); 'you draw a card -> none'; 'the opponent draws a card -> none'. The probe's turn has no draw step: F11_2 (the draw step is the first card: Opt's draw is the second), F11_3 (a third card gives no second token), F11_4 (the opponent's second card: none), F11_5 (one card: none), F11_1 (Quick Study). F11_7 (the opponent's turn counts too). F11_8 (the turn's first card was drawn before the Mystic entered).",
+    "issue": ""
+   },
+   {
+    "clause": "(the token is blue)",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's change line prints no colours, and no pack lane or verified FDN card reads a token's colour (checked: no 'colors' lane in tools/run_scenarios.py; Devout Decree, the only verified FDN colour reader, asks for black or red). The tree says colors=('U',), which matches 'blue', but that is read from the tree, not observed. No pack could be written for it.",
+    "issue": "not pinnable by a pack with today's runner and verified FDN pool"
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/mischievous_mystic_1.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_2.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_3.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_4.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_5.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_6.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_7.json",
+   "tools/scenarios/cards/FDN/mischievous_mystic_8.json"
+  ],
+  "mutation": {
+   "mutants": 5,
+   "killed": 5,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

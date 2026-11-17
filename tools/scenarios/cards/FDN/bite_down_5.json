@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "bite_down_deals_no_damage_when_its_creature_is_gone",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' Seat 0 casts Bite Down with its 4/4 Giant at seat 1's 5/5 Colossus and holds priority; the Giant leaves the battlefield before the spell resolves (it is put into the graveyard by another effect). The Giant is now an illegal target, so it can't deal damage (CR 608.2b): the Colossus, still a legal target, is not damaged. Bite Down goes to the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "My Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "colossus", "name": "Opp Colossus", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "bd", "targets": ["giant", "colossus"], "hold": true},
+  {"op": "move", "key": "giant", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"bd": "graveyard", "giant": "graveyard", "colossus": "battlefield"},
+  "mana_pool": {"0": {}}
+ }
+}

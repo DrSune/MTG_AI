@@ -1,0 +1,75 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Seeker's Folly (FDN), mode 1 printed: 'Creatures your opponents control get -1/-1 until end of turn.' In a three-player game EVERY opponent's creatures shrink (seat 1's 2/2 Bear and seat 2's 4/4 Giant become 1/1 and 3/3) and the caster's own 2/2 Bear does not.",
+ "cards": [
+  {
+   "key": "folly",
+   "real": "Seeker's Folly",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "First Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "name": "Second Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 2
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "folly",
+   "real": "Seeker's Folly",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "folly": "graveyard"
+  },
+  "power": {
+   "mine": 2,
+   "o1": 1,
+   "o2": 3
+  },
+  "toughness": {
+   "mine": 2,
+   "o1": 1,
+   "o2": 3
+  }
+ }
+}

@@ -1,0 +1,91 @@
+{
+ "set": "FDN",
+ "name": "F08_4",
+ "notes": "Halana and Alena, Partners. Printed: '...where X is Halana and Alena's power.' X is worked out as the ability resolves (CR 608.2h). The trigger waits on the stack, seat 0 casts Giant Growth on Halana in response (power 2 -> 5), and the Giant Growth resolves first: the Bear gets 5 counters (7/7 with its printed 2).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gg",
+   "real": "Giant Growth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ha": false,
+    "bear": false,
+    "giant": false
+   },
+   "decisions": [
+    "bear"
+   ],
+   "respond_to_triggers": {
+    "COMBAT": [
+     {
+      "op": "mana",
+      "seat": 0,
+      "add": {
+       "G": 1
+      },
+      "hold": true
+     },
+     {
+      "op": "cast",
+      "key": "gg",
+      "real": "Giant Growth",
+      "targets": [
+       "ha"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ha": {},
+   "bear": {
+    "PLUS_1_PLUS_1": 5
+   },
+   "giant": {}
+  },
+  "power": {
+   "ha": 5,
+   "bear": 7
+  },
+  "zone": {
+   "gg": "graveyard"
+  }
+ }
+}

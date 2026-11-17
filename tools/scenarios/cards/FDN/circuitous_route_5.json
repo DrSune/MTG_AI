@@ -1,0 +1,55 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Circuitous Route (FDN) is a SORCERY: on the opponent's turn (turn 2) seat 0 holds {3}{G} and the cast is refused for its timing; the card stays in hand.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Circuitous Route",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Lib Forest",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1,
+    "C": 3
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Circuitous Route",
+   "controller": 0,
+   "expect_raise": "window:not_your_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

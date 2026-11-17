@@ -353,5 +353,60 @@
  },
  "probe": {
   "sha": "01ed6483d5388f8f4f38cc9df3101f534947cddaa8cae489e29606ed339e5415"
+ },
+ "verified": {
+  "tree_sha": "f9edadbd688a3bdf5b1a7ff3728d0f137752c0696b14242ef3867a0ebfd42946",
+  "probe_sha": "01ed6483d5388f8f4f38cc9df3101f534947cddaa8cae489e29606ed339e5415",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "Cast: 'keywords +FLYING'. 'this creature attacks and opp_giant blocks it': no DECLARE_BLOCKERS row, the Hunter deals 6 to the opponent: a non-flier cannot block it. F06_6 (a ground creature is never asked to block the Hunter; a reach creature is).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this creature attacks, you may sacrifice another creature.",
+    "status": "OK",
+    "evidence": "'this creature attacks alone, unblocked': 'ask may: [fire, skip] -> fire', 'ask sacrifice: [you_bear, you_giant] -> you_bear' (only your other creatures: not itself, not the opponent's, not the relic or the charm), 'you_bear moves battlefield -> graveyard (by card/SACRIFICE)'. The decline (skip) is not in the trace: F06_2 (skip: nothing happens), F06_3 (no other creature: nothing sacrificed).",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "'card gets 1 PLUS_1_PLUS_1 counter(s) (by card/PUT_COUNTER)', 'counters {} -> {PLUS_1_PLUS_1: 1}; P/T 5/3 -> 6/4' after the sacrifice (one counter). Without a sacrifice: F06_2, F06_3 (no counter).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another nontoken creature dies, draw a card.",
+    "status": "OK",
+    "evidence": "'your creature (you_bear) dies': 'card's triggered ability [1] triggers', 'you draws'; 'an opponent's creature (opp_bear) dies': the same (any controller); 'this card is dealt lethal damage -> none' ('another'); one card each. Two deaths at once: F06_5.",
+    "issue": ""
+   },
+   {
+    "clause": "(nontoken: a token that dies draws no card)",
+    "status": "NOT_EXERCISED",
+    "evidence": "No token dies in the probe, so the 'nontoken' filter is never tested. F06_4 (a sacrificed token and the opponent's dying token: no card; the opponent's nontoken creature: one card).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/high-society_hunter_1.json",
+   "tools/scenarios/cards/FDN/high-society_hunter_2.json",
+   "tools/scenarios/cards/FDN/high-society_hunter_3.json",
+   "tools/scenarios/cards/FDN/high-society_hunter_4.json",
+   "tools/scenarios/cards/FDN/high-society_hunter_5.json",
+   "tools/scenarios/cards/FDN/high-society_hunter_6.json"
+  ],
+  "mutation": {
+   "mutants": 15,
+   "killed": 13,
+   "score": 0.8666666666666667,
+   "survived": [
+    "widen filter (drop part 0) at 1/1/event/filter",
+    "widen filter (drop part 2) at 1/1/event/filter"
+   ]
+  }
  }
 }

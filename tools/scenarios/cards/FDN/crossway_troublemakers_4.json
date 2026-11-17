@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "E02_4_crossway_troublemakers_another_vampire_dies_pay_two_and_draw",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' Seat 0's Vampire (not Troublemakers itself) is dealt lethal damage by seat 1's Ogre and dies. Seat 0 takes the may (fire): it pays 2 life (18) and draws a card (hand 0 -> 1). Troublemakers stays on the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "vamp", "amount": 5, "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"vamp": "graveyard", "troub": "battlefield"},
+  "life": {"0": 18, "1": 20},
+  "hand": {"0": 1}
+ }
+}

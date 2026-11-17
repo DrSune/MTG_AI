@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "offer_immortality_gives_one_target_creature_deathtouch_and_indestructible_for_the_turn",
+ "notes": "Printed: 'Target creature gains deathtouch and indestructible until end of turn.' Seat 0 casts Offer Immortality ({1}{B}) at its 1/1 Mite in its first main phase, then attacks with the Mite and with a second, untargeted 1/1 (Plain). Seat 1 blocks each with a 4/4. Mite (deathtouch) kills its 4/4 with its single damage, and survives 4 damage only because it is indestructible (4 damage marked on a toughness-1 creature). The untargeted Plain has neither: it deals 1 damage to its blocker, which survives, and it dies. Only the one target is affected.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "offer", "real": "Offer Immortality", "zone": "hand", "controller": 0},
+  {"key": "mite", "name": "Mite", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "plain", "name": "Plain Attacker", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "First Wall", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "wall2", "name": "Second Wall", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "offer", "real": "Offer Immortality", "targets": ["mite"]},
+  {"op": "combat", "seat": 0, "attack": {"mite": true, "plain": true}, "block": {"wall1": "mite", "wall2": "plain"}}
+ ],
+ "expect": {
+  "zone": {"offer": "graveyard", "mite": "battlefield", "plain": "graveyard", "wall1": "graveyard", "wall2": "battlefield"},
+  "damage": {"mite": 4, "wall2": 1},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }}

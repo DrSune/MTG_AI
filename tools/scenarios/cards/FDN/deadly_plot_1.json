@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deadly Plot (FDN), printed: 'Choose one - Destroy target creature or planeswalker. / Return target Zombie creature card from your graveyard to the battlefield tapped.' Mode 0 on a PLANESWALKER (the standard board has none): the opponent's planeswalker is a legal target and is destroyed; an artifact is not a legal target (the first cast is refused) and stays; the opponent's creature is untouched (one target, one destroyed).",
+ "cards": [
+  {"key": "plot", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "pw", "name": "Test Walker", "type": "Legendary Planeswalker — Test", "loyalty": "4", "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "Their Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "plot", "real": "Deadly Plot", "targets": ["relic"], "decisions": ["0"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "plot", "real": "Deadly Plot", "targets": ["pw"], "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"plot": "graveyard", "pw": "graveyard", "relic": "battlefield", "bear": "battlefield"}
+ }}

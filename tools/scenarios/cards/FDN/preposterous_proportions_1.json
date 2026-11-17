@@ -1,0 +1,24 @@
+{"set": "FDN", "name": "preposterous_proportions_gives_your_creatures_plus_ten_plus_ten_and_vigilance_until_end_of_turn",
+ "notes": "Printed: 'Creatures you control get +10/+10 and gain vigilance until end of turn.' Seat 0 casts Preposterous Proportions ({5}{G}{G}) in its first main phase with a 2/2 attacker and a 1/1 that stays home. Both get +10/+10 (12/12 and 11/11: power and toughness both +10), seat 1's creature keeps its printed size. The attacker attacks and, with vigilance, is still untapped afterwards (the home creature never attacked either), and being unblocked it deals 12 (seat 1: 20 -> 8). A creature that enters after the spell resolved (same turn) gets nothing (CR 611.2c): the late 1/1 stays 1/1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Home Guard", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Late Arrival", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "pp", "real": "Preposterous Proportions", "zone": "hand", "controller": 0},
+  {"key": "opp", "name": "Opponent Creature", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 5}},
+ "steps": [
+  {"op": "cast", "key": "pp", "real": "Preposterous Proportions"},
+  {"op": "enter", "key": "late"},
+  {"op": "combat", "seat": 0, "attack": {"att": true}}
+ ],
+ "expect": {
+  "zone": {"pp": "graveyard", "att": "battlefield", "home": "battlefield", "late": "battlefield", "opp": "battlefield"},
+  "power": {"att": 12, "home": 11, "late": 1, "opp": 2},
+  "toughness": {"att": 12, "home": 11, "late": 1, "opp": 2},
+  "tapped": {"att": false, "home": false},
+  "life": {"0": 20, "1": 8},
+  "mana_pool": {"0": {}}
+ }}

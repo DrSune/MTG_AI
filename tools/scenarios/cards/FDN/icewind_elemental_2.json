@@ -1,0 +1,19 @@
+{
+ "name": "H09_icewind_elemental_draw_comes_first_so_the_drawn_card_can_be_discarded",
+ "set": "FDN",
+ "note": "Icewind Elemental: 'draw a card, THEN discard a card'. P0's hand is only the Elemental, so after the cast the hand is empty: the draw happens first, and the card just drawn is then the only card to discard. It ends in the graveyard, the hand is empty again, and the library lost one card. (Discarding first would find an empty hand and leave the drawn card in hand.)",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "elemental", "zone": "hand", "controller": 0, "real": "Icewind Elemental"}
+ ],
+ "mana": {"0": {"U": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Icewind Elemental", "key": "elemental", "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"elemental": "battlefield"},
+  "hand": {"0": 0},
+  "graveyard": {"0": ["Library 5"]},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,64 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Seeker's Folly (FDN), mode 0 printed: 'Target opponent discards two cards.' The player who discards chooses the cards (CR 701.9b), so the discard ask is put to the OPPONENT (player:1), not to the caster: seat 0 casts mode 0 through the menu and the first ask left, with three cards in the opponent's hand, is the discard ask of player:1 (it offers the opponent's cards, not the caster's spare card).",
+ "cards": [
+  {
+   "key": "folly",
+   "real": "Seeker's Folly",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Spare Card",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Opp Card A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "b",
+   "name": "Opp Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "c",
+   "name": "Opp Card C",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:folly",
+    "0"
+   ],
+   "expect_raise": "no word left for the discard ask discard:player:1:"
+  }
+ ],
+ "expect": {}
+}

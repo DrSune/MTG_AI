@@ -1,0 +1,19 @@
+{
+ "name": "H00_crow_entering_then_leaving_without_dying_mills_once",
+ "set": "FDN",
+ "note": "Crow of Dark Tidings: the second trigger is for dying only (CR 700.4: a creature that is put into a graveyard from the battlefield dies). It enters (mill two), then is returned to its owner's hand: nothing dies, so the library loses only the two cards of the enters trigger. It can then enter again and mill two more.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "crow"},
+  {"op": "move", "key": "crow", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"crow": "hand"},
+  "graveyard": {"0": ["Library 5", "Library 4"]},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]},
+  "hand": {"0": 1}
+ }
+}

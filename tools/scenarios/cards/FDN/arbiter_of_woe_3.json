@@ -1,0 +1,53 @@
+{
+ "set": "FDN",
+ "name": "G05_3",
+ "notes": "Printed (FDN Arbiter of Woe): 'As an additional cost to cast this spell, sacrifice a creature. Flying. When this creature enters, each opponent discards a card and loses 2 life. You draw a card and gain 2 life.' An opponent with no cards in hand cannot discard, but still loses 2 life; I still draw and gain 2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aow",
+   "real": "Arbiter of Woe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Arbiter of Woe",
+   "key": "aow"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aow": "battlefield",
+   "mybear": "graveyard"
+  },
+  "life": {
+   "0": 22,
+   "1": 18
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  }
+ }
+}

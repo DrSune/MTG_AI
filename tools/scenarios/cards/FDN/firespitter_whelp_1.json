@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "E07_1_firespitter_whelp_a_dragon_creature_spell_pings_a_plain_creature_does_not",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.' Support cards: FDN Rapacious Dragon ({4}{R}, a Dragon creature) and Bear Cub ({1}{G}, a Bear creature), both verified. Seat 0 casts Rapacious Dragon: a Dragon spell, 1 damage to seat 1 (19). Seat 0 then casts Bear Cub: a creature spell that is not a Dragon, no damage (19). Seat 0 takes none.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "whelp", "real": "Firespitter Whelp", "zone": "battlefield", "controller": 0},
+  {"key": "dragon", "real": "Rapacious Dragon", "zone": "hand", "controller": 0},
+  {"key": "cub", "real": "Bear Cub", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "dragon", "controller": 0, "decisions": ["first-legal"]},
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 1}},
+  {"op": "cast", "key": "cub", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"dragon": "battlefield", "cub": "battlefield"},
+  "life": {"0": 20, "1": 19}
+ }
+}

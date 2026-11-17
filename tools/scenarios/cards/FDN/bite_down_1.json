@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "bite_down_hits_a_planeswalker_you_dont_control",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' Seat 0's 4/4 Giant bites seat 1's Vivien Reid (printed loyalty 5): 4 damage removes 4 loyalty (CR 120.3c), leaving 1. The Giant takes no damage back and nothing is marked.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "My Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "pw", "real": "Vivien Reid", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "bd", "targets": ["giant", "pw"]}
+ ],
+ "expect": {
+  "zone": {"bd": "graveyard", "giant": "battlefield", "pw": "battlefield"},
+  "counters": {"pw": {"LOYALTY": 1}},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}
