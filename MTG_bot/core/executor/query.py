@@ -1195,8 +1195,8 @@ def _designated_player_refs(value: object) -> set[ControllerRef]:
     "Exile target player's graveyard" selects ALL cards in Zone(GRAVEYARD,
     TARGET_PLAYER)). The word "target" makes the player a target (CR 115.1),
     so it needs the player slot, or the resolution raises "TARGET_PLAYER
-    needs a bound target". The spell and activation lanes share this one
-    predicate; trigger designation (binding._designate) has its own scan."""
+    needs a bound target". The spell, activation and trigger lanes share this
+    one predicate (:func:`designated_player_refs`)."""
     if isinstance(value, ControllerRef):
         return {value} if value in DESIGNATED_PLAYER_REFS else set()
     if isinstance(value, Zone):
@@ -1379,6 +1379,21 @@ def _rotation_player_refs(node: object) -> set[ControllerRef]:
     if isinstance(node, EachPlayer) and node.ref in DESIGNATED_PLAYER_REFS:
         return {node.ref}
     return set()
+
+
+def designated_player_refs(effect: object) -> set[ControllerRef]:
+    """The designated-player refs an ability's own effect reads: an EachPlayer run as a
+    designated player, and every role value naming one. Only its own nodes (``own_nodes``): a
+    delayed, reflexive or granted ability designates for itself. The trigger lane reads it
+    (``binding.TriggerBinder._designated_player_refs``); the spell and activation lanes below
+    read the same two predicates as they collect their slots."""
+    refs: set[ControllerRef] = set()
+    for inner in own_nodes(effect):
+        refs |= _rotation_player_refs(inner)
+        if isinstance(inner, Atom):
+            for _role, value in inner.args.pairs:
+                refs |= _designated_player_refs(value)
+    return refs
 
 
 def spell_target_slots(

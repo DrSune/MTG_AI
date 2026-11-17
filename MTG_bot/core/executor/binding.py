@@ -51,7 +51,6 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, NamedTuple
 
 from MTG_bot.core.ability_tree import (
-    DESIGNATED_PLAYER_REFS,
     AbilityActivatedEvent,
     AbilityKind,
     AbilityTriggerEvent,
@@ -2008,23 +2007,13 @@ class TriggerBinder:
     @staticmethod
     def _designated_player_refs(effect: object) -> set[ControllerRef]:
         """The designated-player refs (TARGET_PLAYER / TARGET_OPPONENT) a trigger's effect
-        reads: a role value naming one, a zone it controls, or a filter reading the bound
-        player (the scan :meth:`_designate` makes). Only its own nodes: a delayed, reflexive
-        or granted ability designates for itself."""
-        refs: set[ControllerRef] = set()
-        for inner in own_nodes(effect):
-            if not isinstance(inner, Atom):
-                continue
-            for _role, value in inner.args.pairs:
-                if isinstance(value, ControllerRef) and value in DESIGNATED_PLAYER_REFS:
-                    refs.add(value)
-                elif isinstance(value, Zone) and value.controller in DESIGNATED_PLAYER_REFS:
-                    refs.add(value.controller)
-                elif isinstance(value, Selector):
-                    refs |= filter_bound_player_refs(value.filter)
-                else:
-                    refs |= filter_bound_player_refs(value)
-        return refs
+        reads (the scan :meth:`_designate` makes): the spell and activation lanes' predicate,
+        :func:`query.designated_player_refs`. So an EachPlayer run as the designated player is
+        a designation here too (FDN Gatekeeper of Malakir's "target player sacrifices a
+        creature of their choice": Run Afoul's spell shape on an enters trigger)."""
+        from MTG_bot.core.executor.query import designated_player_refs  # cycle-free at call time
+
+        return designated_player_refs(effect)
 
     @classmethod
     def _trigger_designates_target(cls, node: _AnyTrigger) -> bool:

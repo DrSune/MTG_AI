@@ -43,6 +43,7 @@ from MTG_bot.core.ability_tree import (
     ControllerRef,
     CounterKind,
     CreatureDiesEvent,
+    EachPlayer,
     FAnd,
     FAtom,
     FAtomPred,
@@ -418,6 +419,64 @@ class TestTargetPlayerRouting(DesignationCase):
         )
         self.assertEqual(self.world.zone_of(lib).kind, ZONE_HAND)
         self.assertEqual(self.world.zone_of(victim).kind, ZONE_GRAVEYARD)
+
+
+class TestTargetPlayerSacrifices(DesignationCase):
+    """FDN Gatekeeper of Malakir's "target player sacrifices a creature of their choice" on a
+    trigger: Run Afoul's spell shape, EachPlayer(TARGET_PLAYER, SACRIFICE over creatures that
+    player controls). The ref of the EachPlayer is the trigger's designation (CR 115.1, 603.3d),
+    as the spell and activation lanes read it (query._rotation_player_refs); the player
+    designated chooses what they sacrifice (CR 701.21a)."""
+
+    def _gatekeeper(self, ref=ControllerRef.TARGET_PLAYER):
+        keeper = self.carrier(self.p0, "Gatekeeper")
+        yours = FAnd((CREATURE_ONLY, FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)))
+        self.attach(
+            keeper,
+            etb_trigger(
+                EachPlayer(
+                    ref=ref,
+                    effect=atom(
+                        Verb.SACRIFICE,
+                        target=Selector(QConst(1), SelectorMode.CHOOSE, yours, zones=(BF_ANY,)),
+                    ),
+                )
+            ),
+            name="Gatekeeper",
+        )
+        return keeper
+
+    def test_the_trigger_designates_the_player_who_sacrifices(self):
+        keeper = self._gatekeeper()
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        wolf = self.world.add_card(card_id("Wolf", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        self.answer(str(self.p1), str(wolf))
+        self.enter(keeper)
+        self.assertEqual(self.world.zone_of(wolf).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(bear).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(keeper).kind, ZONE_BATTLEFIELD)
+        (target_vocab, target_site), (pick_vocab, _pick_site) = self.asks
+        # "target player": either seat, asked of the trigger's controller (CR 603.3d)
+        self.assertEqual(target_vocab, (str(self.p0), str(self.p1)))
+        self.assertTrue(target_site.startswith(f"target:{self.p0}:{keeper}:"))
+        # the player designated chooses among the creatures they control
+        self.assertEqual(pick_vocab, tuple(sorted((str(bear), str(wolf)))))
+
+    def test_the_trigger_may_designate_its_own_controller(self):
+        keeper = self._gatekeeper()
+        theirs = self.world.add_card(card_id("Theirs", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        self.answer(str(self.p0), str(keeper))
+        self.enter(keeper)
+        self.assertEqual(self.world.zone_of(keeper).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(theirs).kind, ZONE_BATTLEFIELD)
+
+    def test_target_opponent_is_forced_in_a_duel(self):
+        keeper = self._gatekeeper(ControllerRef.TARGET_OPPONENT)
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        self.never_ask()  # one opponent, one creature: nothing to choose
+        self.enter(keeper)
+        self.assertEqual(self.world.zone_of(bear).kind, ZONE_GRAVEYARD)
+        self.assertEqual(self.world.zone_of(keeper).kind, ZONE_BATTLEFIELD)
 
 
 class TestZoneAnyEnumeration(DesignationCase):
