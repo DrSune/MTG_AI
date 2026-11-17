@@ -320,3 +320,23 @@ the component count, and the network's vocabulary, small.
   promise whole cards there.
 - The time per gate round assumes rounds 4-11's sizes. PERMIT, BECOMES and COPY are larger than
   any of those rounds (three and two lanes in the estimate).
+
+## 9. The combined order (coordinator, 2026-11-17)
+
+This merges 209 §6 with 210 §7. 210's folds come first so the remaining cards are mapped once. The
+census's rounds follow, renumbered.
+
+| Order | What | Notes |
+|---|---|---|
+| now, in parallel | N1 + N2 (network inputs, 210); round 12 = I1 + I9 + I0 (one quantity comparison, general TARGETS / QDistinct / zone counts); round 13 = PERMIT + REPLACE (209's B1, the widest reach); C1, the engine wave; the three rulings and two labels; A0, blind review of 5 (a) cards | merge order: C1, 12, 13, rulings; N1 + N2 when ready (no file overlap) |
+| next | round 14 = I2 + I5 + I6; round 15 = I3 + I4; each round's re-baked stamps re-verified before the next | 210 §7 |
+| then | mapping waves A2 (M1-M5) and A3 (M6-M8), with blind review | the 202 (b) cards, mapped once onto the folded forms |
+| beside them | the 27 under-packed stamps, Mangara (after C1's runner op) and Stromkirk Bloodthief (after round 14) in the next verifier batches | their trees settle first |
+| after | 209's rounds B2-B19 as rounds 16-33 | in 209 §6's order and file-conflict rules |
+| then | the bug hunt: parallel unanchored hunters, the network-play exploit scan (per card and per card pair), the exploitability probe (PLAN_CEILING §9.1); then r29 | the owner's order, 2026-11-17 |
+
+**Labels decided (the coordinator, under the owner's autonomy rule):**
+- **Vivien, Arkbow Ranger's −5 is inert in our formats.** The engine has no outside-the-game
+  zone, and neither self-play nor Commander gives a player a sideboard (CR 400.11).
+- **Hare Apparent's deck rule is honoured by the deck builders** (CR 100.2a). The rulings agent
+  applies both labels.
