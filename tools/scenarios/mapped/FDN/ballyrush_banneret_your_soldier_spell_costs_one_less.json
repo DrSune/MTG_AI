@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "ballyrush_banneret_your_soldier_spell_costs_one_less",
+ "notes": "M6 mapper. Printed: 'Kithkin spells and Soldier spells you cast cost {1} less to cast.' Support card: FDN Cathar Commando (verified; {1}{W} Human Soldier). Seat 0 controls the Banneret and casts Cathar Commando, a Soldier spell, with only {W}: it costs {W}, resolves, and no mana is left.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "banneret", "real": "Ballyrush Banneret", "zone": "battlefield", "controller": 0},
+  {"key": "commando", "real": "Cathar Commando", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 1}},
+  {"op": "cast", "key": "commando", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"commando": "battlefield", "banneret": "battlefield"},
+  "controller": {"commando": 0},
+  "mana_pool": {"0": {}}
+ }
+}

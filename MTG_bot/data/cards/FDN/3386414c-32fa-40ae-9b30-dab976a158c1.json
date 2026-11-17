@@ -1,0 +1,275 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "3386414c-32fa-40ae-9b30-dab976a158c1",
+ "name": "Vampire Gourmand",
+ "text_sha": "e90c38080cb1e15e6e9344461678f8e86356a963242dd0c9447173336c3bdc09",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "OptionalEffect",
+       "inner": {
+        "tag": "Atom",
+        "verb": {
+         "tag": "Verb",
+         "name": "SACRIFICE"
+        },
+        "args": {
+         "tag": "AtomArgs",
+         "pairs": [
+          [
+           "target",
+           {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FNot",
+               "inner": {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "IS_SOURCE"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          ]
+         ]
+        }
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "Seq",
+        "steps": [
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "DRAW"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "amount",
+             {
+              "tag": "QConst",
+              "value": 1
+             }
+            ],
+            [
+             "controller",
+             {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "PREVENT_EFFECT"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "condition",
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ],
+            [
+             "duration",
+             {
+              "tag": "DurationEot"
+             }
+            ],
+            [
+             "event",
+             {
+              "tag": "DeclareBlockersEvent",
+              "filter": {
+               "tag": "FAnd",
+               "children": []
+              },
+              "blocked": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "IS_SOURCE"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           ]
+          }
+         }
+        ]
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Vampire Gourmand (FDN), a 2/2 Vampire for {1}{B}.\n# \"Whenever this creature attacks, you may sacrifice another creature. If you do, draw a card and\n#  this creature can't be blocked this turn.\"\n# Event: Library Larcenist's verified \"Whenever this creature attacks\" (DeclareAttackersEvent over\n#   IS_SOURCE).\n# Effect: M21 Dire Fleet Warmonger's verified \"you may sacrifice another creature. If you do, ...\"\n#   (Seq of OptionalEffect(SACRIFICE another creature you control), then Conditional(MAY_DONE)).\n#   The \"If you do\" body is a Seq in printed order: M21 Crypt Lurker's verified \"draw a card\"\n#   (B5b-cont-draw), then M21 Ghostly Pilferer's verified \"This creature can't be blocked this\n#   turn\" (PREVENT_EFFECT of the block declaration against the source, until end of turn).\nattack = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(\n        steps=(\n            OptionalEffect(\n                inner=A(Verb.SACRIFICE, {\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=Seq(\n                    steps=(\n                        A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n                        A(Verb.PREVENT_EFFECT, {\n                            'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n                            'duration': DurationEot(),\n                            'event': DeclareBlockersEvent(\n                                filter=FAnd(children=()),\n                                blocked=FAtom(pred=FAtomPred.IS_SOURCE),\n                            ),\n                        }),\n                    ),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [attack, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, you may sacrifice another creature.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "If you do, draw a card and this creature can't be blocked this turn.",
+    "ir": "abilities[0].effect.steps[1] (Conditional MAY_DONE: DRAW, then PREVENT_EFFECT of blocks until end of turn)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Dire Fleet Warmonger's verified 'you may sacrifice another creature. If you do' with Crypt Lurker's draw and Ghostly Pilferer's 'can't be blocked this turn'. Packs: tools/scenarios/mapped/FDN/vampire_gourmand_sacrifice_draws_and_cant_be_blocked.json, tools/scenarios/mapped/FDN/vampire_gourmand_unblockable_only_this_turn.json."
+ },
+ "probe": {
+  "sha": "83f5ce8ea206ad0136daf55c8cbd5f9be2434b9f7f33c3cc7b771c25700a3fb7"
+ }
+}

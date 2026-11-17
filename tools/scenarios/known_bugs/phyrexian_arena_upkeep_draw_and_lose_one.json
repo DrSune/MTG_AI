@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "phyrexian_arena_upkeep_draw_and_lose_one",
+ "notes": "KNOWN TOOL BUG, fails today (M6 mapper, 2026-11-17): FDN Phyrexian Arena has no record, because `cardtool try/write` crash with GameOver in the G1 probe (the BACKLOG's M21 Sanctum of Calm Waters fault). The probe puts the card on the battlefield before the opening turn; in a two-player pack ScenarioRunner.__init__ fills the libraries only after the opening begin_turn, so the upkeep draw meets a still empty library, the player loses at the state check, and Probe.runner() builds that runner outside run()'s GameOver guard. The mapped tree (it passes this pack through `cardtool.py runpack FDN <this pack> --card 'Phyrexian Arena' --draft <draft>`): abilities = [TriggeredAbility(event=TurnPhaseEvent(phase=UPKEEP, actor=CONTROLLER_IS YOU), condition=None, effect=Seq(DRAW amount 1 controller YOU, LOSE_LIFE amount 1 controller YOU)), the compiled ENCHANTMENT carrier] (M20 Audacious Thief's verified 'you draw a card and you lose 1 life'). Printed: 'At the beginning of your upkeep, you draw a card and lose 1 life.' The Arena enters on seat 0's turn 1 (from hand). Seat 1's upkeep in turn 2 triggers nothing. In seat 0's upkeep of turn 3 seat 0 draws a card and loses 1 life, then draws again in its draw step: 2 cards, 19 life; seat 1 drew once (turn 2) and keeps 20 life.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "arena", "real": "Phyrexian Arena", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "arena"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"arena": "battlefield"},
+  "hand": {"0": 2, "1": 1},
+  "life": {"0": 19, "1": 20}
+ }
+}

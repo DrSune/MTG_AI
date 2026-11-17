@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "needletooth_pack_morbid_two_counters_on_the_target",
+ "notes": "M6 mapper. Printed: 'Morbid — At the beginning of your end step, if a creature died this turn, put two +1/+1 counters on target creature you control.' Seat 0's Cub dies (1 damage from seat 1's Bear, another effect's). At seat 0's end step the trigger targets seat 0's Bear: it gets two +1/+1 counters (4/4); the Pack and seat 1's Bear get none.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pack", "real": "Needletooth Pack", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Your Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "obear", "target": "cub", "amount": 1, "controller": 1},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "DECLINE", "bear"]}
+ ],
+ "expect": {
+  "zone": {"cub": "graveyard", "bear": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 2}, "pack": {}, "obear": {}},
+  "power": {"bear": 4, "pack": 4},
+  "toughness": {"bear": 4, "pack": 5}
+ }
+}

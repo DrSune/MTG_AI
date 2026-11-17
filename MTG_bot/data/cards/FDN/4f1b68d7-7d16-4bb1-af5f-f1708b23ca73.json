@@ -1,0 +1,719 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "4f1b68d7-7d16-4bb1-af5f-f1708b23ca73",
+ "name": "Celestial Armor",
+ "text_sha": "822127ef8625e381164f675f79602d148af8d323233868723a67b2ad2ba55504",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "EQUIP"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLASH"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "ATTACH"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "equipment",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "HEXPROOF"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "INDESTRUCTIBLE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 2
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "INCREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 0
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "W",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 3
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ATTACH"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "equipment",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "timing": {
+     "tag": "ActivationWindow",
+     "name": "SORCERY"
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Celestial Armor (FDN), an Equipment with flash for {2}{W}.\n# \"Flash\"                                                   compiled keyword, kept\n# \"When this Equipment enters, attach it to target creature you control.\"   compiled [0], kept\n# \"That creature gains hexproof and indestructible until end of turn.\"       mapped here\n# \"Equipped creature gets +2/+0 and has flying.\"            compiled [1] (B11-attached-pt), kept\n# \"Equip {3}{W}\"                                            compiled [2] (B5a-equip), kept\n# The unparsed sentence continues the enters trigger: its effect becomes a Seq of the compiled\n#   ATTACH, then M21 Heroic Intervention's verified \"gain hexproof and indestructible until end of\n#   turn\" (two GRANT_ABILITY with DurationEot, sorted by name per D23 and printed order alike).\n#   \"That creature\" is the trigger's target: ZNR Shell Shield's verified \"that creature also gains\n#   hexproof until end of turn\" (a referent 'target' Selector), so the grant reaches the targeted\n#   creature even when the Equipment has left before the trigger resolves (only the attach then\n#   does nothing).\nattach = compiled[0]\nthat_creature = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='target',\n)\nenters = TriggeredAbility(\n    event=attach.event,\n    condition=None,\n    effect=Seq(\n        steps=(\n            attach.effect,\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.HEXPROOF),\n                'duration': DurationEot(),\n                'target': that_creature,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),\n                'duration': DurationEot(),\n                'target': that_creature,\n            }),\n        ),\n    ),\n)\nabilities = [enters, *compiled[1:]]\n",
+  "clauses": [
+   {
+    "clause": "Flash",
+    "ir": "keywords[1]"
+   },
+   {
+    "clause": "When this Equipment enters, attach it to target creature you control.",
+    "ir": "abilities[0].effect.steps[0] (the compiled enters trigger's ATTACH)"
+   },
+   {
+    "clause": "That creature gains hexproof and indestructible until end of turn.",
+    "ir": "abilities[0].effect.steps[1], abilities[0].effect.steps[2] (referent 'target', until end of turn)"
+   },
+   {
+    "clause": "Equipped creature gets +2/+0 and has flying.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "Equip {3}{W}",
+    "ir": "abilities[2]; keywords[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiled enters trigger keeps its ATTACH; M21 Heroic Intervention's hexproof and indestructible until end of turn on 'that creature', ZNR Shell Shield's referent 'target' (verified), so the grants stand when the attach fails (CR 701.3b). The probe shows them wear off at end of turn. Pack: tools/scenarios/mapped/FDN/celestial_armor_creature_protected_even_if_the_armor_left.json."
+ },
+ "probe": {
+  "sha": "e1010b9944496d8d508f3dd08a93f6d327543238557be0afc9dfe420fb0f261b"
+ }
+}

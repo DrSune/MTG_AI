@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "confiscate_takes_a_creature_while_attached",
+ "notes": "M6 mapper. Printed: 'Enchant permanent. You control enchanted permanent.' Seat 0 casts Confiscate on seat 1's 3/3 Ogre: while the Aura is attached seat 0 controls the Ogre (effective controller 0); seat 1's other creature is untouched. On seat 0's next turn the Ogre, no longer summoning sick, attacks for seat 0: seat 1 takes 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "conf", "real": "Confiscate", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "other", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 4}},
+  {"op": "cast", "key": "conf", "controller": 0, "targets": ["ogre"]},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}, "block": {"other": null}}
+ ],
+ "expect": {
+  "zone": {"conf": "battlefield", "ogre": "battlefield", "other": "battlefield"},
+  "attached": {"conf": "ogre"},
+  "controller": {"ogre": 0, "other": 1, "conf": 0},
+  "attackers": {"ogre": true},
+  "life": {"0": 20, "1": 17}
+ }
+}

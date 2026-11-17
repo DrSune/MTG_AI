@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "ruby_bonus_ends_with_the_turn",
+ "notes": "M6 mapper. Printed: 'Whenever Ruby attacks while you control a creature with power 4 or greater, Ruby gets +2/+2 until end of turn.' Seat 0 controls a 4/4. Ruby attacks alone and unblocked as a 3/4: seat 1 loses 3. On the next turn Ruby is 1/2 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ruby", "real": "Ruby, Daring Tracker", "zone": "battlefield", "controller": 0},
+  {"key": "four", "name": "Your Four", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ruby": true, "four": false}},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "attackers": {"ruby": true},
+  "power": {"ruby": 1},
+  "toughness": {"ruby": 2},
+  "life": {"0": 20, "1": 17}
+ }
+}
