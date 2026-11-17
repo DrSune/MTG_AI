@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "diviners_lockbox_reveals_your_top_card_not_theirs",
+ "notes": "Printed: '{1}, {T}: Choose a card name, then reveal the top card of YOUR library. If that card has the chosen name, sacrifice this artifact and draw three cards.' The reveal itself is what this pack reads, through the runner's revealed lane (REVEAL moves nothing and journals no row): seat 0's top card is revealed, seat 1's is not. The reveal's controller changed nothing else a pack could see, so G3's 'controller YOU->OPPONENT' mutant of the REVEAL survived every Lockbox pack (M8 mapper; 2026-11-17 tool guards). Seat 0 names the opponent's top card, 'Their Top': its own top card is no match, so nothing else happens (the box stays, tapped, and its {1} is spent).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "box", "real": "Diviner's Lockbox", "zone": "battlefield", "controller": 0},
+  {"key": "top", "name": "Hidden Prize", "type": "Creature — Bear", "zone": "library", "controller": 0, "power": "2", "toughness": "2"},
+  {"key": "otop", "name": "Their Top", "type": "Creature — Bear", "zone": "library", "controller": 1, "power": "2", "toughness": "2"}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "box", "idx": 0, "seat": 0, "decisions": ["Their Top"]}
+ ],
+ "expect": {
+  "revealed": {"top": true, "otop": false},
+  "zone": {"box": "battlefield", "top": "library", "otop": "library"},
+  "tapped": {"box": true},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}
