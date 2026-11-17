@@ -703,6 +703,10 @@ def test_a_resume_continues_the_runs_own_card_table(table, tmp_path, monkeypatch
             assert torch.equal(back.model.card_table_emb(), first.model.card_table_emb())
         assert torch.equal(back.models["v0"].ir_counts, first.models["v0"].ir_counts)
         assert M.load(str(into / "last.pt"))[1].ir == M.load(str(into / "v0.pt"))[1].ir == table.ir
+    # table flags act at a run's start: a resume naming others is refused, never ignored
+    with pytest.raises(ValueError, match="at a run's start"):
+        L.Learner(L.parse(["--run", str(run), "--init", str(tmp_path / "init2.pt"), "--resume",
+                           str(run), "--refresh-table", *flags]))
 
 
 def _small_learner(monkeypatch, run, *extra: str):
@@ -788,8 +792,17 @@ def test_an_evaluation_that_ends_is_committed_before_it_is_logged(tmp_path, monk
     lr.eval_rows = [{"seed": s, "deck_mode": "coherent", "outcome": "win", "a_seat": a,
                      "winner": a if a == 0 or s % 12 == 0 else 1 - a, "opp": "v0", "turns": 10}
                     for s in seeds for a in (0, 1)]
+    commit, logged = lr.checkpoint, []  # how many gate events were logged at each commit
+
+    def checkpoint() -> None:
+        lines = (tmp_path / "metrics.jsonl").read_text().splitlines()
+        logged.append(sum(json.loads(x)["event"] == "gate" for x in lines))
+        commit()
+
+    lr.checkpoint = checkpoint
     lr.it = 77
     lr._eval_tick()
+    assert logged == [0]  # committed once, before its result was logged
     state = pickle.loads((tmp_path / "state.pkl").read_bytes())
     assert state["it"] == 77 and state["eval_queue"] == [] and state["versions"] == ["v0"]
     events = [json.loads(x) for x in (tmp_path / "metrics.jsonl").read_text().splitlines()]
@@ -1199,10 +1212,12 @@ def test_a_batch_takes_games_in_the_order_they_were_issued(tmp_path, monkeypatch
     lr._release()
     assert lr.buffer == []  # the third game still plays: the fourth waits for it
     later = [lr.curriculum_job() for _ in range(2)]
-    end(later[1], 5)  # a full batch held behind the third game: no new training game either
-    assert lr.held_rows == 6 and lr.next_job() is None
-    end(jobs[2], 2)
-    assert [b[6] for b in lr.buffer] == [gids[2]] * 2 + [gids[3]]
+    end(later[1], 5)  # a full batch ended behind the third game: it is late (hung?), as is the
+    assert [b[6] for b in lr.buffer] == [gids[3]] + [later[1]["gid"]] * 5  # fifth: no stall
+    end(jobs[2], 2)  # a late game joins the batch it ends in
+    lr.buffer = []
+    lr._release()
+    assert [b[6] for b in lr.buffer] == [gids[2]] * 2 and lr.held_rows == 0
 
 
 def test_a_refused_job_request_counts_once(tmp_path, monkeypatch) -> None:
@@ -1641,11 +1656,14 @@ def test_heuristic_aims_an_aura_by_what_it_does_to_what_it_enchants() -> None:
                               field1=("Walking Corpse",))
     _main_phase(router, game, me)
     assert game.world.zone_of(_named(game, "Furor of the Bitten")).kind == "hand"
-    game, router, me = _teach(hand0=("Furor of the Bitten",), field0=("Mountain", "Onakke Ogre"),
-                              field1=("Walking Corpse",))
-    _main_phase(router, game, me)
-    assert game.executor.attachments.get(_named(game, "Furor of the Bitten")) == _named(
-        game, "Onakke Ogre")
+    # its own creature takes it; also beside Pursued Whale, whose target tax prices the targets
+    # (the candidates are the ones the menu's row offers, paid by the lands, not the empty pool)
+    for theirs in ("Walking Corpse", "Pursued Whale"):
+        game, router, me = _teach(hand0=("Furor of the Bitten",),
+                                  field0=("Mountain", "Onakke Ogre"), field1=(theirs,))
+        _main_phase(router, game, me)
+        assert game.executor.attachments.get(_named(game, "Furor of the Bitten")) == _named(
+            game, "Onakke Ogre")
     game, router, me = _teach(hand0=("Pacifism",), field0=("Plains", "Plains", "Griffin Sentinel"),
                               field1=("Walking Corpse",), set_code="M20")
     _main_phase(router, game, me)

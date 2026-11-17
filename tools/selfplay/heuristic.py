@@ -27,12 +27,13 @@ the public board, its own hand, and the cards an ask offers. Its rules, in order
   whole: the target of a harmful verb or a -N/-N is harmed, any other one is helped (Rabid Bite's
   creature that deals the damage, Primal Might's pumped creature); a modal spell by the modes it
   announced; an aura's enchant slot by what it does to the object it enchants (Pacifism's "can't
-  attack or block" harms, Rousing Read's +1/+1 and flying help, its loot is its caster's). A spell
+  attack or block" harms, Rousing Read's +1/+1 and flying help, its loot is its caster's; an aura
+  whose tree reads nothing of it, an unmapped card the engine plays blank, by the card). A spell
   is cast, and a modal spell's modes chosen, only when every slot it must fill has a candidate on
-  its side (an aura that helps, with no creature of its own, waits: hunt 4 found it on the
-  learner's creature; Return to Nature with only its own Nine Lives to destroy is not cast). An
-  ability's targets follow its card as a whole. An "up to" slot is left empty when no candidate
-  scores above zero.
+  its side, priced as the menu prices the row (an aura that helps, with no creature of its own,
+  waits: hunt 4 found it on the learner's creature; Return to Nature with only its own Nine Lives
+  to destroy is not cast). An ability's targets follow its card as a whole. An "up to" slot is
+  left empty when no candidate scores above zero.
 * attack: attack unless an untapped opposing creature that can block it would kill it and
   survive.
 * block: a free kill, else chump the biggest attacker when the attack is lethal, else a block
@@ -80,6 +81,7 @@ from MTG_bot.core.executor.legality import (
     legal_attackers,
     spell_record,
 )
+from MTG_bot.core.executor.menu import cast_taps
 from MTG_bot.core.executor.quantity import creature_types
 from MTG_bot.core.executor.query import (
     cast_mode_options,
@@ -204,7 +206,7 @@ def cast_token(token: str) -> tuple[Handle | None, bool, int]:
 class HeuristicAgent:
     name = "heuristic"
     focus: frozenset | set = frozenset()  # targets a priority play is meant for
-    announced: tuple | None = None  # (spell, modes): the modes it chose for the spell it casts
+    casting: tuple | None = None  # (spell, kicked, X, modes) of the cast it chose, while declared
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
@@ -217,7 +219,7 @@ class HeuristicAgent:
         if ask.kind != "target":
             self.focus = set()  # a priority play's target asks follow it
         if ask.kind not in ("target", "choose"):
-            self.announced = None  # and a cast's modes
+            self.casting = None  # and a cast's declaration
         tokens = [o.token for o in ask.options]
         method = getattr(self, f"_{ask.kind}", None)
         if method is not None:
@@ -296,9 +298,9 @@ class HeuristicAgent:
 
     # ------------------------------------------ instant speed (DESIGN_PRIORITY §3.3)
 
-    def _cast_rows(self, tokens: list[str]) -> list[tuple[int, Handle, frozenset, tuple]]:
-        """(index, card, its IR tokens, preference) per cast row, the act menu's preference: the
-        highest mana value plus X, then kicked, then the earlier row; X = 0 does nothing."""
+    def _cast_rows(self, tokens: list[str]) -> list[tuple[int, Handle, frozenset, tuple, int]]:
+        """(index, card, its IR tokens, preference, X) per cast row, the act menu's preference:
+        the highest mana value plus X, then kicked, then the earlier row; X = 0 does nothing."""
         out = []
         for i, t in enumerate(tokens):
             if not t.startswith("cast:"):
@@ -307,7 +309,7 @@ class HeuristicAgent:
             if h is None or h not in self.world.cards or (x == 0 and self._has_x(h)):
                 continue
             toks = _record_tokens(self.ex, self.world.cards[h].identity.oracle_id)
-            out.append((i, h, toks, ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i)))
+            out.append((i, h, toks, ((self.world.cards[h].identity.cmc or 0) + x, kicked, -i), x))
         return out
 
     def _instant_speed(self, h: Handle) -> bool:
@@ -320,11 +322,11 @@ class HeuristicAgent:
     def _first(self, rows: list, test: Any, focus: set) -> int | None:
         """The preferred instant-speed row whose card passes ``test`` and can be cast at its own
         side (``_aimed``); its targets aim at ``focus``."""
-        passing = [(key, i, h) for i, h, toks, key in rows
+        passing = [(key, i, h, x) for i, h, toks, key, x in rows
                    if self._instant_speed(h) and test(h, toks)]
-        for _key, i, h in sorted(passing, reverse=True):
-            if self._aimed(h):
-                self.focus = focus
+        for key, i, h, x in sorted(passing, reverse=True):
+            if self._aimed(h, key[1], x):
+                self.focus, self.casting = focus, (h, key[1], x, None)
                 return i
         return None
 
@@ -416,13 +418,14 @@ class HeuristicAgent:
                 continue
             if (x == 0 and self._has_x(h)) or self._instant_speed(h):
                 continue  # X = 0 does nothing (Volcanic Geyser deals 0, Wildwood Scourge dies)
-            casts.append((((self.world.cards[h].identity.cmc or 0) + x, kicked, -i), i, h))
-        for _key, best, h in sorted(casts, reverse=True):
-            if self._pointless(h):
+            casts.append((((self.world.cards[h].identity.cmc or 0) + x, kicked, -i), i, h, x))
+        for key, best, h, x in sorted(casts, reverse=True):
+            if self._pointless(h, key[1], x):
                 continue
             if (self.ex.phase != SECOND_MAIN and "PASS" in tokens and reads_raid(self.ex, h)
                     and legal_attackers(self.ex, self.me)):
                 return tokens.index("PASS")  # cast it after the attack (CR 505.1)
+            self.casting = (h, key[1], x, None)
             return best
         for i, t in enumerate(tokens):
             if t.startswith("act:"):
@@ -439,13 +442,13 @@ class HeuristicAgent:
         record = spell_record(self.ex, spell)
         return record is not None and record.mana_cost is not None and _cost_has_x(record.mana_cost)
 
-    def _pointless(self, spell: Handle) -> bool:
+    def _pointless(self, spell: Handle, kicked: bool = False, x: int = 0) -> bool:
         """A spell it would cast at the wrong side or at nothing. One with targets is read from
         its effect (``_aimed``: Mind Rot needs no creature, Disentomb is no removal); removal
         without targets (a harmful non-creature, non-planeswalker spell that deals no damage) is
         pointless while the opponent controls no creature."""
         if self._spell(spell) is not None and self._aims(spell, None):
-            return not self._aimed(spell)
+            return not self._aimed(spell, kicked, x)
         return (not self._is(spell, "Creature") and not self._is(spell, "Planeswalker")
                 and is_harmful(self.ex, spell) and not deals_damage(self.ex, spell)
                 and not any(self._is(h, "Creature") for h in self._controlled(self.opp)))
@@ -461,16 +464,28 @@ class HeuristicAgent:
         node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
         return None if node is None else (record, node)
 
-    def _aims(self, h: Handle, modes: tuple[int, ...] | None) -> list[tuple[bool, Any]]:
+    def _pricing(self, h: Handle, kicked: bool, x: int) -> Any:
+        """Prices a target of its cast as the menu prices the row (``menu.cast_taps``: what its
+        lands and sources pay). The pool alone, the engine's default, pays nothing at an ask: a
+        target tax on the battlefield (Pursued Whale, Terror of the Peaks) left no candidate."""
+        sources: dict = {}
+        return lambda targets: cast_taps(self.ex, self.me, h, kicked, x or None, tuple(targets),
+                                         sources, payable_only=True) is not None
+
+    def _aims(self, h: Handle, modes: tuple[int, ...] | None, pay: Any = None
+              ) -> list[tuple[bool, Any]]:
         """Per target slot of ``h``, a spell in its hand cast with ``modes`` (a modal spell's;
-        None: every mode), whether its effect there harms, and the slot. Read from the effect,
-        not the card: the target of a harmful atom is harmed (``harms_slot``); an aura's enchant
-        slot by what the aura does to what it enchants (``harms_enchanted``); a designated
-        player ("target opponent") by the card as a whole."""
+        None: every mode) and its targets priced by ``pay``, whether its effect there harms, and
+        the slot. Read from the effect, not the card: the target of a harmful atom is harmed
+        (``harms_slot``); an aura's enchant slot by what the aura does to what it enchants
+        (``harms_enchanted``); a designated player ("target opponent"), or an aura whose tree
+        reads nothing of what it enchants (a card still unmapped: the engine plays it blank), by
+        the card as a whole."""
         record, node = self._spell(h)
         effect = with_modes(node, modes).effect if modes is not None else node.effect
         out = []
-        for slot in spell_target_slots(self.ex, node, spell_handle=h, seat=self.me, modes=modes):
+        for slot in spell_target_slots(self.ex, node, spell_handle=h, seat=self.me, modes=modes,
+                                       pay=pay):
             harm = None
             if not slot.synthetic:
                 harm = harms_slot(effect, slot.selector)
@@ -479,21 +494,25 @@ class HeuristicAgent:
             out.append((is_harmful(self.ex, h) if harm is None else harm, slot))
         return out
 
-    def _aimed_with(self, h: Handle, modes: tuple[int, ...] | None) -> bool:
+    def _aimed_with(self, h: Handle, modes: tuple[int, ...] | None, pay: Any) -> bool:
         """Every target slot the spell must fill (cast with ``modes``) has a candidate on the
         side its effect there is meant for: the opponent and its objects where it harms, itself
         and its own where it helps."""
         return all(slot.min_count < 1 or any(self._mine(c) != harm for c in slot.candidates)
-                   for harm, slot in self._aims(h, modes))
+                   for harm, slot in self._aims(h, modes, pay))
 
-    def _aimed(self, h: Handle) -> bool:
-        """``h`` (a spell in its hand) can be cast at its own side, under some legal choice of
-        modes. A card that is no spell of its hand has nothing to aim."""
+    def _aimed(self, h: Handle, kicked: bool = False, x: int = 0) -> bool:
+        """``h`` (a spell in its hand, cast kicked or with ``x`` as its row says) can be cast at
+        its own side, under some legal choice of modes. A card that is no spell of its hand has
+        nothing to aim."""
         spell = self._spell(h)
-        if spell is None or modal_choose(spell[1]) is None:
-            return spell is None or self._aimed_with(h, None)
-        return any(self._aimed_with(h, modes) for _, modes in cast_mode_options(
-            self.ex, spell[1], spell_handle=h, seat=self.me))
+        if spell is None:
+            return True
+        pay = self._pricing(h, kicked, x)
+        if modal_choose(spell[1]) is None:
+            return self._aimed_with(h, None, pay)
+        return any(self._aimed_with(h, modes, pay) for _, modes in cast_mode_options(
+            self.ex, spell[1], spell_handle=h, seat=self.me, pay=pay))
 
     def _mine(self, h: Handle) -> bool:
         if h.namespace == "player":
@@ -517,8 +536,10 @@ class HeuristicAgent:
                    if t.isdigit() and int(t) < len(options)]
         if not offered:
             return None
-        i, modes = next(((i, m) for i, m in offered if self._aimed_with(h, m)), offered[0])
-        self.announced = (h, modes)
+        kicked, x = self.casting[1:3] if self.casting and self.casting[0] == h else (False, 0)
+        pay = self._pricing(h, kicked, x)
+        i, modes = next(((i, m) for i, m in offered if self._aimed_with(h, m, pay)), offered[0])
+        self.casting = (h, kicked, x, modes)
         return i
 
     def _target(self, ask: Any, tokens: list[str], obs: Any) -> int | None:
@@ -554,11 +575,11 @@ class HeuristicAgent:
         spell = self._spell(src)
         if spell is None or len(parts) != 5 or not parts[3].isdigit():
             return is_harmful(self.ex, src)
-        modes = None
-        if self.announced is not None and self.announced[0] == src:
-            modes = self.announced[1]
-        elif modal_choose(spell[1]) is not None:
-            legal = cast_mode_options(self.ex, spell[1], spell_handle=src, seat=self.me)
+        _, kicked, x, modes = (self.casting if self.casting and self.casting[0] == src
+                               else (src, False, 0, None))
+        if modes is None and modal_choose(spell[1]) is not None:
+            legal = cast_mode_options(self.ex, spell[1], spell_handle=src, seat=self.me,
+                                      pay=self._pricing(src, kicked, x))
             if len(legal) != 1:
                 return is_harmful(self.ex, src)
             modes = legal[0][1]

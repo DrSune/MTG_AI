@@ -281,6 +281,16 @@ class Learner:
             # the moment, the rows changed under the same weights at a restart, silently (a
             # refresh of r28's v2 rebuilds 118). A new table is a new run's act (refresh_table)
             self.model, self.table, _ = M.load(str(Path(args.resume) / "last.pt"), self.device)
+            # so a resume that names other table flags than the run's start is refused: it would
+            # believe it changed the table (a new --mix-sets set dealt as unknown cards)
+            path = Path(args.resume) / "manifest.json"
+            start = json.loads(path.read_text())[0]["args"] if path.exists() else {}
+            moved = [f for f in ("refresh_table", "extend_sets", "mask_names")
+                     if start.get(f, getattr(args, f)) != getattr(args, f)]
+            if moved:
+                raise ValueError(f"--resume {args.resume}: {moved} act at a run's start, which "
+                                 f"had {[start[f] for f in moved]}; a new table is a new run: "
+                                 f"--init {Path(args.resume) / 'last.pt'} with them")
         elif args.init:
             self.model, self.table, extra = M.load(args.init, self.device)
             self.log({"event": "init", "from": args.init,
@@ -550,9 +560,7 @@ class Learner:
         return None
 
     def _throttled(self) -> bool:
-        """A full batch waits: the next one, or one more held behind a game still playing (a
-        slow or hung one holds the games issued after it: _release)."""
-        return self.phase == "ppo" and max(len(self.buffer), self.held_rows) >= self.args.steps
+        return self.phase == "ppo" and len(self.buffer) >= self.args.steps
 
     def search_opts(self) -> dict:
         a = self.args
@@ -830,7 +838,7 @@ class Learner:
                   for s in (0, 1) if seats[s] == "learner"]
             result = (r.get("group") or seats[1 - seats.index("learner")], zs, r["turns"],
                       r["set_code"])
-        self.held[r["gid"]] = (rows, result)  # a game issued elsewhere (a test's) goes last
+        self.held[r["gid"]] = (rows, result)  # a late one, or one issued elsewhere, goes last
         self.held_rows += len(rows)
         self._release()
 
@@ -840,13 +848,16 @@ class Learner:
         run's start, a resume, and the end of every gate, whose jobs went first and paused the
         training games: 190 §1.8, hunt 4), and the long ones after such a pause; a batch was a
         skewed sample of games around every gate. A batch is the run of games issued after the
-        last batch's, to --steps decisions, its last game whole; a game still playing holds the
-        ones issued after it."""
+        last batch's, to --steps decisions, its last game whole. A game still playing holds the
+        ones issued after it until a full batch has ended behind it: then it is late (hung, or
+        its result lost) and joins the batch it ends in, so no game stalls the training."""
         while self.held and len(self.buffer) < self.args.steps:
             gid, game = next(iter(self.held.items()))
-            if game is None:
-                return
+            if game is None and self.held_rows < self.args.steps:
+                return  # it still plays, and holds the games issued after it
             del self.held[gid]
+            if game is None:
+                continue  # late: when it ends, it goes last (_finish_train)
             self.held_rows -= len(game[0])
             self.buffer += game[0]
             if game[1] is not None:

@@ -65,8 +65,9 @@ were the separate value network, the rollout network and the KL anchor to the fr
 serving the workers on the current weights; no new training game is issued while a full next
 batch waits (`throttled`). A batch takes training games in the order they were issued, never in
 the order they end (`_release`): the run of games issued after the last batch's, to `--steps`
-decisions, its last game whole, a game still playing holding the ones issued after it (a full
-batch held behind it throttles too). Games that started together end short ones first, so a batch of the games that ended first was short-
+decisions, its last game whole; a game still playing holds the ones issued after it until a full
+batch has ended behind it, and is then late (hung, or its result lost) and joins the batch it
+ends in, so no game stalls the training. Games that started together end short ones first, so a batch of the games that ended first was short-
 game-heavy after a start, a resume and every gate, whose jobs go first and pause the training
 games, and long-game-heavy before (r28's around a gate: 1,068 and 2,420 games against 1,750;
 190 §1.8). Games that end past a batch's last start the next one. Serve with `--infer-bf16` (KL
@@ -123,7 +124,8 @@ teacher inter-play stage and must use the run's `--pool` (state files from befor
 `--init`, `--refresh-table` and `--extend-sets` make a run's first table only (before 2026-11-17
 a restart rebuilt it from them and the compile of the moment, changing rows under the same
 weights); a new table is a new run's `--init <run>/last.pt --refresh-table`, logged as
-`refresh_table`. A frozen version, like `--opp-ckpt`, keeps its own card rows. PPO's AdamW
+`refresh_table`, and a resume naming other table flags than the run's first start (its
+`manifest.json`) is refused. A frozen version, like `--opp-ckpt`, keeps its own card rows. PPO's AdamW
 moments restart. An evaluation that ended is committed at once, and never played again; the one
 running at the commit starts again, and queued ones run.
 
