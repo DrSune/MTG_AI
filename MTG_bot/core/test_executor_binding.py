@@ -760,6 +760,40 @@ class TestModalTrigger(BindingCase):
         self.assertIn("choose", [what.split(":")[0] for _v, what in self.asks])
 
 
+class TestCombatSlotTarget(BindingCase):
+    """CR 115.1, 603.3d: a trigger whose only trace of its target is an IS_ANY_TARGET in a combat
+    event slot (FDN Frenzied Goblin's "target creature can't block this turn", the form of ZNR
+    Sneaking Guide's and Goblin Smuggler's activations) chooses that target as it goes on the
+    stack, and with none to choose it is removed. Engine wave E2: it was never designated, so the
+    prevention bound nothing and did nothing (known_bugs, frenzied_goblin_...)."""
+
+    def lurker(self):
+        # "When this creature enters, another target creature can't block this turn."
+        target = FAnd((FAtom(FAtomPred.IS_ANY_TARGET), FNot(IS_SOURCE)))
+        cant_block = atom(
+            Verb.PREVENT_EFFECT,
+            condition=FAtom(FAtomPred.IS_ANY_TARGET),
+            duration=DurationEot(),
+            event=DeclareBlockersEvent(filter=target),
+        )
+        lurker = self.world.add_card(card_id("Lurker", "2", "2"), self.p0, ZONE_HAND)
+        self.ex.attach_card(lurker, self.record_for(lurker, [etb_trigger(cant_block)], name="Lurker"))
+        self.ex.execute(enter(BF_YOU), source=lurker, controller=self.p0, bindings={"cards": lurker})
+        return lurker
+
+    def test_the_target_is_chosen_and_cannot_block(self):
+        self.world.move_to_zone(self.watch, self.p0, ZONE_GRAVEYARD)
+        bear = self.world.add_card(card_id("Bear", "2", "2"), self.p1, ZONE_BATTLEFIELD)
+        lurker = self.lurker()
+        self.assertTrue(self.ex.replacements.prevents_block_declaration(bear, lurker))
+        self.assertFalse(self.ex.replacements.prevents_block_declaration(lurker, bear))
+
+    def test_with_no_creature_to_target_the_trigger_is_removed(self):
+        self.world.move_to_zone(self.watch, self.p0, ZONE_GRAVEYARD)
+        self.lurker()
+        self.assertEqual(self.ex.replacements.preventions, [])
+
+
 class TestDelayedTrigger(BindingCase):
     def test_subira_window_fires_and_expires(self):
         put = atom(

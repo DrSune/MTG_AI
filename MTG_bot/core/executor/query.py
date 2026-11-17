@@ -1557,34 +1557,40 @@ def combat_target_filters(event: object) -> list[object]:
     return [f for f in slots if f is not None and designation_bound(f)]
 
 
+def combat_target_selector(atom: object) -> Selector | None:
+    """The target of a PREVENT_EFFECT whose ONLY trace of it is an IS_ANY_TARGET
+    filter in a combat event slot ("{1}: Another target creature with power 2 or
+    less can't be blocked this turn", Subira, Tulzidi Caravanner; ZNR Sneaking
+    Guide; FDN Frenzied Goblin's trigger), as the TARGET selector it stands for:
+    one creature on the battlefield passing that filter (combat slots only ever
+    see creatures). Single-target by construction: every such encoding in
+    M21/ZNR/FDN prints one target. None for any other atom."""
+    if not isinstance(atom, Atom) or atom.verb is not Verb.PREVENT_EFFECT:
+        return None
+    found = combat_target_filters(atom.args.get("event"))
+    if not found:
+        return None
+    restriction = max(found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1)
+    parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+    )
+
+
 def _designation_only_slot(
     executor: Executor, effect: object, source: Handle, seat: Handle
 ) -> TargetSlot | None:
     """CR 115.1, 602.2b: an ability whose ONLY trace of its target is an
-    IS_ANY_TARGET filter in a combat event slot ("{1}: Another target creature
-    with power 2 or less can't be blocked this turn", Subira, Tulzidi Caravanner;
-    ZNR Sneaking Guide) still has a target, so it gets a slot: one creature on
-    the battlefield passing that filter (combat slots only ever see creatures).
-    Without it the ability would be activated with no designation and do
-    nothing. Single-target by construction: every such encoding in M21/ZNR/FDN
-    prints one target."""
+    IS_ANY_TARGET filter in a combat event slot still has a target, so it gets a
+    slot (:func:`combat_target_selector`). Without it the ability would be
+    activated, or put on the stack, with no designation and do nothing."""
     for inner in own_nodes(effect):
-        if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
-            continue
-        found = combat_target_filters(inner.args.get("event"))
-        if not found:
-            continue
-        restriction = max(
-            found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1
-        )
-        parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
-        selector = Selector(
-            QConst(1),
-            SelectorMode.TARGET,
-            FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
-            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
-        )
-        return _spell_slot(executor, inner, "event", selector, source, seat)
+        selector = combat_target_selector(inner)
+        if selector is not None:
+            return _spell_slot(executor, inner, "event", selector, source, seat)
     return None
 
 
