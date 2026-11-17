@@ -1,0 +1,4 @@
+[
+ {"clause": "Flying", "ir": "keywords[0]"},
+ {"clause": "When this creature enters or dies, mill two cards.", "ir": "abilities[0] (enters), abilities[1] (dies): one effect"}
+]

@@ -59,7 +59,8 @@ It was built on branch `cards/mapping`, which reached `main` with the `cards/int
   - Agreement is exact bytes with the compiler.
   - A batch whose honeypot agreement is under 0.9 is redone. Mismatches go into the mapper guide.
 - **Clause traceability.** The record lists every oracle clause with the tree path that implements
-  it. An unlisted clause fails gate G0.
+  it. An unlisted clause fails gate G0, and so does a path the tree does not have; a sentence
+  with no tree takes a label instead, on its sentences only (MAPPER_GUIDE "Labelled sentences").
 - **Order.**
   1. Core sets first, for simple mechanics: FDN, M19, M20, M10–M15, 10E, ORI.
   2. Then the expansions, whose set mechanics are mostly `needs-atom` (saga, adventure, mutate,

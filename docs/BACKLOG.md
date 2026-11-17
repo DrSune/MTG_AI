@@ -611,28 +611,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `games.compile_supply` walks the whole record (skipping only BackFace), so an emblem granting a
   mana ability would deal its planeswalker as a mana source. Skip EmblemSpec there too before an
   emblem with a verb the supply reads is compiled; none of the 6 emblem trees has one.
-- **"N damage to that creature's controller": two answers, one of them stale** (2026-11-13,
-  analysis only; a decision for the next gate round).
-  - MAPPER_GUIDE ("has no encoding yet ... Mark such a card needs-atom (M20 Chandra's Outrage)")
-    and Chandra's Outrage's needs-atom note reject a TARGET selector over the PLAYER zone (a slot
-    of its own), a referent Selector in `target` (the creature itself), ALL over Zone(PLAYER,
-    TARGET_PLAYER) (a phantom player slot) and DEAL_DAMAGE `recipient` (raises). None of these is
-    the verified M20 Chandra, Flame's Fury's −2: `DEAL_DAMAGE(target=Selector(ALL, QUnbounded,
-    FAtom(CONTROLLER_IS, who=Selector(referent="target")), zones=(Zone(PLAYER, ANY),)))`.
-  - That form opens no designation (AGENTS §10), never names TARGET_PLAYER (D18), and reuses the
-    canonical "its controller" referent Selector as CONTROLLER_IS's `who`, as filters already read
-    "that creature's controller" (M21 Feline Sovereign, `who=Selector(referent="event")`). By the
-    identity law it is the one encoding for the wording: the guide's line is stale.
-  - One engine fault first: `selectors.controller_matches` reads a referent's current controller
-    (`controller_of`), not the one it last had (CR 608.2h), which `role_players` reads
-    (`last_known_controller`). Probed 2026-11-13: "destroy target artifact; 3 damage to that
-    artifact's controller" on a stolen artifact hits its owner. Exact today for damage dealt while
-    the object is still there (Chandra's two, Searing Barrage, Ravaging Blaze, Synchronized
-    Spellcraft) or on the stack (ELD Bonecrusher Giant's "that spell's controller"); wrong for
-    10E Cryoclasm, ORI Smash to Smithereens and THB Impending Doom.
-  - Then: the guide's line, and the cards: Chandra's Outrage (M20, M11, M12, M14), Bonecrusher
-    Giant (referent "event"), Searing Barrage, Ravaging Blaze, Cryoclasm, Smash to Smithereens,
-    Impending Doom, Synchronized Spellcraft (X).
+- **"N damage to that creature's controller": settled 2026-11-17** (KNOWLEDGE/2026-11-17/209
+  R_ITSCONTROLLER; MAPPER_GUIDE "That creature's controller", lint `its_controller`). The one form
+  is M20 Chandra, Flame's Fury's verified −2; `selectors.controller_matches` now reads the
+  referent's last known controller (CR 608.2h), so Cryoclasm, Smash to Smithereens and Impending
+  Doom are exact too (`test_damage_to_a_destroyed_creatures_controller_hits_the_thief`). The
+  2026-11-13 reading of ELD Bonecrusher Giant was wrong: a targeting event's `'event'` is the
+  targeted object, so "that spell's controller" has no referent (needs-atom, 209's TARGETS), as
+  M12 Belltower Sphinx's "that source's controller" in a damage trigger has none.
+- **Treasure's TokenSpec writes its artifact type as a keyword** (2026-11-17, R_FOOD). Gadrak's
+  template (`templates_b2a._treasure_token`) builds `type_line='Artifact'`, no subtype and
+  `Keyword.TREASURE`, so SUBTYPE_EQ 'Treasure' finds no Treasure: KHM Gilded Assault Cart's and
+  Magda's "Sacrifice ... Treasures", Goldspan Dragon's "Treasures you control" would read nothing.
+  Food takes the CR's form (CR 205.3g: an artifact type is a subtype; `templates.food_token()`).
+  Fold: the Treasure spec takes `type_line='Artifact — Treasure'`, `subtypes=('Treasure',)` and no
+  keyword, re-verifying its 6 verified trees (M21 Gadrak, M20 and FDN Rapacious Dragon, KHM and
+  FDN Goldvein Pick, FDN Gleaming Barrier) before a card that reads Treasures is mapped; retiring
+  `Keyword.TREASURE` itself is an IR change.
 - **"Whenever you discard a card" has two encodings in waiting** (2026-11-13, analysis only).
   - M20 Bag of Holding (verified) triggers on `ZoneChangeEvent(HAND YOU -> GRAVEYARD YOU)`; M20
     Glint-Horn Buccaneer's needs-atom note asks for a discard event (B-48).

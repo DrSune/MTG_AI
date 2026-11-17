@@ -5,7 +5,7 @@
  "name": "Vivien, Arkbow Ranger",
  "text_sha": "d45376abe1c644ed2c4eba7d3645c4114ea0e438345ff59dcf80e4e290b40425",
  "needs_atom": {
-  "missing": "[−5] 'reveal a creature card you own from outside the game and put it into your hand': no outside-the-game zone (sideboard / wish) exists in ZoneKind or the engine. Also [+1] 'Distribute two +1/+1 counters among up to two target creatures': no distribution component (CR 601.2d: the amount divided among the chosen targets as they are announced, at least one each); PUT_COUNTER takes one count for every target. ([−3] is expressible with the Garruk, Savage Herald -2 bite shape.)",
+  "missing": "[+1] 'Distribute two +1/+1 counters among up to two target creatures': no distribution component (SPLIT; CR 601.2d: the amount divided among the chosen targets as they are announced, at least one each); PUT_COUNTER takes one count for every target. ([−3] is expressible with the Garruk, Savage Herald -2 bite shape.) [−5] is no longer a missing piece: labelled inert for good (coordinator 2026-11-17, KNOWLEDGE/2026-11-17/209 §5; docs/MAPPER_GUIDE.md 'Labelled sentences', lints.INERT). No card is outside the game in self-play or Commander (CR 400.11), so it reveals nothing: the record leaves it out of the tree and traces its clause as \"inert\".",
   "author": "claude-mapper-m20-6",
   "date": "2026-11-05"
  }

@@ -1,0 +1,13 @@
+{
+ "name": "twoevents_a_bounce_is_no_death",
+ "set": "FDN",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "hand", "controller": 0, "real": "Crow of Dark Tidings"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "crow"},
+  {"op": "move", "key": "crow", "to": "hand"}
+ ],
+ "expect": {"graveyard": {"0": ["Library 4", "Library 5"]}, "zone": {"crow": "hand"}}
+}
