@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "elspeths_smite_exiles_a_blocker_it_kills",
+ "notes": "Printed: 'Elspeth's Smite deals 3 damage to target attacking or blocking creature. If that creature would die this turn, exile it instead.' Seat 0's 2/2 attacks and seat 1's 3/3 blocks it. After blocks seat 0 casts Elspeth's Smite on the BLOCKING 3/3: 3 damage kills it and it is exiled, not put into the graveyard. The 2/2 stays blocked and deals no damage (CR 509.1h, 510.1c).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 0},
+  {"key": "knight", "name": "Knight", "type": "Creature — Human Knight", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"knight": true},
+   "block": {"wolf": "knight"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 0, "targets": ["wolf"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"smite": "graveyard", "wolf": "exile", "knight": "battlefield"},
+  "damage_received": {"wolf": 3},
+  "life": {"0": 20, "1": 20}
+ }
+}

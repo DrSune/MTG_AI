@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "ghitu_lavarunner_one_spell_card_no_bonus",
+ "notes": "M7 mapper. Printed: 'As long as there are two or more instant and/or sorcery cards in your graveyard, this creature gets +1/+0 and has haste.' Seat 0's graveyard holds one instant (Quick Study) and a creature card; seat 1's graveyard holds two sorceries. Only seat 0's instant and sorcery cards count: Ghitu Lavarunner, cast this turn, stays 1/2 without haste and is not offered an attack.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lava", "real": "Ghitu Lavarunner", "zone": "hand", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "graveyard", "controller": 0},
+  {"key": "dead_ox", "name": "Dead Ox", "type": "Creature — Ox", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "opp_crash1", "real": "Crash Through", "zone": "graveyard", "controller": 1},
+  {"key": "opp_crash2", "real": "Crash Through", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "cast", "key": "lava", "controller": 0},
+  {"op": "combat", "seat": 0, "attack": {}}
+ ],
+ "expect": {
+  "not_asked": ["lava"],
+  "life": {"1": 20},
+  "power": {"lava": 1},
+  "toughness": {"lava": 2}
+ }
+}

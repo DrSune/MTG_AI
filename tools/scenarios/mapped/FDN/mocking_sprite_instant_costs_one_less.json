@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "mocking_sprite_instant_costs_one_less",
+ "notes": "M7 mapper. Printed: 'Instant and sorcery spells you cast cost {1} less to cast.' With Mocking Sprite on the battlefield, seat 0 casts Quick Study ({2}{U}, an instant: draw two cards) with only {1}{U} in its pool: it resolves, seat 0 draws two, the pool is empty.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sprite", "real": "Mocking Sprite", "zone": "battlefield", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 1}},
+  {"op": "cast", "key": "study", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"study": "graveyard", "sprite": "battlefield"},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

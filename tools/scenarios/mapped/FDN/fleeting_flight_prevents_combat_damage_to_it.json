@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "fleeting_flight_prevents_combat_damage_to_it",
+ "notes": "Printed: 'Put a +1/+1 counter on target creature. It gains flying until end of turn. Prevent all combat damage that would be dealt to it this turn.' Seat 0's 2/2 attacks and seat 1's 4/4 blocks; after blocks seat 0 casts Fleeting Flight on its 2/2. It becomes a 3/3 with a +1/+1 counter and flying (the block stands, CR 509.1h), the 4/4's combat damage to it is prevented, and it deals 3 to the 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "duelist", "name": "Duelist", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Wall", "type": "Creature — Wall", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"duelist": true},
+   "block": {"wall": "duelist"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["duelist"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "duelist": "battlefield", "wall": "battlefield"},
+  "counters": {"duelist": {"PLUS_1_PLUS_1": 1}},
+  "power": {"duelist": 3},
+  "toughness": {"duelist": 3},
+  "damage": {"wall": 3},
+  "life": {"0": 20, "1": 20}
+ }
+}

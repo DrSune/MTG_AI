@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "alesha_raid_offers_creatures_up_to_her_power",
+ "notes": "M4 mapper. Printed: 'Whenever Alesha attacks, put a +1/+1 counter on it. Raid — At the beginning of your end step, if you attacked this turn, return target creature card with mana value less than or equal to Alesha's power from your graveyard to the battlefield.' Alesha attacks alone: her counter makes her 3/3 and she deals 3 first-strike damage. At seat 0's end step the raid trigger's target ask offers seat 0's creature cards of mana value 2 and 3 only: not the mana value 4 creature card, not the sorcery card, not seat 1's creature card. The step stops at that ask (no decision word), so it pins its vocabulary.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "alesha", "real": "Alesha, Who Laughs at Fate", "zone": "battlefield", "controller": 0},
+  {"key": "two", "name": "Grave Two", "type": "Creature — Ogre", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "three", "name": "Grave Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "cmc": 3, "zone": "graveyard", "controller": 0},
+  {"key": "four", "name": "Grave Four", "type": "Creature — Ogre", "power": "4", "toughness": "4", "cmc": 4, "zone": "graveyard", "controller": 0},
+  {"key": "spell", "name": "Grave Spell", "type": "Sorcery", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "opp_one", "name": "Opp Grave One", "type": "Creature — Ogre", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"alesha": true}},
+  {"op": "to_step", "step": "END_TURN", "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {
+  "counters": {"alesha": {"PLUS_1_PLUS_1": 1}},
+  "power": {"alesha": 3},
+  "life": {"0": 20, "1": 17}
+ }
+}

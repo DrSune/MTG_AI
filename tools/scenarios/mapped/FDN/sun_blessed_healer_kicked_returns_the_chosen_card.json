@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "sun_blessed_healer_kicked_returns_the_chosen_card",
+ "notes": "M4 mapper. Printed: 'Kicker {1}{W}. When this creature enters, if it was kicked, return target nonland permanent card with mana value 2 or less from your graveyard to the battlefield.' Seat 0 casts Sun-Blessed Healer kicked ({1}{W} + {1}{W}) and returns the chosen Grave Relic (an artifact card, mana value 2) to the battlefield under its control; the Grave Charm stays in the graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "healer", "real": "Sun-Blessed Healer", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Grave Relic", "type": "Artifact", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "charm", "name": "Grave Charm", "type": "Enchantment", "cmc": 1, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "healer", "controller": 0, "kicked": true, "decisions": ["relic"]}
+ ],
+ "expect": {
+  "zone": {"healer": "battlefield", "relic": "battlefield", "charm": "graveyard"},
+  "controller": {"relic": 0},
+  "kick_rows": {"healer": {"kicked": true}},
+  "mana_pool": {"0": {}}
+ }
+}

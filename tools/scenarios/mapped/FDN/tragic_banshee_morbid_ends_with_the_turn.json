@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "tragic_banshee_morbid_ends_with_the_turn",
+ "notes": "M4 mapper. Printed: 'If a creature died this turn, that creature gets -13/-13 until end of turn instead.' As in the morbid pack, seat 0's Bear dies, then Tragic Banshee's trigger gives seat 1's 14/14 -13/-13 (1/1 that turn). On the next turn it is 14/14 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "banshee", "real": "Tragic Banshee", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ohuge", "name": "Opp Huge", "type": "Creature — Giant", "power": "14", "toughness": "14", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 2},
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 4}},
+  {"op": "cast", "key": "banshee", "controller": 0, "decisions": ["ohuge"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"ohuge": "battlefield"},
+  "power": {"ohuge": 14},
+  "toughness": {"ohuge": 14}
+ }
+}

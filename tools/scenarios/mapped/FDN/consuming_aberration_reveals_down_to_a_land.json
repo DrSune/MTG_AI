@@ -1,0 +1,27 @@
+{
+ "set": "FDN",
+ "name": "consuming_aberration_reveals_down_to_a_land",
+ "notes": "M4 mapper. Printed: 'Consuming Aberration's power and toughness are each equal to the number of cards in your opponents' graveyards. Whenever you cast a spell, each opponent reveals cards from the top of their library until they reveal a land card, then puts those cards into their graveyard.' Seat 1's graveyard starts with two cards (the Aberration is 2/2, so it survives setup). Seat 1's library holds, top first, Opp Top, Opp Mid, Opp Land, Opp Bottom, then six fillers. Seat 0 casts Quick Study: seat 1 reveals Opp Top, Opp Mid and Opp Land (a land: it stops) and puts those three into its graveyard; Opp Bottom and the fillers stay, in order. Seat 1's graveyard holds 5 cards: the Aberration is 5/5 (seat 0's own graveyard, with Quick Study in it, does not count).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "aber", "real": "Consuming Aberration", "zone": "battlefield", "controller": 0},
+  {"key": "study", "real": "Quick Study", "zone": "hand", "controller": 0},
+  {"key": "ogone", "name": "Opp Gone", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 1},
+  {"key": "ogone2", "name": "Opp Gone Two", "type": "Sorcery", "zone": "graveyard", "controller": 1},
+  {"key": "obottom", "name": "Opp Bottom", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 1},
+  {"key": "oland", "name": "Opp Land", "type": "Land", "zone": "library", "controller": 1},
+  {"key": "omid", "name": "Opp Mid", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "library", "controller": 1},
+  {"key": "otop", "name": "Opp Top", "type": "Sorcery", "zone": "library", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 1, "C": 2}},
+  {"op": "cast", "key": "study", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"study": "graveyard", "otop": "graveyard", "omid": "graveyard", "oland": "graveyard", "obottom": "library", "aber": "battlefield"},
+  "graveyard": {"1": ["Opp Gone", "Opp Gone Two", "Opp Top", "Opp Mid", "Opp Land"]},
+  "library": {"1": ["Opp Bottom", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "power": {"aber": 5},
+  "toughness": {"aber": 5}
+ }
+}

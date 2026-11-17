@@ -1,0 +1,4 @@
+M21: deckable 275 (base) / 275 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; replaced moves 9 (base) / 9 (branch); crashes 0 (base) / 0 (branch)
+M20: deckable 277 (base) / 277 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; replaced moves 7 (base) / 7 (branch); crashes 0 (base) / 0 (branch)
+FDN: deckable 190 (base) / 190 (branch); taken out: 0; games 200; identical digests 200; identical journals 200; identical event logs 200; replaced moves 46 (base) / 46 (branch); crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 600

@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "balmor_opponents_instant_gives_no_bonus",
+ "notes": "M4 mapper. Printed: 'Whenever you cast an instant or sorcery spell, creatures you control get +1/+0 and gain trample until end of turn.' Seat 1 casts Giant Growth on its own Bear (5/5): Balmor's controller did not cast it, so seat 0's Bear and Balmor keep their size.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "balmor", "real": "Balmor, Battlemage Captain", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 1, "add": {"G": 1}},
+  {"op": "cast", "key": "gg", "controller": 1, "targets": ["obear"]}
+ ],
+ "expect": {
+  "zone": {"gg": "graveyard"},
+  "power": {"obear": 5, "bear": 2, "balmor": 1},
+  "toughness": {"obear": 5, "bear": 2, "balmor": 3}
+ }
+}

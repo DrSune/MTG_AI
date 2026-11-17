@@ -1,0 +1,164 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fe1556cc-32d0-4e51-bb15-f3fce669a5e1",
+ "name": "Arcane Epiphany",
+ "text_sha": "b8b25fdafbc19471cd8f79e7af8660d02bc7ecc90a3dc32d67649ea989a7d065",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "IS_SOURCE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "CONTROLLER_COUNT_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "SUBTYPE_EQ"
+        },
+        "string_value": "Wizard",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Arcane Epiphany (FDN).\n# \"This spell costs {1} less to cast if you control a Wizard.\" -- M21 Sanguine Indulgence's\n#   B4-cost-modifier-conditional CostModifier (IS_SOURCE, YOU, reduce generic 1), its condition\n#   ZNR Chilling Trap's \"If you control a Wizard\" (CONTROLLER_COUNT_GE 1 over Wizard creatures).\n# \"Draw three cards.\" -- M21 Read the Tides' B5c-bullet-draw-three atom.\nabilities = [\n    CostModifier(\n        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n        controller_ref=ControllerRef.YOU,\n        delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n        condition=FAtom(\n            pred=FAtomPred.CONTROLLER_COUNT_GE,\n            count=QConst(value=1),\n            inner_filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Wizard'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n        ),\n    ),\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.DRAW, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "This spell costs {1} less to cast if you control a Wizard.",
+    "ir": "abilities[0] (CostModifier)"
+   },
+   {
+    "clause": "Draw three cards.",
+    "ir": "abilities[1].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Sanguine Indulgence's conditional CostModifier (reduce 1) with Chilling Trap's 'if you control a Wizard' (CONTROLLER_COUNT_GE 1, Wizard creatures); Read the Tides' draw three. packs in tools/scenarios/mapped/FDN/: arcane_epiphany_no_wizard_full_cost, arcane_epiphany_wizard_costs_one_less."
+ },
+ "probe": {
+  "sha": "82a14f242a12f03f5d360ebb647d60a4101ccc80f5494fe86360fa0dd7215ae8"
+ }
+}

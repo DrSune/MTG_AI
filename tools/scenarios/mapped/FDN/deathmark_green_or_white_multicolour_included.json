@@ -1,0 +1,21 @@
+{
+ "name": "deathmark_green_or_white_multicolour_included",
+ "set": "FDN",
+ "note": "Deathmark: 'Destroy target green or white creature.' A black creature and a colourless creature are not legal targets (each cast is refused); a green-and-black creature is green, so it is a legal target and is destroyed (COLOR_HAS, never a subset test: MAPPER_GUIDE, B-54).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dm", "real": "Deathmark", "zone": "hand", "controller": 0},
+  {"key": "black", "name": "Opp Shade", "power": "2", "toughness": "2", "type": "Creature — Shade", "colors": ["B"], "zone": "battlefield", "controller": 1},
+  {"key": "golem", "name": "Opp Golem", "power": "3", "toughness": "3", "type": "Artifact Creature — Golem", "zone": "battlefield", "controller": 1},
+  {"key": "gb", "name": "Opp Gorger", "power": "3", "toughness": "3", "type": "Creature — Elf", "colors": ["B", "G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1}, "hold": true},
+  {"op": "cast", "real": "Deathmark", "key": "dm", "controller": 0, "targets": ["black"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Deathmark", "key": "dm", "controller": 0, "targets": ["golem"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Deathmark", "key": "dm", "controller": 0, "targets": ["gb"]}
+ ],
+ "expect": {
+  "zone": {"dm": "graveyard", "gb": "graveyard", "black": "battlefield", "golem": "battlefield"}
+ }
+}

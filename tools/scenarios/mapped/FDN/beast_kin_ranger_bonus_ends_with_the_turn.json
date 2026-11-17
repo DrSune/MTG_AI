@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "beast_kin_ranger_bonus_ends_with_the_turn",
+ "notes": "M4 mapper. Printed: 'Whenever another creature you control enters, this creature gets +1/+0 until end of turn.' A Bear enters under seat 0's control: Beast-Kin Ranger is 4/3 that turn (the probe shows it), and 3/3 again on the next turn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ranger", "real": "Beast-Kin Ranger", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "bear"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield"},
+  "power": {"ranger": 3},
+  "toughness": {"ranger": 3}
+ }
+}

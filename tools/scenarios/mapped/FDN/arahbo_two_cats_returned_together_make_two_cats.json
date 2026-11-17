@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "arahbo_two_cats_returned_together_make_two_cats",
+ "notes": "M4 mapper. Printed: 'Whenever Arahbo or another nontoken Cat you control enters, create a 1/1 white Cat creature token.' Support card: FDN Raise the Past (verified; 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.'). Two Cat creature cards return to seat 0's battlefield at the same time: each is a Cat entering, so Arahbo triggers twice (once per Cat, not once for the event) and seat 0 gets two Cat tokens.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "arahbo", "real": "Arahbo, the First Fang", "zone": "battlefield", "controller": 0},
+  {"key": "raise", "real": "Raise the Past", "zone": "hand", "controller": 0},
+  {"key": "cat1", "name": "Grave Cat One", "type": "Creature — Cat", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "cat2", "name": "Grave Cat Two", "type": "Creature — Cat", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "raise", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"raise": "graveyard", "cat1": "battlefield", "cat2": "battlefield"},
+  "tokens": {"Cat": 2},
+  "power": {"cat1": 3, "cat2": 2}
+ }
+}

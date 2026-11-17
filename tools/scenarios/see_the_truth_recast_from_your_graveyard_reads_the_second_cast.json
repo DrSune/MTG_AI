@@ -1,0 +1,19 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "stt", "real": "See the Truth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "real": "See the Truth", "key": "stt", "decisions": ["card:6", "card:5"]},
+  {"op": "test_permission_cast", "key": "stt", "from": "graveyard"}
+ ],
+ "expect": {
+  "kick_rows": {"stt": {"from": "graveyard"}},
+  "zone": {"stt": "graveyard"},
+  "hand": {"0": 4},
+  "library": {"0": ["Library 4", "Library 3"]}
+ },
+ "notes": "Printed: 'Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' Seat 0 casts See the Truth from its hand: Library 5 goes to the hand, Library 4 and Library 3 to the bottom (the see_the_truth pack's words). It resolves into the graveyard, and the same turn seat 0 casts it again from there by a test permission (as M20 Chandra, Acolyte of Flame's -2 will). The spell on the stack is a new object (CR 400.7) cast from the graveyard, so the second resolution puts all three looked-at cards (Library 2, 1 and 0) into the hand and asks nothing: hand 4, the library Library 4 then Library 3. Before 2026-11-17 CAST_THIS_TURN_FROM read every CAST row of the card this turn, so the first cast's 'from your hand' answered for the second spell, the split ran and its first ask stopped the step."
+}

@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "quick_draw_katana_your_turn_first_strike",
+ "notes": "M7 mapper. Printed: 'During your turn, equipped creature gets +2/+0 and has first strike. Equip {2}.' On seat 0's turn it pays {2} to equip Your Bear (2/2): 4/2 with first strike. The Bear attacks and Opp Ape (3/3) blocks: the Bear deals 4 first-strike damage, the Ape dies before it deals any, and the Bear survives undamaged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "katana", "real": "Quick-Draw Katana", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Opp Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "katana", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"ape": "bear"}}
+ ],
+ "expect": {
+  "attached": {"katana": "bear"},
+  "blocked": {"bear": ["ape"]},
+  "zone": {"bear": "battlefield", "ape": "graveyard"},
+  "damage_received": {"bear": 0},
+  "power": {"bear": 4},
+  "toughness": {"bear": 2}
+ }
+}

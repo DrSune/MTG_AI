@@ -1,0 +1,118 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6103f294-f920-4307-af80-d44cc71167fd",
+ "name": "Kitesail Corsair",
+ "text_sha": "4df1d8c845502f6324e075af4b86dc0e15b33c1d01e94ac1340c5a6ba490e5c2",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GRANT_ABILITY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "ability",
+        {
+         "tag": "KeywordAbility",
+         "keyword": {
+          "tag": "Keyword",
+          "name": "FLYING"
+         },
+         "params": []
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "IS_ATTACKING"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\n# \"as long as it's attacking\": the static's condition, judged of the source (divergence D22's form).\nflying_while_attacking = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FLYING),\n        'target': SELF,\n    }),\n    condition=FAtom(pred=FAtomPred.IS_ATTACKING),\n)\nabilities = [flying_while_attacking, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature has flying as long as it's attacking.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "'As long as it's attacking' as StaticAbility.condition IS_ATTACKING (judged of the source): divergence D22's fold form, not M20 Unchained Berserker's DurationWhileCondition. Packs: tools/scenarios/mapped/FDN/kitesail_corsair_flies_only_while_attacking.json, tools/scenarios/mapped/FDN/kitesail_corsair_no_flying_on_defense.json."
+ },
+ "probe": {
+  "sha": "053eb2b11b7a6fc0042339f1a893c5b508ff07385f68a7a31778b695e5f3dee6"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "name": "deadly_plot_destroys_a_planeswalker",
+ "set": "FDN",
+ "note": "Deadly Plot, first mode: 'Destroy target creature or planeswalker.' Aimed at the opponent's Vivien Reid, it destroys it: Vivien goes to its owner's graveyard.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "plot", "real": "Deadly Plot", "zone": "hand", "controller": 0},
+  {"key": "viv", "real": "Vivien Reid", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "viv", "set": 5},
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 3}},
+  {"op": "cast", "real": "Deadly Plot", "key": "plot", "controller": 0, "decisions": ["0"], "targets": ["viv"]}
+ ],
+ "expect": {
+  "zone": {"plot": "graveyard", "viv": "graveyard"}
+ }
+}

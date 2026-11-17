@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "voracious_greatshark_counters_only_its_target",
+ "notes": "M4 mapper. Printed: 'Flash. When this creature enters, counter target artifact or creature spell.' Seat 0 casts Goldvein Pick (an artifact spell) and, holding priority, Spectral Sailor (a creature spell with flash), then Voracious Greatshark. The Greatshark resolves first; its trigger targets the Sailor and counters it alone: the Pick, not targeted, resolves onto the battlefield.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "shark", "real": "Voracious Greatshark", "zone": "hand", "controller": 0},
+  {"key": "pick", "real": "Goldvein Pick", "zone": "hand", "controller": 0},
+  {"key": "sailor", "real": "Spectral Sailor", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 3, "C": 5}},
+  {"op": "cast", "key": "pick", "controller": 0, "hold": true},
+  {"op": "cast", "key": "sailor", "controller": 0, "hold": true},
+  {"op": "cast", "key": "shark", "controller": 0, "decisions": ["sailor"]}
+ ],
+ "expect": {
+  "zone": {"shark": "battlefield", "sailor": "graveyard", "pick": "battlefield"},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "name": "cemetery_recruitment_zombie_draws_one",
+ "set": "FDN",
+ "note": "Cemetery Recruitment: 'Return target creature card from your graveyard to your hand. If it's a Zombie card, draw a card.' P0 returns a Zombie creature card: it goes to P0's hand and P0 draws exactly one card, the top card of its library (two cards in hand). The opponent's Zombie card is not P0's to return.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cr", "real": "Cemetery Recruitment", "zone": "hand", "controller": 0},
+  {"key": "zombie", "name": "Fallen Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "graveyard", "controller": 0},
+  {"key": "ozombie", "name": "Opp Zombie", "power": "2", "toughness": "2", "type": "Creature — Zombie", "zone": "graveyard", "controller": 1},
+  {"key": "next", "name": "Next Card", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Sorcery", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 1}},
+  {"op": "cast", "real": "Cemetery Recruitment", "key": "cr", "controller": 0, "targets": ["ozombie"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Cemetery Recruitment", "key": "cr", "controller": 0, "targets": ["zombie"]}
+ ],
+ "expect": {
+  "zone": {"cr": "graveyard", "zombie": "hand", "ozombie": "graveyard", "top": "hand", "next": "library"},
+  "hand": {"0": 2}
+ }
+}

@@ -67,6 +67,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
+    ZONE_STACK,
     GameWorld,
 )
 
@@ -1568,7 +1569,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # Truth's FNot twin). Handle-scoped over the CAST rows, whose
         # payload carries (caster, ordinal, spell_kind, from_zone, x_value,
         # kicked): the from_zone column makes the origin readable after the
-        # spell has moved on.
+        # spell has moved on. CR 400.7: a spell on the stack, or a permanent,
+        # is the object one cast made (or none), so only that cast answers
+        # (_object_cast_row): See the Truth cast from your hand and then cast
+        # again from your graveyard the same turn is a new spell, cast from
+        # the graveyard. An object that has left them is read by what it was
+        # (CR 608.2h, the Vessel's trigger resolving after it died): this
+        # turn's casts of the card.
         from MTG_bot.core.executor.events import KIND_CAST
         from MTG_bot.core.executor.selectors import (
             ZONE_KIND_TO_STATE,
@@ -1577,9 +1584,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
 
         assert atom.zone is not None and atom.who is not None
         from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
-        for e in _turn_rows(ctx, pred.name):
-            if e.kind != KIND_CAST or e.subject != handle:
-                continue
+        rows = [
+            e for e in _turn_rows(ctx, pred.name) if e.kind == KIND_CAST and e.subject == handle
+        ]
+        if handle in world.cards and world.zone_of(handle).kind in (ZONE_STACK, ZONE_BATTLEFIELD):
+            own = _object_cast_row(ctx, handle)
+            rows = [e for e in rows if e is own]
+        for e in rows:
             caster, _ordinal, _kind, row_from, _x, _kicked = e.cast
             if row_from != from_state:
                 continue
@@ -1943,8 +1954,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # CR 405.1, 111.1/112.1: a card or a copy of a card on the stack is a
         # spell; abilities on the stack are not (CR 113.7a) and are answered
         # above, by their own kind.
-        from MTG_bot.core.state import ZONE_STACK
-
         if atom.string_value != "SPELL":
             return False
         return handle in world.cards and world.zone_of(handle).kind == ZONE_STACK
@@ -1985,7 +1994,6 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     ceased to exist (no token was cast, CR 111.1), None. The whole
     journal is read: the object's cast may be older than this turn."""
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
-    from MTG_bot.core.state import ZONE_STACK
 
     jrn = ctx.journal
     if jrn is None:
@@ -2039,7 +2047,6 @@ def _permanent_was_kicked(ctx: ExecCtx, handle: Handle) -> bool:
     a permanent cast kicked LAST turn still answers True today.
     """
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
-    from MTG_bot.core.state import ZONE_STACK
 
     jrn = ctx.journal
     if jrn is None:

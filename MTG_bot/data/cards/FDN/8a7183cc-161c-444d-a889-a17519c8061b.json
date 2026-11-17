@@ -1,0 +1,176 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "8a7183cc-161c-444d-a889-a17519c8061b",
+ "name": "Arcanis the Omnipotent",
+ "text_sha": "1aed7e765f5182c0a913717bb8ca10923d68ea667ec858fd905c7431b8005136",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DRAW"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "U",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaColor",
+       "color": "U",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MOVE_ZONE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "cards",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "destination",
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "HAND"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "OWNER"
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m7",
+  "date": "2026-11-17",
+  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ndraw_three = ActivatedAbility(\n    cost=Cost(parts=(CostTap(),)),\n    effect=A(Verb.DRAW, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n)\nbounce_self = ActivatedAbility(\n    cost=Cost(\n        parts=(\n            CostManaColor(color='U', amount=QConst(value=1)),\n            CostManaColor(color='U', amount=QConst(value=1)),\n            CostManaGeneric(amount=QConst(value=2)),\n        ),\n    ),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': SELF,\n        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.OWNER),\n    }),\n)\nabilities = [draw_three, bounce_self, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{T}: Draw three cards.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "{2}{U}{U}: Return Arcanis to its owner's hand.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Both activations exercised by the probe."
+ },
+ "probe": {
+  "sha": "5cf558c22cf3fa048c9be7fb0579ddf4d695df57b85b5439012d0afb8fb0d637"
+ }
+}

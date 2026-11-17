@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "inspiring_paladin_no_first_strike_on_opponents_turn",
+ "notes": "M7 mapper. Printed: 'During your turn, this creature has first strike. During your turn, creatures you control with +1/+1 counters on them have first strike.' On seat 1's turn neither applies: Opp Ape One (3/3) attacks and seat 0's Bear with a +1/+1 counter (3/3) blocks it, Opp Ape Two (3/3) attacks and the Paladin (3/3) blocks it. No first strike: all four die.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "paladin", "real": "Inspiring Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "ape1", "name": "Opp Ape One", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "ape2", "name": "Opp Ape Two", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ape1": true, "ape2": true}, "block": {"bear": "ape1", "paladin": "ape2"}}
+ ],
+ "expect": {
+  "blocked": {"ape1": ["bear"], "ape2": ["paladin"]},
+  "zone": {"bear": "graveyard", "ape1": "graveyard", "paladin": "graveyard", "ape2": "graveyard"}
+ }
+}

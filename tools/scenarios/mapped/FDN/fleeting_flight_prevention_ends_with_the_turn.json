@@ -1,0 +1,24 @@
+{"set": "FDN", "name": "fleeting_flight_prevention_ends_with_the_turn",
+ "notes": "Printed: 'It gains flying until end of turn. Prevent all combat damage that would be dealt to it this turn.' Seat 0 casts Fleeting Flight on its 2/2 in its first main phase (a 3/3 with a +1/+1 counter). On seat 0's next turn the flying and the prevention are gone: the 3/3 attacks, seat 1's 4/4 can block it (no flying) and its 4 combat damage kills it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0},
+  {"key": "duelist", "name": "Duelist", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Wall", "type": "Creature — Wall", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "ff", "real": "Fleeting Flight", "controller": 0, "targets": ["duelist"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"duelist": true}, "block": {"wall": "duelist"}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "zone": {"ff": "graveyard", "duelist": "graveyard", "wall": "battlefield"},
+  "damage": {"wall": 3},
+  "damage_received": {"duelist": 4}
+ }
+}

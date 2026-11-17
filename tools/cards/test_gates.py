@@ -661,7 +661,7 @@ def test_partitioned_search_destination_is_a_placeholder() -> None:
         assert _game(pack, _mutant(cult, CULTIVATE_SEARCH, new)) == real
 
 
-SEE_THE_TRUTH_REST = "1/0/effect/steps/1/steps/1"
+SEE_THE_TRUTH_REST = "1/0/effect/steps/1/else_effect/steps/1"  # the split, the else of its "instead"
 
 
 def test_library_order_mutants_only_where_several_cards_go_to_a_library() -> None:

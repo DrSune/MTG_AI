@@ -1,0 +1,23 @@
+{
+ "name": "boros_charm_indestructible_locks_in_its_permanents",
+ "set": "FDN",
+ "note": "Boros Charm, second mode: 'Permanents you control gain indestructible until end of turn.' The affected set is fixed as it resolves (CR 611.2c): P0's Bear survives Day of Judgment later that turn, while a creature P0 put onto the battlefield after the Charm resolved, and the opponent's creature, are destroyed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "charm", "real": "Boros Charm", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Latecomer", "power": "1", "toughness": "1", "type": "Creature — Human", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1},
+  {"key": "doj", "real": "Day of Judgment", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "W": 1}},
+  {"op": "cast", "real": "Boros Charm", "key": "charm", "controller": 0, "decisions": ["1"]},
+  {"op": "enter", "key": "late"},
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "real": "Day of Judgment", "key": "doj", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"charm": "graveyard", "doj": "graveyard", "bear": "battlefield", "late": "graveyard", "obear": "graveyard"}
+ }
+}

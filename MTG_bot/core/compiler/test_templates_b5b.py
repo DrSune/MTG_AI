@@ -2079,15 +2079,49 @@ class TestRound7AnaphoraBatch(unittest.TestCase):
         self.assertEqual(_as_atom(seq.steps[4]).verb, Verb.SHUFFLE)
 
     def test_cast_elsewhere_instead(self) -> None:
+        """See the Truth s3: the "instead" arm on the spell's own split (CR 608.2c), moving every
+        looked-at card (an ALL over the top of the library, the open look window)."""
         outcome = self._match_one(
             "If this spell was cast from anywhere other than your hand, "
             "put each of those cards into your hand instead."
         )
-        cond = _as_effect(outcome).effect
-        assert isinstance(cond, Conditional)
-        self.assertIsInstance(cond.pred, FNot)
-        move = _as_atom(cond.then_effect)
-        self.assertEqual(_pairs_dict(move)["cards"].referent, "result")
+        assert isinstance(outcome, KickerEffectOutcome)
+        self.assertTrue(outcome.replaces)
+        # cast (a copy is not: CR 707.10), and not from your hand
+        assert isinstance(outcome.pred, FAnd)
+        self.assertEqual(
+            {type(c).__name__ for c in outcome.pred.children}, {"FAtom", "FNot"}
+        )
+        cast = next(c for c in outcome.pred.children if isinstance(c, FAtom))
+        self.assertEqual(cast.pred, FAtomPred.WAS_CAST_THIS_TURN)
+        cards = _pairs_dict(_as_atom(outcome.effect))["cards"]
+        self.assertEqual((cards.mode, cards.count, cards.referent), (SelectorMode.ALL, QUnbounded(), None))
+        self.assertEqual(cards.zones[0].position, ZonePosition.TOP)
+
+    def test_see_the_truth_instead_replaces_the_split(self) -> None:
+        """The whole card: the arm folds onto the split as Conditional(not cast from your hand,
+        every looked-at card into your hand, else=one into your hand and the rest on the bottom),
+        right after the look. Before, the Conditional followed the split and moved one card."""
+        raw = _raw(
+            "See the Truth Stand-in",
+            (
+                "Look at the top three cards of your library.",
+                "Put one of those cards into your hand and the rest on the bottom of your library "
+                "in any order.",
+                "If this spell was cast from anywhere other than your hand, put each of those "
+                "cards into your hand instead.",
+            ),
+            types=("Sorcery",),
+        )
+        result = compile_card(raw, _make_registry())
+        self.assertEqual(result.unparsed, ())
+        spell = next(ab for ab in result.card.abilities if isinstance(ab, SpellAbility))
+        look, arm = _as_seq(spell.effect).steps
+        self.assertEqual(_as_atom(look).verb, Verb.LOOK_AT)
+        assert isinstance(arm, Conditional)
+        self.assertEqual(_pairs_dict(_as_atom(arm.then_effect))["cards"].mode, SelectorMode.ALL)
+        one, rest = (_pairs_dict(_as_atom(s))["cards"].mode for s in _as_seq(arm.else_effect).steps)
+        self.assertEqual((one, rest), (SelectorMode.ONE_OF, SelectorMode.REST))
 
     def test_gain_control_eot(self) -> None:
         outcome = self._match_one("Gain control of target creature until end of turn.")

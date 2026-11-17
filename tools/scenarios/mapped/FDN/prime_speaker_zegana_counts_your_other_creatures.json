@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "prime_speaker_zegana_counts_your_other_creatures",
+ "notes": "M4 mapper. Printed: 'Prime Speaker Zegana enters with X +1/+1 counters on it, where X is the greatest power among other creatures you control. When Prime Speaker Zegana enters, draw cards equal to its power.' Seat 0 controls a 2/2 Bear; seat 1's 6/6 is not seat 0's. Zegana enters with two +1/+1 counters (3/3) and its trigger draws three.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "zeg", "real": "Prime Speaker Zegana", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Giant", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 2, "U": 2, "C": 2}},
+  {"op": "cast", "key": "zeg", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"zeg": "battlefield"},
+  "counters": {"zeg": {"PLUS_1_PLUS_1": 2}},
+  "power": {"zeg": 3},
+  "toughness": {"zeg": 3},
+  "hand": {"0": 3}
+ }
+}

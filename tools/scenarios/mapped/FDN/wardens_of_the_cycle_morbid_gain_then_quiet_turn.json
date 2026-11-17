@@ -1,0 +1,26 @@
+{
+ "name": "wardens_of_the_cycle_morbid_gain_then_quiet_turn",
+ "set": "FDN",
+ "note": "Wardens of the Cycle: 'Morbid -- At the beginning of your end step, if a creature died this turn, choose one -- * You gain 2 life. * You draw a card and you lose 1 life.' Turn 1: the opponent's Bear dies (any creature counts); at P0's end step P0 chooses the first mode and gains 2 (22). Turn 2 is the opponent's: no trigger at its end step. Turn 3: no creature dies, so nothing triggers at P0's end step (no mode is asked; life stays 22). P0 declines every attack.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "wardens", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 1},
+  {"key": "ogiant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature — Giant", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogiant", "target": "obear", "amount": 2},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "0"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn", "decisions": ["DECLINE"]},
+  {"op": "advance_turn"},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE"]},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "wardens": "battlefield"},
+  "life": {"0": 22, "1": 20},
+  "hand": {"0": 1}
+ }
+}

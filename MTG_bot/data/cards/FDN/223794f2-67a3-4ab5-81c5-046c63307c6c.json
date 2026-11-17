@@ -1,0 +1,240 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "223794f2-67a3-4ab5-81c5-046c63307c6c",
+ "name": "Seeker's Folly",
+ "text_sha": "d103a81c9bd3a2e4b48103c334732785a9cede886c9235770b5d79c28d2f8129",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 2
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_OPPONENT"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "TARGET_OPPONENT"
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "GRAVEYARD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "TARGET_OPPONENT"
+           }
+          }
+         ],
+         [
+          "from",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "HAND"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "TARGET_OPPONENT"
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MODIFY_PT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "power",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "DECREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "OPPONENT"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "toughness",
+          {
+           "tag": "PtDelta",
+           "direction": {
+            "tag": "PtDirection",
+            "name": "DECREASE"
+           },
+           "magnitude": {
+            "tag": "QConst",
+            "value": 1
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Seeker's Folly (FDN) -- Choose one --\n#  * Target opponent discards two cards.\n#      M21 Liliana's Steward's \"Target opponent discards a card\" (the TARGET_OPPONENT discard move),\n#      two cards as M21 Mind Rot's B5b-discard-target-2.\n#  * Creatures your opponents control get -1/-1 until end of turn.\n#      ZNR Beyeen Veil's B9-opponents-get-pm-eot at -1/-1 (M21 Massacre Wurm's two-sided shrink).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Choose(\n            count=QConst(value=1),\n            options=(\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=2),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_OPPONENT),),\n                    ),\n                    'controller': ControllerRef.TARGET_OPPONENT,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_OPPONENT),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_OPPONENT),\n                }),\n                A(Verb.MODIFY_PT, {\n                    'duration': DurationEot(),\n                    'power': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                    'toughness': PtDelta(direction=PtDirection.DECREASE, magnitude=QConst(value=1)),\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect (Choose count 1)"
+   },
+   {
+    "clause": "• Target opponent discards two cards.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Creatures your opponents control get -1/-1 until end of turn.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Choose(count 1): Liliana's Steward's TARGET_OPPONENT discard at Mind Rot's count 2; Beyeen Veil's opponents' creatures -1/-1 until end of turn. packs in tools/scenarios/mapped/FDN/: seekers_folly_opponent_chooses_two, seekers_folly_shrink_locks_in_its_creatures (CR 611.2c)."
+ },
+ "probe": {
+  "sha": "7420364bc1a4c2bd62a4c1f798d8a6c128d6eac5edc2fef4c25eb6713a409743"
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "vessel", "real": "Archfiend's Vessel", "zone": "graveyard", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "test_permission_cast", "key": "vessel", "from": "graveyard", "hold": true},
+  {"op": "resolve"},
+  {"op": "move", "key": "vessel", "to": "hand"},
+  {"op": "cast", "real": "Archfiend's Vessel", "key": "vessel"}
+ ],
+ "expect": {
+  "kick_rows": {"vessel": {"from": "hand"}},
+  "zone": {"vessel": "battlefield"},
+  "tokens": {"Demon": 0}
+ },
+ "notes": "Printed: 'When this creature enters, if it entered from your graveyard or you cast it from your graveyard, exile it. If you do, create a 5/5 black Demon creature token with flying.' Seat 0 casts the Vessel from its graveyard by a test permission; it resolves and enters, and its trigger waits. In response another effect returns the Vessel to its owner's hand (the move op), so the trigger exiles nothing and makes no Demon. Seat 0 then casts the Vessel from its hand the same turn. That Vessel is a new object (CR 400.7): it entered from the stack and was cast from the hand, so neither condition holds and it stays on the battlefield. Before 2026-11-17 CAST_THIS_TURN_FROM read every CAST row of the card this turn, so the first object's cast from the graveyard answered for the second: it exiled itself and made a Demon (the W4-5 fault of ENTERED_THIS_TURN_FROM, fixed 2026-10-30, in the cast twin)."
+}

@@ -1,0 +1,23 @@
+{"set": "FDN", "name": "joust_through_kills_an_attacker_and_gains_one_life",
+ "notes": "Printed: 'Joust Through deals 3 damage to target attacking or blocking creature. You gain 1 life.' On seat 1's turn its 3/3 attacks; in the declare attackers step seat 0 casts Joust Through on the ATTACKING 3/3: it dies (to the graveyard: no exile clause) before damage, and seat 0 gains 1 life (20 -> 21) and takes no combat damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "jt", "real": "Joust Through", "zone": "hand", "controller": 0},
+  {"key": "raider", "name": "Raider", "type": "Creature — Orc", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"raider": true},
+   "respond": {"DECLARE_ATTACKERS": [
+     {"op": "cast", "key": "jt", "real": "Joust Through", "controller": 0, "targets": ["raider"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"jt": "graveyard", "raider": "graveyard"},
+  "damage_received": {"raider": 3},
+  "life": {"0": 21, "1": 20}
+ }
+}

@@ -1,0 +1,24 @@
+{"set": "FDN", "name": "involuntary_employment_steals_attacks_and_pays_with_the_treasure",
+ "notes": "Printed: 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn. Create a Treasure token.' Seat 1's 3/3 Ogre starts tapped. Seat 0 casts Involuntary Employment on it: seat 0 controls it, it is untapped and has haste, so it attacks seat 1 this turn (20 -> 17). Seat 0's Treasure then pays Giant Growth on it (no other mana). On seat 1's turn the Ogre is back under seat 1's control.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ie", "real": "Involuntary Employment", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "ie", "real": "Involuntary Employment", "controller": 0, "targets": ["ogre"]},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}},
+  {"op": "cast", "key": "gg", "real": "Giant Growth", "controller": 0, "targets": ["ogre"], "tap": true},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"ie": "graveyard", "gg": "graveyard", "ogre": "battlefield"},
+  "life": {"0": 20, "1": 17},
+  "tokens": {"Treasure": 0},
+  "controller": {"ogre": 1}
+ }
+}

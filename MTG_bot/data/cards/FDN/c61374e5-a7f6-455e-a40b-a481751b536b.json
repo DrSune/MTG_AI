@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c61374e5-a7f6-455e-a40b-a481751b536b",
+ "name": "Bushwhack",
+ "text_sha": "7af98d328429865faead00c442a4bddfc0d29b6410e5abe4f17bdb5b9d9cb0f4",
+ "needs_atom": {
+  "missing": "FIGHT with a targeted fighter (CR 701.12a): '• Target creature you control fights target creature you don't control.' Verb.FIGHT has only a target role (the foe); the fighter is the ability's battlefield source or the result register of the atom before it (verbs._fight_attacker), so a spell cannot make its first target the fighter: a draft with FIGHT over 'target creature you don't control' raises 'FIGHT has no attacker' in all four probe variants of the mode. Needed: a fighter role on FIGHT, a TARGET slot of its own ('target creature you control'), with CR 701.12b (if either target is illegal as it resolves, neither creature deals damage). Two DEAL_DAMAGE atoms would approximate it (the legal creature still deals its damage when the other target is gone), so no record. The rest maps: 'Choose one —' is Choose(count 1); the first mode is M21 Fierce Empath's SEARCH (basic land card, SUPERTYPE_EQ Basic + TYPE_EQ Land) to hand, REVEAL count 1, SHUFFLE.",
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17"
+ }
+}

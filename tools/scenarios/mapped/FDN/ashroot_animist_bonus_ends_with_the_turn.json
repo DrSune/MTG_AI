@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "ashroot_animist_bonus_ends_with_the_turn",
+ "notes": "M4 mapper. Printed: 'Whenever this creature attacks, another target creature you control gains trample and gets +X/+X until end of turn, where X is this creature's power.' Ashroot Animist (4/4) attacks alone and targets seat 0's Bear, which stays home: 6/6 with trample this turn (seat 1 takes 4). On seat 0's next turn the Bear attacks alone (the Animist stays home: no trigger) and seat 1's 1/1 Cub blocks it: the Bear is 2/2 again and has no trample, so its 2 damage all go to the Cub (a trample answer [0] would put 1 on seat 1).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ashroot", "real": "Ashroot Animist", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ocub", "name": "Opp Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ashroot": true, "bear": false}, "block": {"ocub": null}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"ashroot": false, "bear": true}, "block": {"ocub": "bear"}, "trample": {"bear": [0]}}
+ ],
+ "expect": {
+  "attackers": {"bear": true, "ashroot": false},
+  "blocked": {"bear": ["ocub"]},
+  "power": {"bear": 2, "ashroot": 4},
+  "toughness": {"bear": 2},
+  "zone": {"ocub": "graveyard", "bear": "battlefield"},
+  "damage": {"bear": 1},
+  "life": {"0": 20, "1": 16}
+ }
+}
