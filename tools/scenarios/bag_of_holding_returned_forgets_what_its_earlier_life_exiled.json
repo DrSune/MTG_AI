@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_returned_forgets_what_its_earlier_life_exiled",
+ "notes": "Bug hunt 2026-11-17 (mapper M3, Hoarding Dragon's draft; wave E1). Bag of Holding: 'Whenever you discard a card, exile that card from your graveyard. / {2}, {T}: Draw a card, then discard a card. / {4}, {T}, Sacrifice this artifact: Return all cards exiled with this artifact to their owner's hand.' The Bag loots Spare A away (exiled by its trigger), then returns to its owner's hand and is put onto the battlefield again: a new object (CR 400.7). Its sacrifice returns only cards exiled with this object (CR 607.2a): none, so Spare A stays in exile. Hand: Spare A, +1 draw -1 discard, +1 the Bag, -1 the Bag = 1. Failed before the fix: IS_EXILED_WITH_SOURCE read every exile the card's handle caused, across its lives, and Spare A came back (hand 2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]},
+  {"op": "move", "key": "bag", "to": "hand"},
+  {"op": "enter", "key": "bag"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "spare_a": "exile"},
+  "hand": {"0": 1}
+ }
+}

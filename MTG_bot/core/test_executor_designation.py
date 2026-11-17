@@ -52,6 +52,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     QProp,
     QPropField,
+    QUnbounded,
     Selector,
     SelectorMode,
     Seq,
@@ -470,6 +471,26 @@ class TestTargetPlayerSacrifices(DesignationCase):
         self.enter(keeper)
         self.assertEqual(self.world.zone_of(keeper).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.world.zone_of(theirs).kind, ZONE_BATTLEFIELD)
+
+    def test_the_trigger_designates_the_player_of_a_selector_zone(self):
+        # FDN Angel of Finality, "When this creature enters, exile target player's graveyard":
+        # Tormod's Crypt's form, the player named only in the selector's zone. Before C1's one
+        # predicate (query.designated_player_refs) the trigger designated nobody and raised.
+        angel = self.carrier(self.p0, "Angel")
+        theirs = Selector(QUnbounded(), SelectorMode.ALL, UNIV,
+                          zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.TARGET_PLAYER),))
+        self.attach(angel, etb_trigger(atom(
+            Verb.MOVE_ZONE, cards=theirs, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER))),
+            name="Angel")
+        mine = self.world.add_card(card_id("Mine"), self.p0, ZONE_GRAVEYARD)
+        beast = self.world.add_card(card_id("Beast"), self.p1, ZONE_GRAVEYARD)
+        self.answer(str(self.p1))
+        self.enter(angel)
+        self.assertEqual(self.world.zone_of(beast).kind, ZONE_EXILE)
+        self.assertEqual(self.world.zone_of(mine).kind, ZONE_GRAVEYARD)
+        ((vocab, site),) = self.asks
+        self.assertEqual(vocab, (str(self.p0), str(self.p1)))
+        self.assertTrue(site.startswith(f"target:{self.p0}:{angel}:"))
 
     def test_target_opponent_is_forced_in_a_duel(self):
         keeper = self._gatekeeper(ControllerRef.TARGET_OPPONENT)

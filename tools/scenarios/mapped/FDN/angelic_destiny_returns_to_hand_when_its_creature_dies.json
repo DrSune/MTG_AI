@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "angelic_destiny_returns_to_hand_when_its_creature_dies",
+ "notes": "Printed: 'When enchanted creature dies, return this card to its owner's hand.' Seat 0 enchants its 2/2 Bear (6/6); 6 damage kills it; the Aura is put into its owner's graveyard (CR 704.5m) and its trigger returns it to seat 0's hand. CR 113.6m: the ability moves the Aura out of a graveyard, but its trigger condition is the object it enchants leaving the battlefield, so it functions on the battlefield (the rule's Aura exception), and it finds the Aura card in its owner's graveyard after the state-based check (CR 603.6e). Known bug until 2026-11-17 (M4 mapper; bug-hunt wave E1): binding.functions_from_graveyard missed the Aura exception, bound the trigger only once the Aura was in the graveyard, after the creature's death was matched, and it never triggered.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "destiny", "real": "Angelic Destiny", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "destiny", "controller": 0, "targets": ["bear"]},
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 6}
+ ],
+ "expect": {
+  "zone": {"destiny": "hand", "bear": "graveyard", "ogre": "battlefield"},
+  "hand": {"0": 1}
+ }
+}

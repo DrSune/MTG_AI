@@ -1708,13 +1708,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return bool(dies)
         return False
     if pred is FAtomPred.IS_EXILED_WITH_SOURCE:
-        # "cards exiled with ~" (Idol of Endurance, Chandra, Heart of Fire).
-        # WORLD half: the card is in exile NOW. HISTORY half: the source
-        # CAUSED the exile: the journal's diff-inspect writes the acting
-        # ability's source into the cause column, so "exiled with this
-        # artifact" is a cause read, not a heuristic. NOT turn-windowed:
-        # an exile-with persists across turns (the world half prunes what
-        # has since moved on).
+        # "cards exiled with ~" (Idol of Endurance, Bag of Holding, Hoarding Dragon's "the exiled
+        # card"). WORLD half: the card is in exile NOW. HISTORY half: the source CAUSED that
+        # exile: the journal's diff-inspect writes the acting ability's source into the cause
+        # column, so "exiled with this artifact" is a cause read, not a heuristic. NOT
+        # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are the
+        # objects they are now. The exile is the card's last arrival there (a card that left
+        # exile and came back is a new object), made by the source's life that ends or goes on
+        # now: since its last entry onto the battlefield (a returned Bag of Holding returns none
+        # of the cards its earlier life exiled). A source that never entered reads them all.
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1725,13 +1727,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if handle not in world.cards or world.zone_of(handle).kind != ZONE_EXILE:
             return False
-        return any(
-            e.kind == KIND_ZONE_CHANGE
-            and e.subject == handle
-            and e.zone_move[1] == ZONE_EXILE
-            and e.cause == ctx.source
-            for e in jrn.events
-        )
+        life, arrival = 0, None
+        for e in jrn.events:
+            if e.kind != KIND_ZONE_CHANGE:
+                continue
+            if e.subject == ctx.source and e.zone_move[1] == ZONE_BATTLEFIELD:
+                life = e.clock
+            elif e.subject == handle and e.zone_move[1] == ZONE_EXILE:
+                arrival = e
+        return arrival is not None and arrival.cause == ctx.source and arrival.clock > life
     if pred is FAtomPred.IS_ATTACKING:
         # CR 506.4: the executor's live attack record, the attacker
         # set the COMBAT skeleton fills at declaration and clears at end

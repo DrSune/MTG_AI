@@ -895,6 +895,35 @@ class TestV30GraveyardTriggers(unittest.TestCase):
         )
         self.assertIn((g, 0), r.ex.binder.attached_graveyard)
 
+    def test_an_auras_return_on_its_creatures_death_functions_on_the_battlefield(self):
+        # CR 113.6m's Aura exception: "When enchanted creature dies, return this card to its
+        # owner's hand" (FDN Angelic Destiny, pack mapped/FDN/angelic_destiny_returns_to_hand_
+        # when_its_creature_dies) triggers on the object the Aura enchants leaving the
+        # battlefield, so it functions on the battlefield; the same ability of a non-Aura
+        # functions only in the graveyard.
+        from MTG_bot.core.ability_tree import (
+            CreatureDiesEvent,
+            FAtom,
+            FAtomPred,
+            Selector,
+            SelectorMode,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.executor.binding import functions_from_graveyard
+
+        come_back = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE)),
+            condition=None,
+            effect=atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, FAtom(FAtomPred.IS_SOURCE),
+                               zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),)),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+        )
+        self.assertFalse(functions_from_graveyard(come_back, aura=True))
+        self.assertTrue(functions_from_graveyard(come_back))
+
 
 class TestCastCostRoleIsAdditional(unittest.TestCase):
     def setUp(self):

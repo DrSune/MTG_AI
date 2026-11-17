@@ -328,30 +328,52 @@ class DelayedBinding:
     controller: Handle
 
 
-def functions_from_graveyard(ability: object) -> bool:
+def _names_the_enchanted(filter_: object, positive: bool = True) -> bool:
+    """Does the filter pin the object the source is attached to (an IS_ATTACHED_TO_SOURCE
+    reached through an even number of negations), the way ``_filter_names_the_source`` pins
+    the source?"""
+    if isinstance(filter_, FAtom):
+        return positive and filter_.pred is FAtomPred.IS_ATTACHED_TO_SOURCE
+    if isinstance(filter_, (FAnd, FOr)):
+        return any(_names_the_enchanted(c, positive) for c in filter_.children)
+    if isinstance(filter_, FNot):
+        return _names_the_enchanted(filter_.inner, not positive)
+    return False
+
+
+def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
     """CR 113.6m ("An ability whose cost or effect specifies that it moves
     the object it's on out of a particular zone functions only in that zone, unless its
-    trigger condition ... specifies that the object is put into that zone"): a
+    trigger condition ... specifies that the object is put into that zone or, if the object
+    is an Aura, that the object it enchants leaves the battlefield"): a
     triggered ability whose effect moves its own source out of a graveyard
     ("return this card from your graveyard to the battlefield tapped", Silversmote
     Ghoul) functions only while that card is in a graveyard. One that triggers on that
     card being put into a graveyard from the battlefield ("When this creature dies,
     return it to its owner's hand", Immortal Phoenix) functions on the battlefield and
     looks back at its own death (CR 603.10a). "Another" (an IS_SOURCE under a
-    negation) is not the card itself."""
+    negation) is not the card itself. So does an Aura's (``aura``) that triggers on the
+    object it enchants leaving the battlefield ("When enchanted creature dies, return this
+    card to its owner's hand", Angelic Destiny): it finds the Aura card in its owner's
+    graveyard once the state-based check has put it there (CR 603.6e)."""
     from MTG_bot.core.executor.selectors import _filter_names_the_source
 
     if not isinstance(ability, TriggeredAbility):
         return False
     event = ability.event
     dies = event.filter if isinstance(event, CreatureDiesEvent) else None
+    left = dies  # the subject of a leaves-the-battlefield trigger condition
     if (
         isinstance(event, ZoneChangeEvent)
         and event.from_zone.kind is ZoneKind.BATTLEFIELD
-        and event.to_zone.kind is ZoneKind.GRAVEYARD
+        and event.to_zone.kind is not ZoneKind.BATTLEFIELD
     ):
-        dies = event.subject
+        left = event.subject
+        if event.to_zone.kind is ZoneKind.GRAVEYARD:
+            dies = event.subject
     if dies is not None and _filter_names_the_source(dies):
+        return False
+    if aura and left is not None and _names_the_enchanted(left):
         return False
     for node in walk(ability.effect):
         if not isinstance(node, Atom) or node.verb is not Verb.MOVE_ZONE:
@@ -568,8 +590,9 @@ class TriggerBinder:
         """CR 113.6m: bind the record's graveyard-only triggers while the
         card is in a graveyard."""
         n = 0
+        aura = "Aura" in record.subtypes
         for idx, ability in enumerate(record.abilities):
-            if functions_from_graveyard(ability):
+            if functions_from_graveyard(ability, aura):
                 assert isinstance(ability, TriggeredAbility)
                 self._check_trigger(ability, record.name)
                 self.attached_graveyard[(handle, idx)] = ability
@@ -585,10 +608,11 @@ class TriggerBinder:
         BEFORE the old bindings are dropped (flag, never degrade into a
         silent unlink)."""
         triggers = []
+        aura = "Aura" in record.subtypes
         for idx, ability in enumerate(record.abilities):
             if isinstance(ability, TriggeredAbility):
                 self._check_trigger(ability, record.name)
-                if functions_from_graveyard(ability):
+                if functions_from_graveyard(ability, aura):
                     continue  # CR 113.6m: it does not function here
                 triggers.append((idx, ability))
         self.detach(handle, leaving=False)
