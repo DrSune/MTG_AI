@@ -1060,10 +1060,14 @@ class Executor:
             # The compiler's sentence convention
             # (templates_b5b._build_if_it_type_then: "Conditional whose
             # subject is the previous sentence's revealed card"): when the
-            # preceding atom was a LOOK_AT/REVEAL, the pred judges the
-            # revealed card, not the ability source (Track Down's "if it's
-            # a creature or land card"). run_atom closes the window after
-            # every other verb. A bare Conditional judges ctx.source, unless
+            # preceding atom was a LOOK_AT/REVEAL and the predicate tests a
+            # card's characteristics, it judges the revealed card, not the
+            # ability source (Track Down's "if it's a creature or land
+            # card"). run_atom closes the window after every other verb. A
+            # history question about the spell itself is not about the
+            # card shown: See the Truth's "If this spell was cast from
+            # anywhere other than your hand" right after its look judges the
+            # spell. A bare Conditional judges ctx.source, unless
             # the predicate tests only an object's characteristics ("If it
             # was a creature card", Scavenging Ooze): then "it" is the
             # object the previous sentence acted on, the result register,
@@ -1071,7 +1075,7 @@ class Executor:
             # condition is false (CR 608.2b).
             subj = (
                 ctx.look_window[0]
-                if ctx.look_window
+                if ctx.look_window and _tests_characteristics_only(effect.pred)
                 else _conditional_subject(effect.pred, ctx)
             )
             if subj is not None and eval_filter(effect.pred, subj, ctx):
