@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "apothecary_stomper_vigilance_attacks_without_tapping",
+ "notes": "Printed: 'Vigilance (Attacking doesn't cause this creature to tap.)' Seat 0 attacks with Apothecary Stomper (4/4) and a Plain Brute (3/3, no vigilance); seat 1 has no blockers and takes 4 + 3 (20 -> 13). Afterwards the Stomper is untapped and the Brute is tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "st", "real": "Apothecary Stomper", "zone": "battlefield", "controller": 0},
+  {"key": "brute", "name": "Plain Brute", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"st": true, "brute": true}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 13},
+  "tapped": {"st": false, "brute": true}
+ }
+}

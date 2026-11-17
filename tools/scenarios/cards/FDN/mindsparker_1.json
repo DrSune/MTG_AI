@@ -1,0 +1,48 @@
+{
+ "set": "FDN",
+ "name": "F03_1",
+ "notes": "Mindsparker. Printed: 'Whenever an opponent casts a white or blue instant or sorcery spell, this creature deals 2 damage to that player.' Seat 1 casts Opt (a blue instant) on seat 0's turn: seat 1 takes 2 (18); seat 0 is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ms",
+   "real": "Mindsparker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "controller": 1,
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "opt": "graveyard"
+  }
+ }
+}

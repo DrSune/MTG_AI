@@ -240,7 +240,7 @@ class TestEffectCast(Rung1Case):
         )
         sel = Selector(QConst(1), SelectorMode.CHOOSE, UNIV, zones=(ANY_ZONE,))
         self.ex.apply_effect(
-            OptionalEffect(atom(Verb.CAST, source=sel, cost=Cost(()))),
+            OptionalEffect(atom(Verb.CAST, source=sel, alternative=Cost(()))),
             source=self.world.add_card(card_id("Caster", "1", "1"), self.p0, ZONE_BATTLEFIELD),
             controller=self.p0,
             bindings={"source": exiled},

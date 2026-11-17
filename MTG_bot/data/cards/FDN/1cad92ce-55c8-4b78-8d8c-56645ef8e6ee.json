@@ -156,5 +156,38 @@
  },
  "probe": {
   "sha": "21738f973fcca363c469e42702d15ba4e3e6fa2f81f2603e52a2a94b9fa93bd8"
+ },
+ "verified": {
+  "tree_sha": "4ea2c3c88adfc8677d0f63e355cf0c2ca4af375aa45b4214a329abf1626d7c12",
+  "probe_sha": "21738f973fcca363c469e42702d15ba4e3e6fa2f81f2603e52a2a94b9fa93bd8",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING. [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 2 (combat): the giant cannot block a flyer.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a noncreature or Dragon spell, this creature deals 1 damage to each opponent.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Noncreature is shown ([you cast an instant or sorcery (Crash Through)]: trigger [0], opp is dealt 1 damage by card/DEAL_DAMAGE, 20 -> 19; the same on the opponent's turn with Opt; [you cast a creature (Aegis Turtle)]: none). No Dragon creature spell is cast in the probe, and no opponent's spell or second opponent. Pack E07_1: a Dragon creature spell pings, a Bear creature spell does not; E07_2: an artifact spell pings; E07_3: the opponent's own spell does not; E07_4: three players, each opponent takes 1. E07_5: the damage is still dealt when the Whelp left the battlefield with the trigger on the stack.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/firespitter_whelp_1.json",
+   "tools/scenarios/cards/FDN/firespitter_whelp_2.json",
+   "tools/scenarios/cards/FDN/firespitter_whelp_3.json",
+   "tools/scenarios/cards/FDN/firespitter_whelp_4.json",
+   "tools/scenarios/cards/FDN/firespitter_whelp_5.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

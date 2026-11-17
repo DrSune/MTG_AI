@@ -174,7 +174,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "LIFE_TOTAL_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -185,11 +185,20 @@
      },
      "counter_kind": null,
      "keyword": null,
-     "who": {
-      "tag": "ControllerRef",
-      "name": "YOU"
-     },
-     "inner_filter": null
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QProp",
+      "referent": "controller",
+      "field": {
+       "tag": "QPropField",
+       "name": "LIFE"
+      },
+      "agg": {
+       "tag": "QAgg",
+       "name": "FIRST"
+      }
+     }
     }
    },
    {
@@ -202,9 +211,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-life-family",
-  "date": "2026-11-13",
-  "draft_py": "abilities = [*compiled]\n",
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FLYING),\n]\nabilities = [\n    # [0]\n    ReplacementAbility(\n        event=LifeGainedEvent(actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)),\n        condition=None,\n        action=A(Verb.GAIN_LIFE, {\n            'amount': QBin(\n                op=QBinOp.ADD,\n                left=QProp(referent='event', field=QPropField.AMOUNT),\n                right=QConst(value=1),\n            ),\n            'controller': ControllerRef.YOU,\n        }),\n    ),\n    # [1]\n    StaticAbility(\n        effect=A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        }),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=25),\n            quantity=QProp(referent='controller', field=QPropField.LIFE),\n        ),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Flying",
@@ -220,52 +229,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "The compiler builds the whole tree since the life family (ontology round R8, gate round 8). The replacement is Conclave Mentor's shape on the life lane: GAIN_LIFE of QProp(event, AMOUNT) + 1, the replaced amount now published by the executor (verbs._v_gain_life); a gain of 0 is no event (CR 119.10). The +2/+2 static reads FAtomPred.LIFE_TOTAL_GE(YOU, 25), the life total now (the card's ruling for formats not starting at 20). Pack tools/scenarios/mapped/M20/angel_of_vitality_plus_one_reaches_25_life.json (21 + 3 + 1 = 25, a 4/4 Angel). One lifelink source dealing damage to several recipients at once is one life-gain event (its ruling), so the +1 applies once: the engine gains once per source since the lifelink fix of gate round 8 (DESIGN_ATOM_ONTOLOGY §12 R8-4; pack tools/scenarios/mapped/M20/angel_of_vitality_and_twinblade_one_gain_for_a_trampler.json, a trampler over a 0/2: 20 -> 26)."
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-13 by claude-sonnet-verifier-wave1d tree, same meaning; it waits for re-verification."
  },
  "probe": {
   "sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6"
- },
- "verified": {
-  "tree_sha": "fcba0e02ca1b95d3f8d832bf42fb19c934677000b5dae708dde5f88d58729d9b",
-  "probe_sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1d",
-  "clauses": [
-   {
-    "clause": "Flying",
-    "status": "OK",
-    "evidence": "keywords +FLYING on cast",
-    "issue": ""
-   },
-   {
-    "clause": "If you would gain life, you gain that much life plus 1 instead.",
-    "status": "OK",
-    "evidence": "gain 3 stimulus: 'you gains 4 life (by card/GAIN_LIFE)', life 20 -> 24 (reads event amount + 1)",
-    "issue": ""
-   },
-   {
-    "clause": "+2/+2 as long as you have 25 or more life",
-    "status": "NOT_EXERCISED",
-    "evidence": "trace tops out at 24 life, never reaches 25; tree LIFE_TOTAL_GE 25 on the controller is right, but the edge and the turn-off are unshown",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/angel_of_vitality_1.json",
-   "tools/scenarios/cards/M20/angel_of_vitality_2.json",
-   "tools/scenarios/cards/M20/angel_of_vitality_3.json"
-  ],
-  "mutation": {
-   "mutants": 10,
-   "killed": 5,
-   "score": 0.5,
-   "survived": [
-    "amount+1 at 1/1/effect/args/power/magnitude",
-    "amount-1 at 1/1/effect/args/power/magnitude",
-    "amount+1 at 1/1/effect/args/toughness/magnitude",
-    "amount-1 at 1/1/effect/args/toughness/magnitude",
-    "amount+1 at 1/1/condition/count"
-   ]
-  }
  }
 }

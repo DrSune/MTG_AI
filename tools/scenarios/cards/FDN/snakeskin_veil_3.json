@@ -1,0 +1,21 @@
+{
+ "name": "H02_snakeskin_veil_needs_a_creature_you_control",
+ "set": "FDN",
+ "note": "Snakeskin Veil: 'target creature you control'. P0 tries to cast it on the opponent's creature: refused as an illegal target; the card stays in hand and nothing is changed. Then it is cast on P0's own creature.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "veil", "zone": "hand", "controller": 0, "real": "Snakeskin Veil"},
+  {"key": "mine", "zone": "battlefield", "controller": 0, "name": "Mine", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "theirs", "zone": "battlefield", "controller": 1, "name": "Theirs", "power": "2", "toughness": "2", "type": "Creature"}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["theirs"], "expect_raise": "illegal target"},
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["mine"]}
+ ],
+ "expect": {
+  "counters": {"mine": {"PLUS_1_PLUS_1": 1}, "theirs": {}},
+  "power": {"mine": 3, "theirs": 2},
+  "zone": {"veil": "graveyard"}
+ }
+}

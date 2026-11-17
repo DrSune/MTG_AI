@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "bite_down_a_negative_power_deals_no_damage",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' A negative number an effect uses counts as 0 (CR 107.1b). Seat 0's Gnome is printed 1/3; Stab (-2/-2 until end of turn) makes it -1/1, and Bite Down then has it deal 0 damage: seat 1's Colossus has no damage marked and no life changes (it is not healed either).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "stab", "real": "Stab", "zone": "hand", "controller": 0},
+  {"key": "gnome", "name": "My Gnome", "type": "Creature", "power": "1", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "colossus", "name": "Opp Colossus", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "B": 1}},
+ "steps": [
+  {"op": "cast", "key": "stab", "targets": ["gnome"]},
+  {"op": "cast", "key": "bd", "targets": ["gnome", "colossus"]}
+ ],
+ "expect": {
+  "zone": {"stab": "graveyard", "bd": "graveyard", "gnome": "battlefield", "colossus": "battlefield"},
+  "power": {"gnome": -1},
+  "toughness": {"gnome": 1},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

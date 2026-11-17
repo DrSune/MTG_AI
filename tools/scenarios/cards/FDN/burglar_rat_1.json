@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "name": "G10_1",
+ "notes": "Printed (FDN Burglar Rat): 'When this creature enters, each opponent discards a card.' Three players: each of the two opponents discards one card of their own choice; I discard nothing.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "rat",
+   "real": "Burglar Rat",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Spare",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "a1",
+   "name": "Seat1 Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "a2",
+   "name": "Seat1 Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "b1",
+   "name": "Seat2 Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 2,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "b2",
+   "name": "Seat2 Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 2
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "rat",
+   "decisions": [
+    "a2",
+    "b1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rat": "battlefield",
+   "mine": "hand",
+   "a1": "hand",
+   "a2": "graveyard",
+   "b1": "graveyard",
+   "b2": "hand"
+  }
+ }
+}

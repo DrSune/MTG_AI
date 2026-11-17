@@ -657,14 +657,19 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
         # graveyard while the grant stays live. Static/continuous layers DO
         # depend on their source (CR 611.3a: loses the ability when the
         # source leaves), so a dead source there stays a hit.
-        # The TARGET side is flagged for every kind regardless.
+        # The TARGET side is flagged for every kind but ``permit``: a permission's objects are
+        # cards in the zones it names, a graveyard or exile (CR 601.3), off the battlefield by
+        # design, and a duration-tagged (resolved) permission outlives its source as a grant does
+        # (CR 611.2a; ontology round R13).
         for row in g.layers_rows:
             seq, kind_, source, _controller, tag, status = row[:6]
             raw_targets = row[6] if isinstance(row[6], tuple) else ()
-            targets = tuple(str(t) for t in raw_targets)
+            targets = tuple(str(t) for t in raw_targets) if kind_ != "permit" else ()
             if status != "live" or not g.final_zone:
                 continue
-            source_exempt = kind_ in ("grant", "lose") and bool(str(tag).strip())
+            source_exempt = (kind_ in ("grant", "lose") and bool(str(tag).strip())) or (
+                kind_ == "permit" and len(row) > 11 and row[11] is True  # made by a resolution
+            )
             for raw in (source, *targets):
                 handle = str(raw)
                 if source_exempt and handle == str(source):

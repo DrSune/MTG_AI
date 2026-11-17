@@ -42,6 +42,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     OptionalEffect,
     QConst,
+    QPropField,
     ReplacementAbility,
     Selector,
     SelectorMode,
@@ -54,6 +55,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_least,
 )
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.binding import _player_subject_verdict
@@ -487,7 +489,7 @@ class R20bCase(unittest.TestCase):
         ctx = self._ctx()
         with self.assertRaises(NotImplementedError):
             _player_subject_verdict(
-                FAtom(pred=FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(1)),
+                at_least(1, field=QPropField.POWER),  # a comparison: not decidable here
                 self.p1,
                 ctx,
             )

@@ -174,5 +174,57 @@
  },
  "probe": {
   "sha": "c39dcd16d069edb14c123a914cdc4076e33676040c5de22f3712326f14d8f659"
+ },
+ "verified": {
+  "tree_sha": "df29a2c65a108031dc0d406697052e521de7e8a6d694b161bd230615638344f5",
+  "probe_sha": "c39dcd16d069edb14c123a914cdc4076e33676040c5de22f3712326f14d8f659",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Morbid — At the beginning of your end step, if a creature died this turn, choose one —",
+    "status": "NOT_EXERCISED",
+    "evidence": "No variant has a creature die and then the end step come: '[stimulus: your creature (you_bear) dies]' and the opponent's creature dying stop at the death (no trigger), and the end-step stimuli ('turns pass', 'cast Crash Through, then your end step comes') have no death. Packs D09_1 (the opponent's Bear dies in my turn: the trigger fires at my end step), D09_2 (my own Bear dies), D09_3 (no creature died, an artifact went to the graveyard: no trigger, no ask), D09_4 (a creature dies in the opponent's turn: nothing at the opponent's end step) pass. Pack D09_5 (passes): a creature token that dies counts as a creature that died.",
+    "issue": ""
+   },
+   {
+    "clause": "• You gain 2 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Never reached in the trace. Pack D09_1 (passes): mode 0 at my end step, life 20 -> 22, nothing drawn.",
+    "issue": ""
+   },
+   {
+    "clause": "• You draw a card and you lose 1 life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Never reached in the trace. Pack D09_2 (passes): mode 1, exactly one card drawn (hand 0 -> 1) and exactly 1 life lost (20 -> 19), the opponent untouched.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/wardens_of_the_cycle_1.json",
+   "tools/scenarios/cards/FDN/wardens_of_the_cycle_2.json",
+   "tools/scenarios/cards/FDN/wardens_of_the_cycle_3.json",
+   "tools/scenarios/cards/FDN/wardens_of_the_cycle_4.json",
+   "tools/scenarios/cards/FDN/wardens_of_the_cycle_5.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 0,
+   "score": 0.0,
+   "survived": [
+    "trigger scope: your turn -> each turn at 1/0/event",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/count",
+    "amount+1 at 1/0/effect/options/0/args/amount",
+    "amount-1 at 1/0/effect/options/0/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/0/args/controller",
+    "drop step 0 at 1/0/effect/options/1",
+    "drop step 1 at 1/0/effect/options/1",
+    "amount+1 at 1/0/effect/options/1/steps/0/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/1/steps/0/args/controller",
+    "amount+1 at 1/0/effect/options/1/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/options/1/steps/1/args/controller"
+   ]
+  }
  }
 }

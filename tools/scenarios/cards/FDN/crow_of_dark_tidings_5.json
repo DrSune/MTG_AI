@@ -1,0 +1,20 @@
+{
+ "name": "H00_crow_dies_mills_its_controllers_library_not_its_owners",
+ "set": "FDN",
+ "note": "Crow of Dark Tidings: 'mill two cards' puts the top two cards of the library of the player who controls the ability. P0 owns the Crow but P1 controls it (gain_control) when it dies: the dies trigger is P1's, so P1's top two cards go to P1's graveyard and P0's library is untouched; the Crow card itself goes to its owner P0's graveyard.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "battlefield", "controller": 0, "real": "Crow of Dark Tidings"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "gain_control", "key": "crow", "seat": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "crow", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"crow": "graveyard"},
+  "graveyard": {"0": ["Crow of Dark Tidings"], "1": ["Library 5", "Library 4"]},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

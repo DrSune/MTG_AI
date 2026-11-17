@@ -17,5 +17,5 @@
     "zone": {"rtp": "graveyard", "two": "battlefield", "one": "battlefield", "three": "graveyard", "sorc": "graveyard", "opp_one": "graveyard"},
     "mana_pool": {"0": {}}
   },
-  "notes": "Raise the Past: 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.' MV 1 and MV 2 creatures in your graveyard return; a MV 3 creature, a noncreature card and the opponent's MV 1 creature stay. Kills CMC_LE 2->3 (the probe's graveyard has only MV 2 creatures)."
+  "notes": "Raise the Past: 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.' MV 1 and MV 2 creatures in your graveyard return; a MV 3 creature, a noncreature card and the opponent's MV 1 creature stay. Kills the mutant that reads mana value 3 or less for 2 or less (at_most(2, field=MANA_VALUE) -> 3) (the probe's graveyard has only MV 2 creatures)."
 }

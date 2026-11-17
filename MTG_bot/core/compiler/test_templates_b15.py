@@ -36,6 +36,7 @@ from MTG_bot.core.ability_tree import (
     OptionalEffect,
     QAtLeast,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     StaticAbility,
@@ -43,6 +44,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
 )
 from MTG_bot.core.compiler import templates_b15
 from MTG_bot.core.compiler.compiler import compile_card
@@ -94,7 +96,7 @@ def test_each_creature_with_power_n_or_greater(registry) -> None:
         "Each creature you control with power 4 or greater can't be blocked by more than one "
         "creature.",
     )
-    big = FAnd((YOU, FAtom(pred=FAtomPred.POWER_GE, count=QConst(4)), CREATURE))
+    big = FAnd((YOU, at_least(4, field=QPropField.POWER), CREATURE))
     assert outcome == AbilityOutcome(ability=StaticAbility(effect=limit(big)))
 
 

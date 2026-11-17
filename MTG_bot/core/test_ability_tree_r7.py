@@ -4,10 +4,9 @@ SET_PT, the blocked side of a declare-blockers event, and MANDATE_BLOCK.
 - ``FAtomPred.TURN_OF`` — required ``who`` — "it is <who>'s turn"
   ("During your turn, …"; Radha, Heart of Keld; Discontinuity — the Phase
   enum carries no turn owner).
-- ``FAtomPred.ZONE_COUNT_GE`` — required ``who`` + ``zone`` +
-  ``inner_filter`` + ``count`` — "<who> has >= count cards in their
-  <zone> matching inner_filter" (Thieves' Guild Enforcer: "an opponent
-  has 8 or more cards in their graveyard").
+- "an opponent has 8 or more cards in their graveyard" (Thieves' Guild
+  Enforcer): since ontology round R12 the one comparison of a count of
+  "your" graveyard, read for some opponent (``who``), replacing ZONE_COUNT_GE.
 - ``_VERB_ROLES[SET_PT]`` — power and toughness are each optional, but
   at least one is required, as for MODIFY_PT: a zero-role SET_PT raises.
 - ``DeclareBlockersEvent.blocked: Filter | None = None`` — narrows
@@ -38,6 +37,7 @@ _UNIVERSAL = at.FAnd(())
 _NEUTRAL = at.Zone(at.ZoneKind.ANY, at.ControllerRef.ANY)
 _BF_YOU = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.YOU)
 _GY_OPP = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.OPPONENT)
+_GY_YOU = at.Zone(at.ZoneKind.GRAVEYARD, at.ControllerRef.YOU)
 _IS_SOURCE = at.FAtom(at.FAtomPred.IS_SOURCE)
 
 
@@ -54,13 +54,7 @@ def _fatom_turn_of_you() -> at.FAtom:
 def _fatom_zone_count_ge() -> at.FAtom:
     """Thieves' Guild Enforcer's condition: "an opponent has 8 or more
     cards in their graveyard"."""
-    return at.FAtom(
-        at.FAtomPred.ZONE_COUNT_GE,
-        who=at.ControllerRef.OPPONENT,
-        zone=_GY_OPP,
-        inner_filter=_UNIVERSAL,
-        count=at.QConst(8),
-    )
+    return at.at_least(8, quantity=at.number_in(_GY_YOU), who=at.ControllerRef.OPPONENT)
 
 
 def _target_sel() -> at.Selector:
@@ -143,7 +137,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "fatom_zone_count_ge",
         _fatom_zone_count_ge,
-        "5382a52e870bcdf8131a54d2b129fb3649f0b541386781f05659f49e7cddc8bf",
+        "2013cda703978b0e77b7d394864398f6c2d554e674390f36ba5167dea6e54e19",  # re-pinned by round R12 (ZONE_COUNT_GE folded)
     ),
     (
         "set_pt_power_only",
@@ -220,20 +214,16 @@ def test_fatom_turn_of_rules() -> None:
 
 
 def test_fatom_zone_count_ge_rules() -> None:
-    """required==allowed=={who, zone, inner_filter, count}
-    (CONTROLLER_COUNT_GE style plus the required who/zone slots)."""
-    assert at._FATOM_RULES[at.FAtomPred.ZONE_COUNT_GE] == (
-        frozenset({"who", "zone", "inner_filter", "count"}),
-        frozenset({"who", "zone", "inner_filter", "count"}),
-    )
+    """The comparison's slots: the threshold and the count of "your" graveyard read for some
+    opponent; no zone or inner_filter slot of its own (the selector holds both)."""
     node = _fatom_zone_count_ge()
     d = at.to_dict(node)
     assert d["who"] == {"tag": "ControllerRef", "name": "OPPONENT"}
-    assert d["zone"]["tag"] == "Zone"
-    assert d["zone"]["kind"] == {"tag": "ZoneKind", "name": "GRAVEYARD"}
-    assert d["inner_filter"] == {"tag": "FAnd", "children": []}
+    assert d["quantity"]["tag"] == "QCount"
+    assert d["quantity"]["selector"]["zones"] == [at.to_dict(_GY_YOU)]
+    assert d["inner_filter"] is None
     assert d["count"] == {"tag": "QConst", "value": 8}
-    assert "from_zone" not in d and "to_zone" not in d
+    assert "zone" not in d and "from_zone" not in d and "to_zone" not in d
 
 
 def test_set_pt_single_role_builds() -> None:
@@ -325,7 +315,7 @@ def test_mandate_block_roles_mirror_attack() -> None:
 
 def test_r7_table_members() -> None:
     assert at.FAtomPred.TURN_OF.value == "TURN_OF"
-    assert at.FAtomPred.ZONE_COUNT_GE.value == "ZONE_COUNT_GE"
+    assert "ZONE_COUNT_GE" not in at.FAtomPred.__members__  # folded by round R12
     assert at.Verb.MANDATE_BLOCK.value == "MANDATE_BLOCK"
     assert at._OMIT_IF_EMPTY["DeclareBlockersEvent"] == frozenset(
         {"subject", "blocked", "count"}  # count: the blocker limit
@@ -347,62 +337,32 @@ def _rejection_cases() -> list[tuple[str, Callable[[], object]]]:
                 at.FAtomPred.TURN_OF, who=at.ControllerRef.YOU, count=at.QConst(1)
             ),
         ),
-        # ZONE_COUNT_GE slot arity + slot value types
+        # the comparison's `who` reads a count of cards that names "you"
         (
-            "zc_missing_who",
-            lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
-                zone=_GY_OPP,
-                inner_filter=_UNIVERSAL,
-                count=at.QConst(8),
+            "who_over_a_count_that_reads_no_you",
+            lambda: at.at_least(
+                8, quantity=at.number_in(_GY_OPP), who=at.ControllerRef.OPPONENT
             ),
         ),
         (
-            "zc_missing_zone",
-            lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
-                who=at.ControllerRef.OPPONENT,
-                inner_filter=_UNIVERSAL,
-                count=at.QConst(8),
-            ),
+            "who_you_is_the_absent_who",
+            lambda: at.at_least(8, quantity=at.number_in(_GY_YOU), who=at.ControllerRef.YOU),
         ),
         (
-            "zc_missing_inner_filter",
+            "comparison_count_int",
             lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
+                at.FAtomPred.QTY_GE,
                 who=at.ControllerRef.OPPONENT,
-                zone=_GY_OPP,
-                count=at.QConst(8),
-            ),
-        ),
-        (
-            "zc_unrequested_string_value",
-            lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
-                who=at.ControllerRef.OPPONENT,
-                zone=_GY_OPP,
-                inner_filter=_UNIVERSAL,
-                count=at.QConst(8),
-                string_value="Creature",
-            ),
-        ),
-        (
-            "zc_count_int",
-            lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
-                who=at.ControllerRef.OPPONENT,
-                zone=_GY_OPP,
-                inner_filter=_UNIVERSAL,
+                quantity=at.number_in(_GY_YOU),
                 count=8,  # type: ignore[arg-type]
             ),
         ),
         (
-            "zc_zone_enum_not_zone",
+            "comparison_zone_slot",
             lambda: at.FAtom(
-                at.FAtomPred.ZONE_COUNT_GE,
-                who=at.ControllerRef.OPPONENT,
-                zone=at.ZoneKind.GRAVEYARD,  # type: ignore[arg-type]
-                inner_filter=_UNIVERSAL,
+                at.FAtomPred.QTY_GE,
+                quantity=at.number_in(_GY_YOU),
+                zone=_GY_YOU,
                 count=at.QConst(8),
             ),
         ),

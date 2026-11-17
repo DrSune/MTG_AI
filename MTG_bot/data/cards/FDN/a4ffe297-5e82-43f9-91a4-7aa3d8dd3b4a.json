@@ -246,5 +246,38 @@
  },
  "probe": {
   "sha": "30f4c1fb8212a195b8fe3b7cc991cf6052fe2f6ab5440d35b444dcee1c21071b"
+ },
+ "verified": {
+  "tree_sha": "92145a927469a98a1df2896087cba583fbc2d673c42a7be19aa173cb872061c9",
+  "probe_sha": "30f4c1fb8212a195b8fe3b7cc991cf6052fe2f6ab5440d35b444dcee1c21071b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords[0] FLYING. Probe [cast]: 'keywords +FLYING'. Stimulus 'this creature attacks and opp_giant blocks it': no DECLARE_BLOCKERS row and the opponent takes the 2 combat damage, so the ground giant could not block it.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters or dies, mill two cards.",
+    "status": "OK",
+    "evidence": "Two TriggeredAbility nodes with equal effects, the R_TWOEVENTS form: abilities[0] enters (ZoneChangeEvent to the battlefield, IS_SOURCE), abilities[1] CreatureDiesEvent(IS_SOURCE). Effect: MOVE_ZONE amount 2, controller YOU, library YOU -> graveyard YOU, journal_kind MILL, pop_order TOP. Probe [cast] and 'enters during the opponent's turn': ability [0] triggers once, Library 5 and Library 4 move library -> graveyard, 'you: library 6 -> 4'. Stimuli 'dealt 1 damage' and 'dealt lethal damage': ability [1] triggers once after 'card dies', the same two cards move, 'you: library 6 -> 4'. Other creatures dying: no trigger. Not in the probe, pinned by packs: the exact top two cards of the right library and the opponent's untouched (H00_1, H00_2), that a bounce is no death (H00_3), enters then dies mills twice (H00_4), and a creature controlled by the other player mills its controller's library (H00_5).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/crow_of_dark_tidings_1.json",
+   "tools/scenarios/cards/FDN/crow_of_dark_tidings_2.json",
+   "tools/scenarios/cards/FDN/crow_of_dark_tidings_3.json",
+   "tools/scenarios/cards/FDN/crow_of_dark_tidings_4.json",
+   "tools/scenarios/cards/FDN/crow_of_dark_tidings_5.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -162,5 +162,35 @@
  },
  "probe": {
   "sha": "7e401ed6d66fd01bc24d45b16ea801a185ffeb149ad7fc47ad359e2619f94eff"
+ },
+ "verified": {
+  "tree_sha": "f4db7e959763f3a925fe2d898db93b75adc32c3615cae7deec95f3563802fb73",
+  "probe_sha": "7e401ed6d66fd01bc24d45b16ea801a185ffeb149ad7fc47ad359e2619f94eff",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Whenever an opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus has the opponent cast a spell (every cast in the trace is yours and gives 'none'), so the trigger, its may and its counter are never shown. F04_1 (opponent's blue instant, may taken: one counter), F04_2 (opponent's black creature spell and a blue-white one: a counter each), F04_3 (the may declined: none), F04_4 (nothing qualifying: your own blue Opt, the opponent's red instant, its red, green, white and colourless spells: no ask, no counter). F04_5 (three players: either opponent's spell counts).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/mold_adder_1.json",
+   "tools/scenarios/cards/FDN/mold_adder_2.json",
+   "tools/scenarios/cards/FDN/mold_adder_3.json",
+   "tools/scenarios/cards/FDN/mold_adder_4.json",
+   "tools/scenarios/cards/FDN/mold_adder_5.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 1,
+   "score": 0.3333333333333333,
+   "survived": [
+    "optional->mandatory at 1/0/effect",
+    "amount+1 at 1/0/effect/inner/args/count"
+   ]
+  }
  }
 }

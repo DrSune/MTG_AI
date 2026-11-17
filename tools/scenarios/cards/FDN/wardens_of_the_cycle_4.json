@@ -1,0 +1,19 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Wardens of the Cycle (FDN), printed: 'At the beginning of YOUR end step'. Turn 1 (seat 0) ends with no creature having died, then turn 2 is the opponent's: seat 0's Bear dies in the opponent's turn and the opponent's end step comes. The trigger is for seat 0's own end step only, so nothing triggers (life stays 20, no card is drawn, no ask is raised).",
+ "cards": [
+  {"key": "wotc", "real": "Wardens of the Cycle", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "gnt", "name": "Their Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "gnt", "target": "bear", "amount": 5},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "wotc": "battlefield"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 0},
+  "turn_seats": [0, 1]
+ }}

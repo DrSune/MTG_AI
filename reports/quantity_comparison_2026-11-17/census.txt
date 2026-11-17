@@ -1,0 +1,18 @@
+QDistinct COLOR: 2 nodes, 2 trees, 0 verified
+QDistinct MANA_VALUE: 1 nodes, 1 trees, 0 verified
+QDistinct NAME: 2 nodes, 2 trees, 0 verified
+QTY_GE field COLOR: 2 nodes, 2 trees, 0 verified
+QTY_GE field MANA_VALUE: 4 nodes, 4 trees, 0 verified
+QTY_GE field MANA_VALUE (negated: N or less): 9 nodes, 9 trees, 0 verified
+QTY_GE field POWER: 26 nodes, 23 trees, 0 verified
+QTY_GE field POWER (negated: N or less): 8 nodes, 7 trees, 0 verified
+QTY_GE field TOUGHNESS: 1 nodes, 1 trees, 0 verified
+QTY_GE quantity QCount: 47 nodes, 47 trees, 0 verified
+QTY_GE quantity QCount (negated: N or less): 4 nodes, 4 trees, 0 verified
+QTY_GE quantity QCount who OPPONENT: 4 nodes, 4 trees, 0 verified
+QTY_GE quantity QDistinct: 1 nodes, 1 trees, 0 verified
+QTY_GE quantity QPartyCount: 5 nodes, 5 trees, 0 verified
+QTY_GE quantity QProp(LIFE, FIRST): 7 nodes, 7 trees, 0 verified
+TARGETS IS_SOURCE: 10 nodes, 10 trees, 0 verified
+TARGETS a filter: 2 nodes, 2 trees, 0 verified
+trees holding a node of the round: 116; verified 0

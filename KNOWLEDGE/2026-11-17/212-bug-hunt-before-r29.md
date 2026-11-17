@@ -214,15 +214,18 @@ the next one should too.
 - **208's B3 is the registered guard.** If A's own gates against v2 rise, B8 compares against A's
   mean. The launch note re-reads B3's power against the shift these changes can cause, and amends
   208 before any r29 game if B3 is too weak to catch it.
+- **The heuristic changed (T1).** It is the rating anchor and the behaviour-cloning teacher, and
+  the new one scores 0.533-0.540 against the old. No number against the heuristic compares across
+  this merge.
 - **The confound record at launch** lists these changes beside N1/N2, the table refresh and gate
   rounds 12-13.
 
 ## 6. Status (updated at each merge)
 | Wave | Branch head | State |
 |---|---|---|
-| E1 (A, B, G, Angelic Destiny, "exiled with") | 1f2410b9 | fresh-eyes review of the additions running |
+| E1 (A, B, G, Angelic Destiny, "exiled with", Garna's last-known attacking) | b96f0652 | **merged** (c80f45f7). Three fresh-eyes reviews. 600 replays: 0 crashes, digests identical, 74 journals differ (72 by the new COUNTER_PLACED rows); no tree changed. Its audit of the handle-keyed tables: three fixed, the rest cleared at departure or safe by design, four latent cases in BACKLOG |
 | E2 (C, D, E, F, the mappers' faults) | d3798ad7 | **merged** (68d59bf2). 600 seeded games: 233 differ (124 the division, 22 a trample-over, 14 Leafkin, 1 a negative power, 72 renamed asks only), 0 crashes, 9 winners changed; r28 v2 bitwise on every old ask; 1 of 5,671 trees changed (ORI Liliana, unverified) |
-| Round 13 (the stack frame, with its own gate conditions) | f01b303f | fixing; merges after round 12 |
-| T1 (H) | d7d2e108 | finishing (r28 read-only check) |
+| Round 13 (the stack frame, with its own gate conditions) | b81727f1 | **merged** (bb9932fa). Every move of a spell off the stack ends its frame and passes the leave-the-stack replacement (`verbs._off_the_stack`); the Unsubstantiate pack fails on main 4739cfef. Graded: your own instant or sorcery returned to hand EXPLOITABLE; a spell exiled or put into a library WRONG (only THB Ashiok's Erasure, unparsed); a flashback spell returned to hand STRONGER. Only Unsubstantiate and Ashiok's Erasure move spells in the 19 sets |
+| T1 (H, and the heuristic's targeting) | 4670395c | **merged** (5411f386). Two fresh-eyes reviews. r28's v2 is bitwise on 4,573 of 4,576 decisions; the 3 that change are the new option forms. The new heuristic scores 0.533-0.540 against the old one |
 | Recurrence guards (§3: the 400.7 audit, the token invariant, the pack-path lint, control by a non-owner) | — | after E1 and E2 merge |
 | Confirmation (the hunters' repros on merged main, the soak with the new invariant, the exploit scan of the probe's games) | — | after the guards |

@@ -1,0 +1,21 @@
+{
+ "name": "H06_chandras_outrage_hits_the_controller_not_the_owner",
+ "set": "M20",
+ "note": "Chandra's Outrage: '4 damage to target creature and 2 damage to that creature's controller.' The target is a 5/5 that P1 owns but P0 controls (gain_control): 'that creature's controller' is P0, so P0 loses 2 life (20 -> 18) and P1, the owner, loses nothing. The 5/5 has exactly 4 damage marked and survives.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "loan", "zone": "battlefield", "controller": 1, "name": "Loan", "power": "5", "toughness": "5", "type": "Creature"}
+ ],
+ "mana": {"0": {"R": 2, "C": 2}},
+ "steps": [
+  {"op": "gain_control", "key": "loan", "seat": 0},
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "targets": ["loan"]}
+ ],
+ "expect": {
+  "controller": {"loan": 0},
+  "life": {"0": 18, "1": 20},
+  "damage": {"loan": 4},
+  "zone": {"loan": "battlefield", "outrage": "graveyard"}
+ }
+}

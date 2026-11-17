@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "bite_down_damage_is_the_creatures_current_power",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' Seat 0's Counter Bear is printed 2/2 and carries two +1/+1 counters, so its power is 4: it deals 4 damage to seat 1's 0/4 Wall, which dies (a 2-damage bite would leave it alive). The Bear is unharmed. A second, untouched Plain Bear of seat 1 is not hurt.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Counter Bear", "type": "Creature", "power": "2", "toughness": "2", "counters": {"PLUS_1_PLUS_1": 2}, "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature", "power": "0", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "other", "name": "Plain Bear", "type": "Creature", "power": "2", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "bd", "targets": ["bear", "wall"]}
+ ],
+ "expect": {
+  "zone": {"bd": "graveyard", "bear": "battlefield", "wall": "graveyard", "other": "battlefield"},
+  "power": {"bear": 4},
+  "mana_pool": {"0": {}}
+ }
+}

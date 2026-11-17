@@ -125,5 +125,31 @@
  },
  "probe": {
   "sha": "cf155b813dc5d0bc049803cf28fa5f4019195ae647da0b653833b97e85dee7c0"
+ },
+ "verified": {
+  "tree_sha": "09aec6aa49e67f064dc7c4f18bdb3464f539561901e4b2e67238a126f95310a1",
+  "probe_sha": "cf155b813dc5d0bc049803cf28fa5f4019195ae647da0b653833b97e85dee7c0",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Destroy target green or white creature.",
+    "status": "OK",
+    "evidence": "target slot (cast): 1..1 of [you_bear, opp_tapped, opp_giant]: the board's green creatures (you_bear, opp_tapped) and its white one (opp_giant) of both sides, and not the red you_giant, the blue opp_flier or the black opp_bear; every variant ends 'X moves battlefield -> graveyard (by card/DESTROY)' and 'X dies'. Pack D11_1 (passes): a green enchantment, a white artifact, a red creature and a colorless artifact creature are refused; a green-and-white creature is a legal target and the only one destroyed. Pack D11_2 (passes): it is a sorcery, refused on the opponent's turn ('window:not_your_turn') and cast on seat 0's own turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/deathmark_1.json",
+   "tools/scenarios/cards/FDN/deathmark_2.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

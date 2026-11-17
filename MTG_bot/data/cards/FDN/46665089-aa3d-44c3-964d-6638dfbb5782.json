@@ -105,5 +105,34 @@
  },
  "probe": {
   "sha": "7a4326dc116551c713f6b88018092889874638acf8bb86a42b6f1e658f068112"
+ },
+ "verified": {
+  "tree_sha": "58a708c5c299ed7ec6cba2a924413c39c3f63eb93e63111ffde0c98c628c111b",
+  "probe_sha": "7a4326dc116551c713f6b88018092889874638acf8bb86a42b6f1e658f068112",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Counter target creature spell.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's only line is 'cast skipped: a target slot needs 1, the board offers 0': no spell is ever on the stack. The tree reads right (COUNTER_SPELL, one TARGET over the stack, FAnd(STACK_KIND_EQ SPELL, TYPE_EQ Creature)). Covered by packs: A10_1 (a creature spell is countered: graveyard, never enters), A10_3 (two creature spells wait on the stack, only the targeted one is countered), A10_2 (a noncreature spell is refused and resolves), A10_4 (a creature's ability on the stack is not a spell: refused).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/essence_scatter_1.json",
+   "tools/scenarios/cards/FDN/essence_scatter_2.json",
+   "tools/scenarios/cards/FDN/essence_scatter_3.json",
+   "tools/scenarios/cards/FDN/essence_scatter_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/target/filter",
+    "widen filter (drop part 1) at 1/0/effect/args/target/filter"
+   ]
+  }
  }
 }

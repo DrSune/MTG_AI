@@ -1,0 +1,43 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Slagstorm (FDN), mode 1 printed: 'deals 3 damage to each player.' In a three-player game all three players, the caster included, lose exactly 3 life (20 -> 17 each).",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Slagstorm",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Slagstorm",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard"
+  },
+  "life": {
+   "0": 17,
+   "1": 17,
+   "2": 17
+  }
+ }
+}

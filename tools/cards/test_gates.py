@@ -167,7 +167,8 @@ def test_g0_ignores_ability_words_but_not_keywords() -> None:
     bat = _card("Makeshift Battalion")
     raw = _raw()[_oid("Makeshift Battalion")]
     assert raw.keywords == ("Battalion",) or list(raw.keywords) == ["Battalion"]
-    assert "BATTALION" in Keyword.__members__ and "BATTALION" in gates.ABILITY_WORDS
+    # an ability word (CR 207.2c), with no Keyword member since ontology round R12
+    assert "BATTALION" not in Keyword.__members__ and "BATTALION" in gates.ABILITY_WORDS
     fails, warns = gates.g0(raw, bat, bat, clauses=None, known_signatures=None)
     assert not fails and not any("BATTALION" in w for w in warns)
     # a real keyword dropped from a tree still fails
@@ -257,12 +258,25 @@ def test_discard_shape_from_and_destination_controllers_are_dead() -> None:
         assert _game(pack, _mutant(rain, where, ControllerRef.OPPONENT)) == real, where
 
 
-def test_zone_count_ge_zone_controller_is_dead() -> None:
+WHO_NONE = "controller who OPPONENT->none (your own zone)"
+
+
+def test_an_opponents_graveyard_count_and_its_likely_misreading() -> None:
+    # "an opponent has eight or more cards in their graveyard" (ontology round R12): the count of
+    # "your" graveyard read for each opponent in turn. who YOU and an opponent's zone are refused (a
+    # second "you", a count no player owns), so no flip reaches the likely mapping error, `who`
+    # dropped ("you have eight ..."): G3 offers it as a critical mutant of its own (gate round 12,
+    # MAJOR-3), and a board with eight cards in one graveyard only tells the two apart.
     tge = _card("Thieves' Guild Enforcer")
-    where = "1/1/condition/zone/controller"
-    assert ("controller OPPONENT->YOU", where) not in _where(tge)
-    assert ("controller OPPONENT->YOU", "1/1/condition/who") in _where(tge)  # whose graveyard: live
-    mutant = _mutant(tge, where, ControllerRef.YOU)
+    offered = {(op, where) for op, where in _where(tge) if where.startswith("1/1/condition")}
+    assert offered == {("amount+1", "1/1/condition/count"), ("amount-1", "1/1/condition/count"),
+                       (WHO_NONE, "1/1/condition")}
+    assert gates.is_critical(WHO_NONE)
+    for where, new in (("1/1/condition/who", ControllerRef.YOU),
+                       ("1/1/condition/quantity/selector/zones/0/controller", ControllerRef.OPPONENT)):
+        with pytest.raises(ValueError, match="who"):
+            _mutant(tge, where, new)
+    yours = _mutant(tge, "1/1/condition", dataclasses.replace(_at(tge, "1/1/condition"), who=None))
     for full in (0, 1):  # eight cards in your graveyard only, then in the opponent's only
         gy = [{"key": f"g{i}", "name": f"Dead {i}", "type": "Sorcery", "zone": "graveyard", "controller": full}
               for i in range(8)]
@@ -271,7 +285,18 @@ def test_zone_count_ge_zone_controller_is_dead() -> None:
         real = _game(pack)
         enforcer = next(o for o in real[0].values() if o[0] == "Thieves' Guild Enforcer")
         assert enforcer[5] == ((3, 2) if full == 1 else (1, 1))
-        assert _game(pack, mutant) == real
+        assert _game(pack, yours) != real  # the misreading reads the other graveyard
+
+
+def test_more_than_is_not_at_least_as_many() -> None:
+    # Garruk, Unleashed's -2: "if an opponent controls more creatures than you" is the comparison
+    # at <your creatures> + 1; G3 offers the bare measure ("at least as many"), critical, since
+    # amount-1 cannot reach it (N + 0 is refused).
+    garruk = _card("Garruk, Unleashed")
+    found = [(op, where) for op, where in _where(garruk) if op == "amount: more than -> at least as many"]
+    assert len(found) == 1 and gates.is_critical(found[0][0])
+    node = _at(garruk, found[0][1])
+    assert node.count.right == QConst(1)
 
 
 WAKER_REST = "1/1/effect/steps/1/steps/1/args/cards/count"
@@ -382,6 +407,29 @@ def test_one_of_count_after_a_one_card_search_is_dead() -> None:
     assert real[0][seat0[1][-1]][0] == "Plains"  # the found card is on top
     for n in (2, 3):
         assert _game(pack, _mutant(guide, GUIDE_PICK, QConst(n))) == real
+
+
+BARRICADE_TARGET = "1/0/effect/args/target/count"
+
+
+def test_one_of_over_your_player_zone_count_is_dead() -> None:
+    """FDN Crystal Barricade's "You have hexproof" is a ONE_OF over your one player (gate round 12,
+    from mapper M6): every count >= 1 picks you, so G3 offers no count change there, and the
+    card's survivors (no pack) leave nothing critical."""
+    barricade = _card("Crystal Barricade", "FDN")
+    assert ("amount+1", BARRICADE_TARGET) not in _where(barricade)
+    pack = _pack([{"key": "b", "real": "Crystal Barricade", "zone": "battlefield", "controller": 0},
+                  {"key": "bolt", "real": "Burst Lightning", "zone": "hand", "controller": 1}],
+                 [{"op": "end_turn"}, {"op": "advance_turn"},
+                  {"op": "cast", "key": "bolt", "controller": 1, "decisions": ["player:0"],
+                   "expect_raise": "target"}],
+                 {"1": {"R": 1}}, code="FDN")
+    real = _game(pack)
+    for n in (2, 3):
+        assert _game(pack, _mutant(barricade, BARRICADE_TARGET, QConst(n))) == real
+    sup = _supply("FDN")
+    report = gates.g3(sup, "FDN", _oid("Crystal Barricade", "FDN"))
+    assert [s for s in report["survived"] if gates.is_critical(s[0])] == []
 
 
 EMPATH_REVEAL = "1/0/effect/inner/steps/1/args"

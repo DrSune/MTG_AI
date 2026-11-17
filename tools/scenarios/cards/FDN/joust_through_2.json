@@ -1,0 +1,132 @@
+{
+ "set": "FDN",
+ "name": "joust_through_hits_a_blocker_and_refuses_a_creature_that_is_neither_attacking_nor_blocking",
+ "notes": "Printed: 'Joust Through deals 3 damage to target attacking or blocking creature. You gain 1 life.' Seat 0 attacks with a 5/5; seat 1's 3/3 blocks it and its other 3/3 stays home. With the blockers declared, seat 0 casts Joust Through at the BLOCKING 3/3: 3 damage kills it and seat 0 (the caster) gains 1 life (21). The 5/5 stays blocked (no trample), so seat 1 takes nothing (20). After combat, neither the idle creature nor the 5/5 (it attacked, but is no longer attacking) is a legal target: both casts are refused with the White mana still in the pool (nothing paid), and the second Joust Through stays in hand.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "att",
+   "name": "Big Attacker",
+   "power": "5",
+   "toughness": "5",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "blk",
+   "name": "Blocker",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "idle",
+   "name": "Idler",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "jt1",
+   "real": "Joust Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "jt2",
+   "real": "Joust Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "p1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "att": true
+   },
+   "block": {
+    "blk": "att"
+   },
+   "respond": {
+    "DECLARE_BLOCKERS": [
+     {
+      "op": "cast",
+      "key": "jt1",
+      "real": "Joust Through",
+      "controller": 0,
+      "targets": [
+       "blk"
+      ],
+      "tap": true
+     }
+    ]
+   }
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "jt2",
+   "real": "Joust Through",
+   "controller": 0,
+   "targets": [
+    "idle"
+   ],
+   "expect_raise": "illegal target"
+  },
+  {
+   "op": "cast",
+   "key": "jt2",
+   "real": "Joust Through",
+   "controller": 0,
+   "targets": [
+    "att"
+   ],
+   "expect_raise": "illegal target"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 21,
+   "1": 20
+  },
+  "zone": {
+   "att": "battlefield",
+   "blk": "graveyard",
+   "idle": "battlefield",
+   "jt1": "graveyard",
+   "jt2": "hand"
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  },
+  "mana_pool": {
+   "0": {
+    "W": 1
+   },
+   "1": {}
+  }
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Slagstorm (FDN) is a SORCERY: on the opponent's turn (turn 2) seat 0 holds {1}{R}{R} and the cast (either mode) is refused for its timing; the card stays in hand, no creature is damaged and nobody loses life.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Slagstorm",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 2,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Slagstorm",
+   "controller": 0,
+   "expect_raise": "window:not_your_turn",
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

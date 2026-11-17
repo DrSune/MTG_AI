@@ -1,0 +1,30 @@
+{
+ "set": "FDN",
+ "name": "boros_charm_indestructible_for_the_permanents_you_control_when_it_resolves",
+ "notes": "Printed: 'Permanents you control gain indestructible until end of turn.' Second mode (token 1). When it resolves every permanent seat 0 controls (creature, artifact, land) gains indestructible; seat 1's permanents do not. A creature that enters under seat 0's control afterwards is not among them (CR 611.2c: the set of permanents is fixed as the spell resolves). 5 damage is dealt to each of the three creatures: seat 0's Bear survives with 5 damage marked (it is indestructible), seat 1's Bear and seat 0's Late Bear die.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bc", "real": "Boros Charm", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "mtn", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "late", "name": "Late Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "W": 1}},
+ "steps": [
+  {"op": "cast", "key": "bc", "decisions": ["1"]},
+  {"op": "enter", "key": "late"},
+  {"op": "deal_damage", "source": "pinger", "target": "obear", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "late", "amount": 5},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 5}
+ ],
+ "expect": {
+  "zone": {"bc": "graveyard", "bear": "battlefield", "obear": "graveyard", "late": "graveyard", "relic": "battlefield", "orelic": "battlefield", "mtn": "battlefield"},
+  "damage": {"bear": 5},
+  "battlefield_keywords": {"My Bear": ["INDESTRUCTIBLE"], "My Relic": ["INDESTRUCTIBLE"], "Mountain": ["INDESTRUCTIBLE"], "Opp Relic": [], "Pinger": []},
+  "mana_pool": {"0": {}}
+ }
+}

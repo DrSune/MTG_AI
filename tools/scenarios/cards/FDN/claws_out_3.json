@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Claws Out (FDN): with no Cat under seat 0's control the spell costs its full {3}{W}{W}: a pool of four mana (WW and two colorless) cannot pay it, the cast is refused and the card stays in hand. (An opposing Cat does not reduce it.)",
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ocat", "name": "Their Cat", "type": "Creature — Cat", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "claws", "real": "Claws Out", "expect_raise": "cost:mana_generic:2<3"}
+ ],
+ "expect": {
+  "zone": {"claws": "hand"},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }}

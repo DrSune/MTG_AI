@@ -129,16 +129,14 @@ class Verb(Enum):
     """The closed verb vocabulary; each member's comment cites a card that
     needs it.
 
-    The MILL/DISCARD/EXILE shapes compile to the one MOVE_ZONE atom
-    (destination + optional from/journal_kind/pop_order slots); the three
-    members stay in the enum, but the executor has no handler for them.
+    A mill, a discard and an exile are the one MOVE_ZONE atom (destination +
+    optional from/journal_kind/pop_order slots). DISCARD stays in the enum
+    for one tree (BACKLOG B-48), which the executor has no handler for.
     """
 
     DEAL_DAMAGE = "DEAL_DAMAGE"  # Brash Taunter (deals that much damage to target player or creature)
     DESTROY = "DESTROY"  # Legion's Judgment, Eliminate
-    EXILE = "EXILE"  # Angelic Ascension
     DRAW = "DRAW"  # Opt, Frantic Inventory
-    MILL = "MILL"  # Carrion Grub ("mill four cards")
     GAIN_LIFE = "GAIN_LIFE"  # Faith's Fetters
     LOSE_LIFE = "LOSE_LIFE"  # Grim Tutor
     ADD_MANA = "ADD_MANA"  # Llanowar Visionary, Treasure token
@@ -172,7 +170,16 @@ class Verb(Enum):
     END_TURN = "END_TURN"  # Discontinuity ("end the turn")
     MANDATE_ATTACK = "MANDATE_ATTACK"  # Pirate token: "creatures you control attack each combat if able"
     MANDATE_BLOCK = "MANDATE_BLOCK"  # Canopy Stalker: "must be blocked if able"
-    CAST = "CAST"  # cast a spell from a zone (top-of-library via Zone.position; graveyard recasts; cost waivers / extra costs)
+    # CAST: cast a card NOW, while the ability that says so resolves (CR 608.2g: "You may cast
+    # target red instant or sorcery card from your graveyard", Chandra, Flame's Catalyst [-2]).
+    # One-shot: no duration, no timing (the card type's timing is ignored during a resolution).
+    CAST = "CAST"
+    # PERMIT: a permission to play cards from a zone (CR 601.3, 305.1): "You may cast Goblin spells
+    # from the top of your library" (Conspicuous Snoop, a static), "Until end of turn, you may play
+    # cards exiled this way" (Chandra, Heart of Fire [+1], a resolving one with its duration),
+    # flashback (CR 702.34a). The cards are played later, by their controller holding priority, at
+    # their own timing (CR 117.1a, 305.1): DESIGN_ATOM_ONTOLOGY §17.
+    PERMIT = "PERMIT"
     PAY = "PAY"  # pay a cost as an effect ("you may pay {2}", with an "if you do" continuation)
     LOSE_GAME = (
         "LOSE_GAME"  # "the player who cast this spell loses the game" (no roles)
@@ -336,21 +343,31 @@ EMBLEM_RECIPIENTS = frozenset(
 
 
 class QPropField(Enum):
-    """Which property QProp reads from its referent. The player-count fields
-    only make sense with the "controller" referent; AMOUNT, THIS_WAY_COUNT
-    and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with "event",
-    "source" (SOUL counters on the source Equipment, Malefic Scythe) or
-    "target" (counters on the chosen target, Invigorating Surge) — all
-    validated in QProp.__post_init__."""
+    """A property of an object or a player. QProp reads it of its referent; the comparison
+    (FAtomPred.QTY_GE) reads POWER, TOUGHNESS, MANA_VALUE or COLOR of the object it judges
+    (``FAtom.field``); QDistinct counts the different COLOR, NAME or MANA_VALUE values among a
+    population. The player fields (LIFE, STARTING_LIFE) only make sense with the "controller"
+    referent; AMOUNT, THIS_WAY_COUNT and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with
+    "event", "source" (SOUL counters on the source Equipment, Malefic Scythe) or "target"
+    (counters on the chosen target, Invigorating Surge); COLOR and NAME are no number QProp reads
+    — all validated in QProp.__post_init__. The number of cards in a zone is a QCount over the
+    zone (divergence D28, folded by ontology round R12)."""
 
     POWER = "POWER"
     TOUGHNESS = "TOUGHNESS"
-    CMC = "CMC"
     MANA_VALUE = "MANA_VALUE"
-    CARDS_IN_HAND = "CARDS_IN_HAND"  # "the number of cards in your hand"
-    CARDS_IN_LIBRARY = "CARDS_IN_LIBRARY"  # Peer into the Abyss
-    CARDS_IN_GRAVEYARD = "CARDS_IN_GRAVEYARD"  # Liliana, Waker of the Dead [-3]
+    # COLOR: an object's colours (CR 105.2). Read as a number by the comparison, the number of
+    # its colours ("multicolored" is two or more, CR 105.4); by QDistinct, the colours among a
+    # population ("for each color among permanents you control", Chromatic Orrery).
+    COLOR = "COLOR"
+    # NAME: an object's name (CR 201.2), only QDistinct's: "seven or more lands with different
+    # names" (Field of the Dead), "two or more ... with the same name as one another".
+    NAME = "NAME"
     LIFE = "LIFE"  # "half your life total" (Peer into the Abyss)
+    # STARTING_LIFE: the player's starting life total (CR 103.4: 20, 40 in Commander, 25 in
+    # two-player Brawl), what "your life total is greater than your starting life total" and "at
+    # least N life more than your starting life total" compare with (ledger F11).
+    STARTING_LIFE = "STARTING_LIFE"
     AMOUNT = "AMOUNT"  # the triggering event's damage amount (Brash Taunter)
     COUNTER_COUNT = "COUNTER_COUNT"  # counters on the event, source or target (Conclave Mentor)
     THIS_WAY_COUNT = "THIS_WAY_COUNT"  # "for each creature tapped this way" (Siege Striker)
@@ -398,12 +415,8 @@ class Rounding(Enum):
 
 
 class ThisTurnKind(Enum):
-    """What QThisTurn counts within the current turn — turn-scoped
-    quantities ("the life you've gained this turn", "the cards an
-    opponent has drawn this turn")."""
+    """What QThisTurn counts within the current turn (a turn-scoped quantity)."""
 
-    LIFE_GAINED = "LIFE_GAINED"
-    CARDS_DRAWN = "CARDS_DRAWN"
     # NONCOMBAT_DAMAGE: total noncombat damage
     # dealt by the referent this turn — Chandra's Incinerator "{X}, where
     # X is the total amount of noncombat damage dealt to your opponents
@@ -421,13 +434,14 @@ class FAtomPred(Enum):
     SUPERTYPE_EQ = "SUPERTYPE_EQ"  # "Legendary" / "Basic"
     COLOR_HAS = "COLOR_HAS"  # "hexproof from black"
     COLOR_IN = "COLOR_IN"  # colours are a non-empty subset of the given set
-    COLOR_COUNT_GE = (
-        "COLOR_COUNT_GE"  # >= 2 = "protection from multicolored" (Basri's Lieutenant)
-    )
-    CMC_LE = "CMC_LE"  # mana-value thresholds
-    CMC_GE = "CMC_GE"  # Fierce Empath: "creature card with mana value 6 or greater"
-    PT_LE = "PT_LE"  # both components <= value (documented convention)
-    PT_GE = "PT_GE"  # both components >= value
+    # QTY_GE: the one quantity comparison (ontology round R12), "a quantity is at least `count`".
+    # The quantity is a property of the judged object (`field`: "a creature with power 4 or
+    # greater", "protection from multicolored") or one the game measures (`quantity`: "you
+    # control four or more artifacts", "you have 25 or more life", "creatures you control have
+    # total power 8 or greater"); `who` reads it for some opponent ("an opponent has eight or
+    # more cards in their graveyard"). "N or less" is FNot of it at N + 1, never another form
+    # (CR 107.1: numbers are integers). Validated in FAtom.__post_init__ (_check_comparison).
+    QTY_GE = "QTY_GE"
     KEYWORD_HAS = "KEYWORD_HAS"  # "has flying"
     NAME_EQ = "NAME_EQ"  # "cards named Frantic Inventory"
     IS_TAPPED = "IS_TAPPED"
@@ -436,10 +450,6 @@ class FAtomPred(Enum):
     IS_BLOCKING = "IS_BLOCKING"
     HAS_COUNTER = "HAS_COUNTER"  # Basri's Lieutenant: "if it had a +1/+1 counter on it"
     CONTROLLER_IS = "CONTROLLER_IS"  # "target creature you control"
-    CONTROLLER_COUNT_GE = (
-        "CONTROLLER_COUNT_GE"  # Gadrak: "you control four or more artifacts"
-    )
-    CONTROLLER_COUNT_LE = "CONTROLLER_COUNT_LE"
     IS_SOURCE = "IS_SOURCE"  # the object is the source of the current ability
     IS_ANY_TARGET = "IS_ANY_TARGET"  # "another target" (Selfless Savior)
     IS_RESULT = (
@@ -458,8 +468,6 @@ class FAtomPred(Enum):
     IS_ATTACHED_TO_SOURCE = (
         "IS_ATTACHED_TO_SOURCE"  # Malefic Scythe's "equipped creature"
     )
-    POWER_LE = "POWER_LE"  # power <= value (power-only; PT_LE compares both components)
-    POWER_GE = "POWER_GE"  # power >= value ("a creature with power 3 or greater")
     NAME_CONTAINS = (
         "NAME_CONTAINS"  # name substring ("a Teferi planeswalker"); NAME_EQ stays exact
     )
@@ -477,7 +485,7 @@ class FAtomPred(Enum):
         # happened ("Exile it. If you do, ...").
         # One meaning, one encoding. Handle-free like FLIP_WON; answered from
         # the executor's per-resolution record (the may-offer outcome, or the
-        # mandatory step's). No slots (precedent: TARGETS_SOURCE); never
+        # mandatory step's). No slots (precedent: IS_TAPPED); never
         # re-asks.
     )
     INSTANT_OR_SORCERY_CAST_THIS_TURN = (
@@ -485,10 +493,11 @@ class FAtomPred(Enum):
         # sorcery spell this turn" (Stormwing Entity; turn-scoped cast tracking;
         # required who)
     )
-    TARGETS_SOURCE = (
-        "TARGETS_SOURCE"  # "spells your opponents cast that target this creature"
-        # — the spell targets the source object (Terror of the Peaks)
-    )
+    # TARGETS: the judged spell or ability has a target that passes `inner_filter` (CR 115.1,
+    # 601.2c): "spells your opponents cast that target this creature" (Terror of the Peaks:
+    # inner_filter IS_SOURCE), "a spell that targets a creature you control" (Season of
+    # Growth), "costs {3} less to cast if it targets a tapped creature" (Luminous Rebuke).
+    TARGETS = "TARGETS"
     ENTERED_THIS_TURN_FROM = (
         "ENTERED_THIS_TURN_FROM"  # "if it entered from your graveyard"
         # (Archfiend's Vessel; required zone slot)
@@ -516,11 +525,6 @@ class FAtomPred(Enum):
         "TURN_OF"  # "it is <who>'s turn" — "During your turn, …" (Radha,
         # Heart of Keld; required who; the Phase enum carries no turn owner)
     )
-    ZONE_COUNT_GE = (
-        "ZONE_COUNT_GE"  # "<who> has >= count cards in their <zone>
-        # matching inner_filter" (Thieves' Guild Enforcer; required who +
-        # zone + inner_filter + count)
-    )
     IS_ATTACHED_TO = (
         "IS_ATTACHED_TO"  # the object is attached to the referent object
         # ("Destroy target Equipment attached to that" — Turn to Slag;
@@ -537,40 +541,6 @@ class FAtomPred(Enum):
         # the source object — "the exiled card" permission scoping (Horizon
         # Scholar's "card exiled with ~"). No slots (precedent: IS_TAPPED);
         # evaluated against the ability's source.
-    )
-    CONTROLLER_COUNT_GT = (
-        "CONTROLLER_COUNT_GT"  # the referent controller controls MORE
-        # objects matching inner_filter than matching right_inner_filter —
-        # Garruk's "you control more creatures than any opponent";
-        # dual-filter comparison, the second filter lives in the
-        # right_inner_filter slot.
-    )
-    LIFE_LEAD_OVER_START_GE = (
-        "LIFE_LEAD_OVER_START_GE"  # the referent
-        # (a player) has gained a net life lead of at least `count` over
-        # their starting life total — "if you gained at least 7 life more
-        # than your starting life total this game" (Speaker of the Heavens
-        # class). The executor reads current-life minus starting-life;
-        # the count slot carries the threshold Quantity from the text
-        # (the PRED carries slots only — the number is template-side).
-    )
-    LIFE_TOTAL_GE = (
-        "LIFE_TOTAL_GE"  # your current life total (CR 119.1) is at least
-        # ``count``: "as long as you have 25 or more life" (Twinblade Paladin).
-        # Not LIFE_LEAD_OVER_START_GE: that one is relative to the starting
-        # life total, which is 40 in Commander (CR 103.4c). "N or less life" is
-        # FNot(LIFE_TOTAL_GE(N + 1)), never a second predicate. ``who`` is YOU,
-        # the only reading printed (FAtom refuses any other).
-    )
-    NAME_PARTITION_COUNT_GE = (
-        "NAME_PARTITION_COUNT_GE"  # the
-        # maximum size of an EXACT-name group over the inner_filter-
-        # matched objects the referent controls is >= `count` — "if you
-        # control two or more nonland, nontoken permanents with the same
-        # name as one another" (Chrome Anchor's Replicator gate). The
-        # executor groups the matched objects by exact name and takes
-        # the largest group; the PRED carries slots only (inner_filter,
-        # count) — the threshold number is template-side.
     )
     ATTACK_AGAINST_COUNT_GE = (
         "ATTACK_AGAINST_COUNT_GE"  # count the
@@ -656,11 +626,12 @@ class SpellKind(Enum):
 class Keyword(Enum):
     """The pool's keyword abilities. "Hexproof from" is HEXPROOF plus a
     Filter param on the KeywordAbility (Spine Megalodon), not a separate
-    keyword.
+    keyword. Scry and mill are keyword actions (CR 701.22, 701.17: Verb.SCRY, a
+    MOVE_ZONE mill) and battalion an ability word (CR 207.2c): none is a keyword
+    ability.
     """
 
     FLYING = "FLYING"
-    SCRY = "SCRY"  # param: Quantity ("scry 1")
     VIGILANCE = "VIGILANCE"
     LIFELINK = "LIFELINK"
     FLASH = "FLASH"
@@ -670,7 +641,6 @@ class Keyword(Enum):
     REACH = "REACH"
     HEXPROOF = "HEXPROOF"  # optional param: Filter ("hexproof from blue")
     PROTECTION = "PROTECTION"  # param: Filter ("protection from planeswalkers")
-    MILL = "MILL"  # param: Quantity
     DEFENDER = "DEFENDER"
     HASTE = "HASTE"
     FIGHT = "FIGHT"
@@ -680,7 +650,6 @@ class Keyword(Enum):
     EQUIP = "EQUIP"
     INDESTRUCTIBLE = "INDESTRUCTIBLE"
     TREASURE = "TREASURE"  # the Treasure artifact-type keyword (Gadrak's tokens)
-    BATTALION = "BATTALION"  # param: Quantity (Makeshift Battalion)
     MENACE = "MENACE"
 
 
@@ -810,10 +779,9 @@ class QPartyCount:
     """The number of creatures in YOUR party — the number of DISTINCT
     party classes (Cleric/Rogue/Warrior/Wizard) present among the objects
     a selector matches, 0..4 ("Your party consists of up to one each of
-    Cleric, Rogue, Warrior, and Wizard"). Shaped like QDistinctColorCount,
-    but the evaluator reads the LIVE type line (printed types plus
-    GRANT_TYPE overlays, so class grants change the count), not frozen
-    identity colors; different data sources, so the two stay separate.
+    Cleric, Rogue, Warrior, and Wizard"). Shaped like QDistinct, but the
+    evaluator reads the LIVE type line (printed types plus GRANT_TYPE
+    overlays, so class grants change the count) and at most one per class.
     Templates pin the population (creatures you control) via the
     selector."""
 
@@ -826,20 +794,32 @@ class QPartyCount:
             )
 
 
+#: What QDistinct counts the different values of (ontology round R12): an object's colours
+#: (Chromatic Orrery's "for each color among permanents you control"), names ("seven or more lands
+#: with different names", Field of the Dead) and mana values ("for each different mana value
+#: among nonland permanents you control", Lunar Insight). Another property comes with its card.
+DISTINCT_FIELDS = (QPropField.COLOR, QPropField.NAME, QPropField.MANA_VALUE)
+
+
 @dataclass(frozen=True)
-class QDistinctColorCount:
-    """The number of DISTINCT colors among the objects a selector matches —
-    Chromatic Orrery's "{5},{T}: Draw a card for each color among
-    permanents you control" (selector = ALL permanents). QAgg has no
-    distinct-count aggregation, so this is its own Quantity node; the
-    selector names the population it is counted over (QCount's shape)."""
+class QDistinct:
+    """The number of different ``field`` values among the objects a selector matches (CR 105.2
+    colours, 201.2 names, 202.3 mana values): the colours are counted one by one, so a white-blue
+    and a blue-black permanent hold three. QAgg folds numbers, so a count of distinct values is
+    its own Quantity node; the selector names the population (QCount's shape)."""
 
     selector: Selector
+    field: QPropField
 
     def __post_init__(self) -> None:
         if not isinstance(self.selector, Selector):
             raise ValueError(
-                f"QDistinctColorCount: selector must be a Selector, got {type(self.selector).__name__}"
+                f"QDistinct: selector must be a Selector, got {type(self.selector).__name__}"
+            )
+        if self.field not in DISTINCT_FIELDS:
+            raise ValueError(
+                f"QDistinct: field must be one of {[f.name for f in DISTINCT_FIELDS]}, "
+                f"got {self.field!r}"
             )
 
 
@@ -857,7 +837,7 @@ class QProp:
 
     referent = Selector | "source" | "controller" | "target" | "event"
     | "result". field is
-    validated against the referent: player-count fields need "controller",
+    validated against the referent: the player fields need "controller",
     AMOUNT needs "event". With a Selector referent, `agg` collapses the
     (possibly many) selected objects; a string referent is singular, so agg
     must be FIRST. Over a Selector that has a referent of its own, agg is
@@ -895,12 +875,13 @@ class QProp:
             raise ValueError(
                 f"QProp: agg must be a QAgg, got {type(self.agg).__name__}"
             )
-        player_fields = (
-            QPropField.CARDS_IN_HAND,
-            QPropField.CARDS_IN_LIBRARY,
-            QPropField.CARDS_IN_GRAVEYARD,
-            QPropField.LIFE,
-        )
+        if self.field in (QPropField.COLOR, QPropField.NAME):
+            # a colour set and a name are no number: the comparison reads the number of an
+            # object's colours (FAtom.field), QDistinct the different values among a population
+            raise ValueError(
+                f"QProp: {self.field.name} is read by the comparison (FAtom.field) or QDistinct"
+            )
+        player_fields = (QPropField.LIFE, QPropField.STARTING_LIFE)
         if self.field in player_fields and self.referent != "controller":
             raise ValueError(
                 f"QProp: {self.field.name} requires the 'controller' referent"
@@ -966,9 +947,8 @@ class QBin:
 @dataclass(frozen=True)
 class QThisTurn:
     """A quantity scoped to the current turn: how much `kind` `referent`
-    has accumulated this turn — QThisTurn(LIFE_GAINED, YOU) = "the life
-    you've gained this turn", QThisTurn(CARDS_DRAWN, OPPONENT) = "the
-    cards an opponent has drawn this turn"."""
+    has accumulated this turn — QThisTurn(NONCOMBAT_DAMAGE, ALL_OPPONENTS) =
+    "the total amount of noncombat damage dealt to your opponents this turn"."""
 
     kind: ThisTurnKind
     referent: ControllerRef
@@ -1025,7 +1005,7 @@ Quantity = (
     | QX
     | QUnbounded
     | QCount
-    | QDistinctColorCount
+    | QDistinct
     | QPartyCount
     | QProp
     | QBin
@@ -1212,10 +1192,8 @@ def _filter_names(filter_: object, pred: FAtomPred) -> bool:
     """Does ``pred`` occur anywhere in the Filter tree ``filter_`` (children, negations
     and the inner filters of counting atoms)?"""
     if isinstance(filter_, FAtom):
-        return filter_.pred is pred or any(
-            _filter_names(inner, pred)
-            for inner in (filter_.inner_filter, filter_.right_inner_filter)
-            if inner is not None
+        return filter_.pred is pred or (
+            filter_.inner_filter is not None and _filter_names(filter_.inner_filter, pred)
         )
     if isinstance(filter_, (FAnd, FOr)):
         return any(_filter_names(child, pred) for child in filter_.children)
@@ -1329,6 +1307,15 @@ class FNot:
             raise ValueError(
                 f"FNot: inner must be a Filter, got {type(self.inner).__name__}"
             )
+        if isinstance(self.inner, FNot):
+            raise ValueError("FNot: a double negation is its inner filter; write that")
+        if _negates_two_measures(self.inner):
+            # "A < B" is at_least(A + 1, quantity=B), never "not B <= A": two measures compared
+            # are written the way round that needs no negation (the larger side measured)
+            raise ValueError(
+                "FNot: a comparison of two measures of the game is never negated; measure the "
+                "other side (A < B is at_least(A + 1, quantity=B))"
+            )
 
 
 @dataclass(frozen=True)
@@ -1345,24 +1332,22 @@ class FAtom:
       string_value — type/subtype/supertype/name comparisons (data, not semantics)
       color        — a single WUBRG colour (COLOR_HAS)
       colors       — a WUBRG set (COLOR_IN)
-      count        — Quantity threshold (CMC_LE/GE, PT_LE/GE, COLOR_COUNT_GE,
-                     HAS_COUNTER, CONTROLLER_COUNT_GE/LE,
+      count        — Quantity threshold (QTY_GE, HAS_COUNTER,
                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                     LIFE_TOTAL_GE, NAME_PARTITION_COUNT_GE,
-                     ATTACK_AGAINST_COUNT_GE);
+                     ATTACK_AGAINST_COUNT_GE, the turn-history atoms);
                      a dynamic threshold (QProp/QBin/QCount) is as legal
                      as a literal
       counter_kind — CounterKind (HAS_COUNTER)
       keyword      — Keyword (KEYWORD_HAS)
       who          — ControllerRef | Selector (CONTROLLER_IS,
                      LIFE_GAINED_THIS_TURN_GE, CARDS_DRAWN_THIS_TURN_GE,
-                     LIFE_TOTAL_GE (YOU only),
                      INSTANT_OR_SORCERY_CAST_THIS_TURN,
                      CAST_THIS_TURN_FROM, MOVED_TO_ZONE_THIS_TURN,
-                     WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP):
+                     WAS_CAST_THIS_TURN, NOT_FIRST_DRAW_THIS_STEP; QTY_GE:
+                     OPPONENT only, read as "some opponent"):
                      you|opponent|target-player, or a referent Selector
-      inner_filter — a nested Filter (CONTROLLER_COUNT_GE/LE,
-                     NAME_PARTITION_COUNT_GE, ATTACK_AGAINST_COUNT_GE)
+      inner_filter — a nested Filter (ATTACK_AGAINST_COUNT_GE; TARGETS:
+                     what the judged spell or ability targets)
       zone         — Zone (ENTERED_THIS_TURN_FROM / CAST_THIS_TURN_FROM —
                      "entered from / cast from this zone this turn")
       from_zone,   — Zones (MOVED_TO_ZONE_THIS_TURN — "a permanent was
@@ -1370,14 +1355,17 @@ class FAtom:
       referent     — a referent string from _QPROP_STR_REFERENTS
                      (IS_ATTACHED_TO: "attached to that/source"; same
                      vocabulary as Selector.referent)
-      right_inner_filter — a SECOND nested Filter (CONTROLLER_COUNT_GT:
-                     "controls more X than Y" — inner_filter counts one
-                     side, right_inner_filter the other)
       event        — an EventSpec (EVENT_THIS_TURN /
                      SUBJECT_OF_EVENT_THIS_TURN: the event the turn's
                      journal is searched for)
+      field        — QTY_GE: the property of the judged object compared
+                     (COMPARED_FIELDS: power, toughness, mana value, the
+                     number of its colours)
+      quantity     — QTY_GE: the quantity the game measures, compared
+                     instead (a count, a player's life, a population's
+                     total; ``_check_comparison``)
 
-    The last six slots are omitted from the serialization when None
+    The last seven slots are omitted from the serialization when None
     (``_OMIT_IF_EMPTY``); the others serialize their null / [] defaults.
     """
 
@@ -1394,8 +1382,9 @@ class FAtom:
     from_zone: Zone | None = None
     to_zone: Zone | None = None
     referent: str | None = None
-    right_inner_filter: Filter | None = None
     event: EventSpec | None = None
+    field: QPropField | None = None
+    quantity: Quantity | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.pred, FAtomPred):
@@ -1438,13 +1427,6 @@ class FAtom:
             raise ValueError(
                 f"FAtom: inner_filter must be a Filter, got {type(self.inner_filter).__name__}"
             )
-        if self.right_inner_filter is not None and not _is_filter(
-            self.right_inner_filter
-        ):
-            raise ValueError(
-                "FAtom: right_inner_filter must be a Filter, got "
-                f"{type(self.right_inner_filter).__name__}"
-            )
         if self.zone is not None and not isinstance(self.zone, Zone):
             raise ValueError(
                 f"FAtom: zone must be a Zone, got {type(self.zone).__name__}"
@@ -1463,6 +1445,12 @@ class FAtom:
             raise ValueError(
                 f"FAtom: event must be an EventSpec, got {type(self.event).__name__}"
             )
+        if self.field is not None and not isinstance(self.field, QPropField):
+            raise ValueError(
+                f"FAtom: field must be a QPropField, got {type(self.field).__name__}"
+            )
+        if self.quantity is not None and not _is_quantity(self.quantity):
+            raise ValueError(f"FAtom: quantity must be a Quantity, got {self.quantity!r}")
 
         vocab = _FATOM_STRING_VOCAB.get(self.pred)
         if vocab is not None and self.string_value is not None and self.string_value not in vocab:
@@ -1486,8 +1474,9 @@ class FAtom:
             "from_zone",
             "to_zone",
             "referent",
-            "right_inner_filter",
             "event",
+            "field",
+            "quantity",
         ):
             value = getattr(self, slot)
             unset = value is None or (slot == "colors" and value == ())
@@ -1509,19 +1498,14 @@ class FAtom:
                     "from_zone",
                     "to_zone",
                     "referent",
-                    "right_inner_filter",
                     "event",
                 )
             ):
                 raise ValueError(f"FAtom: {self.pred.name} requires slot {slot!r}")
         if self.pred is FAtomPred.COLOR_IN and not self.colors:
             raise ValueError("FAtom: COLOR_IN requires a non-empty colors tuple")
-        if (
-            self.pred is FAtomPred.COLOR_COUNT_GE
-            and isinstance(self.count, QConst)
-            and self.count.value < 1
-        ):
-            raise ValueError("FAtom: COLOR_COUNT_GE requires count >= 1")
+        if self.pred is FAtomPred.QTY_GE:
+            _check_comparison(self)
         if (
             self.pred is FAtomPred.HAS_COUNTER
             and isinstance(self.count, QConst)
@@ -1577,19 +1561,6 @@ class FAtom:
                     f"FAtom: {self.pred.name} reads how often the event happened from "
                     "its count; an event ordinal is a trigger's (the trigger binder reads it)"
                 )
-        if self.pred is FAtomPred.LIFE_TOTAL_GE:
-            # (a negative literal count is refused by QConst itself)
-            if self.count is None:
-                raise ValueError("FAtom: LIFE_TOTAL_GE requires slot 'count'")
-            if self.who is not ControllerRef.YOU:
-                # YOU is the only reading the 19 sets print (gate round 8, M1). Over
-                # several players FNot(N + 1) would read "each of them has N or less
-                # life" where "an opponent has N or less life" means one; TARGET_PLAYER,
-                # TARGET_OPPONENT and a referent "target" read one binding (three byte
-                # forms of one meaning, D18), and a TARGET_* in a filter designates
-                # nothing (the designation scans read only CONTROLLER_IS). Another value
-                # comes back with a card that prints it, and its tests.
-                raise ValueError(f"FAtom: LIFE_TOTAL_GE who must be YOU, got {self.who!r}")
         if (
             self.pred is FAtomPred.CONTROLLER_IS
             and self.who
@@ -1622,6 +1593,241 @@ class FAtom:
 
 
 Filter = FAnd | FOr | FNot | FAtom
+
+
+# ---- The one quantity comparison (ontology round R12) ----
+#
+# FAtom(QTY_GE, count=N, field=F | quantity=Q[, who=OPPONENT]): the judged object's property F,
+# or the quantity Q the game measures, is at least N (CR 107.1: the numbers of the game are
+# integers, so "N or more" and "N or greater" are at least N, "more than N" is at least N + 1,
+# and "N or less" is FNot of the comparison at N + 1). It replaces POWER_GE / POWER_LE, CMC_GE /
+# CMC_LE, COLOR_COUNT_GE, CONTROLLER_COUNT_GE / _GT, ZONE_COUNT_GE, LIFE_TOTAL_GE,
+# LIFE_LEAD_OVER_START_GE and NAME_PARTITION_COUNT_GE (KNOWLEDGE/2026-11-17/210 I1).
+
+#: What the comparison reads of the object it judges (FAtom.field): its power and toughness (CR
+#: 208.1), its mana value (202.3), the number of its colours (105.2; "multicolored" is two or more,
+#: 105.4). An object without the characteristic (a noncreature's power, a player's mana value)
+#: fails the comparison, so the FNot of "N or less" holds for it: the noun beside the comparison
+#: (creature, card, spell) says what has the characteristic.
+COMPARED_FIELDS = (
+    QPropField.POWER,
+    QPropField.TOUGHNESS,
+    QPropField.MANA_VALUE,
+    QPropField.COLOR,
+)
+#: Whose quantity the comparison reads besides yours (FAtom.who): some opponent's, the quantity
+#: read with that player as "you" (EachPlayer's rotation; "an opponent has eight or more cards in
+#: their graveyard", Thieves' Guild Enforcer). Another player comes with the card that prints it.
+COMPARED_PLAYERS = frozenset({ControllerRef.OPPONENT})
+
+
+def _measures_the_game(q: object) -> bool:
+    """Is ``q`` a quantity the game measures, so that it may be compared: a count or a distinct
+    count of a population, a population's total (SUM: "total power 8 or greater"), or your life
+    total? A literal, an X or an arithmetic of them is the threshold's (``count``), so that "N or
+    less" has one form (FNot of the comparison, never "N is at least <quantity>"); the judged
+    object's own property is ``field``. A population's greatest or least value is not: "the
+    greatest power among your creatures is 4 or greater" is "you control a creature with power 4
+    or greater", the count of the creatures that pass the comparison."""
+    if isinstance(q, (QCount, QDistinct, QPartyCount)):
+        return True
+    if isinstance(q, QProp):
+        if isinstance(q.referent, Selector):
+            return q.agg is QAgg.SUM
+        return q.referent == "controller" and q.field is QPropField.LIFE
+    return False
+
+
+def _operand_key(q: object) -> tuple[bool, str]:
+    """The canonical order of a commutative operator's operands: a literal last, the others by
+    their canonical bytes ("N + 1", never "1 + N")."""
+    return isinstance(q, QConst), canonical_json(q)
+
+
+def _is_literal(q: object) -> bool:
+    """A number the ability itself fixes: a literal, its X, or arithmetic of them."""
+    if isinstance(q, QBin):
+        return _is_literal(q.left) and _is_literal(q.right)
+    return isinstance(q, (QConst, QX))
+
+
+def _compares_two_measures(f: object) -> bool:
+    """Is ``f`` a comparison of a measured quantity with a threshold that measures the game too
+    ("more creatures than you")? Such a comparison has one orientation (FNot refuses it)."""
+    return (
+        isinstance(f, FAtom)
+        and f.pred is FAtomPred.QTY_GE
+        and f.quantity is not None
+        and f.count is not None
+        and any(_measures_the_game(n) for n in walk(f.count))
+    )
+
+
+def _negates_two_measures(f: object) -> bool:
+    """Does negating the filter ``f`` negate a comparison of two measures? Through the boolean
+    nodes (FAnd, FOr, FNot: De Morgan reaches the comparison either way), never into a quantity's
+    or selector's own filter, which is another population's test."""
+    if isinstance(f, (FAnd, FOr)):
+        return any(_negates_two_measures(c) for c in f.children)
+    if isinstance(f, FNot):
+        return _negates_two_measures(f.inner)
+    return _compares_two_measures(f)
+
+
+def _check_compared_side(atom_pred: str, side: str, q: object) -> None:
+    """A side of the comparison is a number the game has now: not a choice count ("up to N",
+    "any number", "N or more" as a pick), no designation (a TARGET pick or a target player
+    anywhere in it: the designation scans never read a comparison's quantities, so "target
+    player has ..." would reach resolution with no target chosen; gate round 8, M1), and the
+    operands of a sum or product in canonical order."""
+    stack = [q]
+    while stack:
+        n = stack.pop()
+        if isinstance(n, (QAtLeast, QAtMost, QUnbounded)):
+            raise ValueError(f"FAtom: {atom_pred} {side}: {type(n).__name__} is a pick, not a number")
+        if isinstance(n, QBin):
+            if n.op in (QBinOp.ADD, QBinOp.MUL) and _operand_key(n.left) > _operand_key(n.right):
+                raise ValueError(
+                    f"FAtom: {atom_pred} {side}: {n.op.name} takes its operands in canonical order "
+                    "(a literal last: N + 1, never 1 + N)"
+                )
+            if n.op is QBinOp.ADD and QConst(0) in (n.left, n.right):
+                raise ValueError(f"FAtom: {atom_pred} {side}: N + 0 is N; write N")
+            stack.extend((n.left, n.right))
+    for n in walk(q):
+        if isinstance(n, Selector) and n.referent is None and n.mode is not SelectorMode.ALL:
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: a {n.mode.name} selector picks; a comparison reads "
+                "a population (ALL) or a referent"
+            )
+        if isinstance(n, Selector) and n.mode is SelectorMode.ALL and n.count != QUnbounded():
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: an ALL selector reads every object; its count is "
+                "QUnbounded"
+            )
+        if isinstance(n, Zone) and n.kind is ZoneKind.BATTLEFIELD and n.controller is not ControllerRef.ANY:
+            # control is an overlay (GAIN_CONTROL, Executor.controller_of), the battlefield one
+            # zone: "you control" is CONTROLLER_IS YOU in the filter (number_you_control)
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: a population on the battlefield is Zone(BATTLEFIELD, "
+                "ANY), its controller a CONTROLLER_IS in the filter"
+            )
+        if dataclasses.is_dataclass(n) and any(
+            isinstance(v, ControllerRef) and v in DESIGNATED_PLAYER_REFS
+            for v in (getattr(n, f.name) for f in dataclasses.fields(n))
+        ):
+            raise ValueError(
+                f"FAtom: {atom_pred} {side}: a target player in a comparison designates nothing"
+            )
+
+
+def _check_comparison(atom: FAtom) -> None:
+    """QTY_GE's one form per meaning: a threshold (`count`) and exactly one compared side, the
+    judged object's property (`field`, COMPARED_FIELDS) or a quantity the game measures
+    (`quantity`, :func:`_measures_the_game`); `who` only COMPARED_PLAYERS, over a count of that
+    player's own zone."""
+    if atom.count is None:
+        raise ValueError("FAtom: QTY_GE requires slot 'count' (the threshold)")
+    if atom.count == QConst(0):
+        raise ValueError("FAtom: QTY_GE count 0 always holds (and its FNot never): no threshold")
+    if (atom.field is None) == (atom.quantity is None):
+        raise ValueError(
+            "FAtom: QTY_GE compares exactly one of `field` (the judged object's property) and "
+            "`quantity` (a quantity the game measures)"
+        )
+    if atom.field is not None:
+        if atom.field not in COMPARED_FIELDS:
+            raise ValueError(
+                f"FAtom: QTY_GE field must be one of {[f.name for f in COMPARED_FIELDS]}, got "
+                f"{atom.field.name}"
+            )
+        if atom.who is not None:
+            raise ValueError("FAtom: QTY_GE who reads a quantity for a player; `field` has none")
+    else:
+        if not _measures_the_game(atom.quantity):
+            raise ValueError(
+                f"FAtom: QTY_GE quantity {type(atom.quantity).__name__} is no measure of the game "
+                "(a literal or an X is the threshold; the judged object's property is `field`)"
+            )
+        _check_compared_side("QTY_GE", "quantity", atom.quantity)
+        if any(isinstance(n, Selector) and n.referent is not None for n in walk(atom.quantity)):
+            # the population, never one object: "its power" judged on the object is `field`, and
+            # a referent read here would be a second form of it
+            raise ValueError(
+                "FAtom: QTY_GE quantity measures a population (no referent); the judged "
+                "object's own property is `field`"
+            )
+        if atom.who is not None:
+            if atom.who not in COMPARED_PLAYERS:
+                raise ValueError(
+                    f"FAtom: QTY_GE who must be one of {sorted(r.name for r in COMPARED_PLAYERS)}, "
+                    f"got {atom.who!r}"
+                )
+            if not (
+                isinstance(atom.quantity, QCount)
+                and atom.quantity.selector.referent is None
+                and all(z.controller is ControllerRef.YOU for z in atom.quantity.selector.zones)
+            ):
+                # the one reading printed: "an opponent has N or more cards in their <zone>", a
+                # count of that player's own zone. Over another player's zones the rotation reads
+                # "the others" (in two-player games a second form of your own count), and another
+                # player's life ("an opponent has N or more life") comes with its card.
+                raise ValueError(
+                    "FAtom: QTY_GE who reads a count of cards in that player's own zone "
+                    "(Zone(<kind>, YOU)) for some opponent"
+                )
+            if not _is_literal(atom.count):
+                # the threshold is read in the rotated context too: a measure there would be the
+                # opponent's, never yours ("more cards than you" is no `who` comparison)
+                raise ValueError("FAtom: QTY_GE who compares with a number (a literal or X)")
+    _check_compared_side("QTY_GE", "count", atom.count)
+
+
+def at_least(
+    count: Quantity | int,
+    *,
+    field: QPropField | None = None,
+    quantity: Quantity | None = None,
+    who: ControllerRef | None = None,
+) -> FAtom:
+    """The comparison "``field`` of the judged object (or ``quantity``) is ``count`` or more"."""
+    threshold = QConst(count) if isinstance(count, int) else count
+    return FAtom(pred=FAtomPred.QTY_GE, count=threshold, field=field, quantity=quantity, who=who)
+
+
+def at_most(
+    count: Quantity | int, *, field: QPropField | None = None, quantity: Quantity | None = None
+) -> FNot:
+    """"``count`` or less" (CR 107.1): the comparison at ``count`` + 1, negated, its one form. No
+    ``who``: "an opponent has N or less" is no FNot of "an opponent has N + 1 or more"."""
+    if isinstance(count, int):
+        threshold: Quantity = QConst(count + 1)
+    elif isinstance(count, QConst):
+        threshold = QConst(count.value + 1)
+    else:
+        threshold = QBin(QBinOp.ADD, count, QConst(1))
+    return FNot(at_least(threshold, field=field, quantity=quantity))
+
+
+def number_you_control(filter_: Filter) -> QCount:
+    """"The number of <filter> you control": the permanents on the battlefield under your control
+    that pass ``filter_``, the corpus's count form (``CONTROLLER_IS YOU`` among the conjuncts, once)."""
+    you = FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+    parts = filter_.children if isinstance(filter_, FAnd) else (filter_,)
+    if you not in parts:
+        parts = (you, *parts)
+    return number_in(
+        Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY), FAnd(parts) if len(parts) > 1 else parts[0]
+    )
+
+
+def number_in(zone: Zone, filter_: Filter | None = None) -> QCount:
+    """"The number of [<filter>] cards in <zone>" (your graveyard, your hand, the top of your
+    library): every object there that passes ``filter_`` (absent: every one), the corpus's count
+    form (divergence D28: never a QProp field)."""
+    return QCount(
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()) if filter_ is None else filter_, (zone,))
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2844,18 +3050,14 @@ class CostDeltaIncreaseLife:
             )
 
 
-@dataclass(frozen=True)
-class CostDeltaWaiveMana:
-    """Waive the cost's mana component entirely ("you may cast spells from
-    your hand without paying their mana costs")."""
-
-
+#: "You may cast spells from your hand without paying their mana costs" is no cost delta: it is the
+#: static PERMIT over the hand with ``alternative=Cost()`` (DESIGN_ATOM_ONTOLOGY §17; the delta that
+#: wrote it, CostDeltaWaiveMana, was retired with ontology round R13 as its second byte form).
 CostDelta = (
     CostDeltaReduceGeneric
     | CostDeltaIncreaseGeneric
     | CostDeltaReduceMana
     | CostDeltaIncreaseLife
-    | CostDeltaWaiveMana
 )
 
 
@@ -3072,6 +3274,10 @@ class Atom:
             raise ValueError(
                 "Atom: CHOOSE_NAME's name_filter narrows card names; a quality choice takes none"
             )
+        if self.verb in (Verb.CAST, Verb.PERMIT):
+            fault = _cast_roles_fault(self.verb, roles)
+            if fault is not None:
+                raise ValueError(f"Atom: {self.verb.name}: {fault}")
         # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3134,6 +3340,13 @@ class OptionalEffect:
         if not _is_effect(self.inner):
             raise ValueError(
                 f"OptionalEffect: inner must be an Effect, got {type(self.inner).__name__}"
+            )
+        # A permission's "you may" is its use: the card is played later, or not (CR 601.3). An
+        # OptionalEffect around it would ask whether to have the permission, a choice with no
+        # consequence (AGENTS §10, a phantom) and a second byte form of the bare PERMIT.
+        if any(isinstance(n, Atom) and n.verb is Verb.PERMIT for n in own_nodes(self.inner)):
+            raise ValueError(
+                "OptionalEffect: a PERMIT is its own \"you may\" (CR 601.3); never wrap it"
             )
 
 
@@ -3243,6 +3456,218 @@ def orders_a_library(atom: Atom) -> bool:
     )
 
 
+# ---- The cast verbs (CAST, PERMIT): DESIGN_ATOM_ONTOLOGY §17 ----
+
+#: PERMIT's durations where a resolving ability makes it (CR 611.2a): "this turn" and "until end of
+#: turn" (DurationEot), "until the end of your next turn" (DurationUntilEndOfNextTurn), "for as
+#: long as it remains exiled" (DurationPermanent: the permission lives on its objects, and each
+#: object leaves it when it changes zones, CR 400.7).
+_PERMIT_DURATIONS = (DurationEot, DurationUntilEndOfNextTurn, DurationPermanent)
+
+
+def _permit_zones() -> tuple[Zone, ...]:
+    """The zones a PERMIT names its cards in (CR 601.3, 305.1): your graveyard, exile, the top of
+    your library, and your hand, the last only with an alternative cost (casting from your hand is
+    the rules' own permission, CR 117.1a). The cards are your own: a card you do not own is a
+    piece no card of the 19 sets needs yet."""
+    return (
+        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        Zone(ZoneKind.EXILE, ControllerRef.YOU),
+        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+        Zone(ZoneKind.HAND, ControllerRef.YOU),
+    )
+
+
+def spell_rider(to_zone: Zone) -> ReplacementAbility:
+    """The replacement a spell cast through a cast verb has while it is on the stack (the verb's
+    ``replace`` role). ``to_zone`` Zone(GRAVEYARD, YOU): "If that spell would be put into your
+    graveyard, exile it instead" (Chandra, Flame's Catalyst [-2]); Zone(ANY, ANY): flashback's
+    "exile this card instead of putting it anywhere else any time it would leave the stack" (CR
+    702.34a). Its source is the spell (IS_SOURCE), its action the exile."""
+    return ReplacementAbility(
+        event=ZoneChangeEvent(
+            from_zone=Zone(ZoneKind.STACK, ControllerRef.ANY),
+            to_zone=to_zone,
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
+        ),
+        condition=None,
+        action=Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                    (
+                        "target",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(children=()),
+                            zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                            referent="event",
+                        ),
+                    ),
+                )
+            ),
+        ),
+    )
+
+
+def spell_riders() -> tuple[ReplacementAbility, ...]:
+    """The two forms the cast verbs' ``replace`` role takes (:func:`spell_rider`): into your
+    graveyard, or leaving the stack for anywhere else."""
+    return (
+        spell_rider(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+        spell_rider(Zone(ZoneKind.ANY, ControllerRef.ANY)),
+    )
+
+
+def _requires_card_type(filter_: object, word: str, negated: bool = False) -> bool:
+    """Does ``filter_`` admit only objects of card type ``word`` (a TYPE_EQ conjunct, or every
+    branch of a disjunction one), or with ``negated`` only objects without it (FNot(TYPE_EQ))?"""
+    atom = FAtom(pred=FAtomPred.TYPE_EQ, string_value=word)
+    want = FNot(inner=atom) if negated else atom
+    if filter_ == want:
+        return True
+    if isinstance(filter_, FAnd):
+        return any(_requires_card_type(c, word, negated) for c in filter_.children)
+    if isinstance(filter_, FOr):
+        return bool(filter_.children) and all(
+            _requires_card_type(c, word, negated) for c in filter_.children
+        )
+    return False
+
+
+def _named_card_types(filter_: object, positive: bool = True) -> set[str]:
+    """The card types a filter names as a TYPE_EQ reached through an even number of negations
+    ("instant and sorcery", "nonland" names none)."""
+    if isinstance(filter_, FAtom):
+        if positive and filter_.pred is FAtomPred.TYPE_EQ and filter_.string_value:
+            return {filter_.string_value}
+        return set()
+    if isinstance(filter_, (FAnd, FOr)):
+        return {t for c in filter_.children for t in _named_card_types(c, positive)}
+    if isinstance(filter_, FNot):
+        return _named_card_types(filter_.inner, not positive)
+    return set()
+
+
+def _count_limit(quantity: object) -> int | None:
+    """The most objects a designation's count names (QConst n, QAtMost n), else None."""
+    if isinstance(quantity, QConst) and isinstance(quantity.value, int):
+        return quantity.value
+    if isinstance(quantity, QAtMost):
+        return quantity.n
+    return None
+
+
+def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
+    """Why the roles of a CAST or a PERMIT say one thing two ways or nothing at all, else None.
+    Where the atom stands (a static, a resolving ability) is :func:`permission_fault`'s."""
+    additional = roles.get("additional")
+    if isinstance(additional, Cost) and not additional.parts:
+        return "`additional` with no parts adds nothing (an empty cost is `alternative`'s free cast)"
+    rider = roles.get("replace")
+    if rider is not None and rider not in spell_riders():
+        return (
+            "`replace` is a spell's exile instead of its graveyard or of leaving the stack "
+            "(ability_tree.spell_rider), no other replacement"
+        )
+    if verb is not Verb.PERMIT:
+        sel = roles.get("source")
+        if not isinstance(sel, Selector):
+            return None
+        if "Land" in _named_card_types(sel.filter):
+            return "a land is never cast (CR 305.9): a CAST names no land"
+        if any(z.kind in (ZoneKind.BATTLEFIELD, ZoneKind.STACK) for z in sel.zones):
+            return (
+                "a CAST casts a card (CR 601.2a): a permanent or a spell is never cast, so its "
+                "`source` names no battlefield or stack"
+            )
+        if sel.mode is SelectorMode.TARGET and any(
+            z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND) for z in sel.zones
+        ):
+            return "a card in a library or a hand is never designated (CR 400.2): no TARGET there"
+        return None
+    if roles.get("lands") is False:
+        return "`lands` is True (\"play\") or absent (\"cast\"); False is a second form of absent"
+    count = roles.get("count")
+    if count is not None and not (isinstance(count, QConst) and count.value >= 1):
+        return "`count` is how many plays it allows, a literal of 1 or more (absent: any number)"
+    duration = roles.get("duration")
+    if duration is not None and not isinstance(duration, _PERMIT_DURATIONS):
+        return (
+            f"duration must be one of {', '.join(t.__name__ for t in _PERMIT_DURATIONS)}, got "
+            f"{type(duration).__name__}"
+        )
+    sel = roles["source"]
+    if not isinstance(sel, Selector):
+        return "`source` names the cards with a Selector"
+    if sel.referent is not None:
+        if sel.referent != "result":
+            return (
+                "a referent `source` is the cards the instruction before the PERMIT moved "
+                f"(`result`), not {sel.referent!r}"
+            )
+        if sel.filter != FAnd(()):
+            return (
+                "the `result` register is the cards the permission covers, every one: a filter "
+                "on it is not read"
+            )
+    else:
+        if sel.mode is SelectorMode.ALL:
+            if not isinstance(sel.count, QUnbounded):
+                return "an ALL `source` is a population: its count is QUnbounded"
+        elif sel.mode is not SelectorMode.TARGET:
+            return (
+                "`source` names its cards ALL (every card that passes the filter), TARGET or by a "
+                f"referent; a {sel.mode.name} pick happens as the card is played, not here"
+            )
+        zones = _permit_zones()
+        if not sel.zones or any(zone not in zones for zone in sel.zones):
+            return (
+                "`source` names the zone the cards are played from: your graveyard, exile, the top "
+                "of your library or your hand"
+            )
+        if any(z.kind is ZoneKind.HAND for z in sel.zones) and "alternative" not in roles:
+            return "casting from your hand needs no permission (CR 117.1a) unless the cost changes"
+        if any(z.kind is ZoneKind.HAND for z in sel.zones) and _filter_names_the_source(sel.filter):
+            return (
+                "a card's own cost to cast it from your hand is its spell's alternative cost (CR "
+                "118.9), a SpellAbility piece: it applies wherever the spell is cast from, and the "
+                "hand needs no permission"
+            )
+        if sel.mode is SelectorMode.TARGET:
+            if any(z.kind in (ZoneKind.LIBRARY, ZoneKind.HAND) for z in sel.zones):
+                return (
+                    "a card in a library or a hand is never designated (CR 400.2): the top card, "
+                    "or a hand's cards, are a population"
+                )
+            limit = _count_limit(sel.count)
+            if count is not None and limit is not None and count.value >= limit:
+                return (
+                    f"a designation of at most {limit} plays each once (CR 400.7): a `count` of "
+                    f"{count.value} limits nothing"
+                )
+    lands = roles.get("lands") is True
+    named = _named_card_types(sel.filter)
+    if not lands and "Land" in named:
+        return "a land is never cast (CR 305.9): \"play lands\" is `lands` True"
+    if not lands and _requires_card_type(sel.filter, "Land", negated=True):
+        return "a cast never takes a land (CR 305.9): FNot(Land) on a cast permission adds nothing"
+    if lands and any(z.kind is ZoneKind.HAND for z in sel.zones):
+        return "a land in your hand is played by the rules (CR 305.1): `lands` over your hand adds nothing"
+    if lands and (_requires_card_type(sel.filter, "Land", negated=True) or (named and "Land" not in named)):
+        return "playing only cards that are never lands is casting spells: leave `lands` out"
+    if rider is not None and _requires_card_type(sel.filter, "Land"):
+        return "a land played never uses the stack (CR 305.1): `replace` means nothing here"
+    if ("alternative" in roles or "additional" in roles) and _requires_card_type(sel.filter, "Land"):
+        return (
+            "playing a land is a special action with no cost (CR 116.2a, 305.1): `alternative` "
+            "and `additional` mean nothing here"
+        )
+    return None
+
+
 def gathers_occurrences(event: object) -> bool:
     """Can one event hold several occurrences a trigger on ``event`` matches, so that once per
     event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can; so
@@ -3323,24 +3748,30 @@ def _check_once_per_event(owner: str, event: object, value: object) -> None:
 #: The predicates that read no subject (a count, a turn, a life total: §11 R6-2). They read the
 #: same in any slot, so a trigger qualifier made of them has one slot per event class
 #: (tools/audit/ontology_conformance), and a gathered trigger's intervening "if" may hold them.
+#: The comparison is one of them unless it reads the judged object (:func:`reads_no_subject`).
 SUBJECT_FREE = frozenset({
-    FAtomPred.TURN_OF, FAtomPred.CONTROLLER_COUNT_GE, FAtomPred.CONTROLLER_COUNT_GT,
-    FAtomPred.ZONE_COUNT_GE, FAtomPred.NAME_PARTITION_COUNT_GE,
-    FAtomPred.ATTACK_AGAINST_COUNT_GE, FAtomPred.DIED_THIS_TURN, FAtomPred.EVENT_THIS_TURN,
-    FAtomPred.CARDS_DRAWN_THIS_TURN_GE, FAtomPred.LIFE_GAINED_THIS_TURN_GE,
-    FAtomPred.LIFE_LEAD_OVER_START_GE, FAtomPred.LIFE_TOTAL_GE,
-    FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN, FAtomPred.FLIP_WON, FAtomPred.MAY_DONE,
+    FAtomPred.TURN_OF, FAtomPred.ATTACK_AGAINST_COUNT_GE, FAtomPred.DIED_THIS_TURN,
+    FAtomPred.EVENT_THIS_TURN, FAtomPred.CARDS_DRAWN_THIS_TURN_GE,
+    FAtomPred.LIFE_GAINED_THIS_TURN_GE, FAtomPred.INSTANT_OR_SORCERY_CAST_THIS_TURN,
+    FAtomPred.FLIP_WON, FAtomPred.MAY_DONE,
 })
+
+
+def reads_no_subject(atom: FAtom) -> bool:
+    """Does ``atom`` answer the same for every object it is asked about: a predicate of
+    :data:`SUBJECT_FREE`, or a comparison of a quantity the game measures (not of its judged
+    object's ``field``)?"""
+    return atom.pred in SUBJECT_FREE or (atom.pred is FAtomPred.QTY_GE and atom.field is None)
 
 
 def _reads_subject(filter_: object) -> bool:
     """Does a condition test the object it is judged on: an atom (through FAnd, FOr and FNot,
-    not the inner filters of counting atoms) outside :data:`SUBJECT_FREE`?"""
+    not the inner filters of counting atoms) that reads one (:func:`reads_no_subject`)?"""
     if isinstance(filter_, (FAnd, FOr)):
         return any(_reads_subject(c) for c in filter_.children)
     if isinstance(filter_, FNot):
         return _reads_subject(filter_.inner)
-    return isinstance(filter_, FAtom) and filter_.pred not in SUBJECT_FREE
+    return isinstance(filter_, FAtom) and not reads_no_subject(filter_)
 
 
 #: The roles a verb reads as one object, taking the first of several: "it deals" (CR 120.2b names
@@ -3639,9 +4070,9 @@ class SpellAbility:
 @dataclass(frozen=True)
 class KeywordAbility:
     """A keyword with typed params; arity is validated per keyword via
-    ``_KEYWORD_PARAMS``: Scry/Mill/Battalion take one Quantity, Protection
-    takes one Filter, Hexproof takes none or one Filter, the rest take
-    none. MTGJSON's "Hexproof from blue" is HEXPROOF + a Filter param."""
+    ``_KEYWORD_PARAMS``: Protection takes one Filter, Hexproof and Enchant
+    none or one Filter, the rest none. MTGJSON's "Hexproof from blue" is
+    HEXPROOF + a Filter param."""
 
     keyword: Keyword
     params: tuple[Quantity | Filter | Cost, ...] = ()
@@ -3989,6 +4420,175 @@ def _reflexive_misplaced(
     )
 
 
+def permission_fault(*nodes: Any) -> str | None:
+    """Why a cast verb under ``nodes`` (a card's keywords and abilities) stands where it means
+    nothing or a second thing, else None (DESIGN_ATOM_ONTOLOGY §17). A PERMIT:
+
+    - in a static ability (a card's, an emblem's, a token's) is the static's own continuous
+      effect, live while the static functions (CR 604.2, 611.3a): no ``duration`` and no
+      ``count``, and its ``source`` a population (ALL over a zone), never a designation;
+    - in the effect of a resolving ability (a spell, an activated, triggered or delayed ability) is
+      a continuous effect that ability creates (CR 611.2a): its ``duration`` is required;
+    - never in a granted static ("each legendary card in your graveyard gains 'You may play this
+      card from your graveyard'"): that is the resolving PERMIT over those cards, one encoding;
+    - never in a replacement, an "as ~ enters" state, a cost modifier, nor under EachPlayer or
+      Repeat (the permission is its controller's).
+
+    A CAST casts as its ability resolves (CR 608.2g): never in a static or a free activation
+    (``Cost()``: the old permission row, a second encoding of a static PERMIT), never of its own
+    card in an activation (the old row of "you may cast this card from your graveyard by paying 3
+    life and discarding a card", Demonic Embrace: a static PERMIT with ``additional``), and not
+    under EachPlayer or Repeat. A replacement of a zone change from the stack is a spell's rider: only
+    as a cast verb's ``replace`` role (:func:`spell_rider`), never an ability of its own."""
+    faults: list[str] = []
+
+    def visit(node: Any, host: Any, rotated: bool, granted: bool) -> None:
+        if faults:
+            return
+        if isinstance(node, tuple):
+            for item in node:
+                visit(item, host, rotated, granted)
+            return
+        if not dataclasses.is_dataclass(node) or isinstance(node, type):
+            return
+        if isinstance(node, Atom):
+            fault = _cast_verb_misplaced(node, host, rotated, granted)
+            if fault is not None:
+                faults.append(fault)
+                return
+            for role, value in node.args.pairs:
+                if role == "replace":
+                    continue  # the spell's rider (spell_riders), not an ability of this card
+                inner_granted = (
+                    node.verb is Verb.GRANT_ABILITY
+                    and role == "ability"
+                    and isinstance(value, StaticAbility)
+                )
+                visit(value, host, rotated, inner_granted)
+            return
+        if (
+            isinstance(node, ReplacementAbility)
+            and isinstance(node.event, ZoneChangeEvent)
+            and node.event.from_zone is not None
+            and node.event.from_zone.kind is ZoneKind.STACK
+        ):
+            faults.append(
+                "a spell's exile instead of the graveyard is the cast verb's `replace` role "
+                "(spell_rider), never a replacement ability of its own"
+            )
+            return
+        if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+            host, rotated = node, False
+            granted = granted and isinstance(node, StaticAbility)
+            split = _split_play_fault(node)
+            if split is not None:
+                faults.append(split)
+                return
+        elif isinstance(node, (EachPlayer, Repeat)):
+            rotated = True
+        for f in dataclasses.fields(node):
+            visit(getattr(node, f.name), host, rotated, granted)
+
+    visit(nodes, None, False, False)
+    return faults[0] if faults else None
+
+
+def _cast_verb_misplaced(atom: Atom, host: Any, rotated: bool, granted: bool) -> str | None:
+    """:func:`permission_fault` for one atom of the effect of ``host``."""
+    if atom.verb not in (Verb.CAST, Verb.PERMIT):
+        return None
+    if rotated:
+        return f"a {atom.verb.name} under EachPlayer or Repeat: the permission is its controller's"
+    resolving = isinstance(host, (SpellAbility, TriggeredAbility, ActivatedAbility, DelayedTrigger))
+    if atom.verb is Verb.CAST:
+        if isinstance(host, StaticAbility):
+            return "a CAST in a static casts nothing: \"you may cast ... from\" is PERMIT"
+        if isinstance(host, ActivatedAbility) and not host.cost.parts:
+            return (
+                "a free activation that casts is the old permission row: a static PERMIT "
+                "(MAPPER_GUIDE: a permission is a static, never a free activation)"
+            )
+        sel = atom.args.get("source")
+        if (
+            isinstance(host, ActivatedAbility)
+            and isinstance(sel, Selector)
+            and sel.referent is None
+            and _filter_names_the_source(sel.filter)
+        ):
+            return (
+                "an activation that casts its own card is that card's permission, a static PERMIT "
+                "with its costs as `additional` (CR 601.3, 601.2f): as an activation it would "
+                "cast at instant speed (CR 608.2g), or never"
+            )
+        if not resolving:
+            return f"a CAST in a {type(host).__name__} never resolves"
+        return None
+    if isinstance(host, StaticAbility):
+        if granted:
+            return (
+                "a granted static PERMIT (\"... gains 'You may play this card from your "
+                "graveyard'\") is the resolving PERMIT over those cards with its duration"
+            )
+        sel = atom.args.get("source")
+        if atom.args.get("duration") is not None:
+            return "a static PERMIT lasts while the static functions (CR 611.3a): no duration"
+        if atom.args.get("count") is not None:
+            return "a static PERMIT counts no plays (a once-each-turn limit is another piece)"
+        if not isinstance(sel, Selector) or sel.referent is not None or sel.mode is not SelectorMode.ALL:
+            return "a static PERMIT names a population (ALL over its zone): a static designates nothing"
+        return None
+    if resolving:
+        if atom.args.get("duration") is None:
+            return (
+                "a PERMIT a resolving ability makes lasts as long as it says (CR 611.2a): "
+                "its duration is required"
+            )
+        sel = atom.args.get("source")
+        if (
+            isinstance(sel, Selector)
+            and sel.referent is None
+            and sel.mode is SelectorMode.ALL
+            and _filter_names_the_source(sel.filter)
+        ):
+            return (
+                "a resolving PERMIT over its own card as a population would cover the card again "
+                "once it moves and comes back, a new object (CR 400.7): a card's own permission is "
+                "a static's (CR 113.6f)"
+            )
+        return None
+    return f"a PERMIT in a {type(host).__name__ if host is not None else 'bare effect'} never applies"
+
+
+def _split_play_fault(ability: Any) -> str | None:
+    """Two PERMITs of one ability that are one: a lands-only one and a cast one over the same
+    zones for as long ("play lands and cast creature spells from the top of your library") are
+    one PERMIT with `lands` over FOr(Land, Creature)."""
+    permits = [
+        n for n in own_nodes(getattr(ability, "effect", None))
+        if isinstance(n, Atom) and n.verb is Verb.PERMIT
+    ]
+    for a in permits:
+        for b in permits:
+            sa, sb = a.args.get("source"), b.args.get("source")
+            if (
+                a.args.get("lands") is True
+                and b.args.get("lands") is not True
+                and isinstance(sa, Selector)
+                and isinstance(sb, Selector)
+                and _requires_card_type(sa.filter, "Land")
+                and sa.zones == sb.zones
+                and sa.referent == sb.referent
+                and a.args.get("duration") == b.args.get("duration")
+                and a.args.get("count") is None
+                and b.args.get("count") is None
+            ):
+                return (
+                    "a lands-only PERMIT and a cast PERMIT over one zone are one permission: "
+                    "`lands` over FOr(Land, <the cast filter>)"
+                )
+    return None
+
+
 def chosen_quality_fault(*nodes: Any) -> str | None:
     """Why the choices and chosen-value reads under ``nodes`` (one object's keywords and
     abilities) have no meaning, or None. CR 607.2d: "choose a [value]" and "the chosen [value]"
@@ -4185,7 +4785,9 @@ class CardRecord:
                 "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
                 "Repeat between"
             )
-        fault = chosen_quality_fault(self.keywords, self.abilities)
+        fault = chosen_quality_fault(self.keywords, self.abilities) or permission_fault(
+            self.keywords, self.abilities
+        )
         if fault is not None:
             raise ValueError(f"CardRecord: {fault}")
         if not isinstance(self.is_token, bool):
@@ -4218,7 +4820,7 @@ _Q_CLASSES = (
     QThisTurn,
     QAtLeast,
     QAtMost,
-    QDistinctColorCount,
+    QDistinct,
     QPartyCount,
 )
 _F_CLASSES = (FAnd, FOr, FNot, FAtom)
@@ -4296,7 +4898,6 @@ _COST_DELTA_CLASSES = (
     CostDeltaIncreaseGeneric,
     CostDeltaReduceMana,
     CostDeltaIncreaseLife,
-    CostDeltaWaiveMana,
 )
 
 
@@ -4340,25 +4941,18 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     FAtomPred.NAME_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.COLOR_HAS: (frozenset({"color"}), frozenset({"color"})),
     FAtomPred.COLOR_IN: (frozenset({"colors"}), frozenset({"colors"})),
-    FAtomPred.COLOR_COUNT_GE: (frozenset({"count"}), frozenset({"count"})),
-    FAtomPred.CMC_LE: (frozenset({"count"}), frozenset({"count"})),
-    FAtomPred.CMC_GE: (frozenset({"count"}), frozenset({"count"})),
-    FAtomPred.PT_LE: (frozenset({"count"}), frozenset({"count"})),
-    FAtomPred.PT_GE: (frozenset({"count"}), frozenset({"count"})),
+    # QTY_GE: count, and exactly one of field / quantity; who only with quantity
+    # (_check_comparison).
+    FAtomPred.QTY_GE: (
+        frozenset({"count"}),
+        frozenset({"count", "field", "quantity", "who"}),
+    ),
     FAtomPred.KEYWORD_HAS: (frozenset({"keyword"}), frozenset({"keyword"})),
     FAtomPred.HAS_COUNTER: (
         frozenset({"counter_kind", "count"}),
         frozenset({"counter_kind", "count"}),
     ),
     FAtomPred.CONTROLLER_IS: (frozenset({"who"}), frozenset({"who"})),
-    FAtomPred.CONTROLLER_COUNT_GE: (
-        frozenset({"inner_filter", "count"}),
-        frozenset({"inner_filter", "count"}),
-    ),
-    FAtomPred.CONTROLLER_COUNT_LE: (
-        frozenset({"inner_filter", "count"}),
-        frozenset({"inner_filter", "count"}),
-    ),
     FAtomPred.IS_TAPPED: (frozenset(), frozenset()),
     FAtomPred.IS_UNTAPPED: (frozenset(), frozenset()),
     FAtomPred.IS_ATTACKING: (frozenset(), frozenset()),
@@ -4374,8 +4968,6 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # STACK_KIND_EQ: string_value from _STACK_KINDS only (_FATOM_STRING_VOCAB).
     FAtomPred.STACK_KIND_EQ: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.IS_ATTACHED_TO_SOURCE: (frozenset(), frozenset()),
-    FAtomPred.POWER_LE: (frozenset({"count"}), frozenset({"count"})),
-    FAtomPred.POWER_GE: (frozenset({"count"}), frozenset({"count"})),
     FAtomPred.NAME_CONTAINS: (frozenset({"string_value"}), frozenset({"string_value"})),
     FAtomPred.LIFE_GAINED_THIS_TURN_GE: (
         frozenset({"count", "who"}),
@@ -4392,7 +4984,8 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"who"}),
         frozenset({"who"}),
     ),
-    FAtomPred.TARGETS_SOURCE: (frozenset(), frozenset()),
+    # TARGETS: inner_filter = what the judged spell or ability must have a target among.
+    FAtomPred.TARGETS: (frozenset({"inner_filter"}), frozenset({"inner_filter"})),
     FAtomPred.MAY_DONE: (frozenset(), frozenset()),
     # ENTERED_THIS_TURN_FROM: zone = the zone the object entered from.
     FAtomPred.ENTERED_THIS_TURN_FROM: (
@@ -4426,13 +5019,6 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     ),
     # TURN_OF: who = the turn owner (ControllerRef or referent Selector).
     FAtomPred.TURN_OF: (frozenset({"who"}), frozenset({"who"})),
-    # ZONE_COUNT_GE: who = the player whose zone is counted; zone = the
-    # zone counted; inner_filter = the cards counted; count = the
-    # threshold Quantity.
-    FAtomPred.ZONE_COUNT_GE: (
-        frozenset({"who", "zone", "inner_filter", "count"}),
-        frozenset({"who", "zone", "inner_filter", "count"}),
-    ),
     FAtomPred.IS_ATTACHED_TO: (
         frozenset({"referent"}),
         frozenset({"referent"}),
@@ -4440,22 +5026,6 @@ _FATOM_RULES: dict[FAtomPred, tuple[frozenset[str], frozenset[str]]] = {
     # NAME_CHOSEN: string_value = the chosen quality (CHOSEN_QUALITIES); absent, the name.
     FAtomPred.NAME_CHOSEN: (frozenset(), frozenset({"string_value"})),
     FAtomPred.IS_EXILED_WITH_SOURCE: (frozenset(), frozenset()),
-    # CONTROLLER_COUNT_GT: both filters are REQUIRED (the comparison has
-    # no one-sided reading).
-    FAtomPred.CONTROLLER_COUNT_GT: (
-        frozenset({"inner_filter", "right_inner_filter"}),
-        frozenset({"inner_filter", "right_inner_filter"}),
-    ),
-    # LIFE_LEAD_OVER_START_GE: count = the threshold; no who slot (the
-    # predicate binds its subject player directly).
-    FAtomPred.LIFE_LEAD_OVER_START_GE: (frozenset({"count"}), frozenset({"count"})),
-    # LIFE_TOTAL_GE: who = YOU; count = the threshold, required (both
-    # checked in FAtom.__post_init__).
-    FAtomPred.LIFE_TOTAL_GE: (frozenset({"count", "who"}), frozenset({"count", "who"})),
-    FAtomPred.NAME_PARTITION_COUNT_GE: (
-        frozenset({"inner_filter", "count"}),
-        frozenset({"inner_filter", "count"}),
-    ),
     FAtomPred.ATTACK_AGAINST_COUNT_GE: (
         frozenset({"count", "inner_filter"}),
         frozenset({"count", "inner_filter"}),
@@ -4514,7 +5084,20 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "event": _EV_CLASSES,
     "condition": _F_CLASSES,
     "color": (str,),
-    "cost": (Cost,),  # PAY's cost role; CAST's optional extra-cost / waiver role
+    "cost": (Cost,),  # PAY's cost role
+    # The cast verbs' (CAST, PERMIT) cost change (CR 601.2f): `alternative` is paid rather than the
+    # mana cost (CR 118.9; an empty Cost is "without paying its mana cost"), `additional` on top of
+    # it ("by paying 3 life and discarding a card in addition to paying its other costs").
+    "alternative": (Cost,),
+    "additional": (Cost,),
+    # replace: the replacement the spell cast this way has while it is on the stack (CR 400.7g,
+    # 614.1a): "If that spell would be put into your graveyard, exile it instead", and flashback's
+    # "exile this card instead of putting it anywhere else any time it would leave the stack" (CR
+    # 702.34a). Exactly the forms of SPELL_RIDERS.
+    "replace": (ReplacementAbility,),
+    # lands: PERMIT's "play" (True): a land among its cards may be played (CR 305.1, 116.2a), as
+    # well as a spell cast; absent, "cast" (spells only, CR 305.9).
+    "lands": (bool,),
     "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
     # name_filter: CHOOSE_NAME's name restriction ("choose a nonbasic card
@@ -4582,9 +5165,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
         "recipient": False,
     },
     Verb.DESTROY: {"target": True},
-    Verb.EXILE: {"target": True},
     Verb.DRAW: {"controller": True, "amount": True},
-    Verb.MILL: {"controller": True, "amount": True},
     Verb.GAIN_LIFE: {"controller": True, "amount": True},
     Verb.LOSE_LIFE: {"controller": True, "amount": True},
     Verb.ADD_MANA: {"controller": True, "amount": True, "color": False},
@@ -4695,13 +5276,22 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # MANDATE_BLOCK mirrors MANDATE_ATTACK exactly — "must be blocked if
     # able" (Canopy Stalker); subject-scoped.
     Verb.MANDATE_BLOCK: {"cards": True, "controller": False, "duration": False},
-    # CAST: source is the Selector over the source zone (top-of-library via
-    # Zone.position). The optional `cost` role carries the cost paid
-    # BEYOND the spell's own — an empty Cost() is the cost-waiver reading
-    # ("cast ... without paying its mana cost"); Cost(parts=(...)) are
-    # additional costs ("by paying 2 life and discarding a card in
-    # addition to its other costs").
-    Verb.CAST: {"source": True, "cost": False},
+    # CAST (one-shot, CR 608.2g) and PERMIT (a permission, CR 601.3) share the cast roles:
+    # `source` names the cards (a Selector over their zone), `alternative` / `additional` the cost
+    # change (absent: the mana cost), `replace` the spell's rider (SPELL_RIDERS). PERMIT adds
+    # `lands` ("play": lands too), `count` (how many plays it allows in all: Idol of Endurance's
+    # "a creature spell"; absent, any number) and `duration` (required where a resolving ability
+    # makes it, refused in a static: permission_fault).
+    Verb.CAST: {"source": True, "alternative": False, "additional": False, "replace": False},
+    Verb.PERMIT: {
+        "source": True,
+        "lands": False,
+        "alternative": False,
+        "additional": False,
+        "replace": False,
+        "count": False,
+        "duration": False,
+    },
     # PAY: pay a cost as an effect ("you may pay {2}", with "if you do").
     Verb.PAY: {"cost": True},
     # LOSE_GAME: no roles — the effect is the loss itself.
@@ -4751,9 +5341,6 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
 # of per-position allowed type tuples (so the arity check and the
 # isinstance check both read off the same structure).
 _KEYWORD_PARAMS: dict[Keyword, tuple[tuple[tuple[type, ...], ...], ...]] = {
-    Keyword.SCRY: ((_Q_CLASSES,),),
-    Keyword.MILL: ((_Q_CLASSES,),),
-    Keyword.BATTALION: ((_Q_CLASSES,),),
     Keyword.PROTECTION: ((_F_CLASSES,),),
     Keyword.HEXPROOF: ((), (_F_CLASSES,)),
     # "Enchant [object or player]" (CR 702.5a) carries what
@@ -4809,7 +5396,7 @@ _DATACLASSES: tuple[type, ...] = (
     QThisTurn,
     QAtLeast,
     QAtMost,
-    QDistinctColorCount,
+    QDistinct,
     QPartyCount,
     Zone,
     Selector,
@@ -4864,7 +5451,6 @@ _DATACLASSES: tuple[type, ...] = (
     CostDeltaIncreaseGeneric,
     CostDeltaReduceMana,
     CostDeltaIncreaseLife,
-    CostDeltaWaiveMana,
     AtomArgs,
     Atom,
     Seq,
@@ -4898,7 +5484,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "QX": (),
     "QUnbounded": (),
     "QCount": (("selector", "selector"),),
-    "QDistinctColorCount": (("selector", "selector"),),
+    "QDistinct": (("selector", "selector"), ("field", "enum:QPropField")),
     "QPartyCount": (("selector", "selector"),),
     "QProp": (
         ("referent", "qprop_referent"),
@@ -4945,8 +5531,9 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("from_zone", "opt:zone"),
         ("to_zone", "opt:zone"),
         ("referent", "opt:str"),
-        ("right_inner_filter", "opt:filter"),
         ("event", "opt:event"),
+        ("field", "opt:enum:QPropField"),
+        ("quantity", "opt:quantity"),
     ),
     "DurationEot": (),
     "DurationPermanent": (),
@@ -5055,7 +5642,6 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "CostDeltaIncreaseGeneric": (("amount", "quantity"),),
     "CostDeltaReduceMana": (("color", "str"), ("amount", "quantity")),
     "CostDeltaIncreaseLife": (("amount", "quantity"),),
-    "CostDeltaWaiveMana": (),
     "AtomArgs": (("pairs", "atom_pairs"),),
     "Atom": (("verb", "enum:Verb"), ("args", "atom_args")),
     "Seq": (("steps", "tup:effect"),),
@@ -5149,7 +5735,7 @@ _QUANTITY_TAGS = frozenset(
         "QThisTurn",
         "QAtLeast",
         "QAtMost",
-        "QDistinctColorCount",
+        "QDistinct",
         "QPartyCount",
     }
 )
@@ -5210,7 +5796,6 @@ _COST_DELTA_TAGS = frozenset(
         "CostDeltaIncreaseGeneric",
         "CostDeltaReduceMana",
         "CostDeltaIncreaseLife",
-        "CostDeltaWaiveMana",
     }
 )
 _DURATION_TAGS = frozenset(
@@ -5314,7 +5899,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "TargetingEvent": frozenset({"actor"}),
     "CounterPlacedEvent": frozenset({"count"}),
     "FAtom": frozenset(
-        {"zone", "from_zone", "to_zone", "referent", "right_inner_filter", "event"}
+        {"zone", "from_zone", "to_zone", "referent", "event", "field", "quantity"}
     ),
     "TokenSpec": frozenset({"colors", "enters_tapped", "enters_attacking"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
@@ -5629,8 +6214,9 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
 #: its own when it is activated or put on the stack.
 _FOREIGN_ABILITY_NODES: tuple[type, ...] = (*_A_CLASSES, TokenSpec, DelayedTrigger)
 
-#: Verbs that always take cards from a library (CR 121.1 draw, 701.17a mill).
-_LIBRARY_POP_VERBS = frozenset({Verb.DRAW, Verb.MILL})
+#: Verbs that always take cards from a library (CR 121.1 draw; a mill is a MOVE_ZONE whose
+#: zones say so).
+_LIBRARY_POP_VERBS = frozenset({Verb.DRAW})
 #: Verbs that move the objects their roles name. They touch a library when a
 #: zone they name is a library, or ZoneKind.ANY (which includes the library).
 _ZONE_MOVING_VERBS = frozenset(
@@ -5638,7 +6224,6 @@ _ZONE_MOVING_VERBS = frozenset(
         Verb.MOVE_ZONE,
         Verb.SEARCH,
         Verb.CAST,
-        Verb.EXILE,
         Verb.DISCARD,
         Verb.SACRIFICE,
         Verb.DESTROY,

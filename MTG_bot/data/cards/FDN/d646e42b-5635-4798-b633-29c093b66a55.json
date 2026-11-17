@@ -145,5 +145,35 @@
  },
  "probe": {
   "sha": "5db6347f8e1a3b94a43164d91c2e5995cf6f8b4b60cf3f53dfdf8067a96b001c"
+ },
+ "verified": {
+  "tree_sha": "3cddd54d6d63d9f893ebfb9747f0f2e5808edb220b3873a50e2f9903f843e8eb",
+  "probe_sha": "5db6347f8e1a3b94a43164d91c2e5995cf6f8b4b60cf3f53dfdf8067a96b001c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "keywords[0] FLYING. Probe [cast]: 'keywords +FLYING'. Stimulus 'this creature attacks and opp_giant blocks it': no block row, the opponent takes the 2. Pack H07_2 shows a ground creature is never offered the block and a flyer is.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 1 life and draw a card.",
+    "status": "OK",
+    "evidence": "abilities[0]: ZoneChangeEvent(IS_SOURCE) -> Seq(GAIN_LIFE 1 YOU, DRAW 1 YOU), the same Seq the compiler gives Witch's Cauldron. Probe [cast] and 'enters during the opponent's turn': 'you gains 1 life', then 'you:Library 5#1 moves library -> hand (DRAW)', 'you: life 20 -> 21; library 6 -> 5' and '+ you:Library 5#1 (hand, you)' (the hand is back to 7 after the cast and the draw); the opponent is unchanged. Pack H07_1 pins the totals.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/inspiring_overseer_1.json",
+   "tools/scenarios/cards/FDN/inspiring_overseer_2.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

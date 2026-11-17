@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Inspiring Call, printed: 'Draw a card for each creature you control with a +1/+1 counter on it.' Seat 0 controls only a creature without counters; only seat 1 controls one with a +1/+1 counter. Zero creatures qualify: seat 0 draws nothing (and neither does seat 1), and nothing gains indestructible.",
+ "cards": [
+  {"key": "call", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "plain", "name": "Plain Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oppc", "name": "Opp Counter", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "call", "real": "Inspiring Call"}
+ ],
+ "expect": {
+  "zone": {"call": "graveyard"},
+  "battlefield_keywords": {"Plain Bear": [], "Opp Counter": []},
+  "graveyard": {"0": ["Inspiring Call"], "1": []},
+  "hand": {"0": 0, "1": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"], "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

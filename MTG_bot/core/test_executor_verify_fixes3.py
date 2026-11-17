@@ -84,6 +84,7 @@ from MTG_bot.core.test_executor_verbs import (
     reset_oracle_ids,
     target_sel,
 )
+from MTG_bot.core.test_executor_stack import cast_with
 
 
 class FixerCase(unittest.TestCase):
@@ -360,7 +361,7 @@ class TestV24CastRefusesAnotherPlayersCard(unittest.TestCase):
         case.setUp()
         theirs = case.give("Theirs", SpellKind.SORCERY, seat=case.p1, zone=ZONE_EXILE)
         with self.assertRaises(NotImplementedError):
-            cast_card(case.ex, case.p0, theirs, cost_override=Cost(()))
+            cast_card(case.ex, case.p0, theirs, atom=cast_with(Cost(())))
         self.assertEqual(case.world.zone_of(theirs).kind, ZONE_EXILE)
         self.assertEqual(case.world.controller_of(theirs), case.p1)
 
@@ -578,7 +579,7 @@ class TestV36EffectCastPaysAdditionalCosts(unittest.TestCase):
         from MTG_bot.core.executor.stack import cast_card
 
         junk = self.case.world.add_card(card_id("Junk"), self.case.p0, ZONE_HAND)
-        cast_card(self.case.ex, self.case.p0, self.spell, cost_override=self.free)
+        cast_card(self.case.ex, self.case.p0, self.spell, atom=cast_with(self.free))
         self.assertEqual(self.case.world.zone_of(junk).kind, ZONE_GRAVEYARD)
         self.assertEqual(self.case.world.zone_of(self.spell).kind, ZONE_GRAVEYARD)
 
@@ -588,7 +589,7 @@ class TestV36EffectCastPaysAdditionalCosts(unittest.TestCase):
         for card in list(self.case.world.players[self.case.p0].zone(ZONE_HAND).entries):
             self.case.world.move_to_zone(card, self.case.p0, ZONE_GRAVEYARD)
         with self.assertRaises(ValueError) as caught:
-            cast_card(self.case.ex, self.case.p0, self.spell, cost_override=self.free)
+            cast_card(self.case.ex, self.case.p0, self.spell, atom=cast_with(self.free))
         self.assertIn("cost:discard:insufficient_candidates", str(caught.exception))
         self.assertEqual(self.case.world.zone_of(self.spell).kind, ZONE_GRAVEYARD)
 
@@ -839,16 +840,16 @@ class TestExiledWithIsTheAbilitysLife(FixerCase):
 
 
 class TestV29TargetDependentTax(unittest.TestCase):
-    def test_the_tax_detector_reads_targets_source_anywhere_in_a_filter(self):
+    def test_the_tax_detector_reads_targets_anywhere_in_a_filter(self):
         from MTG_bot.core.ability_tree import FAnd, FAtom, FAtomPred, FNot
-        from MTG_bot.core.executor.query import _reads_targets_source
+        from MTG_bot.core.executor.query import _reads_targets
 
-        ts = FAtom(FAtomPred.TARGETS_SOURCE)
-        self.assertTrue(_reads_targets_source(ts))
-        self.assertTrue(_reads_targets_source(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
-        self.assertTrue(_reads_targets_source(FNot(ts)))
-        self.assertFalse(_reads_targets_source(FAtom(FAtomPred.IS_SOURCE)))
-        self.assertFalse(_reads_targets_source(None))
+        ts = FAtom(FAtomPred.TARGETS, inner_filter=FAtom(FAtomPred.IS_SOURCE))
+        self.assertTrue(_reads_targets(ts))
+        self.assertTrue(_reads_targets(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
+        self.assertTrue(_reads_targets(FNot(ts)))
+        self.assertFalse(_reads_targets(FAtom(FAtomPred.IS_SOURCE)))
+        self.assertFalse(_reads_targets(None))
 
 
 class TestV25EachTargetReadsItsOwnSlot(FixerCase):
@@ -1078,10 +1079,10 @@ class TestCastCostRoleIsAdditional(unittest.TestCase):
             zone=ZONE_GRAVEYARD,
         )
 
-    def cast(self, cost_override):
+    def cast(self, cost):
         from MTG_bot.core.executor.stack import cast_card
 
-        cast_card(self.case.ex, self.case.p0, self.spell, cost_override=cost_override)
+        cast_card(self.case.ex, self.case.p0, self.spell, atom=cast_with(cost))
 
     def test_a_cost_with_parts_is_paid_on_top_of_the_mana_cost(self):
         from MTG_bot.core.ability_tree import Cost, CostLife
@@ -1106,7 +1107,15 @@ class TestCastCostRoleIsAdditional(unittest.TestCase):
         self.assertEqual(self.case.world.players[self.case.p0].life, 21)
 
 
-class TestInertFreeRows(unittest.TestCase):
+class TestPermissionRowsAreGone(unittest.TestCase):
+    """The compiler's old permission rows, free activations whose resolution cast from a zone
+    (Radha, Heart of Keld's lands from the top, Conspicuous Snoop's Goblins from the top), left
+    with ontology round R13: a permission is a static PERMIT and its plays are act-menu rows
+    (executor/permits.py, pinned in test_executor_permit.py), never an activation. The costed row
+    the base wrote for "you may cast this card from your graveyard by paying 3 life and discarding
+    a card" (Demonic Embrace), a discard outlet if offered, is refused by the IR
+    (test_ability_tree_permit.py)."""
+
     def runner(self, top):
         from MTG_bot.core.executor.games import get_supply
         from tools.run_scenarios import ScenarioRunner
@@ -1139,45 +1148,16 @@ class TestInertFreeRows(unittest.TestCase):
             if o.source == r.handles[key]
         ]
 
-    def test_radha_land_row_is_not_offered_and_never_raises(self):
-        r = self.runner("Mountain")
-        self.assertEqual(r.world.cards[r.world.players[r.p0].zone("library").entries[-1]].identity.name, "Mountain")
-        self.assertNotIn(1, self.offered(r, "radha"))  # nothing castable: phantom
-        # Running the row anyway (a direct activation) casts nothing and raises
-        # nothing: the land stays on top (weaker than printed).
-        from MTG_bot.core.executor.legality import activate
+    def test_radha_and_snoop_offer_no_row_for_their_permissions(self):
+        for top in ("Mountain", "Goblin Arsonist"):
+            r = self.runner(top)
+            self.assertEqual(self.offered(r, "radha"), [], top)
+            self.assertEqual(self.offered(r, "snoop"), [], top)
 
-        activate(r.ex, r.handles["radha"], 1, seat=r.p0, decisions=("fire", "fire"))
-        self.assertEqual(r.world.zone_of(r.handles["top"]).kind, "library")
-
-    def test_snoop_row_is_offered_when_a_goblin_on_top_can_be_cast(self):
-        r = self.runner("Goblin Arsonist")
-        self.assertTrue(self.offered(r, "snoop"))
-        self.assertNotIn(1, self.offered(r, "radha"))
-
-    def test_a_costed_row_that_can_never_act_is_not_offered(self):
-        """The phantom screen covers rows with a cost too. A row ({pay 3 life, discard
-        a card}: you may cast this card from your graveyard) is activatable only while its
-        source is on the battlefield, so the cast can never happen: it is not offered. A
-        real row whose effect merely does nothing right now stays: paying a cost for an
-        effect that does nothing is legal (CR 602.2), so Idol of Endurance, with no card
-        exiled with it, is still offered."""
-        from MTG_bot.core.ability_tree import (
-            ActivatedAbility,
-            Atom,
-            AtomArgs,
-            Cost,
-            CostDiscard,
-            CostLife,
-            FAnd,
-            FAtom,
-            FAtomPred,
-            OptionalEffect,
-            Selector,
-            SelectorMode,
-        )
+    def test_a_costed_row_that_does_nothing_now_is_offered(self):
+        """Paying a cost for an effect that does nothing right now is legal (CR 602.2): Idol of
+        Endurance, with no card exiled with it, is offered."""
         from MTG_bot.core.executor.games import get_supply
-        from MTG_bot.core.test_executor_binding import record_of
         from tools.run_scenarios import ScenarioRunner
 
         r = ScenarioRunner(
@@ -1187,8 +1167,6 @@ class TestInertFreeRows(unittest.TestCase):
                 "cards": [
                     {"key": "idol", "real": "Idol of Endurance", "zone": "battlefield",
                      "controller": 0},
-                    {"key": "aura", "name": "Graveyard Aura", "type": "Enchantment",
-                     "zone": "battlefield", "controller": 0},
                     {"key": "junk", "name": "Junk", "type": "Sorcery", "zone": "hand",
                      "controller": 0},
                 ],
@@ -1198,39 +1176,6 @@ class TestInertFreeRows(unittest.TestCase):
             },
             get_supply("all", "M21"),
         )
-        row = ActivatedAbility(
-            cost=Cost(
-                parts=(
-                    CostLife(amount=QConst(3)),
-                    CostDiscard(
-                        target=Selector(
-                            QConst(1), SelectorMode.CHOOSE, FAnd(()),
-                            zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),),
-                        )
-                    ),
-                )
-            ),
-            effect=OptionalEffect(
-                inner=Atom(
-                    verb=Verb.CAST,
-                    args=AtomArgs(
-                        pairs=(
-                            (
-                                "source",
-                                Selector(
-                                    QConst(1), SelectorMode.CHOOSE,
-                                    FAtom(pred=FAtomPred.IS_SOURCE),
-                                    zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),),
-                                ),
-                            ),
-                        )
-                    ),
-                )
-            ),
-        )
-        aura = r.handles["aura"]
-        r.ex.attach_card(aura, record_of([row], oid=r.world.cards[aura].identity.oracle_id))
-        self.assertEqual(self.offered(r, "aura"), [])
         self.assertIn(1, self.offered(r, "idol"))
 
 

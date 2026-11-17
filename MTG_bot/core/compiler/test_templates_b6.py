@@ -37,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     KickerAbility,
     QAtMost,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     Seq,
@@ -48,6 +49,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    at_most,
     canonical_json,
     from_dict,
     to_dict,
@@ -271,16 +273,11 @@ def _draw(amount: int) -> Atom:
 
 
 def _destroy_cw_pw(mv_le: int | None) -> Atom:
-    def arm(type_name: str) -> FAnd | FAtom:
-        type_atom = FAtom(pred=FAtomPred.TYPE_EQ, string_value=type_name)
-        if mv_le is None:
-            return type_atom  # a bare FAtom when there is no mana value bound
-        return FAnd(
-            children=(
-                type_atom,
-                FAtom(pred=FAtomPred.CMC_LE, count=QConst(mv_le)),
-            )
-        )
+    types = FOr(children=(FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                          FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker")))
+    # the mana value bound qualifies the noun phrase, beside the types (B11's form)
+    noun = types if mv_le is None else FAnd(
+        children=(types, at_most(mv_le, field=QPropField.MANA_VALUE)))
 
     return Atom(
         verb=Verb.DESTROY,
@@ -291,7 +288,7 @@ def _destroy_cw_pw(mv_le: int | None) -> Atom:
                     Selector(
                         QConst(1),
                         SelectorMode.TARGET,
-                        FOr(children=(arm("Creature"), arm("Planeswalker"))),
+                        noun,
                         zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
                     ),
                 ),

@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Flashfreeze, printed: 'Counter target red or green spell.' Seat 0 casts Highborn Vampire, a black creature spell: it is neither red nor green, so Flashfreeze cannot target it (the cast is refused and Flashfreeze stays in seat 1's hand with its mana). The Vampire then resolves and enters the battlefield.",
+ "cards": [
+  {"key": "vamp", "real": "Highborn Vampire", "zone": "hand", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 3}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "vamp", "real": "Highborn Vampire", "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["vamp"], "expect_raise": "illegal target"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"vamp": "battlefield", "ff": "hand"},
+  "hand": {"0": 0, "1": 1},
+  "mana_pool": {"0": {}, "1": {"U": 1, "C": 1}}
+ }
+}

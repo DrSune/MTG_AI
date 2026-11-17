@@ -262,5 +262,42 @@
  },
  "probe": {
   "sha": "d0a057cb94a01c345108c315a4371c7d94af593c88c2e6d2b951085422d8d97c"
+ },
+ "verified": {
+  "tree_sha": "31c146f75dcd27830ec62fc29760e0fe38b1397696550f61aa78294b4f91b824",
+  "probe_sha": "d0a057cb94a01c345108c315a4371c7d94af593c88c2e6d2b951085422d8d97c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Affinity for Cats (This spell costs {1} less to cast for each Cat you control.)",
+    "status": "OK",
+    "evidence": "[cast] with one Cat of mine (you_cat; the probe also puts a Cat on the opponent's side, tools/cards/probe.py _extra_board) on the board, 'you: mana C-2 W-2': {3}{W}{W} less one generic. Packs D03_1 (two of my Cats and one opposing Cat: {1}{W}{W} pays it exactly, the opponent's Cat does not count), D03_2 (five Cats: only the generic part is reduced, {W}{W}, one colorless left over) and D03_3 (no Cat: the full {3}{W}{W}, a four-mana pool is refused with 'cost:mana_generic:2<3') pass.",
+    "issue": ""
+   },
+   {
+    "clause": "Creatures you control get +2/+2 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast] changes 'you_bear: P/T 2/2 -> 4/4', 'you_cat: 2/2 -> 4/4', 'you_giant: 4/4 -> 6/6'; nothing changes for the opponent's creatures or my relic and charm; 'after the turn ends: you_bear: 4/4 -> 2/2' (and the other two): wears off at end of turn. Pack D03_4 (passes): a noncreature artifact with printed 3/3 is not pumped (only creatures). Pack D03_5 (passes): it is an instant, cast on the opponent's turn.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/claws_out_1.json",
+   "tools/scenarios/cards/FDN/claws_out_2.json",
+   "tools/scenarios/cards/FDN/claws_out_3.json",
+   "tools/scenarios/cards/FDN/claws_out_4.json",
+   "tools/scenarios/cards/FDN/claws_out_5.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 11,
+   "score": 0.7857142857142857,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/delta/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/0/delta/amount/right/selector/filter/children/0/who",
+    "widen filter (drop part 1) at 1/1/effect/args/target/filter"
+   ]
+  }
  }
 }

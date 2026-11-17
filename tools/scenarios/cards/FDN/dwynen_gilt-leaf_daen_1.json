@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "E10_1_dwynen_other_elf_creatures_you_control_get_plus_one_plus_one",
+ "notes": "G2 verifier, batch E. Printed: 'Other Elf creatures you control get +1/+1.' Seat 0 controls Dwynen (3/4, itself an Elf Warrior), an Elf Warrior (2/2) and a Goblin (2/2). Seat 1 controls an Elf (2/2). Only the other Elf creature seat 0 controls gets the bonus: the Elf Warrior is 3/3. Dwynen is not 'other' (3/4), the Goblin is no Elf (2/2) and seat 1's Elf is not one seat 0 controls (2/2).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dwynen", "real": "Dwynen, Gilt-Leaf Daen", "zone": "battlefield", "controller": 0},
+  {"key": "elf", "name": "My Elf", "type": "Creature — Elf Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "goblin", "name": "My Goblin", "type": "Creature — Goblin", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oelf", "name": "Opp Elf", "type": "Creature — Elf", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {
+  "power": {"dwynen": 3, "elf": 3, "goblin": 2, "oelf": 2},
+  "toughness": {"dwynen": 4, "elf": 3, "goblin": 2, "oelf": 2}
+ }
+}

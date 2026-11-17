@@ -1,0 +1,29 @@
+{"set": "FDN", "name": "make_a_stand_gives_your_creatures_plus_one_power_and_indestructible_only_the_ones_you_control_when_it_resolves",
+ "notes": "Printed: 'Creatures you control get +1/+0 and gain indestructible until end of turn.' Seat 0 attacks with a 2/2 and keeps a 1/1 home; seat 1's 4/4 blocks the attacker and seat 1 has a second 2/2. With the blocker declared seat 0 casts Make a Stand ({2}{W}). Its attacker becomes 3/2 and deals 3 damage to the 4/4 (it survives with 3 marked); the 4/4 deals 4 damage to the attacker, which survives only because it is indestructible (4 damage marked on a toughness-2 creature). The home 1/1 gets +1/+0 too (2/1: all of the caster's creatures, not only attackers); toughness stays as printed (+0). Seat 1's creatures keep their power (4 and 2). A creature seat 0 puts onto the battlefield afterwards, in the same turn, was not on the battlefield when the spell resolved and gets nothing (CR 611.2c): the late 1/1 is still 1/1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Home Guard", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Late Arrival", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "stand", "real": "Make a Stand", "zone": "hand", "controller": 0},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "p3", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Big Blocker", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Other Opponent", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"att": true}, "block": {"blk": "att"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "stand", "real": "Make a Stand", "controller": 0, "tap": true}
+   ]}},
+  {"op": "enter", "key": "late"}
+ ],
+ "expect": {
+  "zone": {"att": "battlefield", "home": "battlefield", "late": "battlefield", "blk": "battlefield", "opp2": "battlefield", "stand": "graveyard"},
+  "power": {"att": 3, "home": 2, "late": 1, "blk": 4, "opp2": 2},
+  "toughness": {"att": 2, "home": 1, "late": 1, "blk": 4, "opp2": 2},
+  "damage": {"att": 4, "blk": 3},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }}

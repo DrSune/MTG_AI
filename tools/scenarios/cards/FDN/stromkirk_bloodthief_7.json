@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "name": "F09_7",
+ "notes": "Stromkirk Bloodthief. Printed: 'if an opponent lost life THIS TURN'. The opponent loses 2 life (Vampire Spawn, 18) before the Bloodthief is on the battlefield; the Bloodthief enters afterwards. The turn's life loss still counts at its end step: the counter lands on the Bloodthief (chosen).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "vs",
+   "real": "Vampire Spawn",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "vs"
+  },
+  {
+   "op": "enter",
+   "key": "sb"
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN",
+   "decisions": [
+    "sb"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 18
+  },
+  "counters": {
+   "sb": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "vs": {}
+  }
+ }
+}

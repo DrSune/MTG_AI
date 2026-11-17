@@ -1,0 +1,26 @@
+{
+ "set": "FDN",
+ "name": "aetherize_returns_every_attacker_and_nothing_else",
+ "notes": "Printed: 'Return all attacking creatures to their owner's hand.' Seat 0 attacks with Attacker One and Attacker Two and keeps Stay Home back; seat 1's Blocker blocks Attacker One. After blockers seat 1 casts Aetherize with four lands: both attackers go to seat 0's hand (their owner), the creature that did not attack and the creature that blocked stay on the battlefield, nothing deals combat damage (no damage marks, life 20/20).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "a1", "name": "Attacker One", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "Attacker Two", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Stay Home", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "blocker", "name": "Blocker", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "aeth", "real": "Aetherize", "zone": "hand", "controller": 1},
+  {"key": "l1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l2", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l3", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "l4", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"a1": true, "a2": true, "home": false}, "block": {"blocker": "a1"},
+   "respond": {"DECLARE_BLOCKERS": [{"op": "cast", "key": "aeth", "real": "Aetherize", "controller": 1, "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"a1": "hand", "a2": "hand", "home": "battlefield", "blocker": "battlefield", "aeth": "graveyard"},
+  "life": {"0": 20, "1": 20},
+  "hand": {"0": 2, "1": 0}
+ }
+}

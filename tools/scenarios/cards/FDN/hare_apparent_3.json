@@ -1,0 +1,19 @@
+{
+ "name": "H05_hare_apparent_counts_only_your_own_other_hares",
+ "set": "FDN",
+ "note": "Hare Apparent: 'other creatures you control named Hare Apparent'. The opponent controls a Hare Apparent and P0 controls only other creatures with other names; P0 casts its first Hare Apparent: nothing is counted (neither the opponent's Hare, nor P0's Bear, nor the entering Hare), so no Rabbit is created.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "theirs", "zone": "battlefield", "controller": 1, "real": "Hare Apparent"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear"},
+  {"key": "mine", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "real": "Hare Apparent", "key": "mine"}
+ ],
+ "expect": {
+  "tokens": {"Rabbit": 0},
+  "zone": {"mine": "battlefield", "theirs": "battlefield", "bear": "battlefield"}
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "G03_2",
+ "notes": "Printed (FDN Archway Angel): 'Flying. When this creature enters, you gain 2 life for each Gate you control.' No Gate at all (a Plains and an Evolving Wilds, the opponent's Gate): 2 x 0 = no life.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Archway Angel",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "plains",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wilds",
+   "real": "Evolving Wilds",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "og",
+   "real": "Gruul Guildgate",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "angel"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "angel": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

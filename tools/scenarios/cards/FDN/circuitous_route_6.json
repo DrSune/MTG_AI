@@ -1,0 +1,75 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Circuitous Route (FDN), printed: 'up to two': zero is allowed. The library holds two basic Forests and a Gate (plus six filler cards); the first pick is answered NONE: nothing is searched out, no land enters, the spell still resolves (the card is in the graveyard) and all nine library cards are still in the library.",
+ "cards": [
+  {
+   "key": "route",
+   "real": "Circuitous Route",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Lib Forest One",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "name": "Lib Forest Two",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gate",
+   "name": "Lib Gate",
+   "type": "Land — Gate",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "route",
+   "real": "Circuitous Route",
+   "decisions": [
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "route": "graveyard",
+   "f1": "library",
+   "f2": "library",
+   "gate": "library"
+  },
+  "library": {
+   "0": [
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

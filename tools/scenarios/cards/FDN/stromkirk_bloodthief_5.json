@@ -1,0 +1,46 @@
+{
+ "set": "FDN",
+ "name": "F09_5",
+ "notes": "Stromkirk Bloodthief. Printed: 'At the beginning of YOUR end step'. During seat 1's turn seat 0's Vampire Spawn enters and seat 1 loses 2 life (18): the condition is true all turn, but it is seat 1's end step, not seat 0's, so nothing triggers: no counters anywhere.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vs",
+   "real": "Vampire Spawn",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "enter",
+   "key": "vs"
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 22,
+   "1": 18
+  },
+  "counters": {
+   "sb": {},
+   "vs": {}
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "E02_2_crossway_troublemakers_a_vampire_that_is_not_attacking_has_neither",
+ "notes": "G2 verifier, batch E. Printed: 'Attacking Vampires you control have deathtouch and lifelink.' Seat 0's Vampire (1/1) is not attacking; it deals 1 damage to seat 1's 0/9 Wall (an effect, outside combat). With no deathtouch the Wall survives with 1 damage marked, and with no lifelink seat 0 gains nothing: 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "Wall One", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "vamp", "target": "wall1", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"wall1": "battlefield", "vamp": "battlefield"},
+  "damage": {"wall1": 1},
+  "life": {"0": 20, "1": 20}
+ }
+}

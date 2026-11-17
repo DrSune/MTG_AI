@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "G05_2",
+ "notes": "Printed (FDN Arbiter of Woe): 'As an additional cost to cast this spell, sacrifice a creature. Flying. When this creature enters, each opponent discards a card and loses 2 life. You draw a card and gain 2 life.' The sacrifice is a cost: with no creature of mine on the battlefield (the opponent's Bear is not mine to sacrifice) the spell cannot be cast. Nothing is spent, nothing happens.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aow",
+   "real": "Arbiter of Woe",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o1",
+   "name": "Opp Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Arbiter of Woe",
+   "key": "aow",
+   "expect_raise": "insufficient_candidates"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aow": "hand",
+   "obear": "battlefield",
+   "o1": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "mana_pool": {
+   "0": {
+    "B": 2,
+    "C": 4
+   }
+  }
+ }
+}

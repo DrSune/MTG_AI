@@ -12,9 +12,9 @@
   attached to it (``LastKnown.attached``), and IS_ATTACHED_TO_SOURCE reads it on the host's own
   departure (CR 603.10a); on the battlefield, and for a host that came back, the live table
   decides (CR 400.7).
-* Speaker of the Heavens (quantity.py): LIFE_LEAD_OVER_START_GE reads current life minus the
-  construction-time ``starting_life`` snapshot, not a LIFE_GAINED journal sum: a non-damage life
-  loss leaves no journal row.
+* Speaker of the Heavens (quantity.py): "at least 7 life more than your starting life total"
+  compares current life with the construction-time ``starting_life`` snapshot plus 7 (QProp
+  STARTING_LIFE), not a LIFE_GAINED journal sum: a non-damage life loss leaves no journal row.
 """
 
 import unittest
@@ -40,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.compiler.conditions import life_over_start
 from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 from MTG_bot.core.executor.legality import (
     ability_playable,
@@ -358,7 +359,7 @@ class TestLifeLeadOverStart(LegalityCase):
     """Speaker of the Heavens: the gate reads current-minus-start from the ledger, never a
     LIFE_GAINED journal sum."""
 
-    LEEAD = FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(7))
+    LEEAD = life_over_start(7)  # "at least 7 life more than your starting life total"
 
     def setUp(self):
         super().setUp()

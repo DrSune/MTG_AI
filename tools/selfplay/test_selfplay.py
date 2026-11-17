@@ -5,6 +5,7 @@ from __future__ import annotations
 import pickle
 import random
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -672,6 +673,42 @@ def test_resume_refuses_another_pool(table, tmp_path, monkeypatch) -> None:
     assert learner("castable").load_state(str(src))["it"] == 3
 
 
+def test_a_resume_continues_the_runs_own_card_table(table, tmp_path, monkeypatch) -> None:
+    """Hunt 4 (C4 again): a resume rebuilt the card table from --init and the compile of the
+    moment, and kept only last.pt's weights, so rows changed under the same weights, silently (a
+    refresh of r28's v2 rebuilds 118). A resume serves the run's own table, its network and its
+    versions as committed, whatever --init holds now; a version copied into another run keeps its
+    rows."""
+    from tools.selfplay import learner as L
+
+    monkeypatch.setattr(L.Learner, "_start_workers", lambda self: None)
+    torch.manual_seed(0)
+    net = M.build(table, d=32, layers=1, heads=4, ff=64)
+    M.save(str(tmp_path / "init.pt"), net, table)
+    flags = ["--device", "cpu", "--teacher-iters", "0", "--iters", "0"]
+    run = tmp_path / "run"
+    first = L.Learner(L.parse(["--run", str(run), "--init", str(tmp_path / "init.pt"), *flags]))
+    first.curriculum()  # v0 frozen, the run's table committed in last.pt
+    rows = [list(x) for x in table.ir]  # a recompile of two cards since: two rows swapped
+    assert rows[10] != rows[11]
+    rows[10], rows[11] = rows[11], rows[10]
+    M.save(str(tmp_path / "init2.pt"), net, FT.CardTable(table.oracle_ids, table.names,
+                                                         table.ir_vocab, rows))
+    for into in (run, tmp_path / "moved"):
+        back = L.Learner(L.parse(["--run", str(into), "--init", str(tmp_path / "init2.pt"),
+                                  "--resume", str(run), *flags]))
+        back.curriculum()
+        assert back.table.ir == table.ir
+        with torch.no_grad():
+            assert torch.equal(back.model.card_table_emb(), first.model.card_table_emb())
+        assert torch.equal(back.models["v0"].ir_counts, first.models["v0"].ir_counts)
+        assert M.load(str(into / "last.pt"))[1].ir == M.load(str(into / "v0.pt"))[1].ir == table.ir
+    # table flags act at a run's start: a resume naming others is refused, never ignored
+    with pytest.raises(ValueError, match="at a run's start"):
+        L.Learner(L.parse(["--run", str(run), "--init", str(tmp_path / "init2.pt"), "--resume",
+                           str(run), "--refresh-table", *flags]))
+
+
 def _small_learner(monkeypatch, run, *extra: str):
     from tools.selfplay import learner as L
 
@@ -693,7 +730,7 @@ def test_a_freeze_is_committed_at_once_and_best_is_the_gated_snapshot(tmp_path,
 
     lr = _small_learner(monkeypatch, tmp_path)
     lr.stage = "selfplay"
-    lr._log_freeze(lr.freeze(lr.model, 0), 0, "")
+    lr.log(lr._freeze_row(lr.freeze(lr.model, 0), 0, ""))
     lr.it = 75
     lr.queue_eval("gate", "gate:it75", "eval", ["v0"], 30)
     lr._eval_tick()  # starts the gate: the snapshot of update 75
@@ -731,6 +768,54 @@ def test_a_freeze_is_committed_at_once_and_best_is_the_gated_snapshot(tmp_path,
     assert L.max_logged_gid(tmp_path) == lr.gid + 40
 
 
+def test_an_evaluation_that_ends_is_committed_before_it_is_logged(tmp_path, monkeypatch) -> None:
+    """Hunt 4 (C1 again): a failed gate was logged with no commit, and the commit taken while it
+    ran still listed it as running, so a resume played it again on the same deals with a later
+    snapshot: a second draw for a near-miss (r28's gate at update 100 scored 0.5445, then 0.5413
+    on its deals after a pause) and its events twice. An evaluation that ends is committed as
+    ended, and only then logged; a resume from that commit plays nothing again."""
+    import json
+
+    lr = _small_learner(monkeypatch, tmp_path, "--gate-score", "0.55")
+    lr.stage = "selfplay"
+    lr.freeze(lr.model, 0)
+    lr.it = 75
+    lr.queue_eval("gate", "gate:it75", "eval", ["v0"], 30)
+    lr._eval_tick()  # the gate starts
+    lr.checkpoint()  # the periodic commit, while it runs: it is listed as running
+    assert [q[1] for q in pickle.loads((tmp_path / "state.pkl").read_bytes())["eval_queue"]] == [
+        "gate:it75"]
+    seeds = sorted({j["seed"] for j in lr.eval_jobs})
+    lr.eval_jobs.clear()
+    lr.eval_pending.clear()
+    # 0.55 with a lower bound under 0.5 (each deal split 1-1, every 12th won twice): failed
+    lr.eval_rows = [{"seed": s, "deck_mode": "coherent", "outcome": "win", "a_seat": a,
+                     "winner": a if a == 0 or s % 12 == 0 else 1 - a, "opp": "v0", "turns": 10}
+                    for s in seeds for a in (0, 1)]
+    commit, logged = lr.checkpoint, []  # how many gate events were logged at each commit
+
+    def checkpoint() -> None:
+        lines = (tmp_path / "metrics.jsonl").read_text().splitlines()
+        logged.append(sum(json.loads(x)["event"] == "gate" for x in lines))
+        commit()
+
+    lr.checkpoint = checkpoint
+    lr.it = 77
+    lr._eval_tick()
+    assert logged == [0]  # committed once, before its result was logged
+    state = pickle.loads((tmp_path / "state.pkl").read_bytes())
+    assert state["it"] == 77 and state["eval_queue"] == [] and state["versions"] == ["v0"]
+    events = [json.loads(x) for x in (tmp_path / "metrics.jsonl").read_text().splitlines()]
+    gates = [e for e in events if e["event"] == "gate"]
+    assert len(gates) == 1 and not gates[0]["passed"] and gates[0]["score"] == 0.55
+    back = _small_learner(monkeypatch, tmp_path / "back", "--gate-score", "0.55", "--resume",
+                          str(tmp_path))
+    back.load_state(str(tmp_path))
+    back.it = 78
+    back._eval_tick()
+    assert not back.eval_queue and not back.eval_jobs and not back.eval_meta
+
+
 def test_a_checkpoint_is_whole_or_absent_and_carries_what_defines_the_network(table,
                                                                               tmp_path) -> None:
     """A stop mid-write never leaves a cut file (M.atomic_write), and everything that decides
@@ -758,15 +843,24 @@ def test_a_checkpoint_is_whole_or_absent_and_carries_what_defines_the_network(ta
     assert M.build(table, **cfg).mask_names and copy.deepcopy(net).mask_names
 
 
-def test_an_opponent_checkpoint_must_share_the_learners_card_rows(table, tmp_path,
-                                                                 monkeypatch) -> None:
-    """Every seat's features are encoded with the learner's card table, so another network is
-    played only when its table is a prefix of the learner's (the same card at the same row);
-    its component rows are then the learner's, whatever the inference precision."""
+def test_another_checkpoint_keeps_its_own_card_rows(table, tmp_path, monkeypatch) -> None:
+    """Every seat's features are encoded with the learner's card table, so another network (a
+    frozen version, --opp-ckpt) is played only when its table is a prefix of the learner's (the
+    same card at the same row, the same component at the same id). Its rows for the cards it
+    holds are its own (hunt 4: they were the learner's, so a network saved before a recompile
+    computed with rows it never trained on); a card it lacks gets the learner's row."""
     lr = _small_learner(monkeypatch, tmp_path / "run")
     M.save(str(tmp_path / "same.pt"), M.build(lr.table, d=32, layers=1, heads=4, ff=64), lr.table)
     net = lr._load_net(tmp_path / "same.pt")
     assert torch.equal(net.ir_counts, lr.model.ir_counts)
+    rows = [list(x) for x in lr.table.ir]
+    rows[10], rows[11] = rows[11], rows[10]  # two cards recompiled since it was saved
+    k = 100  # and it holds only the first k cards
+    stale = FT.CardTable(lr.table.oracle_ids[:k], lr.table.names[:k], lr.table.ir_vocab, rows[:k])
+    M.save(str(tmp_path / "stale.pt"), M.build(stale, d=32, layers=1, heads=4, ff=64), stale)
+    counts = lr._load_net(tmp_path / "stale.pt").ir_counts
+    assert torch.equal(counts[:k], torch.as_tensor(stale.ir_counts()))
+    assert torch.equal(counts[k:], lr.model.ir_counts[k:])
     shuffled = FT.CardTable(lr.table.oracle_ids[:2] + lr.table.oracle_ids[2:][::-1],
                             lr.table.names[:2] + lr.table.names[2:][::-1], lr.table.ir_vocab,
                             lr.table.ir[:2] + lr.table.ir[2:][::-1])
@@ -884,6 +978,25 @@ def test_the_run_seed_moves_the_training_deals(table, tmp_path, monkeypatch) -> 
         return {lr.curriculum_job()["seed"] for _ in range(50)}
 
     assert not deals(1) & deals(2)
+
+
+def test_the_run_seed_moves_the_gate_blocks(tmp_path, monkeypatch) -> None:
+    """Hunt 4: a gate's deals were the block GATE_SEED0 + 1000 x the gate's number in every run,
+    so a run from r28's v2 tested its learner against v2 on block 39, the block v2 itself was
+    selected on. --seed moves a run's gate blocks as it moves its training deals; the blocks of
+    one run's gates, the teacher's among them, stay apart, and apart from its training deals."""
+    def deals(seed: int) -> tuple[list[set], set]:
+        lr = _small_learner(monkeypatch, tmp_path / str(seed), "--seed", str(seed))
+        lr.stage = "teacher"
+        for kind in ("teacher", "gate", "gate"):
+            lr.queue_eval(kind, kind, "eval", ["v0"], 1000)
+        return ([set(range(q[5], q[5] + q[4])) for q in lr.eval_queue],
+                {lr.curriculum_job()["seed"] for _ in range(50)})
+
+    (one, train), (two, _) = deals(1), deals(2)
+    assert all(not a & b for i, a in enumerate(one) for b in one[i + 1:])
+    assert not set().union(*one) & train
+    assert not set().union(*one) & set().union(*two)
 
 
 def test_without_self_games_the_job_stream_is_as_before(tmp_path, monkeypatch) -> None:
@@ -1068,6 +1181,130 @@ def test_training_rows_carry_their_game_and_step(table, tmp_path, monkeypatch) -
     assert [(b[0], b[6], b[7], b[8]) for b in lr.buffer] == [
         ("f0", 9, 0, 3), ("f1", 9, 1, 3), ("f2", 9, 2, 3)]
     assert [b[5] for b in lr.buffer] == pytest.approx([1.0] * 3)  # gamma = lambda = 1: z
+
+
+def test_a_batch_takes_games_in_the_order_they_were_issued(tmp_path, monkeypatch) -> None:
+    """Hunt 4 (190 §1.8): a game's rows joined the batch when it ended, so the games that end
+    first, the short ones, filled a batch whenever games started together (a run's start, a
+    resume, the end of every gate, whose jobs paused the training games) and the long ones the
+    batch before: r28's batches around a gate held 1,068 and 2,420 games against 1,750, their
+    collection 91 and 127 s against 44. A batch is the run of games issued after the last
+    batch's, to --steps decisions, its last game whole; a game still playing holds the ones
+    issued after it, and the iter row's games are the batch's."""
+    lr = _small_learner(monkeypatch, tmp_path, "--steps", "5")
+    lr.stage, lr.versions, lr.phase = "selfplay", ["v0"], "ppo"
+    jobs = [lr.curriculum_job() for _ in range(4)]
+
+    def end(job: dict, n: int) -> None:  # the game ends after n learner decisions
+        lr.traj[(job["gid"], job["seats"].index("learner"))] = [
+            (f"{job['gid']}:{i}", 0, -0.1, 0.0) for i in range(n)]
+        lr.on_done([{**job, "outcome": "win", "winner": 0, "turns": n}])
+
+    end(jobs[1], 3)  # the short games end first
+    end(jobs[3], 1)
+    assert lr.buffer == [] and lr.train_results == []
+    end(jobs[0], 4)  # the first game ends: it and the second fill the batch
+    gids = [j["gid"] for j in jobs]
+    assert [b[6] for b in lr.buffer] == [gids[0]] * 4 + [gids[1]] * 3
+    assert [r[2] for r in lr.train_results] == [4, 3]
+    assert lr.next_job() is None  # a full batch waits: no new training game
+    lr.buffer, lr.train_results = [], []  # the update takes it (update(): then _release)
+    lr._release()
+    assert lr.buffer == []  # the third game still plays: the fourth waits for it
+    later = [lr.curriculum_job() for _ in range(2)]
+    # a full batch ends behind the third game (hung?) and the fifth: both are late, no stall
+    end(later[1], 5)
+    assert [b[6] for b in lr.buffer] == [gids[3]] + [later[1]["gid"]] * 5
+    end(jobs[2], 2)  # a late game joins the batch it ends in
+    lr.buffer = []
+    lr._release()
+    assert [b[6] for b in lr.buffer] == [gids[2]] * 2 and lr.held_rows == 0
+
+
+def test_a_refused_job_request_counts_once(tmp_path, monkeypatch) -> None:
+    """``throttled`` is the job requests refused while a full batch waited (README). serve()
+    offers a parked request again on every pass (_flush_needs), and every pass counted: one
+    request refused for ten seconds read 201 (hunt 4)."""
+    lr = _small_learner(monkeypatch, tmp_path, "--steps", "10")
+    lr.stage, lr.versions, lr.phase = "selfplay", ["v0"], "ppo"
+    lr.buffer = [None] * 10  # a full batch waits for the trainer
+    lr.conns = [None]
+    lr._serve_need(0, 32)  # one worker's request
+    for _ in range(200):  # 200 passes of serve() while the batch waits
+        lr._flush_needs()
+    assert lr.counts["throttled"] == 1 and lr.pending_need == {0: 32}
+
+
+def test_a_hung_game_is_voided_and_its_worker_goes_on(table, monkeypatch) -> None:
+    """Hunt 4: nothing bounded a game. A worker's slots pass one baton, so a hung engine call
+    stopped every game of its worker, and an evaluation waiting for one of them never ended: the
+    gates stopped, silently. A game that keeps the baton HANG_S seconds is voided (outcome
+    void-timeout, and the crash says why) and the worker plays its next game. A crash whose
+    report outlasts HANG_S is a void of its own: the watchdog raises only in a game's code, so
+    nothing lands in its handler (the review found the slot thread killed there)."""
+    import multiprocessing as mp
+    import threading
+    import time
+
+    from tools.selfplay import actor
+
+    monkeypatch.setattr(actor, "HANG_S", 0.3, raising=False)
+
+    class SlowToSay(Exception):
+        def __str__(self) -> str:
+            time.sleep(1.0)
+            return "a crash slow to report"
+
+    def play_game(seed, agents, **kw) -> dict:  # the first game hangs in a pure-Python loop
+        end = time.monotonic() + (10 if seed == 901 else 0)
+        while time.monotonic() < end:
+            pass
+        if seed == 903:
+            raise SlowToSay
+        return {"seed": seed, "outcome": "win", "winner": 0, "turns": 1}
+
+    monkeypatch.setattr(actor, "play_game", play_game)
+    mine, theirs = mp.Pipe(duplex=True)
+    worker = actor.Worker(0, theirs, 1, table.to_json(), n_groups=1)
+    loop = threading.Thread(target=worker.loop, daemon=True)
+    loop.start()
+    mine.send(("jobs", [{"gid": g, "kind": "eval", "seed": 900 + g, "deck_mode": "coherent",
+                         "set_code": "M21", "pool_mode": "verified", "opp": "heuristic",
+                         "a_seat": 0, "seats": ["heuristic", "heuristic"],
+                         "greedy": [True, True], "record": [False, False]} for g in (1, 2, 3, 4)]))
+    done, t0 = [], time.monotonic()
+    while len(done) < 4 and time.monotonic() - t0 < 8:
+        if mine.poll(0.1) and (msg := mine.recv())[0] == "done":
+            done += msg[2]
+    mine.send(("stop",))
+    loop.join(timeout=15)
+    assert [r["gid"] for r in done] == [1, 2, 3, 4]
+    assert done[0]["outcome"] == "void-timeout" and done[0]["crash"].startswith("GameTimeout")
+    assert done[2]["outcome"] == "void-worker" and done[2]["crash"].startswith("SlowToSay")
+    assert done[0]["seed"] == 901 and [r["outcome"] for r in done[1::2]] == ["win", "win"]
+
+
+def test_keeping_a_hand_is_the_mulligans_pass() -> None:
+    """The per-kind statistics' "pass" is the share of decisions that declined to act. The
+    mulligan's decline, "keep", was not among them, so its share read 0 whatever the network did
+    (hunt 4)."""
+    from tools.selfplay.ppo import per_kind
+
+    def ask(kind: str, options: tuple[str, ...]) -> dict:
+        opts = np.zeros((len(options), FT.OI), np.int16)
+        opts[:, 0] = [FT.OPT_INDEX[o] for o in options]
+        return {"cards_i": np.zeros((1, FT.CI), np.int16),
+                "cards_f": np.zeros((1, FT.CF), np.float16),
+                "players_f": np.zeros((2, FT.PF), np.float16),
+                "glob_f": np.zeros(FT.GF, np.float16),
+                "ask_i": np.array([FT.ASK_INDEX[kind]], np.int16), "opts_i": opts,
+                "opts_f": np.zeros((len(options), 2), np.float16)}
+
+    feats = [ask("mulligan", ("keep", "mulligan"))] * 4 + [ask("act", ("PASS", "land"))] * 2
+    act = np.array([0, 0, 0, 1, 0, 1])  # three keeps and a mulligan; a pass and a land
+    nan = np.full(6, np.nan, np.float32)
+    kinds = per_kind(M.pack(feats), act, np.zeros(6, np.float32), nan, nan)
+    assert kinds["mulligan"]["pass"] == 0.75 and kinds["act"]["pass"] == 0.5
 
 
 def test_paired_reads_rows_with_and_without_set_and_pool(tmp_path, capsys) -> None:
@@ -1469,6 +1706,60 @@ def test_heuristic_aims_minus_n_at_the_opponent() -> None:
     assert game.world.zone_of(_named(game, "Walking Corpse")).kind == "battlefield"
 
 
+def test_heuristic_aims_an_aura_by_what_it_does_to_what_it_enchants() -> None:
+    """Hunt 4 (the exploit scan of r28, replay 28010114364): the target rule read a spell as a
+    whole and took the least bad target when its own side had none, so the heuristic put Furor of
+    the Bitten (+2/+2) on the learner's creature when it had no creature, and read Pacifism as
+    helpful (no harmful verb on the card) and put it on its own. An aura is read from what it does
+    to the object it enchants, and a spell is cast only when it can be aimed at its own side."""
+    game, router, me = _teach(hand0=("Furor of the Bitten",), field0=("Mountain",),
+                              field1=("Walking Corpse",))
+    _main_phase(router, game, me)
+    assert game.world.zone_of(_named(game, "Furor of the Bitten")).kind == "hand"
+    # its own creature takes it; also beside Pursued Whale, whose target tax prices the targets
+    # (the candidates are the ones the menu's row offers, paid by the lands, not the empty pool)
+    for theirs in ("Walking Corpse", "Pursued Whale"):
+        game, router, me = _teach(hand0=("Furor of the Bitten",),
+                                  field0=("Mountain", "Onakke Ogre"), field1=(theirs,))
+        _main_phase(router, game, me)
+        assert game.executor.attachments.get(_named(game, "Furor of the Bitten")) == _named(
+            game, "Onakke Ogre")
+    game, router, me = _teach(hand0=("Pacifism",), field0=("Plains", "Plains", "Griffin Sentinel"),
+                              field1=("Walking Corpse",), set_code="M20")
+    _main_phase(router, game, me)
+    assert game.executor.attachments.get(_named(game, "Pacifism")) == _named(game, "Walking Corpse")
+
+
+def test_heuristic_never_destroys_its_own_nine_lives() -> None:
+    """Hunt 4 (replay 28010270609): with removal to cast at the opponent's attack, the heuristic
+    cast Return to Nature and destroyed its own Nine Lives ("When Nine Lives leaves the
+    battlefield, you lose the game"), the only legal target. A harmful effect needs a target on
+    the opponent's side: with none in any mode it is not cast; with a card in the opponent's
+    graveyard, the mode that exiles it is chosen."""
+    from MTG_bot.bench.router import SeatRouter
+    from MTG_bot.bench.test_router import P0, P1, _arranged, _lenses
+    from MTG_bot.core.executor.legality import DECLARE_ATTACKERS
+    from MTG_bot.core.state import ZONE_GRAVEYARD
+
+    for grave in ((), ("Onakke Ogre",)):
+        game, supply = _arranged(field0=("Walking Corpse",), hand0=grave, hand1=("Return to Nature",),
+                                 field1=("Forest", "Forest", "Nine Lives"))
+        for name in grave:
+            game.world.move_to_zone(_named(game, name), P0, ZONE_GRAVEYARD)
+        router = SeatRouter(game, [_AttacksWith("Walking Corpse"), HeuristicAgent()], _lenses(),
+                            supply=supply)
+        ex = game.executor
+        ex.decisions.provider = router.answer
+        ex.pass_until(DECLARE_ATTACKERS)
+        ex.pass_priority()
+        router.take_priority(game, P1)
+        assert game.world.zone_of(_named(game, "Nine Lives")).kind == "battlefield"
+        assert not game.is_loser(P1)
+        cast = game.world.zone_of(_named(game, "Return to Nature")).kind == "graveyard"
+        assert cast == bool(grave)
+        assert all(game.world.zone_of(_named(game, name)).kind == "exile" for name in grave)
+
+
 def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
     """The router writes cast:<card>[:k][:x<N>]; the parser reads the card and X of every form."""
     from MTG_bot.core.identity import Handle
@@ -1479,6 +1770,155 @@ def test_x_rows_reach_the_encoding_with_their_card_and_x() -> None:
     p1 = Handle("player", 1)  # a combat-window cast at a target, with X (stack.py)
     assert FT._parse_option("card:12@player:1:x4") == (FT.OPT_INDEX["cast_at"], c, p1, 0, 4.0, 0.0)
     assert FT._parse_option("card:12@player:1") == (FT.OPT_INDEX["cast_at"], c, p1, 0, 0.0, 0.0)
+
+
+def test_a_permission_cast_reaches_the_encoding_with_its_zone_and_source(table) -> None:
+    """A cast through a permission (executor/permits.py, ontology round R13) is a cast row whose
+    card entity carries the zone it is cast from, and, when the permission changes its cost or adds
+    a rider, a ``:via:<source>`` the parser points the option's second entity at: two cost paths
+    of one card are two options the network tells apart. Demonic Embrace from the graveyard pays 3
+    life and a discard on top of its mana cost (via itself); Conspicuous Snoop's Goblin on top of
+    the library is a plain cast, the hidden card joining the entities as an offered one."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.executor.menu import menu
+    from MTG_bot.core.state import ZONE_GRAVEYARD
+    from tools.run_scenarios import ScenarioRunner
+
+    c, s = Handle("card", 12), Handle("card", 30)
+    assert FT._parse_option("cast:card:12:via:card:30") == (FT.OPT_INDEX["cast"], c, s, 0, 0.0, 0.0)
+    assert FT._parse_option("cast:card:12:via:card:30:k:x2") == (
+        FT.OPT_INDEX["cast_kicked"], c, s, 0, 2.0, 1.0)
+    pack = {"set": "M21", "world": {"life": 20, "seed": 7, "library_top": True}, "steps": [],
+            "mana": {"0": {"B": 2, "C": 1, "R": 1}},
+            "cards": [{"key": "embrace", "real": "Demonic Embrace", "zone": "graveyard", "controller": 0},
+                      {"key": "snoop", "real": "Conspicuous Snoop", "zone": "battlefield", "controller": 0},
+                      {"key": "gob", "real": "Goblin Arsonist", "zone": "library", "controller": 0},
+                      {"key": "junk", "name": "Junk", "type": "Sorcery", "zone": "hand", "controller": 0}]}
+    r = ScenarioRunner(pack, get_supply("all", "M21"))
+    embrace, gob = r.handles["embrace"], r.handles["gob"]
+    via, plain = f"cast:{embrace}:via:{embrace}", f"cast:{gob}"
+    tokens = ["PASS", *(row.token for row in menu(r.ex, r.seats[0]))]
+    assert via in tokens and plain in tokens, tokens
+    ask = Ask(seat=0, kind="act", site="act", prompt="", options=tuple(Option(t, t) for t in tokens))
+    f = FT.encode(r.ex, 0, ask, table)
+    oi, ci = f["opts_i"], f["cards_i"]
+    card, source = (int(oi[tokens.index(via), k]) - 3 for k in (1, 2))  # refs: 3+ are cards
+    assert card == source >= 0  # its own permission: both pointers at the card
+    assert int(ci[card, 1]) == FT.ZONE_INDEX[ZONE_GRAVEYARD]
+    assert int(ci[card, 0]) == table.row(r.world.cards[embrace].identity.oracle_id)
+    top = int(oi[tokens.index(plain), 1]) - 3
+    assert top >= 0 and int(oi[tokens.index(plain), 2]) == 0  # a plain path names no source
+    assert int(ci[top, 1]) == FT.ZONE_INDEX[ZONE_LIBRARY]
+
+
+class _OldOptions(dict):
+    """The option parse before hunt 4 for the two forms it could not tell apart: an ability
+    target read as "other" with no entity, and a source's second waiting trigger as its first."""
+
+    def __missing__(self, tok: str) -> tuple:
+        if tok.startswith("ability:"):
+            return FT.OPT_INDEX["other"], None, None, 0, 0.0, 0.0
+        twin = tok.startswith("card:") and tok.count(":") == 2
+        return FT._parse_option(tok.rsplit(":", 1)[0] if twin else tok)
+
+
+def _changed(tokens: list[str]) -> bool:
+    return any(t.startswith("ability:") or (t.startswith("card:") and t.count(":") == 2)
+               for t in tokens)
+
+
+def _asks_old_and_new(table, monkeypatch, games: tuple[int, ...] = ()) -> list[tuple]:
+    """(tokens, encoding, encoding with the parse before hunt 4) of: the heuristic's decisions in
+    the seeded M21 ``games``; Tale's End's target ask (M20, verified: "Counter target activated
+    ability, triggered ability, or legendary spell") with two triggered abilities waiting; and a
+    trigger order between two different triggers of one source (card:N, card:N:2)."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.bench.test_router import _arranged, _lenses
+    from MTG_bot.core.executor.games import _play
+    from tools.selfplay.rig import SelfplayRouter
+
+    out = []
+
+    def record(ex, ask, ctx) -> None:
+        new = FT.encode(ex, ask.seat, ask, table, ctx)
+        with monkeypatch.context() as m:
+            m.setattr(FT, "_OPTS", _OldOptions())
+            old = FT.encode(ex, ask.seat, ask, table, ctx)
+        out.append(([o.token for o in ask.options], new, old))
+
+    class Recorder(HeuristicAgent):
+        def __init__(self, caster: bool = False) -> None:
+            self.caster = caster  # casts Tale's End as soon as it can
+
+        def decide(self, ask, obs):
+            if 1 < len(ask.options) <= FT.MAX_OPTIONS and ask.kind != "name":
+                record(obs.executor, ask, obs.ctx)
+            cast = [i for i, o in enumerate(ask.options) if o.token.startswith("cast:")]
+            if self.caster and ask.kind == "priority" and cast:
+                return cast[0]
+            return super().decide(ask, obs)
+
+    for seed in games:
+        play_game(seed, [Recorder(), Recorder()], deck_mode="coherent", turn_cap=12)
+    game, supply = _arranged(hand0=("Yarok's Fenlurker",), field0=("Swamp",) * 4 + ("Corpse Knight",),
+                             field1=("Island",) * 4, hand1=("Tale's End",), set_code="M20")
+    router = SelfplayRouter(game, [HeuristicAgent(), Recorder(caster=True)], _lenses(),
+                            supply=supply)
+    game.executor.decisions.provider = router.answer
+    _play(game, router, game.world.player_order, 1, resumed=True)
+    knight = _named(game, "Corpse Knight")
+    me = game.world.player_order[0]
+    record(game.executor, Ask(seat=0, kind="trigger", site=f"trigger:{me}:0", prompt="",
+                              options=(Option(str(knight), "a"), Option(f"{knight}:2", "b"))), None)
+    return out
+
+
+def test_ability_targets_and_one_sources_triggers_encode_apart(table, monkeypatch) -> None:
+    """Hunt 4: an ability on the stack offered as a target (Tale's End) had no parse and read as
+    "other" with no entity, and a source's two different waiting triggers (card:30, card:30:2)
+    read as one: options the network could not tell apart, so their logits were equal. An
+    ability target points at its stack entity, marked offered as a spell target is; a trigger is
+    its source's entity with which of its triggers in the ability column."""
+    asks = [a for a in _asks_old_and_new(table, monkeypatch) if _changed(a[0])]
+    tales, trigger = [a for a in asks if a[0][0].startswith("ability:")], [
+        a for a in asks if a[0][0].startswith("card:")]
+    assert len(tales) == 1 and len(trigger) == 1
+    for tokens, new, old in tales + trigger:
+        rows = [tuple(r) for r in new["opts_i"].tolist()]
+        assert len(set(rows)) == len(rows) and len({tuple(r) for r in old["opts_i"].tolist()}) == 1
+        assert set(new["opts_i"][:, 0]) == {FT.OPT_INDEX["card"]}
+    refs = tales[0][1]["opts_i"][:, 1]
+    assert len(set(refs)) == len(refs) and all(refs >= 3)  # each its own stack entity
+    cf = tales[0][1]["cards_f"].astype(np.float32)[refs - 3]
+    assert (cf[:, FT.F_TRIGGERED] == 1).all() and (cf[:, FT.F_OFFERED] == 1).all()
+    knight = trigger[0][1]["opts_i"]
+    assert knight[0, 1] == knight[1, 1] and list(knight[:, 3]) == [4, 5]  # ability index 0, 1
+
+
+# r28's v2 (CLAUDE.md), the network the runs since start from: read only, on the training box
+R28_V2 = Path("/home/sune/Desktop/MTG_AI/runs/r28_looks/r28_v2.pt")
+
+
+@pytest.mark.skipif(not R28_V2.exists(), reason="r28's v2 is on the training box only")
+def test_r28s_v2_computes_bitwise_what_it_did_where_no_option_changed(monkeypatch) -> None:
+    """The hunt-4 encodings add no input column and touch only asks that hold an ability target
+    or a source's second trigger: on every other ask r28's v2, a checkpoint from before them,
+    reads the same arrays and computes bitwise the same logits and value (the decisions of a
+    seeded game). Where they changed, its logits for the options it could not tell apart are no
+    longer tied."""
+    net, table, _ = M.load(str(R28_V2))
+    asks = _asks_old_and_new(table, monkeypatch, games=(900, 901))
+    assert sum(_changed(a[0]) for a in asks) >= 2 and len(asks) > 100
+    with torch.no_grad():
+        new = net(M.collate([a[1] for a in asks], "cpu"))
+        old = net(M.collate([a[2] for a in asks], "cpu"))
+    for i, (tokens, a, b) in enumerate(asks):
+        k = len(tokens)
+        if _changed(tokens):  # some options were tied; none is now
+            assert len(set(old[0][i, :k].tolist())) < k == len(set(new[0][i, :k].tolist()))
+            continue
+        assert all(np.array_equal(a[x], b[x]) for x in a)
+        assert torch.equal(new[0][i], old[0][i]) and torch.equal(new[1][i], old[1][i])
 
 
 def test_a_candidate_that_wins_at_once_scores_a_win(table) -> None:
@@ -1576,10 +2016,11 @@ def test_gates_use_a_deal_level_interval_on_fresh_deals() -> None:
     assert L.deal_interval([0.5] * 200) == (0.5, 0.5)  # every deal split 1-0: no doubt at all
     lo, hi = L.deal_interval([1.0, 0.5, 0.5, 0.0] * 50)  # hand: sd sqrt(25/199) = 0.3544, h 0.0491
     assert (lo, hi) == (0.4509, 0.5491)
-    fake = SimpleNamespace(n_gates=0, eval_queue=[])
+    fake = SimpleNamespace(n_gates=0, eval_queue=[], args=SimpleNamespace(seed=1))
     for kind in ("teacher", "gate", "ladder"):
         L.Learner.queue_eval(fake, kind, kind, "eval", ["heuristic"], 10)
-    assert [q[5] for q in fake.eval_queue] == [L.GATE_SEED0, L.GATE_SEED0 + 1000, L.EVAL_SEED0]
+    gates = L.GATE_SEED0 + L.RUN_STRIDE  # --seed 1's blocks
+    assert [q[5] for q in fake.eval_queue] == [gates, gates + 1000, L.EVAL_SEED0]
 
 
 def _ppo_case(table):

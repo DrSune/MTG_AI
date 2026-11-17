@@ -1,0 +1,22 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Felling Blow, printed: 'Put a +1/+1 counter on target creature you control. Then that creature deals damage equal to its power to target creature an opponent controls.' With the spell on the stack seat 1 bounces seat 0's targeted creature with Unsummon. That target is gone and illegal when Felling Blow resolves: it gets no counter and deals no damage, so seat 1's creature (still a legal target) is undamaged.",
+ "cards": [
+  {"key": "fb", "real": "Felling Blow", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "unsummon", "real": "Unsummon", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}, "1": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["bear", "opp1"], "hold": true},
+  {"op": "cast", "key": "unsummon", "real": "Unsummon", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard", "bear": "hand", "opp1": "battlefield", "unsummon": "graveyard"},
+  "counters": {"opp1": {}},
+  "graveyard": {"0": ["Felling Blow"], "1": ["Unsummon"]},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

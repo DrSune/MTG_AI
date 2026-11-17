@@ -1,0 +1,21 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Deadly Riposte (FDN), printed: 'deals 3 damage to target TAPPED CREATURE and you gain 2 life.' Seat 0 controls a tapped 4/4 Giant (its OWN creature is a legal target: no controller is printed), an untapped Bear and a tapped artifact; seat 1 controls an untapped Ape. The untapped Bear, the tapped artifact and the untapped Ape are refused as targets; the tapped Giant is the target: it is dealt exactly 3 (survives with 3 damage marked) and seat 0 gains exactly 2 (20 -> 22).",
+ "cards": [
+  {"key": "rip", "real": "Deadly Riposte", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "My Tapped Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "bear", "name": "My Untapped Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Tapped Relic", "type": "Artifact", "zone": "battlefield", "controller": 0, "start_tapped": true},
+  {"key": "ape", "name": "Their Untapped Ape", "type": "Creature — Ape", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "rip", "real": "Deadly Riposte", "targets": ["bear"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "rip", "real": "Deadly Riposte", "targets": ["relic"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "rip", "real": "Deadly Riposte", "targets": ["ape"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "rip", "real": "Deadly Riposte", "targets": ["giant"]}
+ ],
+ "expect": {
+  "zone": {"rip": "graveyard", "giant": "battlefield", "bear": "battlefield", "relic": "battlefield", "ape": "battlefield"},
+  "damage": {"giant": 3},
+  "life": {"0": 22, "1": 20}
+ }}

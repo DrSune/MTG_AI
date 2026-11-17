@@ -105,7 +105,7 @@ def _draw_atom(amount: int = 1) -> at.Atom:
 
 def _mill_atom() -> at.Atom:
     return at.Atom(
-        at.Verb.MILL,
+        at.Verb.DRAW,
         at.AtomArgs(
             pairs=(("controller", at.ControllerRef.YOU), ("amount", at.QConst(1)))
         ),
@@ -327,7 +327,7 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
     (
         "conditional_else",
         _conditional_else,
-        "81e573b85eb3eae597a10973a5bc134e286e37ba92a39f22cc070fb1dd598241",
+        "4c1527153a80f5c42bf68f8c82a77d1ed13c51cf9a5a9191b7a561f9e58f68f6",  # re-pinned by round R12: Verb.MILL is gone, the else step a DRAW
     ),
 ]
 

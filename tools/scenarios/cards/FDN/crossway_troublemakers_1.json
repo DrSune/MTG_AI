@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "E02_1_crossway_troublemakers_attacking_vampires_get_deathtouch_and_lifelink",
+ "notes": "G2 verifier, batch E. Printed: 'Attacking Vampires you control have deathtouch and lifelink.' Seat 0's Vampire (1/1) and Bear (1/1, not a Vampire) attack; seat 1's two 0/9 Walls block one each. The Vampire is an attacking Vampire: its 1 damage is lethal to the 9-toughness Wall (deathtouch, Wall One dies) and gains seat 0 1 life (lifelink, 21). The Bear is not a Vampire: its 1 damage only marks Wall Two (damage 1, alive), no life. Troublemakers itself does not attack.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Test Bear", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "wall1", "name": "Wall One", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1},
+  {"key": "wall2", "name": "Wall Two", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"vamp": true, "bear": true}, "block": {"wall1": "vamp", "wall2": "bear"}}
+ ],
+ "expect": {
+  "blocked": {"vamp": ["wall1"], "bear": ["wall2"]},
+  "zone": {"wall1": "graveyard", "wall2": "battlefield"},
+  "damage": {"wall2": 1},
+  "life": {"0": 21, "1": 20}
+ }
+}

@@ -1,0 +1,22 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fleeting Flight, printed: 'Prevent all combat damage that would be dealt to it this turn.' The prevention lasts this turn only. Seat 0 casts it on its 2/2 (3/3 with the counter) in the main phase; the turn ends. On seat 1's turn a 5/5 attacks and the 3/3 blocks it: the 5 combat damage is no longer prevented and kills it. It still has its +1/+1 counter, but no flying.",
+ "cards": [
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Big Attacker", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "ff", "real": "Fleeting Flight", "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"big": true}, "block": {"bear": "big"}}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "bear": "graveyard", "big": "battlefield"},
+  "damage": {"big": 3},
+  "graveyard": {"0": ["Fleeting Flight", "My Bear"], "1": []},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite's replacement lasts 'this turn' only. Seat 0's 4/4 attacker survives the Smite's 3 damage. On the next turn it is dealt 4 damage and dies normally: it goes to its owner's graveyard, not exile.",
+ "cards": [
+  {"key": "a", "name": "Big Raider", "type": "Creature — Warrior", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 1},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"a": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 1, "targets": ["a"], "tap": true}]}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "pinger", "target": "a", "amount": 4, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"a": "graveyard", "smite": "graveyard"},
+  "graveyard": {"0": ["Big Raider"], "1": ["Elspeth's Smite"]}
+ }
+}

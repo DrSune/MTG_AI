@@ -1,0 +1,18 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Circuitous Route (FDN), printed: 'up to two'. Zero, one or two cards may be taken, never more. Step 1 takes one Forest and stops (NONE) with three basic Forests and a Gate in the library; the spell is cast and resolved with exactly one land on the battlefield, tapped. Only the answered cards move: the rest stay in the library.",
+ "cards": [
+  {"key": "route", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "Lib Forest One", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "f2", "name": "Lib Forest Two", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "f3", "name": "Lib Forest Three", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "gate", "name": "Lib Gate", "type": "Land — Gate", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "route", "real": "Circuitous Route", "decisions": ["f1", "NONE"]}
+ ],
+ "expect": {
+  "zone": {"route": "graveyard", "f1": "battlefield", "f2": "library", "f3": "library", "gate": "library"},
+  "tapped": {"f1": true},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*", "*"]}
+ }}

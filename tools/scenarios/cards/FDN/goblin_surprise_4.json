@@ -1,0 +1,53 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Goblin Surprise (FDN) is an INSTANT: on the opponent's turn (turn 2) seat 0 casts it (mode 1) and two 1/1 Goblin tokens appear under seat 0's control (the opponent has none).",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Goblin Surprise",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "sp",
+   "real": "Goblin Surprise",
+   "controller": 0,
+   "decisions": [
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sp": "graveyard"
+  },
+  "tokens": {
+   "Goblin": 2
+  },
+  "turn_seats": [
+   0,
+   1
+  ]
+ }
+}

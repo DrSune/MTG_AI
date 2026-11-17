@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "overrun_gives_your_creatures_plus_three_plus_three_and_trample_until_end_of_turn",
+ "notes": "Printed: 'Creatures you control get +3/+3 and gain trample until end of turn.' Seat 0 casts Overrun ({2}{G}{G}{G}) in its first main phase with a 2/2 attacker and a 1/1 that stays home. Both get +3/+3 (5/5 and 4/4: power and toughness both +3), while seat 1's two creatures keep their printed size. The 5/5 attacks and is blocked by seat 1's 4/1: with trample it assigns the blocker its lethal damage (1) and tramples the other 4 over to the player (seat 1: 20 -> 16); the blocker dies, and the attacker survives only because its toughness is 5 (4 damage marked). A creature that enters after Overrun resolved (the late 1/1, same turn) gets nothing (CR 611.2c).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Home Guard", "power": "1", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "late", "name": "Late Arrival", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "overrun", "real": "Overrun", "zone": "hand", "controller": 0},
+  {"key": "blk", "name": "Sharp Blocker", "power": "4", "toughness": "1", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Other Opponent", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 3, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "overrun", "real": "Overrun"},
+  {"op": "enter", "key": "late"},
+  {"op": "combat", "seat": 0, "attack": {"att": true}, "block": {"blk": "att"}, "divide": {"blk": 1}}
+ ],
+ "expect": {
+  "zone": {"overrun": "graveyard", "att": "battlefield", "home": "battlefield", "late": "battlefield", "blk": "graveyard", "opp2": "battlefield"},
+  "power": {"att": 5, "home": 4, "late": 1, "opp2": 2},
+  "toughness": {"att": 5, "home": 4, "late": 1, "opp2": 2},
+  "damage": {"att": 4},
+  "life": {"0": 20, "1": 16},
+  "mana_pool": {"0": {}}
+ }}

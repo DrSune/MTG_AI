@@ -1,0 +1,24 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Felling Blow, printed: 'Put a +1/+1 counter on target creature you control. Then that creature deals damage equal to its power to target creature an opponent controls.' Seat 0 has a 2/2 lifelinker and a second 2/2; seat 1 has two 4/4s. It targets the lifelinker and the first 4/4: only the lifelinker gets the counter (3/3), and then, with its new power, IT deals exactly 3 damage to only the first 4/4 (damage 3, the other 4/4 untouched), so lifelink works: seat 0 gains 3 (20 -> 23).",
+ "cards": [
+  {"key": "fb", "real": "Felling Blow", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Lifelink Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "bear2", "name": "Other Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "opp1", "name": "Opp One", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "opp2", "name": "Opp Two", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "fb", "real": "Felling Blow", "targets": ["bear", "opp1"]}
+ ],
+ "expect": {
+  "zone": {"fb": "graveyard", "bear": "battlefield", "bear2": "battlefield", "opp1": "battlefield", "opp2": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "bear2": {}, "opp1": {}, "opp2": {}},
+  "power": {"bear": 3, "bear2": 2},
+  "damage": {"opp1": 3},
+  "life": {"0": 23, "1": 20},
+  "graveyard": {"0": ["Felling Blow"], "1": []},
+  "mana_pool": {"0": {}}
+ }
+}

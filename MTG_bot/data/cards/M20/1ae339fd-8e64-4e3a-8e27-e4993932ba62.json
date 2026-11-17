@@ -24,7 +24,7 @@
       "tag": "FAtom",
       "pred": {
        "tag": "FAtomPred",
-       "name": "TARGETS_SOURCE"
+       "name": "TARGETS"
       },
       "string_value": null,
       "color": null,
@@ -33,7 +33,21 @@
       "counter_kind": null,
       "keyword": null,
       "who": null,
-      "inner_filter": null
+      "inner_filter": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_SOURCE"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
      },
      "actor": {
       "tag": "FAtom",
@@ -92,9 +106,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-9",
-  "date": "2026-11-05",
-  "draft_py": "# Gnarlback Rhino: \"Trample\" (compiled keyword) +\n# \"Whenever you cast a spell that targets this creature, draw a card.\"\n# CastSpellEvent (you cast, Quirion Dryad shape) whose spell filter is TARGETS_SOURCE\n# (\"spells ... that target this creature\", the R3-6 cost-modifier predicate).\nheroic_draw = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAtom(pred=FAtomPred.TARGETS_SOURCE),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n)\nabilities = [heroic_draw, *compiled]\n",
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.TRAMPLE),\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=CastSpellEvent(\n            filter=FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=None,\n        effect=A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Trample",
@@ -106,43 +120,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "ENGINE (weaker than printed): the trigger never fires. CastSpellEvent's filter is judged in the trigger host's match ctx (binding.py _cast_fits), where FAtomPred.TARGETS_SOURCE reads ctx.binding_handles('target') (quantity.py) and so never sees the cast spell's targets. Pack mapped/m9/gnarlback_rhino/pack_you_target_it_draws.json fails (no draw); the two negative packs pass."
+  "notes": "Ontology round R12 re-bake (the one quantity comparison, TARGETS, QDistinct, zone counts as QCount): the record's tree translated from its verified 2026-11-05 by claude-verifiers-m20v1 tree, same meaning; it waits for re-verification."
  },
  "probe": {
-  "sha": "29a735457a1ceaac21b1050e40a4382983df7dfd5124c151e5a3eb0292352bf5"
- },
- "verified": {
-  "tree_sha": "e05a0bebf1eb365514880b19ec0e241802f95304a78ea014a393177c20b1eda3",
-  "probe_sha": "d3cadfa6d6b19a57c2d9c99e6e5e1a282b886e5ae3ee64895145ac2355667cd0",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
-  "clauses": [
-   {
-    "clause": "Trample",
-    "status": "OK",
-    "evidence": "Static: 'card keywords: TRAMPLE'.",
-    "issue": ""
-   },
-   {
-    "clause": "Whenever you cast a spell that targets this creature, draw a card.",
-    "status": "NOT_EXERCISED",
-    "evidence": "No stimulus spell targets it in G1. Packs gnarlback_rhino_1 (your Titanic Growth on it: one draw) and gnarlback_rhino_2 (your spell on another creature, the opponent's spell on it: no draw) pass; twins fail.",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/gnarlback_rhino_1.json",
-   "tools/scenarios/cards/M20/gnarlback_rhino_2.json"
-  ],
-  "mutation": {
-   "mutants": 4,
-   "killed": 1,
-   "score": 0.25,
-   "survived": [
-    "controller YOU->OPPONENT at 1/0/event/actor/who",
-    "amount+1 at 1/0/effect/args/amount",
-    "controller YOU->OPPONENT at 1/0/effect/args/controller"
-   ]
-  }
+  "sha": "645ba4e75b8d58447930f37247da927aae3a3d9fc34d860004067f0d34bc5816"
  }
 }

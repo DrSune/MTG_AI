@@ -1,0 +1,12 @@
+selector 4 verified 0
+    ('M20', 'Mystic Forge', False, 'ONE_OF QConst(value=1)')
+    ('M21', 'Furious Rise', False, 'CHOOSE QConst(value=1)')
+    ('THB', 'Furious Rise', False, 'CHOOSE QConst(value=1)')
+    ('ZNR', 'Valakut Exploration', False, 'ONE_OF QConst(value=1)')
+pop 2 verified 0
+    ('M20', 'Golos, Tireless Pilgrim', False, 'QConst(value=3)')
+    ('M21', 'Chandra, Heart of Fire', False, 'QConst(value=3)')
+wrapped 3 verified 3
+    ('M21', 'Azusa, Lost but Seeking', True, 'ADD_LAND_PLAY')
+    ('M21', 'Chromatic Orrery', True, 'MANA_POLICY')
+    ('M21', 'Teferi, Master of Time', True, 'GRANT_ACTIVATION')

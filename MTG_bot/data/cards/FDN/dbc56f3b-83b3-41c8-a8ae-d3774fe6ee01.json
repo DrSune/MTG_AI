@@ -130,5 +130,40 @@
  },
  "probe": {
   "sha": "01f5207ed084e890c06887d24280e051182312c19b25e1dfa6668f0fc91d2414"
+ },
+ "verified": {
+  "tree_sha": "1bc6738400400b9a14993841715289181a7c8da0ec5536990197c3795147c0db",
+  "probe_sha": "01f5207ed084e890c06887d24280e051182312c19b25e1dfa6668f0fc91d2414",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Vigilance",
+    "status": "OK",
+    "evidence": "Cast: 'change: card: ... keywords +VIGILANCE'. In both attack variants ('this creature attacks alone, unblocked', 'attacks and opp_giant blocks it') the events hold DECLARE_ATTACKERS card but no 'card becomes tapped' and no 'card: tapped False -> True' change (a creature without vigilance taps in the same probe's 'this card becomes tapped' and attack stimuli). Pinned by F00_1 (tapped lanes).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever a white creature you control attacks, you gain 1 life.",
+    "status": "OK",
+    "evidence": "'this creature attacks alone, unblocked' and '... opp_giant blocks it': 'card's triggered ability [0] triggers', 'you gains 1 life (by card/GAIN_LIFE)', 'you: life 20 -> 21' (Linden is white). 'another creature you control (you_bear) attacks -> none' (a non-white attacker). The probe never attacks with a second white creature, never counts triggers over several attackers and never attacks with the opponent's white creature: F00_1 (two white attackers + a red one: +2) and F00_2 (the opponent's white attacker: no life). F00_3 ('you' is the controller: with Linden stolen, only its new controller's white attackers count).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/linden_the_steadfast_queen_1.json",
+   "tools/scenarios/cards/FDN/linden_the_steadfast_queen_2.json",
+   "tools/scenarios/cards/FDN/linden_the_steadfast_queen_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 5,
+   "score": 0.625,
+   "survived": [
+    "each occurrence -> once per event at 1/0",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "widen filter (drop part 2) at 1/0/event/filter"
+   ]
+  }
  }
 }

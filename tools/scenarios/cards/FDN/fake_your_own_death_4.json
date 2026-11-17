@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: 'Until end of turn, target creature gets +2/+0 and gains \"When this creature dies, ...\"' The granted ability lasts until end of turn only. Seat 0 targets its 2/2; the turn ends; on the next turn the creature (a plain 2/2 again) is dealt 2 damage and dies for good: it stays in the graveyard, and no Treasure is created.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "bear": "graveyard"},
+  "tokens": {"Treasure": 0},
+  "graveyard": {"0": ["Fake Your Own Death", "My Bear"], "1": []}
+ }
+}

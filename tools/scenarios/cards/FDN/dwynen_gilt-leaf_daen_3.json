@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "E10_3_dwynen_gains_nothing_when_another_elf_attacks_without_him",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever Dwynen attacks, you gain 1 life...' Only the Elf Warrior attacks, Dwynen stays home: the trigger is Dwynen's own attack, so nothing is gained (20). The Elf Warrior (3/3 with Dwynen's bonus) deals 3: seat 1 at 17.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "dwynen", "real": "Dwynen, Gilt-Leaf Daen", "zone": "battlefield", "controller": 0},
+  {"key": "elf1", "name": "Elf One", "type": "Creature — Elf Warrior", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"elf1": true, "dwynen": false}}
+ ],
+ "expect": {
+  "attackers": {"elf1": true, "dwynen": false},
+  "life": {"0": 20, "1": 17}
+ }
+}

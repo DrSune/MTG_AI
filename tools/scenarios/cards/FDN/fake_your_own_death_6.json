@@ -1,0 +1,18 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: 'gains \"When this creature dies, ...\"'. Only dying triggers it. Seat 0 targets its 2/2 and then an effect exiles it: it did not die, so it stays in exile (never returns) and no Treasure is created.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["bear"]},
+  {"op": "move", "key": "bear", "to": "exile"}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "bear": "exile"},
+  "tokens": {"Treasure": 0},
+  "graveyard": {"0": ["Fake Your Own Death"], "1": []}
+ }
+}

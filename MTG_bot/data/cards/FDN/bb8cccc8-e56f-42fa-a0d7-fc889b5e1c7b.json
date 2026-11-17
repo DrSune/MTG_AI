@@ -80,5 +80,28 @@
  },
  "probe": {
   "sha": "fc60ae17f00c66c7ad4ec181c3de0080b362cfd2236faf62f018cae60634822e"
+ },
+ "verified": {
+  "tree_sha": "3eaa1bb3adc526d3cc57436c64cfbee2121803713fc0bf40a829a68942ffcd38",
+  "probe_sha": "fc60ae17f00c66c7ad4ec181c3de0080b362cfd2236faf62f018cae60634822e",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Boltwave deals 3 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[cast]: 'opp is dealt 3 damage (by card/DEAL_DAMAGE)', opp life 20 -> 17, my life unchanged, no creature is damaged. Pack C09_1 (three players): both opponents take 3 and the caster takes none.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/boltwave_1.json"
+  ],
+  "mutation": {
+   "mutants": 3,
+   "killed": 3,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

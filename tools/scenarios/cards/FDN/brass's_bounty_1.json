@@ -1,0 +1,28 @@
+{
+ "set": "FDN",
+ "name": "brass_s_bounty_one_treasure_per_land_you_control",
+ "notes": "Printed: 'For each land you control, create a Treasure token.' Seat 0 controls three Mountains and seat 1 controls two Forests, so seat 0 gets exactly three Treasures (not one, not five). They are seat 0's own: it then casts Giant Growth ({G}, which no Mountain can pay) with the automatic payer and a Treasure's mana pays it (Bear 5/5), leaving two Treasures.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bb", "real": "Brass's Bounty", "zone": "hand", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m3", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 1},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 6}},
+ "steps": [
+  {"op": "cast", "key": "bb"},
+  {"op": "cast", "key": "gg", "targets": ["bear"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"bb": "graveyard", "gg": "graveyard"},
+  "tokens": {"Treasure": 2},
+  "power": {"bear": 5},
+  "tapped": {"m1": false, "m2": false, "m3": false},
+  "mana_pool": {"0": {}}
+ }
+}

@@ -1,0 +1,23 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Flashfreeze, printed: 'Counter target red or green spell.' Neither a white spell (Savannah Lions) nor a colourless one (Pirate's Cutlass) is red or green, so Flashfreeze cannot target either: each attempt is refused and Flashfreeze stays in seat 1's hand with its mana; both spells then resolve normally.",
+ "cards": [
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0},
+  {"key": "cutlass", "real": "Pirate's Cutlass", "zone": "hand", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 3}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "lions", "real": "Savannah Lions", "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["lions"], "expect_raise": "illegal target"},
+  {"op": "pass"},
+  {"op": "cast", "key": "cutlass", "real": "Pirate's Cutlass", "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["cutlass"], "expect_raise": "illegal target"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"lions": "battlefield", "cutlass": "battlefield", "ff": "hand"},
+  "hand": {"0": 0, "1": 1},
+  "mana_pool": {"0": {}, "1": {"U": 1, "C": 1}}
+ }
+}

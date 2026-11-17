@@ -1,0 +1,21 @@
+{
+ "name": "H10_infestation_sage_only_its_own_death_counts",
+ "set": "FDN",
+ "note": "Infestation Sage: 'When this creature dies' means this one. With the Sage on the battlefield, P0's Bear and the opponent's Ox die: no Insect token is made for either. Then the Sage itself dies: exactly one Insect.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Infestation Sage"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Bear", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "ox", "zone": "battlefield", "controller": 1, "name": "Ox", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 2},
+  {"op": "deal_damage", "source": "pinger", "target": "ox", "amount": 2},
+  {"op": "deal_damage", "source": "pinger", "target": "sage", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "ox": "graveyard", "sage": "graveyard"},
+  "tokens": {"Insect": 1}
+ }
+}

@@ -153,5 +153,36 @@
  },
  "probe": {
   "sha": "0849affc9bb3bfe04dc9c22cd80770da4a9f9a9a74d863f969c62c0f8b15e69c"
+ },
+ "verified": {
+  "tree_sha": "d8e31b65dc4f6fb91b31fe4384027331ac1c3913c2a03c036f56dcaee2bc5446",
+  "probe_sha": "0849affc9bb3bfe04dc9c22cd80770da4a9f9a9a74d863f969c62c0f8b15e69c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Return target creature card from your graveyard to your hand.",
+    "status": "OK",
+    "evidence": "[cast targets=[you_fallen]]: target slot 1..1 of [you_fallen] only (the opponent's Zombie card and the Sorcery cards are not offered); 'you_fallen moves graveyard -> hand (by card/MOVE_ZONE)'. Pack C03_3 refuses an opponent's creature card and a non-creature card of mine.",
+    "issue": ""
+   },
+   {
+    "clause": "If it's a Zombie card, draw a card.",
+    "status": "OK",
+    "evidence": "Same cast: the returned card is 'Your Fallen Zombie', and 'you draws you:Library 5#1' - exactly one card for me (hand 7 -> 8 with the Zombie back, library 6 -> 5; the 'ask discard' is the cleanup hand-size discard from 8). The trace has only the Zombie case; pack C03_1 pins the other branch (a non-Zombie returns and nothing is drawn, with Zombie cards elsewhere in play) and C03_2 the Zombie draw.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/cemetery_recruitment_1.json",
+   "tools/scenarios/cards/FDN/cemetery_recruitment_2.json",
+   "tools/scenarios/cards/FDN/cemetery_recruitment_3.json"
+  ],
+  "mutation": {
+   "mutants": 8,
+   "killed": 8,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

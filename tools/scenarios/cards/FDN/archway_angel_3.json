@@ -1,0 +1,64 @@
+{
+ "set": "FDN",
+ "name": "G03_3",
+ "notes": "Printed (FDN Archway Angel): 'Flying. When this creature enters, you gain 2 life for each Gate you control.' 'You control' is control, not ownership: I steal the opponent's Boros Guildgate and the opponent steals my Dimir Guildgate; I now control two Gates (Azorius, Boros): 4 life.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Archway Angel",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Azorius Guildgate",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g_theirs",
+   "real": "Boros Guildgate",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g_lent",
+   "real": "Dimir Guildgate",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "g_theirs",
+   "seat": 0
+  },
+  {
+   "op": "gain_control",
+   "key": "g_lent",
+   "seat": 1
+  },
+  {
+   "op": "enter",
+   "key": "angel"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "angel": "battlefield"
+  },
+  "life": {
+   "0": 24,
+   "1": 20
+  },
+  "controller": {
+   "g_theirs": 0,
+   "g_lent": 1
+  }
+ }
+}

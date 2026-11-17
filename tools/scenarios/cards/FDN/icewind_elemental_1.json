@@ -1,0 +1,22 @@
+{
+ "name": "H09_icewind_elemental_draws_then_discards_a_card_of_your_choice",
+ "set": "FDN",
+ "note": "Icewind Elemental: 'When this creature enters, draw a card, then discard a card.' P0 holds the Elemental and a Spare card. After the cast it draws one card (Library 5) and then discards the card it names, the Spare: the Spare is in P0's graveyard, the drawn card stays in hand (hand 1), the library lost exactly one card, and the opponent is untouched.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "elemental", "zone": "hand", "controller": 0, "real": "Icewind Elemental"},
+  {"key": "spare", "zone": "hand", "controller": 0, "name": "Spare", "power": "3", "toughness": "3", "type": "Creature"}
+ ],
+ "mana": {"0": {"U": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "real": "Icewind Elemental", "key": "elemental", "decisions": ["spare"]}
+ ],
+ "expect": {
+  "zone": {"elemental": "battlefield", "spare": "graveyard"},
+  "hand": {"0": 1, "1": 0},
+  "graveyard": {"0": ["Spare"], "1": []},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "life": {"0": 20, "1": 20}
+ }
+}

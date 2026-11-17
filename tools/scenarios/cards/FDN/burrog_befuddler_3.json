@@ -1,0 +1,71 @@
+{
+ "set": "FDN",
+ "name": "G07_3",
+ "notes": "Printed (FDN Burrog Befuddler): 'Flash. When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.' 'Target creature an opponent controls': with the Giant and the Bear to choose from, my own Bear is not an offered target (answering with it raises).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Burrog Befuddler",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature — Giant",
+   "zone": "battlefield",
+   "controller": 1,
+   "power": "4",
+   "toughness": "4"
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:bb",
+    "mybear"
+   ],
+   "expect_raise": "does not offer"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "battlefield"
+  },
+  "power": {
+   "mybear": 2,
+   "obear": 2,
+   "ogiant": 4
+  }
+ }
+}

@@ -295,7 +295,7 @@ class AdherentConditionCase(unittest.TestCase):
         # The executor answers EXACTLY what the filter asks of the one
         # subject it is given — a 2/2 creature named Adherent of Hope. A
         # "count Basri planeswalkers you control" reading is a different
-        # tree (CONTROLLER_COUNT_GE).
+        # tree (a comparison of a count).
         ctx = ctx_for(self.ex, source=self.adherent, controller=self.p0)
         self.assertFalse(eval_filter(self.condition, self.adherent, ctx))
 

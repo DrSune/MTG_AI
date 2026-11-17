@@ -1,0 +1,49 @@
+{
+ "set": "FDN",
+ "name": "F08_2",
+ "notes": "Halana and Alena, Partners. Printed: '...That creature gains haste UNTIL END OF TURN.' The trigger puts 2 counters on the Bear (Halana's power 2); the turn ends (advance_turn): the counters stay (4/4) and the haste is gone.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ha": {},
+   "bear": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "power": {
+   "bear": 4
+  },
+  "battlefield_keywords": {
+   "Bear": []
+  }
+ }
+}

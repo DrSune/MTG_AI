@@ -239,5 +239,31 @@
  },
  "probe": {
   "sha": "0538d2c9af64172a894fb0dd6d8d8fdd2e8955251077254e604275a25c011894"
+ },
+ "verified": {
+  "tree_sha": "f9a406c6608fef613c463be3b90aa674a26099447e3563d1c8aadc0289b4da4f",
+  "probe_sha": "0538d2c9af64172a894fb0dd6d8d8fdd2e8955251077254e604275a25c011894",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +1/+0 and gain indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: 'you_bear: P/T 2/2 -> 3/2; keywords +INDESTRUCTIBLE', 'you_giant: P/T 4/4 -> 5/4; keywords +INDESTRUCTIBLE' (toughness unchanged), no opponent creature changes, 'after the turn ends' both revert (2/2, 4/4, -INDESTRUCTIBLE), mana C-2 W-1 for {2}{W}. Pack B09_1 PASSES (combat: the 3/2 attacker survives a 4-power blocker only by indestructible; a non-attacker gets +1/+0 too; the opponent's creatures stay 4/4 and 2/2; a creature entering afterwards gets nothing). Wrong twins fail. Pack B09_2 PASSES (the indestructible attacker with 4 damage survives the cleanup, CR 514.2; next turn the other covered creature is an ordinary 2/2 that dies and deals 2, not 3).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/make_a_stand_1.json",
+   "tools/scenarios/cards/FDN/make_a_stand_2.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

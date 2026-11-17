@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "apothecary_stomper_enters_and_gains_four_life",
+ "notes": "Printed: 'When this creature enters, choose one - Put two +1/+1 counters on target creature you control. / You gain 4 life.' Seat 0 casts the Stomper and chooses the second mode: seat 0 gains exactly 4 life (24), no counters are put on anything, seat 1's life is unchanged.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "st", "real": "Apothecary Stomper", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "st", "decisions": ["1"]}
+ ],
+ "expect": {
+  "zone": {"st": "battlefield"},
+  "counters": {"bear": {}, "st": {}},
+  "power": {"bear": 2, "st": 4},
+  "life": {"0": 24, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

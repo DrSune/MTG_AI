@@ -1,0 +1,22 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fleeting Flight, printed: 'Prevent all combat damage that would be dealt to it this turn.' Only COMBAT damage is prevented. Seat 0 casts it on its 2/2 (now 3/3 with a +1/+1 counter) in the main phase; seat 1's Pinger then deals it 1 non-combat damage, which is marked on it.",
+ "cards": [
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1},
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "ff", "real": "Fleeting Flight", "targets": ["bear"]},
+  {"op": "deal_damage", "source": "pinger", "target": "bear", "amount": 1, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "bear": "battlefield"},
+  "damage": {"bear": 1},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+  "power": {"bear": 3},
+  "toughness": {"bear": 3},
+  "mana_pool": {"0": {}}
+ }
+}

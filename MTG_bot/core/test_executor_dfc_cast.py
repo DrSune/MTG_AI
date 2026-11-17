@@ -41,6 +41,7 @@ from MTG_bot.core.state import (
 )
 from MTG_bot.core.test_executor_binding import UNIV, record_of
 from MTG_bot.core.test_executor_stack import StackCase
+from MTG_bot.core.test_executor_stack import cast_with
 
 DFC_NAME = "Beyeen Veil // Beyeen Coast"
 FACE_MSG = (
@@ -97,7 +98,7 @@ class DFCCastCase(StackCase):
             cost=Cost(()),
             effect=Atom(
                 verb=Verb.CAST,
-                args=AtomArgs(pairs=(("source", sel), ("cost", Cost(())))),
+                args=AtomArgs(pairs=(("source", sel), ("alternative", Cost(())))),
             ),
         )
 
@@ -114,7 +115,7 @@ class TestFaceCastRefusal(DFCCastCase):
     def test_back_face_only_raises_the_typed_refusal(self):
         handle = self.back_face_only()
         with self.assertRaises(FaceCastAbsentError) as caught:
-            cast_card(self.ex, self.p0, handle, cost_override=Cost(()))
+            cast_card(self.ex, self.p0, handle, atom=cast_with(Cost(())))
         exc = caught.exception
         # the dedicated type and the exact site message
         self.assertEqual(str(exc), FACE_MSG)
@@ -134,7 +135,7 @@ class TestFaceCastRefusal(DFCCastCase):
         handle = self.world.add_card(land_id, self.p0, ZONE_HAND)
         self.ex.attach_card(handle, rec)
         with self.assertRaises(ValueError) as caught:
-            cast_card(self.ex, self.p0, handle, cost_override=Cost(()))
+            cast_card(self.ex, self.p0, handle, atom=cast_with(Cost(())))
         exc = caught.exception
         self.assertNotIsInstance(exc, FaceCastAbsentError)
         self.assertFalse(face_cast_absent(exc))
@@ -190,7 +191,7 @@ class TestGuardedLane(DFCCastCase):
                                     zones=(EXILE_YOU,),
                                 ),
                             ),
-                            ("cost", Cost(())),
+                            ("alternative", Cost(())),
                         )
                     ),
                 ),

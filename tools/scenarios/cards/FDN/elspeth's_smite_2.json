@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite, printed: 'deals 3 damage to target attacking or blocking creature.' Seat 0 attacks with a 4/4. Seat 1 casts Smite at it: exactly 3 damage is marked, the 4/4 survives (it is not exiled) and deals its 4 combat damage to seat 1.",
+ "cards": [
+  {"key": "a", "name": "Big Raider", "type": "Creature — Warrior", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 1},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"a": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 1, "targets": ["a"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "smite": "graveyard"},
+  "damage": {"a": 3},
+  "graveyard": {"0": [], "1": ["Elspeth's Smite"]},
+  "life": {"0": 20, "1": 16},
+  "mana_pool": {"1": {}}
+ }
+}

@@ -69,7 +69,9 @@ from MTG_bot.core.ability_tree import (
     ZoneChangeEvent,
     ZoneKind,
     ZonePosition,
+    at_least,
     canonical_json,
+    number_you_control,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.ingest import RawCard
@@ -173,11 +175,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "COVERED",
         "B5b-repl-die-exile",
     ),
-    (
-        "If that spell would be put into your graveyard, exile it instead.",
-        "COVERED",
-        "B5b-repl-graveyard-exile",
-    ),
+    # the spell's rider: templates_b19 (ontology round R13), the cast verb's ``replace`` role
+    ("If that spell would be put into your graveyard, exile it instead.", "UNCOV", ""),
     (
         "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
         "COVERED",
@@ -597,8 +596,9 @@ def _as_static(ab: Any) -> StaticAbility:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_80_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 80)
+    def test_79_templates(self) -> None:
+        # 80 until ontology round R13 moved the spell's rider to templates_b19
+        self.assertEqual(len(TEMPLATES), 79)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -614,7 +614,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 80)
+        self.assertEqual(len(reg), 79)
 
 
 # ---------------------------------------------------------------------------
@@ -635,14 +635,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
-        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
+        self.assertEqual(covered, 88, f"COVERED count {covered} != 88")
+        self.assertEqual(uncov, 3, f"UNCOV count {uncov} != 3")
 
-    def test_covered_tids_valid_and_unique_79(self) -> None:
+    def test_covered_tids_valid_and_unique_78(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 79, f"expected 79 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 78, f"expected 78 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1404,29 +1404,6 @@ class TestStructuralAssertions(unittest.TestCase):
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
 
-    def test_repl_graveyard_exile(self) -> None:
-        """B5b-repl-graveyard-exile: STACK(any)→GRAVEYARD(you) of the
-        spell's target → exile the event referent."""
-        outcome = self._match_outcome("B5b-repl-graveyard-exile")
-        ab = _as_replacement(_as_ability(outcome).ability)
-        event = ab.event
-        assert isinstance(event, ZoneChangeEvent)
-        self.assertEqual(event.from_zone.kind, ZoneKind.STACK)
-        self.assertEqual(event.from_zone.controller, ControllerRef.ANY)
-        self.assertEqual(event.to_zone.kind, ZoneKind.GRAVEYARD)
-        self.assertEqual(event.to_zone.controller, ControllerRef.YOU)
-        subject = event.subject
-        assert isinstance(subject, FAtom)
-        self.assertEqual(subject.pred, FAtomPred.IS_ANY_TARGET)
-        self.assertIsNone(ab.condition)
-        atom = _as_atom(ab.action)
-        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
-        p = _pairs_dict(atom)
-        self.assertEqual(p["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
-        target = p["target"]
-        assert isinstance(target, Selector)
-        self.assertEqual(target.referent, "event")
-
     def test_counter_unless_pays(self) -> None:
         """B5b-counter-unless-pays: the conditional "instead" arm on the first sentence's
         counter, KickerEffectOutcome(pred = you control a creature with flying,
@@ -1434,19 +1411,13 @@ class TestStructuralAssertions(unittest.TestCase):
         outcome = self._match_outcome("B5b-counter-unless-pays")
         assert isinstance(outcome, KickerEffectOutcome)
         self.assertTrue(outcome.replaces)
-        self.assertEqual(
-            outcome.pred,
-            FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                inner_filter=FAnd(
-                    children=(
-                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
-                    )
-                ),
-                count=QConst(1),
-            ),
+        flier = FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+            )
         )
+        self.assertEqual(outcome.pred, at_least(1, quantity=number_you_control(flier)))
         atom = _as_atom(outcome.effect)
         self.assertEqual(atom.verb, Verb.COUNTER_SPELL)
         p = _pairs_dict(atom)
@@ -1475,23 +1446,15 @@ class TestStructuralAssertions(unittest.TestCase):
     # -- Static abilities --
 
     def test_gadrak_cant_attack_structure(self) -> None:
-        """Gadrak: StaticAbility.condition = FNot(CONTROLLER_COUNT_GE
-        Artifact 4) over PREVENT_EFFECT/DeclareAttackersEvent(IS_SOURCE)."""
+        """Gadrak: StaticAbility.condition = FNot(you control four or more
+        artifacts) over PREVENT_EFFECT/DeclareAttackersEvent(IS_SOURCE)."""
         outcome = self._match_outcome("B5b-gadrak-cant-attack-unless-artifacts")
         ab = _as_static(_as_ability(outcome).ability)
         cond = ab.condition
         if not isinstance(cond, FNot):
             self.fail(f"expected FNot condition, got {type(cond)}")
-        gate = cond.inner
-        if not isinstance(gate, FAtom):
-            self.fail(f"expected FAtom gate, got {type(gate)}")
-        self.assertEqual(gate.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(gate.count, QConst(4))
-        inner_filter = gate.inner_filter
-        if not isinstance(inner_filter, FAtom):
-            self.fail(f"expected FAtom inner_filter, got {type(inner_filter)}")
-        self.assertEqual(inner_filter.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(inner_filter.string_value, "Artifact")
+        artifact = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact")
+        self.assertEqual(cond.inner, at_least(4, quantity=number_you_control(artifact)))
         atom = _as_atom(ab.effect)
         self.assertEqual(atom.verb, Verb.PREVENT_EFFECT)
         p = _pairs_dict(atom)
@@ -1565,7 +1528,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 79, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 78, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1736,10 +1699,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
                     "If that creature or planeswalker would die this turn, "
                     "exile it instead."
                 ),
-            ),
-            (
-                "Chandra, Flame's Catalyst",
-                "If that spell would be put into your graveyard, exile it instead.",
             ),
             (
                 "Teferi's Ageless Insight",

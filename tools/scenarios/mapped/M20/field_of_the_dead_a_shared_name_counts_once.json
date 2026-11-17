@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12 (QDistinct NAME under the one comparison). Seven lands but only six different names (two Forests): 'seven or more lands with different names' does not hold, so Field of the Dead entering makes no Zombie. A count of lands (seven) would wrongly make one.",
+ "cards": [
+  {"key": "field", "real": "Field of the Dead", "zone": "hand", "controller": 0},
+  {"key": "l1", "name": "Plains", "type": "Basic Land — Plains", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Island", "type": "Basic Land — Island", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "name": "Swamp", "type": "Basic Land — Swamp", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "name": "Mountain", "type": "Basic Land — Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "l5", "name": "Forest", "type": "Basic Land — Forest", "zone": "battlefield", "controller": 0},
+  {"key": "l6", "name": "Forest", "type": "Basic Land — Forest", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [{"op": "play", "key": "field"}],
+ "expect": {"zone": {"field": "battlefield"}, "tokens": {"Zombie": 0}}
+}

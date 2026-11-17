@@ -1,0 +1,28 @@
+{"set": "FDN", "name": "make_a_stand_ends_with_the_turn_the_creature_survives_the_cleanup_and_the_others_are_ordinary_afterwards",
+ "notes": "Printed: 'Creatures you control get +1/+0 and gain indestructible until end of turn.' Seat 0's 2/2 attacker is blocked by seat 1's 4/4, and Make a Stand ({2}{W}) is cast after blockers: the attacker (3/2, indestructible) takes 4 damage and lives. At the cleanup step the damage wears off and the effect ends at the same time (CR 514.2), so the attacker is still on the battlefield afterwards. The spell also covered seat 0's 2/2 that stayed home. On seat 1's next turn the same 4/4 attacks and that home 2/2 (untapped) blocks it: with no indestructible left it dies, and it deals 2 damage (its printed power, not 3) to the 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "home", "name": "Home Guard", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "stand", "real": "Make a Stand", "zone": "hand", "controller": 0},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "p3", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "blk", "name": "Big Blocker", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"att": true}, "block": {"blk": "att"},
+   "respond": {"DECLARE_BLOCKERS": [
+     {"op": "cast", "key": "stand", "real": "Make a Stand", "controller": 0, "tap": true}
+   ]}},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"blk": true}, "block": {"home": "blk"}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1],
+  "zone": {"att": "battlefield", "home": "graveyard", "blk": "battlefield", "stand": "graveyard"},
+  "power": {"att": 2},
+  "damage": {"blk": 2},
+  "life": {"0": 20, "1": 20}
+ }}

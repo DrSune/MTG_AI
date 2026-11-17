@@ -1,0 +1,22 @@
+{
+ "name": "H02_snakeskin_veil_in_response_makes_the_opponents_spell_fizzle",
+ "set": "FDN",
+ "note": "Snakeskin Veil is an instant. The opponent casts Stab (-2/-2 until end of turn) on P0's 2/2 Bear and holds priority; P0 responds with the Veil. It resolves first: the counter makes the Bear 3/3 and it gains hexproof, so Stab's target is illegal when Stab resolves and it does nothing. Without hexproof the Bear would be 3/3 -2/-2 = 1/1, so the Bear showing 3/3 means Stab did not resolve.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "veil", "zone": "hand", "controller": 0, "real": "Snakeskin Veil"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Bear", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "stab", "zone": "hand", "controller": 1, "real": "Stab"}
+ ],
+ "mana": {"0": {"G": 1}, "1": {"B": 1}},
+ "steps": [
+  {"op": "cast", "real": "Stab", "key": "stab", "controller": 1, "targets": ["bear"], "hold": true},
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "controller": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+  "power": {"bear": 3},
+  "toughness": {"bear": 3},
+  "zone": {"bear": "battlefield", "veil": "graveyard", "stab": "graveyard"}
+ }
+}

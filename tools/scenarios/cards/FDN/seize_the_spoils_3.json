@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "seize_the_spoils_cannot_be_cast_without_a_card_to_discard_as_its_additional_cost",
+ "notes": "Printed: 'As an additional cost to cast this spell, discard a card.' Seat 0 holds only Seize the Spoils (a spell cannot discard itself as its own cost: it is on the stack by then) and has the mana for it, with two cards on top of its library. The cast is refused: nothing is drawn, no Treasure is made, the spell stays in hand and the mana stays in the pool. With a second card in hand the same cast works (B08_1).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "spoils", "real": "Seize the Spoils", "zone": "hand", "controller": 0},
+  {"key": "d1", "name": "Drawn One", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0},
+  {"key": "d2", "name": "Drawn Two", "power": "1", "toughness": "1", "type": "Creature", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "spoils", "real": "Seize the Spoils", "expect_raise": "cost:discard"}
+ ],
+ "expect": {
+  "zone": {"spoils": "hand", "d1": "library", "d2": "library"},
+  "hand": {"0": 1, "1": 0},
+  "tokens": {"Treasure": 0},
+  "mana_pool": {"0": {"R": 1, "C": 2}}
+ }}

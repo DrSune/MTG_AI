@@ -24,7 +24,6 @@ from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
     Atom,
     ControllerRef,
-    Cost,
     FAnd,
     FAtom,
     FAtomPred,
@@ -239,9 +238,8 @@ def filter_bound_player_refs(filter_: object) -> set[ControllerRef]:
             and filter_.who in DESIGNATED_PLAYER_REFS
         ):
             found.add(filter_.who)  # type: ignore[arg-type]
-        for inner in (filter_.inner_filter, filter_.right_inner_filter):
-            if inner is not None:
-                found |= filter_bound_player_refs(inner)
+        if filter_.inner_filter is not None:
+            found |= filter_bound_player_refs(filter_.inner_filter)
         return found
     if isinstance(filter_, (FAnd, FOr)):
         out: set[ControllerRef] = set()
@@ -1287,13 +1285,10 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
             # run stays the LOUD per-card raise.
             from MTG_bot.core.executor.query import cast_designee_ok
 
-            cost_override = atom.args.get("cost")
-            if not isinstance(cost_override, Cost):
-                cost_override = None  # printed cost, or a Ref the fold reads
             executor = ctx.executor  # branch-guarded non-None; local narrows
 
             def ok(handle: Handle) -> bool:
-                return cast_designee_ok(executor, ctx, handle, cost_override, atom=atom)
+                return cast_designee_ok(executor, ctx, handle, atom)
 
             return sorted(resolve_selector(value, ctx, ok=ok))
         # The EFFECT-role choke point: a finite CHOOSE resolved here is a

@@ -1,0 +1,12 @@
+{
+ "set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ontology round R12. No black permanent anywhere (a green creature on each side, the Knight itself white): Knight of Grace stays 2/2.",
+ "cards": [
+  {"key": "knight", "real": "Knight of Grace", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 0},
+  {"key": "theirs", "name": "Other Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [],
+ "expect": {"power": {"knight": 2}, "toughness": {"knight": 2}}
+}

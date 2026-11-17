@@ -1,0 +1,26 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death, printed: '... gains \"When this creature dies, return it to the battlefield tapped under its owner's control and you create a Treasure token.\"' Seat 0 casts it on SEAT 1's 2/2. The ability belongs to the creature, so 'you' is the creature's controller, seat 1. Seat 0's Pinger kills it with 2 damage: it returns tapped under its owner's (seat 1's) control and seat 1 (not the caster) creates the Treasure. Proof: seat 1, with no lands and no mana, casts Unsummon at the Pinger by tapping the Treasure for blue mana: the Treasure is sacrificed to pay.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "unsummon", "real": "Unsummon", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["theirs"]},
+  {"op": "deal_damage", "source": "pinger", "target": "theirs", "amount": 2, "controller": 0},
+  {"op": "cast", "key": "unsummon", "real": "Unsummon", "controller": 1, "targets": ["pinger"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "theirs": "battlefield", "pinger": "hand", "unsummon": "graveyard"},
+  "tapped": {"theirs": true},
+  "controller": {"theirs": 1},
+  "power": {"theirs": 2},
+  "tokens": {"Treasure": 0},
+  "graveyard": {"0": ["Fake Your Own Death"], "1": ["Unsummon"]},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "name": "G09_1",
+ "notes": "Printed (FDN Ambush Wolf): 'Flash. When this creature enters, exile up to one target card from a graveyard.' Flash: cast on the opponent's turn. I target the opponent's Instant: only that card is exiled; my Bear card and the opponent's other card stay in their graveyards.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "aw",
+   "real": "Ambush Wolf",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Fallen",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o1",
+   "name": "Opp Fallen A",
+   "type": "Creature — Bear",
+   "zone": "graveyard",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Fallen B",
+   "type": "Instant",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Ambush Wolf",
+   "key": "aw",
+   "decisions": [
+    "o2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "aw": "battlefield",
+   "mine": "graveyard",
+   "o1": "graveyard",
+   "o2": "exile"
+  },
+  "graveyard": {
+   "0": [
+    "My Fallen"
+   ],
+   "1": [
+    "Opp Fallen A"
+   ]
+  }
+ }
+}

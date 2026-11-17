@@ -1,0 +1,19 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fake Your Own Death on a TOKEN creature. When it dies it ceases to exist (CR 704.5d, 111.7), so 'return it to the battlefield' brings nothing back, but the Treasure is still created (the trigger reads the token as it last existed, CR 608.2h). Seat 0's 2/2 Spirit token is killed by 2 damage: it is gone, exactly one Treasure is on the battlefield, and no Spirit is.",
+ "cards": [
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "tok", "name": "Spirit", "type": "Creature — Spirit", "power": "2", "toughness": "2", "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature — Goblin", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "real": "Fake Your Own Death", "targets": ["tok"]},
+  {"op": "deal_damage", "source": "pinger", "target": "tok", "amount": 2, "controller": 1}
+ ],
+ "expect": {
+  "zone": {"fyod": "graveyard", "tok": "ceased"},
+  "tokens": {"Treasure": 1, "Spirit": 0},
+  "graveyard": {"0": ["Fake Your Own Death"], "1": []}
+ }
+}

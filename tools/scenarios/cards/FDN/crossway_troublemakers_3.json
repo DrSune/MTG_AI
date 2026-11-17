@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "E02_3_crossway_troublemakers_not_the_opponents_vampire_not_a_blocking_one",
+ "notes": "G2 verifier, batch E. Printed: 'Attacking Vampires you control have deathtouch and lifelink.' It is seat 1's turn. Seat 1's Vampire (1/9) attacks and seat 0's Vampire (1/9) blocks it. Seat 1's attacker is an attacking Vampire but not one seat 0 controls: no deathtouch (seat 0's Vampire survives with 1 damage) and no lifelink (seat 1 stays at 20). Seat 0's blocker is a Vampire seat 0 controls but not attacking: no deathtouch (seat 1's Vampire survives with 1 damage) and no lifelink (seat 0 stays at 20).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
+  {"key": "vamp", "name": "Test Vampire", "type": "Creature — Vampire", "power": "1", "toughness": "9", "zone": "battlefield", "controller": 0},
+  {"key": "ovamp", "name": "Opp Vampire", "type": "Creature — Vampire", "power": "1", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"ovamp": true}, "block": {"vamp": "ovamp"}}
+ ],
+ "expect": {
+  "blocked": {"ovamp": ["vamp"]},
+  "zone": {"vamp": "battlefield", "ovamp": "battlefield"},
+  "damage": {"vamp": 1, "ovamp": 1},
+  "life": {"0": 20, "1": 20}
+ }
+}

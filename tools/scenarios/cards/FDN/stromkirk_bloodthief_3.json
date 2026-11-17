@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "F09_3",
+ "notes": "Stromkirk Bloodthief. Printed: 'if an OPPONENT lost life this turn'. It is seat 0 (the Bloodthief's controller) who loses life here: seat 1's Vampire Spawn enters and 'each opponent loses 2 life and you gain 2 life' (seat 0 18, seat 1 22). No opponent of seat 0 lost life, so at seat 0's end step no counter lands.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vs",
+   "real": "Vampire Spawn",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "vs"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 22
+  },
+  "counters": {
+   "sb": {},
+   "vs": {}
+  }
+ }
+}

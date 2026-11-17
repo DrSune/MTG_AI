@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "macabre_waltz_returns_two_target_creature_cards_then_discards_one_card_of_the_casters_choice",
+ "notes": "Printed: 'Return up to two target creature cards from your graveyard to your hand, then discard a card.' Seat 0's graveyard holds three creature cards (Fallen One, Fallen Two, Fallen Three) and an instant; seat 1's holds a creature card. Seat 0 casts Macabre Waltz ({1}{B}) at Fallen One and Fallen Two. Both return to its hand (two, not one), the third creature card and the instant stay in the graveyard, and the opponent's creature card is untouched. It then discards exactly one card of its choice from the hand AFTER the return: it picks Fallen Two, which it has just returned, so the discard chooses among the whole hand. Final: hand = Spare + Fallen One (2); graveyard = Waltz, Fallen Two, Fallen Three, the instant.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "waltz", "real": "Macabre Waltz", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare", "power": "1", "toughness": "1", "type": "Creature", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "Fallen One", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "f2", "name": "Fallen Two", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "f3", "name": "Fallen Three", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 0},
+  {"key": "ins", "name": "Used Spell", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "oc", "name": "Their Fallen", "power": "2", "toughness": "2", "type": "Creature", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "waltz", "real": "Macabre Waltz", "targets": ["f1", "f2"], "decisions": ["f2"]}
+ ],
+ "expect": {
+  "zone": {"waltz": "graveyard", "f1": "hand", "f2": "graveyard", "f3": "graveyard", "ins": "graveyard", "oc": "graveyard", "spare": "hand"},
+  "hand": {"0": 2, "1": 0},
+  "graveyard": {"0": ["Macabre Waltz", "Fallen Two", "Fallen Three", "Used Spell"], "1": ["Their Fallen"]},
+  "mana_pool": {"0": {}}
+ }}

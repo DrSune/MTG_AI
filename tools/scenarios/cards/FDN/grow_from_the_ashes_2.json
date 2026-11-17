@@ -1,0 +1,29 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Grow from the Ashes (kicked), printed: 'Kicker {2}. ... If this spell was kicked, instead search your library for two basic land cards, put them onto the battlefield, then shuffle.' Seat 0 pays {2}{G} plus the {2} kicker and takes the Forest and the Island: exactly two lands (not one, not three, not the Mountain), untapped, under seat 0's control. Mountain, Jungle Hollow and the filler stay in seat 0's library (8 cards, order left open by the shuffle); seat 1's library is untouched. The cast journals as kicked.",
+ "cards": [
+  {"key": "gfa", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "library", "controller": 0},
+  {"key": "hollow", "real": "Jungle Hollow", "zone": "library", "controller": 0},
+  {"key": "oppswamp", "real": "Swamp", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest", "island"]}
+ ],
+ "expect": {
+  "zone": {"gfa": "graveyard", "forest": "battlefield", "island": "battlefield", "mountain": "library", "hollow": "library", "oppswamp": "library"},
+  "tapped": {"forest": false, "island": false},
+  "controller": {"forest": 0, "island": 0},
+  "kick_rows": {"gfa": {"kicked": true}},
+  "graveyard": {"0": ["Grow from the Ashes"], "1": []},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Swamp"]
+  },
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

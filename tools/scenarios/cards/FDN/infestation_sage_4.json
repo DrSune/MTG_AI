@@ -1,0 +1,20 @@
+{
+ "name": "H10_infestation_sage_insect_goes_to_the_controller_when_it_died",
+ "set": "FDN",
+ "note": "Infestation Sage: its dies trigger is controlled by whoever controlled the Sage as it died (CR 603.3a, 113.8), and that player creates the token. P0 owns the Sage but P1 controls it (gain_control) when it dies. P0 also controls Anthem of Champions (creatures you control get +1/+1). The Insect is created under P1's control, so the anthem does not reach it: it stays a 1/1. (Created under P0 it would be 2/2.)",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "sage", "zone": "battlefield", "controller": 0, "real": "Infestation Sage"},
+  {"key": "anthem", "zone": "battlefield", "controller": 0, "real": "Anthem of Champions"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": "1", "toughness": "1", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "gain_control", "key": "sage", "seat": 1},
+  {"op": "deal_damage", "source": "pinger", "target": "sage", "amount": 2}
+ ],
+ "expect": {
+  "zone": {"sage": "graveyard"},
+  "tokens": {"Insect": 1},
+  "battlefield_pt": {"Insect": [1, 1]}
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "set": "FDN",
+ "name": "brass_s_bounty_counts_the_lands_when_it_resolves",
+ "notes": "Printed: 'For each land you control, create a Treasure token.' Seat 0 controls two Mountains and seat 1 controls four Forests, so seat 0 gets exactly two Treasures: the count is of the lands seat 0 controls, not of all lands (six) or of the opponent's (four). Seat 0 pays with its mana pool, so no land is tapped for the spell. Exactly two Treasure tokens are on the battlefield.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bb",
+   "real": "Brass's Bounty",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "f4",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "bb"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "graveyard"
+  },
+  "tokens": {
+   "Treasure": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

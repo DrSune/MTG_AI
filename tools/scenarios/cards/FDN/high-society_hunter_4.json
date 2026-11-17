@@ -1,0 +1,92 @@
+{
+ "set": "FDN",
+ "name": "F06_4",
+ "notes": "High-Society Hunter. Printed: 'Whenever another NONTOKEN creature dies, draw a card.' Seat 0 sacrifices its token Spirit to the attack trigger: the counter lands (a token is a creature) but no card is drawn for a token. Seat 1's token dies: no card. Seat 1's nontoken Foe dies: one card. Seat 0 ends with 1 card in hand and a 6/4 Hunter (seat 1 at 14).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hunter",
+   "real": "High-Society Hunter",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tok",
+   "name": "Spirit",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "token": true
+  },
+  {
+   "key": "ftok",
+   "name": "Foe Spirit",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1,
+   "token": true
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hunter": true,
+    "tok": false
+   },
+   "may": {
+    "hunter": true
+   },
+   "decisions": [
+    "tok"
+   ]
+  },
+  {
+   "op": "deal_damage",
+   "source": "hunter",
+   "target": "ftok",
+   "amount": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "hunter",
+   "target": "foe",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "counters": {
+   "hunter": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "zone": {
+   "tok": "ceased",
+   "ftok": "ceased",
+   "foe": "graveyard"
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "1": 14
+  }
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "name": "H00_crow_dies_mills_two_once",
+ "set": "FDN",
+ "note": "Crow of Dark Tidings: 'When this creature enters or dies, mill two cards.' The Crow starts on the battlefield (no enters trigger) and dies to lethal damage (a 2/1 dealt 1): exactly one dies trigger, which mills the top two cards of its controller's library. Its own card is in the graveyard too; the opponent's library is untouched.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "crow", "zone": "battlefield", "controller": 0, "real": "Crow of Dark Tidings"},
+  {"key": "pinger", "zone": "battlefield", "controller": 1, "name": "Pinger", "power": 1, "toughness": 1, "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "pinger", "target": "crow", "amount": 1}
+ ],
+ "expect": {
+  "zone": {"crow": "graveyard"},
+  "graveyard": {"0": ["Crow of Dark Tidings", "Library 5", "Library 4"], "1": []},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "life": {"0": 20, "1": 20}
+ }
+}

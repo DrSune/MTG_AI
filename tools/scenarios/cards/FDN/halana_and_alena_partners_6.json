@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "F08_6",
+ "notes": "Halana and Alena, Partners. Printed: 'Reach (This creature can block creatures with flying.) First strike (This creature deals combat damage before creatures without first strike.)' On seat 1's turn its Raven (3/2, flying) attacks and Halana (2/3) blocks it, which only reach allows: her first-strike 2 damage kills the Raven before it deals any, so she takes no damage and nobody loses life.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ha",
+   "real": "Halana and Alena, Partners",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "raven",
+   "name": "Raven",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "2",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "raven": true
+   },
+   "block": {
+    "ha": "raven"
+   }
+  }
+ ],
+ "expect": {
+  "blocked": {
+   "raven": [
+    "ha"
+   ]
+  },
+  "zone": {
+   "raven": "graveyard",
+   "ha": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

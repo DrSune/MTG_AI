@@ -211,5 +211,48 @@
  },
  "probe": {
   "sha": "994942149a7db014e12560c5b51b99edaf8453dba77876881f8625d20b445e78"
+ },
+ "verified": {
+  "tree_sha": "3ba9cc26be2a80bf1e02722fde0878e655a0fa3fadc0328f741e5538691c943f",
+  "probe_sha": "994942149a7db014e12560c5b51b99edaf8453dba77876881f8625d20b445e78",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: 'keywords +FLYING' and the static section 'card keywords: FLYING'; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row and 'opp is dealt 3 damage (combat) (by card/DEAL_DAMAGE)': the non-flying, non-reach Giant could not block it (contrast the creatures without flying, where the same variant shows 'DECLARE_BLOCKERS opp_giant card, 1').",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, if an opponent lost life this turn, each opponent discards a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "In [cast] and in 'from your hand, the card enters during the opponent's turn' no opponent had lost life this turn, so the intervening 'if' was false and the trace shows no trigger and no discard (the 'you lose 2 life' stimulus is run with the card already on the battlefield, so it cannot trigger an enters ability). The branch where the condition is true never runs in the trace. Packs G00_1 (a drain first, then one discard of the opponent's choice, asked of the opponent), G00_3 (combat damage counts), G00_6 (three players: every opponent discards, also the one who lost no life) cover the true branch; G00_2 (nobody lost life), G00_4 (only I lost life), G00_5 (life lost on an earlier turn) the false ones.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/bloodtithe_collector_1.json",
+   "tools/scenarios/cards/FDN/bloodtithe_collector_2.json",
+   "tools/scenarios/cards/FDN/bloodtithe_collector_3.json",
+   "tools/scenarios/cards/FDN/bloodtithe_collector_4.json",
+   "tools/scenarios/cards/FDN/bloodtithe_collector_5.json",
+   "tools/scenarios/cards/FDN/bloodtithe_collector_6.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 1,
+   "score": 0.1111111111111111,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "amount+1 at 1/0/condition/count",
+    "controller OPPONENT->YOU at 1/0/condition/event/actor/who",
+    "controller ALL_OPPONENTS->YOU at 1/0/effect/ref",
+    "amount+1 at 1/0/effect/effect/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/effect/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/0/effect/effect/args/controller",
+    "zone GRAVEYARD->EXILE at 1/0/effect/effect/args/destination"
+   ]
+  }
  }
 }

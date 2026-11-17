@@ -140,5 +140,31 @@
  },
  "probe": {
   "sha": "43fb6553227ddf4bd07f798b2f6f6763955cd7ab2975ef1229e42b62f2609805"
+ },
+ "verified": {
+  "tree_sha": "94cf081506e588cede2f02d396590454c547db09e98c1f5c97712fa2f139d531",
+  "probe_sha": "43fb6553227ddf4bd07f798b2f6f6763955cd7ab2975ef1229e42b62f2609805",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[you cast an instant or sorcery (Crash Through)]: trigger [0] fires, opp is dealt 2 damage (by card/DEAL_DAMAGE), opp life 20 -> 18; [on the opponent's turn, you cast an instant (Opt)]: same, 18; [you cast a creature (Aegis Turtle)]: none. Pack E09_1: a creature and an artifact spell do not trigger it; E09_2: the opponent's own spell does not; E09_3: three players, each opponent takes 2. E09_4: the damage is still dealt when Guttersnipe left the battlefield with the trigger on the stack.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/guttersnipe_1.json",
+   "tools/scenarios/cards/FDN/guttersnipe_2.json",
+   "tools/scenarios/cards/FDN/guttersnipe_3.json",
+   "tools/scenarios/cards/FDN/guttersnipe_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 4,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

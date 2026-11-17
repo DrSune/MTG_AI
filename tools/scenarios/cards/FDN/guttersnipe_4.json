@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "E09_4_guttersnipe_the_damage_is_still_dealt_when_it_has_left",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever you cast an instant or sorcery spell, this creature deals 2 damage to each opponent.' Seat 0 casts Opt (an instant) and holds priority: Guttersnipe's trigger waits on the stack. Guttersnipe is put into the graveyard in response. The ability is independent of its source (CR 113.7a) and it deals the damage as it last existed (CR 608.2h): seat 1 still takes 2 (18). Seat 0 takes none.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snipe", "real": "Guttersnipe", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "cast", "key": "opt", "controller": 0, "hold": true},
+  {"op": "move", "key": "snipe", "to": "graveyard", "hold": true},
+  {"op": "pass", "decisions": ["top"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"snipe": "graveyard", "opt": "graveyard"}
+ }
+}

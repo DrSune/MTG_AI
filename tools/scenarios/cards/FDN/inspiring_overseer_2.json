@@ -1,0 +1,19 @@
+{
+ "name": "H07_inspiring_overseer_flying_cannot_be_blocked_by_a_ground_creature",
+ "set": "FDN",
+ "note": "Inspiring Overseer has flying: when it attacks, the opponent's ground creature is never offered a block, while the opponent's flying creature is offered one (it may block it or not, NONE). The Overseer, already on the battlefield, is unblocked and deals its 2 damage to the opponent (20 -> 18).",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "overseer", "zone": "battlefield", "controller": 0, "real": "Inspiring Overseer"},
+  {"key": "ground", "zone": "battlefield", "controller": 1, "name": "Ground", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "flyer", "zone": "battlefield", "controller": 1, "name": "Flyer", "power": "1", "toughness": "1", "type": "Creature", "keywords": ["FLYING"]}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"overseer": true}}
+ ],
+ "expect": {
+  "not_asked_to_block": ["ground"],
+  "block_asks": {"flyer": "<overseer>,NONE"},
+  "life": {"1": 18}
+ }
+}

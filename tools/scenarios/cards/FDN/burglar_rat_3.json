@@ -1,0 +1,46 @@
+{
+ "set": "FDN",
+ "name": "G10_3",
+ "notes": "Printed (FDN Burglar Rat): 'When this creature enters, each opponent discards a card.' An opponent with no cards in hand discards nothing (no error); my own hand is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rat",
+   "real": "Burglar Rat",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Spare",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "rat"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rat": "battlefield",
+   "mine": "hand"
+  },
+  "hand": {
+   "0": 1,
+   "1": 0
+  },
+  "graveyard": {
+   "0": [],
+   "1": []
+  }
+ }
+}

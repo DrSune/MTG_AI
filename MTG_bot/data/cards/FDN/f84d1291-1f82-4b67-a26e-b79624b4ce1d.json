@@ -145,5 +145,34 @@
  },
  "probe": {
   "sha": "d5de32232516c3a2d4fbacc7080c4b1f1b5f40cac936a693c4b9f6b4f6d52bee"
+ },
+ "verified": {
+  "tree_sha": "b534cbe6d2e0b01a182cfaba4481abe9b1534d6ed5599e952db342b7f5a506bc",
+  "probe_sha": "d5de32232516c3a2d4fbacc7080c4b1f1b5f40cac936a693c4b9f6b4f6d52bee",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: 'keywords +FLYING' and the static section 'card keywords: FLYING'; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row and 'opp is dealt 2 damage (combat) (by card/DEAL_DAMAGE)': the non-flying, non-reach Giant could not block it (contrast the creatures without flying, where the same variant shows 'DECLARE_BLOCKERS opp_giant card, 1').",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, you gain 2 life and draw two cards.",
+    "status": "OK",
+    "evidence": "[cast]: 'card's triggered ability [0] triggers', 'you gains 2 life (by card/GAIN_LIFE)', then two 'you draws' rows (Library 5#1, Library 4#1); you: life 20 -> 22, library 6 -> 4, hand 7 -> 8 (7 - the cast + 2); the opponent is untouched. The same in the variant where it enters on the opponent's turn. (The 'ask discard' at the end of the variants is the cleanup hand-size discard of 8 cards, not the card.) Pack G01_1 pins the counts again.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/cloudblazer_1.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

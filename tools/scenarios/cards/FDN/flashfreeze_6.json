@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Flashfreeze, printed: 'Counter target red or green spell.' Seat 0 activates Shivan Dragon's {R}: +1/+0 ability (a red source, but an ability, not a spell). It waits on the stack: Flashfreeze cannot target it (the cast is refused) and the ability resolves.",
+ "cards": [
+  {"key": "dragon", "real": "Shivan Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "dragon", "idx": 0, "seat": 0, "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["ability:dragon"], "expect_raise": "illegal target"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"dragon": "battlefield", "ff": "hand"},
+  "power": {"dragon": 6},
+  "hand": {"1": 1},
+  "mana_pool": {"0": {}, "1": {"U": 1, "C": 1}}
+ }
+}

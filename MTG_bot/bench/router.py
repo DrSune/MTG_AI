@@ -207,9 +207,14 @@ class SeatRouter:
         return out
 
     def _label(self, executor: Any, lens: SeatLens, row: Row) -> str:
-        name = lens.describe(executor, row.handle)
+        # an offered object may be named (SeatLens.describe): the menu offers only cards the seat
+        # may play, a library's top card only through a permission, which comes with its look
+        name = lens.describe(executor, row.handle, offered=True)
+        zone = executor.world.zone_of(row.handle).kind
+        # a permission's play from another zone says where from (CR 601.3, 305.1)
+        where = "" if zone == "hand" else f" from your {'library (its top card)' if zone == 'library' else zone}"
         if row.kind == "land":
-            return f"play land {name}"
+            return f"play land {name}{where}"
         if row.kind == "cast":
             if row.slots is None:
                 more = " (then choose its mode)"
@@ -217,7 +222,7 @@ class SeatRouter:
                 more = " (then choose targets)" if any(not s.forced for s in row.slots) else ""
             kicked = " with kicker" if row.kicked else ""
             x = "" if row.x is None else f" with X = {row.x}"
-            return f"cast {name}{kicked}{x}{more}"
+            return f"cast {name}{where}{_path_words(row.path)}{kicked}{x}{more}"
         text = ability_line(self._record_of(row.handle), executor_text(lens, executor, row.handle), row.ability_idx)
         what = f'"{lens.text(text)}"' if text else f"ability #{row.ability_idx} (see the card text)"
         return f"activate {name}: {what}"
@@ -304,6 +309,24 @@ class SeatRouter:
             return False
         self._log(i, "cast", row.handle, f"{len(flat)}t" + ("" if row.x is None else f":x{row.x}"))
         return True
+
+
+def _path_words(path: Any) -> str:
+    """What a cast through a permission (``permits.Path``) pays beside the card's mana cost, and
+    what becomes of the spell (executor/menu.py's ``:via:`` rows)."""
+    if path is None:
+        return ""
+    words = []
+    if path.alternative is not None:
+        words.append("without paying its mana cost" if not path.alternative.parts
+                     else "for its alternative cost")
+    if path.additional is not None:
+        words.append("paying its additional cost too")
+    if path.rider is not None:
+        to_graveyard = path.rider.event.to_zone.kind.name == "GRAVEYARD"
+        words.append("exiled instead of going to your graveyard" if to_graveyard
+                     else "exiled whenever it would leave the stack")
+    return f" ({'; '.join(words)})" if words else ""
 
 
 #: How a step is named in the priority prompt.

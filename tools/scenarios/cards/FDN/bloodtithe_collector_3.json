@@ -1,0 +1,85 @@
+{
+ "set": "FDN",
+ "name": "G00_3",
+ "notes": "Printed (FDN Bloodtithe Collector): 'Flying. When this creature enters, if an opponent lost life this turn, each opponent discards a card.' Combat damage is life lost, even one point of it: my 1/1 attacks, the opponent (no blockers) goes to 19, and the Collector entering afterwards makes the opponent discard one card.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "atk",
+   "name": "My Attacker",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1"
+  },
+  {
+   "key": "btc",
+   "real": "Bloodtithe Collector",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Card A",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 1,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "o2",
+   "name": "Opp Card B",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "name": "Opp Card C",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "atk": true
+   }
+  },
+  {
+   "op": "enter",
+   "key": "btc",
+   "decisions": [
+    "o2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "btc": "battlefield",
+   "o1": "hand",
+   "o2": "graveyard",
+   "o3": "hand"
+  },
+  "hand": {
+   "1": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 19
+  },
+  "graveyard": {
+   "1": [
+    "Opp Card B"
+   ]
+  }
+ }
+}

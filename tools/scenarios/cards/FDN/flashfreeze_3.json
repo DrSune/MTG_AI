@@ -1,0 +1,26 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Flashfreeze, printed: 'Counter target red or green spell.' Two spells wait on the stack: seat 0's red Scorching Dragonfire (at seat 1's 4/4) and then its green Giant Growth (on its own 2/2). Seat 1 targets only the Giant Growth (a green spell): it is countered and goes to the graveyard, so the 2/2 stays 2/2. The other red spell is not targeted and still resolves: the 4/4 takes 3 damage.",
+ "cards": [
+  {"key": "df", "real": "Scorching Dragonfire", "zone": "hand", "controller": 0},
+  {"key": "gg", "real": "Giant Growth", "zone": "hand", "controller": 0},
+  {"key": "ff", "real": "Flashfreeze", "zone": "hand", "controller": 1},
+  {"key": "ogre", "name": "Target Ogre", "type": "Creature — Ogre", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1, "G": 1, "C": 1}, "1": {"U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "df", "real": "Scorching Dragonfire", "targets": ["ogre"], "hold": true},
+  {"op": "cast", "key": "gg", "real": "Giant Growth", "targets": ["bear"], "hold": true},
+  {"op": "cast", "key": "ff", "real": "Flashfreeze", "controller": 1, "targets": ["gg"]}
+ ],
+ "expect": {
+  "zone": {"df": "graveyard", "gg": "graveyard", "ff": "graveyard", "ogre": "battlefield", "bear": "battlefield"},
+  "graveyard": {"0": ["Scorching Dragonfire", "Giant Growth"], "1": ["Flashfreeze"]},
+  "damage": {"ogre": 3},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

@@ -1,0 +1,22 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Involuntary Employment, printed: 'Gain control of target creature until end of turn. Untap that creature. It gains haste until end of turn. Create a Treasure token.' Seat 1's untapped 3/3 is stolen, attacks seat 0's opponent with haste (20 -> 17); when the turn ends, control returns to its owner, seat 1, and the haste is gone (printed 'until end of turn' twice). The Treasure stays (it was not 'until end of turn').",
+ "cards": [
+  {"key": "ie", "real": "Involuntary Employment", "zone": "hand", "controller": 0},
+  {"key": "ogre", "name": "Turncoat Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "ie", "real": "Involuntary Employment", "targets": ["ogre"]},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}},
+  {"op": "end_turn"}
+ ],
+ "expect": {
+  "attackers": {"ogre": true},
+  "life": {"0": 20, "1": 17},
+  "zone": {"ie": "graveyard", "ogre": "battlefield"},
+  "controller": {"ogre": 1},
+  "battlefield_keywords": {"Turncoat Ogre": []},
+  "tokens": {"Treasure": 1}
+ }
+}

@@ -178,5 +178,28 @@
  },
  "probe": {
   "sha": "31f44a46daa62fedcfbeda1af8848375b6ae521d0a1a9b7f1608da97f8f8f0e1"
+ },
+ "verified": {
+  "tree_sha": "fd57c90b6fa26fa94247dc841a1e2b72bfdcf58452f33edc82c7461e02a40156",
+  "probe_sha": "31f44a46daa62fedcfbeda1af8848375b6ae521d0a1a9b7f1608da97f8f8f0e1",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Target creature gains deathtouch and indestructible until end of turn.",
+    "status": "OK",
+    "evidence": "Cast target slot 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]: any creature on either side, one slot for both grants. Every [cast targets=[X]] variant: 'X: keywords +DEATHTOUCH +INDESTRUCTIBLE' on X only, 'after the turn ends: X: keywords -DEATHTOUCH -INDESTRUCTIBLE', mana B-1 C-1 for {1}{B}. Pack B00_1 PASSES (combat: the targeted 1/1 kills its 4/4 blocker with 1 damage and survives 4 damage; an untargeted 1/1 has neither and dies, its blocker survives). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/offer_immortality_1.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 6,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

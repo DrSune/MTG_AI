@@ -1,0 +1,16 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Claws Out (FDN), printed: 'CREATURES you control get +2/+2 until end of turn.' Seat 0 controls a Bear and a noncreature artifact with printed 3/3 (a Vehicle that is not crewed): only the creature gets +2/+2, the artifact stays 3/3.",
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "veh", "name": "My Parked Vehicle", "type": "Artifact — Vehicle", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "claws", "real": "Claws Out"}
+ ],
+ "expect": {
+  "zone": {"claws": "graveyard"},
+  "power": {"bear": 4, "veh": 3},
+  "toughness": {"bear": 4, "veh": 3}
+ }}

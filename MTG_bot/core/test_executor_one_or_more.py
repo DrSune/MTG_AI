@@ -148,8 +148,8 @@ def test_once_per_event_gathers_a_zone_change_of_several_objects() -> None:
 
 @pytest.mark.parametrize(
     "field",
-    [QPropField.POWER, QPropField.TOUGHNESS, QPropField.CMC, QPropField.MANA_VALUE,
-     QPropField.COUNTER_COUNT, QPropField.AMOUNT],
+    [QPropField.POWER, QPropField.TOUGHNESS, QPropField.MANA_VALUE, QPropField.COUNTER_COUNT,
+     QPropField.AMOUNT],
 )
 @pytest.mark.parametrize(
     "event",
@@ -173,8 +173,8 @@ def test_a_gathered_register_has_no_it(event, field) -> None:
     with pytest.raises(ValueError, match="a read of one of them"):
         TriggeredAbility(event, None, when_you_do, once_per_event=True)
     # and so does the intervening "if" ("if you control at least its power creatures")
-    its_power = FAtom(FAtomPred.CONTROLLER_COUNT_GE, inner_filter=CREATURE,
-                      count=QProp(referent="event", field=field))
+    its_power = at.at_least(QProp(referent="event", field=field),
+                            quantity=at.number_you_control(CREATURE))
     with pytest.raises(ValueError, match="a read of one of them"):
         TriggeredAbility(event, its_power, _gain(QConst(1)), once_per_event=True)
     # unflagged, the register holds the one object the event names; and the set and its size
@@ -220,13 +220,13 @@ def test_every_single_object_read_is_refused_under_the_flag() -> None:
                     target=at.Selector(QConst(1), at.SelectorMode.TARGET, CREATURE,
                                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),)))
     fights_it = atom(Verb.FIGHT, target=referent_sel("event"))
-    big = FAtom(FAtomPred.POWER_GE, count=QConst(5))
+    big = at.at_least(5, field=QPropField.POWER)
     for effect, condition in ((beast, None), (exile_until, None), (it_deals, None),
                               (fights_it, None), (_gain(QConst(1)), big)):
         with pytest.raises(ValueError, match="a read of one of them"):
             TriggeredAbility(event, condition, effect, once_per_event=True)
         TriggeredAbility(event, condition, effect)
-    counted = FAtom(FAtomPred.CONTROLLER_COUNT_GE, inner_filter=CREATURE, count=QConst(2))
+    counted = at.at_least(2, quantity=at.number_you_control(CREATURE))
     TriggeredAbility(event, counted, _gain(QConst(1)), once_per_event=True)
 
 
@@ -364,7 +364,7 @@ class TestOneEvent(BindingCase):
         """The executor's nets for what the IR cannot see: a bare Conditional after a sentence that
         names no object would be judged on one of the gathered objects (it was the trigger's
         source), and a singular referent read of the register would take the first."""
-        cond = at.Conditional(FAtom(FAtomPred.POWER_GE, count=QConst(5)), _gain(QConst(10)))
+        cond = at.Conditional(at.at_least(5, field=QPropField.POWER), _gain(QConst(10)))
         self._gathering(_enters(FAtom(FAtomPred.IS_TOKEN)))
         node = self.ex.binder.records[self.world.cards[self.watch].identity.oracle_id].abilities[0]
         self.ex.attach_card(self.watch, self.record_for(self.watch, [dataclasses.replace(

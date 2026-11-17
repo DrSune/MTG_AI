@@ -1,0 +1,21 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Circuitous Route (FDN), printed: 'Search your library for up to two basic land cards and/or Gate cards, put them onto the battlefield tapped, then shuffle.' The library holds two basic Forests, a Gate, a nonbasic non-Gate land (Desert) and a creature card. Seat 0 takes the Gate and one Forest: both enter the battlefield TAPPED under seat 0's control; the other Forest, the Desert and the creature stay in the library; the library (9 cards: 6 filler + those three) is searched, not drawn from.",
+ "cards": [
+  {"key": "route", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "f1", "name": "Lib Forest One", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "f2", "name": "Lib Forest Two", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "gate", "name": "Lib Gate", "type": "Land — Gate", "zone": "library", "controller": 0},
+  {"key": "desert", "name": "Lib Desert", "type": "Land — Desert", "zone": "library", "controller": 0},
+  {"key": "crt", "name": "Lib Creature", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "route", "real": "Circuitous Route", "decisions": ["gate", "f1"]}
+ ],
+ "expect": {
+  "zone": {"route": "graveyard", "gate": "battlefield", "f1": "battlefield", "f2": "library", "desert": "library", "crt": "library"},
+  "tapped": {"gate": true, "f1": true},
+  "controller": {"gate": 0, "f1": 0},
+  "hand": {"0": 0},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*", "*"]}
+ }}

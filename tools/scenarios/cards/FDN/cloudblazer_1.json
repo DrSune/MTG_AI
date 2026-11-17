@@ -1,0 +1,44 @@
+{
+ "set": "FDN",
+ "name": "G01_1",
+ "notes": "Printed (FDN Cloudblazer): 'Flying. When this creature enters, you gain 2 life and draw two cards.' Entering gains me exactly 2 life and draws exactly the top two cards of my library; the opponent is untouched.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cb",
+   "real": "Cloudblazer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "cb"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cb": "battlefield"
+  },
+  "life": {
+   "0": 22,
+   "1": 20
+  },
+  "hand": {
+   "0": 2,
+   "1": 0
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

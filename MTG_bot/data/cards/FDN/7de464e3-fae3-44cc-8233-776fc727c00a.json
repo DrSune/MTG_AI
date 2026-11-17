@@ -155,5 +155,38 @@
  },
  "probe": {
   "sha": "1f05ede10969ae4c375d8bb42ce7660639a4c7c71a1fead3776c2fe11cd1c076"
+ },
+ "verified": {
+  "tree_sha": "addda4a2b6d28206c80377b4545a94d22384950877412a64294adc141643a6b3",
+  "probe_sha": "1f05ede10969ae4c375d8bb42ce7660639a4c7c71a1fead3776c2fe11cd1c076",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast]: keywords +FLYING. [this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row, opp is dealt 2 (combat): the giant (no flying, no reach) cannot block it, unlike E01's ground attacker that it blocks.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever another creature you control enters, you gain 1 life.",
+    "status": "OK",
+    "evidence": "[a creature enters under your control]: trigger [0] fires, you gains 1 life (by card/GAIN_LIFE), life 20 -> 21. [you cast a creature (Aegis Turtle)]: trigger fires again, 21. [a creature enters under the opponent's control]: none. [cast]: the Angel's own entry gives no life ('another'). Pack E00_1: two Goblin tokens entering at once give two triggers (22). Pack E00_2: the Angel itself and the opponent's creature give nothing.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/dazzling_angel_1.json",
+   "tools/scenarios/cards/FDN/dazzling_angel_2.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 7,
+   "score": 0.7777777777777778,
+   "survived": [
+    "each occurrence -> once per event at 1/0",
+    "widen filter (drop part 0) at 1/0/event/subject"
+   ]
+  }
  }
 }

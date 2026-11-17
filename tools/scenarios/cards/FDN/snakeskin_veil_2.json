@@ -1,0 +1,24 @@
+{
+ "name": "H02_snakeskin_veil_hexproof_ends_with_the_turn_the_counter_stays",
+ "set": "FDN",
+ "note": "Snakeskin Veil: 'It gains hexproof until end of turn.' P0 casts it on its Bear, then the turn passes to the opponent. The hexproof is gone, so the opponent's Stab can target the Bear (3/3 -> 1/1 until end of turn), while the +1/+1 counter, which has no duration, is still on it.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "veil", "zone": "hand", "controller": 0, "real": "Snakeskin Veil"},
+  {"key": "bear", "zone": "battlefield", "controller": 0, "name": "Bear", "power": "2", "toughness": "2", "type": "Creature"},
+  {"key": "stab", "zone": "hand", "controller": 1, "real": "Stab"}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "cast", "real": "Snakeskin Veil", "key": "veil", "targets": ["bear"]},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"B": 1}},
+  {"op": "cast", "real": "Stab", "key": "stab", "controller": 1, "targets": ["bear"]}
+ ],
+ "expect": {
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}},
+  "power": {"bear": 1},
+  "toughness": {"bear": 1},
+  "zone": {"bear": "battlefield", "stab": "graveyard"}
+ }
+}

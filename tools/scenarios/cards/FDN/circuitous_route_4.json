@@ -1,0 +1,69 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Circuitous Route (FDN): which cards the search offers. The library holds two basic Forests, a Gate, a nonbasic non-Gate land (Desert) and a creature card; the first ask of the search offers exactly the two Forests, the Gate and NONE (handles card:1, card:2, card:3: not the Desert card:4, not the creature card:5) and it is the first of two picks.",
+ "cards": [
+  {
+   "key": "route",
+   "real": "Circuitous Route",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "Lib Forest One",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "name": "Lib Forest Two",
+   "type": "Basic Land — Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gate",
+   "name": "Lib Gate",
+   "type": "Land — Gate",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "desert",
+   "name": "Lib Desert",
+   "type": "Land — Desert",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "crt",
+   "name": "Lib Creature",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "route",
+   "real": "Circuitous Route",
+   "expect_raise": "needs a decision from ('card:1', 'card:2', 'card:3', 'NONE')"
+  }
+ ],
+ "expect": {}
+}

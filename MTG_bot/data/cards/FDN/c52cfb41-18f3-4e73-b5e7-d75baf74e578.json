@@ -139,5 +139,30 @@
  },
  "probe": {
   "sha": "ab8bc434fceb4edca4881f679b759c621fa9ec4b42931d9403496050d4037e2c"
+ },
+ "verified": {
+  "tree_sha": "12586ea296cf738aaea0ce54eded10a629ebc083e68baa9a910b0252ae52ffda",
+  "probe_sha": "ab8bc434fceb4edca4881f679b759c621fa9ec4b42931d9403496050d4037e2c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Return all nonland permanents target player controls to their owner's hand.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: target slot 1..1 of [you, opp]; [cast targets=['you']] moves you_bear, you_giant, you_relic, you_charm to hand (hand 7 -> 10, none of the opponent's); [cast targets=['opp']] moves opp_flier, opp_tapped, opp_bear, opp_giant, opp_relic, opp_charm to hand (hand 2 -> 8, none of yours): every nonland permanent of the chosen player and only theirs, mana C-4 U-2. The standard board has no land on the battlefield and no permanent changes control, so 'nonland' and 'their owner's' are not shown. Pack B06_1 PASSES: the opponent's Island stays and so do the caster's own permanents; the opponent's creature and artifact go to its hand, its token ceases to exist, and a creature seat 0 OWNS but seat 1 controls goes to seat 0's hand (the owner's). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/river's_rebuke_1.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 3,
+   "score": 0.75,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/args/cards/filter"
+   ]
+  }
  }
 }

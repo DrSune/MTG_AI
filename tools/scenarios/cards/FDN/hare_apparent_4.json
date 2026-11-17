@@ -1,0 +1,18 @@
+{
+ "name": "H05_hare_apparent_counts_when_the_trigger_resolves",
+ "set": "FDN",
+ "note": "Hare Apparent: the number of Rabbits is counted as the ability resolves (CR 608.2), not when it triggers. A second Hare Apparent enters with its trigger waiting on the stack; in response the first Hare Apparent is put into the graveyard. When the trigger resolves P0 controls no other Hare Apparent, so no Rabbit is created.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "hare1", "zone": "battlefield", "controller": 0, "real": "Hare Apparent"},
+  {"key": "hare2", "zone": "hand", "controller": 0, "real": "Hare Apparent"}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hare2", "hold": true},
+  {"op": "move", "key": "hare1", "to": "graveyard"}
+ ],
+ "expect": {
+  "tokens": {"Rabbit": 0},
+  "zone": {"hare1": "graveyard", "hare2": "battlefield"}
+ }
+}

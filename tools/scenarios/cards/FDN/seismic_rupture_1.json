@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "seismic_rupture_deals_two_damage_to_every_creature_without_flying_both_sides",
+ "notes": "Printed: 'Seismic Rupture deals 2 damage to each creature without flying.' Seat 0 casts Seismic Rupture ({2}{R}) with a 3/3 and a 2/2 of its own and a 2/2 flyer; seat 1 has a 3/3, a 3/3 with reach (reach is not flying), and a 4/4 flyer. Every creature without flying takes exactly 2 (the 3/3s keep 2 damage marked, the 2/2 dies), on both sides; the two flyers take nothing. No player is dealt damage (each creature, not each player): life stays 20 and 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rupture", "real": "Seismic Rupture", "zone": "hand", "controller": 0},
+  {"key": "mine3", "name": "My Three", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "mine2", "name": "My Two", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "myfly", "name": "My Flyer", "power": "2", "toughness": "2", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "their3", "name": "Their Three", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 1},
+  {"key": "reach", "name": "Their Reacher", "power": "3", "toughness": "3", "type": "Creature", "keywords": ["REACH"], "zone": "battlefield", "controller": 1},
+  {"key": "theirfly", "name": "Their Flyer", "power": "4", "toughness": "4", "type": "Creature", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "rupture", "real": "Seismic Rupture"}
+ ],
+ "expect": {
+  "zone": {"rupture": "graveyard", "mine3": "battlefield", "mine2": "graveyard", "myfly": "battlefield", "their3": "battlefield", "reach": "battlefield", "theirfly": "battlefield"},
+  "damage": {"mine3": 2, "their3": 2, "reach": 2},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {}}
+ }}

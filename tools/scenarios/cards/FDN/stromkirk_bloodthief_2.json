@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "name": "F09_2",
+ "notes": "Stromkirk Bloodthief. Printed: 'if an opponent lost life this turn'. Nobody attacks and nobody loses life, so at seat 0's end step the condition is false: no trigger, no ask, no counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": false,
+    "bear": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "counters": {
+   "sb": {},
+   "bear": {}
+  }
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "name": "H06_chandras_outrage_is_an_instant_and_deals_four_and_two",
+ "set": "M20",
+ "note": "Chandra's Outrage is an instant: on the opponent's turn P0 casts it on the opponent's 4/4 (exactly lethal): the creature dies and its controller, the opponent, loses exactly 2 life (20 -> 18). P0's own life and P0's own creature are untouched.",
+ "world": {"life": 20, "seed": 1},
+ "cards": [
+  {"key": "outrage", "zone": "hand", "controller": 0, "real": "Chandra's Outrage"},
+  {"key": "giant", "zone": "battlefield", "controller": 1, "name": "Giant", "power": "4", "toughness": "4", "type": "Creature"},
+  {"key": "mine", "zone": "battlefield", "controller": 0, "name": "Mine", "power": "4", "toughness": "4", "type": "Creature"}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"R": 2, "C": 2}},
+  {"op": "cast", "real": "Chandra's Outrage", "key": "outrage", "controller": 0, "targets": ["giant"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"giant": "graveyard", "mine": "battlefield", "outrage": "graveyard"},
+  "damage": {}
+ }
+}

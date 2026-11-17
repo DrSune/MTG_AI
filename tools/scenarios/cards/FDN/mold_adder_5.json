@@ -1,0 +1,70 @@
+{
+ "set": "FDN",
+ "name": "F04_5",
+ "notes": "Mold Adder (three players). Printed: 'Whenever AN opponent casts a blue or black spell, you may put a +1/+1 counter on this creature.' Each of the two opponents casts a blue instant (Opt), the may is taken both times: two counters, Mold Adder 3/3.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "ma",
+   "real": "Mold Adder",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt2",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 2
+  },
+  {
+   "key": "opt1",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "2": {
+   "U": 1
+  },
+  "1": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "opt2",
+   "real": "Opt",
+   "controller": 2,
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "opt1",
+   "real": "Opt",
+   "controller": 1,
+   "decisions": [
+    "fire",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ma": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "power": {
+   "ma": 3
+  }
+ }
+}

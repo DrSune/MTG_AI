@@ -192,5 +192,38 @@
  },
  "probe": {
   "sha": "f5957b8dca2ff94b05f1b1b969e8cb8364654eb992a5bd7533cb77992793f555"
+ },
+ "verified": {
+  "tree_sha": "f1155d53ecfecb901979856e5c41986c2b4b1d74ad67ceeed017e21eb4b981b8",
+  "probe_sha": "f5957b8dca2ff94b05f1b1b969e8cb8364654eb992a5bd7533cb77992793f555",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Put a +1/+1 counter on target creature you control.",
+    "status": "OK",
+    "evidence": "SpellAbility INSTANT, Seq step 1: PUT_COUNTER 1 PLUS_1_PLUS_1 on a TARGET Selector over FAnd(CONTROLLER_IS YOU, Creature). Probe: 'target slot (cast): 1..1 of [you_bear, you_giant]' (no opponent creature offered); [cast targets=['you_bear']] 'you_bear counters {} -> {PLUS_1_PLUS_1: 1}; P/T 2/2 -> 3/3', the same for you_giant 4/4 -> 5/5; the cost is G-1 and the card goes to the graveyard.",
+    "issue": ""
+   },
+   {
+    "clause": "It gains hexproof until end of turn.",
+    "status": "OK",
+    "evidence": "Seq step 2: GRANT_ABILITY HEXPROOF, DurationEot, target Selector referent 'result' (the creature the counter went on, the B5b-it-gains-kw-eot shape). Probe: only the targeted creature shows 'keywords +HEXPROOF' (you_giant is untouched in the you_bear cast), and 'after the turn ends: you_bear: keywords -HEXPROOF' while the counter stays. That hexproof really stops an opponent's spell, that it ends with the turn while the counter stays, the fizzle and the response case are in packs H02_1 to H02_5.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/snakeskin_veil_1.json",
+   "tools/scenarios/cards/FDN/snakeskin_veil_2.json",
+   "tools/scenarios/cards/FDN/snakeskin_veil_3.json",
+   "tools/scenarios/cards/FDN/snakeskin_veil_4.json",
+   "tools/scenarios/cards/FDN/snakeskin_veil_5.json"
+  ],
+  "mutation": {
+   "mutants": 9,
+   "killed": 9,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

@@ -416,5 +416,49 @@
  },
  "probe": {
   "sha": "22ec878561ad77f43c97ff3be5d3f5b2b736f5ddefc39ff15f9545d0bca8130a"
+ },
+ "verified": {
+  "tree_sha": "0a46da01230de0bd9b6fb590065bbcbfd32a0cf84585bc6efa0f9f99395ff5c4",
+  "probe_sha": "22ec878561ad77f43c97ff3be5d3f5b2b736f5ddefc39ff15f9545d0bca8130a",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Until end of turn, target creature gets +2/+0",
+    "status": "OK",
+    "evidence": "[cast targets=...] for all six legal targets (the menu is every creature on the board): 'you_bear: P/T 2/2 -> 4/2', 'you_giant 4/4 -> 6/4', 'opp_flier 1/1 -> 3/1', 'opp_tapped 3/3 -> 5/3', 'opp_bear 2/2 -> 4/2', 'opp_giant 4/4 -> 6/4': +2/+0 on the target only, each back to its printed size 'after the turn ends'.",
+    "issue": ""
+   },
+   {
+    "clause": "and gains \"When this creature dies, return it to the battlefield tapped under its owner's control and you create a Treasure token.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe never kills the targeted creature in any variant, so the granted ability never triggers. Covered by packs: A05_1 (own creature dies the same turn: back on the battlefield tapped, under its owner's control, a plain 2/2 with no damage, one Treasure; a second, untargeted creature that dies stays dead), A05_2 (cast on an opponent's creature: the ability is the creature's, so its controller, seat 1, gets the Treasure: seat 1 pays for a spell with it), A05_3 (a stolen creature returns under its OWNER's control but the controller who had it when it died gets the Treasure), A05_4 (until end of turn: next turn it just dies), A05_5 (a token creature ceases to exist and is not returned, the Treasure is still created), A05_6 (exiled, not dying: nothing happens). Pack A05_7: the returned creature is a new object, with no granted ability: a second death the same turn is final, with no second Treasure. Pack A05_8: it enters again, so its own enters-the-battlefield trigger happens again.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/fake_your_own_death_1.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_2.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_3.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_4.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_5.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_6.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_7.json",
+   "tools/scenarios/cards/FDN/fake_your_own_death_8.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 7,
+   "score": 0.5,
+   "survived": [
+    "drop keyword TREASURE at 0",
+    "drop step 1 at 1/0/effect",
+    "drop step 0 at 1/0/effect/steps/1/args/ability/effect",
+    "drop step 1 at 1/0/effect/steps/1/args/ability/effect",
+    "zone BATTLEFIELD->HAND at 1/0/effect/steps/1/args/ability/effect/steps/0/args/destination",
+    "amount+1 at 1/0/effect/steps/1/args/ability/effect/steps/1/args/count",
+    "until-end-of-turn->permanent at 1/0/effect/steps/1/args/duration"
+   ]
+  }
  }
 }

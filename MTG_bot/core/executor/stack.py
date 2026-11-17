@@ -36,13 +36,16 @@ from itertools import combinations
 from typing import TYPE_CHECKING
 
 from MTG_bot.core.ability_tree import (
+    Atom,
     BackFace,
     Choose,
-    Cost,
     FAtom,
     FAtomPred,
+    ReplacementAbility,
     SpellAbility,
     SpellKind,
+    ZoneKind,
+    canonical_json,
     walk,
 )
 from MTG_bot.core.executor.decisions import site_digest
@@ -60,6 +63,7 @@ from MTG_bot.core.executor.legality import (
 )
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding
+from MTG_bot.core.executor.selectors import ZONE_KIND_TO_STATE
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -146,6 +150,10 @@ class StackObject:
     ability_idx: int | None = None
     event: object = None
     ctx: object = None
+    # The replacement a spell cast through a cast verb has while it is on the stack (its
+    # ``replace`` role, ``ability_tree.spell_rider``): "If that spell would be put into your
+    # graveyard, exile it instead", flashback's exile (CR 702.34a). :func:`exit_zone` reads it.
+    rider: ReplacementAbility | None = None
 
 
 @dataclass
@@ -183,6 +191,8 @@ class SpellStack:
                 f.decisions,
                 tuple(sorted((k, tuple(map(str, v))) for k, v in f.slot_designations.items())),
             )
+            # a rider only where a spell has one: every other frame keeps its row's bytes
+            + ((canonical_json(f.rider),) if f.rider is not None else ())
             for i, f in enumerate(self.frames)
         )
 
@@ -249,17 +259,23 @@ def is_land_card(world: GameWorld, handle: Handle) -> bool:
 
 def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | None:
     """Why this land cannot be played by ``seat`` right now (``None`` =
-    legal). Gates: the card is a land in the seat's hand, the seat's turn
+    legal). Gates: the card is a land in the seat's hand, or a permission lets the seat play it
+    from where it lies (``permits.land_path``: CR 305.1, 601.3), the seat's turn
     is open, the phase is one of the seat's main phases (CR 305.1, 505.6b:
     :data:`legality.MAIN_PHASES`, which reads a world with no turn begun, a
     bare test rig, as inside), the stack is empty, and the allowance, one
-    land per turn in total across both main phases (CR 305.2, 505.6b)
+    land per turn in total across both main phases (CR 305.2, 505.6b),
+    a land played from another zone counting as any other (305.2a),
     widened by ``executor.extra_land_plays`` + the live ADD_LAND_PLAY layer
     sum."""
+    from MTG_bot.core.executor import permits
+
     world = executor.world
     if not is_land_card(world, handle):
         return "land:not_a_land"
-    if world.zone_of(handle) != world.players[seat].zone("hand"):
+    if world.zone_of(handle) != world.players[seat].zone(
+        "hand"
+    ) and permits.land_path(executor, seat, handle) is None:
         return f"land:not_in_hand:{handle}"
     if world.active_player != seat or not executor.turn_open:
         return "land:not_own_turn"
@@ -274,6 +290,21 @@ def land_playable(executor: Executor, seat: Handle, handle: Handle) -> str | Non
     if plays >= allowance:
         return f"land:used_this_turn:{plays}>={allowance}"
     return None
+
+
+def exit_zone(frame: StackObject, dest: str) -> str:
+    """Where the spell of ``frame`` goes when it leaves the stack for ``dest`` (CR 614.1a,
+    614.6): exile, when the spell's rider replaces that move ("If that spell would be put into
+    your graveyard, exile it instead"; flashback's exile from the stack to anywhere, CR
+    702.34a); else ``dest``. The rider is the spell's own, so it applies first (CR 616.1: the
+    affected object's controller chooses among several, and every rider exiles)."""
+    rider = frame.rider
+    if rider is None or dest == ZONE_EXILE:
+        return dest
+    to_zone = rider.event.to_zone
+    if to_zone.kind is ZoneKind.ANY or ZONE_KIND_TO_STATE.get(to_zone.kind) == dest:
+        return ZONE_EXILE
+    return dest
 
 
 # ----------------------------------------------------------------- casting
@@ -701,6 +732,7 @@ def cast(
     mode_choices: tuple[int, ...] = (),
     targets: tuple[Handle, ...] | SlotGroups = (),
     decisions: tuple[str, ...] = (),
+    path: object = None,
 ) -> StackObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
     Slate's field schedule — legality, declaration, payment, resolution,
@@ -710,7 +742,8 @@ def cast(
     Order (each step is the CR's):
 
     1. **window + shape gate** (:func:`legality.spell_castable`) — the
-       card is in hand, its record carries a :class:`SpellAbility`, the
+       card is in hand, or ``path`` (a ``permits.Path``) lets the caster cast it from where it
+       lies at that path's cost (CR 601.3), its record carries a :class:`SpellAbility`, the
        spell's own window holds (instants anytime; the rest at sorcery
        speed: a main phase of the caster's turn with an empty stack).
     2. **modes** (601.2b) — a modal spell announces its mode set
@@ -744,10 +777,11 @@ def cast(
     7. **resolve + put** (608, 601.2j) — :func:`resolve_top`.
     """
     reason, node, _record, plan = spell_castable(
-        executor, seat, handle, x=x, kicked=kicked
+        executor, seat, handle, x=x, kicked=kicked, path=path
     )
     if reason is not None or node is None or plan is None:
         raise ValueError(f"executor: illegal cast: {reason}")
+    from_zone = executor.world.zone_of(handle).kind  # CR 601.2a: from where it is
 
     # CR 601.2f chooses X WITH the total cost, so the X the legality fold
     # paid (the documented X=0 floor, CR 107.1, when the caller passed no x)
@@ -766,7 +800,7 @@ def cast(
             if kicker is not None:
                 declared_extra = declared_extra + (kicker.cost,)
         if _cost_has_x(spell_cost(_record, declared_extra)):
-            x = 0
+            x = 0  # the floor, CR 107.1; with an alternative cost the only X (CR 107.3b)
 
     # 2-3: declaration — modes (601.2b) then targets (601.2c) through
     # _plan_cast_designation, which owns auto-designation, the mode narrowing
@@ -787,7 +821,7 @@ def cast(
         # priced before any target existed. An unpayable total is an illegal cast
         # (601.2h), refused before anything is paid.
         reason, _node, _record, plan = spell_castable(
-            executor, seat, handle, x=x, kicked=kicked, targets=tuple(targets)
+            executor, seat, handle, x=x, kicked=kicked, targets=tuple(targets), path=path
         )
         if reason is not None or plan is None:
             raise ValueError(f"executor: illegal cast: {reason}")
@@ -812,11 +846,12 @@ def cast(
         mode_choices=declared_modes or tuple(mode_choices),
         payment=plan,
         declared_clock=executor.journal.clock,
-        from_zone="hand",
+        from_zone=from_zone,
         kicked=kicked,
         decisions=tuple(decisions),
         slot_designations=dict(slot_designations),
         target_node=target_node,
+        rider=getattr(path, "rider", None),
     )
     before = executor.journal.snapshot()
     start = len(executor.events)
@@ -829,9 +864,13 @@ def cast(
             mana_use=handle,
         )
     park(executor, seat, handle)
+    if path is not None:
+        from MTG_bot.core.executor import permits
+
+        permits.use(path)
     executor.journal.record_atom(before, handle, "CAST", list(executor.events[start:]))
     executor.stack.push(frame)
-    executor.journal.emit_cast(handle, seat, node.kind.name, "hand", x, kicked)
+    executor.journal.emit_cast(handle, seat, node.kind.name, from_zone, x, kicked)
     # CR 117.3c: the caster receives priority again; what casting triggered (its
     # costs included) goes on the stack above the spell first (CR 117.5, 601.2i).
     # Outside a game loop both players then pass until the stack is empty
@@ -889,12 +928,14 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
         )
         if not legal_now:
             # Every target is illegal: the spell doesn't resolve. It is removed from
-            # the stack and put into its owner's graveyard (an Aura too, CR 608.3b).
+            # the stack and put into its owner's graveyard (an Aura too, CR 608.3b), or
+            # exiled instead by its rider.
             before_put = executor.journal.snapshot()
             start_put = len(executor.events)
-            repl = _put_off_the_stack(executor, handle, seat, ZONE_GRAVEYARD)
+            dest = exit_zone(frame, ZONE_GRAVEYARD)
+            repl = _put_off_the_stack(executor, handle, seat, dest)
             executor.events.append(
-                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), "stack->graveyard")
+                (len(executor.events), "NO_LEGAL_TARGETS", str(handle), f"stack->{dest}")
             )
             put = executor.journal.record_atom(
                 before_put, handle, "CAST", list(executor.events[start_put:])
@@ -978,6 +1019,7 @@ def _resolve_spell(executor: Executor, frame: StackObject) -> str:
     if cur_kind != ZONE_STACK:
         dest = cur_kind
     else:
+        dest = exit_zone(frame, dest)  # the spell's rider: exile instead (CR 614.1a)
         repl = _put_off_the_stack(executor, handle, seat, dest)
     if repl is None:
         executor.events.append(
@@ -1081,33 +1123,27 @@ def cast_card(
     caster: Handle,
     handle: Handle,
     *,
-    cost_override: Cost | None,
-    targets: tuple[Handle, ...] = (),
-    x: int | None = 0,
+    atom: Atom | None = None,
+    targets: tuple[Handle, ...] | SlotGroups | None = None,
+    x: int | None = None,
+    decisions: tuple[str, ...] = (),
 ) -> None:
-    """The effect-side CAST verb's engine (``verbs._v_cast``): cast a
-    DESIGNATED card from wherever it sits, with the spell's printed cost
-    paid as normal when ``cost_override is None``; an EMPTY Cost is the
-    corpus' cost-waiver idiom (CR 118.9 "without paying its mana cost"),
-    and a Cost WITH parts is paid on top of the printed cost (additional
-    costs, CR 601.2f; legality.effect_cast_cost), plus the spell's own
-    additional costs either way (CR 118.9d). No timing check here (an
-    effect casts while it resolves, outside the normal timing; a
-    permission's timing is judged before the cast,
-    ``query.cast_designee_ok``). The spell is on the stack like one cast
-    from hand (CR 601.2i, 117.3c, 608.1): it waits there for both players
-    to pass and resolves through :func:`resolve_top`.
+    """The CAST verb's engine (``verbs._v_cast``): cast a DESIGNATED card from wherever it sits
+    while the ability that says so resolves (CR 608.2g runs 601.2a-i, and no player receives
+    priority until that ability is done). ``atom`` is the CAST: its ``alternative`` replaces the
+    mana cost (an empty Cost: "without paying its mana cost", CR 118.9), its ``additional`` and
+    the spell's own additional costs are added (CR 601.2f, 118.9d:
+    ``legality.effect_cast_cost``), its ``replace`` is the spell's rider while it is on the stack
+    (:func:`exit_zone`). No timing check: a card cast during a resolution ignores the timing its
+    type sets (CR 608.2g).
 
-    ``targets`` (CR 603.3: an effect that lets you cast a spell still
-    gets its normal target choices — the effect's caster designates them
-    NOW) is validated and bound exactly like :func:`cast` step 3. The
-    ATOM side has no target channel (the CAST role table is
-    ``source``/``cost`` only), so ``verbs._v_cast`` passes an empty
-    tuple: an effect-designated spell WITH targets can only be cast
-    through this API directly. The gap is flagged by the spell's own
-    unbound-target raise, never a silent no-target resolution: Chandra,
-    Flame's Catalyst's [-2] recasting a targeted red spell raises
-    (docs/BACKLOG.md, "The CAST atom has no target channel").
+    The caster makes the spell's choices as it is cast (CR 601.2b-c): a modal spell's modes
+    (:func:`cast_modes`), then X when it pays a mana cost with X (the values the pool can pay;
+    with an alternative cost X is 0, CR 107.3b), then each target, slot by slot
+    (``target:<seat>:<spell>:<digest>`` asks, as a trigger's; one legal choice is made without
+    asking). ``targets`` (a pack's or a test's designation) and ``x`` skip those asks. The
+    may-offer upstream (``query.cast_designee_ok``) offers only a cast whose targets can be
+    chosen and whose cost can be paid.
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
@@ -1118,7 +1154,7 @@ def cast_card(
     Outside one, both players pass at once and the spell resolves here,
     inside the resolution that cast it (its cast triggers first, then the
     spell, then its ETB triggers), which holds because every compiled CAST
-    is the last instruction of its effect (Idol of Endurance, Coveted
+    is the last instruction of its effect (Chandra, Flame's Catalyst [-2], Coveted
     Prize). The cost payment is part of the resolution and does not settle
     (Executor._run_resolution)."""
     from MTG_bot.core.executor.legality import effect_cast_cost
@@ -1151,39 +1187,68 @@ def cast_card(
         )
     # A modal spell cast by an effect announces its modes too (CR 608.2g
     # runs 601.2a-i), and only those modes' targets are validated.
-    from MTG_bot.core.executor.query import modal_choose, with_modes
+    from MTG_bot.core.executor.query import modal_choose, spell_target_slots, with_modes
 
     declared_modes: tuple[int, ...] = ()
     target_node = node
     if modal_choose(node) is not None:
-        token, chosen_modes, _rest = cast_modes(executor, caster, handle, node)
+        token, chosen_modes, decisions = cast_modes(
+            executor, caster, handle, node, decisions=decisions
+        )
         target_node = with_modes(node, chosen_modes)
         declared_modes = (token,)
-    _validate_spell_targets(executor, caster, handle, target_node, targets)
+    # CR 601.2f: the total cost adds the spell's own additional costs to the
+    # mana cost or the cast verb's alternative cost; an unpayable total refuses below.
+    cost = effect_cast_cost(record, node, atom)
+    if x is None:
+        x, decisions = _effect_cast_x(executor, caster, handle, cost, decisions)
+
+    def pay(chosen: Sequence[Handle]) -> bool:
+        """The total cost with these targets is payable (a target's tax, CR 601.2f)."""
+        tctx = ctx_for(executor, source=handle, controller=caster,
+                       bindings={"target": list(chosen)} if chosen else None, x_value=x)
+        return not cost.parts or build_payment_plan(world, tctx, cost, mana_use=handle)[0] is not None
+
+    if targets is None:
+        targets = _effect_cast_targets(executor, caster, handle, target_node, decisions, pay)
+    slot_designations: dict[str, tuple[Handle, ...]] = {}
+    slots = spell_target_slots(executor, target_node, spell_handle=handle, seat=caster)
+    if len(slots) > 1:
+        slot_designations = designate_slots(slots, targets)
+        flat = tuple(h for slot in slots for h in slot_designations[repr(slot.selector)])
+    else:
+        flat = tuple(h for t in targets for h in ((t,) if isinstance(t, Handle) else t))
+        _validate_spell_targets(executor, caster, handle, target_node, flat)
     # TARGETING feed — same 601.2c contract as cast(): declare, then
     # journal the designation rows before payment.
-    executor.journal.emit_targeting(handle, caster, targets)
-    # CR 601.2f: the total cost adds the spell's own additional costs to the
-    # mana cost or the effect's alternative cost; an unpayable total refuses below.
-    cost = effect_cast_cost(record, node, cost_override)
+    executor.journal.emit_targeting(handle, caster, flat)
     plan = None
-    if cost is not None and cost.parts:
-        ctx = ctx_for(executor, source=handle, controller=caster, x_value=x)
+    if cost.parts:
+        ctx = ctx_for(
+            executor,
+            source=handle,
+            controller=caster,
+            bindings={"target": list(flat)} if flat else None,
+            x_value=x,
+        )
         plan, why = build_payment_plan(world, ctx, cost, mana_use=handle)
         if plan is None:
             raise ValueError(f"executor: CAST cannot pay: {why}")
+    rider = atom.args.get("replace") if atom is not None else None
     frame = StackObject(
         handle=handle,
         node=node,
         controller=caster,
         spell_kind=node.kind.name,
         x_value=x,
-        declared_targets=tuple(sorted(targets)),
+        declared_targets=tuple(sorted(flat)),
         mode_choices=declared_modes,
         payment=plan,
         declared_clock=executor.journal.clock,
         from_zone=world.zone_of(handle).kind,
+        slot_designations=slot_designations,
         target_node=target_node,
+        rider=rider if isinstance(rider, ReplacementAbility) else None,
     )
     floor = len(executor.stack.frames)
     before = executor.journal.snapshot()
@@ -1204,6 +1269,68 @@ def cast_card(
         executor._settle(floor)
 
 
+def _effect_cast_x(
+    executor: Executor, caster: Handle, handle: Handle, cost, decisions: tuple[str, ...]
+) -> tuple[int | None, tuple[str, ...]]:
+    """X for a spell a cast verb casts (CR 601.2b, 107.3a): None when the card has no X; 0 when
+    its total cost has none (an alternative cost replaced the mana cost, CR 107.3b); else the
+    caster announces it among the values the pool can pay, 0 up, asked as
+    ``x:<seat>:<spell>:<digest>`` like an activation's X, without an ask when only 0 is
+    payable."""
+    if not _cost_has_x(cost):
+        record = spell_record(executor, handle)
+        has_x = record is not None and record.mana_cost is not None and _cost_has_x(record.mana_cost)
+        return (0 if has_x else None), decisions
+    payable: list[int] = []
+    for value in range(64):  # a pool pays a bounded X; 64 is far past any pool of the 19 sets
+        ctx = ctx_for(executor, source=handle, controller=caster, x_value=value)
+        if build_payment_plan(executor.world, ctx, cost, mana_use=handle)[0] is None:
+            break
+        payable.append(value)
+    if len(payable) <= 1:
+        return 0, decisions
+    vocab = tuple(str(v) for v in payable)
+    ctx = executor._ctx(source=handle, controller=caster, bindings=None, decisions=decisions)
+    answer = ctx.take_decision(vocab, f"x:{caster}:{handle}:{site_digest(vocab)}")
+    return int(answer), tuple(decisions[ctx.decision_idx:])
+
+
+def _effect_cast_targets(
+    executor: Executor, caster: Handle, handle: Handle, node: SpellAbility,
+    decisions: tuple[str, ...], pay=None,
+) -> tuple:
+    """The targets of a spell a cast verb casts (CR 601.2c), chosen by its caster pick by pick,
+    slot by slot, from what each slot may still take (:func:`slot_options`, so no designation
+    that cannot be completed is offered, nor one whose total cost ``pay`` refuses: a target's
+    tax, CR 601.2f, as the menu prices a row). A pick with one legal filler, below the slot's
+    minimum, is made without an ask; once the minimum is met a NONE stop is offered ("up to").
+    One slot's targets, or one tuple per slot."""
+    from MTG_bot.core.executor.query import spell_target_slots
+
+    slots = spell_target_slots(executor, node, spell_handle=handle, seat=caster, pay=pay)
+    if not slots:
+        return ()
+    ctx = executor._ctx(source=handle, controller=caster, bindings=None, decisions=decisions)
+    groups: list[tuple[Handle, ...]] = []
+    for slot in slots:
+        picked: list[Handle] = []
+        while len(picked) < slot.max_count:
+            pool = slot_options(slots, tuple(groups), picked, pay=pay)
+            if not pool:
+                break
+            stop = len(picked) >= slot.min_count
+            if len(pool) == 1 and not stop:
+                picked.append(pool[0])  # one legal filler: no ask
+                continue
+            vocab = tuple(str(h) for h in pool) + (("NONE",) if stop else ())
+            answer = ctx.take_decision(vocab, f"target:{caster}:{handle}:{site_digest(vocab)}")
+            if answer == "NONE":
+                break
+            picked.append(next(h for h in pool if str(h) == answer))
+        groups.append(tuple(sorted(picked)))
+    return groups[0] if len(slots) == 1 else tuple(groups)
+
+
 def play_land(
     executor: Executor,
     seat: Handle,
@@ -1212,26 +1339,35 @@ def play_land(
     tapped: bool = False,
 ) -> None:
     """The ``PLAY_LAND`` move (CR 305.1, folded one-call like activate/
-    cast): re-check :func:`land_playable`, move hand → battlefield (a
+    cast): re-check :func:`land_playable`, move the land from the hand, or from the zone a
+    permission lets the seat play it from (``permits.land_path``, CR 116.2a: "puts that land
+    onto the battlefield from the zone it was in"), to the battlefield (a
     special action — no stack, no cost, not an event anyone can respond
-    to), journal the ETB, stamp the once-per-turn ledger, and settle so
+    to), journal the ETB, stamp the once-per-turn ledger (a land played from another zone is a
+    land played, CR 305.2a), use one of the permission's plays, and settle so
     land ETB triggers fire.
     ``tapped`` is the rig's explicit override; a land whose compiled
     record declares an EtBState (the M21 checklands and temples "enter
     the battlefield tapped") gets that state from the journal's entry
     hook instead — the flag is not how the corpus' entered state ships."""
+    from MTG_bot.core.executor import permits
+
     world = executor.world
     reason = land_playable(executor, seat, handle)
     if reason is not None:
         raise ValueError(f"executor: illegal land play: {reason}")
+    path = permits.land_path(executor, seat, handle)
+    from_zone = world.zone_of(handle).kind
     before = executor.journal.snapshot()
     start = len(executor.events)
     world.move_to_zone(handle, seat, ZONE_BATTLEFIELD)
     if tapped:
         world.cards[handle].tapped = True
     executor.events.append(
-        (len(executor.events), "PLAY_LAND", str(handle), "hand->battlefield")
+        (len(executor.events), "PLAY_LAND", str(handle), f"{from_zone}->battlefield")
     )
+    if path is not None:
+        permits.use(path)
     registered = executor.binder.records.get(world.cards[handle].identity.oracle_id)
     if registered is not None:
         executor.binder.attach_card(handle, registered)

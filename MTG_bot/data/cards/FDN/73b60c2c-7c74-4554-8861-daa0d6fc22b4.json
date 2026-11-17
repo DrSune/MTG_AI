@@ -199,5 +199,37 @@
  },
  "probe": {
   "sha": "ec7a86b38d7d641fc3f8b3839eee421d4ec36d1e89db32f9dc3ca4d91311b6fe"
+ },
+ "verified": {
+  "tree_sha": "01eb9535099398319c1bf24930fc86d157890eb8b79dc54629f985796366b972",
+  "probe_sha": "ec7a86b38d7d641fc3f8b3839eee421d4ec36d1e89db32f9dc3ca4d91311b6fe",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Flash (You may cast this spell any time you could cast an instant.)",
+    "status": "NOT_EXERCISED",
+    "evidence": "Only the keyword is shown ('keywords +FLASH', 'card keywords: FLASH'). Every cast in the trace is in a main phase with an empty stack, and 'from your hand, the card enters during the opponent's turn' is a MOVE_ZONE entry, not a cast, so the instant-speed window is never tested. Packs G07_1 and G07_2 cast it on the opponent's turn. Pack G07_4 casts it from the act menu on the opponent's turn: the menu offers the row.",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, target creature an opponent controls gets -1/-0 until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: 'ask target: [opp_flier, opp_tapped, opp_bear, opp_giant]' (only the opponent's creatures; one variant per target); 'opp_flier is targeted', opp_flier P/T 1/1 -> 0/1 (opp_tapped 3/3 -> 2/3, opp_bear 2/2 -> 1/2, opp_giant 4/4 -> 3/4): power -1, toughness unchanged; 'after the turn ends: opp_flier: P/T 0/1 -> 1/1': it ends with the turn. Pack G07_3 pins that my own creature is not offered, G07_2 the end of the effect.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/burrog_befuddler_1.json",
+   "tools/scenarios/cards/FDN/burrog_befuddler_2.json",
+   "tools/scenarios/cards/FDN/burrog_befuddler_3.json",
+   "tools/scenarios/cards/FDN/burrog_befuddler_4.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 10,
+   "score": 1.0,
+   "survived": []
+  }
  }
 }

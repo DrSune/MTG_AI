@@ -516,6 +516,12 @@ def test_v5_live_new_branchings_are_all_census_tail_rows(compiled):
         # See the Truth's "instead" (CR 608.2c): Conditional(cast and not from your
         # hand, every looked-at card, else=the one-and-rest Seq) (engine wave C1).
         "ontology_census_2026-11-17_seethetruth_post_full.json",
+        # Idol of Endurance's permission over "cards exiled with this artifact":
+        # a PERMIT's ALL population over exile (ontology round R13, §17).
+        "ontology_census_2026-11-17_permit_post_full.json",
+        # The one quantity comparison (ontology round R12): QTY_GE over a field or a
+        # quantity, "N or less" as its FNot, TARGETS(filter), QDistinct.
+        "ontology_census_2026-11-17_qtycmp_post_full.json",
     ):
         full = oc.REPO / "reports" / name
         if not full.exists():
@@ -659,8 +665,7 @@ def test_trigger_timing_scan_has_teeth():
         assert faults((worded,), ()) == ["0 reflexive trigger(s), 1 reflexive sentence(s)"], worded
     assert faults(("When it enters this way, each opponent sacrifices a creature.",), ()) == []  # escape
     # conditions against intervening "if"s
-    two = at.FAtom(pred=at.FAtomPred.CONTROLLER_COUNT_GE, count=at.QConst(2),
-                   inner_filter=at.FAtom(pred=at.FAtomPred.IS_ATTACKING))
+    two = at.at_least(2, quantity=at.number_you_control(at.FAtom(pred=at.FAtomPred.IS_ATTACKING)))
     attack = at.DeclareAttackersEvent(filter=_fa("Creature"))
     skimmer = at.TriggeredAbility(event=attack, condition=two, effect=tap, once_per_event=True)
     said = ("Whenever you attack with two or more creatures, tap target creature.",)
@@ -673,7 +678,7 @@ def test_trigger_timing_scan_has_teeth():
 
 
 def test_a_subject_free_qualifier_has_one_slot():
-    """A predicate that reads no subject (TURN_OF, CONTROLLER_COUNT_GE, ...) qualifies the event
+    """A predicate that reads no subject (TURN_OF, a count compared, ...) qualifies the event
     itself, so it has one slot per event class (``qualifier_slot``); the matcher reads every slot
     alike, so another would be a second byte form of one wording. Every set file is clean."""
     sets = sorted(p.stem for p in (oc.REPO / "MTG_bot" / "data").glob("*.json"))

@@ -38,7 +38,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -50,20 +50,70 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAtom",
-      "pred": {
-       "tag": "FAtomPred",
-       "name": "TYPE_EQ"
-      },
-      "string_value": "Land",
-      "color": null,
-      "colors": [],
-      "count": null,
-      "counter_kind": null,
-      "keyword": null,
-      "who": null,
-      "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Land",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
      }
     },
     "effect": {
@@ -130,7 +180,7 @@
  "mapping": {
   "author": "claude-mapper-fdn-m5",
   "date": "2026-11-17",
-  "draft_py": "# FDN Dragonmaster Outcast: \"At the beginning of your upkeep, if you control six or more lands, create\n# a 5/5 red Dragon creature token with flying.\"\n# Event: \"at the beginning of your upkeep\" (MAPPER_GUIDE); the intervening \"if\" is the condition,\n# M21 Fabled Passage's \"if you control four or more lands\" at six; the token as Roost of Drakes'\n# flying Drake, a 5/5 red Dragon.\ntrigger = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.UPKEEP,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=6),\n        inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n    ),\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Dragon',\n            type_line='Creature — Dragon',\n            types=('Creature',),\n            subtypes=('Dragon',),\n            power=QConst(value=5),\n            toughness=QConst(value=5),\n            keywords=(Keyword.FLYING,),\n            abilities=(),\n            colors=('R',),\n        ),\n    }),\n)\nabilities = [trigger, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=TurnPhaseEvent(\n            phase=Phase.UPKEEP,\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=6),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        effect=A(Verb.CREATE_TOKEN, {\n            'count': QConst(value=1),\n            'tokens': TokenSpec(\n                name='Dragon',\n                type_line='Creature — Dragon',\n                types=('Creature',),\n                subtypes=('Dragon',),\n                power=QConst(value=5),\n                toughness=QConst(value=5),\n                keywords=(Keyword.FLYING,),\n                abilities=(),\n                colors=('R',),\n            ),\n        }),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "At the beginning of your upkeep, if you control six or more lands, create a 5/5 red Dragon creature token with flying.",
@@ -138,7 +188,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Your-upkeep TurnPhaseEvent; the intervening 'if' is the condition (Fabled Passage's CONTROLLER_COUNT_GE lands, 6); a 5/5 red flying Dragon TokenSpec. packs in tools/scenarios/mapped/FDN/: dragonmaster_outcast_your_upkeep_makes_it, dragonmaster_outcast_six_lands_make_a_dragon, dragonmaster_outcast_five_lands_make_nothing."
+  "notes": "Your-upkeep TurnPhaseEvent; the intervening 'if' is the condition (Fabled Passage's comparison over number_you_control(...) lands, 6); a 5/5 red flying Dragon TokenSpec. packs in tools/scenarios/mapped/FDN/: dragonmaster_outcast_your_upkeep_makes_it, dragonmaster_outcast_six_lands_make_a_dragon, dragonmaster_outcast_five_lands_make_nothing. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "53e86f4502e1750d9ebde1e022ab77bd9c6c6c35438b2cbfc3a2e22c701c1bbc"

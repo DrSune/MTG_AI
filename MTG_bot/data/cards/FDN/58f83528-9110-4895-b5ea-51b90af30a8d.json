@@ -241,5 +241,44 @@
  },
  "probe": {
   "sha": "6c9e65d6296eae1dbfe4fc5c1433b4f0ddf64a221f7330283f4bfd02dc7b5eb6"
+ },
+ "verified": {
+  "tree_sha": "365afc50eb227cb609508656cb4f5700c6b2b8a9d9b5283dfce2b4096d45d1e1",
+  "probe_sha": "6c9e65d6296eae1dbfe4fc5c1433b4f0ddf64a221f7330283f4bfd02dc7b5eb6",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "As an additional cost to cast this spell, discard a card.",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'ask discard' first, offering the six other hand cards (never the spell itself), the pick moves hand -> graveyard BEFORE 'card moves hand -> stack', mana C-2 R-1. Pack B08_3 PASSES (with no other card in hand the cast is refused 'cost:discard', nothing drawn, mana kept) and B08_1 (the chosen card is discarded as the cost).",
+    "issue": ""
+   },
+   {
+    "clause": "Draw two cards",
+    "status": "OK",
+    "evidence": "Every [cast] variant: 'you draws you:Library 5#1' and 'you draws you:Library 4#1', 'you: library 6 -> 4' (exactly two, for you). Pack B08_1 PASSES (hand 3 = spare + two drawn).",
+    "issue": ""
+   },
+   {
+    "clause": "create a Treasure token (an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'you:Treasure moves new -> battlefield (by card/CREATE_TOKEN)', '+ you:Treasure (battlefield, you, TREASURE)': one Treasure under your control. The token's own ability is never used in the trace. Packs PASS: B08_1 (exactly one Treasure) and B08_2 (the only mana left is the new Treasure: it pays Giant Growth, is sacrificed, leaves no mana over, the Bear is 5/5). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/seize_the_spoils_1.json",
+   "tools/scenarios/cards/FDN/seize_the_spoils_2.json",
+   "tools/scenarios/cards/FDN/seize_the_spoils_3.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 9,
+   "score": 0.9,
+   "survived": [
+    "drop keyword TREASURE at 0"
+   ]
+  }
  }
 }

@@ -1,0 +1,48 @@
+{
+ "set": "FDN",
+ "name": "F11_5",
+ "notes": "Mischievous Mystic. Printed: 'Whenever you draw your SECOND card each turn'. On the opening turn (no draw step for seat 0) Opt draws only the first card of the turn: no Faerie. Hand: Opt cast, one card drawn: 1.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mm",
+   "real": "Mischievous Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "U": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "opt",
+   "real": "Opt",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Faerie": 0
+  },
+  "hand": {
+   "0": 1
+  }
+ }
+}

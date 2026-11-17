@@ -1,0 +1,20 @@
+{"set": "FDN", "world": {"life": 20, "seed": 7},
+ "notes": "Seeker's Folly (FDN), mode 0 printed: 'Target opponent discards two cards.' The opponent holds THREE cards and chooses which two to discard (CR 701.9b): they pick B and C and keep A; exactly two are discarded, the caster's own hand (one spare card) is untouched. Mode 1 is not chosen: no creature is changed.",
+ "cards": [
+  {"key": "folly", "real": "Seeker's Folly", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Spare Card", "type": "Sorcery", "zone": "hand", "controller": 0},
+  {"key": "a", "name": "Opp Card A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1},
+  {"key": "b", "name": "Opp Card B", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "c", "name": "Opp Card C", "type": "Sorcery", "zone": "hand", "controller": 1},
+  {"key": "ocrt", "name": "Their Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "folly", "real": "Seeker's Folly", "targets": ["p1"], "decisions": ["0", "b", "c"]}
+ ],
+ "expect": {
+  "zone": {"folly": "graveyard", "mine": "hand", "a": "hand", "b": "graveyard", "c": "graveyard", "ocrt": "battlefield"},
+  "hand": {"0": 1, "1": 1},
+  "power": {"ocrt": 2},
+  "toughness": {"ocrt": 2}
+ }}

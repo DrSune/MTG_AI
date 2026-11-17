@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Inspiring Call, printed: 'Draw a card for each CREATURE you control with a +1/+1 counter on it. Those creatures gain indestructible until end of turn.' A noncreature permanent with a +1/+1 counter does not count: seat 0 controls one creature with a counter and an artifact with a +1/+1 counter. Exactly one card is drawn; the creature gains indestructible, the artifact does not.",
+ "cards": [
+  {"key": "call", "real": "Inspiring Call", "zone": "hand", "controller": 0},
+  {"key": "c1", "name": "Counter One", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "relic", "name": "Counter Relic", "type": "Artifact", "cmc": 2, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "call", "real": "Inspiring Call"}
+ ],
+ "expect": {
+  "zone": {"call": "graveyard", "c1": "battlefield", "relic": "battlefield"},
+  "battlefield_keywords": {"Counter One": ["INDESTRUCTIBLE"], "Counter Relic": []},
+  "graveyard": {"0": ["Inspiring Call"], "1": []},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

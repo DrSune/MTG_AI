@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Grow from the Ashes (kicked), printed: 'search your library for two basic land cards, put them onto the battlefield, then shuffle.' The lands ENTER the battlefield, so Tatyova, Benthic Druid ('Whenever a land you control enters, you gain 1 life and draw a card') triggers once for each of the two lands: seat 0 gains 2 life (20 -> 22) and draws 2 cards (after the shuffle, from whatever is on top).",
+ "cards": [
+  {"key": "gfa", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "tatyova", "real": "Tatyova, Benthic Druid", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0},
+  {"key": "mountain", "real": "Mountain", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest", "island"]}
+ ],
+ "expect": {
+  "zone": {"gfa": "graveyard", "forest": "battlefield", "island": "battlefield", "tatyova": "battlefield"},
+  "life": {"0": 22, "1": 20},
+  "hand": {"0": 2, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

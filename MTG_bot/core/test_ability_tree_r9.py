@@ -1,7 +1,7 @@
 """Grammar pins: ``QAtMost``, token colours and entry flags, mana of any
 colour, DEAL_DAMAGE's dealer and recipient roles, IS_EXILED_WITH_SOURCE,
-GET_EMBLEM, ADD_LAND_PLAY, CONTROLLER_COUNT_GT, noncombat damage this
-turn, and COUNTER_COUNT of the target.
+GET_EMBLEM, ADD_LAND_PLAY, a comparison of two counts, noncombat damage
+this turn, and COUNTER_COUNT of the target.
 
 - ``QAtMost(n)`` (n >= 1) with a TARGET-mode Selector is the legal
   designation of "up to n targets" (1..n chosen, 0..remaining resolved);
@@ -15,8 +15,9 @@ turn, and COUNTER_COUNT of the target.
   from colourless ``"C"``.
 - ``Verb.GET_EMBLEM`` carries its emblem (``emblem``: an EmblemSpec, the
   emblem's abilities) and who gets it (``controller``), both required.
-- ``FAtomPred.CONTROLLER_COUNT_GT`` compares ``inner_filter`` with the
-  trailing ``right_inner_filter`` (omitted when None); both are required.
+- "more X than Y" is the one comparison (``FAtomPred.QTY_GE``, ontology round R12) of the
+  count of X with the count of Y plus one (CR 107.1); its ``field`` and ``quantity`` slots are
+  omitted when None.
 
 Also pinned: the constructs round-trip with pinned fingerprints; every
 validation point rejects bad input.
@@ -165,13 +166,13 @@ def _atom_add_land_play() -> at.Atom:
     )
 
 
-def _fatom_controller_count_gt() -> at.FAtom:
-    """Dual-filter comparison — inner_filter vs right_inner_filter
-    (Garruk's "controls more creatures than you" split)."""
-    return at.FAtom(
-        at.FAtomPred.CONTROLLER_COUNT_GT,
-        inner_filter=_CREATURE,
-        right_inner_filter=at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Goblin"),
+def _fatom_more_than() -> at.FAtom:
+    """Two counts compared (Garruk's "controls more creatures than you" shape): the creatures
+    number at least the Goblins plus one."""
+    bf = at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY)
+    goblins = at.number_in(bf, at.FAtom(at.FAtomPred.SUBTYPE_EQ, string_value="Goblin"))
+    return at.at_least(
+        at.QBin(at.QBinOp.ADD, goblins, at.QConst(1)), quantity=at.number_in(bf, _CREATURE)
     )
 
 
@@ -235,9 +236,9 @@ _NEW_PINS: list[tuple[str, Callable[[], object], str]] = [
         "4b8a3ef1dee2dfc43e66c73aa811f0cc2134506a1e796265f384b1b96cc59fa3",
     ),
     (
-        "fatom_controller_count_gt",
-        _fatom_controller_count_gt,
-        "2ef4156f26c42261d62b335cec1c160029e22f4683bb624f563691275265295e",
+        "fatom_more_than",
+        _fatom_more_than,
+        "f440e256709868a5a1611d151aa6d51d58de2f5a7728c186ffa94d318a668adf",
     ),
     (
         "qthis_noncombat",
@@ -370,25 +371,23 @@ _REJECTIONS: list[tuple[str, Callable[[], object]]] = [
             ),
         ),
     ),
-    # CONTROLLER_COUNT_GT requires BOTH filters; right_inner_filter is a
-    # Filter, not a quantity.
+    # The comparison needs its threshold and exactly one compared side; a quantity slot holds a
+    # Quantity, not a Filter.
     (
-        "cc_gt_missing_right",
-        lambda: at.FAtom(at.FAtomPred.CONTROLLER_COUNT_GT, inner_filter=_CREATURE),
+        "qty_ge_missing_count",
+        lambda: at.FAtom(at.FAtomPred.QTY_GE, field=at.QPropField.POWER),
     ),
     (
-        "cc_gt_missing_inner",
-        lambda: at.FAtom(
-            at.FAtomPred.CONTROLLER_COUNT_GT, right_inner_filter=_CREATURE
-        ),
+        "qty_ge_missing_side",
+        lambda: at.FAtom(at.FAtomPred.QTY_GE, count=at.QConst(2)),
     ),
-    ("cc_gt_bare", lambda: at.FAtom(at.FAtomPred.CONTROLLER_COUNT_GT)),
+    ("qty_ge_bare", lambda: at.FAtom(at.FAtomPred.QTY_GE)),
     (
-        "cc_gt_bad_right_type",
+        "qty_ge_bad_quantity_type",
         lambda: at.FAtom(
-            at.FAtomPred.CONTROLLER_COUNT_GT,
-            inner_filter=_CREATURE,
-            right_inner_filter=at.QConst(2),  # type: ignore[arg-type]
+            at.FAtomPred.QTY_GE,
+            count=at.QConst(2),
+            quantity=_CREATURE,  # type: ignore[arg-type]
         ),
     ),
     # COUNTER_COUNT takes the target referent, but NOT "controller".
@@ -493,11 +492,11 @@ def test_deal_damage_without_roles_still_builds() -> None:
     assert back == plain
 
 
-# ---- bare FAtom byte shape: no right_inner_filter ---------------------------
+# ---- bare FAtom byte shape: no field or quantity key -------------------------
 
 
-def test_bare_fatom_omits_right_inner_filter_byte_shape() -> None:
-    # The exact bare dict (no right_inner_filter key) is pinned by
+def test_bare_fatom_omits_the_comparison_slots_byte_shape() -> None:
+    # The exact bare dict (no field or quantity key) is pinned by
     # test_bare_fatom_omits_referent_byte_shape in test_ability_tree_r8.py;
     # IS_EXILED_WITH_SOURCE differs from it only in the pred name.
     assert at.to_dict(_fatom_exiled_with_source()) == at.to_dict(
@@ -525,7 +524,7 @@ def test_verb_role_tables_r8() -> None:
 def test_r8_table_members() -> None:
     assert at.QAtMost(1) is not None
     assert at.FAtomPred.IS_EXILED_WITH_SOURCE.value == "IS_EXILED_WITH_SOURCE"
-    assert at.FAtomPred.CONTROLLER_COUNT_GT.value == "CONTROLLER_COUNT_GT"
+    assert at.FAtomPred.QTY_GE.value == "QTY_GE"
     assert at.Verb.GET_EMBLEM.value == "GET_EMBLEM"
     assert at.Verb.ADD_LAND_PLAY.value == "ADD_LAND_PLAY"
     assert at.ThisTurnKind.NONCOMBAT_DAMAGE.value == "NONCOMBAT_DAMAGE"

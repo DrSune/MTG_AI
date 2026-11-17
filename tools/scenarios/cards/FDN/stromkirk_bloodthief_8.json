@@ -1,0 +1,56 @@
+{
+ "set": "FDN",
+ "name": "F09_8",
+ "notes": "Stromkirk Bloodthief. Printed: 'At the beginning of your end step, if an opponent lost life this turn, put a +1/+1 counter on target Vampire you control.' Losing ONE life is enough: seat 0's Skeleton Archer enters and deals 1 damage to seat 1 (19), the only life lost this turn. At seat 0's end step the Bloodthief (the only Vampire seat 0 controls, so the target is forced) gets one +1/+1 counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sb",
+   "real": "Stromkirk Bloodthief",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "archer",
+   "real": "Skeleton Archer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "archer",
+   "decisions": [
+    "player:1"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "sb": false,
+    "archer": false
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 19
+  },
+  "counters": {
+   "sb": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "archer": {}
+  }
+ }
+}

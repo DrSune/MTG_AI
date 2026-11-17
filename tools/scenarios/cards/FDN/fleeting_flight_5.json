@@ -1,0 +1,20 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Fleeting Flight, printed: 'Put a +1/+1 counter on target creature. It gains flying until end of turn.' Seat 0 casts it on its 2/2 in the main phase and attacks: it is 3/3 and flies, so seat 1's ground creature is never offered a block against it and seat 1 takes 3 (20 -> 17).",
+ "cards": [
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ground", "name": "Ground Blocker", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "ff", "real": "Fleeting Flight", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1}},
+ "steps": [
+  {"op": "cast", "key": "ff", "real": "Fleeting Flight", "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}}
+ ],
+ "expect": {
+  "zone": {"ff": "graveyard", "bear": "battlefield"},
+  "not_asked_to_block": ["ground"],
+  "life": {"0": 20, "1": 17},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 1}}
+ }
+}

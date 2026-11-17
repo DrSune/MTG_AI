@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "bite_down_the_creature_is_the_damage_source",
+ "notes": "Printed: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' The damage is dealt by the creature, not by the spell: seat 0's 2/2 Venom Leech (deathtouch, lifelink) bites seat 1's 6/6 Colossus. It deals 2 damage with deathtouch, so the Colossus dies, and seat 0 gains 2 life from the lifelink (22). The Leech takes no damage back.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bd", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "leech", "name": "Venom Leech", "type": "Creature", "power": "2", "toughness": "2", "keywords": ["DEATHTOUCH", "LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "colossus", "name": "Opp Colossus", "type": "Creature", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "key": "bd", "targets": ["leech", "colossus"]}
+ ],
+ "expect": {
+  "zone": {"bd": "graveyard", "leech": "battlefield", "colossus": "graveyard"},
+  "life": {"0": 22, "1": 20},
+  "mana_pool": {"0": {}}
+ }
+}

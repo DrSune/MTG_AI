@@ -239,5 +239,30 @@
  },
  "probe": {
   "sha": "e2549f3cbb401f0ad5b0395249e0173ef498436ff27f390f4a268d5f57e020c6"
+ },
+ "verified": {
+  "tree_sha": "3aa028659b7c598e1d9feb0f34e6092d5973af60f93c3423aef985604300957b",
+  "probe_sha": "e2549f3cbb401f0ad5b0395249e0173ef498436ff27f390f4a268d5f57e020c6",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave3",
+  "clauses": [
+   {
+    "clause": "Creatures you control get +10/+10 and gain vigilance until end of turn.",
+    "status": "OK",
+    "evidence": "[cast]: 'you_bear: P/T 2/2 -> 12/12; keywords +VIGILANCE', 'you_giant: P/T 4/4 -> 14/14; keywords +VIGILANCE', no opponent creature changes, 'after the turn ends' both revert (-VIGILANCE), mana C-5 G-2 for {5}{G}{G}. Pack B11_1 PASSES (the 12/12 attacker is still untapped after attacking and deals 12; home creature 11/11; the opponent's creature and a late arrival unchanged). Wrong twins fail.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/FDN/preposterous_proportions_1.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 13,
+   "score": 0.9285714285714286,
+   "survived": [
+    "widen filter (drop part 1) at 1/0/effect/steps/0/args/target/filter"
+   ]
+  }
  }
 }

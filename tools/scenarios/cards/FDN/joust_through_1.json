@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "joust_through_hits_an_attacker_for_exactly_three_and_its_caster_gains_one",
+ "notes": "Printed: 'Joust Through deals 3 damage to target attacking or blocking creature. You gain 1 life.' Seat 0 attacks with a 3/3 and a 4/4 into an empty board. In the declare-attackers window seat 1 (the defender, the caster) casts one Joust Through at the 3/3 and one at the 4/4, each with a tapped Plains. 3 damage kills the 3/3 and only marks the 4/4 (3 damage, still alive), so the damage is exactly 3. Each cast gains the caster 1 life: seat 1 ends at 20 + 1 + 1 - 4 (the surviving 4/4 is unblocked) = 18, seat 0 stays at 20. Only the targeted attacker is hit (the other is left alone by the first cast).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "att3", "name": "Three Attacker", "power": "3", "toughness": "3", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "att4", "name": "Four Attacker", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 0},
+  {"key": "jt1", "real": "Joust Through", "zone": "hand", "controller": 1},
+  {"key": "jt2", "real": "Joust Through", "zone": "hand", "controller": 1},
+  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 1},
+  {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"att3": true, "att4": true},
+   "respond": {"DECLARE_ATTACKERS": [
+     {"op": "cast", "key": "jt1", "real": "Joust Through", "controller": 1, "targets": ["att3"], "tap": true},
+     {"op": "cast", "key": "jt2", "real": "Joust Through", "controller": 1, "targets": ["att4"], "tap": true}
+   ]}}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 18},
+  "zone": {"att3": "graveyard", "att4": "battlefield", "jt1": "graveyard", "jt2": "graveyard"},
+  "damage": {"att4": 3},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {}, "1": {}}
+ }}

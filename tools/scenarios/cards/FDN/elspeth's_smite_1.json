@@ -1,0 +1,21 @@
+{"set": "FDN",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elspeth's Smite, printed: 'deals 3 damage to target attacking or blocking creature. If that creature would die this turn, exile it instead.' Seat 0 attacks with a 3/3 and a second 3/3. After attackers are declared, seat 1 (with a Plains) casts Smite at the first: 3 damage kills it, so it is exiled instead (never in the graveyard). The second attacker is not targeted: it is unharmed and its 3 combat damage reaches seat 1.",
+ "cards": [
+  {"key": "a", "name": "First Raider", "type": "Creature — Warrior", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "b", "name": "Second Raider", "type": "Creature — Warrior", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "smite", "real": "Elspeth's Smite", "zone": "hand", "controller": 1},
+  {"key": "pl", "real": "Plains", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"a": true, "b": true},
+   "respond": {"DECLARE_ATTACKERS": [{"op": "cast", "key": "smite", "real": "Elspeth's Smite", "controller": 1, "targets": ["a"], "tap": true}]}}
+ ],
+ "expect": {
+  "zone": {"a": "exile", "b": "battlefield", "smite": "graveyard"},
+  "graveyard": {"0": [], "1": ["Elspeth's Smite"]},
+  "life": {"0": 20, "1": 17},
+  "hand": {"1": 0},
+  "mana_pool": {"1": {}}
+ }
+}

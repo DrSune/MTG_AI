@@ -1,0 +1,147 @@
+{
+ "set": "FDN",
+ "name": "F04_4",
+ "notes": "Mold Adder. Printed: 'Whenever an OPPONENT casts a BLUE or BLACK spell, you may put a +1/+1 counter on this creature.' None of these qualifies, so no may is asked (the pack has no 'fire' or 'skip' word for one) and no counter lands: seat 0's own blue Opt; seat 1's red instant Sure Strike; then on seat 1's turn its red Swab Goblin, green Llanowar Elves, white Savannah Lions and the colourless Goblin Firebomb.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ma",
+   "real": "Mold Adder",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "foe",
+   "name": "Foe",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "myopt",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "strike",
+   "real": "Sure Strike",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "swab",
+   "real": "Swab Goblin",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "elves",
+   "real": "Llanowar Elves",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "lions",
+   "real": "Savannah Lions",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "bomb",
+   "real": "Goblin Firebomb",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "myopt",
+   "real": "Opt",
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "strike",
+   "real": "Sure Strike",
+   "controller": 1,
+   "targets": [
+    "foe"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 2,
+    "G": 1,
+    "W": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "swab",
+   "real": "Swab Goblin",
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "key": "elves",
+   "real": "Llanowar Elves",
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "key": "lions",
+   "real": "Savannah Lions",
+   "controller": 1
+  },
+  {
+   "op": "cast",
+   "key": "bomb",
+   "real": "Goblin Firebomb",
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "counters": {
+   "ma": {}
+  },
+  "power": {
+   "ma": 1
+  },
+  "zone": {
+   "myopt": "graveyard",
+   "strike": "graveyard",
+   "swab": "battlefield",
+   "elves": "battlefield",
+   "lions": "battlefield",
+   "bomb": "battlefield"
+  }
+ }
+}
