@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "macabre_waltz_returns_two_then_discards_one",
+ "notes": "Printed: 'Return up to two target creature cards from your graveyard to your hand, then discard a card.' Seat 0 targets the two creature cards in its graveyard (not seat 1's creature card, not its own sorcery card): both return to its hand, then it discards one card of its choice, here the Spare it already held. Hand: Spare -> Spare + Ghoul + Wolf -> Ghoul + Wolf.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mw", "real": "Macabre Waltz", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "ghoul", "name": "Ghoul", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "type": "Creature — Wolf", "power": "3", "toughness": "3", "zone": "graveyard", "controller": 0},
+  {"key": "sorc", "name": "Old Sorcery", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "theirs", "name": "Their Zombie", "type": "Creature — Zombie", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "mw", "real": "Macabre Waltz", "controller": 0, "targets": ["ghoul", "wolf"], "decisions": ["spare"]}
+ ],
+ "expect": {
+  "zone": {"mw": "graveyard", "ghoul": "hand", "wolf": "hand", "spare": "graveyard", "sorc": "graveyard", "theirs": "graveyard"},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

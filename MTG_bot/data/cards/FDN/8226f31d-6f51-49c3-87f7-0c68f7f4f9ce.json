@@ -1,0 +1,147 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "8226f31d-6f51-49c3-87f7-0c68f7f4f9ce",
+ "name": "Make Your Move",
+ "text_sha": "e6c5159eb7de6e49048333c99c6179e0cb8a38bc0fff1563da5c07c38f8456b9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DESTROY"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FOr",
+          "children": [
+           {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "POWER_GE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": {
+               "tag": "QConst",
+               "value": 4
+              },
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Artifact",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Enchantment",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Make Your Move: \"Destroy target artifact, enchantment, or creature with power 4 or greater.\"\n# ZNR Broken Wings' shape (\"Destroy target artifact, enchantment, or creature with flying.\") with\n# the creature's qualifier POWER_GE 4 (Leafkin Avenger's \"creature with power 4 or greater\").\n# \"with power 4 or greater\" qualifies only \"creature\" (an artifact or enchantment of any kind is\n# a legal target).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FOr(children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n                    FAnd(children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n                    )),\n                )),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Destroy target artifact, enchantment, or creature with power 4 or greater.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ZNR/FDN Broken Wings' shape with 'creature with power 4 or greater' (POWER_GE 4). G1's target slot offers the 4/4s, artifacts and enchantments, not the 3/3, 2/2s or 1/1."
+ },
+ "probe": {
+  "sha": "219f7fd064d1a0d9b72754dc4bdaca894f835250b1aa9a39a53e7c280e117abc"
+ }
+}

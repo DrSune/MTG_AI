@@ -1,0 +1,276 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "9b9a10ff-5a5d-4df8-88aa-18d84ff9117c",
+ "name": "Inspiring Call",
+ "text_sha": "4a8c5d7296bb24944cfda60d7b26aa35f017f77fb46a6e85b901f43c7b75a978",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DRAW"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QBin",
+           "op": {
+            "tag": "QBinOp",
+            "name": "MUL"
+           },
+           "left": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "right": {
+            "tag": "QCount",
+            "selector": {
+             "tag": "Selector",
+             "count": {
+              "tag": "QUnbounded"
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "ALL"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "YOU"
+                },
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "HAS_COUNTER"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": {
+                 "tag": "QConst",
+                 "value": 1
+                },
+                "counter_kind": {
+                 "tag": "CounterKind",
+                 "name": "PLUS_1_PLUS_1"
+                },
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           }
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "INDESTRUCTIBLE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "HAS_COUNTER"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "counter_kind": {
+               "tag": "CounterKind",
+               "name": "PLUS_1_PLUS_1"
+              },
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Inspiring Call: \"Draw a card for each creature you control with a +1/+1 counter on it. Those\n# creatures gain indestructible until end of turn.\"\n# Sentence 1: DRAW of \"N for each X\" = QBin(MUL, QConst(N), QCount(...)) (MAPPER_GUIDE; M21 Canopy\n# Stalker's \"1 life for each\"), \"a card\" N = 1, over M21 Pridemalkin's selector \"each creature you\n# control with a +1/+1 counter on it\" (HAS_COUNTER +1/+1). Sentence 2: GRANT_ABILITY\n# (INDESTRUCTIBLE) until end of turn over the same creatures (the same ALL selector, read as the\n# spell resolves; the draw changes no counters), as Overcome repeats its selector.\nwith_counter = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        FAtom(pred=FAtomPred.HAS_COUNTER, count=QConst(value=1), counter_kind=CounterKind.PLUS_1_PLUS_1),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(steps=(\n            A(Verb.DRAW, {\n                'amount': QBin(op=QBinOp.MUL, left=QConst(value=1), right=QCount(selector=with_counter)),\n                'controller': ControllerRef.YOU,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),\n                'duration': DurationEot(),\n                'target': with_counter,\n            }),\n        )),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Draw a card for each creature you control with a +1/+1 counter on it.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Those creatures gain indestructible until end of turn.",
+    "ir": "abilities[0].effect.steps[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "DRAW QBin(MUL, QConst(1), QCount(creatures you control with a +1/+1 counter)) (MAPPER_GUIDE 'N for each X'; Pridemalkin's selector), then INDESTRUCTIBLE until end of turn over the same ALL selector. The probe board has no counters. Packs: tools/scenarios/mapped/FDN/inspiring_call_*.json."
+ },
+ "probe": {
+  "sha": "c7b4c22139bc904afd5d653bc72037ecef2fcc5fb65f9dd54a25d3ca7928b83c"
+ }
+}

@@ -1,0 +1,195 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "903d114b-1899-4e67-bee3-af0673850388",
+ "name": "Faebloom Trick",
+ "text_sha": "8384714cc5ef730b6b0b482f3642d8f8d09ecc621d56ab02273a61e66b555d19",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Faerie",
+           "type_line": "Creature — Faerie",
+           "types": [
+            "Creature"
+           ],
+           "subtypes": [
+            "Faerie"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "keywords": [
+            {
+             "tag": "Keyword",
+             "name": "FLYING"
+            }
+           ],
+           "abilities": [],
+           "colors": [
+            "U"
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Conditional",
+       "pred": {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "MAY_DONE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       "then_effect": {
+        "tag": "DelayedTrigger",
+        "condition": null,
+        "effect": {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "TAP"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "target",
+            {
+             "tag": "Selector",
+             "count": {
+              "tag": "QConst",
+              "value": 1
+             },
+             "mode": {
+              "tag": "SelectorMode",
+              "name": "TARGET"
+             },
+             "filter": {
+              "tag": "FAnd",
+              "children": [
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "CONTROLLER_IS"
+                },
+                "string_value": null,
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": {
+                 "tag": "ControllerRef",
+                 "name": "OPPONENT"
+                },
+                "inner_filter": null
+               },
+               {
+                "tag": "FAtom",
+                "pred": {
+                 "tag": "FAtomPred",
+                 "name": "TYPE_EQ"
+                },
+                "string_value": "Creature",
+                "color": null,
+                "colors": [],
+                "count": null,
+                "counter_kind": null,
+                "keyword": null,
+                "who": null,
+                "inner_filter": null
+               }
+              ]
+             },
+             "zones": [
+              {
+               "tag": "Zone",
+               "kind": {
+                "tag": "ZoneKind",
+                "name": "BATTLEFIELD"
+               },
+               "controller": {
+                "tag": "ControllerRef",
+                "name": "ANY"
+               }
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        }
+       },
+       "else_effect": null
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-M2",
+  "date": "2026-11-17",
+  "draft_py": "# Faebloom Trick: \"Create two 1/1 blue Faerie creature tokens with flying. When you do, tap target\n# creature an opponent controls.\"\n# Sentence 1 is the compiler's CREATE_TOKEN, kept. Sentence 2 is a reflexive trigger (CR 603.12)\n# after a mandatory action: MAPPER_GUIDE's \"X. When you do, Y\" form, Seq(X, Conditional(MAY_DONE,\n# DelayedTrigger(duration=None, event=None, condition=None, effect=Y))) (M21 Tolarian Kraken's\n# shape without its \"you may\"). Y is ZNR Makindi Ox's \"tap target creature an opponent controls\";\n# the reflexive trigger chooses its own target as it goes on the stack after the spell resolves\n# (the spell itself has no target).\ncreate = compiled[0].effect\ntap = A(Verb.TAP, {\n    'target': Selector(\n        count=QConst(value=1),\n        mode=SelectorMode.TARGET,\n        filter=FAnd(children=(\n            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        )),\n        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n    ),\n})\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(steps=(\n            create,\n            Conditional(\n                pred=FAtom(pred=FAtomPred.MAY_DONE),\n                then_effect=DelayedTrigger(duration=None, event=None, condition=None, effect=tap),\n            ),\n        )),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Create two 1/1 blue Faerie creature tokens with flying.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "When you do, tap target creature an opponent controls.",
+    "ir": "abilities[0].effect.steps[1] (Conditional MAY_DONE around a reflexive DelayedTrigger, CR 603.12)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiler's CREATE_TOKEN is kept. 'When you do, tap target creature an opponent controls.' is a reflexive trigger after a mandatory action (MAPPER_GUIDE: Seq(X, Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None, condition=None, effect=Y))), M21 Tolarian Kraken's shape): the spell has no target, the trigger chooses its own after the tokens exist. Packs: tools/scenarios/mapped/FDN/faebloom_trick_*.json (taps the chosen opposing creature; cast with no opposing creature, the tokens are made and nothing is tapped)."
+ },
+ "probe": {
+  "sha": "7798be9ff44fbf6dc6b21340ddd06dcbd8786da963d95818066729c91acb3a37"
+ }
+}

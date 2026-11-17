@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "refute_counters_then_draws_and_discards",
+ "notes": "Printed: 'Counter target spell. Draw a card, then discard a card.' Seat 0 casts Savannah Lions; seat 1 answers with Refute ({1}{U}{U}): the Lions are countered, seat 1 draws one card (Library 5, the top filler) and then discards one card of its choice, here the Spare it held (hand: Spare -> Spare + Library 5 -> Library 5).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "lions", "real": "Savannah Lions", "zone": "hand", "controller": 0},
+  {"key": "refute", "real": "Refute", "zone": "hand", "controller": 1},
+  {"key": "spare", "name": "Spare", "type": "Creature — Ox", "power": "1", "toughness": "1", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}, "1": {"U": 2, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "lions", "real": "Savannah Lions", "hold": true},
+  {"op": "cast", "key": "refute", "real": "Refute", "controller": 1, "targets": ["lions"], "decisions": ["spare"]}
+ ],
+ "expect": {
+  "zone": {"lions": "graveyard", "refute": "graveyard", "spare": "graveyard"},
+  "hand": {"0": 0, "1": 1},
+  "graveyard": {"1": ["Refute", "Spare"]},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}
