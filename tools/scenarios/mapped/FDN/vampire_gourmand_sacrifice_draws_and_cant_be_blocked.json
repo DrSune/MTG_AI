@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "vampire_gourmand_sacrifice_draws_and_cant_be_blocked",
+ "notes": "M6 mapper. Printed: 'Whenever this creature attacks, you may sacrifice another creature. If you do, draw a card and this creature can't be blocked this turn.' The Gourmand attacks and seat 0 sacrifices its Bear (its other creature): seat 0 draws a card, and seat 1's Bear has no legal block and is never asked; seat 1 takes 2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gourmand", "real": "Vampire Gourmand", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gourmand": true, "bear": false}, "may": {"gourmand": true}}
+ ],
+ "expect": {
+  "attackers": {"gourmand": true},
+  "not_asked_to_block": ["obear"],
+  "zone": {"bear": "graveyard", "gourmand": "battlefield", "obear": "battlefield"},
+  "hand": {"0": 1},
+  "life": {"0": 20, "1": 18}
+ }
+}

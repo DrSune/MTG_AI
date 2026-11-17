@@ -1,0 +1,217 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c744b5f4-fbcf-48b8-9d60-5e9c6ac297e0",
+ "name": "Trygon Predator",
+ "text_sha": "d0ff220fcf7d0a5751d17b490dd7e2e06aa4c7c684a6b2c1603c56e2dee8f29c",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FLYING"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_PERMANENT"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "source": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "combat": true
+    },
+    "condition": null,
+    "effect": {
+     "tag": "OptionalEffect",
+     "inner": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "DESTROY"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "target",
+         {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FOr",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Artifact",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Enchantment",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "CHOOSE"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": []
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "ANY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "ANY"
+                }
+               }
+              ],
+              "referent": "event"
+             },
+             "inner_filter": null
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        ]
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Trygon Predator (FDN), a 2/3 Beast with flying for {1}{G}{U}.\n# \"Flying\"                                 compiled keyword, kept\n# \"Whenever this creature deals combat damage to a player, you may destroy target artifact or\n#  enchantment that player controls.\"\n# Event: M21 Jeskai Elder's verified \"Whenever this creature deals combat damage to a player\"\n#   (DamageDealtEvent from IS_SOURCE to a non-permanent, combat).\n# Effect: \"you may\" is OptionalEffect (the target is chosen as the trigger goes on the stack, the\n#   choice to destroy made on resolution). The target is M21 Feline Sovereign's verified \"target\n#   artifact or enchantment that player controls\": TYPE_EQ Artifact or Enchantment, CONTROLLER_IS\n#   the referent 'event' Selector, the damaged player (R_ITSCONTROLLER, a damage event's\n#   recipient); Feline Sovereign's \"up to one\" is QAtMost(1), Trygon's \"target\" is QConst(1).\ncombat_damage = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n        source=FAtom(pred=FAtomPred.IS_SOURCE),\n        combat=True,\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FOr(\n                            children=(\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n                            ),\n                        ),\n                        FAtom(\n                            pred=FAtomPred.CONTROLLER_IS,\n                            who=Selector(\n                                count=QConst(value=1),\n                                mode=SelectorMode.CHOOSE,\n                                filter=FAnd(children=()),\n                                zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                                referent='event',\n                            ),\n                        ),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n)\nabilities = [combat_damage, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever this creature deals combat damage to a player, you may destroy target artifact or enchantment that player controls.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Jeskai Elder's combat-damage trigger; 'you may' as OptionalEffect; M21 Feline Sovereign's verified 'target artifact or enchantment that player controls' (referent 'event') with one target. Pack: tools/scenarios/mapped/FDN/trygon_predator_declined_destroys_nothing.json."
+ },
+ "probe": {
+  "sha": "0bf6ea1e9bc2ec28162750ebda5623ed76597512b0cc15960034606169dd6ded"
+ }
+}

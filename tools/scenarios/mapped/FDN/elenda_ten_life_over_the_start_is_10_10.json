@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "elenda_ten_life_over_the_start_is_10_10",
+ "notes": "M6 mapper. Printed: 'As long as your life total is greater than your starting life total, Elenda gets +1/+1 and has menace. Elenda gets an additional +5/+5 as long as your life total is at least 10 greater than your starting life total.' Both players start at 20. Elenda (lifelink) deals 10 damage to seat 1's Wall: seat 0 gains 10, 30 life, exactly 10 over the start, so both bonuses apply: 4/4 +1/+1 +5/+5 = 10/10.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elenda", "real": "Elenda, Saint of Dusk", "zone": "battlefield", "controller": 0},
+  {"key": "owall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "30", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "elenda", "target": "owall", "amount": 10}
+ ],
+ "expect": {
+  "life": {"0": 30, "1": 20},
+  "damage": {"owall": 10},
+  "power": {"elenda": 10},
+  "toughness": {"elenda": 10}
+ }
+}

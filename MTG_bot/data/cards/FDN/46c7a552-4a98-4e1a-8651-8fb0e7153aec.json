@@ -1,0 +1,113 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "46c7a552-4a98-4e1a-8651-8fb0e7153aec",
+ "name": "Ravenous Giant",
+ "text_sha": "ab259700ac387926f935df04b17d80036fff9a98d7417b78bcc731bf741a44c7",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "UPKEEP"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "YOU"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Ravenous Giant (FDN), a 5/5 Giant for {2}{R}{R}.\n# \"At the beginning of your upkeep, this creature deals 1 damage to you.\"\n# Event: the compiler's \"At the beginning of your upkeep\" (frame B13-upkeep, TurnPhaseEvent UPKEEP,\n#   actor CONTROLLER_IS YOU).\n# Effect: DEAL_DAMAGE 1 from the source (the trigger's source deals it) to you. \"To each opponent\"\n#   is M21 Storm Caller's verified Selector(ALL over Zone(PLAYER, OPPONENT)); \"to you\" is the same\n#   selector over Zone(PLAYER, YOU). Damage, not life loss: it is damage dealt by a red creature\n#   (protection, prevention and damage triggers see it, CR 120.3a).\nupkeep = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.UPKEEP,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.DEAL_DAMAGE, {\n        'amount': QConst(value=1),\n        'target': Selector(\n            count=QUnbounded(),\n            mode=SelectorMode.ALL,\n            filter=FAnd(children=()),\n            zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.YOU),),\n        ),\n    }),\n)\nabilities = [upkeep, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your upkeep, this creature deals 1 damage to you.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The upkeep frame; DEAL_DAMAGE from the source to Selector(ALL over Zone(PLAYER, YOU)), M21 Storm Caller's verified 'each opponent' selector with YOU (damage, not life loss)."
+ },
+ "probe": {
+  "sha": "b41a9ffe9d54ca7d4d61cc5059adeb65eefb53d90bed68e9cf2e03b5172bf801"
+ }
+}

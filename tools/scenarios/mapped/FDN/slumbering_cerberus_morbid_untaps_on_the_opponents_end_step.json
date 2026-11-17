@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "slumbering_cerberus_morbid_untaps_on_the_opponents_end_step",
+ "notes": "M6 mapper. Printed: 'Morbid — At the beginning of each end step, if a creature died this turn, untap this creature.' The Cerberus attacks on turn 1 (seat 1 takes 4) and stays tapped; nothing dies in turn 1, so seat 0's end step leaves it tapped. In seat 1's turn 2 seat 0's Bear dies (2 damage from seat 0's Cub, another effect's): at the beginning of seat 1's end step, each end step, the Cerberus untaps.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cerberus", "real": "Slumbering Cerberus", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "cub", "name": "Your Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"cerberus": true, "bear": false, "cub": false}},
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "cub", "target": "bear", "amount": 2},
+  {"op": "to_step", "step": "END_TURN"}
+ ],
+ "expect": {
+  "attackers": {"cerberus": true},
+  "zone": {"bear": "graveyard"},
+  "tapped": {"cerberus": false},
+  "life": {"0": 20, "1": 16}
+ }
+}

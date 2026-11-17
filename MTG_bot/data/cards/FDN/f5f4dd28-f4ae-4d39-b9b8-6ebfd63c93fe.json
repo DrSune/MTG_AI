@@ -1,0 +1,362 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f5f4dd28-f4ae-4d39-b9b8-6ebfd63c93fe",
+ "name": "Basilisk Collar",
+ "text_sha": "9dda00709edf8f13eb4bf7be59b37badc74f9aa620596277eb2df4087e745bd3",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "EQUIP"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DEATHTOUCH"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "LIFELINK"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_ATTACHED_TO_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "ATTACH"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "equipment",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    },
+    "timing": {
+     "tag": "ActivationWindow",
+     "name": "SORCERY"
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Basilisk Collar (FDN), an Equipment for {1}.\n# \"Equipped creature has deathtouch and lifelink.\"\n# \"Equip {2}\"                              compiled (B5a-equip, sorcery timing), kept\n# M10 Gorgon Flail's / 10E Loxodon Warhammer's B11-attached-pt static (verified) without the P/T\n#   part: one StaticAbility of GRANT_ABILITY steps over \"equipped creature\" (IS_ATTACHED_TO_SOURCE\n#   with TYPE_EQ 'Creature', ALL), keyword grants sorted by name (D23: DEATHTOUCH, LIFELINK, which\n#   is also the printed order).\nequipped = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(\n        children=(\n            FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        ),\n    ),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ngrants = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.DEATHTOUCH),\n                'target': equipped,\n            }),\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.LIFELINK),\n                'target': equipped,\n            }),\n        ),\n    ),\n)\nabilities = [grants, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Equipped creature has deathtouch and lifelink.",
+    "ir": "abilities[0] (static GRANT_ABILITY deathtouch, lifelink to the equipped creature)"
+   },
+   {
+    "clause": "Equip {2}",
+    "ir": "abilities[1]; keywords[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "B11-attached-pt's static (M10 Gorgon Flail, verified) with the two keyword grants, sorted by name (D23); the compiled equip kept. Pack: tools/scenarios/mapped/FDN/basilisk_collar_equipped_bear_kills_and_gains.json."
+ },
+ "probe": {
+  "sha": "8115c5d560d70143e1de21d64d2784d4dc4087d1a3b4715039c7b9b826dd7f30"
+ }
+}

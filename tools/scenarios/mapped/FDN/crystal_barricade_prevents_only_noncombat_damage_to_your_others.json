@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "crystal_barricade_prevents_only_noncombat_damage_to_your_others",
+ "notes": "M6 mapper. Printed: 'Prevent all noncombat damage that would be dealt to other creatures you control.' Seat 0 controls the Barricade (0/4) and a 2/2 Bear; seat 1 an Ogre (3/3) and a 2/2 Bear. Noncombat damage (another effect's, from the Ogre): 2 to seat 0's Bear is prevented (no mark); 2 to the Barricade itself is dealt (it is not another creature); 1 to seat 1's Bear is dealt (not seat 0's). Then seat 0's Bear attacks and the Ogre blocks: combat damage is not prevented, the Bear dies and deals 2 to the Ogre.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "barricade", "real": "Crystal Barricade", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 2, "controller": 1},
+  {"op": "deal_damage", "source": "ogre", "target": "barricade", "amount": 2, "controller": 1},
+  {"op": "deal_damage", "source": "ogre", "target": "obear", "amount": 1, "controller": 1},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"ogre": "bear", "obear": null}}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "barricade": "battlefield", "ogre": "battlefield", "obear": "battlefield"},
+  "blocked": {"bear": ["ogre"]},
+  "damage": {"barricade": 2, "obear": 1, "ogre": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

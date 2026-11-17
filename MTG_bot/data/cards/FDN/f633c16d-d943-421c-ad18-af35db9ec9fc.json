@@ -1,0 +1,356 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f633c16d-d943-421c-ad18-af35db9ec9fc",
+ "name": "Primeval Bounty",
+ "text_sha": "0d3c80656514c858803157c39b51fd6b8447ffae9cafcff96f8b0b58d461c3a9",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "TYPE_EQ"
+      },
+      "string_value": "Creature",
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Beast",
+         "type_line": "Creature — Beast",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Beast"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 3
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 3
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "G"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "CastSpellEvent",
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "TYPE_EQ"
+       },
+       "string_value": "Creature",
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "TARGET"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_LIFE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Primeval Bounty (FDN), an enchantment for {5}{G}.\n# \"Whenever you cast a creature spell, create a 3/3 green Beast creature token.\n#  Whenever you cast a noncreature spell, put three +1/+1 counters on target creature you control.\n#  Landfall — Whenever a land you control enters, you gain 3 life.\"\n# [0] CastSpellEvent over creature spells you cast: M21 Spellgorger Weird's verified\n#     \"Whenever you cast a noncreature spell\" (B2b-noncreature-counter) without the FNot; the token\n#     is M21 Elder Gargaroth's verified 3/3 green Beast.\n# [1] B2b-noncreature-counter's event (parses: `parse \"Whenever you cast a noncreature spell, put\n#     a +1/+1 counter on this creature.\"`); the effect is B5b-put-counter's \"Put a +1/+1 counter\n#     on target creature you control.\" (Feat of Resistance) with count 3.\n# [2] B7-landfall-trigger (Kazandu Nectarpot) with the printed 3.\n# Landfall is an ability word (CR 207.2c). The compiled cast carrier is kept.\ncreature_cast = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Beast',\n            type_line='Creature — Beast',\n            types=('Creature',),\n            subtypes=('Beast',),\n            power=QConst(value=3),\n            toughness=QConst(value=3),\n            keywords=(),\n            abilities=(),\n            colors=('G',),\n        ),\n    }),\n)\nnoncreature_cast = TriggeredAbility(\n    event=CastSpellEvent(\n        filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')),\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=3),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nlandfall = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n)\nabilities = [creature_cast, noncreature_cast, landfall, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever you cast a creature spell, create a 3/3 green Beast creature token.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever you cast a noncreature spell, put three +1/+1 counters on target creature you control.",
+    "ir": "abilities[1]"
+   },
+   {
+    "clause": "Landfall — Whenever a land you control enters, you gain 3 life.",
+    "ir": "abilities[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Creature-spell and noncreature-spell cast triggers (M21 Spellgorger Weird's event, verified), Elder Gargaroth's 3/3 Beast, Feat of Resistance's counter with count 3, ZNR Kazandu Nectarpot's landfall with 3 life; one landfall trigger per land. Pack: tools/scenarios/mapped/FDN/primeval_bounty_two_lands_at_once_gain_twice.json."
+ },
+ "probe": {
+  "sha": "4b3670a5febba3735aa63797dfa2b532224790403bafdb71d9f37e22d4915771"
+ }
+}

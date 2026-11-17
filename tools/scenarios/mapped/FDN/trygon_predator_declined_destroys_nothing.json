@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "trygon_predator_declined_destroys_nothing",
+ "notes": "M6 mapper. Printed: 'Whenever this creature deals combat damage to a player, you may destroy target artifact or enchantment that player controls.' The Predator deals 2 combat damage to seat 1. Seat 1's artifact is the one legal target (seat 0's own artifact is not 'that player's'); seat 0 declines the 'may': nothing is destroyed.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "trygon", "real": "Trygon Predator", "zone": "battlefield", "controller": 0},
+  {"key": "yrelic", "name": "Your Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "orelic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"trygon": true}, "may": {"trygon": false}}
+ ],
+ "expect": {
+  "attackers": {"trygon": true},
+  "zone": {"yrelic": "battlefield", "orelic": "battlefield"},
+  "life": {"0": 20, "1": 18}
+ }
+}

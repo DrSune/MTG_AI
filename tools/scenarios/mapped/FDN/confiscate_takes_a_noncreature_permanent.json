@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "confiscate_takes_a_noncreature_permanent",
+ "notes": "M6 mapper. Printed: 'Enchant permanent. You control enchanted permanent.' Seat 0 casts Confiscate on seat 1's artifact, a noncreature permanent (Enchant permanent allows it): while the Aura is attached seat 0 controls the artifact; seat 1's other artifact is untouched.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "conf", "real": "Confiscate", "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "other", "name": "Opp Trinket", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 2, "C": 4}},
+  {"op": "cast", "key": "conf", "controller": 0, "targets": ["relic"]}
+ ],
+ "expect": {
+  "zone": {"conf": "battlefield", "relic": "battlefield"},
+  "attached": {"conf": "relic"},
+  "controller": {"relic": 0, "other": 1}
+ }
+}

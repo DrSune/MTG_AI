@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "elenda_hexproof_from_instants_only",
+ "notes": "M6 mapper. Printed: 'Lifelink, hexproof from instants' (CR 702.11d: it can't be the target of instant spells an opponent controls). Support cards: FDN Scorching Dragonfire (verified instant: 3 damage to target creature or planeswalker) and Deathmark (mapped sorcery: destroy target green or white creature; Elenda is white and black). On seat 1's turn, seat 1's Scorching Dragonfire cannot target Elenda; seat 1's Deathmark, a sorcery, can, and destroys her.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "elenda", "real": "Elenda, Saint of Dusk", "zone": "battlefield", "controller": 0},
+  {"key": "fire", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1},
+  {"key": "mark", "real": "Deathmark", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"R": 1, "C": 1, "B": 1}},
+  {"op": "cast", "key": "fire", "controller": 1, "targets": ["elenda"], "expect_raise": "illegal target"},
+  {"op": "cast", "key": "mark", "controller": 1, "targets": ["elenda"]}
+ ],
+ "expect": {
+  "zone": {"elenda": "graveyard", "fire": "hand", "mark": "graveyard"}
+ }
+}

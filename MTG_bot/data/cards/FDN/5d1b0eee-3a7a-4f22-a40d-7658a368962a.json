@@ -1,0 +1,309 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "5d1b0eee-3a7a-4f22-a40d-7658a368962a",
+ "name": "Ruby, Daring Tracker",
+ "text_sha": "260660d09201cf358d99c83f31159bb1447b982af23f660c623da6fd6d7f97f7",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "HASTE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "IS_SOURCE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_COUNT_GE"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": {
+         "tag": "QConst",
+         "value": 1
+        },
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": {
+         "tag": "FAnd",
+         "children": [
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          },
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "POWER_GE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": {
+            "tag": "QConst",
+            "value": 4
+           },
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ]
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 2
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "ADD_MANA"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "color",
+          {
+           "tag": "String",
+           "value": "R"
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "ADD_MANA"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "color",
+          {
+           "tag": "String",
+           "value": "G"
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Ruby, Daring Tracker (FDN), a legendary 1/2 Human Scout for {R}{G}.\n# \"Haste\"                                 compiled keyword, kept\n# \"Whenever Ruby attacks while you control a creature with power 4 or greater, Ruby gets +2/+2\n#  until end of turn.\"\n# \"{T}: Add {R} or {G}.\"                  compiled (B3-add-mana-choose), kept\n# The attack trigger is FDN Courageous Goblin's mapped \"Whenever this creature attacks while you\n#   control a creature with power 4 or greater, ...\" (M4 batch): the \"while\" clause is part of the\n#   trigger event (MAPPER_GUIDE: only an intervening \"if\" is the condition), so the\n#   CONTROLLER_COUNT_GE test of M21 Ornery Dilophosaur's verified \"if you control a creature with\n#   power 4 or greater\" sits in the DeclareAttackersEvent filter beside IS_SOURCE. \"A creature\"\n#   includes Ruby herself. The effect is Ornery Dilophosaur's verified \"+2/+2 until end of turn\"\n#   on the source.\nattack = TriggeredAbility(\n    event=DeclareAttackersEvent(\n        filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.IS_SOURCE),\n                FAtom(\n                    pred=FAtomPred.CONTROLLER_COUNT_GE,\n                    count=QConst(value=1),\n                    inner_filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(pred=FAtomPred.POWER_GE, count=QConst(value=4)),\n                        ),\n                    ),\n                ),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.MODIFY_PT, {\n        'duration': DurationEot(),\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n    }),\n)\nabilities = [attack, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Haste",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Whenever Ruby attacks while you control a creature with power 4 or greater, Ruby gets +2/+2 until end of turn.",
+    "ir": "abilities[0] (the 'while' test in the DeclareAttackersEvent filter)"
+   },
+   {
+    "clause": "{T}: Add {R} or {G}.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "FDN Courageous Goblin's (M4) 'attacks while you control' test in the DeclareAttackersEvent filter, M21 Ornery Dilophosaur's power-4 count and +2/+2 until end of turn; the compiled haste and mana ability kept. Packs: tools/scenarios/mapped/FDN/ruby_no_bonus_without_your_power_four_creature.json, tools/scenarios/mapped/FDN/ruby_bonus_ends_with_the_turn.json."
+ },
+ "probe": {
+  "sha": "0c2953928e4959ed0bff10716813f006a8f70275e662cffeca2714238debe676"
+ }
+}
