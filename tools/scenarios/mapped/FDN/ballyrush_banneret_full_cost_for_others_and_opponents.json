@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "ballyrush_banneret_full_cost_for_others_and_opponents",
+ "notes": "M6 mapper. Printed: 'Kithkin spells and Soldier spells you cast cost {1} less to cast.' Support cards: FDN Gleaming Barrier (verified; {2} Wall) and Cathar Commando (verified; {1}{W} Human Soldier, flash). Seat 0 controls the Banneret. Seat 0's Gleaming Barrier is neither a Kithkin nor a Soldier spell: refused with {1}. Seat 1's Cathar Commando is a Soldier spell seat 1 casts, not seat 0: refused with {W}; with {1}{W} seat 1 casts it.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "banneret", "real": "Ballyrush Banneret", "zone": "battlefield", "controller": 0},
+  {"key": "barrier", "real": "Gleaming Barrier", "zone": "hand", "controller": 0},
+  {"key": "opp_commando", "real": "Cathar Commando", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "cast", "key": "barrier", "controller": 0, "expect_raise": "illegal cast: cost:mana_generic:1<2"},
+  {"op": "mana", "seat": 1, "add": {"W": 1}},
+  {"op": "cast", "key": "opp_commando", "controller": 1, "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 1, "add": {"W": 1, "C": 1}},
+  {"op": "cast", "key": "opp_commando", "controller": 1}
+ ],
+ "expect": {
+  "zone": {"barrier": "hand", "opp_commando": "battlefield"},
+  "controller": {"opp_commando": 1}
+ }
+}

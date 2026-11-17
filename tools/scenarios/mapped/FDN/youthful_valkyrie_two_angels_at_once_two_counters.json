@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "youthful_valkyrie_two_angels_at_once_two_counters",
+ "notes": "M6 mapper. Printed: 'Whenever another Angel you control enters, put a +1/+1 counter on this creature.' Support card: FDN Raise the Past (verified; 'Return all creature cards with mana value 2 or less from your graveyard to the battlefield.'). Two Angel cards and a Bear card return to seat 0's battlefield at the same time: each Angel is another Angel entering, so the Valkyrie triggers twice (once per Angel, not once for the event; the Bear is not an Angel): two +1/+1 counters, 3/5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "valkyrie", "real": "Youthful Valkyrie", "zone": "battlefield", "controller": 0},
+  {"key": "raise", "real": "Raise the Past", "zone": "hand", "controller": 0},
+  {"key": "angel1", "name": "Grave Angel One", "type": "Creature — Angel", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0},
+  {"key": "angel2", "name": "Grave Angel Two", "type": "Creature — Angel Warrior", "power": "1", "toughness": "1", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "gbear", "name": "Grave Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "cmc": 2, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 2}},
+  {"op": "cast", "key": "raise", "controller": 0, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"raise": "graveyard", "angel1": "battlefield", "angel2": "battlefield", "gbear": "battlefield"},
+  "counters": {"valkyrie": {"PLUS_1_PLUS_1": 2}},
+  "power": {"valkyrie": 3},
+  "toughness": {"valkyrie": 5}
+ }
+}

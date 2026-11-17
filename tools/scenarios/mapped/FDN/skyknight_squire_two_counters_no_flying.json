@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "skyknight_squire_two_counters_no_flying",
+ "notes": "M6 mapper. Printed: 'As long as this creature has three or more +1/+1 counters on it, it has flying and is a Knight in addition to its other types.' The Squire has two +1/+1 counters (3/3), fewer than three: no flying, so seat 1's Bear may block it, and does; the Bear dies, the Squire survives with 2 damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "squire", "real": "Skyknight Squire", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"squire": true}, "block": {"obear": "squire"}}
+ ],
+ "expect": {
+  "attackers": {"squire": true},
+  "blocked": {"squire": ["obear"]},
+  "zone": {"obear": "graveyard", "squire": "battlefield"},
+  "damage": {"squire": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

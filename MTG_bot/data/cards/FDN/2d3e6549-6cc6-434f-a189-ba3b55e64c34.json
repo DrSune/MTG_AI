@@ -1,0 +1,161 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2d3e6549-6cc6-434f-a189-ba3b55e64c34",
+ "name": "Rampaging Baloths",
+ "text_sha": "e54f6108c06a1e09a3be7b873caf021e4d5de83e08f175945a1e7d6802400544",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Land",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "TokenSpec",
+         "name": "Beast",
+         "type_line": "Creature — Beast",
+         "types": [
+          "Creature"
+         ],
+         "subtypes": [
+          "Beast"
+         ],
+         "power": {
+          "tag": "QConst",
+          "value": 4
+         },
+         "toughness": {
+          "tag": "QConst",
+          "value": 4
+         },
+         "keywords": [],
+         "abilities": [],
+         "colors": [
+          "G"
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Rampaging Baloths (FDN), a 6/6 Beast with trample for {4}{G}{G}.\n# \"Trample\"  (compiled keyword, kept)\n# \"Landfall — Whenever a land you control enters, create a 4/4 green Beast creature token.\"\n# Event: the compiler's B7-landfall-trigger (ZNR Kazandu Nectarpot: `parse \"Landfall — Whenever a\n#   land you control enters, you gain 1 life.\"`). Landfall is an ability word (CR 207.2c).\n# Effect: M21 Elder Gargaroth's verified \"Create a 3/3 green Beast creature token.\" with the\n#   printed 4/4.\nlandfall = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Beast',\n            type_line='Creature — Beast',\n            types=('Creature',),\n            subtypes=('Beast',),\n            power=QConst(value=4),\n            toughness=QConst(value=4),\n            keywords=(),\n            abilities=(),\n            colors=('G',),\n        ),\n    }),\n)\nabilities = [landfall, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Landfall — Whenever a land you control enters, create a 4/4 green Beast creature token.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "ZNR Kazandu Nectarpot's landfall trigger with Elder Gargaroth's Beast token at 4/4; one trigger per land. Pack: tools/scenarios/mapped/FDN/rampaging_baloths_two_lands_at_once_two_beasts.json."
+ },
+ "probe": {
+  "sha": "d325b6a43191a69a35c7c1e4da8e9173d16fee5e8b99e18b712258a62ad7f23a"
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "needletooth_pack_no_counters_without_a_death_or_on_opponents_turn",
+ "notes": "M6 mapper. Printed: 'Morbid — At the beginning of your end step, if a creature died this turn, put two +1/+1 counters on target creature you control.' Seat 0's turn ends with no creature dead: no trigger. On seat 1's turn seat 1's Bear dies, but seat 1's end step is not seat 0's: no trigger either (it would ask for a target this pack does not give). Nobody gets a counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pack", "real": "Needletooth Pack", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "deal_damage", "source": "bear", "target": "obear", "amount": 2},
+  {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"obear": "graveyard", "bear": "battlefield"},
+  "counters": {"bear": {}, "pack": {}, "ogre": {}},
+  "power": {"bear": 2, "pack": 4}
+ }
+}

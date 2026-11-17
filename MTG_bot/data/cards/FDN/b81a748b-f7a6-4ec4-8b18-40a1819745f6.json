@@ -1,0 +1,114 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "b81a748b-f7a6-4ec4-8b18-40a1819745f6",
+ "name": "Sanguine Syphoner",
+ "text_sha": "8e5474c945fca2b84ec41e47cc50d03d0b539dd39b891bdb09bc9b18c3d70415",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DeclareAttackersEvent",
+     "filter": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "ALL_OPPONENTS"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Sanguine Syphoner (FDN), a 1/3 Vampire Warlock for {1}{B}.\n# \"Whenever this creature attacks, each opponent loses 1 life and you gain 1 life.\"\n# Event: Library Larcenist's verified \"Whenever this creature attacks\" (DeclareAttackersEvent\n#   over IS_SOURCE).\n# Effect: M21 Hooded Blightfang's verified \"each opponent loses 1 life and you gain 1 life\"\n#   word for word (a Seq in printed order: LOSE_LIFE ALL_OPPONENTS, then GAIN_LIFE YOU).\nattack = TriggeredAbility(\n    event=DeclareAttackersEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n    condition=None,\n    effect=Seq(\n        steps=(\n            A(Verb.LOSE_LIFE, {\n                'amount': QConst(value=1),\n                'controller': ControllerRef.ALL_OPPONENTS,\n            }),\n            A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nabilities = [attack, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever this creature attacks, each opponent loses 1 life and you gain 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Library Larcenist's attack trigger with M21 Hooded Blightfang's drain (both verified)."
+ },
+ "probe": {
+  "sha": "7a90c9791040dd5c91b0aa83c67842767d388dee8c9b2c9dfb2b7891d34cf017"
+ }
+}

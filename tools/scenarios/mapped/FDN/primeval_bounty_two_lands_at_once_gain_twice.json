@@ -1,0 +1,22 @@
+{
+ "set": "FDN",
+ "name": "primeval_bounty_two_lands_at_once_gain_twice",
+ "notes": "M6 mapper. Printed: 'Whenever you cast a noncreature spell, put three +1/+1 counters on target creature you control. Landfall — Whenever a land you control enters, you gain 3 life.' Support card: FDN Grow from the Ashes (mapped; kicked: 'search your library for two basic land cards, put them onto the battlefield'). Seat 0 casts it kicked: a noncreature spell, so the cast trigger puts three +1/+1 counters on seat 0's Bear (its one legal target). The library holds just the two basics, so the search takes both; the one decision orders the two landfall triggers. The Forest and the Island enter at the same time: each is a land entering, so landfall triggers twice (once per land, not once for the event) and seat 0 gains 6.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bounty", "real": "Primeval Bounty", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "controller": 0, "kicked": true, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"gfta": "graveyard", "forest": "battlefield", "island": "battlefield"},
+  "counters": {"bear": {"PLUS_1_PLUS_1": 3}},
+  "life": {"0": 26, "1": 20}
+ }
+}

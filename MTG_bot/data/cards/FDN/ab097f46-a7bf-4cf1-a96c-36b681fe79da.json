@@ -1,0 +1,253 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "ab097f46-a7bf-4cf1-a96c-36b681fe79da",
+ "name": "Nessian Hornbeetle",
+ "text_sha": "86328241cc16b6c442938847058680d0e2cc25454b3a09d208c4ad14a4662d8f",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "COMBAT"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "QTY_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "QTY_GE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": {
+           "tag": "QConst",
+           "value": 4
+          },
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null,
+          "field": {
+           "tag": "QPropField",
+           "name": "POWER"
+          }
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
+     }
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=TurnPhaseEvent(\n            phase=Phase.COMBAT,\n            actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QConst(value=4),\n                                field=QPropField.POWER,\n                            ),\n                            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        effect=A(Verb.PUT_COUNTER, {\n            'count': QConst(value=1),\n            'counter_kind': CounterKind.PLUS_1_PLUS_1,\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of combat on your turn, if you control another creature with power 4 or greater, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Adherent of Hope's beginning-of-combat counter (verified) with M21 Turret Ogre's verified condition 'if you control another creature with power 4 or greater'. Pack: tools/scenarios/mapped/FDN/nessian_hornbeetle_power_three_or_itself_is_not_enough.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
+ },
+ "probe": {
+  "sha": "17263a030a3eae6a52156dd143675c5af80c308a43abdc561287abd8b3d0fb0f"
+ }
+}

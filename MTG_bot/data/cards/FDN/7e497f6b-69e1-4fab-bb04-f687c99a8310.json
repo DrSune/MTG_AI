@@ -1,0 +1,349 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "7e497f6b-69e1-4fab-bb04-f687c99a8310",
+ "name": "Skyknight Squire",
+ "text_sha": "a098607e7bcb2a32a73680eadcdb5c5aea74f356fdabe6bebfa327190411b0da",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "ZoneChangeEvent",
+     "from_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "ANY"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "ANY"
+      }
+     },
+     "to_zone": {
+      "tag": "Zone",
+      "kind": {
+       "tag": "ZoneKind",
+       "name": "BATTLEFIELD"
+      },
+      "controller": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      }
+     },
+     "subject": {
+      "tag": "FAnd",
+      "children": [
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "CONTROLLER_IS"
+        },
+        "string_value": null,
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        },
+        "inner_filter": null
+       },
+       {
+        "tag": "FAtom",
+        "pred": {
+         "tag": "FAtomPred",
+         "name": "TYPE_EQ"
+        },
+        "string_value": "Creature",
+        "color": null,
+        "colors": [],
+        "count": null,
+        "counter_kind": null,
+        "keyword": null,
+        "who": null,
+        "inner_filter": null
+       },
+       {
+        "tag": "FNot",
+        "inner": {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       }
+      ]
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "FLYING"
+           },
+           "params": []
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_TYPE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "IS_SOURCE"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "types",
+          {
+           "tag": "StringTuple",
+           "items": [
+            "Knight"
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "HAS_COUNTER"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 3
+     },
+     "counter_kind": {
+      "tag": "CounterKind",
+      "name": "PLUS_1_PLUS_1"
+     },
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Skyknight Squire (FDN), a 1/1 Cat Scout for {1}{W}.\n# \"Whenever another creature you control enters, put a +1/+1 counter on this creature.\n#  As long as this creature has three or more +1/+1 counters on it, it has flying and is a Knight\n#  in addition to its other types.\"\n# [0] Event: M21 Terror of the Peaks' verified \"Whenever another creature you control enters\"\n#     (ZoneChangeEvent to your battlefield, subject your creature and FNot IS_SOURCE); once per\n#     creature (no once_per_event). Effect: M21 Lorescale Coatl's verified \"put a +1/+1 counter\n#     on this creature\".\n# [1] \"As long as\" is the StaticAbility's condition (D22, M11 Serra Ascendant / FDN Twinblade\n#     Paladin, B14-as-long-as-self), read over the source: HAS_COUNTER +1/+1 with count 3 is\n#     \"three or more\" (quantity.py: counters >= count; M21 Sigiled Contender's verified gate is the\n#     count-1 form). The grants are Serra Ascendant's self selectors; \"is a Knight in addition to\n#     its other types\" is M21 Dub's verified GRANT_TYPE ('Knight',), in printed order after the\n#     flying grant (Dub's order).\nother_enters = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nself_sel = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nknight = StaticAbility(\n    effect=Seq(\n        steps=(\n            A(Verb.GRANT_ABILITY, {\n                'ability': KeywordAbility(keyword=Keyword.FLYING),\n                'target': self_sel,\n            }),\n            A(Verb.GRANT_TYPE, {\n                'target': self_sel,\n                'types': ('Knight',),\n            }),\n        ),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.HAS_COUNTER,\n        count=QConst(value=3),\n        counter_kind=CounterKind.PLUS_1_PLUS_1,\n    ),\n)\nabilities = [other_enters, knight, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Whenever another creature you control enters, put a +1/+1 counter on this creature.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "As long as this creature has three or more +1/+1 counters on it, it has flying and is a Knight in addition to its other types.",
+    "ir": "abilities[1] (condition HAS_COUNTER +1/+1 >= 3)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Terror of the Peaks' 'another creature you control enters' with Lorescale Coatl's counter on the source; 'as long as' as StaticAbility.condition HAS_COUNTER 3 (D22, FDN Kitesail Corsair's form), M21 Dub's GRANT_TYPE Knight. No pack sees the Knight type (no lane reads types; no FDN card reads Knights). Packs: tools/scenarios/mapped/FDN/skyknight_squire_two_goblins_two_counters.json, tools/scenarios/mapped/FDN/skyknight_squire_three_counters_fly.json, tools/scenarios/mapped/FDN/skyknight_squire_two_counters_no_flying.json."
+ },
+ "probe": {
+  "sha": "096c230177f7455aee777cb30aed1086e78807236c53730ae0f31c74e9e74a3d"
+ }
+}

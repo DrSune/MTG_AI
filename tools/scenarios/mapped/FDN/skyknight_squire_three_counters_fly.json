@@ -1,0 +1,18 @@
+{
+ "set": "FDN",
+ "name": "skyknight_squire_three_counters_fly",
+ "notes": "M6 mapper. Printed: 'As long as this creature has three or more +1/+1 counters on it, it has flying and is a Knight in addition to its other types.' The Squire has three +1/+1 counters (4/4): it has flying, so seat 1's Bear (no flying, no reach) has no legal block and is never asked; seat 1 takes 4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "squire", "real": "Skyknight Squire", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 3}},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"squire": true}}
+ ],
+ "expect": {
+  "attackers": {"squire": true},
+  "not_asked_to_block": ["obear"],
+  "life": {"0": 20, "1": 16}
+ }
+}
