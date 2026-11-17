@@ -259,6 +259,11 @@ class LayerRecord:
     # ability created are not abilities of the source and keep applying.
     # Not in dump(): the flag is a function of the attach history.
     from_static: bool = False
+    # A resolved "permit" (PERMIT, executor/permits.py): the plays it still allows (None: any
+    # number) and the journal clock it was made at, after which an object of ``targets`` that
+    # changed zones is a new object it no longer covers (CR 400.7). In dump() for "permit" only.
+    uses: int | None = None
+    since: int = 0
 
     @property
     def atoms(self) -> tuple[Atom, ...]:
@@ -446,6 +451,24 @@ class LayerRegistry:
         grants (an Embercleave-style EoT keyword grant)."""
         return self._new_resolved("grant", source, controller, ability, targets, duration)
 
+    def register_permit(
+        self,
+        source: Handle,
+        controller: Handle,
+        atom: Atom,
+        objects: tuple[Handle, ...],
+        duration: Duration | None,
+        uses: int | None,
+    ) -> LayerRecord:
+        """A resolving PERMIT (``verbs._v_permit``): its controller may play ``objects`` from
+        where they lie, for ``duration`` (CR 611.2a), ``uses`` times in all (None: any number).
+        An object that changes zones after the record's clock is a new object it no longer covers
+        (CR 400.7; ``permits.paths`` reads ``since``)."""
+        layer = self._new_resolved("permit", source, controller, (atom,), objects, duration)
+        layer.uses = uses
+        layer.since = self.executor.journal.clock
+        return layer
+
     def register_lose(
         self,
         source: Handle,
@@ -575,6 +598,9 @@ class LayerRegistry:
             ("mandate", (Verb.MANDATE_ATTACK,)),
             ("mandate_block", (Verb.MANDATE_BLOCK,)),
             ("attack_policy", (Verb.ATTACK_POLICY,)),
+            # PERMIT: a permission to play cards from a zone, live while the static functions
+            # (CR 604.2, 611.3a), read by executor/permits.py.
+            ("permit", (Verb.PERMIT,)),
         )
         split_verbs = {verb for _kind, verbs in split_kinds for verb in verbs}
         rest = [
@@ -1410,5 +1436,7 @@ class LayerRegistry:
                 ),
                 tuple(sorted((str(h), rid) for h, rid in layer.ledger_ids.items())),
             )
+            # a permit's remaining plays and clock (every other kind keeps its row's bytes)
+            + ((layer.uses, layer.since) if layer.kind == "permit" else ())
             for layer in sorted(self.records, key=lambda l: l.seq)
         )

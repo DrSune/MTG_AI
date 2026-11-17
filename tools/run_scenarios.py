@@ -137,17 +137,18 @@ Pack vocabulary (all keys required as noted):
                                             a TEST permission: no card grants
                                             it. The caster casts its own card
                                             from that zone (a library's top
-                                            card only) as though a permission
-                                            let it, through the lane a real
-                                            permission's cast takes
-                                            (stack.cast_card), which journals
-                                            the zone (kick_rows "from"). A
-                                            permission changes where, not when
-                                            or at what cost (CR 601.3): the
-                                            card's own timing and its whole
-                                            cost are judged first, and a miss
-                                            raises "illegal cast" ("window:"
-                                            for a sorcery at instant speed).
+                                            card only) through a PERMIT over
+                                            it, one cast this turn, on the
+                                            lane every permission's cast takes
+                                            (permits.cast_paths, stack.cast),
+                                            which journals the zone (kick_rows
+                                            "from"). A permission changes
+                                            where, not when or at what cost
+                                            (CR 601.3): the card's own timing
+                                            and its whole cost are judged
+                                            first, and a miss raises "illegal
+                                            cast" ("window:" for a sorcery at
+                                            instant speed).
                                             The mana is the pool's (no "tap",
                                             no kicker: any other key is
                                             refused), and every decision word
@@ -260,19 +261,25 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from MTG_bot.core.ability_tree import (
+    Atom,
+    AtomArgs,
     ControllerRef,
+    DurationEot,
     EtBState,
     FAnd,
+    FAtom,
+    FAtomPred,
     Keyword,
     QConst,
+    QUnbounded,
     Selector,
     SelectorMode,
-    SpellAbility,
     Verb,
     Zone,
     ZoneKind,
+    ZonePosition,
 )
-from MTG_bot.core.executor import Executor, GameOver
+from MTG_bot.core.executor import Executor, GameOver, permits
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
 from MTG_bot.core.executor.games import OPENING_HAND, get_supply, identity_of, mulligans
 from MTG_bot.core.executor.legality import (
@@ -282,12 +289,9 @@ from MTG_bot.core.executor.legality import (
     DECLARE_BLOCKERS,
     END_OF_COMBAT,
     FIRST_STRIKE_DAMAGE,
-    card_window_reason,
-    ctx_for,
     spell_record,
 )
-from MTG_bot.core.executor.query import cast_designee_ok
-from MTG_bot.core.executor.stack import cast, cast_card, play_land
+from MTG_bot.core.executor.stack import cast, play_land
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -365,8 +369,14 @@ COMBAT_KEYS = frozenset(
      "respond_to_triggers"}
 )
 PERMISSION_CAST_KEYS = frozenset({*_ANY_STEP, "key", "from", "controller", "targets", "x"})
-#: The zones a test permission casts a card from (the test_permission_cast op).
+#: The zones a test permission casts a card from (the test_permission_cast op), and the zone its
+#: PERMIT names for each.
 PERMISSION_ZONES = {"graveyard": ZONE_GRAVEYARD, "exile": ZONE_EXILE, "library": ZONE_LIBRARY}
+PERMISSION_IR_ZONES = {
+    "graveyard": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+    "exile": Zone(ZoneKind.EXILE, ControllerRef.YOU),
+    "library": Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+}
 _ORACLES: dict[str, Any] = {}  # the act op's card text, one index per set
 
 
@@ -933,10 +943,14 @@ class ScenarioRunner:
 
     def _row_word(self, word: str) -> str:
         """An ``act`` word: a menu row's pack key resolved to its handle ("cast:pm:x3" ->
-        "cast:card:0:x3"), or any other word as _resolve_word reads it."""
+        "cast:card:0:x3"; a permission's source too, "cast:tt:via:tt" -> "cast:card:0:via:card:0",
+        executor/menu.py), or any other word as _resolve_word reads it."""
         head, sep, rest = word.partition(":")
         if sep and head in ("cast", "act", "land"):
             key, sep, tail = rest.partition(":")
+            if tail.startswith("via:"):
+                via, vsep, more = tail[4:].partition(":")
+                tail = f"via:{self._resolve_word(via)}{vsep}{more}"
             return f"{head}:{self._resolve_word(key)}{sep}{tail}"
         return self._resolve_word(word)
 
@@ -1074,14 +1088,14 @@ class ScenarioRunner:
         """The ``test_permission_cast`` op: the caster casts its card from the zone it is in, as
         though a permission let it ("you may cast it from your graveyard"). No card grants it:
         it is a test permission, for the clauses that read where a spell was cast from when no
-        compiled card casts one from there. The cast takes the lane a real permission's cast
-        takes (``verbs._v_cast`` -> ``stack.cast_card``), which journals the zone it left (the
-        CAST row CAST_THIS_TURN_FROM reads). A permission changes where a card may be cast
-        from, never when or at what cost (CR 601.3, 601.2f-h; ``query.permission_cast``): the
-        card's own timing and its whole cost are judged first, by the gates a permission's
-        cast passes (``legality.card_window_reason``, ``query.cast_designee_ok``)."""
+        compiled card casts one from there. It is a real PERMIT over the card, one cast this
+        turn (``layers.register_permit``), and the cast takes its path (``permits.cast_paths``,
+        ``stack.cast``), the lane every permission's cast takes, which journals the zone it left
+        (the CAST row CAST_THIS_TURN_FROM reads). A permission changes where a card may be cast
+        from, never when or at what cost (CR 601.3): ``legality.spell_castable`` judges the card's
+        own timing and its whole cost. A permission the cast did not use ends with the step."""
         unknown = set(step) - PERMISSION_CAST_KEYS
-        if unknown:  # "tap", "kicked": the effect-cast lane pays from the pool and kicks nothing
+        if unknown:  # "tap", "kicked": the test permission pays from the pool and kicks nothing
             raise PackError(f"test_permission_cast: keys it cannot apply {sorted(unknown)}")
         key, zone = step["key"], step["from"]
         if zone not in PERMISSION_ZONES:
@@ -1096,22 +1110,33 @@ class ScenarioRunner:
             )
         if where.kind == ZONE_LIBRARY and where.entries[-1] != handle:
             raise PackError(f"test_permission_cast {key}: a library card is cast from the top only")
-        record = spell_record(self.ex, handle)
-        node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
-        x = int(step.get("x", 0))  # the effect-cast lane's X, 0 unless announced (verbs._v_cast)
-        if node is None:
-            reason = f"cast:not_a_spell:{handle}"  # a land is played, never cast (CR 305.1)
-        else:
-            reason = card_window_reason(self.ex, seat, record, node)
-        if reason is None and not cast_designee_ok(
-            self.ex, ctx_for(self.ex, source=handle, controller=seat, x_value=x), handle
-        ):
-            reason = "cost: its total cost cannot be paid (CR 601.2h)"
-        if reason is not None:
-            raise ValueError(f"executor: illegal cast: {reason}")
-        with self.ex.holding_priority():
-            targets = tuple(self._target_handle(k) for k in step.get("targets", ()))
-            cast_card(self.ex, seat, handle, cost_override=None, targets=targets, x=x)
+        permit = Atom(
+            verb=Verb.PERMIT,
+            args=AtomArgs(
+                pairs=(
+                    (
+                        "source",
+                        Selector(QUnbounded(), SelectorMode.ALL, FAtom(pred=FAtomPred.IS_SOURCE),
+                                 zones=(PERMISSION_IR_ZONES[zone],)),
+                    ),
+                    ("count", QConst(1)),
+                    ("duration", DurationEot()),
+                )
+            ),
+        )
+        layer = self.ex.layers.register_permit(handle, seat, permit, (), DurationEot(), 1)
+        path = next((p for p in permits.cast_paths(self.ex, seat, handle) if p.layer is layer), None)
+        targets = tuple(self._target_handle(k) for k in step.get("targets", ()))
+        x = step.get("x")
+        try:
+            if path is None or spell_record(self.ex, handle) is None:
+                # a land is played, never cast (CR 305.1); a card with no record casts nothing
+                raise ValueError(f"executor: illegal cast: cast:not_a_spell:{handle}")
+            with self.ex.holding_priority():
+                cast(self.ex, seat, handle, x=None if x is None else int(x), targets=targets,
+                     path=path)
+        finally:
+            layer.status = "expired"  # used, or unused: either way the test permission ends
         self.ex._finish_op()  # undriven: both players pass until the stack is empty
 
     def check(self) -> list[str]:

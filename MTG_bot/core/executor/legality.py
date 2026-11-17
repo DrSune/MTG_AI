@@ -67,7 +67,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from MTG_bot.core.ability_tree import (
     QX,
@@ -1409,45 +1409,34 @@ def kicker_of(record):
     return next((a for a in record.abilities if isinstance(a, KickerAbility)), None)
 
 
-def spell_cost(record, additional: tuple[Cost, ...] = ()) -> Cost:
-    """The spell's total printed cost: CardRecord.mana_cost (the frozen
-    grammar keeps the printed cost on the record, NOT on SpellAbility)
-    plus the "as an additional cost to cast" parts — one Cost the
-    plan fold can walk in canonical part order."""
+def spell_cost(
+    record, additional: tuple[Cost, ...] = (), alternative: Cost | None = None
+) -> Cost:
+    """The spell's total cost (CR 601.2f): CardRecord.mana_cost (the frozen grammar keeps the
+    printed cost on the record, NOT on SpellAbility), or ``alternative`` in its place (CR 118.9:
+    an empty Cost is "without paying its mana cost"), plus the additional costs (the spell's own
+    "as an additional cost to cast", a kicker, a permission's), which apply to an alternative cost
+    too (CR 118.9d) — one Cost the plan fold can walk in canonical part order."""
     parts: list = []
-    if record.mana_cost is not None:
+    if alternative is not None:
+        parts.extend(alternative.parts)
+    elif record.mana_cost is not None:
         parts.extend(record.mana_cost.parts)
     for cost in additional:
         parts.extend(cost.parts)
     return Cost(parts=tuple(parts))
 
 
-def effect_cast_cost(record, node: SpellAbility, cost_override: Cost | None) -> Cost | None:
-    """CR 601.2f, 118.9d: the total cost of a spell an effect casts
-    (stack.cast_card, and the offer oracle query._cast_option_payable, so the two
-    can never disagree). The CAST atom's ``cost`` role means (``verbs._v_cast``):
-    - absent: the spell's mana cost;
-    - an EMPTY Cost: "without paying its mana cost", an alternative cost (118.9);
-    - a Cost WITH parts: additional costs paid on top of the mana cost ("by
-      paying 3 life and discarding a card in addition to paying its other costs",
-      Demonic Embrace). It never replaces the mana cost.
-    Every additional cost the spell itself lists is added in all three cases
-    ("As an additional cost to cast this spell, discard a card"): 118.9d applies
-    additional costs to an alternative cost too. None or an empty Cost means
-    nothing to pay."""
-    if cost_override is not None and not cost_override.parts:
-        base: Cost | None = cost_override  # the alternative cost: no mana cost
-    else:
-        base = record.mana_cost
-    extras: list[Cost] = list(node.additional_costs)
-    if cost_override is not None and cost_override.parts:
-        extras.insert(0, cost_override)  # additional costs, CR 601.2f
-    if not extras:
-        return base
-    parts: list = list(base.parts) if base is not None else []
-    for extra in extras:
-        parts.extend(extra.parts)
-    return Cost(parts=tuple(parts))
+def effect_cast_cost(record, node: SpellAbility, atom: Atom | None) -> Cost:
+    """CR 601.2f, 118.9d: the total cost of a spell a cast verb (CAST, PERMIT) casts:
+    ``stack.cast_card``, the offer oracle ``query._cast_option_payable`` and a permission's cast
+    (``spell_castable``) read this one fold, so they can never disagree. The verb's
+    ``alternative`` replaces the mana cost (empty: "without paying its mana cost"), its
+    ``additional`` and the spell's own additional costs are added (CR 118.9d)."""
+    alternative = atom.args.get("alternative") if atom is not None else None
+    extra = atom.args.get("additional") if atom is not None else None
+    extras = (*node.additional_costs, *((extra,) if isinstance(extra, Cost) else ()))
+    return spell_cost(record, extras, alternative if isinstance(alternative, Cost) else None)
 
 
 def _cost_has_x(cost: Cost) -> bool:
@@ -1603,21 +1592,24 @@ def spell_castable(
     x: int | None = None,
     kicked: bool = False,
     targets: tuple[Handle, ...] = (),
+    path: Any = None,
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
     (same answer as the one ``legal_casts`` gave, until the world
     changes). Returns ``(reason, node, record, plan)``: exactly one of
     ``reason`` / (node+plan) is set.
 
-    Gates, in CR order: the card sits in the caster's HAND (601.1 "cast
-    it from where it is" — hand only; an effect's cast from another zone
-    runs through ``stack.cast_card``); its record carries a SpellAbility
-    (lands and unregistered cards have none); the kind's window holds;
-    then the 601.2f fold — printed cost + additional costs (+ the kicker
+    Gates, in CR order: the card sits in the caster's HAND (CR 117.1a), or a permission lets
+    the caster cast it from where it lies (``path``, a ``permits.Path``: CR 601.3, still
+    covering the card now); its record carries a SpellAbility
+    (lands and unregistered cards have none); the kind's window holds (a permission changes
+    where from, never when); then the 601.2f fold — the printed cost, or the path's alternative
+    cost in its place, + additional costs (the spell's, the path's, the kicker
     cost when ``kicked``) against the pool, with ``x`` bound for QX (a
     declared-too-big X shrinks the pool fold into an ordinary
     ``cost:mana`` SHORTAGE — an illegal-cast reason, never a raise: X is
-    enumerated at 0-floor by ``legal_casts``) and the spell handle as the
+    enumerated at 0-floor by ``legal_casts``; with an alternative cost X is 0, CR 107.3b) and
+    the spell handle as the
     mana-USE subject (THIS_MANA restrictions read their filter over the
     spell being cast); last, an Aura needs something it could enchant.
 
@@ -1626,11 +1618,19 @@ def spell_castable(
     creature cost {3} more", Pursued Whale; "... an additional 3 life", Terror of
     the Peaks) is part of the total. CR 601.2f determines the total cost after
     601.2c's targets; ``stack.cast`` re-folds with them before paying."""
+    from MTG_bot.core.executor import permits
+
     world = executor.world
     if handle not in world.cards:
         return f"cast:unknown_card:{handle}", None, None, None
-    if world.zone_of(handle) != world.players[seat].zone("hand"):
-        return f"cast:not_in_hand:{handle}", None, None, None
+    if path is None:
+        if world.zone_of(handle) != world.players[seat].zone("hand"):
+            return f"cast:not_in_hand:{handle}", None, None, None
+    elif not any(
+        p.key == path.key and p.source == path.source
+        for p in permits.cast_paths(executor, seat, handle)
+    ):
+        return f"cast:no_permission:{handle}", None, None, None
     record = spell_record(executor, handle)
     if record is None:
         return f"cast:no_record:{handle}", None, None, None
@@ -1661,7 +1661,15 @@ def spell_castable(
         if kicker is None:
             return f"cast:not_a_kicker:{handle}", None, None, None
         additional = tuple(additional) + (kicker.cost,)
-    cost = spell_cost(record, additional)
+    alternative = None
+    if path is not None:
+        alternative = path.alternative
+        if path.additional is not None:
+            additional = tuple(additional) + (path.additional,)
+        if alternative is not None and x:
+            # CR 107.3b: the mana cost is not paid, so the only legal X is 0
+            return f"cast:x_unpaid:{handle}", None, None, None
+    cost = spell_cost(record, additional, alternative)
     if _cost_has_x(cost) and x is None:
         # The declaration is the caller's; X=0 is legal (CR 107.1) — the
         # SURFACE enumerates at 0, an explicit x reaches the fold.

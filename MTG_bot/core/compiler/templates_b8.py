@@ -599,7 +599,7 @@ def _build_full_free_cast(m: re.Match[str]) -> SentenceOutcome:
                                     ),
                                 ),
                             ),
-                            ("cost", Cost(parts=())),
+                            ("alternative", Cost(parts=())),
                         )
                     ),
                 )

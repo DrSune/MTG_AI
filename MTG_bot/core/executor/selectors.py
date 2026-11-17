@@ -1276,13 +1276,10 @@ def role_handles(ctx: ExecCtx, atom: Atom, role: str) -> list[Handle]:
             # run stays the LOUD per-card raise.
             from MTG_bot.core.executor.query import cast_designee_ok
 
-            cost_override = atom.args.get("cost")
-            if not isinstance(cost_override, Cost):
-                cost_override = None  # printed cost, or a Ref the fold reads
             executor = ctx.executor  # branch-guarded non-None; local narrows
 
             def ok(handle: Handle) -> bool:
-                return cast_designee_ok(executor, ctx, handle, cost_override, atom=atom)
+                return cast_designee_ok(executor, ctx, handle, atom)
 
             return sorted(resolve_selector(value, ctx, ok=ok))
         # The EFFECT-role choke point: a finite CHOOSE resolved here is a

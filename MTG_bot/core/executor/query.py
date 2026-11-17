@@ -95,7 +95,6 @@ from MTG_bot.core.ability_tree import (
     own_nodes,
     walk,
 )
-from MTG_bot.core.compiler.compiler import casts_itself_from_another_zone
 from MTG_bot.core.executor.legality import (
     PaymentPlan,
     ability_playable,
@@ -247,23 +246,16 @@ def inert_row(
 
     A free row (no cost) is inert right now when every step is either a recorded no-op
     (LOOK_AT / REVEAL: the engine is omniscient, looking changes nothing) or a "you may"
-    whose offer is narrowed to skip (CR 117.3: nothing it could do is possible). The
-    compiler's permission-row idiom ("you may play lands from the top of your library",
-    Radha, Heart of Keld) is such a row whenever nothing is castable through it, and for
-    a land it never is until the engine has a permission lane (docs/BACKLOG.md B-100).
-
-    A row with a cost is inert only when no step could ever act: each step casts the
-    row's own source from a zone other than the battlefield, and the row is offered only
-    while the source is on the battlefield (``compiler.casts_itself_from_another_zone``;
-    offered, Demonic Embrace's graveyard permission would be a discard outlet). A real
-    row whose effect just does nothing right now stays: nothing in activating an ability
-    (CR 602.2) requires its effect to be able to act, and the cost is paid (Idol of
-    Endurance with no card exiled with it). Any unconditional step of a free row makes
-    it live."""
+    whose offer is narrowed to skip (CR 117.3: nothing it could do is possible). A row with a
+    cost is never inert: nothing in activating an ability (CR 602.2) requires its effect to be
+    able to act, and the cost is paid (Idol of Endurance with no card exiled with it). Any
+    unconditional step of a free row makes it live. (The compiler's old permission row, a free
+    activation casting from a zone, is gone: a permission is a static PERMIT, and the IR refuses
+    a CAST in a free activation, ``ability_tree.permission_fault``.)"""
     effect = ability.effect
     steps = effect.steps if isinstance(effect, Seq) else (effect,)
     if ability.cost.parts:
-        return all(casts_itself_from_another_zone(step) for step in steps)
+        return False
     for step in steps:
         if isinstance(step, Atom) and step.verb in _NO_OP_VERBS:
             continue
@@ -732,20 +724,20 @@ def optional_offer(
 
 
 def _cast_option_payable(
-    executor: Executor, ctx: ExecCtx, handle: Handle, cost_override: Cost | None
+    executor: Executor, ctx: ExecCtx, handle: Handle, atom: Atom | None
 ) -> bool:
-    """Can the effect-CAST of ``handle`` be PAID right now — the exact fold
-    :func:`~MTG_bot.core.executor.stack.cast_card` performs at resolution:
-    the atom's ``cost`` role when present (an EMPTY Cost is the corpus
-    cost-waiver idiom, CR 118.9 "without paying its mana cost"; a Cost
-    with parts is paid ON TOP of the printed cost, CR 601.2f), else the
-    card's printed cost, plus the spell's additional costs
-    (legality.effect_cast_cost). The fold runs with cast_card's own context
-    shape (source=the card, the effect cast's declared X default 0, CR
-    107.4) and the same ``mana_use`` restriction read. One source of
-    truth: this is literally the same :func:`build_payment_plan` call
-    ``stack.cast_card`` makes — legality and execution can never disagree."""
+    """Can the effect-CAST of ``handle`` be made right now: its targets chosen (CR 601.2c: a
+    spell with a target that cannot be chosen cannot be cast, ``stack.can_designate``) and its
+    total cost PAID — the exact fold :func:`~MTG_bot.core.executor.stack.cast_card` performs at
+    resolution: the cast verb's ``alternative`` in place of the mana cost (an EMPTY Cost:
+    "without paying its mana cost", CR 118.9), its ``additional`` and the spell's own
+    additional costs added (legality.effect_cast_cost). The fold runs with cast_card's own
+    context shape (source=the card, X at its 0 floor, CR 107.1) and the same ``mana_use``
+    restriction read. One source of truth: this is literally the same
+    :func:`build_payment_plan` call ``stack.cast_card`` makes — legality and execution can never
+    disagree."""
     from MTG_bot.core.executor.legality import effect_cast_cost, spell_record
+    from MTG_bot.core.executor.stack import can_designate
 
     record = spell_record(executor, handle)
     node = (
@@ -753,24 +745,20 @@ def _cast_option_payable(
         if record is not None
         else None
     )
-    if node is not None:
-        cost = effect_cast_cost(record, node, cost_override)  # + additional costs
-    else:
-        cost = (
-            cost_override
-            if cost_override is not None
-            else (record.mana_cost if record is not None else None)
-        )
-    if cost is None or not cost.parts:
+    if node is None:
+        return False
+    if modal_choose(node) is None:
+        slots = spell_target_slots(executor, node, spell_handle=handle, seat=ctx.controller)
+        if not can_designate(slots):
+            return False
+    elif not cast_mode_options(executor, node, spell_handle=handle, seat=ctx.controller):
+        return False
+    cost = effect_cast_cost(record, node, atom)
+    if not cost.parts:
         return True  # waiver (CR 118.9) / costless: nothing to fold
     plan, _why = build_payment_plan(
         executor.world,
-        ctx_for(
-            executor,
-            source=handle,
-            controller=ctx.controller,
-            x_value=ctx.x_value if ctx.x_value is not None else 0,
-        ),
+        ctx_for(executor, source=handle, controller=ctx.controller, x_value=0),
         cost,
         mana_use=handle,
     )
@@ -806,44 +794,16 @@ def cast_run_gap(executor: Executor, handle: Handle) -> bool:
     return any(isinstance(a, BackFace) for a in rec.abilities)
 
 
-def permission_cast(executor: Executor, source: Handle, atom: Atom) -> bool:
-    """Is ``atom`` (a CAST) a permission to cast: an atom of one of ``source``'s activated
-    abilities other than a loyalty ability?
-
-    The compiler writes a permission, "You may cast Goblin spells from the top of your library"
-    (Conspicuous Snoop) or "Until end of turn, you may cast a creature spell from among cards
-    exiled with this artifact" (Idol of Endurance), as an activated ability whose resolution
-    casts the card. A permission changes where a card may be cast from, not when (CR 601.3): the
-    card is cast at its own timing, a creature or sorcery only in its controller's main phase
-    with an empty stack unless it has flash (CR 302.1, 307.1, 702.8a); otherwise Idol of
-    Endurance would flash a creature in on the opponent's turn. A CAST in a spell, a triggered
-    ability or a loyalty ability (Chandra, Flame's Catalyst's [-2]) is made while that ability
-    resolves and ignores timing; no activated ability in the compiled pools is such a cast."""
-    from MTG_bot.core.executor.legality import spell_record
-
-    record = spell_record(executor, source)
-    if record is None:
-        return False
-    return any(
-        isinstance(ability, ActivatedAbility)
-        and not is_loyalty_ability(ability)
-        and any(node is atom for node in walk(ability.effect))
-        for ability in record.abilities
-    )
-
-
 def cast_designee_ok(
     executor: Executor,
     ctx: ExecCtx,
     handle: Handle,
-    cost_override: Cost | None = None,
-    *,
     atom: Atom | None = None,
 ) -> bool:
     """The CAST designee law: the execution-acceptance predicate for one
     CAST designee — carrier (a land is not a spell: CAST designee sets RANGE
-    OVER SPELLS) AND payable (CR 601.2e: the payment fold the engine itself
-    performs) — OR the typed face-cast gap (:func:`cast_run_gap`), which the
+    OVER SPELLS) AND castable now (its targets can be chosen and its cost paid,
+    :func:`_cast_option_payable`) — OR the typed face-cast gap (:func:`cast_run_gap`), which the
     guard lane must still RUN into (its skip is LOUD and LEDGERED, never a
     silent clamp-drop). THE single choke point: the offer gate (here) AND
     the runtime designation read (:func:`selectors.role_handles`, CAST
@@ -853,23 +813,13 @@ def cast_designee_ok(
     menu and what execution accepts are the same computation (AGENTS §10
     menu visibility).
 
-    ``atom`` is the CAST being judged. Through a permission (:func:`permission_cast`) the card
-    must also be castable at its own timing right now."""
-    from MTG_bot.core.executor.legality import card_window_reason
-
-    if atom is not None and permission_cast(executor, ctx.source, atom):
-        record = cast_carrier(executor, handle)
-        spell = (
-            next(a for a in record.abilities if isinstance(a, SpellAbility))
-            if record is not None
-            else None
-        )
-        if spell is not None and card_window_reason(executor, ctx.controller, record, spell):
-            return False
+    ``atom`` is the CAST being judged. A CAST casts while its ability resolves and ignores the
+    timing the card's type sets (CR 608.2g); a permission to cast later is a PERMIT
+    (executor/permits.py), judged by the act menu."""
     if cast_run_gap(executor, handle):
         return True  # the typed guard owns it: fires, raises, ledgers
     return cast_carrier(executor, handle) is not None and _cast_option_payable(
-        executor, ctx, handle, cost_override
+        executor, ctx, handle, atom
     )
 
 
@@ -949,12 +899,8 @@ def _cast_effect_actionable(
     """
     from MTG_bot.core.executor.legality import enumerate_candidates, spell_record
 
-    cost_override = node.args.get("cost")
-    if not isinstance(cost_override, Cost):
-        cost_override = None  # no cost role, or a Ref (resolved at runtime)
-
     def ok(handle: Handle) -> bool:
-        return cast_designee_ok(executor, ctx, handle, cost_override, atom=node)
+        return cast_designee_ok(executor, ctx, handle, node)
 
     bound = ctx.binding_handles("source")
     if bound is not None:
@@ -1660,15 +1606,8 @@ def _clamp_cast_target_slot(
     IS the rules answer (CR 601.2b), not a silent option."""
     if role != "source" or not isinstance(atom, Atom) or atom.verb is not Verb.CAST:
         return slot
-    cost_override = atom.args.get("cost")
-    if not isinstance(cost_override, Cost):
-        cost_override = None
     gate_ctx = ctx_for(executor, source=host, controller=seat)
-    keep = tuple(
-        c
-        for c in slot.candidates
-        if cast_designee_ok(executor, gate_ctx, c, cost_override, atom=atom)
-    )
+    keep = tuple(c for c in slot.candidates if cast_designee_ok(executor, gate_ctx, c, atom))
     if len(keep) == len(slot.candidates):
         return slot
     return replace(slot, candidates=keep, forced=len(keep) == 1)

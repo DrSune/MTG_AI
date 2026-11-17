@@ -172,7 +172,16 @@ class Verb(Enum):
     END_TURN = "END_TURN"  # Discontinuity ("end the turn")
     MANDATE_ATTACK = "MANDATE_ATTACK"  # Pirate token: "creatures you control attack each combat if able"
     MANDATE_BLOCK = "MANDATE_BLOCK"  # Canopy Stalker: "must be blocked if able"
-    CAST = "CAST"  # cast a spell from a zone (top-of-library via Zone.position; graveyard recasts; cost waivers / extra costs)
+    # CAST: cast a card NOW, while the ability that says so resolves (CR 608.2g: "You may cast
+    # target red instant or sorcery card from your graveyard", Chandra, Flame's Catalyst [-2]).
+    # One-shot: no duration, no timing (the card type's timing is ignored during a resolution).
+    CAST = "CAST"
+    # PERMIT: a permission to play cards from a zone (CR 601.3, 305.1): "You may cast Goblin spells
+    # from the top of your library" (Conspicuous Snoop, a static), "Until end of turn, you may play
+    # cards exiled this way" (Chandra, Heart of Fire [+1], a resolving one with its duration),
+    # flashback (CR 702.34a). The cards are played later, by their controller holding priority, at
+    # their own timing (CR 117.1a, 305.1): DESIGN_ATOM_ONTOLOGY §17.
+    PERMIT = "PERMIT"
     PAY = "PAY"  # pay a cost as an effect ("you may pay {2}", with an "if you do" continuation)
     LOSE_GAME = (
         "LOSE_GAME"  # "the player who cast this spell loses the game" (no roles)
@@ -3069,6 +3078,10 @@ class Atom:
             raise ValueError(
                 "Atom: CHOOSE_NAME's name_filter narrows card names; a quality choice takes none"
             )
+        if self.verb in (Verb.CAST, Verb.PERMIT):
+            fault = _cast_roles_fault(self.verb, roles)
+            if fault is not None:
+                raise ValueError(f"Atom: {self.verb.name}: {fault}")
         # Per-verb scope vocabulary (AtomArgs validates the union
         # only; a cross-verb scope like MANA_POLICY/AS_UNBLOCKED is caught
         # here, at the verb's own level).
@@ -3131,6 +3144,13 @@ class OptionalEffect:
         if not _is_effect(self.inner):
             raise ValueError(
                 f"OptionalEffect: inner must be an Effect, got {type(self.inner).__name__}"
+            )
+        # A permission's "you may" is its use: the card is played later, or not (CR 601.3). An
+        # OptionalEffect around it would ask whether to have the permission, a choice with no
+        # consequence (AGENTS §10, a phantom) and a second byte form of the bare PERMIT.
+        if any(isinstance(n, Atom) and n.verb is Verb.PERMIT for n in own_nodes(self.inner)):
+            raise ValueError(
+                "OptionalEffect: a PERMIT is its own \"you may\" (CR 601.3); never wrap it"
             )
 
 
@@ -3238,6 +3258,144 @@ def orders_a_library(atom: Atom) -> bool:
         or sel.count not in (QConst(1), QAtMost(1))
         or sel.referent is not None
     )
+
+
+# ---- The cast verbs (CAST, PERMIT): DESIGN_ATOM_ONTOLOGY §17 ----
+
+#: PERMIT's durations where a resolving ability makes it (CR 611.2a): "this turn" and "until end of
+#: turn" (DurationEot), "until the end of your next turn" (DurationUntilEndOfNextTurn), "for as
+#: long as it remains exiled" (DurationPermanent: the permission lives on its objects, and each
+#: object leaves it when it changes zones, CR 400.7).
+_PERMIT_DURATIONS = (DurationEot, DurationUntilEndOfNextTurn, DurationPermanent)
+
+
+def _permit_zones() -> tuple[Zone, ...]:
+    """The zones a PERMIT names its cards in (CR 601.3, 305.1): your graveyard, exile, the top of
+    your library, and your hand, the last only with an alternative cost (casting from your hand is
+    the rules' own permission, CR 117.1a). The cards are your own: a card you do not own is a
+    piece no card of the 19 sets needs yet."""
+    return (
+        Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
+        Zone(ZoneKind.EXILE, ControllerRef.YOU),
+        Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),
+        Zone(ZoneKind.HAND, ControllerRef.YOU),
+    )
+
+
+def spell_rider(to_zone: Zone) -> ReplacementAbility:
+    """The replacement a spell cast through a cast verb has while it is on the stack (the verb's
+    ``replace`` role). ``to_zone`` Zone(GRAVEYARD, YOU): "If that spell would be put into your
+    graveyard, exile it instead" (Chandra, Flame's Catalyst [-2]); Zone(ANY, ANY): flashback's
+    "exile this card instead of putting it anywhere else any time it would leave the stack" (CR
+    702.34a). Its source is the spell (IS_SOURCE), its action the exile."""
+    return ReplacementAbility(
+        event=ZoneChangeEvent(
+            from_zone=Zone(ZoneKind.STACK, ControllerRef.ANY),
+            to_zone=to_zone,
+            subject=FAtom(pred=FAtomPred.IS_SOURCE),
+        ),
+        condition=None,
+        action=Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+                    (
+                        "target",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAnd(children=()),
+                            zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                            referent="event",
+                        ),
+                    ),
+                )
+            ),
+        ),
+    )
+
+
+def spell_riders() -> tuple[ReplacementAbility, ...]:
+    """The two forms the cast verbs' ``replace`` role takes (:func:`spell_rider`): into your
+    graveyard, or leaving the stack for anywhere else."""
+    return (
+        spell_rider(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)),
+        spell_rider(Zone(ZoneKind.ANY, ControllerRef.ANY)),
+    )
+
+
+def _requires_card_type(filter_: object, word: str, negated: bool = False) -> bool:
+    """Does ``filter_`` admit only objects of card type ``word`` (a TYPE_EQ conjunct), or with
+    ``negated`` only objects without it (an FNot(TYPE_EQ) conjunct)?"""
+    atom = FAtom(pred=FAtomPred.TYPE_EQ, string_value=word)
+    want = FNot(inner=atom) if negated else atom
+    if filter_ == want:
+        return True
+    return isinstance(filter_, FAnd) and want in filter_.children
+
+
+def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
+    """Why the roles of a CAST or a PERMIT say one thing two ways or nothing at all, else None.
+    Where the atom stands (a static, a resolving ability) is :func:`permission_fault`'s."""
+    additional = roles.get("additional")
+    if isinstance(additional, Cost) and not additional.parts:
+        return "`additional` with no parts adds nothing (an empty cost is `alternative`'s free cast)"
+    rider = roles.get("replace")
+    if rider is not None and rider not in spell_riders():
+        return (
+            "`replace` is a spell's exile instead of its graveyard or of leaving the stack "
+            "(ability_tree.spell_rider), no other replacement"
+        )
+    if verb is not Verb.PERMIT:
+        sel = roles.get("source")
+        if isinstance(sel, Selector) and _requires_card_type(sel.filter, "Land"):
+            return "a land is never cast (CR 305.9): a CAST of lands casts nothing"
+        return None
+    if roles.get("lands") is False:
+        return "`lands` is True (\"play\") or absent (\"cast\"); False is a second form of absent"
+    count = roles.get("count")
+    if count is not None and not (isinstance(count, QConst) and count.value >= 1):
+        return "`count` is how many plays it allows, a literal of 1 or more (absent: any number)"
+    duration = roles.get("duration")
+    if duration is not None and not isinstance(duration, _PERMIT_DURATIONS):
+        return (
+            f"duration must be one of {', '.join(t.__name__ for t in _PERMIT_DURATIONS)}, got "
+            f"{type(duration).__name__}"
+        )
+    sel = roles["source"]
+    if not isinstance(sel, Selector):
+        return "`source` names the cards with a Selector"
+    if sel.referent is None:
+        if sel.mode is SelectorMode.ALL:
+            if not isinstance(sel.count, QUnbounded):
+                return "an ALL `source` is a population: its count is QUnbounded"
+        elif sel.mode is not SelectorMode.TARGET:
+            return (
+                "`source` names its cards ALL (every card that passes the filter), TARGET or by a "
+                f"referent; a {sel.mode.name} pick happens as the card is played, not here"
+            )
+        zones = _permit_zones()
+        if not sel.zones or any(zone not in zones for zone in sel.zones):
+            return (
+                "`source` names the zone the cards are played from: your graveyard, exile, the top "
+                "of your library or your hand"
+            )
+        if any(z.kind is ZoneKind.HAND for z in sel.zones) and "alternative" not in roles:
+            return "casting from your hand needs no permission (CR 117.1a) unless the cost changes"
+    lands = roles.get("lands") is True
+    if not lands and _requires_card_type(sel.filter, "Land"):
+        return "a land is never cast (CR 305.9): \"play lands\" is `lands` True"
+    if lands and _requires_card_type(sel.filter, "Land", negated=True):
+        return "playing only nonland cards is casting spells: leave `lands` out"
+    if rider is not None and _requires_card_type(sel.filter, "Land"):
+        return "a land played never uses the stack (CR 305.1): `replace` means nothing here"
+    if ("alternative" in roles or "additional" in roles) and _requires_card_type(sel.filter, "Land"):
+        return (
+            "playing a land is a special action with no cost (CR 116.2a, 305.1): `alternative` "
+            "and `additional` mean nothing here"
+        )
+    return None
 
 
 def gathers_occurrences(event: object) -> bool:
@@ -3986,6 +4144,129 @@ def _reflexive_misplaced(
     )
 
 
+def permission_fault(*nodes: Any) -> str | None:
+    """Why a cast verb under ``nodes`` (a card's keywords and abilities) stands where it means
+    nothing or a second thing, else None (DESIGN_ATOM_ONTOLOGY §17). A PERMIT:
+
+    - in a static ability (a card's, an emblem's, a token's) is the static's own continuous
+      effect, live while the static functions (CR 604.2, 611.3a): no ``duration`` and no
+      ``count``, and its ``source`` a population (ALL over a zone), never a designation;
+    - in the effect of a resolving ability (a spell, an activated, triggered or delayed ability) is
+      a continuous effect that ability creates (CR 611.2a): its ``duration`` is required;
+    - never in a granted static ("each legendary card in your graveyard gains 'You may play this
+      card from your graveyard'"): that is the resolving PERMIT over those cards, one encoding;
+    - never in a replacement, an "as ~ enters" state, a cost modifier, nor under EachPlayer or
+      Repeat (the permission is its controller's).
+
+    A CAST casts as its ability resolves (CR 608.2g): never in a static or a free activation
+    (``Cost()``: the old permission row, a second encoding of a static PERMIT), never of its own
+    card in an activation (the old row of "you may cast this card from your graveyard by paying 3
+    life and discarding a card", Demonic Embrace: a static PERMIT with ``additional``), and not
+    under EachPlayer or Repeat. A replacement of a zone change from the stack is a spell's rider: only
+    as a cast verb's ``replace`` role (:func:`spell_rider`), never an ability of its own."""
+    faults: list[str] = []
+
+    def visit(node: Any, host: Any, rotated: bool, granted: bool) -> None:
+        if faults:
+            return
+        if isinstance(node, tuple):
+            for item in node:
+                visit(item, host, rotated, granted)
+            return
+        if not dataclasses.is_dataclass(node) or isinstance(node, type):
+            return
+        if isinstance(node, Atom):
+            fault = _cast_verb_misplaced(node, host, rotated, granted)
+            if fault is not None:
+                faults.append(fault)
+                return
+            for role, value in node.args.pairs:
+                if role == "replace":
+                    continue  # the spell's rider (spell_riders), not an ability of this card
+                inner_granted = (
+                    node.verb is Verb.GRANT_ABILITY
+                    and role == "ability"
+                    and isinstance(value, StaticAbility)
+                )
+                visit(value, host, rotated, inner_granted)
+            return
+        if (
+            isinstance(node, ReplacementAbility)
+            and isinstance(node.event, ZoneChangeEvent)
+            and node.event.from_zone is not None
+            and node.event.from_zone.kind is ZoneKind.STACK
+        ):
+            faults.append(
+                "a spell's exile instead of the graveyard is the cast verb's `replace` role "
+                "(spell_rider), never a replacement ability of its own"
+            )
+            return
+        if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+            host, rotated = node, False
+            granted = granted and isinstance(node, StaticAbility)
+        elif isinstance(node, (EachPlayer, Repeat)):
+            rotated = True
+        for f in dataclasses.fields(node):
+            visit(getattr(node, f.name), host, rotated, granted)
+
+    visit(nodes, None, False, False)
+    return faults[0] if faults else None
+
+
+def _cast_verb_misplaced(atom: Atom, host: Any, rotated: bool, granted: bool) -> str | None:
+    """:func:`permission_fault` for one atom of the effect of ``host``."""
+    if atom.verb not in (Verb.CAST, Verb.PERMIT):
+        return None
+    if rotated:
+        return f"a {atom.verb.name} under EachPlayer or Repeat: the permission is its controller's"
+    resolving = isinstance(host, (SpellAbility, TriggeredAbility, ActivatedAbility, DelayedTrigger))
+    if atom.verb is Verb.CAST:
+        if isinstance(host, StaticAbility):
+            return "a CAST in a static casts nothing: \"you may cast ... from\" is PERMIT"
+        if isinstance(host, ActivatedAbility) and not host.cost.parts:
+            return (
+                "a free activation that casts is the old permission row: a static PERMIT "
+                "(MAPPER_GUIDE: a permission is a static, never a free activation)"
+            )
+        sel = atom.args.get("source")
+        if (
+            isinstance(host, ActivatedAbility)
+            and isinstance(sel, Selector)
+            and sel.referent is None
+            and _filter_names_the_source(sel.filter)
+        ):
+            return (
+                "an activation that casts its own card is that card's permission, a static PERMIT "
+                "with its costs as `additional` (CR 601.3, 601.2f): as an activation it would "
+                "cast at instant speed (CR 608.2g), or never"
+            )
+        if not resolving:
+            return f"a CAST in a {type(host).__name__} never resolves"
+        return None
+    if isinstance(host, StaticAbility):
+        if granted:
+            return (
+                "a granted static PERMIT (\"... gains 'You may play this card from your "
+                "graveyard'\") is the resolving PERMIT over those cards with its duration"
+            )
+        sel = atom.args.get("source")
+        if atom.args.get("duration") is not None:
+            return "a static PERMIT lasts while the static functions (CR 611.3a): no duration"
+        if atom.args.get("count") is not None:
+            return "a static PERMIT counts no plays (a once-each-turn limit is another piece)"
+        if not isinstance(sel, Selector) or sel.referent is not None or sel.mode is not SelectorMode.ALL:
+            return "a static PERMIT names a population (ALL over its zone): a static designates nothing"
+        return None
+    if resolving:
+        if atom.args.get("duration") is None:
+            return (
+                "a PERMIT a resolving ability makes lasts as long as it says (CR 611.2a): "
+                "its duration is required"
+            )
+        return None
+    return f"a PERMIT in a {type(host).__name__ if host is not None else 'bare effect'} never applies"
+
+
 def chosen_quality_fault(*nodes: Any) -> str | None:
     """Why the choices and chosen-value reads under ``nodes`` (one object's keywords and
     abilities) have no meaning, or None. CR 607.2d: "choose a [value]" and "the chosen [value]"
@@ -4182,7 +4463,9 @@ class CardRecord:
                 "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
                 "Repeat between"
             )
-        fault = chosen_quality_fault(self.keywords, self.abilities)
+        fault = chosen_quality_fault(self.keywords, self.abilities) or permission_fault(
+            self.keywords, self.abilities
+        )
         if fault is not None:
             raise ValueError(f"CardRecord: {fault}")
         if not isinstance(self.is_token, bool):
@@ -4511,7 +4794,20 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "event": _EV_CLASSES,
     "condition": _F_CLASSES,
     "color": (str,),
-    "cost": (Cost,),  # PAY's cost role; CAST's optional extra-cost / waiver role
+    "cost": (Cost,),  # PAY's cost role
+    # The cast verbs' (CAST, PERMIT) cost change (CR 601.2f): `alternative` is paid rather than the
+    # mana cost (CR 118.9; an empty Cost is "without paying its mana cost"), `additional` on top of
+    # it ("by paying 3 life and discarding a card in addition to paying its other costs").
+    "alternative": (Cost,),
+    "additional": (Cost,),
+    # replace: the replacement the spell cast this way has while it is on the stack (CR 400.7g,
+    # 614.1a): "If that spell would be put into your graveyard, exile it instead", and flashback's
+    # "exile this card instead of putting it anywhere else any time it would leave the stack" (CR
+    # 702.34a). Exactly the forms of SPELL_RIDERS.
+    "replace": (ReplacementAbility,),
+    # lands: PERMIT's "play" (True): a land among its cards may be played (CR 305.1, 116.2a), as
+    # well as a spell cast; absent, "cast" (spells only, CR 305.9).
+    "lands": (bool,),
     "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
     # name_filter: CHOOSE_NAME's name restriction ("choose a nonbasic card
@@ -4692,13 +4988,22 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # MANDATE_BLOCK mirrors MANDATE_ATTACK exactly — "must be blocked if
     # able" (Canopy Stalker); subject-scoped.
     Verb.MANDATE_BLOCK: {"cards": True, "controller": False, "duration": False},
-    # CAST: source is the Selector over the source zone (top-of-library via
-    # Zone.position). The optional `cost` role carries the cost paid
-    # BEYOND the spell's own — an empty Cost() is the cost-waiver reading
-    # ("cast ... without paying its mana cost"); Cost(parts=(...)) are
-    # additional costs ("by paying 2 life and discarding a card in
-    # addition to its other costs").
-    Verb.CAST: {"source": True, "cost": False},
+    # CAST (one-shot, CR 608.2g) and PERMIT (a permission, CR 601.3) share the cast roles:
+    # `source` names the cards (a Selector over their zone), `alternative` / `additional` the cost
+    # change (absent: the mana cost), `replace` the spell's rider (SPELL_RIDERS). PERMIT adds
+    # `lands` ("play": lands too), `count` (how many plays it allows in all: Idol of Endurance's
+    # "a creature spell"; absent, any number) and `duration` (required where a resolving ability
+    # makes it, refused in a static: permission_fault).
+    Verb.CAST: {"source": True, "alternative": False, "additional": False, "replace": False},
+    Verb.PERMIT: {
+        "source": True,
+        "lands": False,
+        "alternative": False,
+        "additional": False,
+        "replace": False,
+        "count": False,
+        "duration": False,
+    },
     # PAY: pay a cost as an effect ("you may pay {2}", with "if you do").
     Verb.PAY: {"cost": True},
     # LOSE_GAME: no roles — the effect is the loss itself.

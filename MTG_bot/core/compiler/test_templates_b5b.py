@@ -173,11 +173,8 @@ SHAPES: tuple[tuple[str, str, str], ...] = (
         "COVERED",
         "B5b-repl-die-exile",
     ),
-    (
-        "If that spell would be put into your graveyard, exile it instead.",
-        "COVERED",
-        "B5b-repl-graveyard-exile",
-    ),
+    # the spell's rider: templates_b19 (ontology round R13), the cast verb's ``replace`` role
+    ("If that spell would be put into your graveyard, exile it instead.", "UNCOV", ""),
     (
         "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
         "COVERED",
@@ -597,8 +594,9 @@ def _as_static(ab: Any) -> StaticAbility:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_80_templates(self) -> None:
-        self.assertEqual(len(TEMPLATES), 80)
+    def test_79_templates(self) -> None:
+        # 80 until ontology round R13 moved the spell's rider to templates_b19
+        self.assertEqual(len(TEMPLATES), 79)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -614,7 +612,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 80)
+        self.assertEqual(len(reg), 79)
 
 
 # ---------------------------------------------------------------------------
@@ -635,14 +633,14 @@ class TestShapeTable(unittest.TestCase):
     def test_category_counts(self) -> None:
         covered = sum(1 for s in SHAPES if s[1] == "COVERED")
         uncov = sum(1 for s in SHAPES if s[1] == "UNCOV")
-        self.assertEqual(covered, 89, f"COVERED count {covered} != 89")
-        self.assertEqual(uncov, 2, f"UNCOV count {uncov} != 2")
+        self.assertEqual(covered, 88, f"COVERED count {covered} != 88")
+        self.assertEqual(uncov, 3, f"UNCOV count {uncov} != 3")
 
-    def test_covered_tids_valid_and_unique_79(self) -> None:
+    def test_covered_tids_valid_and_unique_78(self) -> None:
         covered_tids = [s[2] for s in SHAPES if s[1] == "COVERED"]
         unique_tids = set(covered_tids)
         self.assertEqual(
-            len(unique_tids), 79, f"expected 79 unique tids, got {len(unique_tids)}"
+            len(unique_tids), 78, f"expected 78 unique tids, got {len(unique_tids)}"
         )
         for tid in unique_tids:
             self.assertTrue(tid.startswith("B5b-"), f"bad tid: {tid}")
@@ -1404,29 +1402,6 @@ class TestStructuralAssertions(unittest.TestCase):
         assert isinstance(target, Selector)
         self.assertEqual(target.referent, "event")
 
-    def test_repl_graveyard_exile(self) -> None:
-        """B5b-repl-graveyard-exile: STACK(any)→GRAVEYARD(you) of the
-        spell's target → exile the event referent."""
-        outcome = self._match_outcome("B5b-repl-graveyard-exile")
-        ab = _as_replacement(_as_ability(outcome).ability)
-        event = ab.event
-        assert isinstance(event, ZoneChangeEvent)
-        self.assertEqual(event.from_zone.kind, ZoneKind.STACK)
-        self.assertEqual(event.from_zone.controller, ControllerRef.ANY)
-        self.assertEqual(event.to_zone.kind, ZoneKind.GRAVEYARD)
-        self.assertEqual(event.to_zone.controller, ControllerRef.YOU)
-        subject = event.subject
-        assert isinstance(subject, FAtom)
-        self.assertEqual(subject.pred, FAtomPred.IS_ANY_TARGET)
-        self.assertIsNone(ab.condition)
-        atom = _as_atom(ab.action)
-        self.assertEqual(atom.verb, Verb.MOVE_ZONE)
-        p = _pairs_dict(atom)
-        self.assertEqual(p["destination"], Zone(ZoneKind.EXILE, ControllerRef.OWNER))
-        target = p["target"]
-        assert isinstance(target, Selector)
-        self.assertEqual(target.referent, "event")
-
     def test_counter_unless_pays(self) -> None:
         """B5b-counter-unless-pays: the conditional "instead" arm on the first sentence's
         counter, KickerEffectOutcome(pred = you control a creature with flying,
@@ -1565,7 +1540,7 @@ class TestCanonicalStability(unittest.TestCase):
                 f"canonical instability for {tid} ({sent[:40]})",
             )
             seen.add(tid)
-        self.assertEqual(len(seen), 79, f"only {len(seen)} unique tids tested")
+        self.assertEqual(len(seen), 78, f"only {len(seen)} unique tids tested")
 
 
 # ---------------------------------------------------------------------------
@@ -1736,10 +1711,6 @@ class TestReplacementBatchEndToEnd(unittest.TestCase):
                     "If that creature or planeswalker would die this turn, "
                     "exile it instead."
                 ),
-            ),
-            (
-                "Chandra, Flame's Catalyst",
-                "If that spell would be put into your graveyard, exile it instead.",
             ),
             (
                 "Teferi's Ageless Insight",

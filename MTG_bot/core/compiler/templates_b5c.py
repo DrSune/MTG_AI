@@ -892,6 +892,11 @@ def _build_loyalty_phase_out_all(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_search_exile(m: re.Match[str]) -> SentenceOutcome:
+    """Chandra, Heart of Fire [-9]: "Search your graveyard and library for any number of red
+    instant and/or sorcery cards, exile them, then shuffle." One search over both zones (one
+    selector, both zones: the "and/or" tutors' "both" option), so "them" is every card it found
+    and the ``result`` register the next sentence's "You may cast them this turn" reads holds
+    all of them (CR 608.2c), not the last zone's only."""
     filter_red_is_sor = _red_instant_or_sorcery_filter()
     seq = Seq(
         steps=(
@@ -905,33 +910,10 @@ def _build_loyalty_search_exile(m: re.Match[str]) -> SentenceOutcome:
                                 QUnbounded(),
                                 SelectorMode.CHOOSE,
                                 filter_red_is_sor,
-                                zones=(Zone(
-                                    kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU
-                                ),),
-                            ),
-                        ),
-                        (
-                            "destination",
-                            Zone(kind=ZoneKind.EXILE, controller=ControllerRef.ANY),
-                        ),
-                        ("controller", ControllerRef.YOU),
-                    )
-                ),
-            ),
-            Atom(
-                verb=Verb.SEARCH,
-                args=AtomArgs(
-                    pairs=(
-                        (
-                            "cards",
-                            Selector(
-                                QUnbounded(),
-                                SelectorMode.CHOOSE,
-                                filter_red_is_sor,
-                                zones=(Zone(
-                                    kind=ZoneKind.GRAVEYARD,
-                                    controller=ControllerRef.YOU,
-                                ),),
+                                zones=(
+                                    Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),
+                                    Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),
+                                ),
                             ),
                         ),
                         (
@@ -980,24 +962,20 @@ def _build_loyalty_discard_exile_top(m: re.Match[str]) -> SentenceOutcome:
                     )
                 ),
             ),
+            # "exile the top three cards of your library": the library pop (the mill lane's
+            # shape, pop_order TOP) into exile, three cards from the top in turn, no target (the
+            # card prints none, CR 115.1); the cards it moves are the ``result`` the next
+            # sentence's "cards exiled this way" reads. (Before ontology round R13 a TARGET of
+            # three over the library's top zone, which holds one card: never activatable.)
             Atom(
                 verb=Verb.MOVE_ZONE,
                 args=AtomArgs(
                     pairs=(
+                        ("amount", QConst(3)),
+                        ("controller", ControllerRef.YOU),
                         ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
-                        (
-                            "target",
-                            Selector(
-                                QConst(3),
-                                SelectorMode.TARGET,
-                                FAnd(children=()),
-                                zones=(Zone(
-                                    kind=ZoneKind.LIBRARY,
-                                    controller=ControllerRef.YOU,
-                                    position=ZonePosition.TOP,
-                                ),),
-                            ),
-                        ),
+                        ("from", Zone(ZoneKind.LIBRARY, ControllerRef.YOU)),
+                        ("pop_order", "TOP"),
                     )
                 ),
             ),
@@ -2345,72 +2323,6 @@ def _build_loyalty_soldier_attack_tokens(m: re.Match[str]) -> SentenceOutcome:
     return _loyalty_wrapper(delayed, m)
 
 
-def _build_waive_cast_from_hand(m: re.Match[str]) -> SentenceOutcome:
-    """``Until end of turn, you may cast spells from your hand without
-    paying their mana costs.`` (Chandra, Flame's Catalyst [−8], second
-    sentence).
-
-    The permission idiom (as B4-cast-goblin-top-library): an empty-cost
-    ActivatedAbility carrying OptionalEffect(CAST) — "may" stays the open
-    decision, and "which card" stays open via the CHOOSE selector over your
-    hand (QUnbounded — any number). The mana waiver is the CAST atom's
-    ``cost`` role = Cost(parts=()). Not a continuation, so the
-    ActivatedAbility assembles as a sibling node of the [−8] activation.
-    Lossy: "Until end of turn" — CAST has no duration role."""
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "source",
-                    Selector(
-                        QUnbounded(),
-                        SelectorMode.CHOOSE,
-                        FAnd(children=()),
-                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),),
-                    ),
-                ),
-                ("cost", Cost(parts=())),
-            )
-        ),
-    )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
-
-
-def _build_play_cards_exiled_this_way(m: re.Match[str]) -> SentenceOutcome:
-    """``Until end of turn, you may play cards exiled this way.`` (Chandra,
-    Heart of Fire [+1], second sentence) — the same empty-cost
-    ActivatedAbility + OptionalEffect(CAST) permission idiom, the source
-    scoped by FAtomPred.IS_EXILED_WITH_SOURCE (the cards this source
-    exiled from your library, so Zone(EXILE, YOU)). The cards are played
-    for their costs: no ``cost`` role (an empty Cost would be a "without
-    paying its mana cost" waiver, CR 118.9, that the card does not print).
-
-    Lossy: "play" covers lands too, but CAST is the only from-zone
-    permission verb; "Until end of turn" — CAST has no duration role."""
-    atom = Atom(
-        verb=Verb.CAST,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "source",
-                    Selector(
-                        QUnbounded(),
-                        SelectorMode.CHOOSE,
-                        FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
-                        zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
-                    ),
-                ),
-            )
-        ),
-    )
-    return AbilityOutcome(
-        ability=ActivatedAbility(cost=Cost(), effect=OptionalEffect(inner=atom))
-    )
-
-
 def _build_shrine_activation_cost_reduction(m: re.Match[str]) -> SentenceOutcome:
     """``This ability costs {1} less to activate for each Shrine you
     control.`` (Sanctum of Tranquil Light) — a CostModifier sibling node:
@@ -3366,27 +3278,6 @@ TEMPLATES: tuple[Template, ...] = (
         build=_build_loyalty_soldier_attack_tokens,
     ),
     Template(
-        tid="B5c-waive-cast-from-hand",
-        name="until end of turn, cast spells from hand without paying mana costs (Catalyst)",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^Until end of turn, you may cast spells from your hand "
-            r"without paying their mana costs\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_waive_cast_from_hand,
-    ),
-    Template(
-        tid="B5c-play-cards-exiled-this-way",
-        name="until end of turn, play cards exiled this way (Heart of Fire)",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^Until end of turn, you may play cards exiled this way\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_play_cards_exiled_this_way,
-    ),
-    Template(
         tid="B5c-shrine-activation-cost",
         name="this ability costs N less to activate for each Shrine you control",
         bucket=_BUCKET,
@@ -3443,7 +3334,18 @@ _EMBLEM_BUILT_IN = (
     "Emblem (compiler built-in, compiler._emblem_sentences: the quote compiles as the emblem's own "
     "text into GET_EMBLEM's EmblemSpec)"
 )
+#: The permission sentences of this bucket moved to templates_b19 with Verb.PERMIT (ontology round
+#: R13).
+_MOVED_TO_B19 = (
+    "templates_b19 reads it (ontology round R13, DESIGN_ATOM_ONTOLOGY §17: the permission verb)"
+)
+
 UNCOVERED: tuple[tuple[str, str], ...] = (
+    (
+        "Until end of turn, you may cast spells from your hand without paying their mana costs.",
+        _MOVED_TO_B19,
+    ),
+    ("Until end of turn, you may play cards exiled this way.", _MOVED_TO_B19),
     (
         "Until the end of your next turn, they can't phase in.",
         "Phase-in prevention (compiler built-in; merged into preceding loyalty activation)",

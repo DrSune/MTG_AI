@@ -237,24 +237,24 @@ def _cast_top_library() -> at.Atom:
 
 
 def _cast_waiver() -> at.Atom:
-    """CAST with an empty cost = the cost-waiver reading."""
+    """CAST with an empty alternative cost: "without paying its mana cost" (CR 118.9)."""
     top = at.Zone(at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP)
     src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, zones=(top,))
     return at.Atom(
         at.Verb.CAST,
-        at.AtomArgs(pairs=(("source", src), ("cost", at.Cost()))),
+        at.AtomArgs(pairs=(("source", src), ("alternative", at.Cost()))),
     )
 
 
 def _cast_extra_cost() -> at.Atom:
-    """CAST paying an additional 2 life beyond the spell's own cost."""
+    """CAST paying an additional 2 life beyond the spell's own cost (CR 601.2f)."""
     src = at.Selector(at.QConst(1), at.SelectorMode.CHOOSE, _PERM, zones=(_LIB_YOU,))
     return at.Atom(
         at.Verb.CAST,
         at.AtomArgs(
             pairs=(
                 ("source", src),
-                ("cost", at.Cost(parts=(at.CostLife(at.QConst(2)),))),
+                ("additional", at.Cost(parts=(at.CostLife(at.QConst(2)),))),
             )
         ),
     )
@@ -898,7 +898,9 @@ def test_explicit_empty_omit_fields_decode() -> None:
 
 
 def test_new_verb_roles() -> None:
-    assert at._VERB_ROLES[at.Verb.CAST] == {"source": True, "cost": False}
+    assert at._VERB_ROLES[at.Verb.CAST] == {
+        "source": True, "alternative": False, "additional": False, "replace": False,
+    }
     assert at._VERB_ROLES[at.Verb.PAY] == {"cost": True}
     assert at._VERB_ROLES[at.Verb.LOSE_GAME] == {}
 
@@ -967,8 +969,8 @@ def test_cast_source_role_is_selector() -> None:
     assert src.zones[0] == at.Zone(
         at.ZoneKind.LIBRARY, at.ControllerRef.YOU, at.ZonePosition.TOP
     )
-    # the optional cost role decodes as a Cost when present
-    cost = _cast_waiver().args.get("cost")
+    # the optional alternative-cost role decodes as a Cost when present
+    cost = _cast_waiver().args.get("alternative")
     assert isinstance(cost, at.Cost) and cost.parts == ()
 
 

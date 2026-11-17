@@ -3,9 +3,14 @@
 Every action the rules allow ``seat`` now (CR 117.1), each priced with what pays it. The bench
 router labels the rows and asks its seat; :func:`perform` carries one out. Rows:
 
-- ``land:<card>``: a land drop (CR 305.1), where :func:`stack.land_playable` allows it.
-- ``cast:<card>[:k][:x<N>]``: a spell in hand, base and kicked (CR 702.27), one row per X from 0
-  to the largest payable X (CR 601.2b, 107.3a; no ``:x`` for X = 0).
+- ``land:<card>``: a land drop (CR 305.1), where :func:`stack.land_playable` allows it: from the
+  hand, or from the zone a permission lets the seat play it from (CR 116.2a, 601.3;
+  executor/permits.py), the card's zone telling which.
+- ``cast:<card>[:via:<source>][:k][:x<N>]``: a spell, base and kicked (CR 702.27), one row per X
+  from 0 to the largest payable X (CR 601.2b, 107.3a; no ``:x`` for X = 0): from the hand, or
+  from where a permission lets the seat cast it (CR 601.3). One row per cost path
+  (``permits.Path.key``); a path that changes the cost or adds a rider names the permission's
+  source (``:via:``), so two paths of one card are two rows the seat tells apart.
 - ``act:<card>:<index>``: a non-mana activated ability, printed or granted (a granted one is
   numbered -k-1), of a permanent the seat controls, or of the seat's card elsewhere whose
   ability works there (CR 113.6: "Discard this card:" in the hand, Sanitarium Skeleton's
@@ -56,7 +61,14 @@ from MTG_bot.core.executor.query import (
     modal_choose,
     spell_target_slots,
 )
-from MTG_bot.core.executor.stack import can_designate, cast, land_playable, play_land
+from MTG_bot.core.executor import permits
+from MTG_bot.core.executor.stack import (
+    can_designate,
+    cast,
+    is_land_card,
+    land_playable,
+    play_land,
+)
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND
 
@@ -81,6 +93,7 @@ class Row:
     slots: list | None = None
     exclude: frozenset = frozenset()
     pay: Callable[[Sequence[Handle]], bool] | None = None
+    path: Any = None  # the permits.Path a land or spell is played through (None: from the hand)
 
 
 def menu(executor: Executor, seat: Handle, hidden: Counter | None = None) -> list[Row]:
@@ -89,11 +102,21 @@ def menu(executor: Executor, seat: Handle, hidden: Counter | None = None) -> lis
     world = executor.world
     rows: list[Row] = []
     sources: dict = {}  # the seat's mana sources, listed once for every row priced here
-    for handle in sorted(world.players[seat].zone(ZONE_HAND).entries):
+    hand = world.players[seat].zone(ZONE_HAND)
+    for handle in sorted(hand.entries):
         if land_playable(executor, seat, handle) is None:
             rows.append(Row(f"land:{handle}", "land", handle))
         else:
             rows.extend(_cast_rows(executor, seat, handle, hidden, sources))
+    # CR 601.3, 305.1: what a permission lets the seat play from another zone, and the hand's
+    # cast paths at another cost (Omniscience's "without paying their mana costs")
+    for handle in permits.playable(executor, seat):
+        if is_land_card(world, handle):
+            if world.zone_of(handle) is not hand and land_playable(executor, seat, handle) is None:
+                rows.append(Row(f"land:{handle}", "land", handle))
+            continue
+        for path in permits.cast_paths(executor, seat, handle):
+            rows.extend(_cast_rows(executor, seat, handle, hidden, sources, path))
     for source, idx, ability in activated_abilities(executor, seat):
         if is_mana_ability(ability):
             continue  # activated while paying (CR 605.3a), never a row
@@ -104,22 +127,29 @@ def menu(executor: Executor, seat: Handle, hidden: Counter | None = None) -> lis
 
 
 def _cast_rows(
-    executor: Executor, seat: Handle, handle: Handle, hidden: Counter | None, sources: dict
+    executor: Executor, seat: Handle, handle: Handle, hidden: Counter | None, sources: dict,
+    path: Any = None,
 ) -> list[Row]:
-    """One row per payable declaration of a spell in hand: base and kicked, and one per X."""
+    """One row per payable declaration of a spell, in hand or through ``path`` (a
+    ``permits.Path``): base and kicked, and one per X (an alternative cost pays no X, CR
+    107.3b)."""
     record = spell_record(executor, handle)
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None) if record else None
     if node is None:
         return []
     kicker = kicker_of(record)
+    via = f":via:{path.source}" if path is not None and not path.plain else ""
     rows: list[Row] = []
     for kicked in (False, True) if kicker is not None else (False,):
         extra = tuple(node.additional_costs) + ((kicker.cost,) if kicked else ())
-        for x in count() if _cost_has_x(spell_cost(record, extra)) else (None,):
+        if path is not None and path.additional is not None:
+            extra = extra + (path.additional,)
+        alternative = path.alternative if path is not None else None
+        for x in count() if _cost_has_x(spell_cost(record, extra, alternative)) else (None,):
 
             def pay(targets: Sequence[Handle], kicked: bool = kicked, x: int | None = x) -> bool:
                 return cast_taps(executor, seat, handle, kicked, x, tuple(targets), sources,
-                                 payable_only=True) is not None
+                                 payable_only=True, path=path) is not None
 
             if not pay(()):
                 break  # a larger X costs more: no larger X is payable either
@@ -135,8 +165,9 @@ def _cast_rows(
                 if hidden is not None:
                     hidden["hidden_rows"] += 1
                 break
-            token = f"cast:{handle}{':k' if kicked else ''}{f':x{x}' if x else ''}"
-            rows.append(Row(token, "cast", handle, node, kicked, x, slots=slots, pay=pay))
+            token = f"cast:{handle}{via}{':k' if kicked else ''}{f':x{x}' if x else ''}"
+            rows.append(Row(token, "cast", handle, node, kicked, x, slots=slots, pay=pay,
+                            path=path))
     return rows
 
 
@@ -191,12 +222,17 @@ def activated_abilities(executor: Executor, seat: Handle) -> list[tuple[Handle, 
 def cast_taps(
     executor: Executor, seat: Handle, handle: Handle, kicked: bool, x: int | None,
     targets: tuple[Handle, ...], sources: dict | None = None, payable_only: bool = False,
+    path: Any = None,
 ) -> Any:
     """The mana sources that pay this declaration's total cost (CR 601.2f-h) with what the pool
     holds: () when the pool pays it, None when nothing does. ``sources``: a menu build's shared
-    listing; ``payable_only``: only whether it can be paid (``legality.plan_mana_taps``)."""
+    listing; ``payable_only``: only whether it can be paid (``legality.plan_mana_taps``);
+    ``path``: the permission it is cast through (its cost)."""
     return plan_mana_taps(
-        executor, seat, lambda: spell_castable(executor, seat, handle, x=x, kicked=kicked, targets=targets)[0],
+        executor, seat,
+        lambda: spell_castable(
+            executor, seat, handle, x=x, kicked=kicked, targets=targets, path=path
+        )[0],
         keep=frozenset(targets), costly=True, sources=sources, payable_only=payable_only,
     )
 
@@ -232,9 +268,10 @@ def perform(
         tap_for_payment(executor, seat, taps)
         activate(executor, row.handle, row.ability_idx, seat=seat, targets=targets)
         return True
-    taps = cast_taps(executor, seat, row.handle, row.kicked, row.x, flat)
+    taps = cast_taps(executor, seat, row.handle, row.kicked, row.x, flat, path=row.path)
     if taps is None:
         return False
     tap_for_payment(executor, seat, taps)
-    cast(executor, seat, row.handle, x=row.x, kicked=row.kicked, mode_choices=modes, targets=targets)
+    cast(executor, seat, row.handle, x=row.x, kicked=row.kicked, mode_choices=modes,
+         targets=targets, path=row.path)
     return True

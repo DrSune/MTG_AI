@@ -210,9 +210,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         n = amount(ctx, atom, "amount")
         lib = ctx.world.players[player].zone(ZONE_LIBRARY)
         dest_zone = ctx.world.players[player].zone(dest_kind)
+        popped: list[Handle] = []
         for _ in range(min(n, len(lib.entries))):
             card = lib.entries.pop()  # top of library, zone order
             dest_zone.entries.append(card)
+            popped.append(card)
             ctx.events.append(
                 (
                     len(ctx.events),
@@ -221,6 +223,9 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                     f"{ZONE_LIBRARY}->{dest_kind}",
                 )
             )
+        # The moved cards are the result register, as in every other lane: "Exile the top three
+        # cards of your library. Until end of turn, you may play cards exiled this way."
+        ctx.bindings["result"] = sorted(popped)
         return
     if isinstance(frm, Zone) and frm.kind is ZoneKind.HAND:
         # The discard shape: EVERY player the controller role denotes discards
@@ -1964,36 +1969,66 @@ def _v_pay(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_cast(ctx: ExecCtx, atom: Atom) -> None:
-    """CAST: the CAST atom is NOT a permission ledger entry. Every compiled
-    row is the effect verb "cast the designated card" — OptionalEffect("you
-    may cast") wrapped, ``source`` a Selector designating the card(s) (the
-    'result' referent of a preceding exile/reveal, top-of-library, the
-    IS_SOURCE self-cast), and the OPTIONAL ``cost`` role carrying either an
-    EMPTY Cost (the cost-waiver idiom, "without paying its mana cost",
-    CR 498.2) or a real Cost (additional cost). So the handler delegates to
-    :func:`stack.cast_card`: designate, park, pay (or not — empty Cost),
-    push, resolve, put — and the CAST EVENT fires, so "whenever you cast"
-    triggers see effect-casts too (CR 601.2m).
+    """CAST: cast the designated card NOW, as the ability that says so resolves (CR 608.2g),
+    ignoring the timing its card type sets: "You may cast target red instant or sorcery card from
+    your graveyard" (Chandra, Flame's Catalyst [-2], OptionalEffect-wrapped). A permission to cast
+    later is PERMIT (:func:`_v_permit`). ``alternative`` / ``additional`` change the cost (CR
+    118.9, 601.2f), ``replace`` is the spell's rider (``ability_tree.spell_rider``). The handler
+    delegates to :func:`stack.cast_card`, which designates the spell's targets and announces its X
+    as the caster casts it (CR 601.2b-c), pays, and puts it on the stack; the CAST event fires, so
+    "whenever you cast" triggers see it (CR 601.2i).
 
-    Designation: bindings first (role ``source``), else the Selector
-    (CHOOSE-mode deterministic first-n stand-in; the may-decision upstream
-    already covered the whole atom).
-    A designated card WITHOUT a SpellAbility (a land, an unregistered
-    card) RAISES — the honest per-card flag, never a silent skip that
-    would fake a cast."""
+    A designated card WITHOUT a SpellAbility (a land, an unregistered card) RAISES — the honest
+    per-card flag, never a silent skip that would fake a cast."""
     from MTG_bot.core.executor.stack import cast_card
 
     executor = _executor_or_raise(ctx, atom.verb.name)
     cards = role_handles(ctx, atom, "source")
-    cost = atom.args.get("cost")  # None = the spell's own printed cost
     for card in cards:
-        cast_card(
-            executor,
-            ctx.controller,
-            card,
-            cost_override=cost,
-            x=ctx.x_value if ctx.x_value is not None else 0,
+        cast_card(executor, ctx.controller, card, atom=atom)
+
+
+def _v_permit(ctx: ExecCtx, atom: Atom) -> None:
+    """PERMIT made by a resolving ability (CR 611.2a): its controller may play the cards it names
+    for its duration, from where they lie, at their own timing (executor/permits.py).
+
+    A designation (a target, the ``result`` of the instruction before: "cards exiled this way") is
+    fixed now, each object leaving the permission when it changes zones (CR 400.7). A population
+    ("Until end of turn, you may cast spells from your hand without paying their mana costs") is
+    read whenever a card is played: the effect changes the rules of the game, not the
+    characteristics of objects, so it reaches cards that arrive later (CR 611.2c)."""
+    layers = _layers_or_raise(ctx, atom.verb.name)
+    sel = atom.args.get("source")
+    assert isinstance(sel, Selector)  # role table: source is a Selector
+    population = sel.referent is None and sel.mode is SelectorMode.ALL
+    if population:
+        objects: tuple[Handle, ...] = ()
+    elif sel.referent is not None:
+        # "cards exiled this way", "them", "that card": every object the register holds, as
+        # it holds them (a referent is bound, never chosen: no count slices it)
+        bound = ctx.binding_handles(sel.referent)
+        if bound is None:
+            raise ValueError(
+                f"executor: PERMIT reads the {sel.referent!r} register, which no instruction "
+                "before it wrote"
+            )
+        objects = tuple(sorted(bound))
+    else:
+        objects = tuple(role_handles(ctx, atom, "source"))  # the designated targets
+    count = atom.args.get("count")
+    uses = resolve(count, ctx) if isinstance(count, Quantity) else None
+    duration = atom.args.get("duration")
+    assert isinstance(duration, Duration)  # permission_fault: a resolving PERMIT has one
+    layers.register_permit(ctx.source, ctx.controller, atom, objects, duration, uses)
+    ctx.events.append(
+        (
+            len(ctx.events),
+            atom.verb.name,
+            str(ctx.source),
+            "population" if population else tuple(str(h) for h in objects),
+            duration_tag(duration),
         )
+    )
 
 
 def _v_choose(ctx: ExecCtx, atom: Atom) -> None:
@@ -2647,7 +2682,10 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
     if not ability:  # a spell goes to its owner's graveyard; an ability ceases to exist
-        _move_to(ctx, spell, ctx.world.controller_of(spell), ZONE_GRAVEYARD)
+        from MTG_bot.core.executor.stack import exit_zone
+
+        # its rider exiles it instead (Chandra, Flame's Catalyst's [-2]; flashback, CR 702.34a)
+        _move_to(ctx, spell, ctx.world.controller_of(spell), exit_zone(frame, ZONE_GRAVEYARD))
     ctx.events.append((len(ctx.events), "COUNTER", str(spell), str(ctx.source)))
 
 
@@ -2687,6 +2725,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # The cast-side verbs.
     Verb.PAY: _v_pay,
     Verb.CAST: _v_cast,
+    Verb.PERMIT: _v_permit,
     Verb.CHOOSE: _v_choose,
     Verb.CHOOSE_NAME: _v_choose_name,
     Verb.MANA_POLICY: _v_mana_policy,

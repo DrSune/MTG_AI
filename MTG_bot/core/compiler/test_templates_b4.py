@@ -300,19 +300,6 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
         "B4-enthralling-target-choice",
         "ability",
     ),
-    "You may cast them this turn.": (
-        "B4-cast-them-this-turn",
-        "ability",
-    ),
-    "You may look at the top card of your library any time, and you may "
-    "play lands from the top of your library.": (
-        "B4-look-play-top-of-library",
-        "ability",
-    ),
-    "You may play that card until you exile another card with this enchantment.": (
-        "B4-play-that-card-until",
-        "ability",
-    ),
     "You may play two additional lands on each of your turns.": (
         "B4-azusa-extra-land-plays",
         "ability",
@@ -399,15 +386,6 @@ EXPECTED_KIND: dict[str, tuple[str, str]] = {
     ),
     "This creature enters tapped.": ("B4-enters-tapped-creature", "ability"),
     "This land enters tapped.": ("B4-enters-tapped-land", "ability"),
-    "You may cast Goblin spells from the top of your library.": (
-        "B4-cast-goblin-top-library",
-        "ability",
-    ),
-    "You may cast this card from your graveyard by paying 3 life and "
-    "discarding a card in addition to paying its other costs.": (
-        "B4-cast-graveyard-recost",
-        "ability",
-    ),
     # The sorcery tutors are part of the spell's effect.
     "You may search your library and/or graveyard for a card named "
     "Basri, Devoted Paladin, reveal it, and put it into your hand.": (
@@ -452,11 +430,12 @@ class TestB4Inventory(unittest.TestCase):
     def setUp(self) -> None:
         self.data = _load_b4()
 
-    def test_46_templates(self) -> None:
-        self.assertEqual(len(templates_b4.TEMPLATES), 46)
+    def test_41_templates(self) -> None:
+        # 46 until ontology round R13 moved the five permission templates to templates_b19
+        self.assertEqual(len(templates_b4.TEMPLATES), 41)
 
-    def test_1_uncovered(self) -> None:
-        self.assertEqual(len(templates_b4.UNCOVERED), 1)
+    def test_6_uncovered(self) -> None:
+        self.assertEqual(len(templates_b4.UNCOVERED), 6)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in templates_b4.TEMPLATES]
@@ -472,7 +451,7 @@ class TestB4Inventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _registry()
-        self.assertEqual(len(reg), 46)
+        self.assertEqual(len(reg), 41)
 
     def test_every_template_matches_some_bucket_sentence(self) -> None:
         sentences = [
@@ -509,8 +488,8 @@ class TestB4Coverage(unittest.TestCase):
                     shape_matched = True
             if shape_matched:
                 covered_shapes += 1
-        self.assertEqual(covered_shapes, 46)
-        self.assertEqual(matched_occurrences, 62)
+        self.assertEqual(covered_shapes, 41)
+        self.assertEqual(matched_occurrences, 57)
 
     def test_uncovered_shapes_are_exactly_the_unmatched_shapes(self) -> None:
         unmatched: set[str] = set()
@@ -527,7 +506,7 @@ class TestB4Coverage(unittest.TestCase):
                 self.assertEqual(self.reg.match(sentence), (), sentence)
 
     def test_expected_kind_table_is_consistent_with_bucket(self) -> None:
-        self.assertEqual(len(EXPECTED_KIND), 47)
+        self.assertEqual(len(EXPECTED_KIND), 42)
         for sentence in EXPECTED_KIND:
             for entries in self.data.values():
                 if sentence in [s for _card, s in entries]:
@@ -1079,61 +1058,6 @@ class TestB4IrStructure(unittest.TestCase):
         etb = _as_etb_state(outcome.ability)
         self.assertTrue(etb.tapped)
         self.assertEqual(etb.initial_counters, ())
-
-    # ------------------------------------------------------------------
-    # Activated abilities — cast from zone
-    # ------------------------------------------------------------------
-
-    def test_cast_goblin_top_library(self) -> None:
-        outcome = _as_ability(
-            _single_match(
-                self.reg, "You may cast Goblin spells from the top of your library."
-            ).outcome
-        )
-        ability = _as_activated(outcome.ability)
-        self.assertEqual(ability.cost.parts, ())
-        optional = _as_optional(ability.effect)
-        atom = _as_atom(optional.inner)
-        self.assertIs(atom.verb, Verb.CAST)
-        source = _selector(atom, "source")
-        self.assertIs(source.zones[0].kind, ZoneKind.LIBRARY)
-        self.assertIs(source.zones[0].controller, ControllerRef.YOU)
-        self.assertIs(source.zones[0].position, ZonePosition.TOP)
-        self.assertIsInstance(source.count, QUnbounded)
-        self.assertIs(source.mode, SelectorMode.CHOOSE)
-        _find_atom(source.filter, FAtomPred.TYPE_EQ, string_value="Creature")
-        _find_atom(source.filter, FAtomPred.SUBTYPE_EQ, string_value="Goblin")
-
-    def test_cast_graveyard_recost(self) -> None:
-        outcome = _as_ability(
-            _single_match(
-                self.reg,
-                "You may cast this card from your graveyard by paying 3 life "
-                "and discarding a card in addition to paying its other costs.",
-            ).outcome
-        )
-        ability = _as_activated(outcome.ability)
-        cost = ability.cost
-        self.assertEqual(len(cost.parts), 2)
-        life_part = cost.parts[0]
-        assert isinstance(life_part, CostLife)
-        self.assertEqual(_qconst(life_part.amount).value, 3)
-        discard_part = cost.parts[1]
-        assert isinstance(discard_part, CostDiscard)
-        discard_target = discard_part.target
-        self.assertIs(discard_target.zones[0].kind, ZoneKind.HAND)
-        self.assertIs(discard_target.zones[0].controller, ControllerRef.YOU)
-        self.assertEqual(_qconst(discard_target.count).value, 1)
-        self.assertEqual(discard_target.filter, FAnd(children=()))
-        optional = _as_optional(ability.effect)
-        atom = _as_atom(optional.inner)
-        self.assertIs(atom.verb, Verb.CAST)
-        source = _selector(atom, "source")
-        self.assertIs(source.zones[0].kind, ZoneKind.GRAVEYARD)
-        self.assertIs(source.zones[0].controller, ControllerRef.YOU)
-        self.assertEqual(_qconst(source.count).value, 1)
-        source_filter = _as_fatom(source.filter)
-        self.assertIs(source_filter.pred, FAtomPred.IS_SOURCE)
 
     # ------------------------------------------------------------------
     # Tutor (name-specific search)

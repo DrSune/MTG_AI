@@ -1201,33 +1201,6 @@ def _build_repl_die_exile(m: re.Match[str]) -> SentenceOutcome:
     )
 
 
-def _build_repl_graveyard_exile(m: re.Match[str]) -> SentenceOutcome:
-    """Chandra, Flame's Catalyst [−2]: "If that spell would be put into
-    your graveyard, exile it instead."
-
-    "that spell" is the ability's target (IS_ANY_TARGET).
-    """
-    return AbilityOutcome(
-        ability=ReplacementAbility(
-            event=ZoneChangeEvent(
-                from_zone=Zone(ZoneKind.STACK, ControllerRef.ANY),
-                to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
-                subject=FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            ),
-            condition=None,
-            action=Atom(
-                verb=Verb.MOVE_ZONE,
-                args=AtomArgs(
-                    pairs=(
-                        ("destination", Zone(ZoneKind.EXILE, ControllerRef.OWNER)),
-                        ("target", _event_referent()),
-                    )
-                ),
-            ),
-        )
-    )
-
-
 def _build_counter_unless_pays(m: re.Match[str]) -> SentenceOutcome:
     """Lofty Denial: "If you control a creature with flying, counter that
     spell unless its controller pays {4} instead."
@@ -2954,17 +2927,6 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_repl_die_exile,
-    ),
-    Template(
-        tid="B5b-repl-graveyard-exile",
-        name="if that spell would be put into your graveyard, exile it instead",
-        bucket=_BUCKET,
-        pattern=re.compile(
-            r"^If that spell would be put into your graveyard, "
-            r"exile it instead\.$"
-        ),
-        priority=_PRIORITY,
-        build=_build_repl_graveyard_exile,
     ),
     Template(
         tid="B5b-counter-unless-pays",

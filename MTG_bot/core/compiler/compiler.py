@@ -61,12 +61,15 @@ from MTG_bot.core.ability_tree import (
     SpellAbility,
     SpellKind,
     StaticAbility,
+    TokenSpec,
     TriggeredAbility,
     Verb,
     Zone,
     ZoneChangeEvent,
     ZoneKind,
     chosen_quality_fault,
+    own_nodes,
+    permission_fault,
     walk,
 )
 from MTG_bot.core.compiler.ingest import RawCard, split_sentences
@@ -79,6 +82,7 @@ from MTG_bot.core.compiler.templates import (
     KickerEffectOutcome,
     KeywordOutcome,
     MetaOutcome,
+    RiderOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
     TemplateRegistry,
@@ -899,19 +903,13 @@ def _loyalty_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     loyalty bullet belongs to that ability; Basri Ket, Garruk, Savage Herald)
     arrives as a plain, non-continuation sentence.  If the nearest meaningful
     processed entry is an ActivatedAbility whose cost carries a CostLoyalty
-    part, that ability is the sentence's owner.
-
-    The empty-cost OPT(CAST) permission row is transparent
-    (:func:`_is_cast_permission_row`): Chandra, Heart of Fire's "Add six
-    {R}." is printed under the [−9] bullet, after "You may cast them this
-    turn.".
+    part, that ability is the sentence's owner (Chandra, Heart of Fire's "You may
+    cast them this turn." and "Add six {R}." under the [−9] bullet, CR 611.2a).
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None or isinstance(prev, RuleReminderOutcome):
             continue
-        if _is_cast_permission_row(prev):
-            continue  # the permission sentence is part of the same bullet
         if (
             isinstance(prev, AbilityOutcome)
             and isinstance(prev.ability, ActivatedAbility)
@@ -947,76 +945,6 @@ def _trigger_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     return None
 
 
-def _is_cast_permission_row(slot: _OutcomeSlot) -> bool:
-    """The empty-cost OPT(CAST) PERMISSION idiom (template B4 "cast/play
-    them this turn"; Chandra, Heart of Fire's "You may cast them this turn.").
-
-    The template compiles such a sentence into a free-cost ActivatedAbility
-    whose whole effect is ``OptionalEffect(Atom(CAST))`` — the permission
-    itself, not an action with consequences. It never owns a tail: a rules
-    sentence printed under the loyalty bullet it follows stays owned by that
-    bullet, so the tail matchers see through the permission row instead of
-    capturing the loyalty tail ("Add six {R}.") as the permission's own.
-
-    The CAST pays the card's costs (no ``cost`` role) or waives them (the
-    empty Cost, "without paying its mana cost"); either is the same row.
-    """
-    if not isinstance(slot, AbilityOutcome) or not isinstance(
-        slot.ability, ActivatedAbility
-    ):
-        return False
-    ab = slot.ability
-    if ab.cost.parts:
-        return False
-    return (
-        isinstance(ab.effect, OptionalEffect)
-        and isinstance(ab.effect.inner, Atom)
-        and ab.effect.inner.verb is Verb.CAST
-        and ab.effect.inner.args.get("cost") in (None, Cost(parts=()))
-    )
-
-
-# A permission that lasts "until end of turn" or "this turn" is the continuous
-# effect of the ability whose resolution creates it (CR 611.2a). A static
-# ability states no duration (CR 113.3d, 611.3a), so such a sentence is never
-# an ability of its own.
-_DURATION_PERMISSION_RE = re.compile(r"\b(?:until end of turn|this turn)\b", re.IGNORECASE)
-
-
-def _is_duration_cast_permission(slot: _OutcomeSlot, sentence: str) -> bool:
-    """A permission row (:func:`_is_cast_permission_row`) whose sentence states a
-    duration. It belongs to the ability printed above it, but CAST has no
-    duration role and the executor no permission lane, so it cannot be
-    expressed there yet; as a sibling node it would be a free cast the
-    controller could repeat whenever the permanent is on the battlefield
-    (Chandra, Flame's Catalyst's [−8] "Until end of turn, you may cast spells
-    from your hand without paying their mana costs."). A static permission
-    (Conspicuous Snoop's "You may cast Goblin spells from the top of your
-    library.") states no duration and waives no cost, so it stays an ability."""
-    return _is_cast_permission_row(slot) and bool(_DURATION_PERMISSION_RE.search(sentence))
-
-
-def casts_itself_from_another_zone(effect: object) -> bool:
-    """Is ``effect`` a CAST of the card itself from a zone other than the battlefield
-    ("You may cast this card from your graveyard by paying 3 life and discarding a card
-    in addition to paying its other costs.", Demonic Embrace), optional or not? As an
-    activated ability's effect it can never happen: the ability is activated while the
-    card is on the battlefield, so the card is never in that zone. The printed sentence
-    is a permission that works from that zone (CR 601.3: a card is cast only where a
-    rule or effect allows it), and the IR has no permission lane yet (BACKLOG B-100).
-    ``compile_card`` refuses such a row and ``query.inert_row`` never offers one."""
-    inner = effect.inner if isinstance(effect, OptionalEffect) else effect
-    if not isinstance(inner, Atom) or inner.verb is not Verb.CAST:
-        return False
-    source = inner.args.get("source")
-    return (
-        isinstance(source, Selector)
-        and source.filter == FAtom(pred=FAtomPred.IS_SOURCE)
-        and bool(source.zones)
-        and all(zone.kind is not ZoneKind.BATTLEFIELD for zone in source.zones)
-    )
-
-
 def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     """Index of the tail-most plain activated ability if it is the LAST
     meaningful processed entry, else None.
@@ -1026,15 +954,12 @@ def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     flip, you gain 6 life.", Seasoned Hallowblade's "It gains indestructible
     until end of turn.").  Boundaries as in :func:`_trigger_trailing_idx`.
     Loyalty-costed abilities return None (their tails belong to
-    :func:`_loyalty_trailing_idx`); the empty-cost OPT(CAST) permission row
-    is transparent (:func:`_is_cast_permission_row`).
+    :func:`_loyalty_trailing_idx`).
     """
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None or isinstance(prev, RuleReminderOutcome):
             continue
-        if _is_cast_permission_row(prev):
-            continue  # permission row: transparent boundary
         if isinstance(prev, AbilityOutcome) and isinstance(
             prev.ability, ActivatedAbility
         ):
@@ -1045,16 +970,76 @@ def _activation_trailing_idx(processed: list[_OutcomeSlot]) -> int | None:
     return None
 
 
+def _is_permission(effect: object) -> bool:
+    """Does ``effect`` make a PERMIT (DESIGN_ATOM_ONTOLOGY §17)? Its "you may" is the
+    permission's use, the card played later or not (CR 601.3), so a "may" sentence that makes
+    one is never OptionalEffect-wrapped (the IR refuses the wrap)."""
+    return any(isinstance(n, Atom) and n.verb is Verb.PERMIT for n in own_nodes(effect))
+
+
 def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     """Append ``OptionalEffect(inner)`` to ``effect``'s step sequence.
 
     ``inner`` is the *unwrapped* continuation effect; this helper applies the
-    single ``OptionalEffect`` wrap.  If ``effect`` is not already a ``Seq``, it
-    is wrapped into a two-step ``Seq``.
+    single ``OptionalEffect`` wrap, except around a permission
+    (:func:`_is_permission`), which is appended as it is.  If ``effect`` is not
+    already a ``Seq``, it is wrapped into a two-step ``Seq``.
     """
+    if _is_permission(inner):
+        return _append_mandatory_to_seq(effect, inner)
     if isinstance(effect, Seq):
         return Seq(steps=effect.steps + (OptionalEffect(inner),))
     return Seq(steps=(effect, OptionalEffect(inner)))
+
+
+def _cast_atoms(effect: object) -> list[Atom]:
+    """The cast verbs (CAST, PERMIT) among ``effect``'s own nodes."""
+    return [
+        n for n in own_nodes(effect) if isinstance(n, Atom) and n.verb in (Verb.CAST, Verb.PERMIT)
+    ]
+
+
+def _rider_host_idx(processed: list[_OutcomeSlot]) -> int | None:
+    """The slot whose ability or effect holds the one cast verb a rider sentence follows: the
+    nearest meaningful slot before it (rule reminders skipped), if it holds exactly one cast
+    verb without a rider; else None (the sentence stays unparsed: a rider whose spell did not
+    compile has no antecedent, and two cast verbs leave "that spell" ambiguous)."""
+    for j in range(len(processed) - 1, -1, -1):
+        prev = processed[j]
+        if prev is None:
+            return None
+        if isinstance(prev, RuleReminderOutcome):
+            continue
+        node = getattr(prev.ability, "effect", None) if isinstance(prev, AbilityOutcome) else (
+            prev.effect if isinstance(prev, EffectOutcome) else None
+        )
+        atoms = _cast_atoms(node) if node is not None else []
+        if len(atoms) != 1 or atoms[0].args.get("replace") is not None:
+            return None
+        return j
+    return None
+
+
+def _with_rider(slot: _OutcomeSlot, rider: object) -> _OutcomeSlot:
+    """``slot`` with its one cast verb given ``rider`` as its ``replace`` role."""
+
+    def rebuild(node: object) -> object:
+        if isinstance(node, Atom):  # a role's value is no step of this ability
+            if node.verb not in (Verb.CAST, Verb.PERMIT):
+                return node
+            return Atom(verb=node.verb, args=AtomArgs(pairs=(*node.args.pairs, ("replace", rider))))
+        if isinstance(node, tuple):
+            return tuple(rebuild(x) for x in node)
+        if is_dataclass(node) and not isinstance(node, type) and not isinstance(
+            node, (DelayedTrigger, TokenSpec)
+        ):
+            return replace(node, **{f.name: rebuild(getattr(node, f.name)) for f in fields(node)})
+        return node
+
+    if isinstance(slot, AbilityOutcome):
+        return AbilityOutcome(ability=rebuild(slot.ability))
+    assert isinstance(slot, EffectOutcome)
+    return EffectOutcome(effect=rebuild(slot.effect))
 
 
 def _append_mandatory_to_seq(effect: Effect, inner: Effect) -> Effect:
@@ -1189,7 +1174,11 @@ def _merge_if_do_continuation(
     offered whatever the board).
     """
     inner = continuation
-    if _MAY_RE.search(sentence) and not isinstance(inner, OptionalEffect):
+    if (
+        _MAY_RE.search(sentence)
+        and not isinstance(inner, OptionalEffect)
+        and not _is_permission(inner)
+    ):
         inner = OptionalEffect(inner=inner)
     if sentence.strip().startswith("When you do"):
         inner = DelayedTrigger(duration=None, event=None, condition=None, effect=inner)
@@ -1275,28 +1264,6 @@ def _spell_kind_from_types(types: tuple[str, ...], is_creature: bool) -> SpellKi
     return SpellKind.SORCERY
 
 
-def _is_result_anaphoric_cast_permission(ability: Ability) -> bool:
-    """Furious Rise: an EMPTY-cost ActivatedAbility whose effect is an
-    OptionalEffect-wrapped CAST over a ``referent="result"`` selector —
-    ``_build_play_that_card_until``'s shape for "You may play that card
-    until you exile another card with this enchantment."  The printed card
-    carries NO activated ability: the play window is a permission created
-    by the end-step trigger's exile, and the engine has no play-permission
-    lane (the node would be a phantom whose activation finds no register).
-    The template stays MATCHED (the sentence is parsed and reported); the
-    NODE is suppressed at assembly with a KNOWN-GAP note.  The shape is
-    narrow by design: other empty-cost activations carry other verbs, and
-    every other may-cast permission names its cost or its object (no
-    result referent)."""
-    if not isinstance(ability, ActivatedAbility) or ability.cost.parts:
-        return False
-    inner = ability.effect.inner if isinstance(ability.effect, OptionalEffect) else None
-    if not isinstance(inner, Atom) or inner.verb is not Verb.CAST:
-        return False
-    src = dict(inner.args.pairs).get("source")
-    return isinstance(src, Selector) and src.referent == "result"
-
-
 def _one_of_search_picks(node: object) -> object:
     """Recompile the search-pick CHOOSE selector to the ONE_OF asking channel.
 
@@ -1380,12 +1347,11 @@ PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
         # L-28 — card-NAME value menu absent (protection never reads the
         # selector; _v_grant resolves ability/duration roles only).
         ("Runed Halo", "GRANT_ABILITY"),
-        # L-29 — top-of-library POSITION semantics, not an entity menu:
-        # _v_move_zone pop_order=TOP never resolves the selector, _v_cast
-        # designates via the look-at binding; an ask would offer a
-        # library-wide menu the rules never grant.
+        # L-29 — top-of-library POSITION semantics, not an entity menu: an
+        # ask would offer a library-wide menu the rules never grant. (Radha,
+        # Heart of Keld's CAST row left with ontology round R13: its land
+        # permission is a static PERMIT, no selector to lift.)
         ("Furious Rise", "MOVE_ZONE"),
-        ("Radha, Heart of Keld", "CAST"),
     }
 )
 
@@ -1892,6 +1858,16 @@ def compile_card(
             processed[j] = _kicker_slot_with_effect(processed[j], merged)
             # The kicker tail is consumed — not appended.
             continue
+        # A spell's rider ("If that spell would be put into your graveyard, exile it
+        # instead.") is the ``replace`` role of the cast verb printed before it
+        # (DESIGN_ATOM_ONTOLOGY §17); with none, the sentence stays unparsed.
+        if isinstance(outcome, RiderOutcome):
+            j = _rider_host_idx(processed)
+            if j is None:
+                unparsed.append((raw.sentences[i], _bucket_hint(raw.sentences[i])))
+                continue
+            processed[j] = _with_rider(processed[j], outcome.rider)
+            continue
         # Non-effect entries pass through unchanged.
         if outcome is None or not isinstance(outcome, EffectOutcome):
             processed.append(outcome)
@@ -2112,7 +2088,9 @@ def compile_card(
         # (its anaphoric condition can never hold, so the never-fires wrap
         # is the safe encoding), else appended bare/mandatory.
         effect = outcome.effect
-        if _MAY_RE.search(sentence) or _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
+        if (
+            _MAY_RE.search(sentence) and not _is_permission(effect)
+        ) or _SEARCH_SHUFFLE_TAIL_RE.match(sentence):
             effect = OptionalEffect(effect)
         processed.append(EffectOutcome(effect=effect))
         processed_sentence_idx.append(i)
@@ -2195,52 +2173,8 @@ def compile_card(
     ability_src: list[int] = []
     effect_outcomes: list[Effect] = []
     effect_src: list[int] = []
-    # Set when a printed permission had to be suppressed; the card then
-    # cannot be played as printed, so the gated pass marks it unsupported.
-    permission_unsupported = False
     for src, outcome in zip(processed_sentence_idx, processed):
         if isinstance(outcome, AbilityOutcome):
-            if _is_result_anaphoric_cast_permission(outcome.ability):
-                # The phantom "you may play that card" permission —
-                # never printed as an activated ability, unresolvable by
-                # the executor (no play-permission lane, register-less
-                # selector). Suppressed HERE, at emission into the card
-                # tree; the sentence stays template-matched.
-                known_gaps.append(
-                    "KNOWN-GAP (play permission): anaphoric 'you may play "
-                    "that card' cast-permission node suppressed at assembly "
-                    "(no executor play-permission lane; the card prints no "
-                    "activated ability)"
-                )
-                continue
-            if _is_duration_cast_permission(outcome, raw.sentences[src]):
-                # The same suppression for a duration-limited permission. It
-                # is part of the ability printed above it (CR 611.2a) and must
-                # never be a free, repeatable ability of its own; that ability
-                # cannot be played as printed, so the card is engine-unsupported.
-                known_gaps.append(
-                    "KNOWN-GAP (cast permission): duration-limited permission "
-                    f"{raw.sentences[src]!r} suppressed at assembly (it belongs to "
-                    "the ability printed above it; CAST has no duration role); "
-                    "the card is engine-unsupported"
-                )
-                permission_unsupported = True
-                continue
-            if isinstance(outcome.ability, ActivatedAbility) and casts_itself_from_another_zone(
-                outcome.ability.effect
-            ):
-                # A card's permission to cast itself from another zone (Demonic Embrace)
-                # would be an activated ability of the permanent, which can never cast it.
-                # The IR has no permission lane yet (BACKLOG B-100), so the row is refused
-                # and the card is engine-unsupported.
-                known_gaps.append(
-                    "KNOWN-GAP (cast permission): "
-                    f"{raw.sentences[src]!r} refused (a permission to cast the card from "
-                    "another zone; no permission lane, DESIGN_ATOM_ONTOLOGY R5-2); the "
-                    "card is engine-unsupported"
-                )
-                permission_unsupported = True
-                continue
             ability_outcomes.append(outcome.ability)
             ability_src.append(src)
         elif isinstance(outcome, EffectOutcome):
@@ -2502,7 +2436,9 @@ def compile_card(
     # The same for a read of a chosen quality that no choice of the card chooses (its "As this
     # enters, choose ..." sentence unparsed, or another kind of type chosen), and for a choice no
     # compiled sentence reads, a phantom ask (CR 607.2d, ability_tree.chosen_quality_fault).
-    fault = chosen_quality_fault(keywords, tuple(abilities))
+    fault = chosen_quality_fault(keywords, tuple(abilities)) or permission_fault(
+        keywords, tuple(abilities)
+    )
     if fault is not None:
         raise StateCorruptionError(f"compile_card: {fault}", context={"card": raw.identity.name})
     card = CardRecord(
@@ -2530,8 +2466,6 @@ def compile_card(
 
     known_gaps.extend(_star_pt_gaps(raw, card))
     engine_supported = _engine_supported(card, supported_verbs)
-    if permission_unsupported and supported_verbs is not None:
-        engine_supported = False  # a suppressed or refused permission
 
     legality = LegalityFlags(
         format_legal=True,

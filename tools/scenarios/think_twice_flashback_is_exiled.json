@@ -1,0 +1,38 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "tt",
+   "real": "Think Twice",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:tt:via:tt"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tt": "exile"
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Think Twice: 'Draw a card. Flashback {2}{U}.' Cast from the graveyard for its flashback cost (an alternative cost, CR 702.34a, 118.9), it draws a card and is exiled instead of going anywhere else as it leaves the stack. On the base flashback was a bare keyword: the card could not be cast from the graveyard."
+}

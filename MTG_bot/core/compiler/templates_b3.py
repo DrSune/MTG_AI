@@ -32,7 +32,6 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     KeywordAbility,
-    OptionalEffect,
     PtDelta,
     PtDirection,
     QAgg,
@@ -957,38 +956,26 @@ def _build_fight_another(m: re.Match[str]) -> SentenceOutcome:
 
 def _build_may_cast_exiled_creature(m: re.Match[str]) -> SentenceOutcome:
     """``{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with
-    this artifact without paying its mana cost.`` (Idol of Endurance). The Idol's ETB exiled them
-    from your graveyard, so Zone(EXILE, YOU); the empty CAST ``cost`` is the waiver. Lossy: CAST has
-    no duration role, so "Until end of turn" is dropped."""
-    cost = _parse_cost(m)
-    effect = OptionalEffect(
-        inner=Atom(
-            verb=Verb.CAST,
-            args=AtomArgs(
-                pairs=(
-                    (
-                        "source",
-                        Selector(
-                            QConst(1),
-                            SelectorMode.CHOOSE,
-                            FAnd(
-                                children=(
-                                    FAtom(
-                                        pred=FAtomPred.TYPE_EQ,
-                                        string_value="Creature",
-                                    ),
-                                    FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
-                                )
-                            ),
-                            zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
-                        ),
-                    ),
-                    ("cost", Cost(parts=())),
-                )
-            ),
-        )
+    this artifact without paying its mana cost.`` (Idol of Endurance): a permission until end of
+    turn (DESIGN_ATOM_ONTOLOGY §17) to cast one (``count`` 1) creature card of those this permanent
+    exiled (IS_EXILED_WITH_SOURCE: its ETB exiled them from your graveyard, so Zone(EXILE, YOU)),
+    free (an empty ``alternative``, CR 118.9), later this turn at the creature's own timing (CR
+    601.3, 117.1a)."""
+    from MTG_bot.core.compiler.templates_b19 import permit
+
+    cards = Selector(
+        QUnbounded(),
+        SelectorMode.ALL,
+        FAnd(
+            children=(
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.IS_EXILED_WITH_SOURCE),
+            )
+        ),
+        zones=(Zone(kind=ZoneKind.EXILE, controller=ControllerRef.YOU),),
     )
-    return AbilityOutcome(ability=ActivatedAbility(cost=cost, effect=effect))
+    effect = permit(cards, alternative=Cost(parts=()), duration=DurationEot(), count=1)
+    return AbilityOutcome(ability=ActivatedAbility(cost=_parse_cost(m), effect=effect))
 
 
 # ---------------------------------------------------------------------------

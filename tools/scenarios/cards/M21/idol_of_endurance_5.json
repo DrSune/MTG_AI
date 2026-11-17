@@ -1,14 +1,74 @@
-{"set": "M21",
- "world": {"life": 20, "seed": 7},
- "notes": "G3 spec (amount+1 on the cast count). Printed: '... you may cast A creature spell from among cards exiled with this artifact without paying its mana cost.' The Idol's entry exiles Alpine Watchdog and Igneous Cur (both mana value 2). The ability is activated, the may is taken and Igneous Cur is picked (pool word card:2, its handle in pack-card order idol, aw, cur; the may consumes the first word): exactly one spell is cast, the Cur enters, the Watchdog stays in exile.",
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "G3 spec (amount+1 on the cast count). Printed: '... you may cast A creature spell from among cards exiled with this artifact without paying its mana cost.' The Idol's entry exiles Alpine Watchdog and Igneous Cur (both mana value 2). The ability is activated and Igneous Cur is cast through its permission: exactly one spell, so the Cur enters, the permission is used up and the menu no longer offers the Watchdog, which stays in exile. Ontology round R13: the activation makes a PERMIT; the cast is a menu row through it (cast:<card>:via:<idol>).",
  "cards": [
-  {"key": "idol", "real": "Idol of Endurance", "zone": "hand", "controller": 0},
-  {"key": "aw", "real": "Alpine Watchdog", "zone": "graveyard", "controller": 0},
-  {"key": "cur", "real": "Igneous Cur", "zone": "graveyard", "controller": 0}
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "aw",
+   "real": "Alpine Watchdog",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "cur",
+   "real": "Igneous Cur",
+   "zone": "graveyard",
+   "controller": 0
+  }
  ],
- "mana": {"0": {"W": 1, "C": 1}},
+ "mana": {
+  "0": {
+   "W": 1,
+   "C": 1
+  }
+ },
  "steps": [
-  {"op": "enter", "key": "idol"},
-  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["fire", "card:2"]}
+  {
+   "op": "enter",
+   "key": "idol"
+  },
+  {
+   "op": "activate",
+   "key": "idol",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:cur:via:idol"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:aw:via:idol"
+   ],
+   "expect_raise": "words no ask took: ['cast:card:1:via:card:0']"
+  }
  ],
- "expect": {"zone": {"idol": "battlefield", "cur": "battlefield", "aw": "exile"}, "tapped": {"idol": true}, "mana_pool": {"0": {}}}}
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "cur": "battlefield",
+   "aw": "exile"
+  },
+  "tapped": {
+   "idol": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

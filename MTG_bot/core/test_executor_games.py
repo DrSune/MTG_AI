@@ -163,7 +163,8 @@ class DeckSupplyTest(unittest.TestCase):
         # card supported, so a harness that skipped the second pass would
         # report 305. Re-pin it only after diffing the gated compile with and
         # without the change: a change must move exactly the cards it affects.
-        self.assertEqual(len(self.supply.engine_ids), 300)
+        # R13 (Verb.PERMIT): 300 -> 303, exactly the two Chandras and Demonic Embrace.
+        self.assertEqual(len(self.supply.engine_ids), 303)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -197,7 +198,7 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        self.assertEqual(len(m21.deckable), 280)
+        self.assertEqual(len(m21.deckable), 283)  # R13: + the two Chandras, Demonic Embrace
 
 
 class KickerLaneTest(unittest.TestCase):
