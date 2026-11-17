@@ -1,0 +1,20 @@
+{
+ "name": "bite_down_the_creature_is_the_source",
+ "set": "FDN",
+ "note": "Bite Down: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' The creature, not the spell, deals the damage (CR 120.3, 702.2b, 702.15b): P0's 2/2 Snake with deathtouch and lifelink bites the opponent's 4/4 Giant. The Giant is dealt 2 and dies to deathtouch, and P0 gains 2 life from lifelink.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bite", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "snake", "name": "Snake", "power": "2", "toughness": "2", "type": "Creature — Snake", "keywords": ["DEATHTOUCH", "LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Opp Giant", "power": "4", "toughness": "4", "type": "Creature — Giant", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 1}},
+  {"op": "cast", "real": "Bite Down", "key": "bite", "controller": 0, "targets": ["snake", "giant"]}
+ ],
+ "expect": {
+  "zone": {"bite": "graveyard", "snake": "battlefield", "giant": "graveyard"},
+  "damage_received": {"giant": 2, "snake": 0},
+  "life": {"0": 22, "1": 20}
+ }
+}

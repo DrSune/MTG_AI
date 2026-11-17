@@ -1,0 +1,19 @@
+{
+ "name": "arcane_epiphany_wizard_costs_one_less",
+ "set": "FDN",
+ "note": "Arcane Epiphany: 'This spell costs {1} less to cast if you control a Wizard. Draw three cards.' P0 controls a Wizard: the spell costs {2}{U}{U}, so of six mana two are left (one blue, one colourless: the payment takes the generic from colourless first), and P0 draws three.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ae", "real": "Arcane Epiphany", "zone": "hand", "controller": 0},
+  {"key": "wiz", "name": "My Wizard", "power": "1", "toughness": "1", "type": "Creature — Human Wizard", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"U": 3, "C": 3}},
+  {"op": "cast", "real": "Arcane Epiphany", "key": "ae", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"ae": "graveyard"},
+  "hand": {"0": 3},
+  "mana_pool": {"0": {"U": 1, "C": 1}}
+ }
+}

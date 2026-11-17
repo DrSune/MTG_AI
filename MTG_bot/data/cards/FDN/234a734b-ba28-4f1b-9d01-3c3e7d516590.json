@@ -1,0 +1,290 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "234a734b-ba28-4f1b-9d01-3c3e7d516590",
+ "name": "An Offer You Can't Refuse",
+ "text_sha": "a8a1baf045676f839f5b02271f2d5d194fdc087baa5b5406bdd70dc534740ee0",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TREASURE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "COUNTER_SPELL"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "STACK_KIND_EQ"
+              },
+              "string_value": "SPELL",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Creature",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "STACK"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "controller",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "target"
+          }
+         ],
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Treasure",
+           "type_line": "Artifact",
+           "types": [
+            "Artifact"
+           ],
+           "subtypes": [],
+           "power": null,
+           "toughness": null,
+           "keywords": [
+            {
+             "tag": "Keyword",
+             "name": "TREASURE"
+            }
+           ],
+           "abilities": [
+            {
+             "tag": "ActivatedAbility",
+             "cost": {
+              "tag": "Cost",
+              "parts": [
+               {
+                "tag": "CostSacrifice",
+                "target": {
+                 "tag": "Selector",
+                 "count": {
+                  "tag": "QConst",
+                  "value": 1
+                 },
+                 "mode": {
+                  "tag": "SelectorMode",
+                  "name": "CHOOSE"
+                 },
+                 "filter": {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "IS_SOURCE"
+                  },
+                  "string_value": null,
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 },
+                 "zones": [
+                  {
+                   "tag": "Zone",
+                   "kind": {
+                    "tag": "ZoneKind",
+                    "name": "BATTLEFIELD"
+                   },
+                   "controller": {
+                    "tag": "ControllerRef",
+                    "name": "ANY"
+                   }
+                  }
+                 ]
+                }
+               },
+               {
+                "tag": "CostTap",
+                "target": null
+               }
+              ]
+             },
+             "effect": {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "ADD_MANA"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "amount",
+                 {
+                  "tag": "QConst",
+                  "value": 1
+                 }
+                ],
+                [
+                 "color",
+                 {
+                  "tag": "String",
+                  "value": "ANY"
+                 }
+                ],
+                [
+                 "controller",
+                 {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                ]
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# An Offer You Can't Refuse (FDN): \"Counter target noncreature spell. Its controller creates two\n# Treasure tokens.\"\n# Sentence 1: compiled (B9-counter-noncreature-spell), kept.\n# Sentence 2: M21 Secure the Scene's B5b-its-controller-token (CREATE_TOKEN `controller` = the\n# referent Selector over the target), count 2, with M21 Gadrak's verified Treasure TokenSpec,\n# byte for byte.\ntreasure = TokenSpec(\n    name='Treasure',\n    type_line='Artifact',\n    types=('Artifact',),\n    subtypes=(),\n    power=None,\n    toughness=None,\n    keywords=(Keyword.TREASURE,),\n    abilities=(\n        ActivatedAbility(\n            cost=Cost(\n                parts=(\n                    CostSacrifice(\n                        target=Selector(\n                            count=QConst(value=1),\n                            mode=SelectorMode.CHOOSE,\n                            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                        ),\n                    ),\n                    CostTap(),\n                ),\n            ),\n            effect=A(Verb.ADD_MANA, {\n                'amount': QConst(value=1),\n                'color': 'ANY',\n                'controller': ControllerRef.YOU,\n            }),\n        ),\n    ),\n)\nits_controller = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAnd(children=()),\n    zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n    referent='target',\n)\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                compiled[0].effect,\n                A(Verb.CREATE_TOKEN, {\n                    'controller': its_controller,\n                    'count': QConst(value=2),\n                    'tokens': treasure,\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Counter target noncreature spell.",
+    "ir": "abilities[0].effect.steps[0] (compiled)"
+   },
+   {
+    "clause": "Its controller creates two Treasure tokens.",
+    "ir": "abilities[0].effect.steps[1] (CREATE_TOKEN, controller = the target's controller, count 2, Treasure)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Compiled counter kept; Secure the Scene's 'Its controller creates' (CREATE_TOKEN controller = referent 'target') with M21 Gadrak's verified Treasure TokenSpec, count 2. packs in tools/scenarios/mapped/FDN/: an_offer_you_cant_refuse_counters_and_pays_its_controller (the opponent pays with the Treasures)."
+ },
+ "probe": {
+  "sha": "f3e8cb4b0ad1a29a77615e1c3932be6523e27af7dc40d0be31eca678ee7d76a2"
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "name": "bite_down_hits_a_planeswalker_you_dont_control",
+ "set": "FDN",
+ "note": "Bite Down: 'Target creature you control deals damage equal to its power to target creature or planeswalker you don't control.' P0's 3/3 Wolf deals 3 damage to the opponent's Vivien Reid (loyalty 5), which loses three loyalty counters (CR 120.3c): 2 left. The Wolf is dealt nothing (a bite is one-sided, unlike a fight).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bite", "real": "Bite Down", "zone": "hand", "controller": 0},
+  {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 0},
+  {"key": "viv", "real": "Vivien Reid", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "viv", "set": 5},
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 1}},
+  {"op": "cast", "real": "Bite Down", "key": "bite", "controller": 0, "targets": ["wolf", "viv"]}
+ ],
+ "expect": {
+  "zone": {"bite": "graveyard", "wolf": "battlefield", "viv": "battlefield"},
+  "counters": {"viv": {"LOYALTY": 2}}
+ }
+}

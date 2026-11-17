@@ -1,0 +1,178 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fa7d09aa-2ebc-4571-81da-836cd80cf554",
+ "name": "Wardens of the Cycle",
+ "text_sha": "7a43c6149b428c956860e243150d6c81ff790eca7bb47dc3f74054c40e9adda2",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "END_TURN"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "DIED_THIS_TURN"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": null,
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Seq",
+       "steps": [
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "DRAW"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 1
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "tag": "Atom",
+         "verb": {
+          "tag": "Verb",
+          "name": "LOSE_LIFE"
+         },
+         "args": {
+          "tag": "AtomArgs",
+          "pairs": [
+           [
+            "amount",
+            {
+             "tag": "QConst",
+             "value": 1
+            }
+           ],
+           [
+            "controller",
+            {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            }
+           ]
+          ]
+         }
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Wardens of the Cycle (FDN), a 3/4 creature.\n# \"Morbid -- At the beginning of your end step, if a creature died this turn, choose one --\n#   * You gain 2 life.\n#   * You draw a card and you lose 1 life.\"\n# The compiled tree held \"You gain 2 life.\" on the creature's cast carrier (orphaned, BACKLOG): this\n# record replaces the whole tree. Morbid is an ability word (no rules meaning, CR 207.2c).\n# Trigger: M21 Twinblade Assassins' verified B2a-twinblade-assassins, the same sentence up to the\n#   effect: END_TURN of your turn, the intervening \"if\" DIED_THIS_TURN as the condition.\n# Modes: Choose(count 1). Bullet 1 is the compiled B5c-bullet-gain-life atom, moved off the\n#   carrier; bullet 2 is M20 Dread Presence's verified \"You draw a card and you lose 1 life.\"\n#   (DRAW then LOSE_LIFE, a Seq).\nend_step = TriggeredAbility(\n    event=TurnPhaseEvent(\n        phase=Phase.END_TURN,\n        actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n    ),\n    condition=FAtom(pred=FAtomPred.DIED_THIS_TURN),\n    effect=Choose(\n        count=QConst(value=1),\n        options=(\n            compiled[0].effect,\n            Seq(\n                steps=(\n                    A(Verb.DRAW, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n                    A(Verb.LOSE_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n                ),\n            ),\n        ),\n    ),\n)\nabilities = [end_step, SpellAbility(kind=SpellKind.CREATURE)]\n",
+  "clauses": [
+   {
+    "clause": "Morbid — At the beginning of your end step, if a creature died this turn, choose one —",
+    "ir": "abilities[0] (end-step trigger, condition DIED_THIS_TURN, effect Choose count 1)"
+   },
+   {
+    "clause": "• You gain 2 life.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• You draw a card and you lose 1 life.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Replaces the whole tree (the compiled GAIN_LIFE sat on the cast carrier, BACKLOG orphaned carriers): Twinblade Assassins' verified end-step trigger with the intervening if DIED_THIS_TURN; Choose(count 1): the life bullet moved off the carrier, M20 Dread Presence's verified 'You draw a card and you lose 1 life'. packs in tools/scenarios/mapped/FDN/: wardens_of_the_cycle_morbid_gain_then_quiet_turn, wardens_of_the_cycle_morbid_draw_and_lose, wardens_of_the_cycle_resolves_after_it_leaves."
+ },
+ "probe": {
+  "sha": "c39dcd16d069edb14c123a914cdc4076e33676040c5de22f3712326f14d8f659"
+ }
+}

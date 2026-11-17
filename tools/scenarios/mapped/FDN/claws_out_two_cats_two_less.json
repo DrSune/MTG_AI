@@ -1,0 +1,23 @@
+{
+ "name": "claws_out_two_cats_two_less",
+ "set": "FDN",
+ "note": "Claws Out: 'Affinity for Cats (This spell costs {1} less to cast for each Cat you control.)' and 'Creatures you control get +2/+2 until end of turn.' P0 controls two Cats (and a Bear); the opponent's Cat does not count. Claws Out costs {1}{W}{W}: of {W}{W} and three colourless, two colourless are left. P0's creatures get +2/+2, the opponent's Cat does not.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "claws", "real": "Claws Out", "zone": "hand", "controller": 0},
+  {"key": "cat1", "name": "Alley Cat", "power": "1", "toughness": "1", "type": "Creature — Cat", "zone": "battlefield", "controller": 0},
+  {"key": "cat2", "name": "Jungle Cat", "power": "2", "toughness": "1", "type": "Creature — Cat Warrior", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "ocat", "name": "Opp Cat", "power": "2", "toughness": "2", "type": "Creature — Cat", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"W": 2, "C": 3}},
+  {"op": "cast", "real": "Claws Out", "key": "claws", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"claws": "graveyard"},
+  "mana_pool": {"0": {"C": 2}},
+  "power": {"cat1": 3, "cat2": 4, "bear": 4, "ocat": 2},
+  "toughness": {"cat1": 3, "cat2": 3, "bear": 4, "ocat": 2}
+ }
+}

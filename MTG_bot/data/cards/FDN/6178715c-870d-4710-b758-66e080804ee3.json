@@ -1,0 +1,221 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "6178715c-870d-4710-b758-66e080804ee3",
+ "name": "Deadly Plot",
+ "text_sha": "0ebfdb3ea674990f99687208ff6294cdf96bfb26f6efcd1992abb582980d73be",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Planeswalker",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "MOVE_ZONE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "SUBTYPE_EQ"
+              },
+              "string_value": "Zombie",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "GRAVEYARD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "destination",
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ],
+         [
+          "tapped_on_enter",
+          {
+           "tag": "Bool",
+           "value": true
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Deadly Plot (FDN) -- Choose one --\n#  * Destroy target creature or planeswalker.  (M21 Finishing Blow's B5a-destroy-cw-pw atom)\n#  * Return target Zombie creature card from your graveyard to the battlefield tapped.\n#      M21 Rise Again's B5b-return-creatures-battlefield move, the filter a Zombie creature card\n#      (SUBTYPE_EQ Zombie + TYPE_EQ Creature), entering tapped (`tapped_on_enter`).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Choose(\n            count=QConst(value=1),\n            options=(\n                A(Verb.DESTROY, {\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FOr(\n                            children=(\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Zombie'),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                    'tapped_on_enter': True,\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect (Choose count 1)"
+   },
+   {
+    "clause": "• Destroy target creature or planeswalker.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Return target Zombie creature card from your graveyard to the battlefield tapped.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Choose(count 1): Finishing Blow's destroy; Rise Again's return with a Zombie creature card filter and tapped_on_enter. packs in tools/scenarios/mapped/FDN/: deadly_plot_returns_only_your_zombie_tapped, deadly_plot_destroys_a_planeswalker."
+ },
+ "probe": {
+  "sha": "ace579f9f43433461345375c48ee852924645dc2d193b39033a9e30ae3489b9f"
+ }
+}

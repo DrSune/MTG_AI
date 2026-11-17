@@ -1,0 +1,26 @@
+{
+ "name": "aetherize_returns_only_the_attackers",
+ "set": "FDN",
+ "note": "Aetherize: 'Return all attacking creatures to their owner's hand.' On the opponent's turn two of its creatures attack and a third stays home; after attackers are declared P0 casts Aetherize. Both attackers go to their owner's (the opponent's) hand, with no choice asked; the creature that did not attack and P0's own creature stay on the battlefield, and P0 takes no combat damage.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ae", "real": "Aetherize", "zone": "hand", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "power": "2", "toughness": "2", "type": "Creature — Bear", "zone": "battlefield", "controller": 0},
+  {"key": "oatk1", "name": "Opp Raider", "power": "2", "toughness": "2", "type": "Creature — Human", "zone": "battlefield", "controller": 1},
+  {"key": "oatk2", "name": "Opp Brute", "power": "3", "toughness": "3", "type": "Creature — Ogre", "zone": "battlefield", "controller": 1},
+  {"key": "ohome", "name": "Opp Sentry", "power": "1", "toughness": "1", "type": "Creature — Human", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"oatk1": true, "oatk2": true, "ohome": false},
+   "respond": {"DECLARE_ATTACKERS": [
+     {"op": "mana", "seat": 0, "add": {"U": 1, "C": 3}},
+     {"op": "cast", "real": "Aetherize", "key": "ae", "controller": 0}
+   ]}}
+ ],
+ "expect": {
+  "zone": {"ae": "graveyard", "oatk1": "hand", "oatk2": "hand", "ohome": "battlefield", "mybear": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

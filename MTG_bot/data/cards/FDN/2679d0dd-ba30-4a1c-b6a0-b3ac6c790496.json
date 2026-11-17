@@ -1,0 +1,295 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2679d0dd-ba30-4a1c-b6a0-b3ac6c790496",
+ "name": "Boros Charm",
+ "text_sha": "8c967883ed5d73b145382fd4c49590bb013a2fe319d565f7da76f6a796820009",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 4
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FOr",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Planeswalker",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "IS_PERMANENT"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            },
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "INDESTRUCTIBLE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "CONTROLLER_IS"
+            },
+            "string_value": null,
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": {
+             "tag": "ControllerRef",
+             "name": "YOU"
+            },
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GRANT_ABILITY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "ability",
+          {
+           "tag": "KeywordAbility",
+           "keyword": {
+            "tag": "Keyword",
+            "name": "DOUBLE_STRIKE"
+           },
+           "params": []
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Boros Charm (FDN) -- Choose one --\n#  * Boros Charm deals 4 damage to target player or planeswalker.\n#      M21 Chandra's Magmutt's B3-deal-dmg-const-player-or-planeswalker target, amount 4.\n#  * Permanents you control gain indestructible until end of turn.\n#      M21 Heroic Intervention's B5b-perm-hex-ind INDESTRUCTIBLE step (ALL CONTROLLER_IS YOU).\n#  * Target creature gains double strike until end of turn.\n#      M21 Gale Swooper's TARGET creature grant, DOUBLE_STRIKE.\n# Modal shape: Destructive Tampering's Choose(count 1).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Choose(\n            count=QConst(value=1),\n            options=(\n                A(Verb.DEAL_DAMAGE, {\n                    'amount': QConst(value=4),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FOr(\n                            children=(\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Planeswalker'),\n                                FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n                            ),\n                        ),\n                        zones=(\n                            Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n                            Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),\n                        ),\n                    ),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),\n                    'duration': DurationEot(),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n                A(Verb.GRANT_ABILITY, {\n                    'ability': KeywordAbility(keyword=Keyword.DOUBLE_STRIKE),\n                    'duration': DurationEot(),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect (Choose count 1)"
+   },
+   {
+    "clause": "• Boros Charm deals 4 damage to target player or planeswalker.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Permanents you control gain indestructible until end of turn.",
+    "ir": "abilities[0].effect.options[1]"
+   },
+   {
+    "clause": "• Target creature gains double strike until end of turn.",
+    "ir": "abilities[0].effect.options[2]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Choose(count 1): Chandra's Magmutt's 'target player or planeswalker' (4); Heroic Intervention's INDESTRUCTIBLE grant over permanents you control; Gale Swooper's target grant with DOUBLE_STRIKE; all grants until end of turn. packs in tools/scenarios/mapped/FDN/: boros_charm_four_to_a_planeswalker, boros_charm_indestructible_locks_in_its_permanents (CR 611.2c)."
+ },
+ "probe": {
+  "sha": "52c04cb255c18f52cc9010c394012b3b445fbd5b900fc63e17366e9db0f82011"
+ }
+}

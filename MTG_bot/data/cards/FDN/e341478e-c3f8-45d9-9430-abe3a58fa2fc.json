@@ -1,0 +1,147 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "e341478e-c3f8-45d9-9430-abe3a58fa2fc",
+ "name": "Deadly Riposte",
+ "text_sha": "4d6238a6e74fc337a19e73e8a04405d6dea0cbc05d1232443e6378fbf453582d",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_TAPPED"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Creature",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Deadly Riposte (FDN): \"Deadly Riposte deals 3 damage to target tapped creature and you gain 2\n# life.\"\n# Damage: Turn to Slag's atom at 3, the target M21 Swift Response's \"target tapped creature\"\n# (IS_TAPPED + TYPE_EQ Creature); then the life gain (B5c-bullet-gain-life atom, 2), a Seq in\n# printed order.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(\n            steps=(\n                A(Verb.DEAL_DAMAGE, {\n                    'amount': QConst(value=3),\n                    'target': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.TARGET,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.IS_TAPPED),\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n                A(Verb.GAIN_LIFE, {'amount': QConst(value=2), 'controller': ControllerRef.YOU}),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Deadly Riposte deals 3 damage to target tapped creature and you gain 2 life.",
+    "ir": "abilities[0].effect (steps[0] DEAL_DAMAGE 3 to target tapped creature; steps[1] GAIN_LIFE 2)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Seq: Turn to Slag's damage (3) to Swift Response's 'target tapped creature', then gain 2 life. The probe offers only the tapped creature."
+ },
+ "probe": {
+  "sha": "2f4da372d1ba08c172294ef29ac25515f1f24c2cf0ae740d34afe6aca04b7174"
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "name": "circuitous_route_gate_and_basic_enter_tapped",
+ "set": "FDN",
+ "note": "Circuitous Route: 'Search your library for up to two basic land cards and/or Gate cards, put them onto the battlefield tapped, then shuffle.' P0's library holds a Forest, a Plains (basic), an Azorius Guildgate (a Gate), an Evolving Wilds (neither) and a creature card. P0 finds the Guildgate and the Forest: both enter the battlefield tapped under P0's control; the Plains, the Wilds and the creature stay in the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cr", "real": "Circuitous Route", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "plains", "real": "Plains", "zone": "library", "controller": 0},
+  {"key": "gate", "real": "Azorius Guildgate", "zone": "library", "controller": 0},
+  {"key": "wilds", "real": "Evolving Wilds", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Lib Beast", "power": "3", "toughness": "3", "type": "Creature — Beast", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"G": 1, "C": 3}},
+  {"op": "cast", "real": "Circuitous Route", "key": "cr", "controller": 0, "decisions": ["gate", "forest"]}
+ ],
+ "expect": {
+  "zone": {"cr": "graveyard", "gate": "battlefield", "forest": "battlefield", "plains": "library", "wilds": "library", "beast": "library"},
+  "tapped": {"gate": true, "forest": true},
+  "controller": {"gate": 0, "forest": 0}
+ }
+}

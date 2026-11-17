@@ -1,0 +1,161 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2ed1879a-83b8-48df-a6d2-fe28e912b4c5",
+ "name": "Slagstorm",
+ "text_sha": "a31d274a55a1e7a4f0c40594363a03413482aa6ea324f348c26f3aea0ef24caa",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DEAL_DAMAGE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 3
+          }
+         ],
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "PLAYER"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Slagstorm (FDN) -- Choose one --\n#  * Slagstorm deals 3 damage to each creature.  (ZNR Cinderclasm's B6-kicker-instead-suffix \"each\n#      creature\" atom: ALL TYPE_EQ Creature, any controller), 3.\n#  * Slagstorm deals 3 damage to each player.    (the each-opponent damage of Firebrand Archer and\n#      Storm Caller over Zone(PLAYER, ANY): every player, you included), 3.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Choose(\n            count=QConst(value=1),\n            options=(\n                A(Verb.DEAL_DAMAGE, {\n                    'amount': QConst(value=3),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                }),\n                A(Verb.DEAL_DAMAGE, {\n                    'amount': QConst(value=3),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.ANY),),\n                    ),\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect (Choose count 1)"
+   },
+   {
+    "clause": "• Slagstorm deals 3 damage to each creature.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Slagstorm deals 3 damage to each player.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Choose(count 1): Cinderclasm's 'each creature' damage (3); the each-opponent damage shape over Zone(PLAYER, ANY), every player (3). The probe plays both modes."
+ },
+ "probe": {
+  "sha": "5249210f157c4bd28119768473fdc076d72a96fadeea19c81094903abf1f34d8"
+ }
+}

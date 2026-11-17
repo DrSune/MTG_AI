@@ -1,0 +1,84 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "bb8cccc8-e56f-42fa-a0d7-fc889b5e1c7b",
+ "name": "Boltwave",
+ "text_sha": "a9bbc225cfc32e71e932161284828704ec57861e3fdc1edc7df7a8a5f8a83b70",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "DEAL_DAMAGE"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "amount",
+        {
+         "tag": "QConst",
+         "value": 3
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAnd",
+          "children": []
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "PLAYER"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "OPPONENT"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m1",
+  "date": "2026-11-17",
+  "draft_py": "# Boltwave (FDN): \"Boltwave deals 3 damage to each opponent.\"\n# The each-opponent damage of FDN Firebrand Archer and M21 Storm Caller (verified): an ALL selector\n# over Zone(PLAYER, OPPONENT).\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=A(Verb.DEAL_DAMAGE, {\n            'amount': QConst(value=3),\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAnd(children=()),\n                zones=(Zone(kind=ZoneKind.PLAYER, controller=ControllerRef.OPPONENT),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Boltwave deals 3 damage to each opponent.",
+    "ir": "abilities[0].effect"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Each-opponent damage of FDN Firebrand Archer / M21 Storm Caller: ALL over Zone(PLAYER, OPPONENT), 3."
+ },
+ "probe": {
+  "sha": "fc60ae17f00c66c7ad4ec181c3de0080b362cfd2236faf62f018cae60634822e"
+ }
+}
