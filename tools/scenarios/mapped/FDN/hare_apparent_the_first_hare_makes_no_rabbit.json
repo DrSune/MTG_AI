@@ -1,0 +1,17 @@
+{
+ "set": "FDN",
+ "name": "hare_apparent_the_first_hare_makes_no_rabbit",
+ "notes": "M3 mapper. Printed: 'When this creature enters, create a number of 1/1 white Rabbit creature tokens equal to the number of other creatures you control named Hare Apparent.' Seat 0 controls no other Hare Apparent (a Rabbit-typed creature named otherwise does not count): the entering Hare makes no Rabbit.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hare", "real": "Hare Apparent", "zone": "hand", "controller": 0},
+  {"key": "bunny", "name": "Plain Bunny", "type": "Creature — Rabbit", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "hare"}
+ ],
+ "expect": {
+  "zone": {"hare": "battlefield"},
+  "tokens": {"Rabbit": 0}
+ }
+}

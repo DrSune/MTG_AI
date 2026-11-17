@@ -1,0 +1,223 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "1b9ec782-0ba1-41f1-bc39-d3302494ecb3",
+ "name": "Bake into a Pie",
+ "text_sha": "bb479c618e1fdb7ff6b215b5f1122ca13b9293f0a12ad0c5ea89b0f3120cc6b0",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "DESTROY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "target",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Food",
+           "type_line": "Artifact — Food",
+           "types": [
+            "Artifact"
+           ],
+           "subtypes": [
+            "Food"
+           ],
+           "power": null,
+           "toughness": null,
+           "keywords": [],
+           "abilities": [
+            {
+             "tag": "ActivatedAbility",
+             "cost": {
+              "tag": "Cost",
+              "parts": [
+               {
+                "tag": "CostManaGeneric",
+                "amount": {
+                 "tag": "QConst",
+                 "value": 2
+                }
+               },
+               {
+                "tag": "CostSacrifice",
+                "target": {
+                 "tag": "Selector",
+                 "count": {
+                  "tag": "QConst",
+                  "value": 1
+                 },
+                 "mode": {
+                  "tag": "SelectorMode",
+                  "name": "CHOOSE"
+                 },
+                 "filter": {
+                  "tag": "FAtom",
+                  "pred": {
+                   "tag": "FAtomPred",
+                   "name": "IS_SOURCE"
+                  },
+                  "string_value": null,
+                  "color": null,
+                  "colors": [],
+                  "count": null,
+                  "counter_kind": null,
+                  "keyword": null,
+                  "who": null,
+                  "inner_filter": null
+                 },
+                 "zones": [
+                  {
+                   "tag": "Zone",
+                   "kind": {
+                    "tag": "ZoneKind",
+                    "name": "BATTLEFIELD"
+                   },
+                   "controller": {
+                    "tag": "ControllerRef",
+                    "name": "ANY"
+                   }
+                  }
+                 ]
+                }
+               },
+               {
+                "tag": "CostTap",
+                "target": null
+               }
+              ]
+             },
+             "effect": {
+              "tag": "Atom",
+              "verb": {
+               "tag": "Verb",
+               "name": "GAIN_LIFE"
+              },
+              "args": {
+               "tag": "AtomArgs",
+               "pairs": [
+                [
+                 "amount",
+                 {
+                  "tag": "QConst",
+                  "value": 3
+                 }
+                ],
+                [
+                 "controller",
+                 {
+                  "tag": "ControllerRef",
+                  "name": "YOU"
+                 }
+                ]
+               ]
+              }
+             }
+            }
+           ]
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-fdn-m5",
+  "date": "2026-11-17",
+  "draft_py": "# FDN Bake into a Pie: \"Destroy target creature. Create a Food token.\"\nFOOD = TokenSpec(\n    name='Food',\n    type_line='Artifact — Food',\n    types=('Artifact',),\n    subtypes=('Food',),\n    power=None,\n    toughness=None,\n    keywords=(),\n    abilities=(\n        ActivatedAbility(\n            cost=Cost(parts=(\n                CostManaGeneric(amount=QConst(value=2)),\n                CostTap(),\n                CostSacrifice(target=Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                )),\n            )),\n            effect=A(Verb.GAIN_LIFE, {'amount': QConst(value=3), 'controller': ControllerRef.YOU}),\n        ),\n    ),\n)\nspell = compiled[0]\nabilities = [\n    SpellAbility(\n        kind=SpellKind.INSTANT,\n        effect=Seq(steps=(spell.effect, A(Verb.CREATE_TOKEN, {'count': QConst(value=1), 'tokens': FOOD}))),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Destroy target creature.",
+    "ir": "abilities[0].effect.steps[0]"
+   },
+   {
+    "clause": "Create a Food token.",
+    "ir": "abilities[0].effect.steps[1] (templates.food_token())"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "The compiled destroy kept; the one Food (R_FOOD), as the rulings agent's worked draft (reports/rulings_2026-11-17/food_bake_into_a_pie.py). packs in tools/scenarios/mapped/FDN/: bake_into_a_pie_destroys_and_bakes_a_food."
+ },
+ "probe": {
+  "sha": "94631b0ec9b1410175f70e712ba108365e29add49c1ea3fcc082409ef77f8ff2"
+ }
+}
