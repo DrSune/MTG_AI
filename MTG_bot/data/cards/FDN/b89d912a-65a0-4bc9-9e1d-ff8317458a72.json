@@ -4,9 +4,239 @@
  "oracle_id": "b89d912a-65a0-4bc9-9e1d-ff8317458a72",
  "name": "Knight of Malice",
  "text_sha": "154981b033fca667ae4d925c3000f7f5a7880638cc2febadd53b5abbd24cb611",
- "needs_atom": {
-  "missing": "A battlefield-wide existence condition, 'This creature gets +1/+0 as long as any player controls a white permanent': CONTROLLER_COUNT_GE counts only the ability controller's permanents (it has no who slot), and ZONE_COUNT_GE has no battlefield reading (a who=ANY draft over Zone(BATTLEFIELD) plays in the probe, but it would count phased-out permanents, CR 702.26b, and be a second encoding of a permanent count). Wants round 12's quantity comparison over a battlefield count (QCount of white permanents, any controller, >= 1) or a who slot on CONTROLLER_COUNT_GE. The rest maps: 'Hexproof from white' is KeywordAbility(HEXPROOF, params=(COLOR_HAS 'W',)) (M21 Garruk's Harbinger's form), First strike compiles.",
-  "author": "claude-mapper-m7",
-  "date": "2026-11-17"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "FIRST_STRIKE"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "HEXPROOF"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "COLOR_HAS"
+      },
+      "string_value": null,
+      "color": "W",
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "MODIFY_PT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "power",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 1
+         }
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ],
+       [
+        "toughness",
+        {
+         "tag": "PtDelta",
+         "direction": {
+          "tag": "PtDirection",
+          "name": "INCREASE"
+         },
+         "magnitude": {
+          "tag": "QConst",
+          "value": 0
+         }
+        }
+       ]
+      ]
+     }
+    },
+    "condition": {
+     "tag": "FAtom",
+     "pred": {
+      "tag": "FAtomPred",
+      "name": "QTY_GE"
+     },
+     "string_value": null,
+     "color": null,
+     "colors": [],
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "counter_kind": null,
+     "keyword": null,
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "COLOR_HAS"
+          },
+          "string_value": null,
+          "color": "W",
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_PERMANENT"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "ontology-r12",
+  "date": "2026-11-17",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FIRST_STRIKE),\n    KeywordAbility(keyword=Keyword.HEXPROOF, params=(FAtom(pred=FAtomPred.COLOR_HAS, color='W'),)),\n]\nabilities = [\n    # [0] This creature gets +1/+0 as long as any player controls a white permanent.\n    StaticAbility(\n        effect=A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=0)),\n        }),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.COLOR_HAS, color='W'),\n                            FAtom(pred=FAtomPred.IS_PERMANENT),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n    # [1] (cast)\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
+  "clauses": [
+   {
+    "clause": "First strike (This creature deals combat damage before creatures without first strike.)",
+    "ir": "keywords[0]: FIRST_STRIKE"
+   },
+   {
+    "clause": "Hexproof from white (This creature can't be the target of white spells or abilities your opponents control.)",
+    "ir": "keywords[1]: HEXPROOF with the quality COLOR_HAS 'W' (M21 Garruk's Harbinger's form)"
+   },
+   {
+    "clause": "This creature gets +1/+0 as long as any player controls a white permanent.",
+    "ir": "abilities[0]: StaticAbility, the B14 self pump +1/+0, condition at_least(1, quantity=number_in(Zone(BATTLEFIELD, ANY), FAnd(IS_PERMANENT, COLOR_HAS 'W'))): the white permanents of every player, phased-out ones left out (CR 702.26b); its own colour never counts (it is white or black, not both)"
+   }
+  ],
+  "g0_warnings": [
+   "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['HEXPROOF_FROM']"
+  ],
+  "notes": "Ontology round R12: the needs-atom note asked for the comparison over a battlefield count of any controller; mapped with it, waits for verification."
+ },
+ "probe": {
+  "sha": "1fe282be452fa9d4a86b922c8e4ba62cb1acd329aa8a97c76ab599045fceb6ee"
  }
 }

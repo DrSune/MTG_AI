@@ -159,22 +159,29 @@
             "inner_filter": null
            },
            {
-            "tag": "FAtom",
-            "pred": {
-             "tag": "FAtomPred",
-             "name": "POWER_LE"
-            },
-            "string_value": null,
-            "color": null,
-            "colors": [],
-            "count": {
-             "tag": "QConst",
-             "value": 2
-            },
-            "counter_kind": null,
-            "keyword": null,
-            "who": null,
-            "inner_filter": null
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QConst",
+              "value": 3
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "POWER"
+             }
+            }
            }
           ]
          },
@@ -353,7 +360,7 @@
  "mapping": {
   "author": "claude-mapper-fdn-m5",
   "date": "2026-11-17",
-  "draft_py": "# FDN Gate Colossus: \"Affinity for Gates. This creature can't be blocked by creatures with power 2 or\n# less. Whenever a Gate you control enters, you may put this card from your graveyard on top of your\n# library.\"\n# [0]: Affinity for Gates (CR 702.41a) as Claws Out's mapped affinity: a generic reduction of\n# QBin(MUL, 1, QCount(Gates you control)) on this spell (Circuitous Route's SUBTYPE_EQ Gate).\n# [1]: Juggernaut's mapped \"This creature can't be blocked by Walls.\" with the blockers \"creatures with\n# power 2 or less\" (Vanquish the Weak's POWER_LE).\n# [2]: the landfall event (Scute Swarm) over Gates you control; effect: an optional move of this card\n# from your graveyard (Silversmote Ghoul's `cards`) to the top of your library (Teferi, Timeless\n# Voyager's TOP). The effect moves its own card out of the graveyard, so the ability works only there\n# (CR 113.6m, binding.functions_from_graveyard).\naffinity = CostModifier(\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(\n        amount=QBin(\n            op=QBinOp.MUL,\n            left=QConst(value=1),\n            right=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Gate'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n)\nevasion = StaticAbility(\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n        'event': DeclareBlockersEvent(\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                    FAtom(pred=FAtomPred.POWER_LE, count=QConst(value=2)),\n                ),\n            ),\n            blocked=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n    }),\n)\ngate_enters = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Gate'),\n            ),\n        ),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(\n                kind=ZoneKind.LIBRARY,\n                controller=ControllerRef.YOU,\n                position=ZonePosition.TOP,\n            ),\n        }),\n    ),\n)\nabilities = [affinity, evasion, gate_enters, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0] : Affinity for Gates (CR 702.41a) as Claws Out's mapped affinity: a generic reduction of\n    CostModifier(\n        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n        controller_ref=ControllerRef.YOU,\n        delta=CostDeltaReduceGeneric(\n            amount=QBin(\n                op=QBinOp.MUL,\n                left=QConst(value=1),\n                right=QCount(\n                    selector=Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Gate'),\n                            ),\n                        ),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n            ),\n        ),\n    ),\n    # [1] : Juggernaut's mapped \"This creature can't be blocked by Walls.\" with the blockers \"creatures with\n    StaticAbility(\n        effect=A(Verb.PREVENT_EFFECT, {\n            'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n            'event': DeclareBlockersEvent(\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        FNot(\n                            inner=FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QConst(value=3),\n                                field=QPropField.POWER,\n                            ),\n                        ),\n                    ),\n                ),\n                blocked=FAtom(pred=FAtomPred.IS_SOURCE),\n            ),\n        }),\n    ),\n    # [2] : the landfall event (Scute Swarm) over Gates you control; effect: an optional move of this card\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Gate'),\n                ),\n            ),\n        ),\n        condition=None,\n        effect=OptionalEffect(\n            inner=A(Verb.MOVE_ZONE, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                    zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(\n                    kind=ZoneKind.LIBRARY,\n                    controller=ControllerRef.YOU,\n                    position=ZonePosition.TOP,\n                ),\n            }),\n        ),\n    ),\n    # [3]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Affinity for Gates (This spell costs {1} less to cast for each Gate you control.)",
@@ -371,7 +378,7 @@
   "g0_warnings": [
    "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['AFFINITY']"
   ],
-  "notes": "Affinity for Gates as Claws Out's mapped CostModifier (1 per Gate you control); Juggernaut's mapped 'can't be blocked by Walls' with blockers of power 2 or less; a Gate-enters trigger moving this card from your graveyard to the top of your library, optional (works from the graveyard only, CR 113.6m). G0 warns AFFINITY has no Keyword atom (it is the cost modifier). packs in tools/scenarios/mapped/FDN/: gate_colossus_costs_one_less_per_gate, gate_colossus_small_creatures_cannot_block, gate_colossus_gate_puts_it_on_top_of_your_library, gate_colossus_declined_stays_in_the_graveyard."
+  "notes": "Affinity for Gates as Claws Out's mapped CostModifier (1 per Gate you control); Juggernaut's mapped 'can't be blocked by Walls' with blockers of power 2 or less; a Gate-enters trigger moving this card from your graveyard to the top of your library, optional (works from the graveyard only, CR 113.6m). G0 warns AFFINITY has no Keyword atom (it is the cost modifier). packs in tools/scenarios/mapped/FDN/: gate_colossus_costs_one_less_per_gate, gate_colossus_small_creatures_cannot_block, gate_colossus_gate_puts_it_on_top_of_your_library, gate_colossus_declined_stays_in_the_graveyard. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "61fdbf234bd553f9789da480163091558f22e67335ffb0bc8b09e89ea1f1b359"

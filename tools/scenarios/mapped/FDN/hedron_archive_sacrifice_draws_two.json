@@ -1,0 +1,21 @@
+{
+ "set": "FDN",
+ "name": "hedron_archive_sacrifice_draws_two",
+ "notes": "M8 mapper. Printed: '{2}, {T}, Sacrifice this artifact: Draw two cards.' Seat 0 pays {2} (its whole pool) and activates the second ability: Hedron Archive goes to the graveyard and seat 0 draws two cards (hand 0 -> 2), the top two of its library (the pack's last library card is the top one).",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "archive", "real": "Hedron Archive", "zone": "battlefield", "controller": 0},
+  {"key": "third", "name": "Third Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "second", "name": "Second Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "first", "name": "First Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "archive", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"archive": "graveyard", "first": "hand", "second": "hand", "third": "library"},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

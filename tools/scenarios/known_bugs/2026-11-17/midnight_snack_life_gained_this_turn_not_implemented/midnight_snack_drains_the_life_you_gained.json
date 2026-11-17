@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "midnight_snack_drains_the_life_you_gained",
+ "notes": "KNOWN GAP, fails today (M8 mapper, 2026-11-17): the activation raises NotImplementedError, QThisTurn(LIFE_GAINED) is not implemented (executor/quantity.py, '12b turn ledger'). Printed: '{2}{B}, Sacrifice this enchantment: Target opponent loses X life, where X is the amount of life you gained this turn.' Seat 0 activates Vampire Neonate (each opponent loses 1, seat 0 gains 1; its record is M8's, unverified), then sacrifices Midnight Snack targeting seat 1: X = 1, so seat 1 goes 20 -> 19 -> 18. Run it with `cardtool.py runpack FDN <this pack> --card 'Midnight Snack' --draft draft.py` (the draft beside it).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "snack", "real": "Midnight Snack", "zone": "battlefield", "controller": 0},
+  {"key": "neonate", "real": "Vampire Neonate", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "neonate", "idx": 0, "seat": 0},
+  {"op": "mana", "seat": 0, "add": {"B": 1, "C": 2}},
+  {"op": "activate", "key": "snack", "idx": 1, "seat": 0, "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"snack": "graveyard"},
+  "life": {"0": 21, "1": 18}
+ }
+}

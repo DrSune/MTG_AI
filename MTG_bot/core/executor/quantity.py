@@ -45,7 +45,7 @@ from MTG_bot.core.ability_tree import (
     Rounding,
     QConst,
     QCount,
-    QDistinctColorCount,
+    QDistinct,
     QPartyCount,
     QProp,
     QPropField,
@@ -54,19 +54,14 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
-    ThisTurnKind,
-    ZonePosition,
 )
 from MTG_bot.core.executor.decisions import DecisionStream
 from MTG_bot.core.executor.durations import DurationLedger
 from MTG_bot.core.executor.events import KIND_DECLARE_ATTACKERS, KIND_ZONE_CHANGE, GameEvent
-from MTG_bot.core.identity import Handle
+from MTG_bot.core.identity import CardIdentity, Handle
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
     ZONE_EXILE,
-    ZONE_GRAVEYARD,
-    ZONE_HAND,
-    ZONE_LIBRARY,
     ZONE_STACK,
     GameWorld,
 )
@@ -198,6 +193,11 @@ class ExecCtx:
     # your hand" divides the found cards), not among every card in the zone
     # that passes the filter. None when no partition search has run.
     search_found: tuple[Handle, ...] | None = None
+    # The journal clock of the moment the resolving ability came from: a triggered ability's
+    # event, an activated ability's activation (its stack object's ``declared_clock``). Which
+    # life of its source it belongs to, a life the source may have ended since (CR 113.7a,
+    # 607.2a: "exiled with ~"). 0 outside a resolution: the source now.
+    origin_clock: int = 0
     # The cards LOOK_AT/REVEAL showed THIS resolution, top-first (Track
     # Down, See the Truth): the compiler's register convention for the
     # following sentence (templates_b5b._build_if_it_type_then: "Conditional
@@ -320,7 +320,12 @@ class ExecCtx:
         return handles[0] if handles else None
 
     def effective_pt(self, card: Handle) -> tuple[int | None, int | None]:
-        card_state = self.world.cards[card]
+        card_state = self.world.cards.get(card)
+        if card_state is None:
+            lki = departed_lki(card, self)  # a token that ceased to exist, as it last existed
+            if lki is None:
+                raise KeyError(f"unknown card {card}")
+            return lki.power, lki.toughness
         return self.ledger.effective_pt(card_state.identity, card, card_state.counters)
 
 
@@ -336,7 +341,7 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
     """Quantity IR -> a non-negative int.
 
     Raises ``NotImplementedError`` for a node it cannot resolve (an
-    undeclared X, an unsupported QThisTurn kind, an event-field QProp
+    undeclared X, an event-field QProp
     outside a firing), never a silent default.
     """
     if isinstance(quantity, QConst):
@@ -372,14 +377,22 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
         if deaths is not None:
             return deaths
         return len(read_population(quantity.selector, ctx))
-    if isinstance(quantity, QDistinctColorCount):
-        from MTG_bot.core.executor.selectors import resolve_selector
-
-        colors: set[str] = set()
-        for handle in resolve_selector(quantity.selector, ctx):
-            if handle.namespace == "card":
-                colors.update(ctx.world.cards[handle].identity.colors)
-        return len(colors)
+    if isinstance(quantity, QDistinct):
+        # The different values of the field among the population (CR 105.2: each colour counts
+        # once, a two-coloured permanent gives two; 201.2 names; 202.3 mana values, a missing one 0
+        # as _prop_value reads it). Printed identity data, read the way the comparison reads them.
+        values: set[object] = set()
+        for handle in read_population(quantity.selector, ctx):
+            if handle.namespace != "card" or handle not in ctx.world.cards:
+                continue
+            identity = ctx.world.cards[handle].identity
+            if quantity.field is QPropField.COLOR:
+                values.update(identity.colors)
+            elif quantity.field is QPropField.NAME:
+                values.add(identity.name)
+            else:  # MANA_VALUE (ability_tree.DISTINCT_FIELDS)
+                values.add(identity.cmc or 0)
+        return len(values)
     if isinstance(quantity, QPartyCount):
         from MTG_bot.core.executor.selectors import (
             resolve_selector,
@@ -427,11 +440,6 @@ def resolve(quantity: Quantity, ctx: ExecCtx) -> int:
         # and the row's subject is the actual recipient. The window is the
         # journal's ``turn_window()``, so the legality lane reads the same
         # rows the effect lane does.
-        if quantity.kind is not ThisTurnKind.NONCOMBAT_DAMAGE:
-            raise NotImplementedError(
-                f"executor: QThisTurn({quantity.kind.name}) not implemented "
-                "(12b turn ledger)"
-            )
         from MTG_bot.core.executor.events import KIND_DAMAGE
         from MTG_bot.core.executor.selectors import players_for_ref
 
@@ -500,7 +508,11 @@ class LastKnown(NamedTuple):
     leaves the battlefield, CR 506.4); ``choices`` what it chose as it entered, as (quality,
     value) pairs (Executor.name_choices; quality None for a card name); ``types`` the type words
     an effect gave it (the layers' type overlay); ``granted`` the abilities an effect granted it
-    (a granted "When this creature dies" looks back at its death, CR 603.10a)."""
+    (a granted "When this creature dies" looks back at its death, CR 603.10a); ``identity`` its
+    printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
+    ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
+    "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped; ``left``
+    the clock of the journal row of that departure, the one this snapshot answers for."""
 
     power: int | None
     toughness: int | None
@@ -512,6 +524,10 @@ class LastKnown(NamedTuple):
     choices: tuple[tuple[str | None, str], ...] = ()
     types: tuple[str, ...] = ()
     granted: tuple[GrantedAbility, ...] = ()
+    identity: CardIdentity | None = None
+    attached: tuple[Handle, ...] = ()
+    tapped: bool = False
+    left: int = 0
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -521,11 +537,15 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     it (Executor.departed_lki). A gathered zone change (CR 603.2c) is the departure of
     each object it gathered, each in its own row. Otherwise None: the caller reads the
     live object (a query's context, which carries the bindings but no event, included; a
-    trigger that does not look back, ``ctx.after_event``, CR 603.10)."""
+    trigger that does not look back, ``ctx.after_event``, CR 603.10). A token that has ceased
+    to exist (CR 704.5d) has no live object: whatever reads it reads this, in any context
+    (CR 608.2h)."""
+    ex, event = ctx.executor, ctx.event
+    if ex is not None and handle.namespace == "card" and handle not in ctx.world.cards:
+        return ex.departed_lki.get(handle)
     if ctx.after_event:
         return None
     found = departure_lki(handle, ctx.event, ctx.executor)
-    ex, event = ctx.executor, ctx.event
     if (
         found is None
         and ex is not None
@@ -540,7 +560,10 @@ def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
 
 def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKnown | None:
     """:func:`departed_lki` for a caller that holds the event but no context (the binder
-    choosing the controller of the departed object's own trigger, CR 603.3a)."""
+    choosing the controller of the departed object's own trigger, CR 603.3a). The snapshot of
+    that departure, also once the card has come back as a new object (an attacker that died and
+    was returned before Garna, Bloodfist of Keld's trigger resolves was attacking); None once a
+    later departure has replaced it."""
     if event is None or ex is None or getattr(event, "subject", None) != handle:
         return None
     kind = getattr(event, "kind", None)
@@ -551,9 +574,8 @@ def departure_lki(handle: Handle, event: object, ex: Executor | None) -> LastKno
             return None
     elif kind != KIND_CREATURE_DIES:
         return None
-    if handle in ex.world.cards and ex.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-        return None
-    return ex.departed_lki.get(handle)
+    snap = ex.departed_lki.get(handle)
+    return snap if snap is not None and snap.left <= event.clock else None
 
 
 def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -598,28 +620,27 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
         if value is None:
             raise ValueError(f"executor: {field.name} undefined on handle {handle}")
         return value
-    if field in (QPropField.CMC, QPropField.MANA_VALUE):
-        if handle.namespace != "card":
+    if field is QPropField.MANA_VALUE:
+        identity = card_identity(handle, ctx)
+        if identity is None:
             raise ValueError(f"executor: {field.name} needs a card handle")
-        return ctx.world.cards[handle].identity.cmc or 0
-    if field in (
-        QPropField.CARDS_IN_HAND,
-        QPropField.CARDS_IN_LIBRARY,
-        QPropField.CARDS_IN_GRAVEYARD,
-    ):
-        kind = {
-            QPropField.CARDS_IN_HAND: ZONE_HAND,
-            QPropField.CARDS_IN_LIBRARY: ZONE_LIBRARY,
-            QPropField.CARDS_IN_GRAVEYARD: ZONE_GRAVEYARD,
-        }[field]
-        return len(ctx.world.players[handle].zone(kind).entries)
+        return identity.cmc or 0
     if field is QPropField.LIFE:
         # The life TOTAL ("loses half their life. Round up", Peer into the
-        # Abyss): no zone to count, so QCount cannot carry it. Same
-        # convention as the CARDS_IN_* fields above (referent "controller",
-        # validated in QProp.__post_init__), a direct order-free attribute
-        # read. Pinned end-to-end in test_executor_r24a.
+        # Abyss): no zone to count, so QCount cannot carry it. A player
+        # field (referent "controller", validated in QProp.__post_init__), a
+        # direct order-free attribute read. Pinned end-to-end in test_executor_r24a.
         return ctx.world.players[handle].life
+    if field is QPropField.STARTING_LIFE:
+        # The player's starting life total (CR 103.4: 20; 40 in Commander, 25 in two-player
+        # Brawl), the executor's snapshot of the life the world was built with (a replay
+        # rebuilds the world at that value). A bare ExecCtx has no snapshot: flagged.
+        if ctx.executor is None:
+            raise ValueError(
+                "executor: STARTING_LIFE needs an executor-backed ExecCtx (the starting-life "
+                "snapshot lives on the executor)"
+            )
+        return ctx.executor.starting_life[handle]
     if field is QPropField.COUNTER_COUNT:
         # Inside a counter placement's replacement action (Conclave Mentor),
         # "that many" names the count the EVENT is placing (the drain
@@ -699,7 +720,9 @@ def read_population(sel: Selector, ctx: ExecCtx) -> list[Handle]:
     object the event named (a gathered event's every object it gathered), those the effect no
     longer acts on included (TriggerBinder._gone), each read by its last known information
     once it left."""
-    from MTG_bot.core.executor.selectors import resolve_selector  # cycle-free at call time
+    from MTG_bot.core.executor.selectors import (
+        resolve_selector,  # cycle-free at call time
+    )
 
     return resolve_selector(sel, ctx, info=True)
 
@@ -714,7 +737,7 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
     # in your graveyard", with a Kinetic Augur there, whose "*/4" CDA the
     # engine does not model). An object with no power is not one of the
     # "powers among" being maxed/summed: the same characteristic-absent rule
-    # that makes the POWER_LE/POWER_GE filters read False for it. The scalar
+    # that makes a power comparison (FAtomPred.QTY_GE) read False for it. The scalar
     # read of an undefined property stays the strict ValueError in
     # _prop_value (never a zero). An all-undefined population falls to the
     # empty-set 0 below.
@@ -781,11 +804,23 @@ def _type_line_tokens(identity_text: str) -> list[str]:
     return [t for t in text.split() if t]
 
 
+def card_identity(handle: Handle, ctx: ExecCtx) -> CardIdentity | None:
+    """A card's printed characteristics; a token that has ceased to exist has the ones it last
+    had (CR 704.5d, 608.2h: Overgrowth Elemental's "If that creature was an Elemental" of a dead
+    Elemental token). None: the handle names no card."""
+    state = ctx.world.cards.get(handle)
+    if state is not None:
+        return state.identity
+    lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+    return lki.identity if lki is not None else None
+
+
 def _type_words(handle: Handle, ctx: ExecCtx) -> set[str]:
     """A card's type words: its printed type line and those an effect gives it, the layers'
     overlay ("is a Knight in addition to its other types"). Judged on its own departure, the
     ones it had as it left (CR 603.10a: its last known information)."""
-    words = set(_type_line_tokens(ctx.world.cards[handle].identity.type_line))
+    identity = card_identity(handle, ctx)
+    words = set(_type_line_tokens(identity.type_line)) if identity is not None else set()
     lki = departed_lki(handle, ctx)
     if lki is not None:
         words.update(lki.types)
@@ -892,23 +927,16 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "instruction before it wrote one"
             )
         return handle in bound
-    if pred is FAtomPred.TARGETS_SOURCE:
-        # Pursued Whale (CR 601.2f cost fold): "Spells your opponents cast
-        # that target this creature cost {3} more to cast." The filter asks
-        # whether the JUDGED object (the casting spell in the fold's
-        # coordinates: legality.py builds mod_ctx with source=the modifier's
-        # host and copies the cast ctx's target bindings) designated the
-        # filter's SOURCE (the static's host) among its targets. Before the
-        # target declaration there is no designation at all, so the
-        # pre-target cost enumeration reads False and the printed cost
-        # shows; the +3 lands at PAYMENT, where stack.cast has already
-        # journaled bindings["target"] (the fold re-runs there). The mirror
-        # of IS_ANY_TARGET: that pred asks "object ∈ my targets", this asks
-        # "source ∈ judge's targets", judged in the host's coordinates.
-        if ctx.designation_union is not None:
-            return ctx.source in ctx.designation_union
-        bound = ctx.binding_handles("target")
-        return bound is not None and ctx.source in bound
+    if pred is FAtomPred.TARGETS:
+        # "a spell that targets <X>" (CR 115.1, 601.2c): one of the JUDGED spell's or ability's
+        # targets passes the inner filter, judged in this filter's coordinates, so IS_SOURCE is the
+        # filter's source: "spells your opponents cast that target this creature cost {3} more"
+        # (Pursued Whale), "whenever you cast a spell that targets this creature" (Gnarlback
+        # Rhino). The mirror of IS_ANY_TARGET: that pred asks "object in my targets", this one
+        # "something in the judged object's targets". Before the target declaration there is no
+        # designation, so the pre-target cost enumeration reads False and the printed cost shows.
+        assert atom.inner_filter is not None
+        return any(eval_filter(atom.inner_filter, t, ctx) for t in _targets_of(handle, ctx))
     if handle.namespace == "ability":
         # An ability on the stack (stack.StackObject) is no card and has no
         # characteristics (CR 113.7a): only its kind tells it apart.
@@ -916,10 +944,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return False
         frame = next((f for f in ctx.executor.stack.frames if f.handle == handle), None)
         return frame is not None and frame.spell_kind == atom.string_value
-    if pred is FAtomPred.IS_TAPPED:
-        return world.cards[handle].tapped
-    if pred is FAtomPred.IS_UNTAPPED:
-        return not world.cards[handle].tapped
+    if pred in (FAtomPred.IS_TAPPED, FAtomPred.IS_UNTAPPED):
+        # Judged on its own departure (CR 603.10a), or a token that ceased to exist: as it last
+        # was on the battlefield (CR 608.2h); otherwise the card's flag, cleared as it left.
+        lki = departed_lki(handle, ctx)
+        tapped = lki.tapped if lki is not None else world.cards[handle].tapped
+        return tapped == (pred is FAtomPred.IS_TAPPED)
     if pred is FAtomPred.IS_PERMANENT:
         # CR 110.1: a permanent card is a CARD THAT HAS A PERMANENT CARD
         # TYPE, not "a card sitting on the battlefield". Gates asked OFF the
@@ -927,14 +957,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # ("creature card in a graveyard") and Unsubstantiate's
         # spell-on-the-stack target. The type-line test is zone-independent;
         # on the battlefield it agrees with the zone reading.
-        if handle not in world.cards:
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        words = set(_type_line_tokens(world.cards[handle].identity.type_line))
-        return bool(words & _PERMANENT_TYPE_WORDS)
+        return bool(set(_type_line_tokens(identity.type_line)) & _PERMANENT_TYPE_WORDS)
     if pred is FAtomPred.IS_TOKEN:
         # "nontoken creature that died": printed token-ness (identity data,
         # so it survives death).
-        return world.cards[handle].identity.is_token
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.is_token
     if pred in (FAtomPred.TYPE_EQ, FAtomPred.SUBTYPE_EQ, FAtomPred.SUPERTYPE_EQ):
         # Supertypes share the type-word match: the identity has no
         # ``supertypes`` field, but every supertype ("Basic", "Legendary",
@@ -943,8 +974,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # layers UNION their overlay words in ("is a Knight in addition to
         # its other types"): the layer registry is the single type oracle.
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
         return atom.string_value in _type_words(handle, ctx)
     if pred is FAtomPred.NAME_CONTAINS:
         # Teferi's "a Teferi planeswalker" gate: case-sensitive substring on
@@ -953,9 +982,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # NAME_CHOSEN's unanswered-question convention does not apply (this
         # is pure identity data, no question to answer).
         assert atom.string_value is not None
-        if handle not in world.cards:
-            return False
-        return atom.string_value in world.cards[handle].identity.name
+        identity = card_identity(handle, ctx)
+        return identity is not None and atom.string_value in identity.name
     if pred is FAtomPred.IS_ATTACHED_TO_SOURCE:
         # Malefic Scythe's "equipped creature", Dub's compiled aura shape:
         # the world has NO attachment state (CardState has no aura/equipment
@@ -970,16 +998,13 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if ctx.executor.attachments.get(ctx.source) == handle:
             return True
-        # A dies-trigger's filter (Malefic Scythe) is judged after the
-        # binder's leave-detach has pruned the live table (the ZONE_CHANGE
-        # row lands before the CREATURE_DIES row of the same diff sweep).
-        # Once the judged object has LEFT the battlefield, the live table
-        # can no longer speak for it: the object's own departure-time
-        # snapshot (executor.detach_lki) is its last known information
-        # (CR 400.7). On the battlefield the live table is the only word.
-        if handle in world.cards and world.zone_of(handle).kind == ZONE_BATTLEFIELD:
-            return False
-        return ctx.source in ctx.executor.detach_lki.get(handle, ())
+        # Judged on its own departure (Malefic Scythe's dies trigger, CR 603.10a), the object
+        # as it left: what was attached to it then, its last known information, once the
+        # binder's leave-detach has pruned the live table. Anywhere else the live table is the
+        # only word: a creature that left and came back is a new object (CR 400.7), equipped
+        # by nothing it was equipped by before.
+        lki = departed_lki(handle, ctx)
+        return lki is not None and ctx.source in lki.attached
     if pred is FAtomPred.IS_ATTACHED_TO:
         # "attached to the REFERENT object" (Turn to Slag): the same
         # attachment-table answer as IS_ATTACHED_TO_SOURCE, but the host
@@ -1023,36 +1048,25 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         return ctx.executor.attachments.get(handle) == host
     if pred is FAtomPred.NAME_EQ:
         assert atom.string_value is not None
-        return world.cards[handle].identity.name == atom.string_value
+        identity = card_identity(handle, ctx)
+        return identity is not None and identity.name == atom.string_value
     if pred in (FAtomPred.COLOR_IN, FAtomPred.COLOR_HAS):
         # COLOR_IN is the grammar's SUBSET reading ("colours are a non-empty
         # subset of the given set"), COLOR_HAS the single-colour membership
         # ("hexproof from black"; a spell "that's white or blue" is the FOr
         # of COLOR_HAS, CR 105.2). Identity data: works for a card in any
         # zone, incl. the stack (the cast-trigger feed reads spells).
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        card_colors = set(world.cards[handle].identity.colors)
+        card_colors = set(identity.colors)
         if pred is FAtomPred.COLOR_HAS:
             assert atom.color is not None
             return atom.color in card_colors
         assert atom.colors  # FAtom validation: COLOR_IN requires non-empty
         return bool(card_colors) and card_colors <= set(atom.colors)
-    if pred is FAtomPred.COLOR_COUNT_GE:
-        # The subject has COUNT or more colors (CR 901.3's color-count
-        # test): "protection from multicolored" (Basri's Lieutenant,
-        # count=2, read by block_pair_blocked_reason as a blocker-quality
-        # filter over the attacker) and Ugin's "-X: exile each permanent ...
-        # that's one or more colors" (count=1, inside the effect selector's
-        # FAnd). Same identity data as the COLOR_HAS/COLOR_IN twin above:
-        # the engine carries no color-changing continuous effects (layers.py
-        # never writes color), so an object's printed colors ARE its colors
-        # in every zone.
-        if handle.namespace != "card":
-            return False
-        assert atom.count is not None  # FAtom: count is a required slot
-        threshold = resolve(atom.count, ctx)
-        return len(world.cards[handle].identity.colors) >= threshold
+    if pred is FAtomPred.QTY_GE:
+        return _comparison_holds(atom, handle, ctx)
     if pred is FAtomPred.NAME_CHOSEN:
         # The object has what the SOURCE's CHOOSE_NAME of this quality recorded (CR 607.2d: the
         # read refers only to its own object's choice): Runed Halo's name, Diamond Knight's
@@ -1073,9 +1087,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
                 f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
-        if handle.namespace != "card":
+        identity = card_identity(handle, ctx)
+        if identity is None:
             return False
-        identity = world.cards[handle].identity
         if quality == "COLOR":
             return chosen in identity.colors  # printed colours: no effect changes a colour
         if quality == "CREATURE_TYPE":
@@ -1083,49 +1097,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             # creature type and no other kind of type shares its word, so the word is enough.
             return chosen in _type_words(handle, ctx)
         return identity.name == chosen
-    if pred is FAtomPred.POWER_LE or pred is FAtomPred.PT_LE:
-        assert atom.count is not None
-        threshold = resolve(atom.count, ctx)
-        power, toughness = ctx.effective_pt(handle)
-        if power is None:
-            return False
-        if pred is FAtomPred.POWER_LE:
-            return power <= threshold
-        return toughness is not None and power <= threshold and toughness <= threshold
-    if pred is FAtomPred.POWER_GE:
-        # The GE twin of POWER_LE (Legion's Judgment "destroy target creature
-        # with power 4 or greater"; Turret Ogre's / Drowsing Tyrannodon's
-        # gates). The SAME live-P/T read as POWER_LE, layers folded, so a
-        # buffed creature crosses the threshold honestly. A card with no
-        # power (land, instant) is not "a creature with power 4 or greater":
-        # characteristic absent, pred False, the POWER_LE convention.
-        assert atom.count is not None
-        threshold = resolve(atom.count, ctx)
-        power, _toughness = ctx.effective_pt(handle)
-        if power is None:
-            return False
-        return power >= threshold
-    if pred is FAtomPred.CMC_LE:
-        # "converted mana cost X or less" (Eliminate's target filter, Idol of
-        # Endurance, Ugin's QX twin: QX rides the cast's declared X like
-        # every other quantity, CR 601.2f). IDENTITY data, read exactly the
-        # way the QProp CMC/MANA_VALUE field reads it (``_prop_value``: a
-        # missing cmc, as on synthetic tokens, is mana value 0).
-        assert atom.count is not None
-        threshold = resolve(atom.count, ctx)
-        if handle.namespace != "card":
-            return False
-        return (world.cards[handle].identity.cmc or 0) <= threshold
-    if pred is FAtomPred.CMC_GE:
-        # The GE twin of CMC_LE, the SAME identity read (a missing cmc is
-        # mana value 0). Fierce Empath's "reveals a creature with converted
-        # mana cost 6 or greater" search filter; one evaluator answers the
-        # query lane (enumerate_candidates) and the runtime lane alike.
-        assert atom.count is not None
-        threshold = resolve(atom.count, ctx)
-        if handle.namespace != "card":
-            return False
-        return (world.cards[handle].identity.cmc or 0) >= threshold
     if pred is FAtomPred.KEYWORD_HAS:
         # "with <keyword>", in a selector filter (Run Afoul's "sacrifices a
         # creature of their choice with flying" CHOOSE pool) and in gate
@@ -1138,13 +1109,15 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # keyword. A handle outside the card set (a player seat) has no
         # keywords: characteristic absent, False.
         assert atom.keyword is not None
-        if handle.namespace != "card" or handle not in world.cards:
+        if handle.namespace != "card":
             return False
         lki = departed_lki(handle, ctx)
         if lki is not None:
             # CR 603.10a: judged on its own departure, the object as it left, its granted
             # keywords included (the layers drop them once they are brought up to date).
             return atom.keyword.name in lki.keywords
+        if handle not in world.cards:
+            return False
         if ctx.layers is None:
             raise NotImplementedError(
                 "executor: filter pred KEYWORD_HAS needs the layer "
@@ -1308,135 +1281,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             "conditional has no antecedent (unanswered question, flagged "
             "never False)"
         )
-    if pred is FAtomPred.CONTROLLER_COUNT_GE:
-        # "you control four or more <inner>" (Gadrak's attack gate; the
-        # Fabled Passage "Then if you control four or more lands, untap
-        # that land." tail). A WORLD count, not history: the same
-        # battlefield population the CONTROLLER_IS reading defines, under
-        # ctx.controller (the vocab has no who slot — YOU is the ability
-        # controller). Handle-free like FLIP_WON: the same answer for every
-        # candidate the filter gates, and it judges a sacrificed source
-        # correctly (Fabled Passage is already in the graveyard here).
-        assert atom.count is not None and atom.inner_filter is not None
-        threshold = resolve(atom.count, ctx)
-        from MTG_bot.core.executor.selectors import controller_of
-
-        counted = 0
-        for card in sorted(world.cards):
-            if (
-                world.zone_of(card).kind == ZONE_BATTLEFIELD
-                and not phased_out(ctx, card)  # CR 702.26b: not counted
-                and controller_of(ctx, card) == ctx.controller
-                and eval_filter(atom.inner_filter, card, ctx)
-            ):
-                counted += 1
-                if counted >= threshold:
-                    return True
-        return counted >= threshold
-    if pred is FAtomPred.CONTROLLER_COUNT_GT:
-        # Garruk, Unleashed's -2: the DUAL-filter population comparison "if
-        # an opponent controls more <inner_filter> than you
-        # <right_inner_filter>". The two sides carry their OWN CONTROLLER_IS
-        # atoms (the compiled Garruk atom: inner = Creature AND
-        # CONTROLLER_IS OPPONENT, right_inner = Creature AND CONTROLLER_IS
-        # YOU), so each side's count is just its filter over the battlefield
-        # population, the same handle-free WORLD count the GE sibling
-        # defines. Two-player reading: with several opponents the inner
-        # count spans all of them, where "an opponent" means any single one.
-        assert atom.inner_filter is not None
-        assert atom.right_inner_filter is not None
-
-        def _bf_count(filt) -> int:
-            return sum(
-                1
-                for card in sorted(world.cards)
-                if world.zone_of(card).kind == ZONE_BATTLEFIELD
-                and not phased_out(ctx, card)  # CR 702.26b: not counted
-                and eval_filter(filt, card, ctx)
-            )
-
-        return _bf_count(atom.inner_filter) > _bf_count(atom.right_inner_filter)
-    if pred is FAtomPred.ZONE_COUNT_GE:
-        # Thieves' Guild Enforcer: "<who> has >= count cards in their <zone>
-        # matching inner_filter". Handle-free set gate like
-        # CONTROLLER_COUNT_GE (the trigger-condition judge); TRUE when ANY
-        # denoted player's zone meets the threshold ("an opponent has eight
-        # or more cards in their graveyard"). WHO drives the population: in
-        # the corpus the IR's zone.controller rides with WHO, so reading WHO
-        # is the whole answer (a ControllerRef, or a referent Selector as for
-        # CONTROLLER_IS). A non-card zone (PLAYER position) is flagged, never
-        # counted empty.
-        from MTG_bot.core.executor.selectors import (
-            ZONE_KIND_TO_STATE,
-            controller_of,
-            players_for_ref,
-            resolve_selector,
-        )
-
-        assert (
-            atom.count is not None
-            and atom.zone is not None
-            and atom.who is not None
-            and atom.inner_filter is not None
-        )
-        threshold = resolve(atom.count, ctx)
-        zone_ir = atom.zone
-        state_kind = ZONE_KIND_TO_STATE.get(zone_ir.kind)
-        if state_kind is None:
-            raise NotImplementedError(
-                f"executor: ZONE_COUNT_GE zone {zone_ir.kind.name} is not a "
-                "card zone (flag, never a zero-count guess)"
-            )
-        who = atom.who
-        if isinstance(who, ControllerRef):
-            players = players_for_ref(who, ctx)
-        else:
-            players = [
-                c if c.namespace == "player" else controller_of(ctx, c)
-                for c in resolve_selector(who, ctx)
-            ]
-        for player in players:
-            entries = ctx.world.players[player].zone(state_kind).entries
-            # The Zone's OPTIONAL position bounds the population (Conspicuous
-            # Snoop): TOP counts only the top entry, mirroring the selector
-            # side (enumerate_zone: top of library = last entry), so "the top
-            # card of your library is X" is this predicate with
-            # position=TOP and count=1.
-            position = zone_ir.position
-            if position is ZonePosition.TOP:
-                entries = entries[-1:]
-            elif position is ZonePosition.BOTTOM:
-                entries = entries[:1]
-            counted = sum(1 for h in entries if eval_filter(atom.inner_filter, h, ctx))
-            if counted >= threshold:
-                return True
-        return False
-    if pred is FAtomPred.NAME_PARTITION_COUNT_GE:
-        # Chrome Replicator: among the permanents ctx.controller CONTROLS,
-        # those passing inner_filter group by EXACT printed name and the
-        # largest group must reach count (templates_b2a's reading: "grouped
-        # by EXACT name, the largest group; no pairwise name-equality
-        # vocabulary"). Handle-free like CONTROLLER_COUNT_GE; the
-        # battlefield population read through the GAIN_CONTROL overlay
-        # (controller_of).
-        from MTG_bot.core.executor.selectors import controller_of
-
-        assert atom.count is not None and atom.inner_filter is not None
-        threshold = resolve(atom.count, ctx)
-        groups: dict[str, int] = {}
-        for card in sorted(world.cards):
-            if (
-                world.zone_of(card).kind != ZONE_BATTLEFIELD
-                or phased_out(ctx, card)  # CR 702.26b: not counted
-                or controller_of(ctx, card) != ctx.controller
-                or not eval_filter(atom.inner_filter, card, ctx)
-            ):
-                continue
-            name = world.cards[card].identity.name
-            groups[name] = groups.get(name, 0) + 1
-            if groups[name] >= threshold:
-                return True
-        return False
     if pred is FAtomPred.MOVED_TO_ZONE_THIS_TURN:
         # Necromentia's "-1/-0… for each card exiled from their hand this
         # way" counts per CANDIDATE (the QCount Selector filters the exile
@@ -1680,13 +1524,19 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return bool(dies)
         return False
     if pred is FAtomPred.IS_EXILED_WITH_SOURCE:
-        # "cards exiled with ~" (Idol of Endurance, Chandra, Heart of Fire).
-        # WORLD half: the card is in exile NOW. HISTORY half: the source
-        # CAUSED the exile: the journal's diff-inspect writes the acting
-        # ability's source into the cause column, so "exiled with this
-        # artifact" is a cause read, not a heuristic. NOT turn-windowed:
-        # an exile-with persists across turns (the world half prunes what
-        # has since moved on).
+        # "cards exiled with ~" (Idol of Endurance, Bag of Holding, Hoarding Dragon's "the exiled
+        # card"). WORLD half: the card is in exile NOW. HISTORY half: the source CAUSED that
+        # exile: the journal's diff-inspect writes the acting ability's source into the cause
+        # column, so "exiled with this artifact" is a cause read, not a heuristic. NOT
+        # turn-windowed: an exile-with persists across turns. CR 607.2a, 400.7: both are
+        # objects. The exile is the card's last arrival there (a card that left exile and came
+        # back is a new object), made in the life of the source the reading ability came from:
+        # from the source's last entry onto the battlefield before that ability triggered or was
+        # activated (``ExecCtx.origin_clock``; outside a resolution, now) to its next entry. A
+        # returned Bag of Holding returns none of the cards its earlier life exiled; a Hoarding
+        # Dragon's dies trigger returns its own life's card though a new Dragon has entered
+        # since. A source that never entered reads every exile it made. (An exile is placed in
+        # the life it arrived in, not the life of the ability that made it: BACKLOG.)
         from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 
         jrn = ctx.journal
@@ -1697,23 +1547,37 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             )
         if handle not in world.cards or world.zone_of(handle).kind != ZONE_EXILE:
             return False
-        return any(
-            e.kind == KIND_ZONE_CHANGE
-            and e.subject == handle
-            and e.zone_move[1] == ZONE_EXILE
-            and e.cause == ctx.source
-            for e in jrn.events
-        )
+        entries: list[int] = []
+        arrival = None
+        for e in jrn.events:
+            if e.kind != KIND_ZONE_CHANGE:
+                continue
+            if e.subject == ctx.source and e.zone_move[1] == ZONE_BATTLEFIELD:
+                entries.append(e.clock)
+            elif e.subject == handle and e.zone_move[1] == ZONE_EXILE:
+                arrival = e
+        if arrival is None or arrival.cause != ctx.source:
+            return False
+        moment = ctx.origin_clock or jrn.clock
+        begun = max((c for c in entries if c <= moment), default=0)
+        ended = min((c for c in entries if c > begun), default=None)
+        return begun < arrival.clock and (ended is None or arrival.clock < ended)
     if pred is FAtomPred.IS_ATTACKING:
         # CR 506.4: the executor's live attack record, the attacker
         # set the COMBAT skeleton fills at declaration and clears at end
         # of combat. Tide Skimmer's "you attack with two or more" gate and
-        # the templates' IS_ATTACKING selectors read exactly this state.
+        # the templates' IS_ATTACKING selectors read exactly this state. An
+        # object judged on its own departure, or a token that ceased to exist,
+        # left combat as it left (CR 506.4): "if it was attacking" (Garna,
+        # Bloodfist of Keld) is its last known information (CR 603.10a, 608.2h).
         if ctx.executor is None:
             raise NotImplementedError(
                 "executor: filter pred IS_ATTACKING reads the executor's "
                 "attack record (bare ExecCtx)"
             )
+        lki = departed_lki(handle, ctx) if handle.namespace == "card" else None
+        if lki is not None:
+            return lki.attacking is not None
         return handle in ctx.executor.attackers
     if pred is FAtomPred.IS_BLOCKING:
         # CR 506.4: the executor's live block record: a handle IS blocking
@@ -1797,34 +1661,6 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 if drawn >= threshold:
                     return True
         return drawn >= threshold
-    if pred is FAtomPred.LIFE_LEAD_OVER_START_GE:
-        # Speaker of the Heavens: "you have at least N life more than your
-        # starting life total". The rule text reads CURRENT life minus the
-        # player's START, so this is a ledger read, not a journal sum of
-        # gains (which would overstate the lead after any life loss). The
-        # start is the executor's construction-time snapshot (the
-        # start_life the world was built with; replay rebuilds the world at
-        # that value). Bare-count atom: WHO is implicitly YOU, the ability's
-        # controller (the gate never carries a seat).
-        from MTG_bot.core.executor.selectors import players_for_ref
-
-        assert atom.count is not None
-        if ctx.executor is None:
-            raise ValueError(
-                "executor: LIFE_LEAD_OVER_START_GE needs an executor-backed "
-                "ExecCtx (the starting-life ledger lives on the executor)"
-            )
-        threshold = resolve(atom.count, ctx)
-        player = players_for_ref(ControllerRef.YOU, ctx)[0]
-        lead = world.players[player].life - ctx.executor.starting_life[player]
-        return lead >= threshold
-    if pred is FAtomPred.LIFE_TOTAL_GE:
-        # Twinblade Paladin's "as long as you have 25 or more life": your life total
-        # now (CR 119.1), whatever it started at (CR 103.4; the card's ruling for
-        # formats that do not start at 20). ``who`` is YOU (FAtom refuses any other);
-        # the judged handle is unused.
-        assert atom.count is not None
-        return world.players[ctx.controller].life >= resolve(atom.count, ctx)
     if pred is FAtomPred.LIFE_GAINED_THIS_TURN_GE:
         # Sanguine Indulgence's CostModifier condition: the
         # CARDS_DRAWN_THIS_TURN_GE twin over the LIFE_GAINED rows (subject is
@@ -1934,6 +1770,82 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     )
 
 
+def _targets_of(handle: Handle, ctx: ExecCtx) -> tuple[Handle, ...]:
+    """What the judged spell or ability targets (CR 115.1, 601.2c): its stack frame's designation;
+    while it is being cast, before its frame exists, the cast's, which the caller binds (the cost
+    fold, CR 601.2f: legality judges the spell with the cast's ``target`` binding)."""
+    ex = ctx.executor
+    if ex is not None:
+        frame = next((f for f in ex.stack.frames if f.handle == handle), None)
+        if frame is not None:
+            return frame.declared_targets
+    if ctx.designation_union is not None:
+        return ctx.designation_union
+    return tuple(ctx.binding_handles("target") or ())
+
+
+def _characteristic(field: QPropField, handle: Handle, ctx: ExecCtx) -> int | None:
+    """The judged object's property a comparison reads (ability_tree.COMPARED_FIELDS), or None
+    when it has none (a noncreature's power, a player's mana value): the comparison then fails;
+    a printed '*' with no number here raises. Power and toughness are the live values, the layers folded, or the ones it had as it left on
+    its own departure (CR 603.10a, as KEYWORD_HAS and HAS_COUNTER read them); mana value and
+    colours are printed identity data (a missing mana value is 0, as ``_prop_value`` reads it; no
+    effect changes a colour)."""
+    identity = card_identity(handle, ctx) if handle.namespace == "card" else None
+    if identity is None:
+        return None
+    if field in (QPropField.POWER, QPropField.TOUGHNESS):
+        # card_identity is a ceased token's last known identity only on its own departure, when
+        # departed_lki answers its power and toughness too; otherwise the card is in the world
+        lki = departed_lki(handle, ctx)
+        power, toughness = (lki.power, lki.toughness) if lki is not None else ctx.effective_pt(handle)
+        value, printed = (
+            (power, identity.power) if field is QPropField.POWER else (toughness, identity.toughness)
+        )
+        if value is None and printed is not None:
+            # A printed '*' the engine has no number for here (a characteristic-defining ability
+            # off the battlefield, CR 208.2a): flag, never guess, since the comparison's FNot
+            # ("N or less") would hold for it.
+            raise NotImplementedError(
+                f"executor: {identity.name}'s {field.name.lower()} {printed!r} has no value here "
+                "for a comparison"
+            )
+        return value
+    if field is QPropField.MANA_VALUE:
+        return identity.cmc or 0
+    return len(identity.colors)  # COLOR: the number of its colours (CR 105.2)
+
+
+def _comparison_holds(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
+    """FAtomPred.QTY_GE: the judged object's ``field``, or the measured ``quantity``, is at least
+    ``count``. With ``who`` (some opponent: "an opponent has eight or more cards in their
+    graveyard") it holds when it holds for one of those players read as "you", the controller
+    rotated as EachPlayer rotates it."""
+    if atom.who is not None:
+        from dataclasses import replace
+
+        from MTG_bot.core.executor.selectors import players_for_ref
+
+        assert isinstance(atom.who, ControllerRef)  # ability_tree.COMPARED_PLAYERS
+        return any(
+            _compare(atom, handle, replace(ctx, controller=player))
+            for player in players_for_ref(atom.who, ctx)
+        )
+    return _compare(atom, handle, ctx)
+
+
+def _compare(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
+    assert atom.count is not None  # ability_tree._check_comparison
+    if atom.field is not None:
+        value = _characteristic(atom.field, handle, ctx)
+        if value is None:
+            return False
+    else:
+        assert atom.quantity is not None
+        value = resolve(atom.quantity, ctx)
+    return value >= resolve(atom.count, ctx)
+
+
 def _last_battlefield_entry(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     """The journal row of ``handle``'s most recent entry onto the battlefield,
     over the whole journal (None if it never entered). Its object is the
@@ -1962,7 +1874,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     object). On the stack, the CAST row after its move onto the stack; on the
     battlefield, the CAST row inside the stack residency its last entry came
     from (a resolving permanent spell is the object that was cast, the
-    WAS_KICKED permanent-lane reading); in any other zone, None. The whole
+    WAS_KICKED permanent-lane reading); in any other zone, or a token that
+    ceased to exist (no token was cast, CR 111.1), None. The whole
     journal is read: the object's cast may be older than this turn."""
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
 
@@ -1972,6 +1885,8 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
             "executor: a was-cast read needs the journalled zone history "
             "(this ExecCtx has no journal)"
         )
+    if handle not in ctx.world.cards:
+        return None
     zone = ctx.world.zone_of(handle).kind
     if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
         return None

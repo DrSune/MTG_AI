@@ -76,7 +76,6 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     Filter,
-    FNot,
     FOr,
     QConst,
     QUnbounded,
@@ -85,9 +84,11 @@ from MTG_bot.core.ability_tree import (
     Seq,
     StaticAbility,
     Verb,
+    QPropField,
     Zone,
     ZoneKind,
     ZonePosition,
+    at_most,
     spell_rider,
 )
 from MTG_bot.core.compiler.templates import (
@@ -126,12 +127,8 @@ def _kind(words: str) -> Filter | None:
     if words in ("instant and sorcery", "instant or sorcery"):
         kind: Filter = FOr(children=(_type("Instant"), _type("Sorcery")))
     elif words == "artifact spells and colorless":
-        kind = FOr(
-            children=(
-                _type("Artifact"),
-                FNot(inner=FAtom(pred=FAtomPred.COLOR_COUNT_GE, count=QConst(1))),
-            )
-        )
+        # "colorless": no colour, R12's one comparison (at most 0 colours, FNot of at least 1)
+        kind = FOr(children=(_type("Artifact"), at_most(0, field=QPropField.COLOR)))
     elif words in ("artifact", "creature", "enchantment", "instant", "sorcery", "planeswalker"):
         kind = _type(words.capitalize())
     elif re.fullmatch(r"[A-Z][a-z]+(?: creature)?", words):

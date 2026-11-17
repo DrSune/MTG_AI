@@ -38,11 +38,13 @@ The vocab, and where each expiry point is driven from (all inside
   * ``DurationPermanent`` — ``"Permanent"``: only another effect removes it.
 
 **PT resolution rule:** effective P/T = printed BASE, then every modifier —
-verb-recorded and layer-materialized — every set before every delta (CR 613.4),
-each group in **timestamp order, then Handle/insertion order**, then the P/T
-counters (:meth:`_effective`). Was-snapshots take that same fold at
-application time (they read the stack, never a "baked" value), and the
-journal's dies snapshot reads :meth:`effective_pt`.
+verb-recorded and layer-materialized — in the sublayers of CR 613.4: the
+characteristic-defining sets (7a), the other sets (7b), the deltas (7c), each
+group in **timestamp order, then insertion order**, then the P/T counters
+(:meth:`_effective`). The timestamp is the journal's clock (``EventJournal.clock``)
+when the entry is recorded, for a verb's entry and a static's alike. Was-snapshots
+take that same fold at application time (they read the stack, never a "baked"
+value), and the journal's dies snapshot reads :meth:`effective_pt`.
 """
 
 from __future__ import annotations
@@ -79,6 +81,10 @@ _DURATION_TAG: dict[type, str] = {
 # The only PHYSICAL sweep: every other expiry tombstones instead, so the
 # audit trail replays.
 EOT_TAG = "Eot"
+
+#: A P/T entry's kind, in the order its sublayers apply (CR 613.4a-c): a characteristic-defining
+#: ability's set, another set, a modification.
+PT_KINDS = ("cda", "set", "delta")
 
 # The status tags a dump row can carry. Absent from ``_dormant`` == "live".
 STATUS_LIVE = "live"
@@ -120,16 +126,17 @@ def parse_pt(value: str | None) -> int | None:
 class PtChange:
     """One recorded P/T modification.
 
-    ``kind`` is ``"delta"`` (MODIFY_PT: additive) or ``"set"`` (SET_PT:
-    absolute, later sets win over earlier ones). CR 613.4: every set
-    applies before every delta (sublayers 7a/7b before 7c), whatever the clock
-    order. The ``was_*`` pair is the was-snapshot of the *effective*
-    P/T at application time. ``record_id`` is the ledger's monotone id, from
-    1 (a layer links its materialized entries by it).
+    ``kind`` is ``"delta"`` (MODIFY_PT: additive, layer 7c), ``"set"`` (SET_PT:
+    absolute, later sets win over earlier ones, layer 7b) or ``"cda"`` (a
+    characteristic-defining ability's set, layer 7a). CR 613.4: the sublayers
+    apply in that order, 7a, 7b, 7c, whatever the clock order. The ``was_*``
+    pair is the was-snapshot of the *effective* P/T at application time.
+    ``record_id`` is the ledger's monotone id, from 1 (a layer links its
+    materialized entries by it).
     """
 
     target: Handle
-    kind: str  # "delta" | "set"
+    kind: str  # "cda" | "set" | "delta"
     power_delta: int
     toughness_delta: int
     power_set: int | None
@@ -204,7 +211,7 @@ class DurationLedger:
         owner-scope, UNTIL_NEXT_TURN records the owner, UNTIL_LEAVES gets its
         tracked object as ``leaves_anchor`` (the caller resolves the referent
         string — the ledger never parses English)."""
-        if change_kind not in ("delta", "set"):
+        if change_kind not in PT_KINDS:
             raise ValueError(f"DurationLedger: unknown change kind {change_kind!r}")
         was_power, was_toughness = self._effective(identity, target)
         record_id = self._next_id
@@ -254,7 +261,7 @@ class DurationLedger:
         numbers move. Returns True when they actually changed (the
         recompute's change signal); an unknown id raises (flag, don't
         degrade)."""
-        if change_kind not in ("delta", "set"):
+        if change_kind not in PT_KINDS:
             raise ValueError(f"DurationLedger: unknown change kind {change_kind!r}")
         old = self._by_id.get(record_id)
         if old is None:
@@ -340,14 +347,11 @@ class DurationLedger:
         stack = self._fold_stack(card)
         # CR 613.4: within layer 7 the sublayers apply in order, and only
         # WITHIN a sublayer does timestamp order decide: 7a characteristic-defining
-        # abilities and 7b "set" effects first, then 7c modifications and counters,
-        # so a later set (Kinetic Augur's power CDA, as it enters) does not erase
-        # an earlier +1/+1 (Glorious Anthem). Sets keep their timestamp order among
-        # themselves (7a vs 7b is not told apart here: no dealt card pairs a CDA
-        # with a 7b effect), then every delta, then counters.
-        stack = [c for c in stack if c.kind != "delta"] + [
-            c for c in stack if c.kind == "delta"
-        ]
+        # abilities (Kinetic Augur's power), then 7b sets (Jolrael's "base power
+        # and toughness X/X", which so overrides the Augur's power whatever came
+        # first), then 7c modifications and counters, so a later set does not
+        # erase an earlier +1/+1 (Glorious Anthem).
+        stack = sorted(stack, key=lambda c: PT_KINDS.index(c.kind))  # stable: timestamps kept
         for change in stack:
             if change.kind == "delta":
                 if power is not None or change.power_delta:
@@ -356,7 +360,7 @@ class DurationLedger:
                 if toughness is not None or change.toughness_delta:
                     base = toughness if toughness is not None else 0
                     toughness = base + change.toughness_delta
-            else:  # "set"
+            else:  # "cda" or "set"
                 if change.power_set is not None:
                     power = change.power_set
                 if change.toughness_set is not None:

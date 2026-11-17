@@ -1,0 +1,27 @@
+{
+ "set": "FDN",
+ "name": "celestial_armor_creature_protected_even_if_the_armor_left",
+ "notes": "M6 mapper. Printed: 'When this Equipment enters, attach it to target creature you control. That creature gains hexproof and indestructible until end of turn.' Support card: FDN Scorching Dragonfire (verified instant: 3 damage to target creature or planeswalker). The Armor enters and its trigger goes on the stack targeting seat 0's Bear (its one legal target); with the trigger waiting (held priority) the Armor is destroyed (moved to the graveyard by another effect). The trigger resolves: the attach does nothing (CR 701.3b), but the Bear, 'that creature', still gains hexproof and indestructible: seat 1's Scorching Dragonfire cannot target it, and 10 damage does not destroy it. The Bear stays 2/2, never equipped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "armor", "real": "Celestial Armor", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "fire", "real": "Scorching Dragonfire", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "armor", "hold": true},
+  {"op": "move", "key": "armor", "to": "graveyard", "hold": true},
+  {"op": "pass"},
+  {"op": "mana", "seat": 1, "add": {"R": 1, "C": 1}},
+  {"op": "cast", "key": "fire", "controller": 1, "targets": ["bear"], "expect_raise": "illegal target"},
+  {"op": "deal_damage", "source": "ogre", "target": "bear", "amount": 10, "controller": 1},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"armor": "graveyard", "bear": "battlefield", "fire": "hand"},
+  "attached": {"armor": null},
+  "damage": {"bear": 10},
+  "power": {"bear": 2}
+ }
+}

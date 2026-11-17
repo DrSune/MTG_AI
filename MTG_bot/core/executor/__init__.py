@@ -249,7 +249,9 @@ __all__ = [
 
 
 # Predicates that test an object's own characteristics (CR 109.3: name, mana value, colour,
-# types, abilities, power and toughness), and whether it is a permanent card or a token.
+# types, abilities, power and toughness), whether it is a permanent card or a token, and
+# whether it is attacking: what "it" of a bare Conditional is asked (Garna, Bloodfist of
+# Keld's "draw a card if it was attacking").
 _CHARACTERISTIC_PREDS = frozenset(
     {
         FAtomPred.TYPE_EQ,
@@ -257,32 +259,31 @@ _CHARACTERISTIC_PREDS = frozenset(
         FAtomPred.SUPERTYPE_EQ,
         FAtomPred.COLOR_HAS,
         FAtomPred.COLOR_IN,
-        FAtomPred.COLOR_COUNT_GE,
-        FAtomPred.CMC_LE,
-        FAtomPred.CMC_GE,
         FAtomPred.NAME_EQ,
         FAtomPred.NAME_CONTAINS,
         FAtomPred.IS_PERMANENT,
         FAtomPred.IS_TOKEN,
-        FAtomPred.POWER_LE,
-        FAtomPred.POWER_GE,
-        FAtomPred.PT_LE,
-        FAtomPred.PT_GE,
         FAtomPred.KEYWORD_HAS,
         FAtomPred.HAS_KICKER,
+        FAtomPred.IS_ATTACKING,
     }
 )
 
 
 def _tests_characteristics_only(pred: object) -> bool:
-    """Every leaf of the filter is a characteristic test (FAnd/FOr/FNot)."""
+    """Every leaf of the filter is a characteristic test (FAnd/FOr/FNot): a predicate of
+    ``_CHARACTERISTIC_PREDS``, or a comparison of the object's own power, toughness, mana value
+    or colours (``FAtom.field``)."""
     if isinstance(pred, (FAnd, FOr)):
         return bool(pred.children) and all(
             _tests_characteristics_only(c) for c in pred.children
         )
     if isinstance(pred, FNot):
         return _tests_characteristics_only(pred.inner)
-    return isinstance(pred, FAtom) and pred.pred in _CHARACTERISTIC_PREDS
+    return isinstance(pred, FAtom) and (
+        pred.pred in _CHARACTERISTIC_PREDS
+        or (pred.pred is FAtomPred.QTY_GE and pred.field is not None)
+    )
 
 
 def _ends_in_optional(effect: object) -> bool:
@@ -514,32 +515,27 @@ class Executor:
         # here; IS_ATTACHED_TO_SOURCE reads it and the binder drops every
         # edge touching a handle that leaves the battlefield.
         self.attachments: dict[Handle, Handle] = {}
-        # Last-known information of the attachment relation as a host leaves
-        # the battlefield: HOST -> the sorted Auras and Equipment attached to
-        # it then (Malefic Scythe). The journal writes ZONE_CHANGE before
-        # CREATURE_DIES in the same diff sweep, so by the time a dies
-        # trigger's IS_ATTACHED_TO_SOURCE filter is judged the live table is
-        # already pruned; this row is the departure-time truth (CR 400.7).
-        # Replaced per departing host. Derived from the same detaches, so not
-        # in the fingerprint.
-        self.detach_lki: dict[Handle, tuple[Handle, ...]] = {}
         # The one last-known-information snapshot of each permanent that left the
         # battlefield (quantity.LastKnown: power, toughness, counters, keywords with
-        # the granted ones, controller), captured as it leaves, before its counters
-        # cease (CR 122.2), its effects end (CR 400.7) and its control entries
-        # expire. Read through quantity.departed_lki / last_known by what needs the
+        # the granted ones, controller, what was attached to it, its printed
+        # identity), captured as it leaves, before its counters cease (CR 122.2), its
+        # effects end (CR 400.7), its control entries expire and the binder prunes its
+        # attachments. Read through quantity.departed_lki / last_known by what needs the
         # object as it last existed: "When this creature dies, you gain life equal
         # to its power" (Conclave Mentor), "if it had a +1/+1 counter on it"
-        # (Basri's Lieutenant), damage a sacrificed source deals with its granted
+        # (Basri's Lieutenant), "Whenever equipped creature dies" (Malefic Scythe),
+        # damage a sacrificed source deals with its granted
         # deathtouch (CR 113.7a), "its controller" and "that player" (CR 608.2h),
-        # the controller of its own dies trigger (CR 603.3a, 603.10a). Dropped when
-        # the card re-enters (a new object, CR 400.7). Derived state replayed from
-        # the same departures, NOT in the fingerprint (the detach_lki precedent).
+        # the controller of its own dies trigger (CR 603.3a, 603.10a), and a token
+        # that has ceased to exist (CR 704.5d). The card's next departure replaces it;
+        # a card back on the battlefield is a new object (CR 400.7), read live except by
+        # what looks back at the departure the snapshot is of (``LastKnown.left``).
+        # Derived state replayed from the same departures, NOT in the fingerprint.
         self.departed_lki: dict[Handle, LastKnown] = {}
         # Each seat's starting life, snapshotted at construction: GameWorld
         # takes ``start_life`` as a parameter but does not store it.
-        # LIFE_LEAD_OVER_START_GE (Speaker of the Heavens) reads current life
-        # minus this; the journal cannot reconstruct the lead, since a
+        # QPropField.STARTING_LIFE reads it (Speaker of the Heavens: "at least 7
+        # life more than your starting life total"); the journal cannot reconstruct it, since a
         # non-damage life loss leaves no row. A replay rebuilds the world at
         # the same start_life (games._setup_game), so the snapshot stays out
         # of the fingerprint.
@@ -582,8 +578,8 @@ class Executor:
         # ``blocked_by``: attacker -> the creatures blocking it, in DECLARE
         # order (CR 509.1b: one attacker per blocker, so a handle appears in
         # exactly one list; multiple blockers per attacker ARE legal — the
-        # assignment order is asked per attacker, CR 510.1). Cleared with
-        # the attack record at end of combat; replayed state.
+        # attacker's controller divides its damage among them, CR 510.1c).
+        # Cleared with the attack record at end of combat; replayed state.
         self.blocked_by: dict[Handle, list[Handle]] = {}
         # DISPATCHED MANDATE_BLOCK ledger (the static shape rides layers'
         # "mandate_block" records; Canopy Stalker's rule line).
@@ -727,6 +723,7 @@ class Executor:
         decisions: Sequence[str] = (),
         slot_designations: dict[str, tuple[Handle, ...]] | None = None,
         x_value: int | None = None,
+        origin_clock: int = 0,
     ) -> tuple[Event, ...]:
         """Run an Effect tree; the per-op pool ``decisions`` covers the
         known tree in ask order, and every demand it cannot serve reaches
@@ -741,7 +738,8 @@ class Executor:
         rebinding) and DelayedTrigger is scheduled on the binder; any other
         node (Repeat) raises ``NotImplementedError``. ``x_value`` is an
         activated ability's announced X (CR 107.3a; ``legality.activate``'s
-        X lane), None for every effect with no X."""
+        X lane), None for every effect with no X; ``origin_clock`` its
+        activation's journal clock (``ExecCtx.origin_clock``)."""
         if not isinstance(
             effect,
             (
@@ -765,6 +763,7 @@ class Executor:
             decisions=decisions,
             x_value=x_value,
         )
+        ctx.origin_clock = origin_clock
         if slot_designations:
             # An activation's per-target designations (legality.activate), the
             # same per-slot map the cast lane sets on a multi-target spell.
@@ -1048,6 +1047,7 @@ class Executor:
                 source=ctx.source,
                 controller=ctx.controller,
                 bindings=ctx.bindings,
+                origin_clock=ctx.origin_clock,
             )
             done = False
             if (
@@ -1151,6 +1151,7 @@ class Executor:
                         x_value=ctx.x_value,
                     )
                     inner.decision_idx = ctx.decision_idx
+                    inner.origin_clock = ctx.origin_clock
                     self._run_effect(effect.effect, inner)
                     ctx.decision_idx = inner.decision_idx
         elif isinstance(effect, DelayedTrigger):
@@ -1214,6 +1215,11 @@ class Executor:
                     ),
                     self.layers.type_overlay(event.subject),
                     self.layers.granted_abilities(event.subject),
+                    state.identity,
+                    # before the binder's leave-detach prunes the table
+                    tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
+                    state.tapped,  # before it is untapped below
+                    event.clock,
                 )
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
@@ -1222,8 +1228,6 @@ class Executor:
                 # are cut. The snapshot above answers for the old object.
                 self.ledger.forget(event.subject)
                 self.layers.forget_materialized(event.subject)
-            elif event.zone_move[1] == ZONE_BATTLEFIELD:
-                self.departed_lki.pop(event.subject, None)  # a new object (CR 400.7)
             if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
                 # CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to
@@ -1273,6 +1277,9 @@ class Executor:
             self.layers.forget_departed(anchor)
             self.replacements.forget_departed(anchor)
             self.damage_policies.pop(anchor, None)
+            # CR 606.3: a planeswalker that comes back is a new permanent, none of whose
+            # loyalty abilities has been activated this turn.
+            self.loyalty_clock.pop(anchor, None)
             # A departing permanent drops every control entry keyed on
             # it — as CREATURE (the stolen card itself) or as ANCHOR (the
             # aura/source whose leaving ends the effect, CR 611.3's duration
@@ -1384,8 +1391,8 @@ class Executor:
         just saw ENTER the battlefield: what is done as it enters (each
         ``effect``, :meth:`run_as_enters`), then, where its gate holds, the
         tapped flag and any initial counters (CR 614.1c — part of the entering state, not
-        a trigger, so no TAP event is emitted and nothing is re-journalled;
-        the move's own journal row already carries the entry). A card whose
+        a trigger; entering tapped is no tapping, so no TAP event is emitted, while the
+        counters are put on it, CR 122.6, a journalled placement). A card whose
         record is not registered has no declared entered state."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
@@ -1427,46 +1434,55 @@ class Executor:
         for node in nodes:
             if node.tapped:
                 self.world.cards[card].tapped = True
-            for kind, quantity in node.initial_counters:
-                # "Enters with X +1/+1 counters"
-                # (Wildwood Scourge, the X hydras) — CR 614.1c, the count is
-                # part of the entering state. X is the value the spell was cast
-                # with (stack.cast records it in etb_x as the spell lands); an
-                # object that entered without being cast has X 0 (CR 107.3g). A
-                # negative result gives no counters (107.1b).
-                from MTG_bot.core.executor.legality import ctx_for
-                from MTG_bot.core.executor.quantity import resolve
+        counters = [pair for node in nodes for pair in node.initial_counters]
+        if not counters:
+            return
+        # CR 122.6: the counters an object enters with are put on it. So the placement is
+        # journalled, an atom boundary of its own (its COUNTER_PLACED rows: Wildwood Scourge sees
+        # a creature enter with +1/+1 counters), and a placement's prevention and replacement
+        # apply to it (Blightbeetle, Conclave Mentor). Entering tapped is no tapping: the flag is
+        # set outside the boundary, so no TAP_STATE row.
+        from MTG_bot.core.executor.legality import ctx_for
+        from MTG_bot.core.executor.selectors import effect_number
 
-                qctx = ctx_for(
-                    self,
-                    source=card,
-                    controller=self.world.controller_of(card),
-                    x_value=self.etb_x.get(card, 0),
+        before = self.journal.snapshot()
+        start = len(self.events)
+        for kind, quantity in counters:
+            # "Enters with X +1/+1 counters" (Wildwood Scourge, the X hydras) — CR 614.1c, the
+            # count is part of the entering state. X is the value the spell was cast with
+            # (stack.cast records it in etb_x as the spell lands); an object that entered
+            # without being cast has X 0 (CR 107.3g). A negative result gives no counters
+            # (107.1b).
+            qctx = ctx_for(
+                self,
+                source=card,
+                controller=self.world.controller_of(card),
+                x_value=self.etb_x.get(card, 0),
+            )
+            n = effect_number(quantity, qctx)
+            if not n:
+                continue
+            if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
+                continue  # Blightbeetle
+            # A counter-placement replacement applies (Conclave Mentor: "that many plus one"):
+            # the same consult and action run as the PUT_COUNTER lane's drain (the action's
+            # referent is the entering card, its COUNTER_COUNT register the entering count).
+            repl = self.replacements.replacement_for_counter_placement(qctx, card, kind, n)
+            if repl is not None:
+                inner = self._ctx(
+                    source=repl.source,
+                    controller=repl.controller,
+                    bindings={"event": [card]},
+                    decisions=(),
                 )
-                n = quantity.value if isinstance(quantity, QConst) else max(0, resolve(quantity, qctx))
-                if not n:
-                    continue
-                if self.replacements.prevents_counter_placement(qctx, card, kind) is not None:
-                    continue  # CR 122.6: entering with counters is putting them on it (Blightbeetle)
-                # CR 122.6: counters an object is given as it enters ARE counters
-                # put on it, so a counter-placement replacement applies (Conclave
-                # Mentor: "that many plus one"). Same consult and action run as the
-                # PUT_COUNTER lane's drain (the action's referent is the entering
-                # card, its COUNTER_COUNT register the entering count).
-                repl = self.replacements.replacement_for_counter_placement(qctx, card, kind, n)
-                if repl is not None:
-                    inner = self._ctx(
-                        source=repl.source,
-                        controller=repl.controller,
-                        bindings={"event": [card]},
-                        decisions=(),
-                    )
-                    inner.event_counter_count = n
-                    inner.replaced_seq = qctx.replaced_seq | {repl.seq}
-                    self._run_effect(repl.action, inner)
-                    continue
-                counters = self.world.cards[card].counters
-                counters[kind.name] = counters.get(kind.name, 0) + n
+                inner.event_counter_count = n
+                inner.replaced_seq = qctx.replaced_seq | {repl.seq}
+                self._run_effect(repl.action, inner)
+                continue
+            have = self.world.cards[card].counters
+            have[kind.name] = have.get(kind.name, 0) + n
+            self.events.append((len(self.events), "PUT_COUNTER", str(card), kind.name, n))
+        self.journal.record_atom(before, card, "PUT_COUNTER", self.events[start:])
 
     # ------------------------------------------------------------- triggers
 
@@ -1540,20 +1556,18 @@ class Executor:
         row: ceasing to exist is not a zone change and triggers nothing. Returns the
         tokens removed (Handle-sorted).
 
-        State-based actions run before triggered abilities resolve (CR 117.5),
-        so a token's own leave triggers can still be queued here. A token
-        a queued firing names (its source, or its event's subject or cause) waits
-        for the next check after that firing resolves: the engine keeps it as the
-        last-known information those triggers read (CR 603.10a)."""
+        Its leave triggers triggered before it ceased (CR 111.7) and wait for the
+        stack with the token gone (CR 117.5: state-based actions first); they read it
+        through its last known information (CR 608.2h, 603.10a: ``departed_lki``,
+        captured as it left the battlefield), never as an object in a zone."""
         world = self.world
-        pending = self.binder.pending_references()
         gone: list[Handle] = []
         for player in world.player_order:
             for kind, zone in world.players[player].zones.items():
                 if kind in (ZONE_BATTLEFIELD, ZONE_STACK):
                     continue
                 for card in list(zone.entries):
-                    if world.cards[card].identity.is_token and card not in pending:
+                    if world.cards[card].identity.is_token:
                         zone.entries.remove(card)
                         gone.append(card)
         for card in gone:
@@ -1734,8 +1748,7 @@ class Executor:
         while True:
             # CR 704.5a/b: a player who loses here ends a two-player game.
             self._player_losses()
-            # CR 704.5d, 111.7: a token off the battlefield ceases to exist;
-            # one whose leave triggers are still queued waits for them.
+            # CR 704.5d, 111.7: a token off the battlefield ceases to exist.
             self._cease_tokens()
             self.layers.recompute()  # live keywords/toughness must be current
             dying = self._lethal_creatures()
@@ -2864,22 +2877,23 @@ class Executor:
           creature REMAINS blocked (the block triggers already fired and
           stand; CR 506.5a-style blocked status is untouched) — the policy
           only reroutes the ASSIGNMENT.
-        * Multiple blockers: the ORDER is asked per attacker (site
-          ``order:<card>:<slot>:<turn>``) as a POSITIONAL pick from the
-          Handle-sorted remaining candidates at each slot — the exact
-          decision surface of the permutation index, with a ≤n-word
-          vocabulary at every ask (one ask over whole orders would need n!
-          words).
-        * LETHAL per blocker is toughness-minus-marked (CR 704.2, the
-          marked ledger keeps the first-strike step's scars) or 1 from a
-          DEATHTOUCH dealer (CR 702.2b).
-        * TRAMPLE (CR 702.19): once every blocker is covered lethal, the
-          excess is asked RECIPIENT BY RECIPIENT in order — each blocker
-          gets ``trample:<card>:<slot>:<turn>`` from 0..remaining, the
-          defending player takes the rest (the composition space of the
-          announcement, enumerated with ≤(excess+1)-word vocabularies).
-        * Without trample the whole damage must hit the blockers: greedy
-          lethal-first in order, the final survivor soaking any excess.
+        * Several blockers: the controller divides the damage among them as
+          they choose (CR 510.1c), with no lethal-first order (gone from the
+          rules in 2024). Asked blocker by blocker in Handle order, site
+          ``divide:<blocker>:<dealer>:<turn>``: how much of what is left goes
+          to that blocker, 0 up to the rest; the last blocker takes what is
+          left. One blocker takes it all, unasked.
+        * TRAMPLE (CR 702.19b): the last blocker is asked too, and what is
+          left after it goes to the attacked object, but only once every
+          blocker is assigned lethal damage (:meth:`lethal_damage`): the
+          last blocker's menu runs from its lethal damage to the rest, or is
+          the rest alone when a blocker before it got less. A trampler may
+          so keep all of its damage on its blockers (702.19b's last
+          sentence). Its planeswalker gone, the rest stays on the blockers
+          (702.19f).
+        Every menu holds only amounts that leave a legal announcement (CR
+        510.1e), the composition space enumerated with ≤(power+1)-word
+        vocabularies.
         """
         world = self.world
         defender = self.defending_player
@@ -2942,98 +2956,42 @@ class Executor:
             # CR 510.1c: blocked with no creature blocking it, no
             # trample: it assigns no combat damage.
             return ()
-        ordered = list(blockers)
-        if len(ordered) > 1:
-            picked: list[Handle] = []
-            remaining = sorted(ordered)
-            for slot in range(len(ordered)):
-                vocab = tuple(str(i) for i in range(len(remaining)))
-                ctx = self._ctx(
-                    source=dealer,
-                    controller=controller,
-                    bindings=None,
-                    decisions=(),
-                )
-                # The LAST slot has exactly one remaining creature: its
-                # "0" is taken without asking.
-                answer = offer_or_autopick(
-                    ctx, vocab, f"order:{dealer}:{slot}:{world.turn}"
-                )
-                chosen = remaining[int(answer)]
-                picked.append(chosen)
-                remaining.remove(chosen)
-            ordered = picked
-        deathtouch = self.layers.keyword_of(dealer, Keyword.DEATHTOUCH)
-
-        def lethal_of(b: Handle) -> int:
-            if deathtouch:
-                return 1  # CR 702.2b: any nonzero damage from the source
-            _p, toughness = self.ledger.effective_pt(
-                world.cards[b].identity, b, world.cards[b].counters
-            )
-            return max(1, (toughness or 1) - self.damage.get(b, 0))
-
-        if not self.layers.keyword_of(dealer, Keyword.TRAMPLE):
-            plan: list[tuple[int, Handle]] = []
-            left = power
-            for b in ordered:
-                share = min(lethal_of(b), left)
-                if share:
-                    plan.append((share, b))
-                left -= share
-                if left == 0:
-                    break
-            if left:  # no trample: the last blocker absorbs the excess
-                plan[-1] = (plan[-1][0] + left, plan[-1][1])
-            return tuple(plan)
-        needs = [lethal_of(b) for b in ordered]
-        covered = sum(needs)
-        if power <= covered:  # not enough to reach lethal everywhere: greedy
-            plan = []
-            left = power
-            for b, need in zip(ordered, needs):
-                share = min(need, left)
-                if share:
-                    plan.append((share, b))
-                left -= share
-            return tuple(plan)
-        plan = [(need, b) for b, need in zip(ordered, needs) if need]
-        excess = power - covered
-        for slot, b in enumerate(ordered):
-            if excess == 0:
-                break
-            vocab = tuple(str(v) for v in range(excess + 1))
-            ctx = self._ctx(
-                source=dealer, controller=controller, bindings=None, decisions=()
-            )
-            give = int(
-                ctx.take_decision(vocab, f"trample:{dealer}:{slot}:{world.turn}")
-            )
+        # CR 702.19b: a trampler's rest may go to what it attacks, once every blocker is
+        # assigned lethal damage; with that gone (702.19f), and without trample, the blockers
+        # take it all.
+        over = attacked is not None and self.layers.keyword_of(dealer, Keyword.TRAMPLE)
+        plan: list[tuple[int, Handle]] = []
+        left = power
+        all_lethal = True
+        ordered = sorted(blockers)
+        for i, blocker in enumerate(ordered):
+            low, high = 0, left
+            if i == len(ordered) - 1:
+                low = min(self.lethal_damage(dealer, blocker), left) if over and all_lethal else left
+            ctx = self._ctx(source=dealer, controller=controller, bindings=None, decisions=())
+            vocab = tuple(str(n) for n in range(low, high + 1))
+            give = int(offer_or_autopick(ctx, vocab, f"divide:{blocker}:{dealer}:{world.turn}"))
+            all_lethal = all_lethal and give >= self.lethal_damage(dealer, blocker)
             if give:
-                # MERGE into the blocker's lethal entry (never a duplicate
-                # recipient row - one announcement line per receiver)
-                for i, (a, h) in enumerate(plan):
-                    if h == b:
-                        plan[i] = (a + give, b)
-                        break
-                else:
-                    plan.append((give, b))
-                excess -= give
-        if excess and attacked is not None:
-            plan.append((excess, attacked))
-        elif excess:
-            # CR 702.19b/f: its planeswalker left combat, so the excess
-            # can only go to the blockers: the last one in order takes it.
-            last = ordered[-1]
-            for i, (a, h) in enumerate(plan):
-                if h == last:
-                    plan[i] = (a + excess, last)
-                    break
-            else:
-                plan.append((excess, last))
+                plan.append((give, blocker))
+            left -= give
+        if left:
+            assert attacked is not None  # the last menu gave the rest to a blocker otherwise
+            plan.append((left, attacked))
         # CR 510.1: damage assignment is simultaneous within the step; the
         # canonical row order keeps the journal deterministic.
         return tuple(sorted(plan, key=lambda p: (p[1].namespace, p[1].index)))
+
+    def lethal_damage(self, dealer: Handle, blocker: Handle) -> int:
+        """The damage still lethal to ``blocker`` from ``dealer`` for a combat damage assignment
+        (CR 702.19b, 120.6): its toughness minus the damage already marked on it (the
+        first-strike step's included), or any nonzero amount from a source with deathtouch (CR
+        702.2c); none when what is marked is already lethal (an indestructible blocker that
+        survived the first-strike step)."""
+        card = self.world.cards[blocker]
+        _power, toughness = self.ledger.effective_pt(card.identity, blocker, card.counters)
+        short = max(0, (toughness or 0) - self.damage.get(blocker, 0))
+        return min(short, 1) if self.layers.keyword_of(dealer, Keyword.DEATHTOUCH) else short
 
     def _damage_wave(self, dealers: list[Handle]) -> None:
         """One combat-damage substep: EVERY dealer's legal assignment is
@@ -3232,7 +3190,12 @@ class Executor:
             )
         if aura == host:
             raise ValueError(f"attach_aura: {aura} cannot attach to itself")
-        self.attachments[aura] = host
+        if self.attachments.get(aura) != host:  # CR 701.3b: to its own host, nothing happens
+            self.attachments[aura] = host
+            # CR 613.7e, 701.3c: it receives a new timestamp as it becomes attached, and so do
+            # its static abilities' effects (613.7a): the Hammer's "loses flying" applies after
+            # an Aura's flying granted before it was attached.
+            self.layers.restamp(aura)
         self.layers.recompute()  # "equipped creature" scopes re-read the table
 
     # ------------------------------------------------ CR 702.26 phasing

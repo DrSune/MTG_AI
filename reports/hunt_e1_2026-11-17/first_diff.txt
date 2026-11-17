@@ -1,0 +1,233 @@
+M21:920021: etb-counters; first differing row 183; branch +1 rows
+   base:   (184, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (184, 'COUNTER_PLACED', 'card:113[Wildwood Scourge]', 'card:113[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 6)")
+M21:920026: etb-counters; first differing row 32; branch +2 rows
+   base:   (33, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (33, 'COUNTER_PLACED', 'card:75[Malefic Scythe]', 'card:75[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920036: etb-counters; first differing row 30; branch +1 rows
+   base:   (31, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (31, 'COUNTER_PLACED', 'card:39[Malefic Scythe]', 'card:39[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920054: etb-counters; first differing row 24; branch +1 rows
+   base:   (25, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (25, 'COUNTER_PLACED', 'card:17[Malefic Scythe]', 'card:17[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920055: etb-counters; first differing row 251; branch +1 rows
+   base:   (252, 'COUNTER_PLACED', 'card:104[Liliana, Waker of the Dead]', 'card:104[Liliana, Waker of the Dead]', 'PUT_COUNTER', "('LOYALTY', 1)")
+   branch: (252, 'COUNTER_PLACED', 'card:91[Wildwood Scourge]', 'card:91[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+M21:920058: etb-counters; first differing row 259; branch +1 rows
+   base:   (260, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (260, 'COUNTER_PLACED', 'card:50[Wildwood Scourge]', 'card:50[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M21:920063: etb-counters; first differing row 104; branch +2 rows
+   base:   (105, 'TAP_STATE', 'card:81[Swamp]', 'card:81[Swamp]', 'TAP', '(True,)')
+   branch: (105, 'COUNTER_PLACED', 'card:89[Malefic Scythe]', 'card:89[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920065: etb-counters; first differing row 27; branch +2 rows
+   base:   (28, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (28, 'COUNTER_PLACED', 'card:37[Wildwood Scourge]', 'card:37[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M21:920078: etb-counters; first differing row 108; branch +1 rows
+   base:   (109, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (109, 'COUNTER_PLACED', 'card:98[Wildwood Scourge]', 'card:98[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+M21:920103: etb-counters; first differing row 199; branch +1 rows
+   base:   (200, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (200, 'COUNTER_PLACED', 'card:35[Malefic Scythe]', 'card:35[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920112: etb-counters; first differing row 283; branch +1 rows
+   base:   (284, 'TAP_STATE', 'card:69[Mountain]', 'card:69[Mountain]', 'TAP', '(True,)')
+   branch: (284, 'COUNTER_PLACED', 'card:110[Malefic Scythe]', 'card:110[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920114: etb-counters; first differing row 126; branch +1 rows
+   base:   (127, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (127, 'COUNTER_PLACED', 'card:100[Wildwood Scourge]', 'card:100[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+M21:920115: etb-counters; first differing row 43; branch +1 rows
+   base:   (44, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (44, 'COUNTER_PLACED', 'card:8[Malefic Scythe]', 'card:8[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920131: etb-counters; first differing row 108; branch +1 rows
+   base:   (109, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (109, 'COUNTER_PLACED', 'card:99[Wildwood Scourge]', 'card:99[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+M21:920139: etb-counters; first differing row 114; branch +1 rows
+   base:   (115, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (115, 'COUNTER_PLACED', 'card:12[Wildwood Scourge]', 'card:12[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M21:920166: etb-counters; first differing row 89; branch +1 rows
+   base:   (90, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (90, 'COUNTER_PLACED', 'card:119[Wildwood Scourge]', 'card:119[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M21:920168: etb-counters; first differing row 57; branch +1 rows
+   base:   (58, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (58, 'COUNTER_PLACED', 'card:37[Malefic Scythe]', 'card:37[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M21:920194: etb-counters; first differing row 79; branch +1 rows
+   base:   (80, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (80, 'COUNTER_PLACED', 'card:55[Wildwood Scourge]', 'card:55[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M21:920198: etb-counters; first differing row 44; branch +1 rows
+   base:   (45, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (45, 'COUNTER_PLACED', 'card:102[Malefic Scythe]', 'card:102[Malefic Scythe]', 'PUT_COUNTER', "('SOUL', 1)")
+M20:920004: etb-counters; first differing row 148; branch +1 rows
+   base:   (149, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (149, 'COUNTER_PLACED', 'card:73[Barkhide Troll]', 'card:73[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920006: etb-counters; first differing row 144; branch +1 rows
+   base:   (145, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (145, 'COUNTER_PLACED', 'card:118[Barkhide Troll]', 'card:118[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920015: etb-counters; first differing row 311; branch +1 rows
+   base:   (312, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (312, 'COUNTER_PLACED', 'card:38[Squad Captain]', 'card:38[Squad Captain]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 4)")
+M20:920026: etb-counters; first differing row 164; branch +1 rows
+   base:   (165, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (165, 'COUNTER_PLACED', 'card:97[Barkhide Troll]', 'card:97[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920035: etb-counters; first differing row 412; branch +1 rows
+   base:   (413, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (413, 'COUNTER_PLACED', 'card:13[Barkhide Troll]', 'card:13[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920054: etb-counters; first differing row 107; branch +1 rows
+   base:   (108, 'TAP_STATE', 'card:74[Mountain]', 'card:74[Mountain]', 'TAP', '(True,)')
+   branch: (108, 'COUNTER_PLACED', 'card:84[Barkhide Troll]', 'card:84[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920065: etb-counters; first differing row 132; branch +1 rows
+   base:   (133, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (133, 'COUNTER_PLACED', 'card:19[Voracious Hydra]', 'card:19[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M20:920120: etb-counters; first differing row 237; branch +1 rows
+   base:   (238, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (238, 'COUNTER_PLACED', 'card:59[Voracious Hydra]', 'card:59[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M20:920132: etb-counters; first differing row 133; branch +1 rows
+   base:   (134, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (134, 'COUNTER_PLACED', 'card:105[Voracious Hydra]', 'card:105[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M20:920133: etb-counters; first differing row 163; branch +1 rows
+   base:   (164, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (164, 'COUNTER_PLACED', 'card:31[Voracious Hydra]', 'card:31[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M20:920158: etb-counters; first differing row 245; branch +1 rows
+   base:   (246, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (246, 'COUNTER_PLACED', 'card:97[Voracious Hydra]', 'card:97[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 6)")
+M20:920166: etb-counters; first differing row 281; branch +1 rows
+   base:   (282, 'COUNTER_PLACED', 'card:0[Sorin, Imperious Bloodlord]', 'card:0[Sorin, Imperious Bloodlord]', 'PUT_COUNTER', "('LOYALTY', 1)")
+   branch: (282, 'COUNTER_PLACED', 'card:43[Barkhide Troll]', 'card:43[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920169: etb-counters; first differing row 55; branch +1 rows
+   base:   (56, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (56, 'COUNTER_PLACED', 'card:72[Barkhide Troll]', 'card:72[Barkhide Troll]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920180: etb-counters; first differing row 60; branch +3 rows
+   base:   (61, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (61, 'COUNTER_PLACED', 'card:31[Voracious Hydra]', 'card:31[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920183: etb-counters; first differing row 75; branch +2 rows
+   base:   (76, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (76, 'COUNTER_PLACED', 'card:21[Voracious Hydra]', 'card:21[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+M20:920185: etb-counters; first differing row 84; branch +1 rows
+   base:   (85, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (85, 'COUNTER_PLACED', 'card:89[Voracious Hydra]', 'card:89[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+M20:920195: etb-counters; first differing row 258; branch +1 rows
+   base:   (259, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (259, 'COUNTER_PLACED', 'card:88[Voracious Hydra]', 'card:88[Voracious Hydra]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920008: other; first differing row 100; branch +19 rows; base rows left unmatched 16
+   base:   (101, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (101, 'COUNTER_PLACED', 'card:36[Wildwood Scourge]', 'card:36[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+   extra:  (101, 'COUNTER_PLACED', 'card:36[Wildwood Scourge]', 'card:36[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+   extra:  (302, 'COUNTER_PLACED', 'card:12[Goblin Boarders]', 'card:12[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+   extra:  (303, 'COUNTER_PLACED', 'card:36[Wildwood Scourge]', 'card:36[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+   extra:  (382, 'DAMAGE', 'card:80[Prideful Parent]', 'card:36[Wildwood Scourge]', 'DEAL_DAMAGE', '(3, 134)')
+   extra:  (383, 'DAMAGE', 'card:113[Helpful Hunter]', 'card:36[Wildwood Scourge]', 'DEAL_DAMAGE', '(1, 134)')
+FDN:920010: etb-counters; first differing row 335; branch +1 rows
+   base:   (336, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (336, 'COUNTER_PLACED', 'card:23[Wildwood Scourge]', 'card:23[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920018: etb-counters; first differing row 503; branch +1 rows
+   base:   (504, 'TAP_STATE', 'card:50[Forest]', 'card:50[Forest]', 'TAP', '(True,)')
+   branch: (504, 'COUNTER_PLACED', 'card:16[Gnarlid Colony]', 'card:16[Gnarlid Colony]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+FDN:920019: etb-counters; first differing row 254; branch +1 rows
+   base:   (255, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('END_TURN', Handle(namespace='player', index=0))")
+   branch: (255, 'COUNTER_PLACED', 'card:52[Goblin Boarders]', 'card:52[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920022: etb-counters; first differing row 241; branch +2 rows
+   base:   (242, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('END_TURN', Handle(namespace='player', index=0))")
+   branch: (242, 'COUNTER_PLACED', 'card:22[Goblin Boarders]', 'card:22[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920030: etb-counters; first differing row 467; branch +1 rows
+   base:   (468, 'DAMAGE', 'player:1', 'card:23[Impact Tremors]', 'DEAL_DAMAGE', '(1,)')
+   branch: (468, 'COUNTER_PLACED', 'card:49[Goblin Boarders]', 'card:49[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920035: etb-counters; first differing row 125; branch +2 rows
+   base:   (126, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (126, 'COUNTER_PLACED', 'card:99[Wildwood Scourge]', 'card:99[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920037: etb-counters; first differing row 309; branch +1 rows
+   base:   (310, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (310, 'COUNTER_PLACED', 'card:9[Wildwood Scourge]', 'card:9[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920038: etb-counters; first differing row 221; branch +1 rows
+   base:   (222, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (222, 'COUNTER_PLACED', 'card:49[Wildwood Scourge]', 'card:49[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+FDN:920047: etb-counters; first differing row 153; branch +1 rows
+   base:   (154, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (154, 'COUNTER_PLACED', 'card:101[Gnarlid Colony]', 'card:101[Gnarlid Colony]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+FDN:920049: etb-counters; first differing row 246; branch +1 rows
+   base:   (247, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('END_TURN', Handle(namespace='player', index=1))")
+   branch: (247, 'COUNTER_PLACED', 'card:88[Goblin Boarders]', 'card:88[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920063: etb-counters; first differing row 24; branch +1 rows
+   base:   (25, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (25, 'COUNTER_PLACED', 'card:1[Wildwood Scourge]', 'card:1[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920068: etb-counters; first differing row 99; branch +1 rows
+   base:   (100, 'DAMAGE', 'player:0', 'card:87[Impact Tremors]', 'DEAL_DAMAGE', '(1,)')
+   branch: (100, 'COUNTER_PLACED', 'card:70[Wildwood Scourge]', 'card:70[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+FDN:920070: etb-counters; first differing row 167; branch +1 rows
+   base:   (168, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (168, 'COUNTER_PLACED', 'card:60[Wildwood Scourge]', 'card:60[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 4)")
+FDN:920071: etb-counters; first differing row 72; branch +1 rows
+   base:   (73, 'TAP_STATE', 'card:21[Temple of Triumph]', 'card:21[Temple of Triumph]', 'TAP', '(True,)')
+   branch: (73, 'COUNTER_PLACED', 'card:42[Goblin Boarders]', 'card:42[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920072: etb-counters; first differing row 38; branch +1 rows
+   base:   (39, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (39, 'COUNTER_PLACED', 'card:68[Wildwood Scourge]', 'card:68[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920073: etb-counters; first differing row 437; branch +1 rows
+   base:   (438, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('END_TURN', Handle(namespace='player', index=1))")
+   branch: (438, 'COUNTER_PLACED', 'card:65[Goblin Boarders]', 'card:65[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920076: etb-counters; first differing row 26; branch +2 rows
+   base:   (27, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (27, 'COUNTER_PLACED', 'card:0[Wildwood Scourge]', 'card:0[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920082: etb-counters; first differing row 145; branch +1 rows
+   base:   (146, 'TAP_STATE', 'card:69[Temple of Deceit]', 'card:69[Temple of Deceit]', 'TAP', '(True,)')
+   branch: (146, 'COUNTER_PLACED', 'card:97[Goblin Boarders]', 'card:97[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920098: etb-counters; first differing row 122; branch +1 rows
+   base:   (123, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (123, 'COUNTER_PLACED', 'card:45[Wildwood Scourge]', 'card:45[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920102: etb-counters; first differing row 201; branch +1 rows
+   base:   (202, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (202, 'COUNTER_PLACED', 'card:5[Wildwood Scourge]', 'card:5[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 4)")
+FDN:920109: etb-counters; first differing row 31; branch +1 rows
+   base:   (32, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (32, 'COUNTER_PLACED', 'card:36[Wildwood Scourge]', 'card:36[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920117: etb-counters; first differing row 123; branch +1 rows
+   base:   (124, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('END_TURN', Handle(namespace='player', index=0))")
+   branch: (124, 'COUNTER_PLACED', 'card:0[Goblin Boarders]', 'card:0[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920125: etb-counters; first differing row 561; branch +1 rows
+   base:   (562, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (562, 'COUNTER_PLACED', 'card:84[Wildwood Scourge]', 'card:84[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 8)")
+FDN:920129: etb-counters; first differing row 106; branch +1 rows
+   base:   (107, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (107, 'COUNTER_PLACED', 'card:41[Wildwood Scourge]', 'card:41[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920133: etb-counters; first differing row 175; branch +1 rows
+   base:   (176, 'TAP_STATE', 'card:116[Jungle Hollow]', 'card:116[Jungle Hollow]', 'TAP', '(True,)')
+   branch: (176, 'COUNTER_PLACED', 'card:115[Goblin Boarders]', 'card:115[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920147: etb-counters; first differing row 29; branch +1 rows
+   base:   (30, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (30, 'COUNTER_PLACED', 'card:15[Wildwood Scourge]', 'card:15[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920148: etb-counters; first differing row 56; branch +1 rows
+   base:   (57, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (57, 'COUNTER_PLACED', 'card:75[Wildwood Scourge]', 'card:75[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920156: etb-counters; first differing row 38; branch +1 rows
+   base:   (39, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (39, 'COUNTER_PLACED', 'card:83[Wildwood Scourge]', 'card:83[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920157: etb-counters; first differing row 158; branch +1 rows
+   base:   (159, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (159, 'COUNTER_PLACED', 'card:67[Wildwood Scourge]', 'card:67[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+FDN:920162: etb-counters; first differing row 197; branch +2 rows
+   base:   (198, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (198, 'COUNTER_PLACED', 'card:103[Wildwood Scourge]', 'card:103[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 4)")
+FDN:920165: etb-counters; first differing row 85; branch +2 rows
+   base:   (86, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('END_TURN', Handle(namespace='player', index=1))")
+   branch: (86, 'COUNTER_PLACED', 'card:101[Goblin Boarders]', 'card:101[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920179: etb-counters; first differing row 41; branch +1 rows
+   base:   (42, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (42, 'COUNTER_PLACED', 'card:3[Wildwood Scourge]', 'card:3[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 2)")
+FDN:920183: other; first differing row 255; branch +326 rows; base rows left unmatched 325
+   base:   (256, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('COMBAT', Handle(namespace='player', index=1))")
+   branch: (256, 'COUNTER_PLACED', 'card:115[Wildwood Scourge]', 'card:115[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+   extra:  (256, 'COUNTER_PLACED', 'card:115[Wildwood Scourge]', 'card:115[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 3)")
+   extra:  (814, 'TARGETING', 'card:19[Forest]', 'card:39[Vivien Reid]', 'ONE_OF', "(Handle(namespace='card', index=39), Handle(namespace='player', index=0))")
+   extra:  (815, 'ZONE_CHANGE', 'card:19[Forest]', 'card:39[Vivien Reid]', 'MOVE_ZONE', "('library', 'hand', Handle(namespace='player', index=0), Handle(namespace='player', index=0))")
+   extra:  (816, 'TARGETING', 'card:16[Fireshrieker]', 'card:39[Vivien Reid]', 'REST', "(Handle(namespace='card', index=39), Handle(namespace='player', index=0))")
+   extra:  (817, 'TARGETING', 'card:30[Pilfer]', 'card:39[Vivien Reid]', 'REST', "(Handle(namespace='card', index=39), Handle(namespace='player', index=0))")
+FDN:920184: etb-counters; first differing row 239; branch +1 rows
+   base:   (240, 'TAP_STATE', 'card:92[Temple of Silence]', 'card:92[Temple of Silence]', 'TAP', '(True,)')
+   branch: (240, 'COUNTER_PLACED', 'card:104[Goblin Boarders]', 'card:104[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920185: etb-counters; first differing row 25; branch +1 rows
+   base:   (26, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('COMBAT', Handle(namespace='player', index=0))")
+   branch: (26, 'COUNTER_PLACED', 'card:43[Wildwood Scourge]', 'card:43[Wildwood Scourge]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920197: etb-counters; first differing row 312; branch +1 rows
+   base:   (313, 'TURN_PHASE', 'None', 'player:1', 'TURN', "('END_TURN', Handle(namespace='player', index=1))")
+   branch: (313, 'COUNTER_PLACED', 'card:101[Goblin Boarders]', 'card:101[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+FDN:920198: etb-counters; first differing row 67; branch +1 rows
+   base:   (68, 'TURN_PHASE', 'None', 'player:0', 'TURN', "('END_TURN', Handle(namespace='player', index=0))")
+   branch: (68, 'COUNTER_PLACED', 'card:23[Goblin Boarders]', 'card:23[Goblin Boarders]', 'PUT_COUNTER', "('PLUS_1_PLUS_1', 1)")
+{'etb-counters': 72, 'other': 2}

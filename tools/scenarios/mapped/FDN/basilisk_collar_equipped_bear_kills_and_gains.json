@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "basilisk_collar_equipped_bear_kills_and_gains",
+ "notes": "M6 mapper. Printed: 'Equipped creature has deathtouch and lifelink. Equip {2}' Seat 0 pays {2} to equip its Bear (2/2). The Bear attacks and seat 1's 5/5 blocks it: the Bear's 2 damage is lethal (deathtouch), so the 5/5 dies, and seat 0 gains 2 (lifelink). The Bear dies too.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "collar", "real": "Basilisk Collar", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"C": 2}},
+  {"op": "activate", "key": "collar", "idx": 1, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"obig": "bear"}}
+ ],
+ "expect": {
+  "attackers": {"bear": true},
+  "blocked": {"bear": ["obig"]},
+  "zone": {"bear": "graveyard", "obig": "graveyard", "collar": "battlefield"},
+  "attached": {"collar": null},
+  "life": {"0": 22, "1": 20}
+ }
+}

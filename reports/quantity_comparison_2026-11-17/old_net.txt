@@ -1,0 +1,21 @@
+Old networks compute what they did (2026-11-17): halves 0 and 2 on the branch, half 1 on a git archive of the base 30736aba.
+
+    .venv/bin/python reports/quantity_comparison_2026-11-17/old_net_decks.py <worktree> <dir>/decks.json
+    .venv/bin/python reports/quantity_comparison_2026-11-17/old_net_base.py <base archive> <dir>/decks.json <dir>
+    .venv/bin/python reports/quantity_comparison_2026-11-17/old_net_branch.py <worktree> <dir>/decks.json <dir>
+
+decks (60 cards each): FDN seeds 0-2 and M21 seeds 0-2, dealt from the branch's verified pools.
+
+base: cards 1090 | component tokens 646 | decisions 64 | tokens (64, 52, 64)
+refresh: 53 rows rebuilt: ['Adherent of Hope', 'Angel of Vitality', "Basri's Lieutenant", 'Billowing Shriekmass', 'Boreal Elemental', 'Celestial Enforcer', 'Cephalid Inkmage', 'Chromatic Orrery', 'Chrome Replicator', 'Conspicuous Snoop', 'Crypt Feaster', 'Cryptic Caves', 'Dragonmaster Outcast', 'Dreadwing Scavenger', 'Drowsing Tyrannodon', 'Eliminate', 'Elvish Reclaimer', 'Eternal Isolation', 'Fabled Passage', 'Faerie Miscreant', 'Field of the Dead', 'Fierce Empath', 'Flamewake Phoenix', 'Furious Rise', 'Gadrak, the Crown-Scourge', "Garruk's Uprising", 'Garruk, Unleashed', 'Ghitu Lavarunner', 'Gnarlback Rhino', 'Goblin Bird-Grabber', 'Goblin Smuggler', 'Historian of Zhalfir', 'Idol of Endurance', 'Jolrael, Mwonvuli Recluse', 'Leafkin Avenger', 'Leafkin Druid', "Legion's Judgment", 'Liliana, Waker of the Dead', 'Lofty Denial', 'Lunar Insight', 'Makeshift Battalion', 'Ornery Dilophosaur', 'Pursued Whale', 'Raise the Past', 'Season of Growth', 'Speaker of the Heavens', 'Subira, Tulzidi Caravanner', 'Terror of the Peaks', 'Tide Skimmer', 'Turret Ogre', 'Twinblade Paladin', 'Ugin, the Spirit Dragon', 'Winged Words']
+component tokens appended (7): ['FAtomPred.QTY_GE', '@quantity', 'FAtomPred.TARGETS', 'QDistinct', 'QPropField.COLOR', 'QPropField.NAME', 'QPropField.STARTING_LIFE']
+appended rows all zero: True | old rows kept: True
+old tokens no row reads any more (15): ['FAtomPred.CMC_GE', 'FAtomPred.CMC_LE', 'FAtomPred.COLOR_COUNT_GE', 'FAtomPred.CONTROLLER_COUNT_GE', 'FAtomPred.CONTROLLER_COUNT_GT', 'FAtomPred.LIFE_LEAD_OVER_START_GE', 'FAtomPred.LIFE_TOTAL_GE', 'FAtomPred.NAME_PARTITION_COUNT_GE', 'FAtomPred.POWER_GE', 'FAtomPred.POWER_LE', 'FAtomPred.TARGETS_SOURCE', 'FAtomPred.ZONE_COUNT_GE', 'QDistinctColorCount', 'QPropField.CARDS_IN_GRAVEYARD', 'QPropField.CARDS_IN_HAND']
+branch: decisions 64 | encodings equal: True | tokens equal: True | logits equal: True | value equal: True
+
+Reading: the 53 rebuilt rows are the round's cards of the three sets (their trees changed, every one
+out of the verified pool until re-verified). Their old comparator tokens stay in the vocabulary,
+read by no row; the seven new tokens start at zero (model.extend_cards), a neutral term in those
+cards' component mean until training gives them a meaning: a checkpoint keeps what it learned of
+POWER_GE and the rest only in rows no card reads. On the cards the round leaves unchanged the old
+checkpoint computes bitwise what it did (64 decisions of six games).

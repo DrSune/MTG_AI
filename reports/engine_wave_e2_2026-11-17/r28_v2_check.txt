@@ -1,0 +1,3 @@
+branch: ask rows 35 (main 34 ) | rows kept: True | grown as other: {'divide': True}
+on main's 192 decisions (kinds ['act', 'attack', 'block', 'choose', 'discard', 'mana', 'may', 'mulligan', 'mulligan_bottom', 'priority', 'scry', 'target'] ): fp32 tokens True logits True value True | bf16 tokens True logits True value True
+replayed on the branch: 192 decisions | equal encodings 112 of 192 | first different at 48 | divide asks recorded 0

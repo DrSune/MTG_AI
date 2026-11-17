@@ -9,7 +9,8 @@ build for the same meaning:
 * a target noun phrase: one card type or two joined by "or", or "nonland permanent"; optional
   "you control" / "an opponent controls" / "you don't control" / "defending player controls"
   (``ControllerRef.DEFENDING_PLAYER``, CR 506.2, 508.5); optional "with <keyword>" or "with
-  power N or less|greater"; optional "that was dealt damage this turn" (the turn-history atom of
+  power|toughness|mana value N or less|greater" (the one comparison, "or less" its negation at
+  N + 1); optional "that was dealt damage this turn" (the turn-history atom of
   conditions.py). The pattern is the grammar (built from the same tables the builder reads), so a
   pattern never matches a phrase its builder cannot encode.
 * the verbs over it: destroy, exile, return to its owner's hand, tap, untap, and "this
@@ -47,6 +48,7 @@ from MTG_bot.core.ability_tree import (
     FOr,
     Keyword,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     Seq,
@@ -55,6 +57,8 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    at_most,
 )
 from MTG_bot.core.compiler.conditions import WAS_DEALT_DAMAGE_THIS_TURN
 from MTG_bot.core.compiler.templates import (
@@ -104,6 +108,12 @@ _KEYWORDS: Final[dict[str, Keyword]] = {
 }
 
 
+#: The characteristics "with <characteristic> N or less|greater" compares (CR 208.1, 202.3).
+_COMPARED: Final[dict[str, QPropField]] = {
+    "power": QPropField.POWER, "toughness": QPropField.TOUGHNESS, "mana value": QPropField.MANA_VALUE,
+}
+
+
 def _alt(words: object) -> str:
     """A regex alternation, longest first so "double strike" wins over a shorter prefix."""
     return "|".join(re.escape(w) for w in sorted(words, key=len, reverse=True))  # type: ignore[arg-type]
@@ -118,7 +128,8 @@ _CTL_RE: Final[str] = (
     r"(?P<ctl>you control|an opponent controls|you don't control|defending player controls)"
 )
 _WITH_RE: Final[str] = (
-    rf"with (?:(?P<wkw>{_KW_ALT})|power (?P<pw>\d+) or (?P<pdir>less|greater))"
+    rf"with (?:(?P<wkw>{_KW_ALT})|(?P<pfield>power|toughness|mana value) (?P<pw>\d+) or "
+    r"(?P<pdir>less|greater))"
 )
 #: "target <types> [<controller>] [with ...] [that was dealt damage this turn]", the first two
 #: suffixes in either order.
@@ -165,11 +176,12 @@ def _np_filter(m: re.Match[str]) -> Filter:
     kw = m.group("wkw") or m.group("w2wkw")
     if kw:
         conjuncts.append(FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=_KEYWORDS[kw]))
-    power = m.group("pw") or m.group("w2pw")
-    if power:
+    bound = m.group("pw") or m.group("w2pw")
+    if bound:
         direction = m.group("pdir") or m.group("w2pdir")
-        pred = FAtomPred.POWER_LE if direction == "less" else FAtomPred.POWER_GE
-        conjuncts.append(FAtom(pred=pred, count=QConst(int(power))))
+        compare = at_most if direction == "less" else at_least
+        field = _COMPARED[m.group("pfield") or m.group("w2pfield")]
+        conjuncts.append(compare(int(bound), field=field))
     if m.group("dealt"):
         conjuncts.append(WAS_DEALT_DAMAGE_THIS_TURN)
     if not conjuncts:

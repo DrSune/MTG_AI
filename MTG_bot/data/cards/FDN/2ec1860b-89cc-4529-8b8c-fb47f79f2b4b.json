@@ -1,0 +1,115 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "2ec1860b-89cc-4529-8b8c-fb47f79f2b4b",
+ "name": "Sower of Chaos",
+ "text_sha": "b2a912afcee2d8028f1fd04c6cd2b781fff79354fa70f0600b3e66278f5c55a0",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaColor",
+       "color": "R",
+       "amount": {
+        "tag": "QConst",
+        "value": 1
+       }
+      },
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_ANY_TARGET"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "duration",
+        {
+         "tag": "DurationEot"
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_ANY_TARGET"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {2}{R}: Target creature can't block this turn.\n# The blocker side of Manifold Key's \"can't be blocked\" form: PREVENT_EFFECT over the declaration of\n# blockers whose blocking creature (`filter`) is the ability's target, until end of turn.\ncant_block = ActivatedAbility(\n    cost=Cost(parts=(CostManaColor(color='R', amount=QConst(value=1)), CostManaGeneric(amount=QConst(value=2)))),\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_ANY_TARGET),\n        'duration': DurationEot(),\n        'event': DeclareBlockersEvent(filter=FAtom(pred=FAtomPred.IS_ANY_TARGET)),\n    }),\n)\nabilities = [cant_block, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{2}{R}: Target creature can't block this turn.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. Target creature can't block this turn: M20 Manifold Key's PREVENT_EFFECT form on the blocker side (DeclareBlockersEvent.filter = IS_ANY_TARGET, until end of turn); the engine opens one creature target for it (query._designation_only_slot). Packs: tools/scenarios/mapped/FDN/sower_of_chaos_*.json."
+ },
+ "probe": {
+  "sha": "f0240b34b3645e7b93a9a70dd0d7b763cec020613015dad9e87d6c6e2dbc571b"
+ }
+}

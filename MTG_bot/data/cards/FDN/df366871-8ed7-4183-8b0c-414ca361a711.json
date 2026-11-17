@@ -78,7 +78,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -90,58 +90,85 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": [
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "CONTROLLER_IS"
-        },
-        "string_value": null,
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": {
-         "tag": "ControllerRef",
-         "name": "YOU"
-        },
-        "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "SUBTYPE_EQ"
-        },
-        "string_value": "Dragon",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "TYPE_EQ"
-        },
-        "string_value": "Creature",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
-       }
-      ]
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Dragon",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
+        }
+       ]
+      }
      }
     }
    },
@@ -157,7 +184,7 @@
  "mapping": {
   "author": "claude-mapper-m7",
   "date": "2026-11-17",
-  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nflying_with_dragon = StaticAbility(\n    effect=A(Verb.GRANT_ABILITY, {\n        'ability': KeywordAbility(keyword=Keyword.FLYING),\n        'target': SELF,\n    }),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=1),\n        inner_filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Dragon'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n            ),\n        ),\n    ),\n)\nabilities = [flying_with_dragon, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    StaticAbility(\n        effect=A(Verb.GRANT_ABILITY, {\n            'ability': KeywordAbility(keyword=Keyword.FLYING),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Dragon'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "As long as you control a Dragon, this creature has flying.",
@@ -165,7 +192,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Expedition Healer's CONTROLLER_COUNT_GE condition. Packs: tools/scenarios/mapped/FDN/kargan_dragonrider_flies_with_your_dragon.json, tools/scenarios/mapped/FDN/kargan_dragonrider_opponents_dragon_gives_nothing.json."
+  "notes": "Expedition Healer's comparison over number_you_control(...) condition. Packs: tools/scenarios/mapped/FDN/kargan_dragonrider_flies_with_your_dragon.json, tools/scenarios/mapped/FDN/kargan_dragonrider_opponents_dragon_gives_nothing.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "8f2264c88c0128709f34229d39a2a91b111500cfdab78532d53f8dd1bb28620e"

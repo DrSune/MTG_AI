@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "wildheart_invoker_tramples_over_a_blocker",
+ "notes": "M8 mapper. Printed: '{8}: Target creature gets +5/+5 and gains trample until end of turn.' Seat 0 pays {8} targeting its 2/2 Bear (7/7 with trample), attacks with it alone, and seat 1's 0/1 Wall blocks: 1 damage to the Wall, the other 6 trample over to seat 1 (20 -> 14).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "invoker", "real": "Wildheart Invoker", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 8}},
+ "steps": [
+  {"op": "activate", "key": "invoker", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"bear": true, "invoker": false}, "block": {"wall": "bear"}, "divide": {"wall": 1}}
+ ],
+ "expect": {
+  "attackers": {"bear": true, "invoker": false},
+  "blocked": {"bear": ["wall"]},
+  "power": {"bear": 7},
+  "toughness": {"bear": 7},
+  "zone": {"wall": "graveyard", "bear": "battlefield"},
+  "life": {"0": 20, "1": 14}
+ }
+}

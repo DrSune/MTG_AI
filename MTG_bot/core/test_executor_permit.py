@@ -164,8 +164,8 @@ def test_a_land_play_is_not_lost_to_an_older_cast_permission_with_the_same_cost(
     a cast's rule (R5-2 v3 point 6), so the land on top is still played through Radha's, though
     the Forge's permission is the older (the fresh-eyes review, finding 4)."""
     from MTG_bot.core.ability_tree import (
-        AtomArgs, Atom, ControllerRef, FAtom, FAtomPred, FNot, QConst, QUnbounded, Selector,
-        SelectorMode, StaticAbility, Verb, Zone, ZoneKind, ZonePosition,
+        AtomArgs, Atom, ControllerRef, QPropField, QUnbounded, Selector, SelectorMode,
+        StaticAbility, Verb, Zone, ZoneKind, ZonePosition, at_most,
     )
     from MTG_bot.core.executor import permits
     from MTG_bot.core.test_executor_binding import record_of
@@ -174,8 +174,7 @@ def test_a_land_play_is_not_lost_to_an_older_cast_permission_with_the_same_cost(
                          "controller": 0},
                         _real("radha", "Radha, Heart of Keld", zone="hand"),
                         _real("top", "Mountain", zone="library")])
-    colorless = Selector(QUnbounded(), SelectorMode.ALL,
-                         FNot(inner=FAtom(pred=FAtomPred.COLOR_COUNT_GE, count=QConst(1))),
+    colorless = Selector(QUnbounded(), SelectorMode.ALL, at_most(0, field=QPropField.COLOR),
                          zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP),))
     forge = r.handles["forge"]
     r.ex.attach_card(forge, record_of(
@@ -233,6 +232,20 @@ def test_chandra_flames_catalyst_recasts_a_targeted_spell_and_exiles_it() -> Non
                 "decisions": ["fire", "player:1"]})
     assert r.world.players[r.seats[1]].life == 18
     assert _zone(r, "shock") == ZONE_EXILE
+
+
+def test_a_recast_spell_is_offered_only_the_targets_it_can_pay_for() -> None:
+    """The [-2] pays the recast Shock's mana cost, {R}. The opponent's Pursued Whale ("Spells your
+    opponents cast that target Pursued Whale cost {3} more to cast") would make that {3}{R} (CR
+    601.2f), so with {R} the Whale is no target the caster is offered; the opponent is (engine
+    wave E2's pricing, in the cast verb's lane as in the menu's)."""
+    r = _runner("M21", [_real("cf", "Chandra, Flame's Catalyst"),
+                        _real("shock", "Shock", zone="graveyard"),
+                        _real("whale", "Pursued Whale", seat=1)], {"0": {"R": 1}})
+    r.run_step({"op": "activate", "key": "cf", "idx": 1, "seat": 0, "targets": ["shock"],
+                "decisions": ["fire", "whale"]})
+    assert any("not offered" in u and str(r.handles["whale"]) in u for u in r.unoffered), r.unoffered
+    assert _zone(r, "whale") == ZONE_BATTLEFIELD and _zone(r, "shock") == ZONE_EXILE
 
 
 def test_the_recast_spell_that_fizzles_is_exiled_too() -> None:

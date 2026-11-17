@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "frenzied_goblin_trigger_targets_a_creature_that_cannot_block",
+ "notes": "Was known_bugs/frenzied_goblin_trigger_target_cant_block_never_designated (M7 mapper, 2026-11-17), fixed by engine wave E2: the trigger now designates the target its combat slot names (binding._designate routes it to the slot walker, query.combat_target_selector), and is removed with none to choose (CR 603.3d). Played on the unverified FDN record (tools/scenarios/mapped). Printed: 'Whenever this creature attacks, you may pay {R}. If you do, target creature can't block this turn.' The record writes the clause as Sneaking Guide and Goblin Smuggler write theirs: PREVENT_EFFECT(condition IS_ANY_TARGET, event DeclareBlockersEvent(filter=IS_ANY_TARGET)), behind Conditional(MAY_DONE). A trigger never designates such a target: binding._designation_slots reads TARGET Selectors and designated players only (query._designation_only_slot serves activations), so no target is chosen and the paid {R} does nothing. Expected once fixed: seat 0 attacks with Frenzied Goblin, the trigger targets Opp Ogre as it goes on the stack; with the trigger waiting seat 0 gets {R} (held priority) and pays it as the trigger resolves. Opp Ogre cannot block this turn (it is never asked); Opp Guard, not targeted, is offered the Goblin and declines; seat 1 takes 1.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "goblin", "real": "Frenzied Goblin", "zone": "battlefield", "controller": 0},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "guard", "name": "Opp Guard", "type": "Creature — Soldier", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"goblin": true},
+   "respond_to_triggers": {"DECLARE_ATTACKERS": [{"op": "mana", "seat": 0, "add": {"R": 1}, "hold": true}]},
+   "may": {"goblin": true},
+   "block": {"ogre": null, "guard": null},
+   "decisions": ["ogre"]}
+ ],
+ "expect": {
+  "attackers": {"goblin": true},
+  "not_asked_to_block": ["ogre"],
+  "block_asks": {"guard": "<goblin>,NONE"},
+  "life": {"1": 19},
+  "mana_pool": {"0": {}}
+ }
+}

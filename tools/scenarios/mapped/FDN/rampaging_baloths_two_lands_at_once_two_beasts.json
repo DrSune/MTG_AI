@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "rampaging_baloths_two_lands_at_once_two_beasts",
+ "notes": "M6 mapper. Printed: 'Landfall — Whenever a land you control enters, create a 4/4 green Beast creature token.' Support card: FDN Grow from the Ashes (mapped; kicked: 'search your library for two basic land cards, put them onto the battlefield'). The Forest and the Island enter at the same time: each is a land entering, so landfall triggers twice (once per land, not once for the event): seat 0 gets two Beast tokens. The library holds just the two basics, so the search takes both; the one decision orders the two triggers.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "baloths", "real": "Rampaging Baloths", "zone": "battlefield", "controller": 0},
+  {"key": "gfta", "real": "Grow from the Ashes", "zone": "hand", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "island", "real": "Island", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 4}},
+ "steps": [
+  {"op": "cast", "key": "gfta", "controller": 0, "kicked": true, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"gfta": "graveyard", "forest": "battlefield", "island": "battlefield"},
+  "tokens": {"Beast": 2}
+ }
+}

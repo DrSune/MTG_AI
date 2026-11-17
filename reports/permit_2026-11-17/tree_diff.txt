@@ -63,7 +63,7 @@ trees with records applied changed (36):
    M21 Chandra, Heart of Fire compiler -> compiler unverified
    M21 Conspicuous Snoop compiler -> compiler unverified
    M21 Demonic Embrace compiler -> compiler unverified
-   M21 Idol of Endurance compiler -> compiler verified
+   M21 Idol of Endurance compiler -> compiler unverified
    M21 Radha, Heart of Keld compiler -> compiler unverified
    ORI Jace, Vryn's Prodigy // Jace, Telepath Unbound compiler -> compiler unverified
    WAR Bolas's Citadel compiler -> compiler unverified
@@ -99,9 +99,9 @@ compiler: fewer unparsed sentences (26):
    ZNR Ancient Greenwarden 2 -> 1
    ZNR Valakut Exploration 2 -> 1
 compiler: newly compiling whole (10): [('10E', 'Crucible of Worlds'), ('DOM', 'Squee, the Immortal'), ('FDN', 'Omniscience'), ('FDN', 'Sphinx of Forgotten Lore'), ('FDN', 'Think Twice'), ('M12', "Garruk's Horde"), ('M13', 'Omniscience'), ('M14', "Garruk's Horde"), ('M19', 'Crucible of Worlds'), ('M19', 'Omniscience')]
-verified cards leaving the verified pool (1): [('M21', 'Idol of Endurance')]
+verified cards leaving the verified pool (0): []
 verified cards joining (0): []
-still-verified cards (unchanged bytes) whose tree reads a changed engine path (50):
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (47):
    10E Cancel ['counter']
    FDN Cancel ['counter']
    FDN Negate ['counter']
@@ -140,16 +140,13 @@ still-verified cards (unchanged bytes) whose tree reads a changed engine path (5
    M21 Azusa, Lost but Seeking ['wrapped-permission']
    M21 Cancel ['counter']
    M21 Carrion Grub ['pop-lane']
-   M21 Chromatic Orrery ['wrapped-permission']
    M21 Garruk's Harbinger ['exile-top-selector']
-   M21 Lofty Denial ['counter']
    M21 Miscast ['counter']
    M21 Rewind ['counter']
    M21 Teferi's Tutelage ['pop-lane']
    M21 Teferi, Master of Time ['wrapped-permission']
-   M21 Thieves' Guild Enforcer ['pop-lane']
    M21 Waker of Waves ['exile-top-selector']
    ORI Bone to Ash ['counter']
    ORI Negate ['counter']
    ZNR Negate ['counter']
-verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '193->193', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '279->279', 'M21': '275->274', 'ORI': '24->24', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '13->13', 'FDN': '184->184', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '264->264', 'M21': '245->245', 'ORI': '23->23', 'THB': '16->16', 'WAR': '20->20', 'ZNR': '14->14'}

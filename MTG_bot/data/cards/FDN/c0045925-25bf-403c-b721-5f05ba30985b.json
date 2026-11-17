@@ -1,0 +1,111 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c0045925-25bf-403c-b721-5f05ba30985b",
+ "name": "Vampire Neonate",
+ "text_sha": "4188cdd23649c2102aea5ed6b7a7ea3df12c57ee98169e401042e148b5d73393",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "ActivatedAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 2
+       }
+      },
+      {
+       "tag": "CostTap",
+       "target": null
+      }
+     ]
+    },
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "LOSE_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "ALL_OPPONENTS"
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "GAIN_LIFE"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "amount",
+          {
+           "tag": "QConst",
+           "value": 1
+          }
+         ],
+         [
+          "controller",
+          {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17",
+  "draft_py": "# {2}, {T}: Each opponent loses 1 life and you gain 1 life.  (Spirit of Malevolence's effect form)\ndrain = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap())),\n    effect=Seq(steps=(\n        A(Verb.LOSE_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.ALL_OPPONENTS}),\n        A(Verb.GAIN_LIFE, {'amount': QConst(value=1), 'controller': ControllerRef.YOU}),\n    )),\n)\nabilities = [drain, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "{2}, {T}: Each opponent loses 1 life and you gain 1 life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M8 mapper. Pack: tools/scenarios/mapped/FDN/vampire_neonate_drains_one.json."
+ },
+ "probe": {
+  "sha": "ee90bdbf2185646a7b771746b9d832b3166dfb6fc1e5dae1afb7c5078973f251"
+ }
+}

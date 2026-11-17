@@ -1,0 +1,19 @@
+{
+ "set": "FDN",
+ "name": "nessian_hornbeetle_power_three_or_itself_is_not_enough",
+ "notes": "M6 mapper. Printed: 'At the beginning of combat on your turn, if you control another creature with power 4 or greater, put a +1/+1 counter on this creature.' The Hornbeetle starts with two +1/+1 counters (4/4); seat 0's other creature is a 3/3 and seat 1's 5/5 is not seat 0's. At seat 0's beginning of combat no other creature seat 0 controls has power 4 or greater (the Hornbeetle itself does not count): no counter, it stays 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "beetle", "real": "Nessian Hornbeetle", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 2}},
+  {"key": "three", "name": "Your Three", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Giant", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "to_step", "step": "COMBAT"}
+ ],
+ "expect": {
+  "counters": {"beetle": {"PLUS_1_PLUS_1": 2}},
+  "power": {"beetle": 4},
+  "toughness": {"beetle": 4}
+ }
+}

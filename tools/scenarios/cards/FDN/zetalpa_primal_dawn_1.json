@@ -7,7 +7,7 @@
   {"key": "blk", "name": "Their Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"z": true}, "block": {"blk": "z"}, "trample": {"z": [0, 0]}}
+  {"op": "combat", "seat": 0, "attack": {"z": true}, "block": {"blk": "z"}, "divide": {"blk": 1}}
  ],
  "expect": {
   "attackers": {"z": true},

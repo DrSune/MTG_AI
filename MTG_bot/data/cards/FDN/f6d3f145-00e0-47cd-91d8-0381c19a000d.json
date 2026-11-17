@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "f6d3f145-00e0-47cd-91d8-0381c19a000d",
+ "name": "Kaito, Cunning Infiltrator",
+ "text_sha": "225fb2300e3118d26aa5b1f423e174eda386a1d2d4270b07a8faf525941cc0f9",
+ "needs_atom": {
+  "missing": "An 'up to one' target for a designation-only combat slot. The [+1]'s 'Up to one target creature you control can't be blocked this turn' is M20 Manifold Key's PREVENT_EFFECT over DeclareBlockersEvent(blocked = FAnd(CONTROLLER_IS YOU, IS_ANY_TARGET)), whose only target slot query._designation_only_slot builds with QConst(1): exactly one target, never zero (CR 601.2c lets 'up to one' choose none). Written that way the +1, with its draw/discard and its loyalty, could not be activated while you control no creature: weaker than printed (the probe's slot reads 1..1). The rest maps today: 'Whenever a creature you control deals combat damage to a player' is DamageDealtEvent(combat, source = your creatures, recipient a player) putting a LOYALTY counter on Kaito (the probe plays it); the [-2] compiles; the [-9] is GET_EMBLEM(YOU) with a CastSpellEvent(FAnd()) trigger creating the 2/1 blue Ninja (not played: 3 loyalty).",
+  "author": "m8-mapper-opus",
+  "date": "2026-11-17"
+ }
+}

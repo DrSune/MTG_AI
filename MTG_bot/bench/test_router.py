@@ -386,6 +386,40 @@ def test_a_target_is_offered_when_its_cost_increase_is_payable() -> None:
     assert game.executor.attachments.get(_handle(game, "Rousing Read", zone=ZONE_BATTLEFIELD)) == whale
 
 
+def test_bad_deal_asks_the_opponent_for_its_discards() -> None:
+    # CR 701.9b: the discarding player chooses. The verified Bad Deal ("Each opponent discards two
+    # cards") asks the opponent's seat, one card per ask, never its caster's (engine wave E2,
+    # checked for mapper M3's report: the count-one form was lifted onto the caster's ask).
+    game, supply = _arranged(hand0=("Bad Deal",), field0=("Swamp",) * 6,
+                             hand1=("Walking Corpse", "Shock", "Brash Taunter"))
+    caster, opponent = _Picker(), _Picker()
+    router = SeatRouter(game, [caster, opponent], _lenses(), supply=supply)
+    game.executor.decisions.provider = router.answer
+    _play_row(router, game, f"cast:{_handle(game, 'Bad Deal')}")
+    assert [ask.site.split(":")[:3] for ask in opponent.asks] == [["discard", "player", "1"]] * 2
+    assert not any(ask.kind == "discard" for ask in caster.asks)
+    assert len(game.world.players[P1].zone(ZONE_HAND).entries) == 1
+
+
+def test_two_targets_that_together_cost_too_much_are_never_offered_together() -> None:
+    # Bug hunt 2026-11-17. Frost Breath ({2}{U}, "Tap up to two target creatures") at the
+    # opponent's two Pursued Whales ("{3} more" each): six Islands pay for one Whale, not both
+    # (CR 601.2f). Each candidate was priced alone, so the second Whale was offered after the
+    # first; perform refused the pair, and the game loop took the refusal for a pass: the player
+    # lost its main phase. The pair is never offered now, so the cast goes through.
+    game, supply = _arranged(
+        hand0=("Frost Breath",), field0=("Island",) * 6, field1=("Pursued Whale", "Pursued Whale")
+    )
+    whales = sorted(h for h, c in game.world.cards.items() if c.identity.name == "Pursued Whale")
+    picker = _Picker(*whales)
+    router = _router(game, supply, picker)
+    option, row = _menu(router, game)[f"cast:{_handle(game, 'Frost Breath')}"]
+    assert router._execute(game, P0, 0, option, row)
+    assert [o.token for o in picker.asks[0].options] == [*map(str, whales), "DONE"]
+    assert all(str(whales[1]) not in [o.token for o in ask.options] for ask in picker.asks[1:])
+    assert [game.world.cards[w].tapped for w in whales] == [True, False]
+
+
 def test_a_spell_whose_only_target_is_unpayable_is_not_offered() -> None:
     game, supply = _arranged(hand0=("Rousing Read",), field1=("Pursued Whale",), pool0={"U": 3})
     assert f"cast:{_handle(game, 'Rousing Read')}" not in _menu(_router(game, supply), game)

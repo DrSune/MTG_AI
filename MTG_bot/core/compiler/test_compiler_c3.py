@@ -1,7 +1,7 @@
 """Compiler pins: Liliana, Waker of the Dead's +1, Transmogrify, Peer into the Abyss.
 
 1. Liliana's +1 "Each opponent who can't loses 3 life." is a mandatory
-   EachPlayer(ALL_OPPONENTS, Conditional(FNot(hand ZONE_COUNT_GE 1), LOSE_LIFE 3))
+   EachPlayer(ALL_OPPONENTS, Conditional(no card in hand, LOSE_LIFE 3))
    inside the loyalty-+1 ActivatedAbility, placed before the discard it reads
    (docs/ATOM_DIVERGENCES.md D17).
 2. Transmogrify reveals until a creature card (REVEAL ``until``) as the exiled
@@ -25,19 +25,20 @@ from MTG_bot.core.ability_tree import (
     EachPlayer,
     FAtom,
     FAtomPred,
-    FNot,
     QBin,
     QBinOp,
     QConst,
     QProp,
     QPropField,
     Rounding,
-    Seq,
     Selector,
+    Seq,
     SpellAbility,
     Verb,
     Zone,
     ZoneKind,
+    at_most,
+    number_in,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.coverage import build_full_registry
@@ -81,8 +82,8 @@ class TestC3CompilerPins(unittest.TestCase):
         self.assertIsInstance(ability.effect.steps[0], EachPlayer)
 
     def test_waker_each_player_gate_shape(self) -> None:
-        """EachPlayer(ALL_OPPONENTS, Conditional(pred=FNot(
-        ZONE_COUNT_GE(HAND, YOU, 1)), then=LOSE_LIFE(controller=YOU,
+        """EachPlayer(ALL_OPPONENTS, Conditional(pred=the number of cards
+        in YOUR hand at most 0, then=LOSE_LIFE(controller=YOU,
         amount=QConst(3)))): YOU-relative both sides, and the EachPlayer
         rotation rebinds YOU per opponent."""
         res = self._compile(_WAKER)
@@ -99,15 +100,10 @@ class TestC3CompilerPins(unittest.TestCase):
         cond = gate.effect
         assert isinstance(cond, Conditional)
         self.assertIsNone(cond.else_effect)
-        assert isinstance(cond.pred, FNot)
-        pred = cond.pred.inner
-        assert isinstance(pred, FAtom)
-        self.assertIs(pred.pred, FAtomPred.ZONE_COUNT_GE)
-        self.assertIs(pred.who, ControllerRef.YOU)
+        # "who can't discard a card": no card in their hand (EachPlayer rotates "your")
         self.assertEqual(
-            pred.zone, Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)
+            cond.pred, at_most(0, quantity=number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)))
         )
-        self.assertEqual(pred.count, QConst(1))
         lose = cond.then_effect
         assert isinstance(lose, Atom)
         self.assertIs(lose.verb, Verb.LOSE_LIFE)

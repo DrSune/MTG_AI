@@ -567,12 +567,13 @@ def protected_from(executor: Executor | None, holder: Handle, source: Handle | N
     quality that reads its own source answers for that ability: Runed Halo's
     NAME_CHOSEN is the name the Halo chose. A universal quality (``FAnd(())``) is
     protection from everything (702.16j). Only a card can be a source with
-    qualities here (an emblem or a player is not), and a card off the battlefield
-    has no protection that functions (113.6)."""
+    qualities here (an emblem or a player is not), a token that has ceased to exist
+    by its last known information (CR 113.7a), and a card off the battlefield has
+    no protection that functions (113.6)."""
     if executor is None or source is None or source.namespace != "card":
         return False
     world = executor.world
-    if source not in world.cards:
+    if source not in world.cards and source not in executor.departed_lki:
         return False
     if holder.namespace == "card":
         if holder not in world.cards or world.zone_of(holder).kind != ZONE_BATTLEFIELD:
@@ -790,7 +791,7 @@ def build_payment_plan(
     # ``FAtom(IS_SOURCE)`` folds ("activated abilities … cost less" describes
     # the host's OWN ability, Sanctum of Tranquil Light), so no cast-lane
     # reduction (Vryn/Watcher's blanket auras, Discontinuity's conditional
-    # window, TARGETS_SOURCE/IS_ANY_TARGET spell filters) can leak into an
+    # window, TARGETS/IS_ANY_TARGET spell filters) can leak into an
     # activation.
     judge = mana_use if mana_use is not None else activation
     if (
@@ -912,17 +913,18 @@ def build_payment_plan(
                     return None, "cost:tap:source_tapped"
                 tap.append(ctx.source)
             else:
-                # A tap cost acts on permanents YOU control (CR 701.20's tap
-                # rule, mirroring the sacrifice lane's CR 701.14a clause): the
-                # raw ANY-zone enumeration carries the opponent's permanents.
-                # The clause is a property of the tap verb, not of the card,
-                # so it is enforced HERE, lane-agnostic, before the pool is
-                # recorded.
+                # A tap cost taps permanents YOU control (the printed costs
+                # say so: M21 Shacklegeist's "Tap two untapped Spirits you
+                # control"; the sacrifice lane's CR 701.21a clause): the raw
+                # ANY-zone enumeration carries the opponent's permanents, so
+                # the clause is enforced HERE, lane-agnostic, before the pool
+                # is recorded. Control, not ownership: a stolen creature is its
+                # thief's to tap (the zone that holds it names its owner).
                 cands = [
                     h
                     for h in enumerate_candidates(part.target, ctx)
                     if not world.cards[h].tapped
-                    and world.controller_of(h) == ctx.controller
+                    and _effective_controller(ctx, h) == ctx.controller
                 ]
                 need = _required_count(part.target, ctx, len(cands))
                 if len(cands) < need:
@@ -939,18 +941,19 @@ def build_payment_plan(
                     tap_options.append((tuple(sorted(cands)), need))
                 tap.extend(cands[:need])
         elif isinstance(part, CostSacrifice):
-            # CR 701.14a: a sacrifice acts on a permanent YOU control. The
+            # CR 701.21a: a sacrifice acts on a permanent YOU control. The
             # bridge compiles "sacrifice another creature" with a
             # controller=ANY battlefield zone (the filter only says Creature
             # AND NOT is-source), so the raw enumeration carries the
             # OPPONENT'S creatures, which the payer's ask must never offer.
             # The controller clause is a property of the sacrifice verb, not
             # of the card, so it is enforced HERE, lane-agnostic, before the
-            # pool is recorded.
+            # pool is recorded. Control, not ownership: a stolen creature is
+            # its thief's to sacrifice (Traitorous Greed, then Village Rites).
             cands = [
                 h
                 for h in enumerate_candidates(part.target, ctx)
-                if world.controller_of(h) == ctx.controller
+                if _effective_controller(ctx, h) == ctx.controller
             ]
             need = _required_count(part.target, ctx, len(cands))
             if len(cands) < need:
@@ -2195,6 +2198,7 @@ def resolve_activated(executor: Executor, obj) -> str:
         decisions=obj.decisions,
         slot_designations=slot_designations,
         x_value=obj.x_value,
+        origin_clock=obj.declared_clock,
     )
     return "resolved"
 
@@ -2276,11 +2280,16 @@ def _mana_tap_options(
     ability can add mana. Free sources only (:func:`_source_tier` 0), or with
     ``costly`` the dearer ones too; eligible: an effect of one ADD_MANA atom
     (fixed colour or any colour) or a Choose between ADD_MANA atoms (dual
-    lands), and activatable by ``payer`` right now (ability_playable: so tapped
-    sources, summoning-sick creatures and locked abilities are out). Scans
-    printed and granted abilities like legal_activations, which this does not
-    call because it raises on cost kinds it cannot check."""
-    from MTG_bot.core.ability_tree import Choose
+    lands), or a Conditional over those, priced by the branch the state picks
+    now (M20 Leafkin Druid's "If you control four or more creatures, add {G}{G}
+    instead": a mana ability resolves at once, CR 605.3a-b, so its branch is
+    known as it is activated); and activatable by ``payer`` right now
+    (ability_playable: so tapped sources, summoning-sick creatures and locked
+    abilities are out). Scans printed and granted abilities like
+    legal_activations, which this does not call because it raises on cost
+    kinds it cannot check."""
+    from MTG_bot.core.ability_tree import Choose, Conditional
+    from MTG_bot.core.executor import _conditional_subject
     from MTG_bot.core.executor.query import choose_options
     from MTG_bot.core.executor.verbs import _ANY_COLOR_VOCAB
 
@@ -2315,6 +2324,10 @@ def _mana_tap_options(
             policy = executor.layers.this_mana_filter(handle)
             tags: tuple[Filter, ...] = (policy,) if policy is not None else ()
             effect = ability.effect
+            while isinstance(effect, Conditional):  # the executor's reading of it, _run_effect
+                subject = _conditional_subject(effect.pred, ctx)
+                holds = subject is not None and eval_filter(effect.pred, subject, ctx)
+                effect = effect.then_effect if holds else effect.else_effect
             taps: list[ManaTap] = []
             if isinstance(effect, Atom):
                 got = _mana_atom_output(effect, ctx)

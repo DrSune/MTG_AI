@@ -78,5 +78,5 @@
    ]
   }
  },
- "notes": "Haste: Subira attacks the SAME turn she enters (journalled ETB, no prior turn). {1} makes the 2/2 Scout an unblockable attacker (IS_ANY_TARGET + POWER_LE prevent): no blocker was even chosen, 4 damage lands."
+ "notes": "Haste: Subira attacks the SAME turn she enters (journalled ETB, no prior turn). {1} makes the 2/2 Scout an unblockable attacker (IS_ANY_TARGET + negated comparison of POWER (at_most) prevent): no blocker was even chosen, 4 damage lands."
 }

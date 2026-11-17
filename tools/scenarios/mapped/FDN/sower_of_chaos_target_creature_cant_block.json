@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "sower_of_chaos_target_creature_cant_block",
+ "notes": "M8 mapper. Printed: '{2}{R}: Target creature can't block this turn.' Seat 0 pays {2}{R} targeting seat 1's Wall, then attacks with a Runner. The Wall has no legal block and is never asked; seat 1's Guard is asked (the Runner or NONE) and blocks the Runner.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sower", "real": "Sower of Chaos", "zone": "battlefield", "controller": 0},
+  {"key": "runner", "name": "Runner", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1},
+  {"key": "guard", "name": "Opp Guard", "type": "Creature — Human", "power": "0", "toughness": "8", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "activate", "key": "sower", "idx": 0, "seat": 0, "targets": ["wall"]},
+  {"op": "combat", "seat": 0, "attack": {"runner": true, "sower": false}, "block": {"guard": "runner"}}
+ ],
+ "expect": {
+  "attackers": {"runner": true, "sower": false},
+  "not_asked_to_block": ["wall"],
+  "block_asks": {"guard": "<runner>,NONE"},
+  "blocked": {"runner": ["guard"]},
+  "life": {"0": 20, "1": 20},
+  "damage": {"guard": 2}
+ }
+}

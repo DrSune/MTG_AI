@@ -37,7 +37,7 @@ from MTG_bot.core.ability_tree import (
     QAgg,
     QConst,
     QCount,
-    QDistinctColorCount,
+    QDistinct,
     QProp,
     QPropField,
     QUnbounded,
@@ -48,9 +48,14 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
+    at_most,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
+    EffectOutcome,
     SentenceOutcome,
     Template,
 )
@@ -482,7 +487,7 @@ def _build_modify_pt_radha(m: re.Match[str]) -> AbilityOutcome:
 def _build_set_pt_jolrael(m: re.Match[str]) -> AbilityOutcome:
     cost = _parse_cost(m)
     sel = _sel_creatures_you_control()
-    x = QProp(referent="controller", field=QPropField.CARDS_IN_HAND, agg=QAgg.FIRST)
+    x = number_in(Zone(ZoneKind.HAND, ControllerRef.YOU))  # "the number of cards in your hand"
     effect = Atom(
         verb=Verb.SET_PT,
         args=AtomArgs(
@@ -703,9 +708,27 @@ def _build_seq_draw_discard(m: re.Match[str]) -> AbilityOutcome:
     return _build_activated(cost, effect)
 
 
+def _build_draw_per_distinct_mana_value(m: re.Match[str]) -> EffectOutcome:
+    """``Draw a card for each different mana value among nonland permanents you control.`` (Lunar
+    Insight): QDistinct over MANA_VALUE (CR 202.3)."""
+    nonland = FAnd(
+        children=(
+            FAtom(pred=FAtomPred.IS_PERMANENT),
+            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land")),
+        )
+    )
+    amount = QDistinct(number_you_control(nonland).selector, QPropField.MANA_VALUE)
+    return EffectOutcome(
+        effect=Atom(
+            verb=Verb.DRAW,
+            args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("amount", amount))),
+        )
+    )
+
+
 def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
     """``{5}, {T}: Draw a card for each color among permanents you control.`` (Chromatic
-    Orrery): QDistinctColorCount counts the distinct colors among all permanents you control."""
+    Orrery): QDistinct over COLOR counts the different colors among the permanents you control."""
     cost = _parse_cost(m)
     effect = Atom(
         verb=Verb.DRAW,
@@ -714,7 +737,7 @@ def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
                 ("controller", ControllerRef.YOU),
                 (
                     "amount",
-                    QDistinctColorCount(
+                    QDistinct(
                         Selector(
                             count=QUnbounded(),
                             mode=SelectorMode.ALL,
@@ -730,7 +753,8 @@ def _build_draw_per_distinct_color(m: re.Match[str]) -> AbilityOutcome:
                             zones=(Zone(
                                 kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY
                             ),),
-                        )
+                        ),
+                        QPropField.COLOR,
                     ),
                 ),
             )
@@ -849,7 +873,7 @@ def _build_add_mana_g_per_power_ge_creatures_you(m: re.Match[str]) -> AbilityOut
         filter=FAnd(
             children=(
                 FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.POWER_GE, count=QConst(n)),
+                at_least(n, field=QPropField.POWER),
                 FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
             )
         ),
@@ -905,7 +929,7 @@ def _build_target_cant_be_blocked(m: re.Match[str]) -> AbilityOutcome:
     blocked = FAnd(
         children=(
             FAtom(pred=FAtomPred.IS_ANY_TARGET),
-            FAtom(pred=FAtomPred.POWER_LE, count=QConst(int(m.group("pw")))),
+            at_most(int(m.group("pw")), field=QPropField.POWER),
             FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
         )
     )
@@ -1288,6 +1312,16 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=100,
         build=_build_draw_per_distinct_color,
+    ),
+    Template(
+        tid="B3-draw-per-distinct-mana-value",
+        name="draw a card per different mana value among nonland permanents you control",
+        bucket="B3",
+        pattern=re.compile(
+            r"^Draw a card for each different mana value among nonland permanents you control\.$"
+        ),
+        priority=100,
+        build=_build_draw_per_distinct_mana_value,
     ),
 )
 

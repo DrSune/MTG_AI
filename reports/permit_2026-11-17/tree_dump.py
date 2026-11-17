@@ -11,7 +11,7 @@ Facts (ontology round R13, read on a card's tree with records applied):
 - counter: a COUNTER_SPELL (the countered spell leaves through stack.exit_zone);
 - pop-lane: a MOVE_ZONE with pop_order TOP (the lane now writes the `result` register);
 - exile-top-selector: a MOVE_ZONE whose target or cards selector is over the top of a library (the
-  other form of "exile the top card", divergence D31);
+  other form of "exile the top card", divergence D33);
 - wrapped-permission: an OptionalEffect around ADD_LAND_PLAY, GRANT_ACTIVATION or MANA_POLICY (R5-2
   v3 point 8's other permission-like atoms, still wrapped: BACKLOG);
 - own-permit: a card's own static permission (flashback, CR 702.34a; Demonic Embrace; Squee).

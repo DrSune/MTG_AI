@@ -1,0 +1,145 @@
+{
+ "set": "FDN",
+ "name": "loot_puts_the_creature_onto_the_battlefield",
+ "notes": "M8 mapper. Printed: '... put it onto the battlefield. Put the rest on the bottom in a random order.' Seat 0 (two lands) takes Two Beast: it enters the battlefield under seat 0's control; the other five go to the bottom, so Deep Beast is the top card, above the six filler cards, and the five are under them.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "loot",
+   "real": "Loot, Exuberant Explorer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "deep",
+   "name": "Deep Beast",
+   "type": "Creature — Beast",
+   "zone": "library",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "cmc": 1
+  },
+  {
+   "key": "mv3",
+   "name": "Three Beast",
+   "type": "Creature — Beast",
+   "zone": "library",
+   "controller": 0,
+   "power": "3",
+   "toughness": "3",
+   "cmc": 3
+  },
+  {
+   "key": "mv2",
+   "name": "Two Beast",
+   "type": "Creature — Beast",
+   "zone": "library",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2",
+   "cmc": 2
+  },
+  {
+   "key": "land",
+   "name": "Wild Field",
+   "type": "Land",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "spell",
+   "name": "Two Spell",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0,
+   "cmc": 2
+  },
+  {
+   "key": "mv1",
+   "name": "One Beast",
+   "type": "Creature — Beast",
+   "zone": "library",
+   "controller": 0,
+   "power": "1",
+   "toughness": "1",
+   "cmc": 1
+  },
+  {
+   "key": "mv4",
+   "name": "Four Beast",
+   "type": "Creature — Beast",
+   "zone": "library",
+   "controller": 0,
+   "power": "4",
+   "toughness": "4",
+   "cmc": 4
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 2,
+    "C": 4
+   }
+  },
+  {
+   "op": "activate",
+   "key": "loot",
+   "idx": 1,
+   "seat": 0,
+   "decisions": [
+    "fire",
+    "mv2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mv2": "battlefield",
+   "mv1": "library",
+   "mv3": "library",
+   "deep": "library"
+  },
+  "controller": {
+   "mv2": 0
+  },
+  "tapped": {
+   "loot": true
+  },
+  "library": {
+   "0": [
+    "Deep Beast",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "*",
+    "*",
+    "*",
+    "*",
+    "*"
+   ]
+  }
+ }
+}

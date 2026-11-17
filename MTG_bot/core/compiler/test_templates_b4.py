@@ -1018,8 +1018,7 @@ class TestB4IrStructure(unittest.TestCase):
             self.fail(f"expected CostDeltaIncreaseLife, got {type(delta).__name__}")
         self.assertEqual(_qconst(delta.amount).value, 3)
         self.assertIsNone(modifier.condition)
-        filter_atom = _as_fatom(modifier.filter)
-        self.assertIs(filter_atom.pred, FAtomPred.TARGETS_SOURCE)
+        self.assertEqual(modifier.filter, FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE)))
 
     def test_cost_modifier_opponent_generic(self) -> None:
         outcome = _as_ability(
@@ -1036,8 +1035,7 @@ class TestB4IrStructure(unittest.TestCase):
             self.fail(f"expected CostDeltaIncreaseGeneric, got {type(delta).__name__}")
         self.assertEqual(_qconst(delta.amount).value, 3)
         self.assertIsNone(modifier.condition)
-        filter_atom = _as_fatom(modifier.filter)
-        self.assertIs(filter_atom.pred, FAtomPred.TARGETS_SOURCE)
+        self.assertEqual(modifier.filter, FAtom(pred=FAtomPred.TARGETS, inner_filter=FAtom(pred=FAtomPred.IS_SOURCE)))
 
     # ------------------------------------------------------------------
     # ETB state

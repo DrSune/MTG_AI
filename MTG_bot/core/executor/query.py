@@ -595,6 +595,7 @@ def optional_offer(
     source: Handle,
     controller: Handle,
     bindings: dict[str, Binding] | None = None,
+    origin_clock: int = 0,
 ) -> tuple[str, ...]:
     """The two-way may-offer as decision tokens — ``("fire", "skip")``
     when firing is actionable, narrowed to ``("skip",)`` when the inner
@@ -630,6 +631,7 @@ def optional_offer(
             f"optional_offer: needs an OptionalEffect, got {type(effect).__name__}"
         )
     ctx = ctx_for(executor, source=source, controller=controller, bindings=bindings)
+    ctx.origin_clock = origin_clock  # the resolving ability's own life, as at runtime
     # A PAY atom is the other unactionable-action shape — "You may pay {2}"
     # that nothing can pay offers only skip (CR 117.3: no resources, no
     # action), and _v_pay RAISES if a 'fire' decision ever reaches an
@@ -746,22 +748,23 @@ def _cast_option_payable(
     )
     if node is None:
         return False
-    if modal_choose(node) is None:
-        slots = spell_target_slots(executor, node, spell_handle=handle, seat=ctx.controller)
-        if not can_designate(slots):
-            return False
-    elif not cast_mode_options(executor, node, spell_handle=handle, seat=ctx.controller):
-        return False
     cost = effect_cast_cost(record, node, atom)
-    if not cost.parts:
-        return True  # waiver (CR 118.9) / costless: nothing to fold
-    plan, _why = build_payment_plan(
-        executor.world,
-        ctx_for(executor, source=handle, controller=ctx.controller, x_value=0),
-        cost,
-        mana_use=handle,
-    )
-    return plan is not None
+
+    def pay(targets: Sequence[Handle]) -> bool:
+        """The total cost with these targets (a target's tax, CR 601.2f) is payable."""
+        if not cost.parts:
+            return True  # waiver (CR 118.9) / costless: nothing to fold
+        tctx = ctx_for(executor, source=handle, controller=ctx.controller, x_value=0,
+                       bindings={"target": list(targets)} if targets else None)
+        return build_payment_plan(executor.world, tctx, cost, mana_use=handle)[0] is not None
+
+    if modal_choose(node) is None:
+        slots = spell_target_slots(executor, node, spell_handle=handle, seat=ctx.controller, pay=pay)
+        if not can_designate(slots, pay=pay):
+            return False
+    elif not cast_mode_options(executor, node, spell_handle=handle, seat=ctx.controller, pay=pay):
+        return False
+    return pay(())
 
 
 def cast_carrier(executor: Executor, handle: Handle):
@@ -1237,7 +1240,7 @@ def cast_mode_options(
         slots = spell_target_slots(
             executor, node, spell_handle=spell_handle, seat=seat, modes=option.option_idxs, pay=pay
         )
-        if can_designate(slots):
+        if can_designate(slots, pay=pay):
             legal.append((i, option.option_idxs))
     return legal
 
@@ -1427,16 +1430,16 @@ def spell_target_slots(
     return _affordable_target_slots(executor, slots, spell_handle, seat, pay)
 
 
-def _reads_targets_source(filter_: object) -> bool:
-    """Does a filter ask whether the judged spell targets the filter's source?"""
+def _reads_targets(filter_: object) -> bool:
+    """Does a filter ask what the judged spell targets (FAtomPred.TARGETS)?"""
     from MTG_bot.core.ability_tree import FNot, FOr
 
     if isinstance(filter_, FAtom):
-        return filter_.pred is FAtomPred.TARGETS_SOURCE
+        return filter_.pred is FAtomPred.TARGETS
     if isinstance(filter_, (FAnd, FOr)):
-        return any(_reads_targets_source(c) for c in filter_.children)
+        return any(_reads_targets(c) for c in filter_.children)
     if isinstance(filter_, FNot):
-        return _reads_targets_source(filter_.inner)
+        return _reads_targets(filter_.inner)
     return False
 
 
@@ -1449,7 +1452,7 @@ def _affordable_target_slots(
     cost the caster cannot pay is not a live option: casting the spell at it is
     illegal, and stack.cast refuses it. The slot drops such candidates, so the
     menu holds only completions the cast accepts. Inert (no fold at all) unless a
-    battlefield CostModifier reads TARGETS_SOURCE, and only for a spell in the
+    battlefield CostModifier reads TARGETS, and only for a spell in the
     caster's hand: the effect-cast lane designates no targets. ``pay(targets)``
     prices a candidate (default: the pool alone, ``spell_castable``)."""
     from MTG_bot.core.ability_tree import CostModifier
@@ -1466,8 +1469,8 @@ def _affordable_target_slots(
                 continue
             for node in record.abilities:
                 if isinstance(node, CostModifier) and (
-                    _reads_targets_source(node.filter)
-                    or _reads_targets_source(node.condition)
+                    _reads_targets(node.filter)
+                    or _reads_targets(node.condition)
                 ):
                     taxed = True
     if not taxed:
@@ -1517,34 +1520,40 @@ def combat_target_filters(event: object) -> list[object]:
     return [f for f in slots if f is not None and designation_bound(f)]
 
 
+def combat_target_selector(atom: object) -> Selector | None:
+    """The target of a PREVENT_EFFECT whose ONLY trace of it is an IS_ANY_TARGET
+    filter in a combat event slot ("{1}: Another target creature with power 2 or
+    less can't be blocked this turn", Subira, Tulzidi Caravanner; ZNR Sneaking
+    Guide; FDN Frenzied Goblin's trigger), as the TARGET selector it stands for:
+    one creature on the battlefield passing that filter (combat slots only ever
+    see creatures). Single-target by construction: every such encoding in
+    M21/ZNR/FDN prints one target. None for any other atom."""
+    if not isinstance(atom, Atom) or atom.verb is not Verb.PREVENT_EFFECT:
+        return None
+    found = combat_target_filters(atom.args.get("event"))
+    if not found:
+        return None
+    restriction = max(found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1)
+    parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
+    return Selector(
+        QConst(1),
+        SelectorMode.TARGET,
+        FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
+        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
+    )
+
+
 def _designation_only_slot(
     executor: Executor, effect: object, source: Handle, seat: Handle
 ) -> TargetSlot | None:
     """CR 115.1, 602.2b: an ability whose ONLY trace of its target is an
-    IS_ANY_TARGET filter in a combat event slot ("{1}: Another target creature
-    with power 2 or less can't be blocked this turn", Subira, Tulzidi Caravanner;
-    ZNR Sneaking Guide) still has a target, so it gets a slot: one creature on
-    the battlefield passing that filter (combat slots only ever see creatures).
-    Without it the ability would be activated with no designation and do
-    nothing. Single-target by construction: every such encoding in M21/ZNR/FDN
-    prints one target."""
+    IS_ANY_TARGET filter in a combat event slot still has a target, so it gets a
+    slot (:func:`combat_target_selector`). Without it the ability would be
+    activated, or put on the stack, with no designation and do nothing."""
     for inner in own_nodes(effect):
-        if not isinstance(inner, Atom) or inner.verb is not Verb.PREVENT_EFFECT:
-            continue
-        found = combat_target_filters(inner.args.get("event"))
-        if not found:
-            continue
-        restriction = max(
-            found, key=lambda f: len(f.children) if isinstance(f, FAnd) else 1
-        )
-        parts = restriction.children if isinstance(restriction, FAnd) else (restriction,)
-        selector = Selector(
-            QConst(1),
-            SelectorMode.TARGET,
-            FAnd((*parts, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"))),
-            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),),
-        )
-        return _spell_slot(executor, inner, "event", selector, source, seat)
+        selector = combat_target_selector(inner)
+        if selector is not None:
+            return _spell_slot(executor, inner, "event", selector, source, seat)
     return None
 
 

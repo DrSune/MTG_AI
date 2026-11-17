@@ -53,10 +53,8 @@
    "block": {
     "chump": "patrol"
    },
-   "trample": {
-    "patrol": [
-     0
-    ]
+   "divide": {
+    "chump": 1
    }
   }
  ],

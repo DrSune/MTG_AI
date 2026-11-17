@@ -53,7 +53,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "CONTROLLER_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -65,76 +65,103 @@
      "counter_kind": null,
      "keyword": null,
      "who": null,
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": [
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "CONTROLLER_IS"
-        },
-        "string_value": null,
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": {
-         "tag": "ControllerRef",
-         "name": "YOU"
-        },
-        "inner_filter": null
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "SUBTYPE_EQ"
-        },
-        "string_value": "Elf",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
        },
-       {
-        "tag": "FAtom",
-        "pred": {
-         "tag": "FAtomPred",
-         "name": "TYPE_EQ"
-        },
-        "string_value": "Creature",
-        "color": null,
-        "colors": [],
-        "count": null,
-        "counter_kind": null,
-        "keyword": null,
-        "who": null,
-        "inner_filter": null
-       },
-       {
-        "tag": "FNot",
-        "inner": {
-         "tag": "FAtom",
-         "pred": {
-          "tag": "FAtomPred",
-          "name": "IS_SOURCE"
+       "filter": {
+        "tag": "FAnd",
+        "children": [
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
          },
-         "string_value": null,
-         "color": null,
-         "colors": [],
-         "count": null,
-         "counter_kind": null,
-         "keyword": null,
-         "who": null,
-         "inner_filter": null
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "SUBTYPE_EQ"
+          },
+          "string_value": "Elf",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "TYPE_EQ"
+          },
+          "string_value": "Creature",
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         {
+          "tag": "FNot",
+          "inner": {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "IS_SOURCE"
+           },
+           "string_value": null,
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         }
+        ]
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "BATTLEFIELD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "ANY"
+         }
         }
-       }
-      ]
+       ]
+      }
      }
     },
     "effect": {
@@ -197,15 +224,15 @@
  "mapping": {
   "author": "claude-mapper-m3",
   "date": "2026-11-17",
-  "draft_py": "# FDN Dwynen's Elite: \"When this creature enters, if you control another Elf, create a 1/1 green\n# Elf Warrior creature token.\"\n# M21 Turret Ogre's verified \"When this creature enters, if you control another creature with\n# power 4 or greater, ...\" (B2a-turret-ogre): the intervening \"if\" is the condition\n# CONTROLLER_COUNT_GE 1 over your creatures other than this one (FNot(IS_SOURCE)), here the Elves\n# (a tribal noun: SUBTYPE_EQ plus TYPE_EQ 'Creature', ZNR Chilling Trap's \"If you control a\n# Wizard\"). The token: KHM Skemfar Elderhall's \"1/1 green Elf Warrior creature token\", one.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=FAtom(\n        pred=FAtomPred.CONTROLLER_COUNT_GE,\n        count=QConst(value=1),\n        inner_filter=FAnd(\n            children=(\n                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n            ),\n        ),\n    ),\n    effect=A(Verb.CREATE_TOKEN, {\n        'count': QConst(value=1),\n        'tokens': TokenSpec(\n            name='Elf Warrior',\n            type_line='Creature — Elf Warrior',\n            types=('Creature',),\n            subtypes=('Elf', 'Warrior'),\n            power=QConst(value=1),\n            toughness=QConst(value=1),\n            keywords=(),\n            abilities=(),\n            colors=('G',),\n        ),\n    }),\n)\nabilities = [etb, *compiled]\n",
+  "draft_py": "keywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=1),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n                            FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Elf'),\n                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                            FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),\n                        ),\n                    ),\n                    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                ),\n            ),\n        ),\n        effect=A(Verb.CREATE_TOKEN, {\n            'count': QConst(value=1),\n            'tokens': TokenSpec(\n                name='Elf Warrior',\n                type_line='Creature — Elf Warrior',\n                types=('Creature',),\n                subtypes=('Elf', 'Warrior'),\n                power=QConst(value=1),\n                toughness=QConst(value=1),\n                keywords=(),\n                abilities=(),\n                colors=('G',),\n            ),\n        }),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "When this creature enters, if you control another Elf, create a 1/1 green Elf Warrior creature token.",
-    "ir": "abilities[0] (condition CONTROLLER_COUNT_GE 1 other Elf creature you control; CREATE_TOKEN one 1/1 green Elf Warrior)"
+    "ir": "abilities[0] (condition at_least(1, quantity=number_you_control(...)) other Elf creature you control; CREATE_TOKEN one 1/1 green Elf Warrior)"
    }
   ],
   "g0_warnings": [],
-  "notes": "Turret Ogre's verified intervening 'if you control another ...' (CONTROLLER_IS YOU, FNot(IS_SOURCE), CONTROLLER_COUNT_GE 1) over Elf creatures (Chilling Trap's 'a Wizard'); Skemfar Elderhall's 1/1 green Elf Warrior token, one. Packs: tools/scenarios/mapped/FDN/dwynens_elite_itself_and_their_elf_do_not_count.json, tools/scenarios/mapped/FDN/dwynens_elite_the_token_is_your_elf.json, tools/scenarios/mapped/FDN/dwynens_elite_with_another_elf_makes_an_elf_warrior.json."
+  "notes": "Turret Ogre's verified intervening 'if you control another ...' (CONTROLLER_IS YOU, FNot(IS_SOURCE), at_least(1, quantity=number_you_control(...))) over Elf creatures (Chilling Trap's 'a Wizard'); Skemfar Elderhall's 1/1 green Elf Warrior token, one. Packs: tools/scenarios/mapped/FDN/dwynens_elite_itself_and_their_elf_do_not_count.json, tools/scenarios/mapped/FDN/dwynens_elite_the_token_is_your_elf.json, tools/scenarios/mapped/FDN/dwynens_elite_with_another_elf_makes_an_elf_warrior.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "2594b42ff0aad4c93f8b1aa686362efd500e6ef786c03cfd6d70a8c07382c4c1"

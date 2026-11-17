@@ -17,8 +17,9 @@
   it (CR 118.3, 701.9a).
 * A spell cast by an effect pays its own additional costs on top of the mana cost or
   the effect's alternative cost (CR 601.2f, 118.9d); an unpayable total refuses.
-* A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7),
-  after its leave triggers have fired.
+* A token in a zone other than the battlefield ceases to exist (CR 704.5d, 111.7) at the
+  check after it left, its leave triggers waiting; they read its last known information
+  (CR 608.2h), its controller and whether it was tapped included.
 * A cost increase for spells that target a permanent is folded with the declared
   targets (CR 601.2f), and a target whose total the caster cannot pay is not offered.
   End to end in the terror_* and pursued_whale_* packs.
@@ -70,6 +71,7 @@ from MTG_bot.core.executor import Executor
 from MTG_bot.core.identity import CardIdentity
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
+    ZONE_EXILE,
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
@@ -651,18 +653,203 @@ class TestV35TokensCeaseOffTheBattlefield(FixerCase):
         )
         self.assertEqual(self.world.zone_of(tok).kind, ZONE_BATTLEFIELD)
 
+    def watcher(self, amount, condition=None):
+        """Alpha: "Whenever a creature an opponent controls dies, [if <condition>,] that player
+        loses <amount> life" (Massacre Wurm's shape)."""
+        from MTG_bot.core.ability_tree import CreatureDiesEvent, FAnd, FAtom, FAtomPred
+        from MTG_bot.core.ability_tree import TriggeredAbility
+        from MTG_bot.core.test_executor_binding import record_of
+
+        opponents = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.OPPONENT)
+        trigger = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAnd((UNIV, opponents))),
+            condition=condition,
+            effect=atom(Verb.LOSE_LIFE, amount=amount, controller=ControllerRef.TARGET_PLAYER),
+        )
+        oid = self.world.cards[self.alpha].identity.oracle_id
+        self.ex.attach_card(self.alpha, record_of([trigger], oid=oid))
+
+    def test_a_dead_token_ceases_while_its_trigger_waits(self):
+        # CR 704.5d, 117.5: the token ceases at the check before the trigger goes on the stack,
+        # so nothing can find it there; the trigger reads its last known information (CR
+        # 608.2h): "that player" is its controller.
+        self.watcher(QConst(2))
+        tok = self.token(self.p1)
+        with self.ex.holding_priority():
+            self.kill(tok)
+            self.ex._priority_check()  # the killer keeps priority (CR 117.3c, 117.5)
+        self.assertEqual([f.spell_kind for f in self.ex.stack.frames], ["TRIGGERED"])
+        self.assertNotIn(tok, self.world.cards)
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_its_trigger_reads_it_through_a_filter(self):
+        # "That player loses 1 life for each creature they control": CONTROLLER_IS
+        # TARGET_PLAYER of the ceased token reads its last known controller (Beta is left).
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, QCount, Selector, SelectorMode
+        from MTG_bot.core.test_executor_verbs import BF_ANY
+
+        theirs = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.TARGET_PLAYER)
+        self.watcher(QCount(Selector(QConst(1), SelectorMode.ALL, theirs, zones=(BF_ANY,))))
+        self.kill(self.token(self.p1))
+        self.assertEqual(self.world.players[self.p1].life, 19)
+
+    def test_an_intervening_if_reads_it_as_it_last_existed(self):
+        # CR 603.4, 608.2h: "if it was untapped" is checked again as the trigger resolves, on
+        # the ceased token's last known information: it was tapped, so nothing happens.
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+
+        self.watcher(QConst(2), condition=FAtom(FAtomPred.IS_UNTAPPED))
+        tapped = self.token(self.p1, name="Tapped")
+        self.world.cards[tapped].tapped = True
+        self.kill(tapped)
+        self.kill(self.token(self.p1, name="Untapped"))
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+    def test_a_ceased_token_was_never_cast(self):
+        # "if it wasn't cast this turn", checked again on the ceased token as the trigger
+        # resolves (CR 603.4): no token is cast (CR 111.1), so it holds.
+        from MTG_bot.core.ability_tree import FAtom, FAtomPred, FNot
+
+        cast = FAtom(FAtomPred.WAS_CAST_THIS_TURN, who=ControllerRef.ANY)
+        self.watcher(QConst(2), condition=FNot(cast))
+        self.kill(self.token(self.p1))
+        self.assertEqual(self.world.players[self.p1].life, 18)
+
+
+class TestWasAttackingIsLastKnown(FixerCase):
+    """FDN Garna, Bloodfist of Keld's shape: "Whenever another creature you control dies, <A> if
+    it was attacking. Otherwise, <B>." (+3 life, else +1 here.) "It" is the creature that died (a
+    bare Conditional's object test), judged as it last existed: it left combat as it left the
+    battlefield (CR 506.4), so the live attack record no longer has it (CR 603.10a, 608.2h;
+    known_bugs/2026-11-17/garna_was_attacking). Raider attacks."""
+
+    def setUp(self):
+        super().setUp()
+        from MTG_bot.core.ability_tree import (
+            Conditional,
+            CreatureDiesEvent,
+            FAnd,
+            FAtom,
+            FAtomPred,
+            FNot,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.test_executor_binding import record_of
+
+        def gain(n):
+            return atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(n))
+
+        mine = FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU)
+        trigger = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAnd((mine, FNot(FAtom(FAtomPred.IS_SOURCE))))),
+            condition=None,
+            effect=Conditional(FAtom(FAtomPred.IS_ATTACKING), gain(3), gain(1)),
+        )
+        oid = self.world.cards[self.alpha].identity.oracle_id
+        self.ex.attach_card(self.alpha, record_of([trigger], oid=oid))
+        self.raider = self.world.add_card(card_id("Raider", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.ex.attackers.append(self.raider)  # the attack record of a declaration
+        self.ex.attacked[self.raider] = self.p1
+
+    def kill(self, card):
+        self.ex.execute(
+            atom(Verb.DEAL_DAMAGE, target=target_sel(UNIV), amount=QConst(5)),
+            source=self.beta,
+            controller=self.p1,
+            bindings={"target": [card]},
+        )
+
+    def test_draw_a_card_if_it_was_attacking(self):
+        homebody = self.world.add_card(card_id("Homebody", "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        self.kill(self.raider)
+        self.kill(homebody)
+        self.assertEqual(self.world.players[self.p0].life, 24)
+
+    def test_it_was_attacking_though_it_came_back_before_the_trigger_resolved(self):
+        # Its controller returned it to the battlefield first (FDN Fake Your Own Death's
+        # trigger ordered before Garna's): the trigger still reads the attacker that died (CR
+        # 603.10a, 608.2h), not the new object, which is not attacking.
+        from MTG_bot.core.test_executor_binding import enter
+
+        with self.ex.holding_priority():
+            self.kill(self.raider)
+            self.ex._priority_check()
+            self.ex.apply_effect(enter(Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)),
+                                 source=self.raider, controller=self.p0,
+                                 bindings={"cards": self.raider})
+        self.ex.fire_triggers()
+        self.assertEqual(self.world.zone_of(self.raider).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.players[self.p0].life, 23)
+
+
+class TestExiledWithIsTheAbilitysLife(FixerCase):
+    def test_a_blinked_ring_returns_what_its_old_life_exiled(self):
+        # Oblivion Ring's shape, "When this enters, exile <a card>. When this leaves the
+        # battlefield, return the exiled card", blinked inside one effect (THB Flicker of Fate):
+        # the leaves trigger goes on the stack after the new object entered, but it is the old
+        # object's, the life it triggered in (CR 603.10a, 607.2a, 113.7a). It returns the card
+        # that object exiled; the card the new object exiles stays, whichever resolves first.
+        from MTG_bot.core.ability_tree import (
+            FAtom,
+            FAtomPred,
+            QUnbounded,
+            Selector,
+            SelectorMode,
+            Seq,
+            TriggeredAbility,
+            ZoneChangeEvent,
+        )
+        from MTG_bot.core.test_executor_binding import enter, record_of
+
+        def zone(kind, who=ControllerRef.ANY):
+            return Zone(kind, who)
+
+        is_source = FAtom(FAtomPred.IS_SOURCE)
+        exile_one = TriggeredAbility(
+            event=ZoneChangeEvent(zone(ZoneKind.ANY), zone(ZoneKind.BATTLEFIELD), subject=is_source),
+            condition=None,
+            effect=atom(Verb.MOVE_ZONE,
+                        cards=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                       zones=(zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+                        destination=zone(ZoneKind.EXILE, ControllerRef.OWNER)),
+        )
+        give_back = TriggeredAbility(
+            event=ZoneChangeEvent(zone(ZoneKind.BATTLEFIELD), zone(ZoneKind.ANY), subject=is_source),
+            condition=None,
+            effect=atom(Verb.MOVE_ZONE,
+                        cards=Selector(QUnbounded(), SelectorMode.ALL,
+                                       FAtom(FAtomPred.IS_EXILED_WITH_SOURCE),
+                                       zones=(zone(ZoneKind.EXILE),)),
+                        destination=zone(ZoneKind.HAND, ControllerRef.OWNER)),
+        )
+        ring = self.world.add_card(card_id("Ring", type_line="Enchantment"), self.p0, ZONE_HAND)
+        first = self.world.add_card(card_id("First"), self.p0, ZONE_GRAVEYARD)
+        second = self.world.add_card(card_id("Second"), self.p0, ZONE_GRAVEYARD)
+        oid = self.world.cards[ring].identity.oracle_id
+        self.ex.attach_card(ring, record_of([exile_one, give_back], oid=oid))
+        self.ex.decisions.provider = lambda vocab, what: vocab[0]
+        to = Zone(ZoneKind.BATTLEFIELD, ControllerRef.OWNER)
+        self.ex.apply_effect(enter(to), source=ring, controller=self.p0, bindings={"cards": ring})
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_EXILE)
+        blink = Seq((enter(zone(ZoneKind.EXILE, ControllerRef.OWNER)), enter(to)))
+        self.ex.apply_effect(blink, source=self.alpha, controller=self.p0, bindings={"cards": ring})
+        self.assertEqual(self.world.zone_of(ring).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(first).kind, ZONE_HAND)
+        self.assertEqual(self.world.zone_of(second).kind, ZONE_EXILE)
+
 
 class TestV29TargetDependentTax(unittest.TestCase):
-    def test_the_tax_detector_reads_targets_source_anywhere_in_a_filter(self):
+    def test_the_tax_detector_reads_targets_anywhere_in_a_filter(self):
         from MTG_bot.core.ability_tree import FAnd, FAtom, FAtomPred, FNot
-        from MTG_bot.core.executor.query import _reads_targets_source
+        from MTG_bot.core.executor.query import _reads_targets
 
-        ts = FAtom(FAtomPred.TARGETS_SOURCE)
-        self.assertTrue(_reads_targets_source(ts))
-        self.assertTrue(_reads_targets_source(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
-        self.assertTrue(_reads_targets_source(FNot(ts)))
-        self.assertFalse(_reads_targets_source(FAtom(FAtomPred.IS_SOURCE)))
-        self.assertFalse(_reads_targets_source(None))
+        ts = FAtom(FAtomPred.TARGETS, inner_filter=FAtom(FAtomPred.IS_SOURCE))
+        self.assertTrue(_reads_targets(ts))
+        self.assertTrue(_reads_targets(FAnd((FAtom(FAtomPred.IS_PERMANENT), ts))))
+        self.assertTrue(_reads_targets(FNot(ts)))
+        self.assertFalse(_reads_targets(FAtom(FAtomPred.IS_SOURCE)))
+        self.assertFalse(_reads_targets(None))
 
 
 class TestV25EachTargetReadsItsOwnSlot(FixerCase):
@@ -841,6 +1028,35 @@ class TestV30GraveyardTriggers(unittest.TestCase):
             bindings={"target": [g]},
         )
         self.assertIn((g, 0), r.ex.binder.attached_graveyard)
+
+    def test_an_auras_return_on_its_creatures_death_functions_on_the_battlefield(self):
+        # CR 113.6m's Aura exception: "When enchanted creature dies, return this card to its
+        # owner's hand" (FDN Angelic Destiny, pack mapped/FDN/angelic_destiny_returns_to_hand_
+        # when_its_creature_dies) triggers on the object the Aura enchants leaving the
+        # battlefield, so it functions on the battlefield; the same ability of a non-Aura
+        # functions only in the graveyard.
+        from MTG_bot.core.ability_tree import (
+            CreatureDiesEvent,
+            FAtom,
+            FAtomPred,
+            Selector,
+            SelectorMode,
+            TriggeredAbility,
+        )
+        from MTG_bot.core.executor.binding import functions_from_graveyard
+
+        come_back = TriggeredAbility(
+            event=CreatureDiesEvent(filter=FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE)),
+            condition=None,
+            effect=atom(
+                Verb.MOVE_ZONE,
+                cards=Selector(QConst(1), SelectorMode.CHOOSE, FAtom(FAtomPred.IS_SOURCE),
+                               zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),)),
+                destination=Zone(ZoneKind.HAND, ControllerRef.OWNER),
+            ),
+        )
+        self.assertFalse(functions_from_graveyard(come_back, aura=True))
+        self.assertTrue(functions_from_graveyard(come_back))
 
 
 class TestCastCostRoleIsAdditional(unittest.TestCase):

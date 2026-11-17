@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "name": "vampiric_rites_sacrifice_gains_one_and_draws",
+ "notes": "M8 mapper. Printed: '{1}{B}, Sacrifice a creature: You gain 1 life and draw a card.' Seat 0 pays {1}{B} and sacrifices its Bear (its Giant stays): 21 life, one card drawn (the top of its library: the pack's last library card), and Vampiric Rites stays on the battlefield.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "rites", "real": "Vampiric Rites", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "giant", "name": "Your Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "second", "name": "Second Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0},
+  {"key": "first", "name": "First Card", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "rites", "idx": 0, "seat": 0, "decisions": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"rites": "battlefield", "bear": "graveyard", "giant": "battlefield", "first": "hand", "second": "library"},
+  "life": {"0": 21, "1": 20},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {}}
+ }
+}

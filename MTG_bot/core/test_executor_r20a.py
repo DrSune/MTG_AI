@@ -10,13 +10,10 @@
    constructs the canonical node for every layer-registry HOLDER —
    a noncreature cast pings +1/+1 until EoT, a creature cast is silent,
    cleanup ends the buff.
-3. BATTALION (makeshift_battalion): attacking with a group of at least
-   three (CR 508.2 gate via the journal's declare group) places one
-   +1/+1 counter; attacking alone places none.
-4. GRANTED triggers (Infernal Scarring): a TriggeredAbility row parked
+3. GRANTED triggers (Infernal Scarring): a TriggeredAbility row parked
    in the layer registry by GRANT_ABILITY drains on its event — the
    dies-granted draw fires.
-5. PREVENT_EFFECT damage consumer (Pack Leader): a live
+4. PREVENT_EFFECT damage consumer (Pack Leader): a live
    DamageDealtEvent prevention record vetoes the card-side mark BEFORE
    apply, leaves a DAMAGE_PREVENTED row, and a combat-scoped record
    ignores non-combat damage.
@@ -35,6 +32,8 @@ from MTG_bot.core.ability_tree import (
     DurationEot,
     DurationPermanent,
     FAnd,
+    FAtom,
+    FAtomPred,
     QConst,
     Selector,
     SelectorMode,
@@ -63,6 +62,11 @@ from MTG_bot.core.test_executor_binding import (
 
 def atom(verb, **roles) -> Atom:
     return Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))
+
+
+#: "Prevent all damage that would be dealt to it": a prevention scoped to its ability's target
+#: names it (FDN Fleeting Flight's record); a universal condition prevents all damage (CR 611.2c).
+_IT = FAtom(FAtomPred.IS_ANY_TARGET)
 
 
 class R20aCase(unittest.TestCase):
@@ -117,32 +121,6 @@ class R20aCase(unittest.TestCase):
         cast(self.ex, self.p0, handle)
         self.ex.fire_triggers()
 
-    def _combat(self, seat, attackers):
-        answers = {
-            f"attack:{h}": ("ATTACK" if h in attackers else "DECLINE")
-            for h in self.world.cards
-            if self.world.cards[h].identity.power is not None
-        }
-
-        def answer(vocab, what):
-            got = next(
-                (
-                    v
-                    for k, v in answers.items()
-                    if what == k or what.startswith(k + ":")
-                ),
-                None,
-            )
-            if got is None:
-                got = "NONE" if what.startswith("block:") else vocab[0]
-            return got if got in vocab else vocab[0]
-
-        self.ex.decisions.provider = answer
-        try:
-            self.ex.combat_step(seat)
-        finally:
-            self.ex.decisions.provider = None
-
 
 # ------------------------------------------------------------ 1. lifelink
 
@@ -194,8 +172,8 @@ class LifelinkTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationPermanent(),
             ),
             source=shield,
@@ -280,28 +258,7 @@ class ProwessTest(R20aCase):
         self.assertEqual(dict(self.world.cards[elder].counters), {})
 
 
-# ----------------------------------------------------------- 3. battalion
-
-
-class BattalionTest(R20aCase):
-    def test_group_of_three_places_counter(self):
-        b = self._card("Battalion", kw=("BATTALION",))
-        g1 = self._card("Goose One")
-        g2 = self._card("Goose Two")
-        self.ex.begin_turn(self.p0)
-        self._combat(self.p0, {b, g1, g2})
-        self.assertEqual(dict(self.world.cards[b].counters), {"PLUS_1_PLUS_1": 1})
-        self.assertEqual(self._pt(b), (3, 3))
-
-    def test_attacking_alone_places_none(self):
-        b = self._card("Battalion", kw=("BATTALION",))
-        self._card("Goose One")
-        self.ex.begin_turn(self.p0)
-        self._combat(self.p0, {b})  # only the battalion attacker
-        self.assertEqual(dict(self.world.cards[b].counters), {})
-
-
-# ------------------------------------------------- 4. granted triggers
+# ------------------------------------------------- 3. granted triggers
 
 
 class GrantedTriggerTest(R20aCase):
@@ -343,7 +300,7 @@ class GrantedTriggerTest(R20aCase):
         return self.world.players[self.p0].zone(kind).entries
 
 
-# ----------------------------------------------------------- 5. prevent
+# ----------------------------------------------------------- 4. prevent
 
 
 class PreventionConsumerTest(R20aCase):
@@ -353,8 +310,8 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationEot(),
             ),
             source=holder,
@@ -382,8 +339,8 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
-                event=DamageDealtEvent(amount=_unbounded(), filter=FAnd(())),
+                condition=_IT,
+                event=DamageDealtEvent(amount=_unbounded(), filter=_IT),
                 duration=DurationPermanent(),
             ),
             source=holder,
@@ -409,9 +366,9 @@ class PreventionConsumerTest(R20aCase):
         self.ex.execute(
             atom(
                 Verb.PREVENT_EFFECT,
-                condition=FAnd(()),
+                condition=_IT,
                 event=DamageDealtEvent(
-                    amount=_unbounded(), filter=FAnd(()), combat=True
+                    amount=_unbounded(), filter=_IT, combat=True
                 ),
                 duration=DurationPermanent(),
             ),

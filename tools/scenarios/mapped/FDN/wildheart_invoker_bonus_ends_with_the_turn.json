@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "name": "wildheart_invoker_bonus_ends_with_the_turn",
+ "notes": "M8 mapper. Printed: '{8}: Target creature gets +5/+5 and gains trample until end of turn.' Seat 0 pumps seat 1's 2/2 Bear (7/7 that turn); on the next turn it is a 2/2 again.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "invoker", "real": "Wildheart Invoker", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 8}},
+ "steps": [
+  {"op": "activate", "key": "invoker", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}

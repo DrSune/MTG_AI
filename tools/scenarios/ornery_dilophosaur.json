@@ -32,7 +32,7 @@
    "d": 4
   }
  },
- "notes": "Printed: attacks WITH A 5/5 under my control (ONE creature power>=4) -> +2/+2 EoT -> 4/4, 4 damage. If the compiled CONTROLLER_COUNT_GE threshold (count=4) gates instead, the buff and the life line fail -> suspect.",
+ "notes": "Printed: attacks WITH A 5/5 under my control (ONE creature power>=4) -> +2/+2 EoT -> 4/4, 4 damage. If the compiled comparison over number_you_control(...) threshold (count=4) gates instead, the buff and the life line fail -> suspect.",
  "steps": [
   {
    "attack": {

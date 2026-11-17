@@ -136,24 +136,6 @@
             "inner_filter": null
            },
            {
-            "tag": "FAtom",
-            "pred": {
-             "tag": "FAtomPred",
-             "name": "CMC_LE"
-            },
-            "string_value": null,
-            "color": null,
-            "colors": [],
-            "count": {
-             "tag": "QConst",
-             "value": 2
-            },
-            "counter_kind": null,
-            "keyword": null,
-            "who": null,
-            "inner_filter": null
-           },
-           {
             "tag": "FNot",
             "inner": {
              "tag": "FAtom",
@@ -169,6 +151,31 @@
              "keyword": null,
              "who": null,
              "inner_filter": null
+            }
+           },
+           {
+            "tag": "FNot",
+            "inner": {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "QTY_GE"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": {
+              "tag": "QConst",
+              "value": 3
+             },
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "MANA_VALUE"
+             }
             }
            }
           ]
@@ -218,7 +225,7 @@
  "mapping": {
   "author": "claude-mapper-m4",
   "date": "2026-11-17",
-  "draft_py": "# FDN Sun-Blessed Healer: \"When this creature enters, if it was kicked, return target nonland\n# permanent card with mana value 2 or less from your graveyard to the battlefield.\"\n# ZNR Nullpriest of Oblivion's B6-etb-kicked-trigger (verified) with the target narrowed to a\n# nonland permanent card (Into the Roil's filter; IS_PERMANENT is a type-line test off the\n# battlefield) of mana value 2 or less (CMC_LE).\nreanimate = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=FAtom(pred=FAtomPred.WAS_KICKED),\n    effect=A(Verb.MOVE_ZONE, {\n        'cards': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.TARGET,\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.IS_PERMANENT),\n                    FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                    FAtom(pred=FAtomPred.CMC_LE, count=QConst(value=2)),\n                ),\n            ),\n            zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n        ),\n        'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n    }),\n)\n# compiled: [0] the kicker head, [1] the creature carrier\nabilities = [compiled[0], reanimate, compiled[1]]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.LIFELINK),\n]\nabilities = [\n    # [0]\n    KickerAbility(\n        cost=Cost(\n            parts=(\n                CostManaColor(color='W', amount=QConst(value=1)),\n                CostManaGeneric(amount=QConst(value=1)),\n            ),\n        ),\n    ),\n    # [1]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=FAtom(pred=FAtomPred.WAS_KICKED),\n        effect=A(Verb.MOVE_ZONE, {\n            'cards': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FAnd(\n                    children=(\n                        FAtom(pred=FAtomPred.IS_PERMANENT),\n                        FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        FNot(\n                            inner=FAtom(\n                                pred=FAtomPred.QTY_GE,\n                                count=QConst(value=3),\n                                field=QPropField.MANA_VALUE,\n                            ),\n                        ),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n            ),\n            'destination': Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),\n        }),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Kicker {1}{W}",
@@ -236,7 +243,7 @@
   "g0_warnings": [
    "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['KICKER']"
   ],
-  "notes": "Nullpriest of Oblivion's B6-etb-kicked-trigger (verified) narrowed to a nonland permanent card (IS_PERMANENT is a type-line test off the battlefield) of mana value 2 or less. Packs: tools/scenarios/mapped/FDN/sun_blessed_healer_kicked_offers_cheap_nonland_permanents.json, tools/scenarios/mapped/FDN/sun_blessed_healer_kicked_returns_the_chosen_card.json."
+  "notes": "Nullpriest of Oblivion's B6-etb-kicked-trigger (verified) narrowed to a nonland permanent card (IS_PERMANENT is a type-line test off the battlefield) of mana value 2 or less. Packs: tools/scenarios/mapped/FDN/sun_blessed_healer_kicked_offers_cheap_nonland_permanents.json, tools/scenarios/mapped/FDN/sun_blessed_healer_kicked_returns_the_chosen_card.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "b4f9f57524c19a90eefbcf8e1323769ac5825f5c66337e797eccd63434eb4be9"

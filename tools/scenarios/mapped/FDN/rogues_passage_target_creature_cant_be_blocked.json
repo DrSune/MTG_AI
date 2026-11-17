@@ -1,0 +1,25 @@
+{
+ "set": "FDN",
+ "name": "rogues_passage_target_creature_cant_be_blocked",
+ "notes": "M8 mapper. Printed: '{4}, {T}: Target creature can't be blocked this turn.' Seat 0 pays {4} and taps Rogue's Passage targeting its Runner, then attacks with the Runner and a Scout. Seat 1's Wall may block only the Scout (its block ask offers the Scout and NONE, never the Runner); it blocks the Scout and the Runner's 2 damage goes through.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "passage", "real": "Rogue's Passage", "zone": "battlefield", "controller": 0},
+  {"key": "runner", "name": "Runner", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "scout", "name": "Scout", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Opp Wall", "type": "Creature — Wall", "power": "0", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 4}},
+ "steps": [
+  {"op": "activate", "key": "passage", "idx": 1, "seat": 0, "targets": ["runner"]},
+  {"op": "combat", "seat": 0, "attack": {"runner": true, "scout": true}, "block": {"wall": "scout"}}
+ ],
+ "expect": {
+  "tapped": {"passage": true},
+  "attackers": {"runner": true, "scout": true},
+  "block_asks": {"wall": "<scout>,NONE"},
+  "blocked": {"scout": ["wall"], "runner": []},
+  "life": {"0": 20, "1": 18},
+  "damage": {"wall": 2}
+ }
+}

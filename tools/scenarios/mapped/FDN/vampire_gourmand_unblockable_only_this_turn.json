@@ -1,0 +1,24 @@
+{
+ "set": "FDN",
+ "name": "vampire_gourmand_unblockable_only_this_turn",
+ "notes": "M6 mapper. Printed: 'Whenever this creature attacks, you may sacrifice another creature. If you do, draw a card and this creature can't be blocked this turn.' Turn 1: the Gourmand attacks, seat 0 sacrifices its Bear: it draws a card and seat 1's Bear is never asked to block; seat 1 takes 2. Turn 3 (seat 0 draws in its draw step): the Gourmand attacks again and seat 0 declines the sacrifice: no card from it (seat 0 holds 2), and seat 1's Bear may block it, and does (the turn-1 'can't be blocked' has ended).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gourmand", "real": "Vampire Gourmand", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"gourmand": true, "bear": false}, "may": {"gourmand": true}},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"gourmand": true}, "may": {"gourmand": false}, "block": {"obear": "gourmand"}}
+ ],
+ "expect": {
+  "attackers": {"gourmand": true},
+  "blocked": {"gourmand": ["obear"]},
+  "zone": {"bear": "graveyard", "gourmand": "graveyard", "obear": "graveyard"},
+  "hand": {"0": 2},
+  "life": {"0": 20, "1": 18}
+ }
+}

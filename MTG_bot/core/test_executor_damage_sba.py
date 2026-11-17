@@ -491,11 +491,11 @@ class TestDiedThisTurnCensus(ExecutorCase):
         self.assertEqual(self.count(_died_census()), 0)
 
     def test_a_conjunct_the_death_row_cannot_judge_raises(self):
-        from MTG_bot.core.ability_tree import FAtom, FAtomPred
+        from MTG_bot.core.ability_tree import QPropField, at_least
 
         self.destroy(self.alpha)
         with self.assertRaises(NotImplementedError):
-            self.count(_died_census(FAtom(FAtomPred.POWER_GE, count=QConst(2))))
+            self.count(_died_census(at_least(2, field=QPropField.POWER)))
 
 
 if __name__ == "__main__":

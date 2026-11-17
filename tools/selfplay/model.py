@@ -179,8 +179,13 @@ def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
         emb.weight.data[: old.shape[0]] = old
         emb.weight.data[old.shape[0]:] = old[FT.UNK]
         net.name_emb = emb
-    # new component types (CardTable.refresh, extend(add_tokens=True)) start at zero: a
-    # neutral term in the card's component mean until training gives it a meaning
+    # new component types (CardTable.refresh, extend(add_tokens=True)) start at zero. That is no
+    # neutral term: a card's component vector is the mean over all its tokens, so a row holding
+    # k new tokens of n is scaled by (n - k) / n until training moves them (a refresh of r28's
+    # v2: 46 rows 1.5-4.5% shorter). Leaving them out of the count until trained would need a
+    # per-token state saved with the network and a moment they start to count, which changes the
+    # function again; the scale happens once, at an explicit, logged refresh or extension (the
+    # bug hunt of 2026-11-17)
     old_ir = net.ir_emb.weight.data
     n_ir = len(table.ir_vocab)
     if n_ir > old_ir.shape[0]:

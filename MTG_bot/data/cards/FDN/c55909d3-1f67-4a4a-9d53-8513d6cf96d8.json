@@ -1,0 +1,240 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "c55909d3-1f67-4a4a-9d53-8513d6cf96d8",
+ "name": "Stromkirk Noble",
+ "text_sha": "2564c5704c3c7cbc81a96b4bcd95f5e73f164c40fa98c875f85b4e8b93d8d92c",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "IS_SOURCE"
+         },
+         "string_value": null,
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "DeclareBlockersEvent",
+         "filter": {
+          "tag": "FAnd",
+          "children": [
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "SUBTYPE_EQ"
+            },
+            "string_value": "Human",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          ]
+         },
+         "blocked": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "DamageDealtEvent",
+     "amount": {
+      "tag": "QUnbounded"
+     },
+     "filter": {
+      "tag": "FNot",
+      "inner": {
+       "tag": "FAtom",
+       "pred": {
+        "tag": "FAtomPred",
+        "name": "IS_PERMANENT"
+       },
+       "string_value": null,
+       "color": null,
+       "colors": [],
+       "count": null,
+       "counter_kind": null,
+       "keyword": null,
+       "who": null,
+       "inner_filter": null
+      }
+     },
+     "source": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_SOURCE"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "combat": true
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PUT_COUNTER"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "counter_kind",
+        {
+         "tag": "CounterKind",
+         "name": "PLUS_1_PLUS_1"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QConst",
+          "value": 1
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "CHOOSE"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Stromkirk Noble (FDN), a 1/1 Vampire Noble for {R}.\n# \"This creature can't be blocked by Humans.\n#  Whenever this creature deals combat damage to a player, put a +1/+1 counter on it.\"\n# [0] A static prevention of the block declaration, the shape of every \"this creature can't be\n#     blocked\" carrier (DOM Relic Runner's static, M21 Ghostly Pilferer's activation): PREVENT_\n#     EFFECT with condition IS_SOURCE over DeclareBlockersEvent(blocked=IS_SOURCE). The blocker\n#     slot `filter` names the Humans (the tribal noun: SUBTYPE_EQ 'Human' with TYPE_EQ\n#     'Creature'), where \"can't be blocked\" alone has the empty FAnd: only a Human blocker is\n#     vetoed (replacements._pair_vetoed reads `filter` over the blocker, `blocked` over the\n#     attacker).\n# [1] M21 Jeskai Elder's verified \"Whenever this creature deals combat damage to a player\"\n#     (DamageDealtEvent from IS_SOURCE to a non-permanent, combat); \"put a +1/+1 counter on it\",\n#     \"it\" being this creature: M21 Lorescale Coatl's verified counter on the source.\ncant_be_blocked = StaticAbility(\n    effect=A(Verb.PREVENT_EFFECT, {\n        'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n        'event': DeclareBlockersEvent(\n            filter=FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Human'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            blocked=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n    }),\n)\ncombat_damage = TriggeredAbility(\n    event=DamageDealtEvent(\n        amount=QUnbounded(),\n        filter=FNot(inner=FAtom(pred=FAtomPred.IS_PERMANENT)),\n        source=FAtom(pred=FAtomPred.IS_SOURCE),\n        combat=True,\n    ),\n    condition=None,\n    effect=A(Verb.PUT_COUNTER, {\n        'count': QConst(value=1),\n        'counter_kind': CounterKind.PLUS_1_PLUS_1,\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n    }),\n)\nabilities = [cant_be_blocked, combat_damage, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "This creature can't be blocked by Humans.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Whenever this creature deals combat damage to a player, put a +1/+1 counter on it.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "FDN Juggernaut's (M7) 'can't be blocked by Walls' shape with Humans; M21 Jeskai Elder's combat-damage trigger with a counter on the source. Pack: tools/scenarios/mapped/FDN/stromkirk_noble_humans_cannot_block_it.json."
+ },
+ "probe": {
+  "sha": "e39a9c93bb7849f1ac8a3da960505fb6109a834bfc5021810c90962d5b1bc162"
+ }
+}

@@ -1,0 +1,124 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "d599a38c-7719-443e-bb59-55bd43a8fee6",
+ "name": "Confiscate",
+ "text_sha": "0be3f2b1e421f3ae4fa6d1472608e276698dd1d77f5563f995ab936e863c3047",
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "ENCHANT"
+    },
+    "params": [
+     {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "IS_PERMANENT"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     }
+    ]
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    },
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "GAIN_CONTROL"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "controller",
+        {
+         "tag": "ControllerRef",
+         "name": "YOU"
+        }
+       ],
+       [
+        "target",
+        {
+         "tag": "Selector",
+         "count": {
+          "tag": "QUnbounded"
+         },
+         "mode": {
+          "tag": "SelectorMode",
+          "name": "ALL"
+         },
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "IS_ATTACHED_TO_SOURCE"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": null,
+          "inner_filter": null
+         },
+         "zones": [
+          {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Confiscate (FDN), an Aura for {4}{U}{U}.\n# \"Enchant permanent\"                     compiled (B1-enchant-permanent: ENCHANT IS_PERMANENT), kept\n# \"You control enchanted permanent.\"\n# M21 Enthralling Hold's verified B4-gain-control-enchanted (\"You control enchanted creature.\"):\n#   GAIN_CONTROL for YOU of what the Aura enchants, with no duration, on the Aura's spell carrier;\n#   the engine anchors that one row to the Aura (verbs._v_gain_control: it ends when the Aura\n#   leaves, and follows the Aura's controller), and G0's carrier lint admits exactly this effect\n#   (lints._control_aura). \"Enchanted permanent\" is M21 Faith's Fetters' verified IS_ATTACHED_TO_\n#   SOURCE alone (\"Enchanted creature\" adds TYPE_EQ 'Creature').\nabilities = [\n    SpellAbility(\n        kind=SpellKind.ENCHANTMENT,\n        effect=A(Verb.GAIN_CONTROL, {\n            'controller': ControllerRef.YOU,\n            'target': Selector(\n                count=QUnbounded(),\n                mode=SelectorMode.ALL,\n                filter=FAtom(pred=FAtomPred.IS_ATTACHED_TO_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Enchant permanent",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "You control enchanted permanent.",
+    "ir": "abilities[0].effect (GAIN_CONTROL of the enchanted permanent, the Aura's carrier effect as M21 Enthralling Hold's)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Enthralling Hold's verified carrier form of 'You control enchanted creature.' (GAIN_CONTROL with no duration, anchored to the Aura by verbs._v_gain_control; the carrier lint admits it) over the enchanted permanent (M21 Faith's Fetters' IS_ATTACHED_TO_SOURCE). The G1 probe never shows a control change (its snapshot reads the world's zone controller, not the control overlay), so the packs carry it. Packs: tools/scenarios/mapped/FDN/confiscate_takes_a_creature_while_attached.json, tools/scenarios/mapped/FDN/confiscate_takes_a_noncreature_permanent.json, tools/scenarios/mapped/FDN/confiscate_takes_a_noncreature_permanent_until_it_leaves.json."
+ },
+ "probe": {
+  "sha": "76506b1f2c72745e50ad2a125ed34c5f0c61ae0963af3583638c77e035e2b384"
+ }
+}

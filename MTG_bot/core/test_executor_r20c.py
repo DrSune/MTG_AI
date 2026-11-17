@@ -8,13 +8,13 @@
 * Hobblefiend (selectors.py): a CHOOSE-mode selector filtered on IS_SOURCE is the effect's own
   self-designation (CR 602.2c); the cost-side TARGET binding sharing the role name does not
   hijack it.
-* Malefic Scythe (binding.py, quantity.py): the leave-detach sweep snapshots the departing
-  host's auras into ``executor.detach_lki`` before pruning, and IS_ATTACHED_TO_SOURCE reads that
-  snapshot (CR 400.7) only once the judged host has left the battlefield; on the battlefield the
-  live table decides.
-* Speaker of the Heavens (quantity.py): LIFE_LEAD_OVER_START_GE reads current life minus the
-  construction-time ``starting_life`` snapshot, not a LIFE_GAINED journal sum: a non-damage life
-  loss leaves no journal row.
+* Malefic Scythe (quantity.py): a departing host's last known information holds what was
+  attached to it (``LastKnown.attached``), and IS_ATTACHED_TO_SOURCE reads it on the host's own
+  departure (CR 603.10a); on the battlefield, and for a host that came back, the live table
+  decides (CR 400.7).
+* Speaker of the Heavens (quantity.py): "at least 7 life more than your starting life total"
+  compares current life with the construction-time ``starting_life`` snapshot plus 7 (QProp
+  STARTING_LIFE), not a LIFE_GAINED journal sum: a non-damage life loss leaves no journal row.
 """
 
 import unittest
@@ -40,6 +40,8 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
 )
+from MTG_bot.core.compiler.conditions import life_over_start
+from MTG_bot.core.executor.events import KIND_ZONE_CHANGE
 from MTG_bot.core.executor.legality import (
     ability_playable,
     activate,
@@ -59,6 +61,7 @@ from MTG_bot.core.test_executor_binding import (
     IS_SOURCE,
     UNIV,
     card_id,
+    enter,
     record_of,
 )
 from MTG_bot.core.test_executor_legality import LegalityCase, ability, cost
@@ -287,8 +290,10 @@ class TestSelfRefSelectorRole(LegalityCase):
 
 
 class TestLeaveDetachLKI(LegalityCase):
-    """Malefic Scythe: the departure snapshot answers IS_ATTACHED_TO_SOURCE after the live table
-    was pruned, and never while the judged host is still on the battlefield."""
+    """Malefic Scythe: what was attached to a host as it left the battlefield is its last known
+    information (``LastKnown.attached``, captured before the binder's leave-detach prunes the
+    live table). It answers IS_ATTACHED_TO_SOURCE on the host's own departure, never while the
+    host is on the battlefield, and never for a host that came back: a new object (CR 400.7)."""
 
     def setUp(self):
         super().setUp()
@@ -303,36 +308,58 @@ class TestLeaveDetachLKI(LegalityCase):
         # The filter's subject is the HOST creature; ctx.source is the aura.
         return ctx_for(self.ex, source=self.scythe, controller=self.p0)
 
-    def test_lki_snapshot_answers_after_host_leaves(self):
-        self.world.move_to_zone(self.alpha, self.p0, ZONE_GRAVEYARD)
-        self.ex.binder.detach(self.alpha)  # the sweep's leave-detach entry point
-        self.assertIn(self.scythe, self.ex.detach_lki[self.alpha])
-        self.assertTrue(
-            eval_filter(FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), self.alpha, self.ctx())
+    def move(self, card, kind):
+        self.ex.apply_effect(
+            enter(Zone(kind, ControllerRef.OWNER)),
+            source=card,
+            controller=self.p0,
+            bindings={"cards": card},
         )
 
+    def on_departure(self, host):
+        """IS_ATTACHED_TO_SOURCE of ``host``, judged on its last departure from the battlefield."""
+        ctx = self.ctx()
+        ctx.event = [
+            e for e in self.ex.journal.events
+            if e.kind == KIND_ZONE_CHANGE and e.subject == host
+            and e.zone_move[0] == ZONE_BATTLEFIELD
+        ][-1]
+        return eval_filter(FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), host, ctx)
+
+    def test_lki_snapshot_answers_after_host_leaves(self):
+        self.move(self.alpha, ZoneKind.GRAVEYARD)
+        self.assertNotIn(self.scythe, self.ex.attachments)  # the live table is pruned
+        self.assertEqual(self.ex.departed_lki[self.alpha].attached, (self.scythe,))
+        self.assertTrue(self.on_departure(self.alpha))
+
     def test_live_table_governs_while_host_is_on_battlefield(self):
-        # Artificial prune (host never left): the LKI row exists but must
-        # NOT answer for a battlefield object — the live table says no.
+        # Artificial prune (the host never left): no snapshot answers for a battlefield object.
         self.ex.binder.detach(self.alpha)
-        self.assertIn(self.scythe, self.ex.detach_lki[self.alpha])
         self.assertFalse(
             eval_filter(FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), self.alpha, self.ctx())
         )
 
     def test_unrelated_host_still_false_after_snapshot(self):
-        self.world.move_to_zone(self.alpha, self.p0, ZONE_GRAVEYARD)
-        self.ex.binder.detach(self.alpha)
+        self.move(self.alpha, ZoneKind.GRAVEYARD)
         self.assertFalse(
             eval_filter(FAtom(FAtomPred.IS_ATTACHED_TO_SOURCE), self.beta, self.ctx())
         )
+
+    def test_a_host_that_came_back_is_a_new_object(self):
+        # Equipped as it was bounced, cast again, then dead unequipped: nothing was attached as
+        # it died (tools/scenarios/malefic_scythe_creature_once_equipped_dies_unequipped_later.json).
+        self.move(self.alpha, ZoneKind.HAND)
+        self.move(self.alpha, ZoneKind.BATTLEFIELD)
+        self.move(self.alpha, ZoneKind.GRAVEYARD)
+        self.assertEqual(self.ex.departed_lki[self.alpha].attached, ())
+        self.assertFalse(self.on_departure(self.alpha))
 
 
 class TestLifeLeadOverStart(LegalityCase):
     """Speaker of the Heavens: the gate reads current-minus-start from the ledger, never a
     LIFE_GAINED journal sum."""
 
-    LEEAD = FAtom(FAtomPred.LIFE_LEAD_OVER_START_GE, count=QConst(7))
+    LEEAD = life_over_start(7)  # "at least 7 life more than your starting life total"
 
     def setUp(self):
         super().setUp()

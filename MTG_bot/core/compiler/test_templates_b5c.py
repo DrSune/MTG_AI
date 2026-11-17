@@ -57,9 +57,8 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     OptionalEffect,
     PtDirection,
-    QAgg,
-    QBinOp,
     QAtMost,
+    QBinOp,
     QConst,
     QCount,
     QProp,
@@ -76,7 +75,11 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    at_least,
+    at_most,
     canonical_json,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -1094,12 +1097,9 @@ class TestB5cIrStructure(unittest.TestCase):
             self.assertIs(outcome.keyword, expected_kw, f"{tid}: wrong keyword")
 
     def test_remind_protection_param(self) -> None:
-        """protection from multicolored carries a COLOR_COUNT_GE 2 param."""
+        """protection from multicolored carries the "two or more colours" comparison."""
         outcome = _as_keyword(_match_outcome("B5c-remind-vigilance-protection"))
-        self.assertEqual(len(outcome.params), 1)
-        param = _as_fatom(outcome.params[0])
-        self.assertIs(param.pred, FAtomPred.COLOR_COUNT_GE)
-        self.assertEqual(param.count, QConst(2))
+        self.assertEqual(outcome.params, (at_least(2, field=QPropField.COLOR),))
 
     def test_remind_plain_keywords_no_params(self) -> None:
         for tid in (
@@ -1152,10 +1152,10 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertEqual(len(children), 2)
         # FAnd children are sorted by canonical_json at construction.
         self.assertEqual(list(children), sorted(children, key=canonical_json))
-        by_pred = {c.pred: c for c in children}
-        self.assertEqual(len(by_pred), 2)
-        self.assertIsInstance(by_pred[FAtomPred.CMC_LE].count, QX)
-        self.assertEqual(by_pred[FAtomPred.COLOR_COUNT_GE].count, QConst(1))
+        self.assertEqual(
+            set(children),
+            {at_most(QX(), field=QPropField.MANA_VALUE), at_least(1, field=QPropField.COLOR)},
+        )
         self.assertIs(sel.zones[0].kind, ZoneKind.BATTLEFIELD)
         self.assertIs(sel.zones[0].controller, ControllerRef.ANY)
 
@@ -1228,11 +1228,8 @@ class TestB5cIrStructure(unittest.TestCase):
         self.assertIs(atom.verb, Verb.MODIFY_PT)
         power = _pairs(atom)["power"]
         self.assertIs(power.direction, PtDirection.DECREASE)
-        mag = power.magnitude
-        self.assertIsInstance(mag, QProp)
-        self.assertEqual(mag.referent, "controller")
-        self.assertIs(mag.field, QPropField.CARDS_IN_GRAVEYARD)
-        self.assertIs(mag.agg, QAgg.FIRST)
+        # "the number of cards in your graveyard": a count of the zone (divergence D28)
+        self.assertEqual(power.magnitude, number_in(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)))
 
     def test_loyalty_dmg_power(self) -> None:
         atom = _as_atom(_activated_effect("B5c-loyalty-dmg-power"))
@@ -1659,19 +1656,17 @@ class TestB5cRound7BTopUps(unittest.TestCase):
         self.assertEqual(len(atom.args.pairs), 0)
 
     def test_then_if_lands_untap(self) -> None:
-        """Fabled Passage: Conditional(CONTROLLER_COUNT_GE(Land,4)) ->
+        """Fabled Passage: Conditional(you control four or more lands) ->
         UNTAP(referent='result': the previous sentence is a SEARCH with no
         TARGET selector, so 'that land' binds the result register)."""
         cond = _as_effect(_match_outcome("B5c-then-if-lands-untap")).effect
         assert isinstance(cond, Conditional)
         pred = cond.pred
         assert isinstance(pred, FAtom)
-        self.assertIs(pred.pred, FAtomPred.CONTROLLER_COUNT_GE)
-        self.assertEqual(pred.count, QConst(4))
-        inner = pred.inner_filter
-        assert isinstance(inner, FAtom)
-        self.assertIs(inner.pred, FAtomPred.TYPE_EQ)
-        self.assertEqual(inner.string_value, "Land")
+        self.assertEqual(
+            pred,
+            at_least(4, quantity=number_you_control(FAtom(FAtomPred.TYPE_EQ, string_value="Land"))),
+        )
         self.assertIsNone(cond.else_effect)
         atom = _as_atom(cond.then_effect)
         self.assertIs(atom.verb, Verb.UNTAP)
@@ -1780,16 +1775,14 @@ class TestB5cRound9B(unittest.TestCase):
         self.assertEqual(
             list(dealer.children), sorted(dealer.children, key=canonical_json)
         )
-        by_pred = {c.pred: c for c in dealer.children}
-        self.assertEqual(len(by_pred), 3)
-        type_a = by_pred[FAtomPred.TYPE_EQ]
-        controller_a = by_pred[FAtomPred.CONTROLLER_IS]
-        power_a = by_pred[FAtomPred.POWER_LE]
-        assert isinstance(type_a, FAtom) and isinstance(controller_a, FAtom)
-        assert isinstance(power_a, FAtom)
-        self.assertEqual(type_a.string_value, "Creature")
-        self.assertIs(controller_a.who, ControllerRef.YOU)
-        self.assertEqual(power_a.count, QConst(2))
+        self.assertEqual(
+            set(dealer.children),
+            {
+                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                at_most(2, field=QPropField.POWER),  # "power 2 or less"
+            },
+        )
         draw = _as_atom(dt.effect)
         self.assertIs(draw.verb, Verb.DRAW)
         self.assertEqual(

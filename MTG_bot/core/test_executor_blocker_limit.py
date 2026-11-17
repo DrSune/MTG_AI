@@ -26,6 +26,7 @@ from MTG_bot.core.ability_tree import (
     KeywordAbility,
     QAtLeast,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     StaticAbility,
@@ -33,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
     from_dict,
     to_dict,
 )
@@ -46,7 +48,7 @@ SELF = Selector(QConst(1), SelectorMode.CHOOSE, IS_SOURCE, zones=(Zone(ZoneKind.
 BIG_ONES = FAnd(
     (
         FAtom(FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-        FAtom(FAtomPred.POWER_GE, count=QConst(4)),
+        at_least(4, field=QPropField.POWER),
         FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
     )
 )
@@ -252,7 +254,6 @@ class TestOverAClass(LimitCase):
         self.wall_b = self.synth("Wall B", 0, 7, self.p1)
         self.wall_c = self.synth("Wall C", 0, 7, self.p1)
         self.begin()
-        self.answers[f"order:{self.cub}"] = "0"
         self.fight(wall_a="troll", wall_b="troll", wall_c="cub")
         self.assertEqual(self.vocab_for(self.wall_b), (str(self.cub), "NONE"))
         blocked = self.blocked_map()

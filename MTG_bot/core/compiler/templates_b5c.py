@@ -21,7 +21,7 @@ Conventions:
   multiple keywords are present the primary one is kept and the rest are
   dropped (lossy).
 - ``Vigilance, protection from multicolored`` → ``Keyword.PROTECTION``
-  with filter ``FAtom(COLOR_COUNT_GE, count=QConst(2))``.
+  with the filter "two or more colours" (the comparison over ``QPropField.COLOR``, CR 105.4).
 - Loyalty prefix parsed via ``_loyalty_delta(m, 1)``; the U+2212 minus
   sign in loyalty prefixes is distinguished from ASCII hyphen in P/T.
 - ``X`` in effects is ``QX()``; ``X`` in cost-less contexts is not
@@ -93,6 +93,10 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    at_least,
+    at_most,
+    number_in,
+    number_you_control,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -478,7 +482,7 @@ def _build_remind_vigilance_protection(m: re.Match[str]) -> SentenceOutcome:
     # Lossy: vigilance dropped; protection from multicolored encoded.
     return KeywordOutcome(
         keyword=Keyword.PROTECTION,
-        params=(FAtom(pred=FAtomPred.COLOR_COUNT_GE, count=QConst(2)),),
+        params=(at_least(2, field=QPropField.COLOR),),
     )
 
 
@@ -1041,11 +1045,7 @@ def _build_loyalty_extra_turns(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_loyalty_pt_qprop(m: re.Match[str]) -> SentenceOutcome:
-    x_amount = QProp(
-        referent="controller",
-        field=QPropField.CARDS_IN_GRAVEYARD,
-        agg=QAgg.FIRST,
-    )
+    x_amount = number_in(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))  # the cards in your graveyard
     atom = Atom(
         verb=Verb.MODIFY_PT,
         args=AtomArgs(
@@ -1197,8 +1197,8 @@ def _build_loyalty_exile_color_cmc_ux(m: re.Match[str]) -> SentenceOutcome:
                         SelectorMode.ALL,
                         FAnd(
                             (
-                                FAtom(pred=FAtomPred.CMC_LE, count=QX()),
-                                FAtom(pred=FAtomPred.COLOR_COUNT_GE, count=QConst(1)),
+                                at_most(QX(), field=QPropField.MANA_VALUE),
+                                at_least(1, field=QPropField.COLOR),
                             )
                         ),
                         zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
@@ -2129,12 +2129,11 @@ def _build_flip_coin_pay_life(m: re.Match[str]) -> SentenceOutcome:
 def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
     """``Then if you control four or more lands, untap that land.`` (Fabled
     Passage) — "Then " continuation merged after the search+shuffle
-    effect; Conditional(CONTROLLER_COUNT_GE(Land, QConst(4)), UNTAP).
+    effect; Conditional(you control four or more lands, UNTAP).
     "That land" is ``referent="result"``, not ``"target"``: the previous
     sentence is a SEARCH (no TARGET selector exists), so the only
     antecedent is the card it searched and moved. "four or more lands" is
-    a CONTROLLER_COUNT_GE over lands with the you-scoped board reading (no
-    ``who`` role on that predicate)."""
+    the comparison over the number of lands you control."""
     untap = Atom(
         verb=Verb.UNTAP,
         args=AtomArgs(
@@ -2154,10 +2153,8 @@ def _build_then_if_lands_untap(m: re.Match[str]) -> SentenceOutcome:
     )
     return EffectOutcome(
         effect=Conditional(
-            pred=FAtom(
-                pred=FAtomPred.CONTROLLER_COUNT_GE,
-                inner_filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"),
-                count=QConst(4),
+            pred=at_least(
+                4, quantity=number_you_control(FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land"))
             ),
             then_effect=untap,
         )
@@ -2399,14 +2396,14 @@ def _build_subira_delayed_draw(m: re.Match[str]) -> SentenceOutcome:
     DelayedTrigger with DurationEot (without a lifetime it would just be a
     static TriggeredAbility): event = DamageDealtEvent(amount=QUnbounded(),
     any amount; combat=True; source = FAnd(TYPE_EQ Creature, CONTROLLER_IS
-    YOU, POWER_LE N); filter = templates_b2b's ``_to_a_player``, a player,
+    YOU, power N or less); filter = templates_b2b's ``_to_a_player``, a player,
     not a permanent, CR 120.1), effect = the DRAW atom. "Discard your
     hand" is CostDiscard over all cards in your hand."""
     dealer = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            FAtom(pred=FAtomPred.POWER_LE, count=QConst(int(m.group("p")))),
+            at_most(int(m.group("p")), field=QPropField.POWER),
         )
     )
     cost = Cost(

@@ -216,7 +216,7 @@
      "tag": "FAtom",
      "pred": {
       "tag": "FAtomPred",
-      "name": "ZONE_COUNT_GE"
+      "name": "QTY_GE"
      },
      "string_value": null,
      "color": null,
@@ -227,23 +227,36 @@
      },
      "counter_kind": null,
      "keyword": null,
-     "who": {
-      "tag": "ControllerRef",
-      "name": "YOU"
-     },
-     "inner_filter": {
-      "tag": "FAnd",
-      "children": []
-     },
-     "zone": {
-      "tag": "Zone",
-      "kind": {
-       "tag": "ZoneKind",
-       "name": "GRAVEYARD"
-      },
-      "controller": {
-       "tag": "ControllerRef",
-       "name": "YOU"
+     "who": null,
+     "inner_filter": null,
+     "quantity": {
+      "tag": "QCount",
+      "selector": {
+       "tag": "Selector",
+       "count": {
+        "tag": "QUnbounded"
+       },
+       "mode": {
+        "tag": "SelectorMode",
+        "name": "ALL"
+       },
+       "filter": {
+        "tag": "FAnd",
+        "children": []
+       },
+       "zones": [
+        {
+         "tag": "Zone",
+         "kind": {
+          "tag": "ZoneKind",
+          "name": "GRAVEYARD"
+         },
+         "controller": {
+          "tag": "ControllerRef",
+          "name": "YOU"
+         }
+        }
+       ]
       }
      }
     }
@@ -260,7 +273,7 @@
  "mapping": {
   "author": "claude-mapper-m3",
   "date": "2026-11-17",
-  "draft_py": "# FDN Billowing Shriekmass: \"Flying. When this creature enters, mill three cards. Threshold —\n# This creature gets +2/+1 as long as there are seven or more cards in your graveyard.\"\n# Enters: M21 Carrion Grub's verified \"When this creature enters, mill four cards.\"\n# (B2a-carrion-grub) with three. Threshold (an ability word, no rules meaning, CR 207.2c): M20\n# Elvish Reclaimer's verified conditional static (the \"as long as\" is StaticAbility.condition,\n# D22) with FDN Crypt Feaster's verified threshold test, ZONE_COUNT_GE 7 over your graveyard\n# (any card), and the self pump +2/+1.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=A(Verb.MOVE_ZONE, {\n        'amount': QConst(value=3),\n        'controller': ControllerRef.YOU,\n        'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n        'from': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n        'journal_kind': 'MILL',\n        'pop_order': 'TOP',\n    }),\n)\nthreshold = StaticAbility(\n    effect=A(Verb.MODIFY_PT, {\n        'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        'target': Selector(\n            count=QConst(value=1),\n            mode=SelectorMode.CHOOSE,\n            filter=FAtom(pred=FAtomPred.IS_SOURCE),\n            zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n        ),\n        'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n    }),\n    condition=FAtom(\n        pred=FAtomPred.ZONE_COUNT_GE,\n        count=QConst(value=7),\n        who=ControllerRef.YOU,\n        inner_filter=FAnd(children=()),\n        zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n    ),\n)\nabilities = [etb, threshold, *compiled]\n",
+  "draft_py": "keywords = [\n    KeywordAbility(keyword=Keyword.FLYING),\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=None,\n        effect=A(Verb.MOVE_ZONE, {\n            'amount': QConst(value=3),\n            'controller': ControllerRef.YOU,\n            'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),\n            'from': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n            'journal_kind': 'MILL',\n            'pop_order': 'TOP',\n        }),\n    ),\n    # [1]\n    StaticAbility(\n        effect=A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.CHOOSE,\n                filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=1)),\n        }),\n        condition=FAtom(\n            pred=FAtomPred.QTY_GE,\n            count=QConst(value=7),\n            quantity=QCount(\n                selector=Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(children=()),\n                    zones=(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU),),\n                ),\n            ),\n        ),\n    ),\n    # [2]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "Flying",
@@ -272,11 +285,11 @@
    },
    {
     "clause": "Threshold — This creature gets +2/+1 as long as there are seven or more cards in your graveyard.",
-    "ir": "abilities[1] (StaticAbility: +2/+1 on this creature; condition ZONE_COUNT_GE 7 your graveyard)"
+    "ir": "abilities[1] (StaticAbility: +2/+1 on this creature; condition at_least(7, quantity=number_in(...)) your graveyard)"
    }
   ],
   "g0_warnings": [],
-  "notes": "Carrion Grub's verified mill with three; the threshold static is Elvish Reclaimer's verified StaticAbility.condition with Crypt Feaster's verified ZONE_COUNT_GE 7 over your graveyard, +2/+1 on the source. Flying compiles; Threshold is an ability word. Packs: tools/scenarios/mapped/FDN/billowing_shriekmass_no_threshold_at_six_cards.json, tools/scenarios/mapped/FDN/billowing_shriekmass_threshold_at_seven_cards.json."
+  "notes": "Carrion Grub's verified mill with three; the threshold static is Elvish Reclaimer's verified StaticAbility.condition with Crypt Feaster's verified at_least(7, quantity=number_in(...)) over your graveyard, +2/+1 on the source. Flying compiles; Threshold is an ability word. Packs: tools/scenarios/mapped/FDN/billowing_shriekmass_no_threshold_at_six_cards.json, tools/scenarios/mapped/FDN/billowing_shriekmass_threshold_at_seven_cards.json. Ontology round R12: the tree translated into the one comparison (same meaning), the draft, clauses and notes reworded."
  },
  "probe": {
   "sha": "891d39da101e39bcf612fd415725e3334c3301a29af12198c89831160a03fe14"

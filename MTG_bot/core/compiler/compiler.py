@@ -96,7 +96,6 @@ from MTG_bot.core.identity import LegalityFlags
 # ---------------------------------------------------------------------------
 
 _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
-    "Battalion": Keyword.BATTALION,
     "Deathtouch": Keyword.DEATHTOUCH,
     "Defender": Keyword.DEFENDER,
     "Double strike": Keyword.DOUBLE_STRIKE,
@@ -112,27 +111,23 @@ _KEYWORD_STRING_TO_ENUM: dict[str, Keyword] = {
     "Indestructible": Keyword.INDESTRUCTIBLE,
     "Lifelink": Keyword.LIFELINK,
     "Menace": Keyword.MENACE,
-    "Mill": Keyword.MILL,
     "Protection": Keyword.PROTECTION,
     "Prowess": Keyword.PROWESS,
     "Reach": Keyword.REACH,
-    "Scry": Keyword.SCRY,
     "Trample": Keyword.TRAMPLE,
     "Treasure": Keyword.TREASURE,
     "Vigilance": Keyword.VIGILANCE,
 }
 
-# Keywords whose _KEYWORD_PARAMS signatures all require ≥1 param —
-# cannot be built from a bare identity string alone.
-# KNOWN-GAP: the grammar models all four (Verb.SCRY/MILL/BATTALION carry a
-#   Quantity, Keyword.PROTECTION a Filter); the gap is upstream of it. The
-#   identity keyword pipeline delivers bare strings ("Scry", "Mill") and no
-#   oracle-text extraction feeds _KEYWORD_PARAMS for them, so the compiler
-#   skips them (reported via CompileResult.known_gaps) unless a template
-#   supplies the params. Wiring identity → params is the fix, not new atoms.
-_KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset(
-    {Keyword.SCRY, Keyword.MILL, Keyword.BATTALION, Keyword.PROTECTION}
-)
+# Keywords whose _KEYWORD_PARAMS signatures all require a param (PROTECTION's Filter): not built
+# from a bare identity string; a template supplies the param from the face's sentence
+# (reported via CompileResult.known_gaps).
+_KEYWORDS_BARE_UNBUILDABLE: frozenset[Keyword] = frozenset({Keyword.PROTECTION})
+#: MTGJSON keyword strings that name no keyword ability: the keyword actions scry and mill (CR
+#: 701.22, 701.17; their sentences compile to Verb.SCRY and a MOVE_ZONE mill) and the ability
+#: word battalion (CR 207.2c: no rules meaning; the trigger is its sentence). The bare string
+#: builds nothing (reported via CompileResult.known_gaps).
+_KEYWORD_ACTION_STRINGS: frozenset[str] = frozenset({"Battalion", "Mill", "Scry"})
 
 # ---------------------------------------------------------------------------
 # Continuation prefixes: a sentence starting with one continues the previous
@@ -596,7 +591,7 @@ def parse_pt(raw: str | None) -> QConst | QX | None:
 # Local bucket classifier for unparsed sentences.
 # ---------------------------------------------------------------------------
 
-_KEYWORD_WORDS: frozenset[str] = frozenset(kw for kw in _KEYWORD_STRING_TO_ENUM)
+_KEYWORD_WORDS: frozenset[str] = frozenset(_KEYWORD_STRING_TO_ENUM) | _KEYWORD_ACTION_STRINGS
 _TRIGGER_PREFIXES: tuple[str, ...] = (
     "When ",
     "Whenever ",
@@ -1336,10 +1331,9 @@ PICK_ASK_FORCE_SILENT: frozenset[tuple[str, str]] = frozenset(
         # NOT the effect controller (CR 701.8a "that player chooses";
         # Goremand/Run Afoul "of their choice"), so the controller-primed
         # ONE_OF lane cannot answer these honestly.
+        # (A discard is never lifted, by structure: _another_players_hand_pick.)
         ("Goremand", "SACRIFICE"),  # "each opponent sacrifices"
         ("Run Afoul", "SACRIFICE"),  # "of their choice with flying"
-        ("Liliana's Steward", "MOVE_ZONE"),  # "target opponent discards"
-        ("Liliana, Waker of the Dead", "MOVE_ZONE"),  # "+1 each player discards"
         ("Keral Keep Disciples", "DEAL_DAMAGE"),
         # ^ forced-direction node: "1 damage to each opponent" is NO
         # decision at all — the singleton PLAYER pick auto-fills, so an
@@ -1370,6 +1364,25 @@ def _filter_carries_is_source(filter_: Filter | None) -> bool:
     if isinstance(filter_, FNot):
         return _filter_carries_is_source(filter_.inner)
     return False
+
+
+def _another_players_hand_pick(atom: Atom) -> bool:
+    """A move out of a hand that a player other than the effect's controller makes ("each
+    opponent discards a card", "target opponent discards a card", "each player discards a
+    card"): the player whose hand it is chooses the cards (CR 701.9b), and the executor's hand
+    lane asks each of them (``verbs._hand_picks``). The asking ONE_OF channel asks the effect's
+    controller, so such a pick is never lifted onto it (the caster would pick the opponent's
+    discard, from every hand). A pick the caster makes ("You choose a card from it. That player
+    discards that card", Duress) names the cards it chose (a referent) and is not lifted either."""
+    who = atom.args.get("controller")
+    frm = atom.args.get("from")
+    return (
+        atom.verb is Verb.MOVE_ZONE
+        and isinstance(frm, Zone)
+        and frm.kind is ZoneKind.HAND
+        and who is not None
+        and who is not ControllerRef.YOU
+    )
 
 
 def _is_liftable_pick(node: Selector, in_cost: bool) -> bool:
@@ -1412,6 +1425,8 @@ def _pick_ask_promotions(
     if type(node).__name__.startswith("Cost") and type(node).__name__ != "CostLoyalty":
         in_cost = True
     if isinstance(node, Atom):
+        if _another_players_hand_pick(node):
+            return node  # its player's own pick, asked by the hand lane (CR 701.9b)
         verb = node.verb.name
     if isinstance(node, Selector):
         key = (name, verb or "")
@@ -2099,6 +2114,12 @@ def compile_card(
     bare_keywords = _build_bare_keywords(raw)
     # KNOWN-GAP: report unbuildable keywords
     for kw_str in raw.keywords:
+        if kw_str in _KEYWORD_ACTION_STRINGS:
+            known_gaps.append(
+                f"keyword {kw_str!r}: a keyword action or ability word, compiled from its "
+                "sentence, never from the keyword list"
+            )
+            continue
         kw_enum = _KEYWORD_STRING_TO_ENUM.get(kw_str)
         if kw_enum is None:
             continue

@@ -1,0 +1,60 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_only_as_a_sorcery",
+ "notes": "M8 mapper. Printed: '... Activate only as a sorcery.' On seat 1's turn the activation is refused for its timing; nothing is paid.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "card",
+   "name": "Spare Card",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "bear": "battlefield",
+   "card": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

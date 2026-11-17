@@ -80,8 +80,10 @@ if TYPE_CHECKING:
 class Row:
     """One action of the menu. ``slots`` are its target slots, None for a modal spell (its
     modes are announced first, CR 601.2b, and only theirs exist); ``exclude`` the permanents its
-    cost taps itself (an ability's own {T}, never also tapped for mana); ``pay`` prices a cast's
-    designation (``spell_target_slots``' and ``cast_mode_options``' ``pay``)."""
+    cost taps itself (an ability's own {T}, never also tapped for mana); ``pay`` prices a
+    designation, the targets together (``spell_target_slots``', ``cast_mode_options``' and
+    ``stack.slot_options``' ``pay``), so a driver that asks from ``slot_options`` never takes
+    one :func:`perform` refuses."""
 
     token: str
     kind: str  # "land", "cast" or "activate"
@@ -156,7 +158,7 @@ def _cast_rows(
             slots: list[Any] | None = None
             if modal_choose(node) is None:
                 slots = spell_target_slots(executor, node, spell_handle=handle, seat=seat, pay=pay)
-                designable = can_designate(slots)
+                designable = can_designate(slots, pay=pay)
             else:
                 # CR 601.2b-c, 700.2a: offered when some mode set is legal, i.e. its targets can
                 # be chosen.
@@ -178,16 +180,22 @@ def _activation_row(
     # An ability whose cost taps its own source cannot also tap that source for mana.
     own_tap = any(isinstance(part, CostTap) and part.target is None for part in ability.cost.parts)
     exclude = frozenset({source}) if own_tap else frozenset()
-    if activation_taps(executor, seat, source, idx, exclude, sources, payable_only=True) is None:
+
+    def pay(targets: Sequence[Handle]) -> bool:
+        return activation_taps(executor, seat, source, idx, exclude, sources, payable_only=True,
+                               targets=tuple(targets)) is not None
+
+    if not pay(()):
         return None
     if inert_row(executor, ability, source, seat):
         return None  # a phantom option: it could do nothing (Radha's land row)
     slots = list(activation_target_slots(executor, ability.effect, source=source, seat=seat))
-    if not can_designate(slots):
+    if not can_designate(slots, pay=pay):
         if hidden is not None:
             hidden["hidden_rows"] += 1
         return None
-    return Row(f"act:{source}:{idx}", "activate", source, ability, ability_idx=idx, slots=slots, exclude=exclude)
+    return Row(f"act:{source}:{idx}", "activate", source, ability, ability_idx=idx, slots=slots,
+               exclude=exclude, pay=pay)
 
 
 def sorcery_timing(executor: Executor, seat: Handle) -> bool:
@@ -255,7 +263,8 @@ def perform(
     """Carry out ``row`` with its designation (one slot's targets, or one tuple per slot) and a
     modal spell's declared modes: tap the sources that pay it, then play the land, cast the spell
     or activate the ability. False, with nothing done, when the targets together cost more than
-    the sources pay (each candidate was priced alone; two taxed targets, CR 601.2f)."""
+    the sources pay (two taxed targets, CR 601.2f): a designation the row's ``pay`` refuses, which
+    the target asks never offer (``stack.slot_options``), only a driver choosing on its own."""
     if row.kind == "land":
         play_land(executor, seat, row.handle)
         return True

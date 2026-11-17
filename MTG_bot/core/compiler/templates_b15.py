@@ -38,6 +38,7 @@ from MTG_bot.core.ability_tree import (
     OptionalEffect,
     QAtLeast,
     QConst,
+    QPropField,
     Selector,
     SelectorMode,
     Seq,
@@ -45,6 +46,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    at_least,
 )
 from MTG_bot.core.compiler import templates_b2a, templates_b3, templates_b5a, templates_b11
 from MTG_bot.core.compiler.templates import (
@@ -110,7 +112,7 @@ def _build_power_class_more_than_one(m: re.Match[str]) -> SentenceOutcome:
     creatures = FAnd(
         children=(
             FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-            FAtom(pred=FAtomPred.POWER_GE, count=QConst(int(m.group("n")))),
+            at_least(int(m.group("n")), field=QPropField.POWER),
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
         )
     )

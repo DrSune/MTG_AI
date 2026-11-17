@@ -1,0 +1,59 @@
+{
+ "set": "FDN",
+ "name": "heroes_bane_enters_with_four_then_doubles_twice",
+ "notes": "M8 mapper. Printed: 'This creature enters with four +1/+1 counters on it. {2}{G}{G}: Put X +1/+1 counters on this creature, where X is its power.' Heroes' Bane enters from seat 0's hand with four counters (4/4). The first activation puts 4 more (8/8), the second 8 more (16/16): X is its power as each activation resolves.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bane",
+   "real": "Heroes' Bane",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "bane"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 4,
+    "C": 4
+   }
+  },
+  {
+   "op": "activate",
+   "key": "bane",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "activate",
+   "key": "bane",
+   "idx": 1,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "counters": {
+   "bane": {
+    "PLUS_1_PLUS_1": 16
+   }
+  },
+  "power": {
+   "bane": 16
+  },
+  "toughness": {
+   "bane": 16
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "name": "ingenious_leonin_first_strike_ends_with_the_turn",
+ "notes": "M8 mapper. Printed: '... If that creature is a Cat, it gains first strike until end of turn.' The Cat attacks and gets the counter and first strike; on the next turn it keeps the counter (3/3) but not first strike.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "leonin",
+   "real": "Ingenious Leonin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cat",
+   "name": "Your Cat",
+   "type": "Creature — Cat",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "cat": true,
+    "leonin": false
+   },
+   "respond": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "mana",
+      "seat": 0,
+      "add": {
+       "W": 1,
+       "C": 3
+      }
+     },
+     {
+      "op": "activate",
+      "key": "leonin",
+      "idx": 0,
+      "seat": 0,
+      "targets": [
+       "cat"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "cat": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "battlefield_keywords": {
+   "Your Cat": []
+  },
+  "battlefield_pt": {
+   "Your Cat": [
+    3,
+    3
+   ]
+  }
+ }
+}

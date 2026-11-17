@@ -17,8 +17,9 @@ limits are registered as scaffolds in BACKLOG. The router labels the rows for it
 - **Targets are asked slot by slot, one question per pick** (CR 601.2c: each word "target" is
   announced in turn), site ``pick:<source>:<slot>:<picks so far>``, over the candidates
   ``stack.slot_options`` leaves: none already picked for that slot (CR 115.3) and none that would
-  leave a later slot without a legal target, so no illegal pair is ever offered. DONE ends a slot
-  once it has its minimum (an "up to" slot may stay empty). A slot with exactly one legal filler
+  leave a later slot without a legal target or the targets together unpayable (the row's ``pay``:
+  two taxed targets, CR 601.2f), so no illegal pair is ever offered and the cast or activation
+  always goes through. DONE ends a slot once it has its minimum (an "up to" slot may stay empty). A slot with exactly one legal filler
   is filled without asking, as the engine's own phantom gate does (``offers.py``). The rig
   reads the targets chosen so far in ``targets_so_far``.
 - **X and modes come first** (CR 601.2b): X is part of the row (``cast:<card>:x<N>``), and a modal
@@ -51,7 +52,7 @@ from MTG_bot.core.executor.games import Act
 from MTG_bot.core.executor.legality import SECOND_MAIN
 from MTG_bot.core.executor.menu import Row, menu, perform, sorcery_timing
 from MTG_bot.core.executor.query import spell_target_slots
-from MTG_bot.core.executor.stack import cast_modes, slot_options
+from MTG_bot.core.executor.stack import can_designate, cast_modes, slot_options
 
 if TYPE_CHECKING:
     from MTG_bot.bench.view import SeatLens
@@ -226,9 +227,11 @@ class SeatRouter:
         what = f'"{lens.text(text)}"' if text else f"ability #{row.ability_idx} (see the card text)"
         return f"activate {name}: {what}"
 
-    def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle) -> tuple:
+    def _targets(self, game: Game, slots: Sequence[Any], i: int, source: Handle, pay=None) -> tuple:
         """The designation, asked slot by slot (CR 601.2c; the module docstring): one slot's
-        targets, or for several slots one tuple per slot (``stack.designate_slots``)."""
+        targets, or for several slots one tuple per slot (``stack.designate_slots``). ``pay``
+        (the row's) keeps every offered pick and every stop payable with the picks before it
+        (two taxed targets can together cost more than the payer can pay, CR 601.2f)."""
         executor = game.executor
         lens = self.lenses[i]
         name = lens.describe(executor, source)
@@ -236,14 +239,16 @@ class SeatRouter:
         for j, slot in enumerate(slots):
             picked: list[Handle] = []
             if slot.forced:
-                picked = list(slot_options(slots, tuple(groups)))[: slot.max_count]
+                picked = list(slot_options(slots, tuple(groups), pay=pay))[: slot.max_count]
             while not slot.forced and len(picked) < slot.max_count:
-                remaining = slot_options(slots, tuple(groups), picked)
+                remaining = slot_options(slots, tuple(groups), picked, pay)
                 if not remaining:
                     break
                 options = [Option(str(c), lens.describe(executor, c, offered=True)) for c in remaining]
                 refuse = None
-                if len(picked) >= slot.min_count:
+                if len(picked) >= slot.min_count and can_designate(
+                    slots, (*groups, tuple(sorted(picked))), pay
+                ):
                     refuse = len(options)
                     options.append(Option("DONE", "no more targets"))
                 self.targets_so_far = (*(h for g in groups for h in g), *picked)
@@ -279,7 +284,7 @@ class SeatRouter:
             self._log(i, "land", row.handle)
             return True
         if row.kind == "activate":
-            targets = self._targets(game, row.slots, i, row.handle) if row.slots else ()
+            targets = self._targets(game, row.slots, i, row.handle, row.pay) if row.slots else ()
             game.attempted = f"act:{name}#{row.ability_idx}"
             if not perform(executor, seat, row, targets):  # as a cast below: nothing happened
                 self.stats[i]["unpayable_targets"] += 1
@@ -293,7 +298,7 @@ class SeatRouter:
             # router answers it, routed to this seat), then its own slots are designated.
             _token, modes, _rest = cast_modes(executor, seat, row.handle, row.node, pay=row.pay)
             slots = spell_target_slots(executor, row.node, spell_handle=row.handle, seat=seat, modes=modes, pay=row.pay)
-        targets = self._targets(game, slots, i, row.handle) if slots else ()
+        targets = self._targets(game, slots, i, row.handle, row.pay) if slots else ()
         flat = targets if len(slots) <= 1 else tuple(h for group in targets for h in group)
         game.attempted = f"cast:{name}"
         if not perform(executor, seat, row, targets, modes):

@@ -1,7 +1,7 @@
 {
  "set": "FDN",
  "name": "angel_of_finality_exiles_the_target_players_graveyard",
- "notes": "KNOWN BUG, fails today (M3 mapper, 2026-11-17): run it against draft.py beside it (its header gives the command). Printed: 'When this creature enters, exile target player's graveyard.' Expected once fixed: Angel of Finality enters, seat 0 targets the opponent as the trigger goes on the stack, and both cards of the opponent's graveyard are exiled; seat 0's graveyard card stays. Today the trigger opens no player target and raises 'TARGET_PLAYER needs a bound target (12c target prompt)' as it resolves.",
+ "notes": "FIXED 2026-11-17 (engine wave C1: the trigger lane reads query.designated_player_refs; pinned by test_executor_designation), passes against draft.py; write Angel of Finality's record from it, then move this pack to tools/scenarios/mapped/FDN/. Was: KNOWN BUG, fails today (M3 mapper, 2026-11-17): run it against draft.py beside it (its header gives the command). Printed: 'When this creature enters, exile target player's graveyard.' Expected once fixed: Angel of Finality enters, seat 0 targets the opponent as the trigger goes on the stack, and both cards of the opponent's graveyard are exiled; seat 0's graveyard card stays. Today the trigger opens no player target and raises 'TARGET_PLAYER needs a bound target (12c target prompt)' as it resolves.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "angel", "real": "Angel of Finality", "zone": "hand", "controller": 0},

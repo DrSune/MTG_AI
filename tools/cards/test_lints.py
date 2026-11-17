@@ -71,8 +71,16 @@ def _card(code: str, name: str) -> tuple[Any, Any]:
     return sc.raw[oid], sc.results[oid].card
 
 
+def _printed(code: str, name: str) -> tuple[Any, Any]:
+    """The card's printed facts with none of its text compiled (a permanent keeps its cast
+    carrier): the base of a tree a test writes itself, which the card's record cannot change."""
+    raw = _set(code).raw[_set(code).by_name(name)]
+    return raw, corpus.printed_only(raw).card
+
+
 def test_no_lint_finding_on_any_verified_card() -> None:
-    # 736 verified cards on 2026-11-14 (M21 275, M20 277, FDN 184): every finding here is a false
+    # 736 verified cards on 2026-11-14 (M21 275, M20 277, FDN 184), 688 on 2026-11-17 while the
+    # cards ontology round R12 re-baked wait on re-verification: every finding here is a false
     # positive, or a verified card that is wrong.
     checked = 0
     for code in ("M21", "M20", "FDN"):
@@ -83,7 +91,7 @@ def test_no_lint_finding_on_any_verified_card() -> None:
                 continue
             assert lints.lint(sc.raw[oid], res.card) == [], (code, sc.raw[oid].identity.name)
             checked += 1
-    assert checked >= 700
+    assert checked >= 680
 
 
 @pytest.mark.parametrize("case", HISTORY, ids=[c["name"] for c in HISTORY])
@@ -125,6 +133,18 @@ def test_the_planted_shapes_of_the_commonest_classes_are_flagged(code: str, name
     raw, card = _card(code, name)
     plant = next(m for o, w, m in gates.mutants(card) if (o, w) == (op, where))
     assert any(f.startswith(lint + ":") for f in lints.lint(raw, plant))
+
+
+def test_the_amounts_lint_reads_a_comparison_as_printed() -> None:
+    # "N or less" is the comparison at N + 1 negated (ontology round R12): the text prints N, and
+    # "unless ... N or more" prints N + 1; a full party (four) prints no number (CR 700.8).
+    from MTG_bot.core.ability_tree import QPropField, at_least, at_most
+    from MTG_bot.core.compiler.templates_b8 import _full_party
+
+    party = _full_party()
+    assert list(lints._tree_numbers(at_most(2, field=QPropField.POWER))) == [(2, 3)]
+    assert list(lints._tree_numbers(at_least(5, field=QPropField.POWER))) == [5]
+    assert list(lints._tree_numbers(party)) == []
 
 
 def test_a_free_activation_is_flagged_and_an_equip_cost_is_read() -> None:
@@ -225,14 +245,17 @@ def test_the_two_events_are_the_compilers_own() -> None:
 
 
 def test_food_has_one_token() -> None:
-    raw, card = _card("FDN", "Bake into a Pie")
-    destroy = card.abilities[0].effect
+    # Bake into a Pie's text over trees written here, so its own record (the one Food) is not read
+    raw, card = _printed("FDN", "Bake into a Pie")
+    creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+    destroy = A(Verb.DESTROY, {"target": creature})  # the compiler's "Destroy target creature."
 
     def spell(*steps: Any) -> Any:
         return dataclasses.replace(card, abilities=(SpellAbility(kind=SpellKind.INSTANT, effect=Seq(steps=steps)),))
 
     assert lints.lint(raw, spell(destroy, A(Verb.CREATE_TOKEN, {"count": QConst(1), "tokens": lints.FOOD}))) == []
-    assert lints.food(raw, card)  # "Create a Food token." with no Food in the tree
+    assert lints.food(raw, spell(destroy))  # "Create a Food token." with no Food in the tree
     treasure_like = dataclasses.replace(lints.FOOD, type_line="Artifact", subtypes=(), keywords=(Keyword.TREASURE,))
     gains_four = dataclasses.replace(lints.FOOD, abilities=(dataclasses.replace(
         lints.FOOD.abilities[0], effect=A(Verb.GAIN_LIFE, {"amount": QConst(4), "controller": ControllerRef.YOU})),))
@@ -242,7 +265,7 @@ def test_food_has_one_token() -> None:
 
 
 def test_enters_or_dies_is_two_abilities_with_one_effect() -> None:
-    raw, card = _card("FDN", "Crow of Dark Tidings")
+    raw, card = _printed("FDN", "Crow of Dark Tidings")  # its cast carrier alone, whatever its record holds
     mill = A(Verb.MOVE_ZONE, {"amount": QConst(2), "controller": ControllerRef.YOU,
                               "destination": Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),
                               "from": Zone(ZoneKind.LIBRARY, ControllerRef.YOU),

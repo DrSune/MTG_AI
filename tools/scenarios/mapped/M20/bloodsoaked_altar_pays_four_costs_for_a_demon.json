@@ -1,0 +1,63 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_pays_four_costs_for_a_demon",
+ "notes": "M8 mapper. Printed: '{T}, Pay 2 life, Discard a card, Sacrifice a creature: Create a 5/5 black Demon creature token with flying. Activate only as a sorcery.' Seat 0 taps the Altar, pays 2 life, discards its one card and sacrifices its one creature: a 5/5 flying Demon token.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "zone": "battlefield",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  },
+  {
+   "key": "card",
+   "name": "Spare Card",
+   "type": "Creature — Bear",
+   "zone": "hand",
+   "controller": 0,
+   "power": "2",
+   "toughness": "2"
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 1
+  },
+  "zone": {
+   "bear": "graveyard",
+   "card": "graveyard",
+   "altar": "battlefield"
+  },
+  "tapped": {
+   "altar": true
+  },
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "hand": {
+   "0": 0
+  }
+ }
+}

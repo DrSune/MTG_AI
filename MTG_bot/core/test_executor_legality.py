@@ -377,18 +377,13 @@ class TestConditionGate(LegalityCase):
         )
 
     def test_unsupported_condition_pred_raises(self):
-        # flag, never guess: a pred outside the vocab crashes the probe.
-        # CONTROLLER_COUNT_LE is the unimplemented sibling of
-        # CONTROLLER_COUNT_GT.
+        # flag, never guess: a condition the probe cannot answer crashes it
+        # (FLIP_WON with no coin flipped; round R12 left no pred unread).
         self.attach(
             [
                 ability(
                     cost(),
-                    condition=FAtom(
-                        FAtomPred.CONTROLLER_COUNT_LE,
-                        inner_filter=FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
-                        count=QConst(2),
-                    ),
+                    condition=FAtom(FAtomPred.FLIP_WON, who=ControllerRef.YOU),
                 )
             ]
         )
@@ -969,6 +964,60 @@ class TestManaAbilitiesWhilePaying(LegalityCase):
         caves = self.land("Caves", Choose(count=QConst(1), options=(add_mana("B"), add_mana("R"))))
         taps = self.plan(CostManaColor("R", QConst(1)), CostManaColor("W", QConst(1)))
         self.assertEqual({(t.source, t.production[0]) for t in taps}, {(caves, "R"), (crag, "W")})
+
+    def test_a_conditional_mana_ability_pays_with_the_branch_the_state_picks(self):
+        # M20 Leafkin Druid: "{T}: Add {G}. If you control four or more creatures, add {G}{G}
+        # instead." A mana ability resolves at once (CR 605.3a-b), so the payer prices it by
+        # the branch the board picks now. Bug hunt 2026-11-17 (hunt5): it was never priced, and
+        # mana abilities are no menu rows, so the Druid made no mana in a game.
+        from MTG_bot.core.ability_tree import Conditional, FAtom, FAtomPred, at_least, number_you_control
+
+        four = at_least(4, quantity=number_you_control(FAtom(FAtomPred.TYPE_EQ, string_value="Creature")))
+        druid = self.land("Druid", Conditional(pred=four, then_effect=add_mana("G", 2),
+                                               else_effect=add_mana("G", 1)), type_line="Artifact")
+        two = (CostManaColor("G", QConst(1)), CostManaGeneric(QConst(1)))
+        self.assertEqual([t.production[:2] for t in self.plan(CostManaColor("G", QConst(1)))], [("G", 1)])
+        self.assertIsNone(self.plan(*two))  # one creature (Alpha): {G}
+        for name in ("Bear One", "Bear Two", "Bear Three"):
+            self.world.add_card(card_id(name, "2", "2"), self.p0, ZONE_BATTLEFIELD)
+        (tap,) = self.plan(*two)
+        self.assertEqual((tap.source, tap.production[:2]), (druid, ("G", 2)))
+        tap_for_payment(self.ex, self.p0, (tap,))
+        self.assertEqual(self.world.players[self.p0].mana_pool, {"G": 2})
+
+    def test_every_verified_mana_ability_is_one_the_payer_prices(self):
+        # Mana abilities are no menu rows (2026-11-11): one the automatic payer cannot price
+        # never makes mana in a game, whatever its packs say (they may activate it directly).
+        # Each verified card's mana ability (M21, M20, FDN deal pools; a token's or a granted
+        # one included) is priced here on an artifact of its own, a free source, so its effect
+        # alone decides; or its cost is one the registered scaffold "Automatic payment" never
+        # pays for the player (a mana cost, a sacrifice of another permanent).
+        from MTG_bot.core.ability_tree import is_mana_ability, walk
+        from MTG_bot.core.executor.games import get_supply
+        from MTG_bot.core.executor.legality import _mana_tap_options, _source_tier
+
+        never_paid = {"Prismite", "Kykar, Wind's Fury"}
+        # M21 Leafkin Avenger adds {G} per creature you control with power 4 or greater.
+        self.world.add_card(card_id("Big", "5", "5"), self.p0, ZONE_BATTLEFIELD)
+        hosts: dict = {}
+        unpaid = set()
+        for code in ("M21", "M20", "FDN"):
+            supply = get_supply("verified", code)
+            for oid in supply.deckable:
+                record = supply.pool.results[oid].card
+                for node in walk(record):
+                    if not (isinstance(node, ActivatedAbility) and is_mana_ability(node)):
+                        continue
+                    if _source_tier(node, creature=False) is None:
+                        unpaid.add(record.name)
+                        continue
+                    host = self.world.add_card(card_id(record.name, type_line="Artifact"), self.p0, ZONE_BATTLEFIELD)
+                    self.attach([node], host)
+                    hosts[host] = record.name
+        priced = {taps[0].source for taps in _mana_tap_options(self.ex, self.p0, costly=True)}
+        self.assertEqual(sorted(name for host, name in hosts.items() if host not in priced), [])
+        self.assertEqual(unpaid, never_paid)
+        self.assertGreaterEqual(len(hosts), 40)
 
     def test_any_colour_permission_lets_any_source_pay_a_coloured_symbol(self):
         # Chromatic Orrery: "You may spend mana as though it were mana of any color."

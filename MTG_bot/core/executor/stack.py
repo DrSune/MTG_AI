@@ -435,37 +435,47 @@ def designate_slots(
     return {repr(slot.selector): tuple(sorted(g)) for slot, g in zip(slots, groups, strict=True)}
 
 
-def can_designate(slots: list, chosen: SlotGroups = ()) -> bool:
+def can_designate(slots: list, chosen: SlotGroups = (), pay=None) -> bool:
     """Can the slots after the designated ``chosen`` (one group per slot so
     far) each still take its minimum number of targets without breaking an
     "another target" (CR 601.2c: a spell or ability with a target that cannot
     be chosen cannot be cast or activated)? For one slot: it has enough
-    candidates. The drivers' gate before they offer a row."""
+    candidates. The drivers' gate before they offer a row. ``pay(targets)``,
+    when given, prices the whole designation too (a menu row's ``pay``): each
+    candidate is priced alone, and two taxed targets can together cost more
+    than the payer can pay (CR 601.2f-h), which is no completion. An empty
+    designation costs what the row was offered at (its ``pay(())``)."""
     if another_target_reason(slots[: len(chosen)], chosen) is not None:
         return False
     if len(chosen) == len(slots):
-        return True
+        flat = tuple(h for group in chosen for h in group)
+        return pay is None or not flat or pay(flat)
     slot = slots[len(chosen)]
     return any(
-        can_designate(slots, (*chosen, group))
+        can_designate(slots, (*chosen, group), pay)
         for group in combinations(slot.candidates, slot.min_count)
     )
 
 
-def slot_options(slots: list, chosen: SlotGroups, picked: Sequence[Handle] = ()) -> tuple[Handle, ...]:
+def slot_options(
+    slots: list, chosen: SlotGroups, picked: Sequence[Handle] = (), pay=None
+) -> tuple[Handle, ...]:
     """The candidates the next pick of slot ``len(chosen)`` may take, after
     the earlier slots' groups ``chosen`` and this slot's ``picked``: not
     already picked for this slot (CR 115.3), and leaving the designation
-    completable, this slot up to its minimum and every later slot
-    (:func:`can_designate`). The drivers ask one target question per pick
-    from this (CR 601.2c), so no illegal pair is ever offered, and a slot's
-    minimum reached, ending it there is completable too."""
+    completable, this slot up to its minimum and every later slot, and
+    payable when ``pay`` prices it (:func:`can_designate`). The drivers ask
+    one target question per pick from this (CR 601.2c), so no illegal or
+    unpayable pair is ever offered, and a slot's minimum reached, ending it
+    there is completable too."""
     slot = slots[len(chosen)]
 
     def completes(group: tuple[Handle, ...]) -> bool:
         rest = [c for c in sorted(slot.candidates) if c not in group]
         need = max(0, slot.min_count - len(group))
-        return any(can_designate(slots, (*chosen, (*group, *more))) for more in combinations(rest, need))
+        return any(
+            can_designate(slots, (*chosen, (*group, *more)), pay) for more in combinations(rest, need)
+        )
 
     return tuple(c for c in sorted(slot.candidates) if c not in picked and completes((*picked, c)))
 
@@ -1192,8 +1202,15 @@ def cast_card(
     cost = effect_cast_cost(record, node, atom)
     if x is None:
         x, decisions = _effect_cast_x(executor, caster, handle, cost, decisions)
+
+    def pay(chosen: Sequence[Handle]) -> bool:
+        """The total cost with these targets is payable (a target's tax, CR 601.2f)."""
+        tctx = ctx_for(executor, source=handle, controller=caster,
+                       bindings={"target": list(chosen)} if chosen else None, x_value=x)
+        return not cost.parts or build_payment_plan(world, tctx, cost, mana_use=handle)[0] is not None
+
     if targets is None:
-        targets = _effect_cast_targets(executor, caster, handle, target_node, decisions)
+        targets = _effect_cast_targets(executor, caster, handle, target_node, decisions, pay)
     slot_designations: dict[str, tuple[Handle, ...]] = {}
     slots = spell_target_slots(executor, target_node, spell_handle=handle, seat=caster)
     if len(slots) > 1:
@@ -1280,16 +1297,17 @@ def _effect_cast_x(
 
 def _effect_cast_targets(
     executor: Executor, caster: Handle, handle: Handle, node: SpellAbility,
-    decisions: tuple[str, ...],
+    decisions: tuple[str, ...], pay=None,
 ) -> tuple:
     """The targets of a spell a cast verb casts (CR 601.2c), chosen by its caster pick by pick,
     slot by slot, from what each slot may still take (:func:`slot_options`, so no designation
-    that cannot be completed is offered). A pick with one legal filler, below the slot's minimum,
-    is made without an ask; once the minimum is met a NONE stop is offered ("up to"). One
-    slot's targets, or one tuple per slot."""
+    that cannot be completed is offered, nor one whose total cost ``pay`` refuses: a target's
+    tax, CR 601.2f, as the menu prices a row). A pick with one legal filler, below the slot's
+    minimum, is made without an ask; once the minimum is met a NONE stop is offered ("up to").
+    One slot's targets, or one tuple per slot."""
     from MTG_bot.core.executor.query import spell_target_slots
 
-    slots = spell_target_slots(executor, node, spell_handle=handle, seat=caster)
+    slots = spell_target_slots(executor, node, spell_handle=handle, seat=caster, pay=pay)
     if not slots:
         return ()
     ctx = executor._ctx(source=handle, controller=caster, bindings=None, decisions=decisions)
@@ -1297,7 +1315,7 @@ def _effect_cast_targets(
     for slot in slots:
         picked: list[Handle] = []
         while len(picked) < slot.max_count:
-            pool = slot_options(slots, tuple(groups), picked)
+            pool = slot_options(slots, tuple(groups), picked, pay=pay)
             if not pool:
                 break
             stop = len(picked) >= slot.min_count

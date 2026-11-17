@@ -138,7 +138,10 @@ unfingerprinted today (`state.py:248-270`) because every settle drains it. A cou
 leaves the stack at once (CR 701.6a); the COUNTER handler (`verbs.py:2390`) moves the card and
 must remove the frame. `pending_references` (`binding.py:1440-1451`), which keeps a token alive
 while a waiting trigger names it, also scans the stack, or a token named by a trigger on the stack
-ceases at the next state-based check (`_cease_tokens`, `__init__.py:1360-1372`).
+ceases at the next state-based check (`_cease_tokens`, `__init__.py:1360-1372`). (Superseded
+2026-11-17: a kept token was a live object players could target and move while the trigger waited;
+`pending_references` is gone, the token ceases at the check, and its waiting triggers read its
+last known information, `quantity.departed_lki`.)
 `STACK_KIND_EQ` ACTIVATED/TRIGGERED (`quantity.py:1702-1715`), stack target enumeration
 (`legality.py:401-412`), `_v_counter_spell` (`verbs.py:2302-2394`) and `_exile_the_stack`
 (`__init__.py:1777-1798`) learn about abilities. Unsubstantiate's spell half is fixed here

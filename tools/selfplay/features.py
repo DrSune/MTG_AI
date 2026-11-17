@@ -17,7 +17,8 @@ float16):
 * ``glob_f``    [GF]     turn, whose turn, stack size, ask details (a target ask's slot), the
                          step, whether the other player has just passed, an arrange ask's end
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
-* ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index, a value
+* ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index (an activated
+                         ability's; which of one source's different waiting triggers), a value
                          option's component token (a quality ask's colour or creature type)
 * ``opts_f``    [K, 2]   number value, kicked
 
@@ -89,6 +90,13 @@ ASK_KINDS = (
     # offers more than it needs (CR 601.2h; legality.pay_costs, DESIGN_ATOM_ONTOLOGY §15). Never
     # asked before (no tree held the two cost parts), so they start as "other"
     "exile", "remove_counter",
+    # how much of a blocked creature's combat damage goes to one of its blockers (CR 510.1c,
+    # 702.19b; Executor._assign_damage, divide:<blocker>:<attacker>:<turn>), the options amounts,
+    # the attacker the ask's source and the blocker offered (encode).
+    # It replaces the damage assignment order and the trample excess asks ("order", "trample",
+    # never asked since), which the rules no longer have or which it folds in; a division was
+    # never asked before, so it starts as "other"
+    "divide",
 )
 ASK_INDEX = {k: i for i, k in enumerate(ASK_KINDS)}
 #: What model.load starts an appended kind as: the kind it was encoded as before it existed, or
@@ -486,6 +494,11 @@ def _parse_option(tok: str) -> tuple:
         b, _, x = b.partition(":x")
         return OPT_INDEX["cast_at"], _handle(a), _handle(b), 0, float(int(x)) if x.isdigit() else 0.0, 0.0
     if tok.startswith("card:"):
+        # card:12:2, the second different trigger of card:12 waiting to be ordered (CR 603.3b,
+        # binding._resolution_order): the source's entity, told apart by the ability column
+        k = tok.split(":")[2] if tok.count(":") == 2 else ""
+        return OPT_INDEX["card"], _handle(tok), None, int(k) - 1 if k.isdigit() else 0, 0.0, 0.0
+    if tok.startswith("ability:"):  # an ability on the stack as a target (Tale's End): its entity
         return OPT_INDEX["card"], _handle(tok), None, 0, 0.0, 0.0
     if tok.startswith("player:"):
         return OPT_INDEX["player"], _handle(tok), None, 0, 0.0, 0.0
@@ -561,8 +574,14 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     if ask.kind == "scry" and ctx.revealed is not None:
         source = ctx.revealed
     parsed = [_OPTS[o.token] for o in ask.options[:MAX_OPTIONS]]
-    offered = {p[1] for p in parsed if p[1] is not None and p[1].namespace == "card"}
-    offered |= {p[2] for p in parsed if p[2] is not None and p[2].namespace == "card"}
+    # an ability offered as a target is marked on its stack entity, as a spell is
+    offered = {h for p in parsed for h in p[1:3]
+               if h is not None and h.namespace in ("card", "ability")}
+    if ask.kind == "divide" and len(site_cards) == 2:
+        # divide:<blocker>:<attacker>:<turn>: the attacker's damage is divided (the source), the
+        # amounts offered go to the blocker
+        source = Handle("card", int(site_cards[1]))
+        offered.add(Handle("card", int(site_cards[0])))
 
     # --- the visible cards, in a fixed zone order
     ents: list[tuple[Handle, str, Handle]] = []  # (handle, zone, owner)

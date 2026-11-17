@@ -1,0 +1,51 @@
+{
+ "set": "FDN",
+ "name": "midnight_snack_raid_makes_a_food_token",
+ "notes": "M8 mapper. Printed: 'Raid — At the beginning of your end step, if you attacked this turn, create a Food token.' Seat 0 attacks with its Bear; at its end step the trigger makes one Food token. No record (needs-atom): run it with `cardtool.py runpack FDN <this pack> --card 'Midnight Snack' --draft draft.py` (the draft beside it); it passes today.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "snack",
+   "real": "Midnight Snack",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bear": true
+   }
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Food": 1
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

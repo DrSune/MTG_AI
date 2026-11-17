@@ -48,11 +48,14 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FNot,
     Keyword,
     KeywordAbility,
     OptionalEffect,
     Phase,
     QAtMost,
+    QBin,
+    QBinOp,
     QConst,
     QProp,
     QPropField,
@@ -88,8 +91,8 @@ _NUM_WORDS = {w: i for i, w in enumerate(
     ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"))}
 
 # CR 207.2c: ability words have no rules meaning, so a tree has nothing to show for them (the
-# ability itself is checked like any other clause). MTGJSON lists them with the keywords, and the
-# Keyword enum carries one (BATTALION); spelled as G0 normalises MTGJSON keywords.
+# ability itself is checked like any other clause). MTGJSON lists them with the keywords; spelled
+# as G0 normalises MTGJSON keywords.
 ABILITY_WORDS = frozenset(w.upper().replace(" ", "_") for w in (
     "adamant", "addendum", "alliance", "battalion", "bloodrush", "celebration", "channel", "chroma",
     "cohort", "constellation", "converge", "council's dilemma", "coven", "delirium", "descend 4",
@@ -99,6 +102,10 @@ ABILITY_WORDS = frozenset(w.upper().replace(" ", "_") for w in (
     "morbid", "pack tactics", "paradox", "parley", "radiance", "raid", "rally", "revolt",
     "secret council", "spell mastery", "strive", "survival", "sweep", "tempting offer", "threshold",
     "underdog", "undergrowth", "valiant", "will of the council"))
+# CR 701.22, 701.17: keyword actions MTGJSON lists with the keywords that have no Keyword member
+# (ontology round R12): the tree performs them as its verb (SCRY) or as the merged MOVE whose
+# journal_kind names them (MILL, verbs.py _v_move_zone), and G0 demands that as it demands a keyword.
+KEYWORD_ACTIONS = frozenset({"SCRY", "MILL"})
 
 
 # ----------------------------------------------------------------------------- G0
@@ -115,6 +122,9 @@ def _ints(node: Any) -> set[int]:
                 for _, v in x.pairs:
                     visit(v)
                 return
+            if (isinstance(x, FNot) and isinstance(x.inner, FAtom) and x.inner.pred is FAtomPred.QTY_GE
+                    and isinstance(x.inner.count, QConst)):
+                out.add(abs(x.inner.count.value - 1))  # "N or less": the comparison at N + 1, negated
             for f in dataclasses.fields(x):
                 visit(getattr(x, f.name))
         elif isinstance(x, (tuple, list, frozenset)):
@@ -201,20 +211,21 @@ def g0(raw: RawCard, base: CardRecord, card: CardRecord, *, clauses: list[dict] 
     printed_kw = {k.upper().replace(" ", "_") for k in raw.keywords} - ABILITY_WORDS
     tree_kw = {k.keyword.name for k in card.keywords} | {
         n.keyword.name for n in walk(card) if isinstance(n, KeywordAbility)}
-    # Keyword actions the compiler writes as their verb (scry, mill, fight exist as both a Verb and
-    # a Keyword): the verb in the tree satisfies the printed keyword.
+    # Keyword actions the compiler writes as their verb (scry; fight is both a Verb and a Keyword):
+    # the verb in the tree satisfies the printed keyword.
     tree_kw |= {n.verb.name for n in walk(card) if isinstance(n, Atom)}
     # ... or as the merged MOVE atom, whose journal_kind slot names the keyword action it
     # performs: the mill shape writes "MILL" (verbs.py _v_move_zone), so it satisfies "Mill".
     tree_kw |= {str(n.args.get("journal_kind")) for n in walk(card)
-                if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & set(Keyword.__members__)
+                if isinstance(n, Atom) and n.verb is Verb.MOVE_ZONE} & KEYWORD_ACTIONS
     # MTGJSON lists a token's artifact type with the keywords ("Food"): the subtype of a token the
     # tree makes satisfies it (MAPPER_GUIDE "Food tokens").
     tree_kw |= {s.upper() for n in walk(card) if isinstance(n, TokenSpec) for s in n.subtypes}
-    unknown = sorted(k for k in printed_kw - tree_kw if k in Keyword.__members__)
+    demanded = set(Keyword.__members__) | KEYWORD_ACTIONS
+    unknown = sorted(k for k in printed_kw - tree_kw if k in demanded)
     if unknown:
         fails.append(f"MTGJSON keywords missing from the tree: {unknown}")
-    absent = sorted(k for k in printed_kw - tree_kw if k not in Keyword.__members__)
+    absent = sorted(k for k in printed_kw - tree_kw if k not in demanded)
     if absent:
         warns.append(f"MTGJSON keywords with no Keyword atom (check how the tree expresses them): {absent}")
     if not _engine_supported(card, set(SUPPORTED_VERBS_V2)):
@@ -650,22 +661,20 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         # - the merged MOVE atom's mill shape (pop_order TOP) and discard shape (from HAND) move the
         #   cards of the `controller` role's player: `from` and `destination` are read for their
         #   kind only (verbs.py _v_move_zone), so their controller fields are dead;
-        # - ZONE_COUNT_GE counts the zone of its `who` players; the zone's controller is never read
-        #   (quantity.py, ZONE_COUNT_GE: "reading WHO is the whole answer");
         # - a REST partition is the complement of the ONE_OF pick, its count is never read
         #   (selectors.py REST branch, query.py "count ignored (like ALL)", verbs.py partition lane);
-        # - a CHOOSE over the one zone Zone(PLAYER, YOU) has one player to pick, so every count >= 1
-        #   picks that player (selectors.py CHOOSE branch, ``ordered[:k]``; a static's population is
-        #   enumerate_candidates, which reads no count). Cost selectors are left out.
+        # - a CHOOSE or ONE_OF over the one zone Zone(PLAYER, YOU) has one player to pick, so every
+        #   count >= 1 picks that player (selectors.py CHOOSE branch, ``ordered[:k]``; the ONE_OF
+        #   branch resolves k of n best effort and query.py gives ONE_OF no exact-count gate; a
+        #   static's population is enumerate_candidates, which reads no count: FDN Crystal
+        #   Barricade's "You have hexproof"). Cost selectors are left out.
         if isinstance(node, Atom) and node.verb is Verb.MOVE_ZONE and (
                 node.args.get("pop_order") == "TOP"
                 or getattr(node.args.get("from"), "kind", None) is ZoneKind.HAND):
             dead |= {(*path, "args", "from", "controller"), (*path, "args", "destination", "controller")}
-        if isinstance(node, FAtom) and node.pred is FAtomPred.ZONE_COUNT_GE:
-            dead.add((*path, "zone", "controller"))
         if isinstance(node, Selector) and node.referent is None and (
                 node.mode is SelectorMode.REST
-                or node.mode is SelectorMode.CHOOSE and len(node.zones) == 1
+                or node.mode in (SelectorMode.CHOOSE, SelectorMode.ONE_OF) and len(node.zones) == 1
                 and node.zones[0].kind is ZoneKind.PLAYER and node.zones[0].controller is ControllerRef.YOU
                 and not any(path[: len(c)] == c for c in in_cost)):
             dead.add((*path, "count"))
@@ -780,6 +789,18 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 other = Atom(move.verb, AtomArgs(tuple(
                     (r, other if r == "destination" else v) for r, v in move.args.pairs if r != "arrange")))
             cands.append((f"zone {node.kind.name}->{_ZONE_SWAP[node.kind].name}", other))
+        elif isinstance(node, FAtom) and node.pred is FAtomPred.QTY_GE and (
+                node.who is not None or _measure_plus_one(node.count) is not None):
+            # The comparison's two likely mapping errors (ontology round R12): "an opponent has N"
+            # read as "you have N" (`who` dropped: an opponent's zone and `who` YOU are refused,
+            # so no flip reaches it), and "more than" read as "at least as many" (the + 1 dropped
+            # from a measured threshold, which amount-1 cannot reach: N + 0 is refused).
+            if node.who is not None:
+                cands.append((f"controller who {node.who.name}->none (your own zone)",
+                              dataclasses.replace(node, who=None)))
+            bare = _measure_plus_one(node.count)
+            if bare is not None:
+                cands.append(("amount: more than -> at least as many", dataclasses.replace(node, count=bare)))
         elif isinstance(node, Selector) and node.mode is SelectorMode.TARGET and path not in twins:
             cands.append(("target->all", dataclasses.replace(node, mode=SelectorMode.ALL, count=QUnbounded())))
         elif isinstance(node, Seq) and len(node.steps) >= 2:
@@ -810,6 +831,14 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 continue
             seen.add(key)
             yield op, "/".join(str(p) for p in path), mutant
+
+
+def _measure_plus_one(count: Any) -> Any:
+    """The measure of a "more than <measure>" threshold (QBin(ADD, <measure>, 1)), or None."""
+    if isinstance(count, QBin) and count.op is QBinOp.ADD and count.right == QConst(1) \
+            and not isinstance(count.left, QConst):
+        return count.left
+    return None
 
 
 @contextmanager

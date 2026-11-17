@@ -1,0 +1,80 @@
+{
+ "set": "FDN",
+ "name": "heroes_bane_x_reads_its_pumped_power",
+ "notes": "M8 mapper. Printed: '{2}{G}{G}: Put X +1/+1 counters on this creature, where X is its power.' Heroes' Bane enters with four counters (4/4); Giant Growth gives it +3/+3 until end of turn (7/7). Its activation then puts seven counters on it (11 counters): X is its power, the pump included. On the next turn it is an 11/11.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "bane",
+   "real": "Heroes' Bane",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "growth",
+   "real": "Giant Growth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "bane"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "growth",
+   "controller": 0,
+   "targets": [
+    "bane"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "G": 2,
+    "C": 2
+   }
+  },
+  {
+   "op": "activate",
+   "key": "bane",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "bane": {
+    "PLUS_1_PLUS_1": 11
+   }
+  },
+  "power": {
+   "bane": 11
+  },
+  "toughness": {
+   "bane": 11
+  },
+  "zone": {
+   "growth": "graveyard"
+  }
+ }
+}

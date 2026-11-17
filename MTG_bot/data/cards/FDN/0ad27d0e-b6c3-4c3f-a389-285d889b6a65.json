@@ -1,0 +1,124 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "0ad27d0e-b6c3-4c3f-a389-285d889b6a65",
+ "name": "Ballyrush Banneret",
+ "text_sha": "0664ae45363011f48964edd352adfdb65e29605ab6961fc622ef967ed54e0afc",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "CostModifier",
+    "filter": {
+     "tag": "FOr",
+     "children": [
+      {
+       "tag": "FAnd",
+       "children": [
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "SUBTYPE_EQ"
+         },
+         "string_value": "Kithkin",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "TYPE_EQ"
+         },
+         "string_value": "Creature",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ]
+      },
+      {
+       "tag": "FAnd",
+       "children": [
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "SUBTYPE_EQ"
+         },
+         "string_value": "Soldier",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        },
+        {
+         "tag": "FAtom",
+         "pred": {
+          "tag": "FAtomPred",
+          "name": "TYPE_EQ"
+         },
+         "string_value": "Creature",
+         "color": null,
+         "colors": [],
+         "count": null,
+         "counter_kind": null,
+         "keyword": null,
+         "who": null,
+         "inner_filter": null
+        }
+       ]
+      }
+     ]
+    },
+    "controller_ref": {
+     "tag": "ControllerRef",
+     "name": "YOU"
+    },
+    "delta": {
+     "tag": "CostDeltaReduceGeneric",
+     "amount": {
+      "tag": "QConst",
+      "value": 1
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-mapper-m6",
+  "date": "2026-11-17",
+  "draft_py": "# Ballyrush Banneret (FDN), a 2/1 Kithkin Soldier for {1}{W}.\n# \"Kithkin spells and Soldier spells you cast cost {1} less to cast.\"\n# M21 Watcher of the Spheres' verified B4-cost-modifier-watcher (\"Creature spells with flying you\n#   cast cost {1} less to cast.\"): one CostModifier, controller_ref YOU, delta ReduceGeneric 1.\n# The filter is the two tribal spell nouns joined: \"a Kithkin spell\" and \"a Soldier spell\" are\n#   each SUBTYPE_EQ with TYPE_EQ 'Creature' (M21 Rin and Seri's verified \"a Dog spell\", M21\n#   Conspicuous Snoop's \"Goblin spells\"), in an FOr: one modifier, so a Kithkin Soldier costs {1}\n#   less once, not twice.\ndiscount = CostModifier(\n    filter=FOr(\n        children=(\n            FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Kithkin'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n            FAnd(\n                children=(\n                    FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value='Soldier'),\n                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                ),\n            ),\n        ),\n    ),\n    controller_ref=ControllerRef.YOU,\n    delta=CostDeltaReduceGeneric(amount=QConst(value=1)),\n)\nabilities = [discount, *compiled]\n",
+  "clauses": [
+   {
+    "clause": "Kithkin spells and Soldier spells you cast cost {1} less to cast.",
+    "ir": "abilities[0] (CostModifier: Kithkin or Soldier creature spells, YOU, generic 1 less)"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "M21 Watcher of the Spheres' CostModifier (verified) over 'a Kithkin spell' or 'a Soldier spell', each the tribal noun (SUBTYPE_EQ with TYPE_EQ Creature, M21 Rin and Seri's 'Dog spell'); one modifier, so a Kithkin Soldier costs {1} less once. Packs: tools/scenarios/mapped/FDN/ballyrush_banneret_your_soldier_spell_costs_one_less.json, tools/scenarios/mapped/FDN/ballyrush_banneret_full_cost_for_others_and_opponents.json."
+ },
+ "probe": {
+  "sha": "702535b0f749b655b98b35e6309647f0124d1b120128d3cf41ee6572d9ea73f6"
+ }
+}

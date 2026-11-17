@@ -82,7 +82,7 @@
              "tag": "FAtom",
              "pred": {
               "tag": "FAtomPred",
-              "name": "COLOR_COUNT_GE"
+              "name": "QTY_GE"
              },
              "string_value": null,
              "color": null,
@@ -94,7 +94,11 @@
              "counter_kind": null,
              "keyword": null,
              "who": null,
-             "inner_filter": null
+             "inner_filter": null,
+             "field": {
+              "tag": "QPropField",
+              "name": "COLOR"
+             }
             }
            }
           ]

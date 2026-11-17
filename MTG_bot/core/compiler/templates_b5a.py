@@ -91,7 +91,12 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    at_least,
+    at_most,
+    number_in,
+    number_you_control,
 )
+from MTG_bot.core.compiler.conditions import life_over_start
 from MTG_bot.core.compiler.templates import (
     AdditionalCostOutcome,
     AbilityOutcome,
@@ -331,15 +336,16 @@ def _build_activate_only_flying(m: re.Match[str]) -> SentenceOutcome:
     # "Activate only if you control a creature with flying." — activation
     # gate (control-based).
     return ActivationGateOutcome(
-        condition=FAtom(
-            pred=FAtomPred.CONTROLLER_COUNT_GE,
-            inner_filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                    FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+        condition=at_least(
+            1,
+            quantity=number_you_control(
+                FAnd(
+                    children=(
+                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),
+                    )
                 )
             ),
-            count=QConst(1),
         )
     )
 
@@ -470,29 +476,29 @@ def _build_keyword_reminder(
 def _build_battalion(m: re.Match[str]) -> SentenceOutcome:
     # The printed trigger compiles: DeclareAttackersEvent (IS_SOURCE) ->
     # PUT_COUNTER +1/+1 on self. "and at least two other creatures attack"
-    # (CR 508.2's group of three, CONTROLLER_COUNT_GE over attacking
-    # creatures) is part of the trigger event, so it is in the event's
+    # (CR 508.2's group of three: three or more attacking creatures you
+    # control, the comparison) is part of the trigger event, so it is in the event's
     # filter, read once as the attackers are declared; the condition is only
     # an intervening "if" (CR 603.4), read again on resolution ("it doesn't
     # matter how many creatures are still attacking when that ability
-    # resolves", the card's ruling). No BATTALION keyword is emitted, so the
-    # binder's synthetic keyword trigger (binding._keyword_node) stays inert
-    # for this card and the trigger cannot fire twice.
+    # resolves", the card's ruling). Battalion is an ability word (CR
+    # 207.2c), no keyword: this printed trigger is the whole ability.
     return AbilityOutcome(
         ability=TriggeredAbility(
             event=DeclareAttackersEvent(
                 filter=FAnd(
                     children=(
                         FAtom(pred=FAtomPred.IS_SOURCE),
-                        FAtom(
-                            pred=FAtomPred.CONTROLLER_COUNT_GE,
-                            inner_filter=FAnd(
-                                children=(
-                                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                                    FAtom(pred=FAtomPred.IS_ATTACKING),
+                        at_least(
+                            3,
+                            quantity=number_you_control(
+                                FAnd(
+                                    children=(
+                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                                        FAtom(pred=FAtomPred.IS_ATTACKING),
+                                    )
                                 )
                             ),
-                            count=QConst(3),
                         ),
                     )
                 )
@@ -542,7 +548,7 @@ def _build_destroy_power_ge(m: re.Match[str]) -> SentenceOutcome:
     f = FAnd(
         children=(
             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-            FAtom(pred=FAtomPred.POWER_GE, count=QConst(int(m.group(1)))),
+            at_least(int(m.group(1)), field=QPropField.POWER),
         )
     )
     return _build_destroy(
@@ -753,15 +759,7 @@ def _build_each_opp_cant_lose_life(m: re.Match[str]) -> SentenceOutcome:
     this sentence BEFORE the discard it is about
     (``compiler._insert_before_last_step``; docs/ATOM_DIVERGENCES.md D17), so
     an opponent who discards their last card does not lose life."""
-    cant_discard = FNot(
-        inner=FAtom(
-            pred=FAtomPred.ZONE_COUNT_GE,
-            who=ControllerRef.YOU,
-            zone=Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),
-            inner_filter=FAnd(children=()),
-            count=QConst(1),
-        )
-    )
+    cant_discard = at_most(0, quantity=number_in(Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU)))
     lose = Atom(
         verb=Verb.LOSE_LIFE,
         args=AtomArgs(
@@ -1024,8 +1022,8 @@ def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
     """As long as the top card of your library is a Goblin card, this
     creature has all activated abilities of that card.  (Conspicuous Snoop.)
 
-    The gate is ZONE_COUNT_GE over the library's TOP position with
-    ``count=1``, in ``StaticAbility.condition`` ("as long as" is a
+    The gate is the comparison "the number of Goblin cards on top of your
+    library is one or more", in ``StaticAbility.condition`` ("as long as" is a
     condition, never a duration).
 
     Known gap: the true reading grants the ability set of a dynamically
@@ -1063,16 +1061,16 @@ def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(
         ability=StaticAbility(
             effect=grant,
-            condition=FAtom(
-                pred=FAtomPred.ZONE_COUNT_GE,
-                who=ControllerRef.YOU,
-                zone=Zone(
-                    kind=ZoneKind.LIBRARY,
-                    controller=ControllerRef.YOU,
-                    position=ZonePosition.TOP,
+            condition=at_least(
+                1,
+                quantity=number_in(
+                    Zone(
+                        kind=ZoneKind.LIBRARY,
+                        controller=ControllerRef.YOU,
+                        position=ZonePosition.TOP,
+                    ),
+                    top_goblin,
                 ),
-                inner_filter=top_goblin,
-                count=QConst(1),
             ),
         )
     )
@@ -1081,7 +1079,7 @@ def _build_snoop_top_goblin_abilities(m: re.Match[str]) -> SentenceOutcome:
 def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
     """As long as an opponent has eight or more cards in their graveyard,
     this creature gets +2/+1 and has deathtouch.  (Thieves' Guild Enforcer:
-    ZONE_COUNT_GE carries who + zone + inner_filter + count, in
+    the comparison read for some opponent as "you", in
     ``StaticAbility.condition``; "as long as" is a condition, never a
     duration.)"""
     p, t = int(m.group("p")), int(m.group("t"))
@@ -1108,12 +1106,10 @@ def _build_aslong_opp_gy_count(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(
         ability=StaticAbility(
             effect=Seq(steps=(pt, grant)),
-            condition=FAtom(
-                pred=FAtomPred.ZONE_COUNT_GE,
+            condition=at_least(
+                8,
+                quantity=number_in(Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.YOU)),
                 who=ControllerRef.OPPONENT,
-                zone=Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.OPPONENT),
-                inner_filter=FAnd(children=()),
-                count=QConst(8),
             ),
         )
     )
@@ -1397,18 +1393,15 @@ def _build_destroy_attached_equipment(m: re.Match[str]) -> SentenceOutcome:
 def _build_speaker_activation_gate(m: re.Match[str]) -> SentenceOutcome:
     """``Activate only if you have at least N life more than your starting
     life total and only as a sorcery.`` (Speaker of the Heavens) —
-    LIFE_LEAD_OVER_START_GE (the count slot carries QConst(N), no
-    who/inner_filter) plus the sorcery ``window``, delivered as an
+    the comparison "your life total is at least your starting life total
+    plus N" (CR 103.4, ledger F11) plus the sorcery ``window``, delivered as an
     ActivationGateOutcome: the compiler attaches both to the nearest
     preceding unconditional ActivatedAbility (the ``{T}: Create a 4/4 white
     Angel token`` sentence).
     """
     return ActivationGateOutcome(
         window=ActivationWindow.SORCERY,
-        condition=FAtom(
-            pred=FAtomPred.LIFE_LEAD_OVER_START_GE,
-            count=QConst(int(m.group("n"))),
-        ),
+        condition=life_over_start(int(m.group("n"))),
     )
 
 
@@ -1425,13 +1418,14 @@ def _build_aslong_attack_despite_defender(m: re.Match[str]) -> SentenceOutcome:
     printed there and weaker nowhere else.
     """
     p = int(m.group("p"))
-    cond = FAtom(
-        pred=FAtomPred.CONTROLLER_COUNT_GE,
-        count=QConst(1),
-        inner_filter=FAnd(
-            children=(
-                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                FAtom(pred=FAtomPred.POWER_GE, count=QConst(p)),
+    cond = at_least(
+        1,
+        quantity=number_you_control(
+            FAnd(
+                children=(
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    at_least(p, field=QPropField.POWER),
+                )
             )
         ),
     )
@@ -1559,28 +1553,19 @@ TEMPLATES: tuple[Template, ...] = (
             r"(\d+) or less\.$"
         ),
         priority=_PRIORITY,
+        # "with mana value N or less" qualifies the whole noun phrase: B11's one form, the
+        # comparison beside the types, never repeated inside each (round R12).
         build=lambda m: _build_destroy(
             m,
-            FOr(
+            FAnd(
                 children=(
-                    FAnd(
+                    FOr(
                         children=(
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                            FAtom(
-                                pred=FAtomPred.CMC_LE,
-                                count=QConst(int(m.group(1))),
-                            ),
-                        )
-                    ),
-                    FAnd(
-                        children=(
                             FAtom(pred=FAtomPred.TYPE_EQ, string_value="Planeswalker"),
-                            FAtom(
-                                pred=FAtomPred.CMC_LE,
-                                count=QConst(int(m.group(1))),
-                            ),
                         )
                     ),
+                    at_most(int(m.group(1)), field=QPropField.MANA_VALUE),
                 )
             ),
             Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),
@@ -2122,7 +2107,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5a-speaker-gate",
-        name="activation gate: life lead over start (LIFE_LEAD_OVER_START_GE)",
+        name="activation gate: life over the starting life total (the comparison)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^Activate only if you have at least (?P<n>\d+) life more than "
