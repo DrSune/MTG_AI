@@ -715,6 +715,34 @@ per machine-hour.
 **Its gate** is PLAN_LEARNING's Phase 3 bar: at least 1.3x the L per machine-day of uniform deals,
 3 seeds per arm. That is six runs or more, costed in §10.
 
+**Cycles and exploiters (owner, 2026-11-17).**
+- **Two more arguments for the Teacher:**
+  - It can detect strategy cycles and re-deal toward them. It deals the strategies of a cycle
+    (playing them, playing against them, or several at once) for a few thousand games until the
+    cycle breaks.
+  - It can detect strategies, train expert exploiters of them, and put every expert in the
+    opponent pool, so each batch's gradients play against all of them.
+- **Established forms:**
+  - the payoff matrix of a population and its meta-solver (PSRO), whose mixture puts weight
+    exactly on the strategies of a cycle;
+  - AlphaStar's league: main agents, main exploiters trained to beat the current main agent, and
+    league exploiters trained against the whole league, sampled by prioritized fictitious
+    self-play.
+- **What we already have:** each update's batch already mixes opponents (the heuristic, past
+  versions, the newest version and, in r29, itself). The open choice is the mixture's weights:
+  uniform today, then prioritized (BACKLOG), then a meta-solver's.
+- **In order, cheapest first:**
+  1. **Measure before building.** 208's B9 (a round robin among versions, and ratings on L) says
+     whether cycles exist at all. So far the problem has been a plateau, not a cycle.
+  2. **An exploitability probe:** one short exploiter run, trained only against the frozen main
+     network, with its updates to a 0.60 score as the reading. It is also a tool for the bug hunt:
+     an exploiter that climbs fast has found a degenerate line. Its games show whether that line is
+     legal Magic (a strategic weakness to train against) or an engine fault.
+  3. **Prioritized past opponents.** Then exploiters in the pool, and the cycle-aware Teacher as
+     §9.1's curator with the payoff matrix among its signals.
+- **The cost:** each exploiter is its own training run on the one GPU, so exploiters are short,
+  and they are added only when B9 or the probe shows a weakness worth them.
+
 ### 9.2 The drafter (NORTH_STAR §4a)
 
 **Started 2026-11-12, at the owner's request:** `docs/PLAN_DRAFTER.md`, a v0 on today's 60-card
