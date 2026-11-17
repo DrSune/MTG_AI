@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "swamp", "real": "Swamp", "zone": "battlefield", "controller": 0},
+    {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "mv4", "name": "Four Drop", "type": "Creature — Ogre", "power": 4, "toughness": 4, "cmc": 4, "zone": "battlefield", "controller": 1},
+    {"key": "pw6", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["cast:elim"], "expect_raise": "words no ask took: ['cast:card:0']"}
+  ],
+  "expect": {"zone": {"elim": "hand", "mv4": "battlefield", "pw6": "battlefield"}},
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' Targets are priced together with the cast: with only a mana value 4 creature and a mana value 6 planeswalker on the battlefield no choice of target is legal, so the menu offers no Eliminate row at all (the window asks nothing and passes; the word 'cast:card:0' is never taken)."
+}

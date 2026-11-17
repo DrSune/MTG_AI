@@ -1,0 +1,104 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fotd",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Field of the Dead"
+  },
+  {
+   "key": "pl",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "is",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "sw",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "mt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "g1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "g2",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Test Land A",
+   "type": "Land"
+  },
+  {
+   "key": "bb",
+   "real": "Brought Back",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "g1",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "g2",
+   "to": "graveyard"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "bb",
+   "controller": 0,
+   "targets": [
+    "g1",
+    "g2"
+   ],
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "graveyard",
+   "g1": "battlefield",
+   "g2": "battlefield"
+  },
+  "tapped": {
+   "g1": true,
+   "g2": true
+  },
+  "tokens": {
+   "Zombie": 2
+  }
+ },
+ "notes": "Field of the Dead, printed: 'Whenever this land or another land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.' Two of my lands went to the graveyard this turn; Brought Back returns both at the same time, giving me seven different names. Each land entering triggers on its own and the 'if' holds at each resolution: two Zombies."
+}

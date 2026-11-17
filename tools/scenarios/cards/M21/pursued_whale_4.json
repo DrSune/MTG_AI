@@ -1,0 +1,116 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Pursued Whale. Printed: 'When this creature enters, each opponent creates a 1/1 red Pirate creature token with \"This token can't block\" and \"Creatures you control attack each combat if able.\"' Turn 1: the Whale enters and seat 1 gets a 1/1 Pirate. Seat 0's 3/3 attacks; seat 1's Bear is told not to block and the Pirate cannot block (a spare decision word would make an offered Pirate block): 20 -> 17. Turn 2: seat 1's creatures must attack, so the Bear is never even asked whether to attack, and the Pirate attacks too; seat 0 does not block: 20 - 2 - 1 = 17. Turn 3: 'creatures YOU control' is the token controller's, so seat 0's creatures are free: the Whale and the 3/3 each get the normal ATTACK/DECLINE ask and decline (the pack's DECLINE word must be offered, or the pack fails).",
+ "cards": [
+  {
+   "key": "whale",
+   "real": "Pursued Whale",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Brute",
+   "type": "Creature — Ogre",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "whale"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mine": true
+   },
+   "block": {
+    "obear": null
+   },
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "obear": false
+   },
+   "block": {
+    "mine": null,
+    "whale": null
+   }
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mine": false,
+    "whale": false
+   }
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Pirate": 1
+  },
+  "battlefield_pt": {
+   "Pirate": [
+    1,
+    1
+   ]
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "attackers": {
+   "mine": false,
+   "whale": false
+  },
+  "asks": {
+   "whale": "ATTACK,DECLINE"
+  },
+  "life": {
+   "0": 17,
+   "1": 17
+  },
+  "zone": {
+   "whale": "battlefield",
+   "mine": "battlefield",
+   "obear": "battlefield"
+  }
+ }
+}

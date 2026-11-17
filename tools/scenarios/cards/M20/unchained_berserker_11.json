@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_blocks_a_white_attacker_and_takes_no_damage_from_it",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Protection from white (This creature can't be ... dealt damage ... by anything white.)'. Protection does not stop the Berserker blocking: on seat 1's turn a white 2/2 attacks and the Berserker blocks it. The white creature's combat damage to the Berserker is prevented (no damage on it, it survives), and the Berserker, not attacking, deals only its 1 to the attacker.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "wraider", "name": "White Raider", "type": "Creature — Human", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"wraider": true}, "block": {"ber": "wraider"}}
+ ],
+ "expect": {
+  "attackers": {"wraider": true},
+  "blocked": {"wraider": ["ber"]},
+  "damage_received": {"wraider": 1},
+  "damage": {"wraider": 1},
+  "zone": {"ber": "battlefield", "wraider": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

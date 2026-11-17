@@ -1,0 +1,83 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[-1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.' After the -1, the Wolf and the Bear attack and the Ox stays home: one counter on each attacker (exactly one each), none on the Ox. Seat 1 takes 3 + 3 (20 -> 14). Basri is at 3.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature — Wolf",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "Ox",
+   "type": "Creature — Ox",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wolf": true,
+    "bear": true,
+    "ox": false
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 3
+   },
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "ox": {}
+  },
+  "life": {
+   "0": 20,
+   "1": 14
+  },
+  "attackers": {
+   "wolf": true,
+   "bear": true,
+   "ox": false
+  }
+ }
+}

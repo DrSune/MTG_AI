@@ -1,0 +1,17 @@
+{"set": "M20", "name": "D08_3_activation_needs_the_red_mana",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn.' I control a flier, so the restriction holds, but with no mana in the pool the activation is refused for its {R} cost alone: the Goblin gets no flying. With only a colorless mana it is still refused (the cost is {R}, not generic).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0, "expect_raise": "illegal activation"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0, "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": []},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

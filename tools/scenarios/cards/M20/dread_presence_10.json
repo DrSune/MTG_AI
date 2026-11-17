@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "dread_presence_a_swamp_entering_by_an_effect_triggers_it",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a Swamp you control enters, choose one - ...'. The trigger is about entering, not about the land drop: a Swamp put onto the battlefield by an effect (no play) triggers it. Seat 0 picks the draw mode: it draws one card and goes to 19.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "swamp", "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield"},
+  "life": {"0": 19, "1": 20},
+  "hand": {"0": 1}
+ }
+}

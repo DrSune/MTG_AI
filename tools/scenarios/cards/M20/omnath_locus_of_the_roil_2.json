@@ -1,0 +1,84 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "om",
+   "real": "Omnath, Locus of the Roil",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l5",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l6",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l7",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l8",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "l8",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l8": "battlefield"
+  },
+  "counters": {
+   "om": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Omnath, Locus of the Roil, printed: 'Landfall - Whenever a land you control enters, put a +1/+1 counter on target Elemental you control. If you control eight or more lands, draw a card.' I control seven lands and play an eighth: Omnath (my only Elemental) gets a +1/+1 counter and, since I now control eight lands, I draw a card (the land left my hand, the drawn card is in it)."
+}

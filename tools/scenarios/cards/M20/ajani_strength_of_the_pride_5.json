@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed token ability: 'Whenever you gain life, put a +1/+1 counter on this token.' After the -2, seat 0 casts Sorin's Thirst and gains 2 life (one life-gain event of two life): the Pridemate gets exactly ONE +1/+1 counter (3/3), not one per life point.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "thirst", "real": "Sorin's Thirst", "zone": "hand", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "activate", "key": "aj", "idx": 1, "seat": 0},
+  {"op": "cast", "key": "thirst", "controller": 0, "targets": ["wall"]}
+ ],
+ "expect": {
+  "tokens": {"Ajani's Pridemate": 1},
+  "battlefield_pt": {"Ajani's Pridemate": [3, 3]},
+  "life": {"0": 22, "1": 20},
+  "damage": {"wall": 2},
+  "zone": {"thirst": "graveyard"}
+ }
+}

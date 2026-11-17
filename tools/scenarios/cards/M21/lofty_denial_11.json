@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Lofty Denial, printed: 'Counter target SPELL ...'. A triggered ability on the stack is not a spell. Seat 0 casts Storm Caller; once it has resolved its enters trigger waits on the stack, and seat 1's Lofty Denial may not target it: the cast is refused (the target is not in the population) and Lofty Denial stays in seat 1's hand with its mana unspent.",
+ "cards": [
+  {"key": "sc", "real": "Storm Caller", "zone": "hand", "controller": 0},
+  {"key": "lofty", "real": "Lofty Denial", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "sc", "real": "Storm Caller", "tap": true, "hold": true},
+  {"op": "resolve", "hold": true},
+  {"op": "cast", "key": "lofty", "real": "Lofty Denial", "controller": 1, "targets": ["ability:sc"], "tap": true, "expect_raise": "target"}
+ ],
+ "expect": {"zone": {"sc": "battlefield", "lofty": "hand"}, "mana_pool": {"1": {"U": 2}}}}

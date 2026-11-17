@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' With the Uprising on the battlefield, a 4/4 (power exactly 4) enters under my control from my hand: I draw exactly one card. The hand held only the Ape, so it now holds that one card.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "ape"}
+ ],
+ "expect": {"zone": {"ape": "battlefield"}, "hand": {"0": 1}}}

@@ -1,0 +1,72 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Gadrak, the Crown-Scourge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a1",
+   "name": "Cog One",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a2",
+   "name": "Cog Two",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a3",
+   "name": "Clockwork Bear",
+   "type": "Artifact Creature — Construct",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a4",
+   "name": "Cog Four",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "g": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "g": true
+  },
+  "tapped": {
+   "g": true
+  },
+  "life": {
+   "0": 20,
+   "1": 15
+  },
+  "battlefield_keywords": {
+   "Gadrak, the Crown-Scourge": [
+    "FLYING"
+   ]
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I09). Printed: 'Gadrak can't attack unless you control four or more artifacts.' You control exactly four artifacts (three artifacts and an artifact creature): Gadrak may attack, taps (no vigilance) and deals 5 in the air (20 -> 15)."
+}

@@ -5,54 +5,52 @@
  "name": "Gadrak, the Crown-Scourge",
  "text_sha": "9749845242bfa08e7622daa300bd56754569b0e65c1103b777c976d9e1da3f13",
  "verified": {
-  "tree_sha": "34df80f31e08b6d2fa887b367549c88fef39f766f4c230688dbf2145f143db19",
-  "probe_sha": "cf84549b0a01cad5120ecaaac614933e92194b3c7e6578b750492dae3bed86f7",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4N",
+  "tree_sha": "be858254947e70b87e00c905bc621da4296ab29367cdc6797f1d5a010a0be95e",
+  "probe_sha": "8daecae89913c3bf7a8e75b8f324c9569fb6b87ca840ecf9b8c47b94e212ba91",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
-   {
-    "clause": "Gadrak, the Crown-Scourge {2}{R} Legendary Creature — Dragon 5/4 (cast; legendary)",
-    "status": "OK",
-    "evidence": "[cast]: hand -> stack -> battlefield, P/T 5/4, paid R-1 plus 2 generic. Legend rule: pack gadrak_legend_rule.json (second copy cast, old kept, new to graveyard) - PASS",
-    "issue": ""
-   },
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "static: card keywords FLYING (keywords[0])",
+    "evidence": "keywords[0] = FLYING ([cast]: 'card: ... keywords +FLYING +TREASURE'; it leaves with the card in the dies diff). Pack I09_2 reads FLYING off the battlefield card. (keywords[1] TREASURE is MTGJSON's marker for the reminder text and adds no ability to Gadrak: the trace shows no activatable ability.)",
     "issue": ""
    },
    {
     "clause": "Gadrak can't attack unless you control four or more artifacts.",
-    "status": "OK",
-    "evidence": "[this creature attacks alone, unblocked] and [attacks and opp_giant blocks it]: event (none), no declaration with 1 artifact (you_relic). Tree = parse template B5b-gadrak-cant-attack-unless-artifacts. Pack gadrak_attack_needs_four_artifacts_you_control.json: 3 yours + 3 opponent's artifacts -> no attack; 4th of yours enters -> attacks for 5 (opp life 15) - PASS",
+    "status": "NOT_EXERCISED",
+    "evidence": "The refusal case is in the trace: [stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it] show 'event: (none)': no attack is declared on the standard board (one artifact of yours, you_relic). The allowed case (four or more) is never shown. Tree abilities[0] (the compiler's B5b form): static PREVENT_EFFECT of DeclareAttackersEvent(IS_SOURCE) with the static's condition FNot(QTY_GE 4 over your artifacts). Packs on the live tree: I09_1 (three artifacts of yours, three of the opponent's: can't attack, not even asked), I09_2 (exactly four, one an artifact creature: attacks, taps, 5 damage, flying), I09_3 (five artifacts of the opponent's, none of yours: can't attack). Control, not ownership: I09_9 (three of yours plus a stolen artifact: attacks), I09_10 (four of yours, one taken: can't attack).",
     "issue": ""
    },
    {
     "clause": "At the beginning of your end step, create a Treasure token for each nontoken creature that died this turn.",
-    "status": "OK",
-    "evidence": "[turns pass]: ability [1] triggers once (your end step only, not the opponent's), 0 Treasures with no deaths. Tree = parse template B2a-gadrak-treasures. Count NOT_EXERCISED in the trace; pack gadrak_end_step_treasures.json: your nontoken + opponent's nontoken + your token creature die -> 2 Treasures at your end step; a death on the opponent's turn and the opponent's end step -> none; your next end step with no deaths this turn -> none (total 2) - PASS",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trigger fires at your end step in the trace ([stimulus: turns pass: your end step, ...] and [stimulus: you cast Crash Through, then your end step comes]: 'card's triggered ability [1] triggers') but nothing died that turn, so no token and no count are shown; the stimulus where a creature dies never reaches the end step. Tree (the compiler's own B2a-gadrak-treasures form): TurnPhaseEvent(END_TURN, actor you), CREATE_TOKEN count = QCount of cards in every graveyard that DIED_THIS_TURN, are creatures and are not tokens, the Treasure token spec with its sacrifice-for-any-color ability. Packs on the live tree: I09_4 (your nontoken Bear and the opponent's nontoken Bear die, a creature token dies, a 3/3 survives: exactly 2 Treasures), I09_5 (your end step only, and this turn only: 1 Treasure over turns 1-3), I09_6 (creatures that died before Gadrak entered this turn count: 2), I09_7 (a creature that died and was exiled from the graveyard still counts: 1), I09_8 (the Treasure pays Shock's {R} and is sacrificed). I09_11 (creature cards put into a graveyard from a hand or a library did not die: not counted).",
     "issue": ""
-   },
-   {
-    "clause": "(It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\") [reminder]",
-    "status": "OK",
-    "evidence": "TokenSpec: colorless Artifact named Treasure, keywords (TREASURE,) = the engine's Treasure artifact-type marker (ability_tree.py:807), ActivatedAbility {T} + sacrifice self -> ADD_MANA 1 ANY to YOU, matching CR 111.10a. Engine-minted tokens have no pack address, so it cannot be activated from a pack; the same ability on the Treasure golden is exercised by tools/scenarios/treasure_token_activation.json",
-    "issue": "note: the Treasure type is carried as Keyword.TREASURE, not as subtypes=('Treasure',) (type_line 'Artifact'); nothing in the 19 sets reads either. Gadrak itself also carries Keyword.TREASURE (from the MTGJSON keyword list, compiler.py:118); no engine code reads that keyword, so it is inert, but Gadrak is not a Treasure and a future Treasure-counting filter keyed on it would miscount"
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_1.json",
-   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_2.json",
-   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_3.json"
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_4.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_5.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_6.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_7.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_8.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_9.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_10.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_11.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_12.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_13.json",
+   "tools/scenarios/cards/M21/gadrak_the_crown-scourge_14.json"
   ],
   "mutation": {
-   "mutants": 9,
-   "killed": 5,
-   "score": 0.5555555555555556,
+   "mutants": 12,
+   "killed": 6,
+   "score": 0.5,
    "survived": [
     "amount+1 at 1/0/condition/inner/count",
     "amount-1 at 1/0/condition/inner/count",
+    "widen filter (drop part 0) at 1/0/condition/inner/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/inner/quantity/selector/filter/children/0/who",
     "widen filter (drop part 1) at 1/1/effect/args/count/selector/filter",
     "widen filter (drop part 2) at 1/1/effect/args/count/selector/filter"
    ]

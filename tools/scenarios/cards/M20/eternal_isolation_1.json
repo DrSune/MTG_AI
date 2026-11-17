@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Eternal Isolation (M20). Printed: 'Put target creature with power 4 or greater on the bottom of its owner's library.' The opponent's Giant (4/4, power exactly 4) goes to the BOTTOM of the opponent's library: below its own library card and the six filler cards, not on top. Seat 0's own library is untouched.",
+ "cards": [
+  {"key": "ei", "real": "Eternal Isolation", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Giant", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1},
+  {"key": "opptop", "name": "Opp Top", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "key": "ei", "controller": 0, "targets": ["giant"]}
+ ],
+ "expect": {
+  "zone": {"ei": "graveyard", "giant": "library"},
+  "library": {
+   "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+   "1": ["Opp Top", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Giant"]
+  }
+ }
+}

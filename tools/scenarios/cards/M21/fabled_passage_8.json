@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0, "start_tapped": true},
+    {"key": "forest", "real": "Forest", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "activate", "key": "fp", "idx": 0, "seat": 0, "expect_raise": "cost:tap:source_tapped"}
+  ],
+  "expect": {
+    "zone": {"fp": "battlefield", "forest": "library"},
+    "tapped": {"fp": true}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I06). Printed: '{T}, Sacrifice this land: ...' A tapped Fabled Passage cannot pay {T}: the activation is refused, the land is not sacrificed and nothing is fetched."
+}

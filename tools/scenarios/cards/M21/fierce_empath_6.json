@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+    {"key": "big", "name": "Big Six", "type": "Creature — Giant", "power": 6, "toughness": 6, "cmc": 6, "zone": "library", "controller": 0},
+    {"key": "big2", "name": "Big Seven", "type": "Creature — Giant", "power": 7, "toughness": 7, "cmc": 7, "zone": "library", "controller": 0}
+  ],
+  "mana": {"0": {"G": 3}},
+  "steps": [
+    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["skip"]}
+  ],
+  "expect": {
+    "zone": {"empath": "battlefield", "big": "library", "big2": "library"},
+    "hand": {"0": 0},
+    "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*"]}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I07). Printed: 'you MAY search your library'. Declining the may-offer (skip): nothing is searched, no card goes to your hand, both big creatures stay in the library (8 cards)."
+}

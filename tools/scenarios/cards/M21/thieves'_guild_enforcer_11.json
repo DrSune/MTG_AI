@@ -1,0 +1,110 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'Whenever this creature or another Rogue you control enters, each opponent mills two cards.' Two Rogue creatures enter at once, in one event: Ugin's [-10] ('...put up to seven permanent cards from your hand onto the battlefield') puts both onto the battlefield together. Each Rogue entering triggers the Enforcer separately: seat 1 mills two cards for each, four in all (its top four cards, Library 5 down to Library 2). (Supporting card: Ugin, the Spirit Dragon, M21's only way to enter two cards at once; it is verified in the same wave.)",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ugin",
+   "real": "Ugin, the Spirit Dragon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "r1",
+   "name": "Rogue One",
+   "type": "Creature — Human Rogue",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "r2",
+   "name": "Rogue Two",
+   "type": "Creature — Human Rogue",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "x1",
+   "name": "Deep Card 1",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x2",
+   "name": "Deep Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x3",
+   "name": "Deep Card 3",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ugin",
+   "set": 10
+  },
+  {
+   "op": "activate",
+   "key": "ugin",
+   "idx": 2,
+   "seat": 0,
+   "decisions": [
+    "r1",
+    "r2",
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "enf": "battlefield",
+   "r1": "battlefield",
+   "r2": "battlefield",
+   "ugin": "graveyard"
+  },
+  "graveyard": {
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2"
+   ]
+  },
+  "library": {
+   "1": [
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 27
+  }
+ }
+}

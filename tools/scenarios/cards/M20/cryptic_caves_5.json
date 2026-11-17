@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Cryptic Caves (M20). Printed: 'Activate only if you control five or more lands.' Control counts, not ownership: seat 0 owns three lands (the Caves and two more) and controls two lands the opponent owns (control changed to seat 0): five lands controlled, so the activation is legal and draws a card.",
+ "cards": [
+  {"key": "caves", "real": "Cryptic Caves", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Test Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Test Land Two", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "s1", "name": "Stolen Land One", "type": "Land", "zone": "battlefield", "controller": 1},
+  {"key": "s2", "name": "Stolen Land Two", "type": "Land", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "gain_control", "key": "s1", "seat": 0},
+  {"op": "gain_control", "key": "s2", "seat": 0},
+  {"op": "activate", "key": "caves", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"caves": "graveyard", "s1": "battlefield", "s2": "battlefield"},
+  "controller": {"s1": 0, "s2": 0},
+  "hand": {"0": 1, "1": 0}
+ }
+}

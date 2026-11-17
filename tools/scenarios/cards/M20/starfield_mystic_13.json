@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_a_counter_for_each_enchantment",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.' Two enchantments of seat 0 go to the graveyard one after the other: two counters, the Mystic is 4/4.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "charm1", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "charm2", "name": "My Other Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "charm1", "to": "graveyard"},
+  {"op": "move", "key": "charm2", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"charm1": "graveyard", "charm2": "graveyard"},
+  "counters": {"mystic": {"PLUS_1_PLUS_1": 2}},
+  "power": {"mystic": 4},
+  "toughness": {"mystic": 4}
+ }
+}

@@ -1,0 +1,98 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rep",
+   "real": "Chrome Replicator",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "twin1",
+   "name": "Twin Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "twin2",
+   "name": "Twin Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "other",
+   "name": "Lone Wolf",
+   "type": "Creature — Wolf",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "name": "Lone Forest",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "name": "Lone Goblin",
+   "type": "Creature — Goblin",
+   "power": 1,
+   "toughness": 1,
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oelk",
+   "name": "Opp Elk",
+   "type": "Creature — Elk",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 5
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Chrome Replicator",
+   "key": "rep"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "rep": "battlefield"
+  },
+  "tokens": {
+   "Construct": 1
+  },
+  "battlefield_pt": {
+   "Construct": [
+    4,
+    4
+   ]
+  },
+  "battlefield_keywords": {
+   "Construct": []
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I03). Printed: 'When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.' You control two nonland nontoken permanents named Twin Bear (and one other, Lone Wolf): when Chrome Replicator enters, exactly one 4/4 Construct token is created. The land (Lone Forest), the token (Lone Goblin) and the opponent's Opp Elk each have a name of their own and change nothing: lands, tokens and the opponent's permanents are not counted at all."
+}

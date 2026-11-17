@@ -1,0 +1,65 @@
+{
+ "set": "M20",
+ "name": "waterkin_shaman_survives_the_cleanup_step_damage_and_the_bonus_end_together",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: '... this creature gets +1/+1 until end of turn.' A flier enters (the Shaman is 3/2) and the opponent's Pinger deals it 1 damage: not lethal at toughness 2. In the cleanup step damage wears off and 'until end of turn' effects end at the same time (CR 514.2), so the Shaman, a 2/1 again, has no damage left and survives. It is on the battlefield, 2/1, with no damage marked.",
+ "cards": [
+  {
+   "key": "shaman",
+   "real": "Waterkin Shaman",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "My Bird",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "pinger",
+   "name": "Pinger",
+   "type": "Creature \u2014 Imp",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "f1"
+  },
+  {
+   "op": "deal_damage",
+   "source": "pinger",
+   "target": "shaman",
+   "amount": 1,
+   "controller": 1
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shaman": "battlefield"
+  },
+  "power": {
+   "shaman": 2
+  },
+  "toughness": {
+   "shaman": 1
+  }
+ }
+}

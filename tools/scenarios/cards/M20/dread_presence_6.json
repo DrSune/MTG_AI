@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "dread_presence_mode_two_2_damage_to_a_creature_and_gain_2",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... choose one - ...; This creature deals 2 damage to any target and you gain 2 life.' Seat 0 plays a Swamp, picks the second mode and targets the opponent's 3/3: exactly 2 damage is marked on it (it survives), seat 0 gains exactly 2 (22), nobody draws and the opponent's life is unchanged.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "obig", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "swamp", "seat": 0, "decisions": ["1", "obig"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "obig": "battlefield"},
+  "damage": {"obig": 2},
+  "hand": {"0": 0},
+  "life": {"0": 22, "1": 20},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

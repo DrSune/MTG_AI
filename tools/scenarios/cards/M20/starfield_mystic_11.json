@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_one_counter_for_my_enchantment_put_into_a_graveyard_from_the_battlefield",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.' Seat 0's Charm goes to the graveyard: one +1/+1 counter on the Mystic, which is 3/3. The opponent's Charm and seat 0's artifact going to the graveyard give nothing, so there is exactly one counter.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "charm", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "ocharm", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "ocharm", "to": "graveyard"},
+  {"op": "move", "key": "relic", "to": "graveyard"},
+  {"op": "move", "key": "charm", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"charm": "graveyard", "ocharm": "graveyard", "relic": "graveyard", "mystic": "battlefield"},
+  "counters": {"mystic": {"PLUS_1_PLUS_1": 1}},
+  "power": {"mystic": 3},
+  "toughness": {"mystic": 3}
+ }
+}

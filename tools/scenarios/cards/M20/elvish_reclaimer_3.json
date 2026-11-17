@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: 'as long as there are three or more LAND cards in YOUR graveyard.' Seat 0's graveyard holds two land cards and a creature card (three cards, two lands), and the opponent's graveyard holds four land cards: only seat 0's own land cards count, so the Reclaimer stays 1/2.",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Dead Land One", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Dead Land Two", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "gc", "name": "Dead Creature", "type": "Creature", "power": "1", "toughness": "1", "zone": "graveyard", "controller": 0},
+  {"key": "o1", "name": "Opp Dead One", "type": "Land", "zone": "graveyard", "controller": 1},
+  {"key": "o2", "name": "Opp Dead Two", "type": "Land", "zone": "graveyard", "controller": 1},
+  {"key": "o3", "name": "Opp Dead Three", "type": "Land", "zone": "graveyard", "controller": 1},
+  {"key": "o4", "name": "Opp Dead Four", "type": "Land", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [{"op": "pass"}],
+ "expect": {
+  "power": {"rec": 1},
+  "toughness": {"rec": 2}
+ }
+}

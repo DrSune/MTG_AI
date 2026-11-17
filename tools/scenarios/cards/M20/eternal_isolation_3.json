@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Eternal Isolation (M20). Printed: 'on the bottom of its OWNER's library'. The Giant (5/5) belongs to seat 1 but seat 0 controls it (control change). Seat 0 targets it: it goes to the bottom of seat 1's library (its owner), and seat 0's library, which is the caster's and the controller's, does not grow.",
+ "cards": [
+  {"key": "ei", "real": "Eternal Isolation", "zone": "hand", "controller": 0},
+  {"key": "giant", "name": "Stolen Giant", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "opptop", "name": "Opp Top", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "gain_control", "key": "giant", "seat": 0},
+  {"op": "cast", "key": "ei", "controller": 0, "targets": ["giant"]}
+ ],
+ "expect": {
+  "zone": {"ei": "graveyard", "giant": "library"},
+  "library": {
+   "0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+   "1": ["Opp Top", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Stolen Giant"]
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of All. Printed: 'At the beginning of your upkeep, you MAY search your library and/or graveyard for a Shrine card and put it onto the battlefield.' At turn 3's upkeep seat 0 declines the may (skip): nothing is searched or moved, and the library is not shuffled. Shrine L stays in the library, Shrine G in the graveyard, and the library keeps its order (after the draw step's Library 5: Library 4 down to Library 0, then Shrine L).",
+ "cards": [
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sl", "name": "Shrine L", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "library", "controller": 0},
+  {"key": "sg", "name": "Shrine G", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "sl": "library", "sg": "graveyard"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Shrine L"]}
+ }}

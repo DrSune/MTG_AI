@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_my_enchantment_spells_cost_exactly_1_less",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Enchantment spells you cast cost {1} less to cast.' Moldervine Reclamation costs {3}{B}{G}. With the Mystic in play seat 0 cannot cast it with three mana (so it costs more than {1}{B}{G}, i.e. not 2 less), but can with four ({2}{B}{G}): it costs exactly one less, and the pool is empty afterwards.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "mold", "real": "Moldervine Reclamation", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1, "G": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "mold", "controller": 0, "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "cast", "key": "mold", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"mold": "battlefield", "mystic": "battlefield"},
+  "mana_pool": {"0": {}},
+  "counters": {"mystic": {}}
+ }
+}

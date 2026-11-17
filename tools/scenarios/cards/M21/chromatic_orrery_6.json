@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+  ],
+  "steps": [
+    {"op": "cast", "real": "Shock", "key": "shock", "targets": ["p1"], "tap": true}
+  ],
+  "expect": {
+    "zone": {"shock": "graveyard", "orrery": "battlefield"},
+    "tapped": {"orrery": true},
+    "life": {"0": 20, "1": 18},
+    "mana_pool": {"0": {"C": 4}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: '{T}: Add {C}{C}{C}{C}{C}.' and 'You may spend mana as though it were mana of any color.' The Orrery is the only mana source: tapping it for exactly five colorless mana pays Shock's {R} (spent as though red) and leaves four colorless mana in the pool; the Orrery is tapped."
+}

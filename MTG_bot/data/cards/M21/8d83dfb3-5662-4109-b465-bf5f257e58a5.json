@@ -5,31 +5,30 @@
  "name": "Tide Skimmer",
  "text_sha": "2fa91618235db280ef07b01abba9732a48275a88d5cfd125350ecec4e8a680c3",
  "verified": {
-  "tree_sha": "329f8e7500555d6ec014df3a4b19cc36373ad99286774cc483c1ce747762ca80",
+  "tree_sha": "12acab746778d60831251a388818009b2782f52c3818e7c0ad5e990fcc91b303",
   "probe_sha": "3e2da39b44f50c61834d6d9d03e06967505e48d4dc269abb3aaa8a41fce100c2",
-  "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "keywords +FLYING",
+    "evidence": "cast: card keywords +FLYING.",
     "issue": ""
    },
    {
-    "clause": "Whenever you attack with two or more creatures with flying, draw a card",
+    "clause": "Whenever you attack with two or more creatures with flying, draw a card.",
     "status": "NOT_EXERCISED",
-    "evidence": "trace has only one flier attacking: no draw (correct). Packs A11_1 (two fliers: draw), A11_2 (three: one draw), A11_3 (one flier: none), A11_4",
+    "evidence": "the trace has Tide Skimmer attacking alone (one flier) and you_bear attacking (not flying), both with no trigger, but never an attack with two fliers. Packs: K04_1 (exactly two fliers: one card), K04_2 (three fliers: one card), K04_3 (one flier among ground attackers: none), K04_4 (Skimmer at home, two other fliers attack: one card), K04_5 (the opponent's two fliers attack: none for me).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/tide_skimmer_8.json",
-   "tools/scenarios/cards/M21/tide_skimmer_9.json",
-   "tools/scenarios/cards/M21/tide_skimmer_10.json",
-   "tools/scenarios/cards/M21/tide_skimmer_11.json",
-   "tools/scenarios/cards/M21/tide_skimmer_6.json",
-   "tools/scenarios/cards/M21/tide_skimmer_7.json"
+   "tools/scenarios/cards/M21/tide_skimmer_12.json",
+   "tools/scenarios/cards/M21/tide_skimmer_13.json",
+   "tools/scenarios/cards/M21/tide_skimmer_14.json",
+   "tools/scenarios/cards/M21/tide_skimmer_15.json",
+   "tools/scenarios/cards/M21/tide_skimmer_16.json"
   ],
   "mutation": {
    "mutants": 16,
@@ -42,11 +41,11 @@
     "widen filter (drop part 2) at 1/0/event/filter",
     "controller YOU->OPPONENT at 1/0/event/filter/children/0/who",
     "amount+1 at 1/0/event/filter/children/3/count",
-    "widen filter (drop part 0) at 1/0/event/filter/children/3/inner_filter",
-    "widen filter (drop part 1) at 1/0/event/filter/children/3/inner_filter",
-    "widen filter (drop part 2) at 1/0/event/filter/children/3/inner_filter",
-    "widen filter (drop part 3) at 1/0/event/filter/children/3/inner_filter",
-    "controller YOU->OPPONENT at 1/0/event/filter/children/3/inner_filter/children/0/who",
+    "widen filter (drop part 0) at 1/0/event/filter/children/3/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/event/filter/children/3/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/event/filter/children/3/quantity/selector/filter",
+    "widen filter (drop part 3) at 1/0/event/filter/children/3/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/event/filter/children/3/quantity/selector/filter/children/0/who",
     "amount+1 at 1/0/effect/args/amount",
     "controller YOU->OPPONENT at 1/0/effect/args/controller"
    ]

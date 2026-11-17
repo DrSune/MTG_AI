@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "g", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+    {"key": "src", "name": "Pinger", "type": "Creature — Wizard", "power": 1, "toughness": 9, "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "discarded", "name": "Discarded Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "hand", "controller": 0},
+    {"key": "milled", "name": "Milled Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "library", "controller": 1}
+  ],
+  "steps": [
+    {"op": "move", "key": "discarded", "to": "graveyard"},
+    {"op": "move", "key": "milled", "to": "graveyard"},
+    {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "zone": {"bear": "graveyard", "discarded": "graveyard", "milled": "graveyard", "g": "battlefield"},
+    "tokens": {"Treasure": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I09). Printed: '... for each nontoken creature that DIED this turn.' (CR 700.4: dies = put into a graveyard FROM THE BATTLEFIELD.) A creature card put into your graveyard from your hand and one put into the opponent's graveyard from their library did not die; your Bear dies from the battlefield: exactly 1 Treasure at your end step."
+}

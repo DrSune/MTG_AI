@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'When this enchantment enters, if YOU control a creature with power 4 OR GREATER, draw a card.' I control only a 3/3 (power 3, too small); the OPPONENT controls a 5/5, which is not mine. The condition is false, so I draw nothing: after the cast my hand is empty.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "small", "name": "Three Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Five Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "up", "real": "Garruk's Uprising"}
+ ],
+ "expect": {"zone": {"up": "battlefield"}, "hand": {"0": 0}}}

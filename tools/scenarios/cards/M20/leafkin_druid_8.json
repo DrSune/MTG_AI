@@ -1,0 +1,77 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Bear A",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Bear B",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c3",
+   "name": "Bear C",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "troll",
+   "real": "Barkhide Troll",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "c3",
+   "seat": 1
+  },
+  {
+   "op": "cast",
+   "key": "troll",
+   "controller": 0,
+   "tap": true,
+   "expect_raise": "cannot pay"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "troll": "hand"
+  },
+  "controller": {
+   "c3": 1
+  },
+  "tapped": {
+   "druid": false
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Leafkin Druid, printed: 'If you CONTROL four or more creatures'. I own four creatures (the Druid and three Bears) but the opponent has taken one Bear: I control only three, so one tap adds just {G} and {G}{G} cannot be paid."
+}

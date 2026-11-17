@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+    {"key": "flier", "name": "Your Flier", "type": "Creature — Bird", "power": 1, "toughness": 1, "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "mine", "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"W": 1, "C": 1}},
+  "steps": [
+    {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["mine"]}
+  ],
+  "expect": {
+    "tapped": {"enf": true, "mine": true, "flier": false, "obear": false},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I11). Printed: 'Tap target creature.' (any creature): you may target your own Bear; it is tapped, the Enforcer taps for the {T} cost, and the opposing Bear and your flier are not."
+}

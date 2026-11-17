@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "tok1", "name": "Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0},
+    {"key": "tok2", "name": "Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0},
+    {"key": "land1", "name": "Twin Land", "type": "Land", "zone": "battlefield", "controller": 0},
+    {"key": "land2", "name": "Twin Land", "type": "Land", "zone": "battlefield", "controller": 0},
+    {"key": "mixed", "name": "Mixed Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "mixedtok", "name": "Mixed Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "token": true, "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "zone": {"rep": "battlefield"},
+    "tokens": {"Construct": 0, "Spirit": 2, "Mixed Bear": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). Printed: 'two or more NONLAND, NONTOKEN permanents with the same name as one another'. You control two Spirit tokens (the same name, tokens), two Twin Land lands (the same name, lands) and one Mixed Bear card with a Mixed Bear token (one nontoken of that name): none of these is a pair of nonland nontoken permanents, so no Construct is created."
+}

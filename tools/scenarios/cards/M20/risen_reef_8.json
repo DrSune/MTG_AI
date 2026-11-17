@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "risen_reef_another_elemental_of_mine_entering_triggers_it",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'Whenever this creature or another Elemental you control enters, ...'. With the Reef in play, another Elemental of seat 0 enters; the top card is a Forest and seat 0 accepts: the Forest enters the battlefield tapped under seat 0, and nothing goes to hand. One entering creature, one trigger: the second card of the library stays.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "battlefield", "controller": 0},
+  {"key": "elem", "name": "Small Elemental", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "below", "name": "Second Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "land", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "elem", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"elem": "battlefield", "land": "battlefield", "below": "library"},
+  "tapped": {"land": true},
+  "controller": {"land": 0},
+  "hand": {"0": 0},
+  "library": {"0": ["Second Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

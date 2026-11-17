@@ -1,0 +1,62 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Ajani, Strength of the Pride (M20). Printed: 'Create a 2/2 WHITE Cat Soldier creature token'. Fry (M20) deals 5 damage to target creature or planeswalker that's white or blue. Seat 1 casts it through the menu at the new token (card:14, the first object created after the setup cards): the token is among the legal targets, which it is only if it is white (or blue), and it dies. Ajani (white) is the other legal target and is not chosen.",
+ "cards": [
+  {
+   "key": "aj",
+   "real": "Ajani, Strength of the Pride",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fry",
+   "real": "Fry",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "aj",
+   "set": 5
+  },
+  {
+   "op": "activate",
+   "key": "aj",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 1,
+   "words": [
+    "cast:fry",
+    "card:14"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Ajani's Pridemate": 0
+  },
+  "zone": {
+   "fry": "graveyard",
+   "aj": "battlefield"
+  },
+  "counters": {
+   "aj": {
+    "LOYALTY": 3
+   }
+  }
+ }
+}

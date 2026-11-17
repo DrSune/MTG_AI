@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' It triggers for each such creature: a 4/4 and a 6/6 enter one after the other, and I draw two cards (the hand held the two Apes and now holds the two drawn cards).",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "ape1", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "hand", "controller": 0},
+  {"key": "ape2", "name": "Six Ape", "type": "Creature — Ape", "power": 6, "toughness": 6, "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "ape1"},
+  {"op": "enter", "key": "ape2"}
+ ],
+ "expect": {"zone": {"ape1": "battlefield", "ape2": "battlefield"}, "hand": {"0": 2}}}

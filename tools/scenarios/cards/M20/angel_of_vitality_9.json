@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Angel of Vitality (M20). Printed: '+2/+2 as long as you have 25 or more life.' It is seat 0's life that counts, not the opponent's: seat 0 has 20 life and the opponent has 40, so the Angel is its printed 2/2.",
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 1, "set": 40},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 40},
+  "power": {"ang": 2},
+  "toughness": {"ang": 2}
+ }
+}

@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sog", "real": "Season of Growth", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard"},
+  "power": {"bear": 6},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Season of Growth, printed: 'Whenever you cast a spell that targets a creature you control, draw a card.' I cast Titanic Growth at my own creature: it resolves (6/6) and I draw exactly one card (the spell left my hand, one drawn card is in it)."
+}

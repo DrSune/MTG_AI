@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: '{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.' X is worked out once, as the ability resolves, and the creatures affected are those I control then. My hand holds two cards (X = 2). Afterwards a 1/1 Silk enters from the hand (my hand is then 1): the creatures that were affected stay 2/2 (X does not follow my hand down to 1), and the newcomer, which was not on the battlefield when the ability resolved, stays a 1/1.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "tiger", "name": "My Tiger", "type": "Creature — Cat", "power": 6, "toughness": 5, "zone": "battlefield", "controller": 0},
+  {"key": "silk", "name": "Silk", "type": "Creature — Spider", "power": 1, "toughness": 1, "zone": "hand", "controller": 0},
+  {"key": "other", "name": "Other Card", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "activate", "key": "jol", "idx": 1, "seat": 0},
+  {"op": "enter", "key": "silk"}
+ ],
+ "expect": {"power": {"jol": 2, "tiger": 2, "silk": 1}, "toughness": {"jol": 2, "tiger": 2, "silk": 1}, "zone": {"silk": "battlefield"}, "hand": {"0": 1}}}

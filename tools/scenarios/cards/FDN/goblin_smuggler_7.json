@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "D03_3_target_limits_power_two_or_less_another_creature",
+ "notes": "Printed: '{T}: Another target creature with power 2 or less can't be blocked this turn.' Power 3 is more than 2: the activation targeting my 3/3 is refused. 'Another': the Smuggler itself (a 2/2) cannot be the target. A noncreature permanent (an artifact) is not a creature: refused. Each refusal pays nothing (the Smuggler stays untapped); the same activation at my 2/2 Bear is legal and taps the Smuggler.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "battlefield", "controller": 0},
+  {"key": "three", "name": "My Brute", "type": "Creature — Brute", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "relic", "name": "My Relic", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["three"], "expect_raise": "illegal activation: target"},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["smug"], "expect_raise": "illegal activation: target"},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["relic"], "expect_raise": "illegal activation: target"},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "tapped": {"smug": true},
+  "life": {"0": 20, "1": 20}
+ }
+}

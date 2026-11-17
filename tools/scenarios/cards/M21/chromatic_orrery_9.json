@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "rbear", "name": "Red Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 4}},
+  "steps": [
+    {"op": "activate", "key": "orrery", "idx": 2, "seat": 0, "expect_raise": "cost:mana_generic:4<5"}
+  ],
+  "expect": {
+    "tapped": {"orrery": false},
+    "hand": {"0": 0},
+    "mana_pool": {"0": {"C": 4}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: '{5}, {T}: Draw a card for each color among permanents you control.' With only four mana in the pool the {5} cannot be paid: the activation is refused, nothing is drawn, the Orrery stays untapped and the four mana stay."
+}

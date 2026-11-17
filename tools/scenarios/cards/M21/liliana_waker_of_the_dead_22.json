@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-7]: You get an emblem with \"At the beginning of combat on YOUR turn, put target creature card from a graveyard onto the battlefield under your control. ...\"' I make the emblem, then the turn passes to the opponent. At the beginning of the OPPONENT's combat the emblem does nothing: my Dead Bear stays in my graveyard.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "dead", "name": "My Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {}}
+ ],
+ "expect": {"zone": {"lil": "graveyard", "dead": "graveyard"}, "turn_seats": [0, 1]}}

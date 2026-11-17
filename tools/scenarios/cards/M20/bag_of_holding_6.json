@@ -1,0 +1,109 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_only_your_own_discards_are_exiled",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever YOU discard a card, exile that card from your graveyard.' Seat 0 casts Mind Rot ('Target player discards two cards') on the opponent first: the opponent's two cards go to the opponent's graveyard and stay there. Then seat 0 casts a second Mind Rot on itself: its two cards are discarded and the Bag exiles both. The Mind Rots themselves were cast, not discarded, and sit in the graveyard. (The two exile triggers of the second Mind Rot are simultaneous: their order is asked and either order gives the same result.)",
+ "cards": [
+  {
+   "key": "bag",
+   "real": "Bag of Holding",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mr1",
+   "real": "Mind Rot",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mr2",
+   "real": "Mind Rot",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "d1",
+   "name": "My Discard One",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "d2",
+   "name": "My Discard Two",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "e1",
+   "name": "Their Discard One",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "e2",
+   "name": "Their Discard Two",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "mr1",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "mr2",
+   "controller": 0,
+   "targets": [
+    "p0"
+   ],
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "e1": "graveyard",
+   "e2": "graveyard",
+   "d1": "exile",
+   "d2": "exile",
+   "mr1": "graveyard",
+   "mr2": "graveyard"
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

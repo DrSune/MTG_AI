@@ -1,0 +1,126 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lt",
+   "real": "Basri's Lieutenant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cbear",
+   "name": "Counter Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "pbear",
+   "name": "Plain Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chbear",
+   "name": "Charge Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "CHARGE": 2
+   }
+  },
+  {
+   "key": "obear",
+   "name": "Opp Counter Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "zap",
+   "name": "Zapper",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "pbear",
+   "amount": 2,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "chbear",
+   "amount": 2,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "obear",
+   "amount": 3,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "zap",
+   "target": "cbear",
+   "amount": 3,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "pbear": "graveyard",
+   "obear": "graveyard",
+   "cbear": "graveyard",
+   "lt": "battlefield",
+   "chbear": "graveyard"
+  },
+  "tokens": {
+   "Knight": 1
+  },
+  "battlefield_pt": {
+   "Knight": [
+    2,
+    2
+   ]
+  },
+  "battlefield_keywords": {
+   "Knight": [
+    "VIGILANCE"
+   ]
+  },
+  "counters": {
+   "lt": {}
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.' The Lieutenant itself has NO counter and stays alive. Your counterless Plain Bear dies: no Knight. The opponent's Bear with a counter dies: not a creature you control, no Knight. Your Charge Bear (two charge counters, no +1/+1 counter) dies: no Knight, the counter must be a +1/+1 one. Your OTHER creature with a +1/+1 counter (Counter Bear, 3/3) dies: exactly one 2/2 Knight with vigilance."
+}

@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "ally", "name": "Three-Power Ally", "type": "Creature — Ape", "power": 3, "toughness": 5, "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"tyr": true, "ally": true}}
+  ],
+  "expect": {
+    "attackers": {"tyr": false, "ally": true},
+    "not_asked": ["tyr"],
+    "tapped": {"tyr": false, "ally": true},
+    "life": {"0": 20, "1": 17},
+    "battlefield_keywords": {"Drowsing Tyrannodon": ["DEFENDER"]}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'Defender' and 'As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.' You control only creatures with power 3 or less (the Tyrannodon is 3/3, the ally 3/5): the Tyrannodon keeps defender and is never offered an attack (the ally attacks alone for 3, 20 -> 17)."
+}

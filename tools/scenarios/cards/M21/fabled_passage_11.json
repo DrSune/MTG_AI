@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
+    {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+    {"key": "swamp", "real": "Swamp", "zone": "library", "controller": 0},
+    {"key": "caves", "real": "Bloodfell Caves", "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["act:fp:0", "swamp"]}
+  ],
+  "expect": {
+    "zone": {"fp": "graveyard", "swamp": "battlefield", "forest": "library", "caves": "library"},
+    "tapped": {"swamp": true}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I06). Printed: '{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.' Through the menu: the ability row is offered (no mana needed), the Passage is tapped and sacrificed, the search ask takes the chosen Swamp (a basic land), which enters tapped (you control only that one land); the Forest and the nonbasic Bloodfell Caves stay in the library."
+}

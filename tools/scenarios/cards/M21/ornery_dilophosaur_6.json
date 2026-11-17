@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Ornery Dilophosaur, printed: '... if you control a creature with power 4 or greater, ...' My only other creature is a 3/3 (power 3, too small): the condition is false, the Dilophosaur stays a 2/2 and deals 2 (20 -> 18).",
+ "cards": [
+  {"key": "dilo", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Three Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dilo": true, "ape": false}}
+ ],
+ "expect": {"power": {"dilo": 2}, "toughness": {"dilo": 2}, "life": {"1": 18}}}

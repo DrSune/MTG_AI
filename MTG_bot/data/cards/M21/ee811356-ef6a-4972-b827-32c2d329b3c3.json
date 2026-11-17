@@ -5,42 +5,45 @@
  "name": "Drowsing Tyrannodon",
  "text_sha": "60a1af355d93c668d6dc06021352f59d2262e3fdd469867ccd70a1cf42e49a1d",
  "verified": {
-  "tree_sha": "700da0d7eef7078b9ce9ea37aca9af5f04c44126e8e9fba203654d0ef58953a9",
+  "tree_sha": "21abf4a4c5716747b4a082c0e8709cf9f4c2fcacead71d0008f8c75d807d6e60",
   "probe_sha": "5caa5fb53b9757e9cad08ec22303e36b907b379ebfcdf9b8146b9ff2506ac1b9",
-  "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1-A",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "Defender",
-    "status": "OK",
-    "evidence": "keyword present",
-    "issue": ""
-   },
-   {
-    "clause": "with a creature of power 4+, can attack",
-    "status": "OK",
-    "evidence": "attacks alone with you_giant on board; unblocked 3 damage",
-    "issue": ""
-   },
-   {
-    "clause": "without such a creature it cannot attack",
+    "clause": "Defender (This creature can't attack.)",
     "status": "NOT_EXERCISED",
-    "evidence": "giant always present; pack A17_2",
+    "evidence": "keywords[0] = DEFENDER ([cast]: 'keywords +DEFENDER'). The standard board always holds your 4/4 (you_giant), so the permission below applies in every attack stimulus and the trace never shows defender stopping an attack. Packs on the live tree: I10_1 (creatures with power 3 or less: it is never asked to attack), I10_3 (only the opponent has 4+ power creatures: never asked), I10_5 (the 4-power creature left: never asked), I10_6 (it still blocks: it kills a 2/2 attacker).",
+    "issue": ""
+   },
+   {
+    "clause": "As long as you control a creature with power 4 or greater, this creature can attack as though it didn't have defender.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The true case is in the trace: [stimulus: this creature attacks alone, unblocked] and [... opp_giant blocks it]: 'card becomes tapped', DECLARE_ATTACKERS, 3 combat damage to the opponent (with your 4/4 you_giant on the board). The false case, the other player's creatures, and the bounds are never shown. Tree abilities[0] (the compiler's B5a-aslong-attack-despite-defender form): static ATTACK_POLICY scope AS_NO_DEFENDER on this creature, condition QTY_GE 1 over creatures you control with QTY_GE 4 POWER (itself included, no 'another'). Packs on the live tree: I10_2 (a creature of power exactly 4 enables it: attacks for 3), I10_1 (power 3 does not), I10_3 (the opponent's 5/5 and 6/6 do not), I10_4 (a Tyrannodon with a +1/+1 counter is a 4/4 and attacks alone for 4), I10_5 (the 4-power creature leaves before combat: no attack). I10_7 (a noncreature artifact with printed power 5 does not count: it is a creature you need). Control, not ownership: I10_8 (a stolen 5/5 enables the attack), I10_9 (your only 4-power creature taken: no attack).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/drowsing_tyrannodon_1.json",
-   "tools/scenarios/cards/M21/drowsing_tyrannodon_2.json"
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_3.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_4.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_5.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_6.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_7.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_8.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_9.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_10.json",
+   "tools/scenarios/cards/M21/drowsing_tyrannodon_11.json"
   ],
   "mutation": {
-   "mutants": 6,
+   "mutants": 8,
    "killed": 3,
-   "score": 0.5,
+   "score": 0.375,
    "survived": [
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "amount-1 at 1/0/condition/inner_filter/children/1/count"
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount-1 at 1/0/condition/quantity/selector/filter/children/2/count"
    ]
   }
  }

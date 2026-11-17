@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Turret Ogre. Printed: 'When this creature enters, IF you control another creature with power 4 or greater, ...' (an intervening if, CR 603.4: checked as it triggers and again as it resolves). The Ogre spell resolves and its enters trigger waits (the condition is true); a response sends seat 0's only 4/4 Giant to the graveyard; the trigger resolves with the condition false: no damage, seat 1 stays at 20. (K07_3 is the same sequence with the damage dealt.)",
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "My Four",
+   "type": "Creature — Giant",
+   "power": 4,
+   "toughness": 4,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mouse",
+   "name": "My Mouse",
+   "type": "Creature — Mouse",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "hold": true
+  },
+  {
+   "op": "resolve"
+  },
+  {
+   "op": "move",
+   "key": "giant",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ogre": "battlefield",
+   "giant": "graveyard",
+   "mouse": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7, "players": 3},
+ "notes": "Liliana, Waker of the Dead, printed: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' Three players. Seat 1 has no card in hand and seat 2 has exactly one; I discard my chosen card (the first word) and seat 2 its only card. Each opponent is judged on its own: seat 1 loses 3 life (20 -> 17), seat 2 loses none, and I lose none.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Silk", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "s2card", "name": "Seat Two Silk", "type": "Instant", "zone": "hand", "controller": 2}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine", "s2card"]}
+ ],
+ "expect": {"zone": {"mine": "graveyard", "s2card": "graveyard"}, "life": {"0": 20, "1": 17, "2": 20}, "hand": {"1": 0, "2": 0}, "counters": {"lil": {"LOYALTY": 5}}}}

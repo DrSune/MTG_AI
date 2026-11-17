@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: 'This creature gets +2/+2 as long as there are three or more land cards in your graveyard.' Exactly three land cards are in seat 0's graveyard: the Reclaimer is 3/4 (1/2 + 2/2, power AND toughness).",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Dead Land One", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Dead Land Two", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "name": "Dead Land Three", "type": "Land", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [{"op": "pass"}],
+ "expect": {
+  "power": {"rec": 3},
+  "toughness": {"rec": 4}
+ }
+}

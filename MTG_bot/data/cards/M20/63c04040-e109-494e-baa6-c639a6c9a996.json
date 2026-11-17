@@ -412,43 +412,45 @@
  },
  "verified": {
   "tree_sha": "ada6d4bd193d01ea73bbb640b1ccc7fb0aa942b763ae70c6e92655998ed7a914",
-  "probe_sha": "40261a2a32dd7aaf6ae27000d2d1eff88b8d0fd2c8f3a12a12dcc178752e9bab",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "95197bd8edc26af056df62896fe44cbdb1bbbcf324e3a4a898d8f81dd6702e22",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Whenever you discard a card, exile that card from your graveyard.",
     "status": "OK",
-    "evidence": "every [activate [1]] variant: card's triggered ability [0] triggers; the discarded card 'moves hand -> graveyard' then 'graveyard -> exile' (net hand -> exile). Tree: ZoneChangeEvent HAND(YOU) -> GRAVEYARD(YOU) (the IR has no discard event), MOVE_ZONE of the event's card to EXILE",
+    "evidence": "abilities[0] = ZoneChangeEvent(from hand/YOU, to graveyard/YOU) -> MOVE_ZONE referent event -> exile/OWNER. Every [activate [1]] variant: \"card's triggered ability [0] triggers\", then 'you_spare moves hand -> graveyard' and 'you_spare moves graveyard -> exile'; also for the card just drawn ('you:Library 5#1 moves hand -> graveyard', then to exile). Only the controller's own discards are not in the trace: H09_5 (a Mind Rot on the opponent: its two cards stay in its graveyard; a Mind Rot on me: both of mine are exiled), H09_4 (the Bag's controller, whoever it is, is 'you'). After the survivors run: H09_8 (one Mind Rot discards two cards: two Bag triggers, and countering one with Tale's End leaves exactly one of the two cards exiled).",
     "issue": ""
    },
    {
     "clause": "{2}, {T}: Draw a card, then discard a card.",
     "status": "OK",
-    "evidence": "activate [1]: paid 'mana W-2', 'card becomes tapped'; 'you draws you:Library 5#1', then 'ask one_of' over your six hand cards including the one just drawn; exactly the chosen one is discarded (six variants)",
+    "evidence": "abilities[1] = ActivatedAbility(cost {2} + CostTap, Seq(DRAW 1 YOU, MOVE_ZONE hand -> graveyard, one card of my hand chosen by me)). [activate [1] ...]: 'you: ... mana C-2', 'card: tapped False -> True', 'you:Library 5#1 moves library -> hand (by card/DRAW)', then the ask 'one_of: [you_spare, you_trick, you_land_drop, you_cast_creature, you_cast_spell, you_cast_instant, you:Library 5#1]' offers my whole hand, the drawn card included, and the chosen card goes to the graveyard. Packs H09_1, H09_2 (the drawn card discarded), H09_6 (one mana refused; a tapped Bag refused).",
     "issue": ""
    },
    {
-    "clause": "{4}, {T}, Sacrifice this artifact:",
-    "status": "OK",
-    "evidence": "activate [2]: 'card becomes tapped', 'card moves battlefield -> graveyard (by card/SACRIFICE)', paid 'mana W-4'",
-    "issue": ""
-   },
-   {
-    "clause": "Return all cards exiled with this artifact to their owner's hand.",
+    "clause": "{4}, {T}, Sacrifice this artifact: Return all cards exiled with this artifact to their owner's hand.",
     "status": "NOT_EXERCISED",
-    "evidence": "activate [2] on the probe board has nothing exiled with the Bag. Pack bag_of_holding_returns_cards_exiled_with_it.json PASS: loot away Spare A (exiled by the trigger), untap two turns later, sacrifice: Spare A returns to hand; a card exiled by something else (yours and the opponent's) stays; hand 4. Wrong variants (other exiled card returned; Spare A left in exile) fail",
+    "evidence": "abilities[2] = ActivatedAbility(cost {4} + CostSacrifice(CONTROLLER_IS YOU, IS_SOURCE) + CostTap, MOVE_ZONE ALL IS_EXILED_WITH_SOURCE -> hand/OWNER). The cost is shown in [activate [2] from battlefield] (tapped, sacrificed, mana C-4) but the board has nothing exiled with the Bag, so the return never shows. Packs: H09_3 (the card it exiled returns; cards exiled by others stay), H09_4 (each card returns to its own owner's hand: the opponent's discard exiled while the opponent controlled the Bag goes to the opponent), H09_7 (a Bag that left and came back remembers nothing, CR 400.7), H09_6 (the tap and the {4} are costs).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/bag_of_holding_1.json"
+   "tools/scenarios/cards/M20/bag_of_holding_2.json",
+   "tools/scenarios/cards/M20/bag_of_holding_3.json",
+   "tools/scenarios/cards/M20/bag_of_holding_4.json",
+   "tools/scenarios/cards/M20/bag_of_holding_5.json",
+   "tools/scenarios/cards/M20/bag_of_holding_6.json",
+   "tools/scenarios/cards/M20/bag_of_holding_7.json",
+   "tools/scenarios/cards/M20/bag_of_holding_8.json",
+   "tools/scenarios/cards/M20/bag_of_holding_9.json"
   ],
   "mutation": {
-   "mutants": 24,
+   "mutants": 25,
    "killed": 22,
-   "score": 0.9166666666666666,
+   "score": 0.88,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "widen filter (drop part 0) at 1/2/cost/parts/1/target/filter",
     "zone HAND->BATTLEFIELD at 1/2/effect/args/destination"
    ]

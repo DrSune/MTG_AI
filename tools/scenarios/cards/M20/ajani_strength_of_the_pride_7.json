@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed: '[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.' Starting life is 20 and seat 0 has exactly 35: Ajani, and every artifact and creature the opponent controls (a creature, an artifact and an artifact creature) are exiled. Seat 0's own creature and artifact, the opponent's land, enchantment and planeswalker stay.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "mc", "name": "Mine Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "mt", "name": "Mine Trinket", "type": "Artifact", "zone": "battlefield", "controller": 0},
+  {"key": "oc", "name": "Opp Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ot", "name": "Opp Trinket", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "og", "name": "Opp Golem", "type": "Artifact Creature — Golem", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "ol", "name": "Opp Land", "type": "Land", "zone": "battlefield", "controller": 1},
+  {"key": "oe", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "opw", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "life", "seat": 0, "set": 35},
+  {"op": "activate", "key": "aj", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"aj": "exile", "mc": "battlefield", "mt": "battlefield", "oc": "exile", "ot": "exile", "og": "exile", "ol": "battlefield", "oe": "battlefield", "opw": "battlefield"}
+ }
+}

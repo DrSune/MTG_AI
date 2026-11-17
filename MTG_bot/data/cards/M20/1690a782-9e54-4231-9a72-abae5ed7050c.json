@@ -317,39 +317,47 @@
  },
  "verified": {
   "tree_sha": "6a16cef3f714e742c125cad2bf925652b88c0f2c99054d13f15a736eda35b1fe",
-  "probe_sha": "86d60f8dd57ce910fdb065e8ffb0717e8dca276c84bdc745bc48d2de436d96d1",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "808850cd08030bd4cc5f891e8eab9b95023f7da0e6c2b151408c1c8679e39d4b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Whenever a Swamp you control enters, choose one —",
     "status": "NOT_EXERCISED",
-    "evidence": "[you play a land -> none] (the probe's land is not a Swamp). Packs: dread_presence_swamp_draw_mode.json and dread_presence_swamp_damage_mode.json (P0 plays a Swamp: the mode ask choose ('0','1') appears); dread_presence_only_your_swamps.json (a Forest of P0's and a Swamp P1 plays on its turn ask nothing). All PASS on live and this tree; the widened 'any land you control' and 'a Swamp any player controls' mutants FAIL only_your_swamps.",
+    "evidence": "abilities[0] = ZoneChangeEvent(to battlefield/YOU, subject FAnd(CONTROLLER_IS YOU, SUBTYPE_EQ Swamp, TYPE_EQ Land)) -> Choose(1, two Seq options). No stimulus puts a Swamp onto the battlefield ([stimulus: you play a land -> none], [a creature enters under your control -> none]: the probe's land is not a Swamp), so the trigger never appears in the trace. Packs on the live tree and on this packet's tree: H00_5 (a Forest of mine and a Swamp the opponent plays trigger nothing and ask nothing), H00_6 (a Swamp put onto the battlefield by an effect triggers it), H00_7 (the mode ask offers exactly the two modes), H00_1-H00_4, H00_8. After the survivors run: H00_9 (two Swamps put onto the battlefield by one effect, Brought Back, trigger twice: two mode choices, two cards drawn, 18 life).",
     "issue": ""
    },
    {
-    "clause": "• You draw a card and you lose 1 life.",
+    "clause": "You draw a card and you lose 1 life.",
     "status": "NOT_EXERCISED",
-    "evidence": "pack dread_presence_swamp_draw_mode.json: mode 0 -> P0 draws one (hand 1), life 20 -> 19; the lose-2 mutant FAILS (life 18)",
+    "evidence": "Tree: Seq(DRAW 1 YOU, LOSE_LIFE 1 YOU), option 0. Never triggered in the trace. H00_1 (mode 0 after a played Swamp: exactly one card drawn from my own library, life 19, nothing damaged, opponent's library untouched), H00_6 (same through an effect-entered Swamp).",
     "issue": ""
    },
    {
-    "clause": "• This creature deals 2 damage to any target and you gain 2 life.",
+    "clause": "This creature deals 2 damage to any target and you gain 2 life.",
     "status": "NOT_EXERCISED",
-    "evidence": "pack dread_presence_swamp_damage_mode.json: mode 1 targeting P1's 2/2: damage_received 2, it dies; P0 20 -> 22, no card drawn; the gain-3 mutant FAILS (life 23)",
+    "evidence": "Tree: Seq(DEAL_DAMAGE 2 to FOr(Creature, Planeswalker, Player) TARGET, GAIN_LIFE 2 YOU), option 1. Never triggered in the trace. H00_2 (an opponent's 3/3 gets exactly 2 marked, I go to 22, nobody draws), H00_3 (the opponent player goes to 18), H00_4 (my own 4/4 and the opponent's planeswalker, 5 -> 3 loyalty, are legal targets), H00_8 (the source destroyed in response: the ability still deals 2 and gains 2, CR 113.7a).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/dread_presence_1.json",
-   "tools/scenarios/cards/M20/dread_presence_2.json",
-   "tools/scenarios/cards/M20/dread_presence_3.json"
+   "tools/scenarios/cards/M20/dread_presence_4.json",
+   "tools/scenarios/cards/M20/dread_presence_5.json",
+   "tools/scenarios/cards/M20/dread_presence_6.json",
+   "tools/scenarios/cards/M20/dread_presence_7.json",
+   "tools/scenarios/cards/M20/dread_presence_8.json",
+   "tools/scenarios/cards/M20/dread_presence_9.json",
+   "tools/scenarios/cards/M20/dread_presence_10.json",
+   "tools/scenarios/cards/M20/dread_presence_11.json",
+   "tools/scenarios/cards/M20/dread_presence_12.json",
+   "tools/scenarios/cards/M20/dread_presence_13.json"
   ],
   "mutation": {
-   "mutants": 21,
+   "mutants": 22,
    "killed": 1,
-   "score": 0.047619047619047616,
+   "score": 0.045454545454545456,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
     "widen filter (drop part 0) at 1/0/event/subject",
     "widen filter (drop part 2) at 1/0/event/subject",

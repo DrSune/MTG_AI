@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_cannot_be_enchanted_by_a_white_aura_but_can_by_others",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Protection from white (This creature can't be ... enchanted ... by anything white.)'. The white Aura Pacifism cast on the Berserker is refused; the green Aura Oakenform ({2}{G}, +3/+3) on the Berserker resolves and stays attached: the 1/1 becomes 4/4. Seat 0 has the mana for both, so the refusal is about the target.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "paci", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "oak", "real": "Oakenform", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 1, "G": 1, "C": 3}},
+ "steps": [
+  {"op": "cast", "key": "paci", "controller": 0, "targets": ["ber"], "expect_raise": "illegal"},
+  {"op": "cast", "key": "oak", "controller": 0, "targets": ["ber"]}
+ ],
+ "expect": {
+  "zone": {"paci": "hand", "oak": "battlefield", "ber": "battlefield"},
+  "attached": {"oak": "ber"},
+  "power": {"ber": 4},
+  "toughness": {"ber": 4}
+ }
+}

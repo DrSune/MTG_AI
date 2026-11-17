@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\"' The emblem may also take a creature card from MY OWN graveyard (any graveyard): the opponent's graveyard holds no creature card. My Dead Bear returns at the beginning of my combat under my control, with haste attacks at once (20 -> 18).",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "dead", "name": "My Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"dead": true}, "decisions": ["dead"]}
+ ],
+ "expect": {"zone": {"lil": "graveyard", "dead": "battlefield"}, "controller": {"dead": 0}, "attackers": {"dead": true}, "life": {"0": 20, "1": 18}}}

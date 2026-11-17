@@ -1,0 +1,55 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Garruk, Unleashed, printed: '[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.' Both parts last only until end of turn. The opponent's 2/2 Wolf (a legal target, any creature may be chosen) is hit, the turn is advanced (cleanup ends the effect), and the Wolf is a 2/2 without trample again; the same hit is shown to apply in the turn it is made in the 5/5 trampling Bear of J05_1. Loyalty stays 5.",
+ "cards": [
+  {
+   "key": "garruk",
+   "real": "Garruk, Unleashed",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Opp Wolf",
+   "type": "Creature \u2014 Wolf",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "garruk",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "wolf"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "wolf": 2
+  },
+  "toughness": {
+   "wolf": 2
+  },
+  "battlefield_keywords": {
+   "Opp Wolf": []
+  },
+  "counters": {
+   "garruk": {
+    "LOYALTY": 5
+   }
+  }
+ }
+}

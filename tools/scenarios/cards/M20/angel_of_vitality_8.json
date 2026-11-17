@@ -1,0 +1,38 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Angel of Vitality (M20). Printed: '+2/+2 as long as you have 25 or more life.' With 30 life (more than 25) the Angel is still 4/4 (a larger life total keeps the bonus on); the opponent stays at 20.",
+ "cards": [
+  {
+   "key": "ang",
+   "real": "Angel of Vitality",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 30
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 30,
+   "1": 20
+  },
+  "power": {
+   "ang": 4
+  },
+  "toughness": {
+   "ang": 4
+  }
+ }
+}

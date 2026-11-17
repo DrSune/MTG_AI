@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Diviner's Lockbox (M20). Printed: '{1}, {T}: Choose a card name, then reveal the top card of your library. If that card has the chosen name, sacrifice this artifact and draw three cards.' The top card is 'Top Card' and seat 0 names it: the Lockbox is sacrificed (graveyard) and exactly three cards are drawn (the top card, the one under it, and one filler): hand 3. The {1} was paid from the pool.",
+ "cards": [
+  {"key": "box", "real": "Diviner's Lockbox", "zone": "battlefield", "controller": 0},
+  {"key": "second", "name": "Second Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "box", "idx": 0, "seat": 0, "decisions": ["Top Card"]}
+ ],
+ "expect": {
+  "zone": {"box": "graveyard", "top": "hand", "second": "hand"},
+  "hand": {"0": 3, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

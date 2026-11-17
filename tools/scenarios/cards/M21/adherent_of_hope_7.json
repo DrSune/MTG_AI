@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1}
+  ],
+  "expect": {
+    "counters": {"adh": {}, "basri": {"LOYALTY": 3}},
+    "power": {"adh": 2},
+    "toughness": {"adh": 1},
+    "turn_seats": [0, 1]
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'At the beginning of combat ON YOUR TURN'. You control Basri Ket, but it is the OPPONENT's turn (their combat): the Adherent gets no counter (2/1)."
+}

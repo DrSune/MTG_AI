@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+    {"key": "small", "name": "Small Five", "type": "Creature — Giant", "power": 5, "toughness": 5, "cmc": 5, "zone": "library", "controller": 0},
+    {"key": "spell", "name": "Big Spell", "type": "Sorcery", "cmc": 7, "zone": "library", "controller": 0}
+  ],
+  "mana": {"0": {"G": 3}},
+  "steps": [
+    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["fire"]}
+  ],
+  "expect": {
+    "zone": {"empath": "battlefield", "small": "library", "spell": "library"},
+    "hand": {"0": 0},
+    "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*"]}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I07). Printed: 'a creature card with mana value 6 or greater'. The library holds only a mana value 5 creature and a mana value 7 sorcery: nothing qualifies, the search finds nothing and no card is put into your hand (8 cards stay in the library)."
+}

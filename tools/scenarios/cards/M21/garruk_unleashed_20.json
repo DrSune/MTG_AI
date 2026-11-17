@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Garruk, Unleashed, printed: '[-7]: You get an emblem with \"At the beginning of YOUR end step, you may search your library ...\"' I make the emblem and decline at my own end step; the turn is then advanced to the opponent's and its end step is reached: the emblem does not trigger there (the step carries no decision words, so a may-offer or a search ask would raise and fail the pack). The Library Beast stays in the library.",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "beast", "name": "Library Beast", "type": "Creature — Beast", "power": 5, "toughness": 5, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "garruk", "set": 7},
+  {"op": "activate", "key": "garruk", "idx": 2, "seat": 0},
+  {"op": "end_turn", "decisions": ["skip"]},
+  {"op": "advance_turn"},
+  {"op": "end_turn"}
+ ],
+ "expect": {"zone": {"garruk": "graveyard", "beast": "library"}, "turn_seats": [0, 1]}}

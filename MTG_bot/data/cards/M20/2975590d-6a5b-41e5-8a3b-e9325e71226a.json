@@ -202,36 +202,42 @@
  },
  "verified": {
   "tree_sha": "28866c160b18e70b8da7df0d204966a47a2261b9d3e2bf13916347251b592b95",
-  "probe_sha": "9f5f143067d9af7b00f085aef34609b6f8f3e161f901ff0204d46c41a9700da9",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "be82c576d40cb57040c54eef9c01b74943af536c8d7d1305fef4204bedfd725a",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Enchantment spells you cast cost {1} less to cast.",
     "status": "NOT_EXERCISED",
-    "evidence": "No enchantment spell is cast in the trace. Packs: starfield_mystic_enchantment_costs_one_less (Pacifism cast for {W}), starfield_mystic_creature_spell_not_reduced (Pack Mastiff refused 'cost:mana_generic:0<1'), starfield_mystic_opponents_enchantment_not_reduced (opponent's Pacifism refused); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "evidence": "abilities[0] = CostModifier(filter TYPE_EQ Enchantment, controller_ref YOU, CostDeltaReduceGeneric 1). The trace casts only the creature itself ([cast]: mana C-1 W-1, full {1}{W}); no enchantment spell is ever cast. Packs: H05_1 (Moldervine Reclamation {3}{B}{G}: refused with 3 mana, cast with 4: exactly 1 less), H05_2 (the opponent's enchantment spell is not cheaper), H05_3 (a creature spell and an artifact spell are not cheaper), H05_4 (Glaring Aegis {W}: only generic mana is reduced, never a coloured cost).",
     "issue": ""
    },
    {
     "clause": "Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.",
     "status": "NOT_EXERCISED",
-    "evidence": "No enchantment leaves the battlefield in the trace. Packs: starfield_mystic_enchantment_put_into_graveyard_counter (your enchantment -> one PLUS_1_PLUS_1, 3/3; the opponent's enchantment and your artifact add none), starfield_mystic_enchantment_exiled_no_counter; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "evidence": "abilities[1] = ZoneChangeEvent(from battlefield/YOU, to graveyard/ANY, subject FAnd(CONTROLLER_IS YOU, TYPE_EQ Enchantment)) -> PUT_COUNTER +1/+1 x1 on IS_SOURCE. No enchantment leaves in the trace ([your creature (you_bear) dies -> none]; the board's you_charm is never moved). Packs: H05_5 (my Charm to the graveyard: one counter, 3/3; the opponent's Charm and my artifact: none), H05_6 (exile and hand: none), H05_7 (two enchantments: two counters), H05_8 (Auras: mine on the opponent's Bear counts when that Bear dies, the opponent's on mine does not). After the survivors run: H05_9 (two Auras of mine put into the graveyard together by one state-based action give two counters: 4/4). OPEN FAULT found after the lock, not a pack of this verdict: an enchantment I control but do not own (stolen with a control effect) leaving the battlefield gives NO counter, because the tree's from_zone is Zone(BATTLEFIELD, YOU) and the binder matches a ZoneChangeEvent endpoint against the zone owner (binding._zone_matches), which a control change does not move; with from_zone Zone(BATTLEFIELD, ANY) (the subject already reads control) it works. Repro: packs/H/scratch/OPEN_FAULT_H05_stolen_enchantment_leaves.json fails on the live tree and on this packet's tree, passes with from_zone ANY. The corner case is not in the trace, so the status stays as locked; recommend the coordinator treat it as a weaker-than-printed finding.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/starfield_mystic_1.json",
-   "tools/scenarios/cards/M20/starfield_mystic_2.json",
-   "tools/scenarios/cards/M20/starfield_mystic_3.json",
-   "tools/scenarios/cards/M20/starfield_mystic_4.json",
-   "tools/scenarios/cards/M20/starfield_mystic_5.json"
+   "tools/scenarios/cards/M20/starfield_mystic_6.json",
+   "tools/scenarios/cards/M20/starfield_mystic_7.json",
+   "tools/scenarios/cards/M20/starfield_mystic_8.json",
+   "tools/scenarios/cards/M20/starfield_mystic_9.json",
+   "tools/scenarios/cards/M20/starfield_mystic_10.json",
+   "tools/scenarios/cards/M20/starfield_mystic_11.json",
+   "tools/scenarios/cards/M20/starfield_mystic_12.json",
+   "tools/scenarios/cards/M20/starfield_mystic_13.json",
+   "tools/scenarios/cards/M20/starfield_mystic_14.json",
+   "tools/scenarios/cards/M20/starfield_mystic_15.json"
   ],
   "mutation": {
-   "mutants": 6,
+   "mutants": 7,
    "killed": 1,
-   "score": 0.16666666666666666,
+   "score": 0.14285714285714285,
    "survived": [
     "controller YOU->OPPONENT at 1/0/controller_ref",
+    "each occurrence -> once per event at 1/1",
     "controller YOU->OPPONENT at 1/1/event/from_zone/controller",
     "widen filter (drop part 0) at 1/1/event/subject",
     "controller YOU->OPPONENT at 1/1/event/subject/children/0/who",

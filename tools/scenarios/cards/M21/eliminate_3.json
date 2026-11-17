@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "mv3", "name": "Three Drop", "type": "Creature — Bear", "power": 3, "toughness": 3, "cmc": 3, "zone": "battlefield", "controller": 1},
+    {"key": "mv2", "name": "Two Drop", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["mv3"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "mv3": "graveyard", "mv2": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' A creature of mana value exactly 3 (the boundary: 3 or less includes 3) is a legal target and is destroyed; the other creature (mana value 2) is untouched, since the spell has one target."
+}

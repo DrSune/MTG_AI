@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Cavalier of Night (M20). Printed: 'you may sacrifice another creature': a creature you control. The only other creature seat 0 owns, Lent Bear, is controlled by the opponent, so seat 0 has nothing to sacrifice: no may-offer is made (the step has no decision words, so any ask would fail the pack), nothing is sacrificed and nothing is destroyed.",
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Night", "zone": "hand", "controller": 0},
+  {"key": "lent", "name": "Lent Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "victim", "name": "Victim", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "gain_control", "key": "lent", "seat": 1},
+  {"op": "cast", "key": "cav", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"cav": "battlefield", "lent": "battlefield", "victim": "battlefield"},
+  "controller": {"lent": 1}
+ }
+}

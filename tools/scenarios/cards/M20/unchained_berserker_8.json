@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_damage_from_white_sources_is_prevented_other_damage_is_not",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Protection from white (This creature can't be ... dealt damage ... by anything white.)'. A white 9/9 deals 5 to the Berserker: prevented, nothing is dealt. A green 9/9 deals 1: it is dealt, and kills the 1/1. Only the green damage is on record.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "wsrc", "name": "White Giant", "type": "Creature — Giant", "power": "9", "toughness": "9", "colors": ["W"], "zone": "battlefield", "controller": 1},
+  {"key": "gsrc", "name": "Green Giant", "type": "Creature — Giant", "power": "9", "toughness": "9", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "wsrc", "target": "ber", "amount": 5, "controller": 1},
+  {"op": "deal_damage", "source": "gsrc", "target": "ber", "amount": 1, "controller": 1}
+ ],
+ "expect": {
+  "damage_received": {"ber": 1},
+  "zone": {"ber": "graveyard"}
+ }
+}

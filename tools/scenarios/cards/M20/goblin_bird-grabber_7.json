@@ -1,0 +1,23 @@
+{"set": "M20", "name": "D08_1_with_my_flier_it_gains_flying_and_pays_red",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn. Activate only if you control a creature with flying.' I control a 1/1 flier, so the activation is legal and spends exactly the {R} (the extra {C} stays in the pool). Only the Goblin gains flying (my bystander Bear does not). It attacks and the opponent's untapped ground 2/2 is never offered a block: 2 damage goes through (20 -> 18).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"grab": true}, "block": {"obear": "grab"}}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": ["FLYING"], "My Bear": [], "My Flier": ["FLYING"], "Opp Bear": []},
+  "mana_pool": {"0": {}},
+  "attackers": {"grab": true},
+  "not_asked_to_block": ["obear"],
+  "blocked": {"grab": []},
+  "life": {"0": 20, "1": 18}
+ }
+}

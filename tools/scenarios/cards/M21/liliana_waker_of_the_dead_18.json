@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-3]: ... where X is the number of cards in your graveyard.' With three cards in my graveyard the opponent's 3/3 gets -3/-3 and dies: it is in the opponent's graveyard (X is not capped below its toughness and the target is any creature, the opponent's here).",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mg1", "name": "My Dead One", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "mg2", "name": "My Dead Two", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "mg3", "name": "My Dead Three", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Opp Three Three", "type": "Creature — Beast", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 1, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {"zone": {"bear": "graveyard"}, "counters": {"lil": {"LOYALTY": 1}}}}

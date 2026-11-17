@@ -1,0 +1,114 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Pursued Whale. Printed: 'Spells your OPPONENTS cast that TARGET THIS CREATURE cost {3} more to cast.' Seat 0 casts its own Shock at its own Whale for {R} (no tax). Seat 1 has only {R}: its Shock cannot be cast at the Whale (it costs {3}{R}; refused before anything is paid) but can be cast at seat 0's Bear for {R}, which kills the Bear. A second Shock of seat 1 at the Whale with {3}{R} in the pool is cast and spends all four mana. The Whale (8/8) has 4 damage in all.",
+ "cards": [
+  {
+   "key": "whale",
+   "real": "Pursued Whale",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s0",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "s2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "s0",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "whale"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "s1",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "whale"
+   ],
+   "expect_raise": "illegal target selection"
+  },
+  {
+   "op": "cast",
+   "key": "s1",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1,
+    "C": 3
+   }
+  },
+  {
+   "op": "cast",
+   "key": "s2",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "whale"
+   ]
+  }
+ ],
+ "expect": {
+  "damage": {
+   "whale": 4
+  },
+  "zone": {
+   "whale": "battlefield",
+   "bear": "graveyard",
+   "s0": "graveyard",
+   "s1": "graveyard",
+   "s2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ }
+}

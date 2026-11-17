@@ -1,0 +1,96 @@
+{
+ "set": "M20",
+ "name": "D05_1_targeted_creature_cannot_be_blocked_other_attacker_can",
+ "notes": "Printed: '{T}: Another target creature with power 2 or less can't be blocked this turn.' The Smuggler targets my 2/2 Bear A. Bear A and Bear B (not targeted) both attack. The opposing untapped 4/4 is offered a block of Bear B only (its ask lists Bear B and NONE, never Bear A) and blocks it: Bear A is unblocked and deals 2 (20 -> 18), Bear B is blocked and takes no life from the opponent. The Smuggler tapped for the cost.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "smug",
+   "real": "Goblin Smuggler",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beara",
+   "name": "Bear A",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bearb",
+   "name": "Bear B",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogiant",
+   "name": "Opp Giant",
+   "type": "Creature \u2014 Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "smug",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "beara"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "beara": true,
+    "bearb": true
+   },
+   "block": {
+    "ogiant": "bearb"
+   }
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "smug": true
+  },
+  "attackers": {
+   "beara": true,
+   "bearb": true
+  },
+  "block_asks": {
+   "ogiant": "<bearb>,NONE"
+  },
+  "blocked": {
+   "beara": [],
+   "bearb": [
+    "ogiant"
+   ]
+  },
+  "zone": {
+   "beara": "battlefield",
+   "bearb": "graveyard",
+   "ogiant": "battlefield"
+  },
+  "damage": {
+   "ogiant": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

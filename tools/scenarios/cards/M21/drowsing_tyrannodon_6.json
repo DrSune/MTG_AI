@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "attackers": {"tyr": true},
+    "power": {"tyr": 4},
+    "tapped": {"tyr": true},
+    "life": {"0": 20, "1": 16}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'As long as you control a creature with power 4 or greater' (not 'another'): a Tyrannodon with a +1/+1 counter is a 4/4 creature you control, so alone it may attack, and it deals 4 (20 -> 16)."
+}

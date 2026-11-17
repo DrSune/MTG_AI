@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 40,
+  "seed": 7
+ },
+ "notes": "Speaker of the Heavens. Printed: 'at least 7 life more than your STARTING life total'. This game starts at 40 life. At 46 (6 more than the start) the activation is refused, although 46 is far above 27; at 47 (7 more) it works and makes one Angel.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Speaker of the Heavens",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 46
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation: condition:false"
+  },
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 47
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sp": true
+  },
+  "tokens": {
+   "Angel": 1
+  },
+  "battlefield_pt": {
+   "Angel": [
+    4,
+    4
+   ]
+  },
+  "life": {
+   "0": 47
+  }
+ }
+}

@@ -1,0 +1,17 @@
+{"set": "FDN", "name": "D09_4_declining_the_may_does_nothing_and_does_not_shuffle",
+ "notes": "Printed: 'you MAY search your library ... then shuffle.' A mana value 7 creature sits on top of my library. I decline the may (skip): nothing is searched, nothing moves to my hand, and the library is not shuffled: it keeps its exact order, the creature on top of the six fillers.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "seven", "name": "Huge Beast", "type": "Creature — Beast", "power": "7", "toughness": "7", "zone": "library", "controller": 0, "cmc": 7}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "empath", "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"empath": "battlefield", "seven": "library"},
+  "hand": {"0": 0},
+  "library": {"0": ["Huge Beast", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

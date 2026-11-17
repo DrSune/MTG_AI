@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "stolen", "name": "Stolen Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "lost", "name": "Lost Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "zap", "name": "Zapper", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "stolen", "seat": 0},
+    {"op": "gain_control", "key": "lost", "seat": 1},
+    {"op": "deal_damage", "source": "zap", "target": "lost", "amount": 3, "controller": 1},
+    {"op": "deal_damage", "source": "zap", "target": "stolen", "amount": 3, "controller": 1}
+  ],
+  "expect": {
+    "zone": {"stolen": "graveyard", "lost": "graveyard"},
+    "tokens": {"Knight": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'another creature YOU CONTROL dies' (the controller when it dies). You gain control of the opponent's Stolen Bear (+1/+1 counter) and the opponent takes your Lost Bear (+1/+1 counter). The Lost Bear dies under the opponent's control: no Knight. The Stolen Bear dies under yours: exactly one Knight."
+}

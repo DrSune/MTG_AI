@@ -1,0 +1,66 @@
+{
+ "set": "FDN",
+ "name": "D07_7_two_creatures_entering_at_once_each_draw",
+ "notes": "Printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' With Anthem of Champions ('Creatures you control get +1/+1') in play, Guarded Heir's enters trigger creates two 3/3 Knight tokens at once; with the anthem both are 4/4. Each of the two creatures is a creature with power 4 or greater entering under my control, so the Uprising triggers for each: two cards are drawn (hand 2). The Heir itself (a 1/1, 2/2 with the anthem) does not trigger it.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "up",
+   "real": "Garruk's Uprising",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "anthem",
+   "real": "Anthem of Champions",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "heir",
+   "real": "Guarded Heir",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "heir",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "heir": "battlefield"
+  },
+  "tokens": {
+   "Knight": 2
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

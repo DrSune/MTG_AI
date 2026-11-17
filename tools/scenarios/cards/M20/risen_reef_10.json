@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "risen_reef_two_elementals_entering_at_once_trigger_it_twice",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'Whenever this creature or another Elemental you control enters, look at the top card of your library. ...'. One trigger for each Elemental, also when one effect puts both onto the battlefield at the same moment. Two Elementals of seat 0 went to the graveyard from the battlefield this turn; Brought Back ({W}{W}) returns both tapped in one instruction. Two triggers: each looks at a different top card (both Instants, so each goes to hand): hand 2, and the third card stays on top of the library.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "battlefield", "controller": 0},
+  {"key": "e1", "name": "Small Elemental One", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "e2", "name": "Small Elemental Two", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "back", "real": "Brought Back", "zone": "hand", "controller": 0},
+  {"key": "third", "name": "Third Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "second", "name": "Second Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Card", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "move", "key": "e1", "to": "graveyard"},
+  {"op": "move", "key": "e2", "to": "graveyard"},
+  {"op": "cast", "key": "back", "controller": 0, "targets": ["e1", "e2"], "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"e1": "battlefield", "e2": "battlefield", "back": "graveyard", "top": "hand", "second": "hand", "third": "library"},
+  "hand": {"0": 2},
+  "library": {"0": ["Third Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

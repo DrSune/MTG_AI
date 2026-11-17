@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'Whenever a creature YOU control with power 4 OR GREATER enters, draw a card.' Three things enter and none of them draws me a card: my own 3/3 (power too small), the opponent's 5/5 (not mine) and my artifact (not a creature, although it is given a 5 power printed). My hand held two cards and the opponent's one; all are on the battlefield and both hands are empty.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "small", "name": "Three Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "hand", "controller": 0},
+  {"key": "relic", "name": "Heavy Relic", "type": "Artifact", "power": 5, "toughness": 5, "zone": "hand", "controller": 0},
+  {"key": "big", "name": "Opp Five Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "small"},
+  {"op": "enter", "key": "relic"},
+  {"op": "enter", "key": "big"}
+ ],
+ "expect": {"zone": {"small": "battlefield", "relic": "battlefield", "big": "battlefield"}, "hand": {"0": 0, "1": 0}}}

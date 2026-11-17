@@ -1,0 +1,53 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Terror of the Peaks. Printed: '... cost an additional 3 life to cast.' Seat 1 has exactly 3 life: it can pay 3 (CR 119.4: life total at least the payment), so it casts Shock at Terror, goes to 0 life and loses the game.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 1,
+   "set": 3
+  },
+  {
+   "op": "cast",
+   "key": "s",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "t"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 0
+  },
+  "lost": {
+   "0": false,
+   "1": true
+  }
+ }
+}

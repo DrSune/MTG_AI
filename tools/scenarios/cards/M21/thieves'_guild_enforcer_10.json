@@ -1,0 +1,111 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer (the eight-card half of K05_6). Seat 1's graveyard holds seven cards and a card moves from its hand to its graveyard: eight, so the Enforcer, a 1/1 until then, is a 3/2 with deathtouch.",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "og1",
+   "name": "OG Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og2",
+   "name": "OG Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og3",
+   "name": "OG Card 3",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og4",
+   "name": "OG Card 4",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og5",
+   "name": "OG Card 5",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og6",
+   "name": "OG Card 6",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og7",
+   "name": "OG Card 7",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "oh1",
+   "name": "OH Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "oh1",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "power": {
+   "enf": 3
+  },
+  "toughness": {
+   "enf": 2
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": [
+    "DEATHTOUCH"
+   ]
+  },
+  "zone": {
+   "oh1": "graveyard"
+  }
+ }
+}

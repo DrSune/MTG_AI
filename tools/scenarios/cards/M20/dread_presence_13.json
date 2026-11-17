@@ -1,0 +1,84 @@
+{
+ "set": "M20",
+ "name": "dread_presence_two_swamps_entering_at_once_trigger_it_twice",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever a Swamp you control enters, choose one - ...'. The trigger is once for each Swamp, even when one effect puts several onto the battlefield at the same moment. Two of seat 0's Swamps went to the graveyard from the battlefield this turn; Brought Back ({W}{W}) returns both to the battlefield tapped in one instruction. Two triggers, two mode choices: both take the draw mode, so seat 0 draws two cards (hand 2) and loses 2 life (18).",
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sw1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sw2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "back",
+   "real": "Brought Back",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "move",
+   "key": "sw1",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "sw2",
+   "to": "graveyard"
+  },
+  {
+   "op": "cast",
+   "key": "back",
+   "controller": 0,
+   "targets": [
+    "sw1",
+    "sw2"
+   ],
+   "decisions": [
+    "first-legal",
+    "0",
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sw1": "battlefield",
+   "sw2": "battlefield",
+   "back": "graveyard"
+  },
+  "tapped": {
+   "sw1": true,
+   "sw2": true
+  },
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 18,
+   "1": 20
+  }
+ }
+}

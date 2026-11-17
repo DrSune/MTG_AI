@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "D07_8_only_creatures_count_a_noncreature_with_power_does_not",
+ "notes": "Printed: 'When this enchantment enters, if you control a CREATURE with power 4 or greater, draw a card.' and 'Whenever a CREATURE you control with power 4 or greater enters, draw a card.' My only permanent with power 4 or more is an uncrewed Vehicle (an artifact with a 5/5 printed P/T), which is not a creature. The Uprising is cast and enters: no draw. A second Vehicle (a 6/6) then enters under my control with the Uprising in play: no draw either. The hand holds only the last Vehicle's slot (0 cards) and the library keeps all six cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "veh1", "name": "Parked Wagon", "type": "Artifact — Vehicle", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 0},
+  {"key": "veh2", "name": "Spare Wagon", "type": "Artifact — Vehicle", "power": "6", "toughness": "6", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "up"},
+  {"op": "enter", "key": "veh2"}
+ ],
+ "expect": {
+  "zone": {"up": "battlefield", "veh1": "battlefield", "veh2": "battlefield"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}}
+ }
+}

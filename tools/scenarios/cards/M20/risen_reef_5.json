@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "risen_reef_land_on_top_you_may_put_it_onto_the_battlefield_tapped",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'Whenever this creature or another Elemental you control enters, look at the top card of your library. If it's a land card, you may put it onto the battlefield tapped. If you don't put the card onto the battlefield, put it into your hand.' Seat 0 casts the Reef; the top card is a Forest and seat 0 accepts: the Forest is on the battlefield under seat 0, tapped, and not in hand. The look is done once (the Reef is also an Elemental, but is not 'another'), so the card below the Forest stays on top of the library and nothing else is drawn.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "hand", "controller": 0},
+  {"key": "below", "name": "Second Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "land", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "reef", "controller": 0, "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"reef": "battlefield", "land": "battlefield", "below": "library"},
+  "tapped": {"land": true},
+  "controller": {"land": 0},
+  "hand": {"0": 0},
+  "library": {"0": ["Second Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,21 @@
+{"set": "M20", "name": "D08_2_refused_unless_i_control_a_flier",
+ "notes": "Printed: 'Activate only if you control a creature with flying.' With {R} in the pool: (1) only the opponent controls a flier, and I control a creature with reach and a plain Bear (neither has flying), so the activation is refused and the {R} stays unspent; (2) once I control a creature with flying (a 1/1 enters), the same activation is legal and spends the {R}.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "oflier", "name": "Opp Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 1},
+  {"key": "reach", "name": "My Reacher", "type": "Creature — Spider", "power": "1", "toughness": "3", "keywords": ["REACH"], "zone": "battlefield", "controller": 0},
+  {"key": "mybear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0, "expect_raise": "illegal activation"},
+  {"op": "enter", "key": "myflier"},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": ["FLYING"]},
+  "mana_pool": {"0": {}}
+ }
+}

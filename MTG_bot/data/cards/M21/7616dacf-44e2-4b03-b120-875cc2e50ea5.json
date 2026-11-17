@@ -6,25 +6,29 @@
  "text_sha": "8cd5d712212f16f014a653cfc24c6702b288aebae78799fe374d4362ad2b080c",
  "verified": {
   "tree_sha": "58dffc72c4d9e9828b5018abc75388fe901b9ccda05441acdb09f43a17e16962",
-  "probe_sha": "db17d999a78a020623739389ab70c1855f413514519ef1943bfa5d9767144ed8",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4P",
+  "probe_sha": "ec0b1f4383b4d20effb9a658ff76103c9c0deb0084eb5b529bcf3c4d2aa003eb",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "Defender (This creature can't attack.)",
+    "clause": "Defender",
     "status": "OK",
-    "evidence": "keywords +DEFENDER; 'this creature attacks alone, unblocked' and 'attacks and opp_giant blocks it': event (none), no attack declared.",
+    "evidence": "Trace, [this creature attacks alone, unblocked] and [this creature attacks and opp_giant blocks it]: 'event: (none)' (no attack is declared); keywords [DEFENDER] in the tree and 'keywords +DEFENDER' in the diff. Pack E07_1 (not even asked to attack).",
     "issue": ""
    },
    {
     "clause": "Attacking creatures you control get +1/+0.",
     "status": "OK",
-    "evidence": "'another creature you control (you_bear) attacks': the 2/2 deals 3 combat damage (opp 20 -> 17), and its P/T is unchanged after combat (bonus only while attacking); 'on the opponent's turn, opp_bear attacks you' same as without the card (opponent's attackers get nothing); Static section shows no change to non-attacking creatures. Tree identical to the compiler's parse.",
+    "evidence": "Trace, [another creature you control (you_bear) attacks]: 'opp is dealt 3 damage (combat) (by you_bear/DEAL_DAMAGE)' (2 + 1); [on the opponent's turn, opp_bear attacks you]: none (no bonus). Packs E07_2 (+1 power: the unblocked attacker deals 3, a blocked one deals 3 to its blocker; the bonus is gone after combat), E07_3 (the opponent's attacker and my non-attacking blocker get no bonus) and E07_4 (power only: a 2/2 attacker blocked by a 2/2 first striker dies in the first-strike step and deals nothing, so its toughness is not raised). E07_5 (an attacker of a planeswalker gets the bonus too: it deals 3).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/warded_battlements_1.json"
+   "tools/scenarios/cards/M21/warded_battlements_2.json",
+   "tools/scenarios/cards/M21/warded_battlements_3.json",
+   "tools/scenarios/cards/M21/warded_battlements_4.json",
+   "tools/scenarios/cards/M21/warded_battlements_5.json",
+   "tools/scenarios/cards/M21/warded_battlements_6.json"
   ],
   "mutation": {
    "mutants": 7,

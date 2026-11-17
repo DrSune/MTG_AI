@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+    {"key": "flier", "name": "Your Flier", "type": "Creature — Bird", "power": 1, "toughness": 1, "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"W": 1, "C": 1}},
+  "steps": [
+    {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["obear"], "hold": true},
+    {"op": "move", "key": "flier", "to": "graveyard"}
+  ],
+  "expect": {
+    "zone": {"flier": "graveyard"},
+    "tapped": {"enf": true, "obear": true},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I11). Printed: 'Activate only if you control a creature with flying' is a restriction on ACTIVATING (CR 602.5b), not an intervening if: it is judged when the ability is activated, not again on resolution. The ability is activated with your flier out and held on the stack; the flier leaves in response; the ability still resolves and taps the target."
+}

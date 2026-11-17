@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Legion's Judgment is a SORCERY (printed type): it may be cast only in its controller's main phase with an empty stack. After the turn has been advanced it is the opponent's turn and the cast is refused: the spell stays in hand with its mana, and the opponent's 4/4 lives.",
+ "cards": [
+  {"key": "lj", "real": "Legion's Judgment", "zone": "hand", "controller": 0},
+  {"key": "four", "name": "Opp Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"W": 1, "C": 2}},
+  {"op": "cast", "key": "lj", "real": "Legion's Judgment", "targets": ["four"], "expect_raise": "illegal cast: window"}
+ ],
+ "expect": {"zone": {"lj": "hand", "four": "battlefield"}, "mana_pool": {"0": {"W": 1, "C": 2}}}}

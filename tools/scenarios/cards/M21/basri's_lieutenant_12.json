@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "loyalty", "key": "basri", "set": 3},
+    {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["lt"]}
+  ],
+  "expect": {
+    "counters": {"lt": {"PLUS_1_PLUS_1": 1}, "basri": {"LOYALTY": 4}},
+    "power": {"lt": 4},
+    "toughness": {"lt": 5}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Control for 'protection from multicolored': Basri Ket is mono-white, so its +1 ('put a +1/+1 counter on up to one target creature') may target the Lieutenant: the Lieutenant gets one counter (4/5) and Basri Ket goes to loyalty 4."
+}

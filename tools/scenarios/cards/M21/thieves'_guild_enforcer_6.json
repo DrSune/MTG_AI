@@ -1,0 +1,131 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.' Seat 1's graveyard holds exactly eight cards: the Enforcer is a 3/2 with deathtouch. It attacks and seat 1's 0/9 Wall blocks it: its 3 damage kills the Wall (deathtouch) and it survives (the Wall has no power).",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "power": 0,
+   "toughness": 9,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "og1",
+   "name": "OG Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og2",
+   "name": "OG Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og3",
+   "name": "OG Card 3",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og4",
+   "name": "OG Card 4",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og5",
+   "name": "OG Card 5",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og6",
+   "name": "OG Card 6",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og7",
+   "name": "OG Card 7",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og8",
+   "name": "OG Card 8",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "enf": true
+   },
+   "block": {
+    "wall": "enf"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "enf": 3
+  },
+  "toughness": {
+   "enf": 2
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": [
+    "DEATHTOUCH"
+   ]
+  },
+  "zone": {
+   "enf": "battlefield",
+   "wall": "graveyard"
+  },
+  "blocked": {
+   "enf": [
+    "wall"
+   ]
+  }
+ }
+}

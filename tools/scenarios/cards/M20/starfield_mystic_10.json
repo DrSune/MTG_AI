@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_only_generic_mana_is_reduced_never_a_coloured_cost",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'cost {1} less'. Glaring Aegis costs {W}, with no generic part, so the discount takes nothing off: with an empty pool the cast is refused, and with {W} it is cast and enchants the Bear.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "aegis", "real": "Glaring Aegis", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "cast", "key": "aegis", "controller": 0, "targets": ["bear"], "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 0, "add": {"W": 1}},
+  {"op": "cast", "key": "aegis", "controller": 0, "targets": ["bear"], "decisions": ["obear"]}
+ ],
+ "expect": {
+  "zone": {"aegis": "battlefield"},
+  "attached": {"aegis": "bear"},
+  "tapped": {"obear": true},
+  "mana_pool": {"0": {}}
+ }
+}

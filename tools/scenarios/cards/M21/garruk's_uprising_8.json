@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'Creatures you control have trample.' (The reminder text: those creatures can deal excess combat damage to the player they are attacking.) My 4/4 Ape attacks and the opponent's 1/1 Wolf blocks it. I assign the Wolf its lethal 1 damage and the other 3 to the opponent: 20 -> 17, and the Wolf dies.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Opp Wolf", "type": "Creature — Wolf", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ape": true}, "block": {"wolf": "ape"}, "divide": {"wolf": 1}}
+ ],
+ "expect": {"life": {"0": 20, "1": 17}, "zone": {"wolf": "graveyard", "ape": "battlefield"}, "damage": {"ape": 1}}}

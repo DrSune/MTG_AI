@@ -1,0 +1,88 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'Whenever this creature or another Rogue you control enters, each opponent mills two cards.' The Enforcer is on seat 0's battlefield. A non-Rogue Bear enters under seat 0's control: nothing. A Rogue enters under seat 1's control: nothing (not 'you control'). Then a Rogue enters under seat 0's control: seat 1 mills exactly two cards, the top two of its library (Library 5 and Library 4); seat 0's own library is untouched.",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Plain Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "orogue",
+   "name": "Opp Rogue",
+   "type": "Creature — Human Rogue",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "rogue",
+   "name": "My Rogue",
+   "type": "Creature — Human Rogue",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "bear"
+  },
+  {
+   "op": "enter",
+   "key": "orogue"
+  },
+  {
+   "op": "enter",
+   "key": "rogue"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "enf": "battlefield",
+   "bear": "battlefield",
+   "orogue": "battlefield",
+   "rogue": "battlefield"
+  },
+  "graveyard": {
+   "0": [],
+   "1": [
+    "Library 5",
+    "Library 4"
+   ]
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

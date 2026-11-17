@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Historian of Zhalfir, printed: 'Whenever this creature attacks, if you control a Teferi planeswalker, draw a card.' The 'if' is an intervening condition (CR 603.4), true as the attack is declared and checked again as the trigger resolves. With the trigger waiting on the stack my only Teferi leaves the battlefield: the trigger does nothing and I draw no card (hand stays 0).",
+ "cards": [
+  {"key": "hist", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "tef", "name": "Teferi, Test Walker", "type": "Legendary Planeswalker — Teferi", "loyalty": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hist": true}, "respond_to_triggers": {"DECLARE_ATTACKERS": [{"op": "move", "key": "tef", "to": "graveyard"}]}}
+ ],
+ "expect": {"hand": {"0": 0}, "zone": {"tef": "graveyard"}, "life": {"1": 17}}}

@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Eternal Isolation (M20). Printed: 'target CREATURE with power 4 or greater'. A Vehicle that is not crewed is an artifact with printed power 5, not a creature: naming it is an illegal target and nothing is paid or moved.",
+ "cards": [
+  {"key": "ei", "real": "Eternal Isolation", "zone": "hand", "controller": 0},
+  {"key": "veh", "name": "Parked Vehicle", "type": "Artifact — Vehicle", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1},
+  {"key": "big", "name": "Big", "type": "Creature", "power": "5", "toughness": "5", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "cast", "key": "ei", "controller": 0, "targets": ["veh"], "expect_raise": "illegal target"}
+ ],
+ "expect": {
+  "zone": {"ei": "hand", "veh": "battlefield", "big": "battlefield"},
+  "mana_pool": {"0": {"W": 2}}
+ }
+}

@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Garruk, Unleashed, printed: '[-7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"' Garruk has seven loyalty: the -7 is paid, Garruk leaves (0 loyalty) and I have the emblem. At MY end step I may search: I say yes and take the big Library Beast from among two creature cards; it is put onto the battlefield under my control. The sorcery and the other creature card stay in the library (with the six filler cards: eight cards, in an order the shuffle leaves open).",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "elf", "name": "Library Elf", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "sorcery", "name": "Library Sorcery", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Library Beast", "type": "Creature — Beast", "power": 5, "toughness": 5, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "garruk", "set": 7},
+  {"op": "activate", "key": "garruk", "idx": 2, "seat": 0},
+  {"op": "end_turn", "decisions": ["fire", "beast"]}
+ ],
+ "expect": {"zone": {"garruk": "graveyard", "beast": "battlefield", "elf": "library", "sorcery": "library"}, "controller": {"beast": 0}, "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*"]}, "battlefield_pt": {"Library Beast": [5, 5]}}}

@@ -1,0 +1,72 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Tide Skimmer. Printed: 'Whenever you attack with two or more creatures with FLYING, draw a card.' Seat 0 attacks with Tide Skimmer (the one flier) and two ground creatures, and keeps a 1/1 flying Bird at home: only one attacker has flying, so nothing is drawn (hand 0). Life 20 - 2 - 2 - 3 = 13.",
+ "cards": [
+  {
+   "key": "ts",
+   "real": "Tide Skimmer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bird",
+   "name": "Home Bird",
+   "type": "Creature — Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "name": "Ground Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "name": "Ground Ogre",
+   "type": "Creature — Ogre",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ts": true,
+    "g1": true,
+    "g2": true,
+    "bird": false
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "ts": true,
+   "g1": true,
+   "g2": true,
+   "bird": false
+  },
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "1": 13
+  }
+ }
+}

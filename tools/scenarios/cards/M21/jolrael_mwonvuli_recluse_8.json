@@ -1,0 +1,20 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: '{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.' I hold three cards and the opponent four, so X is 3 (my hand, not theirs). Every creature I control becomes a base 3/3: Jolrael, my 6/5 Tiger, and a 1/1 Pup that also carries a +1/+1 counter (base 3/3 plus the counter = 4/4: 'base' leaves the counter on top). The opponent's 8/8 Ogre is not mine and stays 8/8. {4}{G}{G} is paid from exactly G2 and C4.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "tiger", "name": "My Tiger", "type": "Creature — Cat", "power": 6, "toughness": 5, "zone": "battlefield", "controller": 0},
+  {"key": "pup", "name": "Counter Pup", "type": "Creature — Dog", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 8, "toughness": 8, "zone": "battlefield", "controller": 1},
+  {"key": "h1", "name": "Card One", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "h2", "name": "Card Two", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "h3", "name": "Card Three", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "o1", "name": "Opp Card One", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "o2", "name": "Opp Card Two", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "o3", "name": "Opp Card Three", "type": "Instant", "zone": "hand", "controller": 1},
+  {"key": "o4", "name": "Opp Card Four", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "activate", "key": "jol", "idx": 1, "seat": 0}
+ ],
+ "expect": {"power": {"jol": 3, "tiger": 3, "pup": 4, "ogre": 8}, "toughness": {"jol": 3, "tiger": 3, "pup": 4, "ogre": 8}, "mana_pool": {"0": {}}, "hand": {"0": 3, "1": 4}}}

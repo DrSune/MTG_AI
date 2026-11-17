@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Angel of Vitality (M20). Printed: 'If YOU would gain life, you gain that much life plus 1 instead.' Seat 0 controls the Angel; the opponent's lifelink creature deals 3 damage and the opponent gains exactly 3 (20 -> 23, no bonus). Seat 0's own life stays 20.",
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Opp Lifelinker", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "keywords": ["LIFELINK"]},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 3, "controller": 1}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 23},
+  "damage": {"wall": 3}
+ }
+}

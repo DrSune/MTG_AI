@@ -1,0 +1,39 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Historian of Zhalfir, printed: 'Whenever this creature attacks, if you control a TEFERI planeswalker, draw a card.' I control a planeswalker that is not a Teferi (Basri, Devoted Paladin): no draw (hand stays 0).",
+ "cards": [
+  {
+   "key": "hist",
+   "real": "Historian of Zhalfir",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "hist": true
+   }
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 0
+  },
+  "life": {
+   "1": 17
+  }
+ }
+}

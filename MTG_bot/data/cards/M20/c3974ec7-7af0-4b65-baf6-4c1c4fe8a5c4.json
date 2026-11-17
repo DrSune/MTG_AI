@@ -556,5 +556,59 @@
  },
  "probe": {
   "sha": "25e23e7827e6ae0dc07b9df947057df369126a24316ee29d4a25fe75e1b35eb4"
+ },
+ "verified": {
+  "tree_sha": "e60877b09175a272f640bf3ab79bb4eff7cc0b1031c2ec0459388d2909902819",
+  "probe_sha": "25e23e7827e6ae0dc07b9df947057df369126a24316ee29d4a25fe75e1b35eb4",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "[+1]: You gain life equal to the number of creatures you control plus the number of planeswalkers you control.",
+    "status": "OK",
+    "evidence": "[activate [0]]: 'card gets 1 LOYALTY counter(s)', 'you gains 3 life', you 20 -> 23, loyalty 5 -> 6: two creatures of yours plus Ajani, while four opposing creatures are in play and uncounted. Tree: GAIN_LIFE QBin(ADD, count of your creatures, count of your planeswalkers) controller YOU. F09_1 adds a second planeswalker of yours and an opposing planeswalker: 2 + 2 = 4, life 24.",
+    "issue": ""
+   },
+   {
+    "clause": "[−2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate with \"Whenever you gain life, put a +1/+1 counter on this token.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "[activate [1]]: loyalty 5 -> 3, '+ you:Ajani's Pridemate (battlefield, you, 2/2)'. The token's colour and its life-gain trigger never show (the trigger-stimulus rows run without the token). Tree: CREATE_TOKEN 1 TokenSpec(name Ajani's Pridemate, Creature - Cat Soldier, 2/2, colors ('W',), TriggeredAbility(LifeGainedEvent actor CONTROLLER_IS YOU -> PUT_COUNTER +1/+1 on IS_SOURCE)). F09_2 (one 2/2 token named Pridemate, loyalty 3), F09_3 (Fry, which needs a white or blue target, can target the token), F09_4 (a 2-life gain adds one counter: 3/3), F09_5 (the opponent's life gain adds none).",
+    "issue": ""
+   },
+   {
+    "clause": "[0]: If you have at least 15 life more than your starting life total, exile Ajani and each artifact and creature your opponents control.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[activate [2]]: ABILITY_ACTIVATED with cost 0 and nothing else happens at 20 life (the condition is false); the exile never runs. Tree: Conditional(QTY_GE QBin(ADD, QProp(controller STARTING_LIFE), 15) over QProp(controller LIFE)) then MOVE_ZONE to exile of ALL FOr(FAnd(FOr(Artifact, Creature), CONTROLLER_IS OPPONENT), IS_SOURCE). F09_6 (start 20, life 35: Ajani and the opposing artifacts/creatures leave, your own permanents and the opposing land, enchantment and planeswalker stay), F09_7 (34: nothing), F09_8 (start 40, life 54: nothing), F09_9 (start 40, life 55: exile).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_1.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_2.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_3.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_4.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_5.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_6.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_7.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_8.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_9.json",
+   "tools/scenarios/cards/M20/ajani_strength_of_the_pride_10.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 14,
+   "score": 0.6086956521739131,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/amount/right/selector/filter",
+    "controller YOU->OPPONENT at 1/1/effect/args/tokens/abilities/0/event/actor/who",
+    "amount+1 at 1/1/effect/args/tokens/abilities/0/effect/args/count",
+    "amount+1 at 1/2/effect/pred/count/right",
+    "amount-1 at 1/2/effect/pred/count/right",
+    "zone EXILE->GRAVEYARD at 1/2/effect/then_effect/args/destination",
+    "widen filter (drop part 0) at 1/2/effect/then_effect/args/target/filter/children/0",
+    "widen filter (drop part 1) at 1/2/effect/then_effect/args/target/filter/children/0",
+    "controller OPPONENT->YOU at 1/2/effect/then_effect/args/target/filter/children/0/children/1/who"
+   ]
+  }
  }
 }

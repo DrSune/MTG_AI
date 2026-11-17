@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_two_angels_entering_at_once_trigger_it_twice",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an Angel you control enters, you gain 4 life.' One trigger for each Angel, also when one effect puts both onto the battlefield at the same moment. Seat 0's two Angels die first (the Bishop makes a Spirit for each: two Spirit tokens, which is the other half of the card). Brought Back ({W}{W}, 'up to two target permanent cards in your graveyard that were put there from the battlefield this turn') returns both Angels tapped in one instruction: two triggers, seat 0 gains 4 twice (28).",
+ "cards": [
+  {"key": "bishop", "real": "Bishop of Wings", "zone": "battlefield", "controller": 0},
+  {"key": "a1", "name": "My Angel One", "type": "Creature — Angel", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "My Angel Two", "type": "Creature — Angel", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "back", "real": "Brought Back", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "move", "key": "a1", "to": "graveyard"},
+  {"op": "move", "key": "a2", "to": "graveyard"},
+  {"op": "cast", "key": "back", "controller": 0, "targets": ["a1", "a2"], "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"a1": "battlefield", "a2": "battlefield", "back": "graveyard", "bishop": "battlefield"},
+  "tapped": {"a1": true, "a2": true},
+  "tokens": {"Spirit": 2},
+  "life": {"0": 28, "1": 20}
+ }
+}

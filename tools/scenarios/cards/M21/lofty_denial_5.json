@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Lofty Denial, printed: 'Counter target spell unless its controller pays {1}. ...' Nobody controls a creature with flying. Seat 0 casts Staunch Shieldmate with its only {W} and has nothing left. It cannot pay {1}, so the Shieldmate is countered: it and Lofty Denial are both in the graveyard, and seat 0 is never asked to pay.",
+ "cards": [
+  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+  {"key": "lofty", "real": "Lofty Denial", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "mate", "real": "Staunch Shieldmate", "hold": true},
+  {"op": "cast", "key": "lofty", "real": "Lofty Denial", "controller": 1, "targets": ["mate"], "tap": true, "decisions": ["PAY"]}
+ ],
+ "expect": {"zone": {"mate": "graveyard", "lofty": "graveyard"}, "mana_pool": {"0": {}, "1": {}}, "kickback_asks": {"0": []}}}

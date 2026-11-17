@@ -5,34 +5,41 @@
  "name": "Makeshift Battalion",
  "text_sha": "7eb1d2f3b4023a1a823b6767bd7346d36b61d573ed55c0e175c2797f2255f418",
  "verified": {
-  "tree_sha": "ced12f4e1b6dec55cb98a1da5f6f882708d199c87dd5315f9d76c920774aa55d",
+  "tree_sha": "1c39f9ee1c3f5920231da6e25c9e3f618929ff1ab419d93131feed14a3a1edef",
   "probe_sha": "980ccf09e9862b8f150e800b630272a97d1a66b53a79559146eb25eb44762592",
-  "date": "2026-11-14",
-  "reviewer": "reprint-wave-2026-11-14",
+  "date": "2026-11-17",
+  "reviewer": "reprint-of-wave4-2026-11-17",
   "clauses": [
    {
-    "clause": "Battalion: whenever this creature and at least two other creatures attack, put a +1/+1 counter on it",
+    "clause": "Makeshift Battalion {2}{W} Creature — Human Soldier 3/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 3/2, mana C-2 W-1.",
+    "issue": ""
+   },
+   {
+    "clause": "Battalion — Whenever this creature and at least two other creatures attack, put a +1/+1 counter on this creature.",
     "status": "NOT_EXERCISED",
-    "evidence": "trace attacks alone: no trigger (correct). Packs A08_1 (three attack: counter), A08_2 (two: none), A08_3 (it stays home: none)",
+    "evidence": "Only 'this creature attacks alone' and 'another creature you control (you_bear) attacks' are in the trace: no trigger. Packs J08_1 (three attackers: one counter, the others none), J08_2 (only one other attacker: none), J08_3 (it stays home: none), J08_4 (four attackers: one counter).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/makeshift_battalion_3.json",
-   "tools/scenarios/cards/M21/makeshift_battalion_4.json",
-   "tools/scenarios/cards/M21/makeshift_battalion_5.json",
-   "tools/scenarios/cards/M21/makeshift_battalion_1.json",
-   "tools/scenarios/cards/M21/makeshift_battalion_2.json"
+   "tools/scenarios/cards/M21/makeshift_battalion_6.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_7.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_8.json",
+   "tools/scenarios/cards/M21/makeshift_battalion_9.json"
   ],
   "mutation": {
-   "mutants": 7,
+   "mutants": 9,
    "killed": 2,
-   "score": 0.2857142857142857,
+   "score": 0.2222222222222222,
    "survived": [
     "widen filter (drop part 0) at 1/0/event/filter",
     "amount+1 at 1/0/event/filter/children/1/count",
     "amount-1 at 1/0/event/filter/children/1/count",
-    "widen filter (drop part 1) at 1/0/event/filter/children/1/inner_filter",
+    "widen filter (drop part 0) at 1/0/event/filter/children/1/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/event/filter/children/1/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/event/filter/children/1/quantity/selector/filter/children/0/who",
     "amount+1 at 1/0/effect/args/count"
    ]
   },

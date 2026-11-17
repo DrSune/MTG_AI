@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "waterkin_shaman_two_fliers_entering_at_once_trigger_it_twice",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.' One trigger for each flier, also when one effect puts both onto the battlefield at the same moment. Two fliers of seat 0 went to the graveyard from the battlefield this turn; Brought Back ({W}{W}) returns both tapped in one instruction. Two triggers: the 2/1 Shaman becomes 4/3, and the returned fliers keep their own sizes.",
+ "cards": [
+  {"key": "shaman", "real": "Waterkin Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "f2", "name": "My Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "back", "real": "Brought Back", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "move", "key": "f1", "to": "graveyard"},
+  {"op": "move", "key": "f2", "to": "graveyard"},
+  {"op": "cast", "key": "back", "controller": 0, "targets": ["f1", "f2"], "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield", "f2": "battlefield", "back": "graveyard"},
+  "tapped": {"f1": true, "f2": true},
+  "power": {"shaman": 4, "f1": 1, "f2": 2},
+  "toughness": {"shaman": 3, "f1": 1, "f2": 2}
+ }
+}

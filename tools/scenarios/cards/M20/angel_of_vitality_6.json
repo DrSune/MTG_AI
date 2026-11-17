@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Angel of Vitality (M20). Printed: 'This creature gets +2/+2 as long as you have 25 or more life.' At 24 life the bonus is off: the Angel is its printed 2/2 and the bystander is 2/2.",
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bystander", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 24},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "life": {"0": 24},
+  "power": {"ang": 2, "bear": 2},
+  "toughness": {"ang": 2, "bear": 2}
+ }
+}

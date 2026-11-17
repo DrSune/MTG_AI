@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-3]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.' It is only until end of turn. I have three cards in my graveyard (the opponent's graveyard is empty, so reading theirs would give 0): the opponent's 5/5 becomes 2/2 this turn, and when the turn has been advanced it is a 5/5 again.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mg1", "name": "My Dead One", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "mg2", "name": "My Dead Two", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "mg3", "name": "My Dead Three", "type": "Sorcery", "zone": "graveyard", "controller": 0},
+  {"key": "ogre", "name": "Opp Big Ogre", "type": "Creature — Ogre", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 1, "seat": 0, "targets": ["ogre"]},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"power": {"ogre": 5}, "toughness": {"ogre": 5}, "zone": {"ogre": "battlefield"}, "counters": {"lil": {"LOYALTY": 1}}}}

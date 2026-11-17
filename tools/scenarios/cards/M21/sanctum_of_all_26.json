@@ -1,0 +1,96 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Sanctum of All. Printed: 'If an ability of ANOTHER Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' Sanctum of All's own upkeep ability is not doubled even with six Shrines. Seat 0 controls Sanctum of All and five plain Shrines; Shrine A waits in its library and Shrine B in its graveyard. At turn 3's upkeep it fires the may, searches the library only (option 1) and takes Shrine A: one search, one Shrine; Shrine B stays in the graveyard (a second search would have taken it).",
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "name": "Shrine One",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "name": "Shrine Two",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "name": "Shrine Three",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s4",
+   "name": "Shrine Four",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s5",
+   "name": "Shrine Five",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "la",
+   "name": "Shrine A",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gb",
+   "name": "Shrine B",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "1",
+    "la"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield",
+   "la": "battlefield",
+   "gb": "graveyard"
+  }
+ }
+}

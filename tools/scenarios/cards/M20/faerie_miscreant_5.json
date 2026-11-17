@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Faerie Miscreant (M20). Printed: 'When this creature enters, if you control another creature named Faerie Miscreant, draw a card.' The same held-trigger shape as the pack above with the other Miscreant staying: the trigger resolves with the condition still true and draws one card (hand: 1).",
+ "cards": [
+  {"key": "m1", "real": "Faerie Miscreant", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Faerie Miscreant", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "m2", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"m1": "battlefield", "m2": "battlefield"},
+  "hand": {"0": 1, "1": 0}
+ }
+}

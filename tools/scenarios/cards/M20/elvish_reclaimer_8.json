@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: 'Sacrifice a LAND' with the {2} paid and the Reclaimer untapped. Seat 0 controls no land (only a creature); the opponent controls one. The activation is refused: the cost cannot be paid, nothing is tapped or sacrificed and the {2} stays in the pool.",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "ol", "name": "Opp Land", "type": "Land", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "rec", "idx": 1, "seat": 0, "expect_raise": "illegal activation"}
+ ],
+ "expect": {
+  "zone": {"rec": "battlefield", "ol": "battlefield", "bear": "battlefield"},
+  "tapped": {"rec": false},
+  "mana_pool": {"0": {"C": 2}}
+ }
+}

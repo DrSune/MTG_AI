@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "g", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+    {"key": "src", "name": "Pinger", "type": "Creature — Wizard", "power": 1, "toughness": 9, "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2},
+    {"op": "end_turn"},
+    {"op": "advance_turn"},
+    {"op": "cast", "real": "Shock", "key": "shock", "targets": ["p1"], "tap": true}
+  ],
+  "expect": {
+    "zone": {"bear": "graveyard", "shock": "graveyard"},
+    "tokens": {"Treasure": 0},
+    "life": {"0": 20, "1": 18},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I09). Printed (reminder text): 'It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\"' Your Bear dies; at your end step Gadrak makes one Treasure; in the next turn that Treasure pays Shock's {R} (tapped and sacrificed for one mana of the needed color): Shock deals 2 to the opponent (20 -> 18) and no Treasure is left."
+}

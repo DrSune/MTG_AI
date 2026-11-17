@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk, Unleashed, printed: '[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.' 'Up to one' allows none: the ability is activated with no target chosen. The loyalty cost is still paid (4 -> 5) and neither creature changes (both stay 2/2 with no keyword).",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Opp Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "garruk", "idx": 0, "seat": 0}
+ ],
+ "expect": {"power": {"bear": 2, "wolf": 2}, "toughness": {"bear": 2, "wolf": 2}, "battlefield_keywords": {"My Bear": [], "Opp Wolf": []}, "counters": {"garruk": {"LOYALTY": 5}}}}

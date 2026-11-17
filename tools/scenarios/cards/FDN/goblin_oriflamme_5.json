@@ -1,0 +1,62 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Goblin Oriflamme, printed: 'Attacking creatures you control get +1/+0.' The bonus is power only: a 2/2 attacker blocked by a 2/2 first striker takes 2 in the first-strike damage step, which is lethal (toughness 2, not 3), so it dies BEFORE regular damage and deals none: the first striker is unhurt. (With +1/+1 the attacker would survive, deal 3 and kill it.)",
+ "cards": [
+  {
+   "key": "ori",
+   "real": "Goblin Oriflamme",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Attacker B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fs",
+   "name": "First Striker",
+   "type": "Creature — Soldier",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1,
+   "keywords": [
+    "FIRST_STRIKE"
+   ]
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "b": true
+   },
+   "block": {
+    "fs": "b"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "b": "graveyard",
+   "fs": "battlefield"
+  },
+  "damage_received": {
+   "b": 2,
+   "fs": 0
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

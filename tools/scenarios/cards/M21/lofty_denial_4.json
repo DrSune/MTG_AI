@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Lofty Denial, printed: 'Counter target spell unless its controller pays {1}. If you control a creature with flying, counter that spell unless its controller pays {4} instead.' Nobody controls a creature with flying. Seat 0 casts Staunch Shieldmate with {W} and has four {R} left; seat 1 answers with Lofty Denial ({1}{U}, from two {U}). Seat 0 is asked to pay {1} and does: one {R} is spent (R 4 -> 3), the Shieldmate resolves and Lofty Denial goes to the graveyard.",
+ "cards": [
+  {"key": "mate", "real": "Staunch Shieldmate", "zone": "hand", "controller": 0},
+  {"key": "lofty", "real": "Lofty Denial", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "R": 4}, "1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "mate", "real": "Staunch Shieldmate", "hold": true},
+  {"op": "cast", "key": "lofty", "real": "Lofty Denial", "controller": 1, "targets": ["mate"], "tap": true, "decisions": ["PAY"]}
+ ],
+ "expect": {"zone": {"mate": "battlefield", "lofty": "graveyard"}, "mana_pool": {"0": {"R": 3}, "1": {}}, "kickback_asks": {"0": ["PAY"]}}}

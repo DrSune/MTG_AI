@@ -1,0 +1,96 @@
+{
+ "set": "FDN",
+ "name": "D07_6_creatures_i_control_have_trample_the_opponents_do_not",
+ "notes": "Printed: 'Creatures you control have trample.' My 4/4 attacks and the opponent's 1/1 blocks it: I divide lethal (1) to the blocker and the other 3 trample over to the player (20 -> 17). On the opponent's turn their 4/4 attacks and my 1/1 blocks it: the opponent's creature has no trample (the Uprising grants it to MY creatures only), so all its damage stays on my blocker and my life is 20. My 1/1 blocker deals its own 1 damage to their 4/4 (it stays marked).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "up",
+   "real": "Garruk's Uprising",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Stomper",
+   "type": "Creature \u2014 Beast",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mychump",
+   "name": "My Chump",
+   "type": "Creature \u2014 Beast",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Opp Stomper",
+   "type": "Creature \u2014 Beast",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "chump",
+   "name": "Opp Chump",
+   "type": "Creature \u2014 Beast",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "mine": true
+   },
+   "block": {
+    "chump": "mine"
+   },
+   "divide": {
+    "chump": 1
+   }
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "theirs": true
+   },
+   "block": {
+    "mychump": "theirs"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "chump": "graveyard",
+   "mychump": "graveyard",
+   "mine": "battlefield",
+   "theirs": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "damage": {
+   "theirs": 1
+  }
+ }
+}

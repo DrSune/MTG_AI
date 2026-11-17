@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "gad", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+    {"key": "ooze", "real": "Scavenging Ooze", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "src", "name": "Opp Giant", "type": "Creature — Giant", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"G": 1}},
+  "steps": [
+    {"op": "deal_damage", "source": "src", "target": "bear", "amount": 2},
+    {"op": "activate", "key": "ooze", "idx": 0, "seat": 0, "targets": ["bear"]},
+    {"op": "end_turn"}
+  ],
+  "expect": {
+    "zone": {"bear": "exile", "gad": "battlefield"},
+    "tokens": {"Treasure": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I09). Printed: '... for each nontoken creature that DIED this turn.' (CR 700.4: dies = put into a graveyard from the battlefield.) Your Bear dies, then Scavenging Ooze exiles it from the graveyard: it still died this turn, so your end step makes exactly 1 Treasure."
+}

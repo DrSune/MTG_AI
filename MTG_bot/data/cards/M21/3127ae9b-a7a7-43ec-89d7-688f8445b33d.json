@@ -5,42 +5,59 @@
  "name": "Garruk's Uprising",
  "text_sha": "272cf8b97081eac971a122b396760699c67f435be6df9116f5c2ff765871c214",
  "verified": {
-  "tree_sha": "cfc8288795876923f3258564d6be645418ac80ddc88e3c23451cf951ee3bb751",
-  "probe_sha": "8d044f91c785124eceab17a23b4afeaf915d15f1f2d381d83d36a8600a46c997",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-A",
+  "tree_sha": "fa2986081096cf04feb4ca26eb4040eccabcafd69acbbee6c5e380b5d50a60af",
+  "probe_sha": "a51ad4aec736ebf423253b38338be9efdeaa9220978e7745e9504222798f5c9b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
+   {
+    "clause": "Garruk's Uprising {2}{G} Enchantment (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, mana C-2 G-1.",
+    "issue": ""
+   },
    {
     "clause": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.",
     "status": "OK",
-    "evidence": "abilities[0] matches parse (B2b-etb-power-condition-draw); [cast] with you_giant 4/4 on board: triggered ability [0] triggers, you draws you:Library 5#1 (one card). Condition-false case: pack garruks_uprising_etb_no_big.json (own 3/3 only, opponent's 5/5 does not count -> no draw) PASSES",
+    "evidence": "[cast] with you_giant (4/4): \"card's triggered ability [0] triggers\", 'you draws': hand +1, library 6 -> 5. The false branches (no creature with power 4, only the opponent's, a 3-power creature) and the second check as the trigger resolves are not in the trace: packs J07_1, J07_2, J07_3.",
     "issue": ""
    },
    {
     "clause": "Creatures you control have trample.",
     "status": "OK",
-    "evidence": "abilities[1]; static section: you_bear, you_giant +TRAMPLE, opponent's creatures unchanged; you_spare and Staunch Shieldmate entering get +TRAMPLE",
+    "evidence": "[cast]: you_bear and you_giant keywords +TRAMPLE, no opponent creature; 'a creature enters under your control': you_spare gets +TRAMPLE; 'your creature (you_bear) dies': keywords -TRAMPLE. Packs J07_4 (later entrant, opponent's creature has none), J07_5 (ends with the enchantment), J07_6 (excess combat damage goes to the player).",
     "issue": ""
    },
    {
     "clause": "Whenever a creature you control with power 4 or greater enters, draw a card.",
     "status": "NOT_EXERCISED",
-    "evidence": "abilities[2] matches parse (B2b-power-ge-enters-draw); trace only shows 3/3 you_spare and 1/3 Shieldmate entering with no draw (correct). Pack garruks_uprising_big_enters.json (own 4/4 enters -> 1 draw; own 3/5 and opponent's 6/6 -> none) PASSES",
+    "evidence": "The creatures that enter in the trace are a 3/3 (you_spare) and a 1/3 (Staunch Shieldmate): 'none'; no creature of power 4 enters. Packs J07_7 (a 4/4 enters: one card), J07_8 (a 3/3, the opponent's 5/5 and a noncreature do not), J07_9 (two big creatures, two cards). Pack J07_10 (two creatures enter at once, both big: two triggers, two cards).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/garruk's_uprising_1.json",
-   "tools/scenarios/cards/M21/garruk's_uprising_2.json"
+   "tools/scenarios/cards/M21/garruk's_uprising_3.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_4.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_5.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_6.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_7.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_8.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_9.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_10.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_11.json",
+   "tools/scenarios/cards/M21/garruk's_uprising_12.json"
   ],
   "mutation": {
-   "mutants": 20,
+   "mutants": 23,
    "killed": 10,
-   "score": 0.5,
+   "score": 0.43478260869565216,
    "survived": [
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "amount-1 at 1/0/condition/inner_filter/children/1/count",
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount-1 at 1/0/condition/quantity/selector/filter/children/2/count",
+    "each occurrence -> once per event at 1/2",
     "controller YOU->OPPONENT at 1/2/event/to_zone/controller",
     "widen filter (drop part 0) at 1/2/event/subject",
     "widen filter (drop part 1) at 1/2/event/subject",

@@ -1,0 +1,115 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.' It is not a one-time check: seat 1's graveyard holds seven cards and the Enforcer is a 1/1 without deathtouch; a card goes from seat 1's hand to its graveyard (eight): the Enforcer is a 3/2 with deathtouch; a card goes from the graveyard back to hand (seven): it is a 1/1 again. The power and keyword lanes are read after the first move, and the final state after the second.",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "og1",
+   "name": "OG Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og2",
+   "name": "OG Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og3",
+   "name": "OG Card 3",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og4",
+   "name": "OG Card 4",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og5",
+   "name": "OG Card 5",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og6",
+   "name": "OG Card 6",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og7",
+   "name": "OG Card 7",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "oh1",
+   "name": "OH Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "oh1",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "og1",
+   "to": "hand"
+  }
+ ],
+ "expect": {
+  "power": {
+   "enf": 1
+  },
+  "toughness": {
+   "enf": 1
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": []
+  },
+  "zone": {
+   "oh1": "graveyard",
+   "og1": "hand"
+  }
+ }
+}

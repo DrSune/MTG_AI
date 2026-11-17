@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Turret Ogre (control for K07_4). Seat 0 controls a 4/4 Giant and a 1/1 Mouse. The Ogre spell resolves and its enters trigger waits; a response sends the Mouse to the graveyard (the condition still holds), and the trigger resolves: seat 1 takes 2 (18).",
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "My Four",
+   "type": "Creature — Giant",
+   "power": 4,
+   "toughness": 4,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mouse",
+   "name": "My Mouse",
+   "type": "Creature — Mouse",
+   "power": 1,
+   "toughness": 1,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "hold": true
+  },
+  {
+   "op": "resolve"
+  },
+  {
+   "op": "move",
+   "key": "mouse",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ogre": "battlefield",
+   "giant": "battlefield",
+   "mouse": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ }
+}

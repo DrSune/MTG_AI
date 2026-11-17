@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Ornery Dilophosaur, printed: 'Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.' The 'if' is an intervening condition (CR 603.4), true as the attack is declared and checked again as the trigger resolves. With the trigger waiting on the stack my 4/4 Ape leaves the battlefield: the trigger then does nothing and the Dilophosaur stays a 2/2 and deals 2 (20 -> 18).",
+ "cards": [
+  {"key": "dilo", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dilo": true}, "respond_to_triggers": {"DECLARE_ATTACKERS": [{"op": "move", "key": "ape", "to": "graveyard"}]}}
+ ],
+ "expect": {"power": {"dilo": 2}, "toughness": {"dilo": 2}, "life": {"1": 18}, "zone": {"ape": "graveyard"}}}

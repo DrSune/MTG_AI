@@ -1,0 +1,36 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Warded Battlements, printed: 'Defender (This creature can't attack.)' Seat 0 is to attack with the Wall alone: it is never asked, no attack is declared, and seat 1 stays at 20.",
+ "cards": [
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wall": true
+   }
+  }
+ ],
+ "expect": {
+  "not_asked": [
+   "wall"
+  ],
+  "attackers": {
+   "wall": false
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

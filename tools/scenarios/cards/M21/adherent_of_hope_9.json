@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "basri", "seat": 0},
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "controller": {"basri": 0},
+    "counters": {"adh": {"PLUS_1_PLUS_1": 1}},
+    "power": {"adh": 3}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'if you CONTROL a Basri planeswalker' (control, not ownership). You gain control of the opponent's Basri Ket: at the beginning of your combat the Adherent gets its counter (3/2)."
+}

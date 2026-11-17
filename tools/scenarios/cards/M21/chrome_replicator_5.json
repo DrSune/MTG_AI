@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "a", "name": "Bear A", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "b", "name": "Bear B", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "c", "name": "Bear C", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "ring", "name": "Gold Ring", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "cloak", "name": "Silk Cloak", "type": "Enchantment", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "zone": {"rep": "battlefield"},
+    "tokens": {"Construct": 0}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). Printed: 'if you control two or more nonland, nontoken permanents with the same name as one another'. You control only differently named permanents (Bear A, Bear B, Bear C, Gold Ring, Silk Cloak, and the Replicator itself): no two share a name, so no token is created."
+}

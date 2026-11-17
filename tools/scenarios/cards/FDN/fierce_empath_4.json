@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D09_2_mana_value_6_counts_5_does_not",
+ "notes": "Printed: '... a creature card with mana value 6 or greater ...'. My library holds a mana value 5 creature (on top) and a mana value 6 creature. I take the may and take the default pick: the mana value 5 creature is not a candidate, so the one candidate, the mana value 6 creature, goes to my hand (6 is '6 or greater'); the mana value 5 one stays in the library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "five", "name": "Mid Beast", "type": "Creature — Beast", "power": "5", "toughness": "5", "zone": "library", "controller": 0, "cmc": 5},
+  {"key": "six", "name": "Big Beast", "type": "Creature — Beast", "power": "6", "toughness": "6", "zone": "library", "controller": 0, "cmc": 6}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "empath", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"empath": "battlefield", "six": "hand", "five": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]}
+ }
+}

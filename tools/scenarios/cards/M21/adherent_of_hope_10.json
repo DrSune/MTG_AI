@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "basri", "seat": 1},
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "controller": {"basri": 1},
+    "counters": {"adh": {}},
+    "power": {"adh": 2}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'if you CONTROL a Basri planeswalker'. Your own Basri Ket is taken by the opponent: at the beginning of your combat you control none and the Adherent gets no counter (2/1)."
+}

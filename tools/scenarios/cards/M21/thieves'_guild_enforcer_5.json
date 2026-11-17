@@ -1,0 +1,62 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'Whenever this creature or another Rogue you control enters, each opponent mills two cards.' In a three-player game seat 0 casts the Enforcer ({B}, Flash): EACH opponent mills two cards (seats 1 and 2: two cards each, the top two of their libraries), and seat 0 mills none.",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "enf": "battlefield"
+  },
+  "graveyard": {
+   "0": [],
+   "1": [
+    "Library 5",
+    "Library 4"
+   ],
+   "2": [
+    "Library 5",
+    "Library 4"
+   ]
+  },
+  "library": {
+   "1": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "2": [
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

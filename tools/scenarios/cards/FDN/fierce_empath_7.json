@@ -1,0 +1,17 @@
+{"set": "FDN", "name": "D09_5_search_is_of_my_own_library_when_only_the_opponents_qualifies",
+ "notes": "Printed: 'search YOUR library'. Only the opponent's library holds a creature of mana value 6 or more; mine holds none. I take the may: the opponent's creature is not found (it stays in the opponent's library) and my hand stays empty.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Beast", "power": "6", "toughness": "6", "zone": "library", "controller": 1, "cmc": 6}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "empath", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"empath": "battlefield", "obig": "library"},
+  "hand": {"0": 0, "1": 0},
+  "library": {"1": ["Opp Big", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

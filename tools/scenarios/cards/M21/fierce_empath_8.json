@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+    {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0},
+    {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 0},
+    {"key": "f3", "real": "Forest", "zone": "battlefield", "controller": 0},
+    {"key": "big", "name": "Big Six", "type": "Creature — Giant", "power": 6, "toughness": 6, "cmc": 6, "zone": "library", "controller": 0},
+    {"key": "big2", "name": "Big Seven", "type": "Creature — Giant", "power": 7, "toughness": 7, "cmc": 7, "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["cast:empath", "fire", "big2"]}
+  ],
+  "expect": {
+    "zone": {"empath": "battlefield", "big2": "hand", "big": "library"},
+    "hand": {"0": 1},
+    "tapped": {"f1": true, "f2": true, "f3": true}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I07). Printed: '{2}{G}' creature with 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, ...'. Through the menu: cast it with three Forests, fire the may-offer, take the Big Seven: it goes to your hand, the Big Six stays in the library."
+}

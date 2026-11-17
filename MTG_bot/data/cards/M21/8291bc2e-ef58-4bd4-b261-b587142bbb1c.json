@@ -5,37 +5,48 @@
  "name": "Ornery Dilophosaur",
  "text_sha": "2b05116dcbcf2f3aeb6b2657ad1383e7513d13a780efad7dc29e08243ea53f68",
  "verified": {
-  "tree_sha": "6f808d739fc0ace33506cc3f66b26edde2c2c40d92d2d735c9ecc5b82374b220",
-  "probe_sha": "75e6c59022d00514b09dcd4900ffca58af00bc98e6038b17f8025cb5c9f45b85",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-D",
+  "tree_sha": "7e40e9eb33e5fc03ddf257b881d69131fbb0650b87483c2e03416dbbfd737007",
+  "probe_sha": "902f32929f2ccae8e9a50457d84406ea8a7ae1633284a2e867d8c0dc3448ae03",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
+   {
+    "clause": "Ornery Dilophosaur {3}{G} Creature — Dinosaur 2/2 (cast)",
+    "status": "OK",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 2/2, keywords +DEATHTOUCH, mana C-3 G-1.",
+    "issue": ""
+   },
    {
     "clause": "Deathtouch",
     "status": "OK",
-    "evidence": "keywords[0] DEATHTOUCH; [stimulus: this creature attacks and opp_giant blocks it] opp_giant is dealt damage and dies",
+    "evidence": "[cast]: keywords +DEATHTOUCH. Its combat effect is not separable in the trace (the pumped 4/4 kills the 4/4 blocker anyway); pack J09_6 (a 2/2 kills a blocking 5/5).",
     "issue": ""
    },
    {
     "clause": "Whenever this creature attacks, if you control a creature with power 4 or greater, this creature gets +2/+2 until end of turn.",
     "status": "OK",
-    "evidence": "[attacks alone, unblocked]: trigger fires (you_giant 4/4 is yours), P/T 2/2 -> 4/4, opp 20 -> 16; [another creature you control (you_bear) attacks] -> none. Tree matches the compiler's B2b-attack-power-condition-self-boost. Not in the trace: the false condition and the end-of-turn expiry. Pack no_big_creature: only the opponent has a 5/5, so no pump, 2 damage (pass). Pack eot: back to 2/2 after end_turn (pass)",
+    "evidence": "'this creature attacks alone, unblocked' and 'attacks and opp_giant blocks it' (you_giant 4/4 on the board): \"card's triggered ability [0] triggers\", P/T 2/2 -> 4/4, deals 4. 'another creature you control (you_bear) attacks': none. The false branches, the end of the effect and the second check at resolution are not in the trace: packs J09_1 (counts a creature that stays home), J09_2 (ends at end of turn), J09_3 (a 3/3 is too small), J09_4 (only the opponent's 5/5), J09_5 (the 4/4 leaves in response: no boost).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/ornery_dilophosaur_1.json",
-   "tools/scenarios/cards/M21/ornery_dilophosaur_2.json",
-   "tools/scenarios/cards/M21/ornery_dilophosaur_3.json"
+   "tools/scenarios/cards/M21/ornery_dilophosaur_4.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_5.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_6.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_7.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_8.json",
+   "tools/scenarios/cards/M21/ornery_dilophosaur_9.json"
   ],
   "mutation": {
-   "mutants": 11,
+   "mutants": 13,
    "killed": 7,
-   "score": 0.6363636363636364,
+   "score": 0.5384615384615384,
    "survived": [
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "amount-1 at 1/0/condition/inner_filter/children/1/count",
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount-1 at 1/0/condition/quantity/selector/filter/children/2/count",
     "until-end-of-turn->permanent at 1/0/effect/args/duration"
    ]
   }

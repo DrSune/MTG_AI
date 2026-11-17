@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "name": "waterkin_shaman_a_flier_entering_makes_it_3_2_for_the_turn",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.' One flier enters under seat 0 and the turn goes on: the Shaman is 3/2 right after the trigger resolves (+1/+1, not +1/+0, not +2/+2).",
+ "cards": [
+  {"key": "shaman", "real": "Waterkin Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "f1"}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield"},
+  "power": {"shaman": 3, "f1": 1},
+  "toughness": {"shaman": 2, "f1": 1}
+ }
+}

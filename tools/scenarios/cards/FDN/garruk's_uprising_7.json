@@ -1,0 +1,17 @@
+{"set": "FDN", "name": "D07_5_enters_trigger_checks_its_if_again_as_it_resolves",
+ "notes": "Printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' (an intervening if, CR 603.4: true as the trigger fires AND as it resolves). The Uprising enters with my 4/4 in play, so its trigger goes on the stack; in response my 4/4 leaves the battlefield. As the trigger resolves I control no creature with power 4 or greater: nothing is drawn (the hand stays empty, the library full).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "four", "name": "My Four", "type": "Creature — Beast", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "up", "hold": true},
+  {"op": "move", "key": "four", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"up": "battlefield", "four": "graveyard"},
+  "hand": {"0": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "mine", "name": "Solo Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "theirs", "name": "Solo Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1},
+    {"key": "o1", "name": "Opp Twin", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1},
+    {"key": "o2", "name": "Opp Twin", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "zone": {"rep": "battlefield"},
+    "tokens": {"Construct": 0}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). Printed: 'if YOU control two or more nonland, nontoken permanents with the same name as one another'. You control one Solo Bear and the opponent controls another (the same name, but not two that you control), and the opponent controls two Opp Twin: the opponent's permanents never count, so no token is created."
+}

@@ -198,5 +198,45 @@
  },
  "probe": {
   "sha": "e086fdeed10786ffa9a502898bc776c1d4a208e819fd0b47db77f80f2d7e92f6"
+ },
+ "verified": {
+  "tree_sha": "a08faa96732fd4f3dcf0aa36d0d385975432796c6e950ed53dc0dec2f2499b09",
+  "probe_sha": "e086fdeed10786ffa9a502898bc776c1d4a208e819fd0b47db77f80f2d7e92f6",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "{T}: Add {G}.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', 'ABILITY_ACTIVATED', 'you: mana G+1' with three creatures I control (the Druid, you_bear, you_giant): cost is {T} alone, the amount is one green mana for me. Summoning sickness (a creature's {T} ability the turn it enters) is not shown by the probe (the card starts on the battlefield): pack G01_7.",
+    "issue": ""
+   },
+   {
+    "clause": "If you control four or more creatures, add {G}{G} instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The only activation in the trace sees three creatures I control, so only the else branch (G+1) ever runs; the then branch (two G when four or more creatures are mine, QTY_GE 4 over creatures I control) never runs. Packs G01_1 (four creatures: one tap pays {G}{G} and leaves nothing), G01_2 (three: {G}{G} cannot be paid), G01_3 (three mine plus two of the opponent's: still one G), G01_4 (four: one G left floating after a {G} spell). G01_5 (the opponent's Bear under my control counts), G01_6 (one of my Bears under the opponent's control does not).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/leafkin_druid_1.json",
+   "tools/scenarios/cards/M20/leafkin_druid_4.json",
+   "tools/scenarios/cards/M20/leafkin_druid_5.json",
+   "tools/scenarios/cards/M20/leafkin_druid_6.json",
+   "tools/scenarios/cards/M20/leafkin_druid_7.json",
+   "tools/scenarios/cards/M20/leafkin_druid_8.json",
+   "tools/scenarios/cards/M20/leafkin_druid_9.json"
+  ],
+  "mutation": {
+   "mutants": 11,
+   "killed": 7,
+   "score": 0.6363636363636364,
+   "survived": [
+    "amount+1 at 1/0/effect/pred/count",
+    "amount+1 at 1/0/effect/then_effect/args/amount",
+    "amount-1 at 1/0/effect/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/then_effect/args/controller"
+   ]
+  }
  }
 }

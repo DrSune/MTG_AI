@@ -1,0 +1,89 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cavalier of Night (M20). Printed: 'return target creature card with mana value 3 or less from your graveyard to the battlefield.' The same graveyards as the pack above (creature cards of mana value 1, 3 and 4 for seat 0, mana value 3 for the opponent), but seat 0 picks the mana value 1 card: it, and only it, returns under seat 0's control.",
+ "cards": [
+  {
+   "key": "cn",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "smasher",
+   "name": "Smasher",
+   "type": "Creature",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "cheap",
+   "name": "Cheap",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "three",
+   "name": "Three",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "four",
+   "name": "Four",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 4,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "oppthree",
+   "name": "Opp Three",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "smasher",
+   "target": "cn",
+   "amount": 5,
+   "decisions": [
+    "cheap"
+   ],
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cn": "graveyard",
+   "three": "graveyard",
+   "cheap": "battlefield",
+   "four": "graveyard",
+   "oppthree": "graveyard"
+  },
+  "controller": {
+   "cheap": 0
+  }
+ }
+}

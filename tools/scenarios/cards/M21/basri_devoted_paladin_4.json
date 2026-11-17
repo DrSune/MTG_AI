@@ -1,0 +1,83 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[+1]: Put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn.' Targeting seat 0's Bear: it gets exactly one +1/+1 counter (3/3) and vigilance; the Giant, which is not the target, gets neither. Basri goes 4 -> 5 loyalty.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oppbear",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 5
+   },
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "giant": {},
+   "oppbear": {}
+  },
+  "power": {
+   "bear": 3,
+   "giant": 4,
+   "oppbear": 2
+  },
+  "toughness": {
+   "bear": 3,
+   "giant": 4,
+   "oppbear": 2
+  },
+  "battlefield_keywords": {
+   "Bear": [
+    "VIGILANCE"
+   ],
+   "Giant": [],
+   "Their Bear": []
+  }
+ }
+}

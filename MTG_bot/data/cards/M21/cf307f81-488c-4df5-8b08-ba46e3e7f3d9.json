@@ -5,36 +5,37 @@
  "name": "Eliminate",
  "text_sha": "1e9f2c86776747f0871b8beb19b0ed861d9d820eae37c1379d8ddf31a15fc7ed",
  "verified": {
-  "tree_sha": "d635a2bb8681c33b6191e59c132fb62fd10c4818a3d5768e28c4b1e6f1e364d1",
-  "probe_sha": "07211c5ce9334b09c535041e126d28b4851446a58634f2f73fa3081885aec8ac",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-H",
+  "tree_sha": "c91b1ffd4b5fd033c338cf674ca82191cd4588a45ee9184c492c3626e63cc9ba",
+  "probe_sha": "3421f878a73d381b910ac9fa5e79791348cdf8f83feb07d77d5870de823f3555",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "Destroy target creature ... with mana value 3 or less.",
-    "status": "OK",
-    "evidence": "'target slot (cast): 1..1 of [you_bear, opp_flier, opp_tapped, opp_bear]': exactly one target; creatures of either side with MV <= 3 (opp_tapped MV 3 included), the MV-5 giants and the non-creature relics/charms excluded. Each [cast targets=[...]] destroys that creature ('moves battlefield -> graveyard (by card/DESTROY)', 'dies'), the spell goes to the graveyard, cost B-1 plus one generic.",
-    "issue": "engine-limit: no priority; the instant is cast only in its controller's own action window (weaker only)."
-   },
-   {
-    "clause": "Destroy target ... planeswalker with mana value 3 or less.",
+    "clause": "Destroy target creature or planeswalker with mana value 3 or less.",
     "status": "NOT_EXERCISED",
-    "evidence": "No planeswalker on the probe board. Tree: FOr branch FAnd(TYPE_EQ Planeswalker, CMC_LE 3). Pack eliminate_planeswalker_mv: a MV-4 planeswalker and a MV-4 creature are refused as targets ('illegal target selection'), a MV-3 planeswalker is destroyed: PASS. The pack kills a mutant without the planeswalker branch and one without the planeswalker MV limit.",
+    "evidence": "Shown: the cast's target slot lists 'you_bear, opp_flier, opp_tapped, opp_bear' (the two 4/4s, you_giant and opp_giant, are not offered), and each cast makes 'card moves hand -> stack', the target 'is targeted', 'X moves battlefield -> graveyard (by card/DESTROY)' and 'X dies', the spell then goes to the graveyard; the mana paid is B-1 C-1 ({1}{B}). Not shown: the standard board has no planeswalker, and the mana values of its creatures are not in the trace, so the 3-or-less boundary and the planeswalker half are not pinned. Tree abilities[0] = the compiler's B5a-destroy-cw-pw-mv-le form: TARGET over FAnd(FOr(Creature, Planeswalker), FNot(QTY_GE 4 MANA_VALUE)). Packs on the live tree: I05_1 (mana value exactly 3 is destroyed, the other creature is not), I05_2 (mana value 4: 'illegal target'), I05_3 (Basri Ket, a mana value 3 planeswalker: destroyed), I05_4 (Basri, Devoted Paladin, mana value 6: 'illegal target'), I05_5 (a noncreature artifact: 'illegal target'), I05_6 (an indestructible creature survives: destroy, not exile), I05_7 (your own creature is a legal target; the opponent's token is untouched). I05_8 (a creature token has mana value 0: a legal target, destroyed). Through the menu (targets priced together): I05_9 (only a mana value 4 creature and a mana value 6 planeswalker: no Eliminate row), I05_10 (the target ask offers exactly the mana value 3 and 2 creatures and the mana value 3 planeswalker), I05_11 (one legal target: offered, paid with two lands, destroys it).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/eliminate_1.json"
+   "tools/scenarios/cards/M21/eliminate_3.json",
+   "tools/scenarios/cards/M21/eliminate_4.json",
+   "tools/scenarios/cards/M21/eliminate_5.json",
+   "tools/scenarios/cards/M21/eliminate_6.json",
+   "tools/scenarios/cards/M21/eliminate_7.json",
+   "tools/scenarios/cards/M21/eliminate_8.json",
+   "tools/scenarios/cards/M21/eliminate_9.json",
+   "tools/scenarios/cards/M21/eliminate_10.json",
+   "tools/scenarios/cards/M21/eliminate_11.json",
+   "tools/scenarios/cards/M21/eliminate_12.json",
+   "tools/scenarios/cards/M21/eliminate_13.json"
   ],
   "mutation": {
-   "mutants": 10,
-   "killed": 6,
-   "score": 0.6,
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
    "survived": [
-    "amount+1 at 1/0/effect/args/target/filter/children/0/children/1/count",
-    "widen filter (drop part 1) at 1/0/effect/args/target/filter/children/1",
-    "amount+1 at 1/0/effect/args/target/filter/children/1/children/1/count",
-    "amount-1 at 1/0/effect/args/target/filter/children/1/children/1/count"
+    "amount+1 at 1/0/effect/args/target/filter/children/1/inner/count"
    ]
   }
  }

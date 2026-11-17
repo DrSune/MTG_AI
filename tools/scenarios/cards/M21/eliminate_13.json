@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "swamp", "real": "Swamp", "zone": "battlefield", "controller": 0},
+    {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "mv4", "name": "Four Drop", "type": "Creature — Ogre", "power": 4, "toughness": 4, "cmc": 4, "zone": "battlefield", "controller": 1},
+    {"key": "mv3", "name": "Three Drop", "type": "Creature — Bear", "power": 3, "toughness": 3, "cmc": 3, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["cast:elim"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "mv3": "graveyard", "mv4": "battlefield"},
+    "tapped": {"swamp": true, "plains": true}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' Through the menu with exactly one legal target (the Three Drop; the Four Drop is not legal), Eliminate is offered, its {1}{B} is paid by tapping the Swamp and the Plains, and the Three Drop is destroyed while the Four Drop lives."
+}

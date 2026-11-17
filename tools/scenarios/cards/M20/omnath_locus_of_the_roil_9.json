@@ -1,0 +1,92 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "om",
+   "real": "Omnath, Locus of the Roil",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "l2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "l3",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "l4",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "l5",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "l6",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "ol",
+   "zone": "battlefield",
+   "controller": 1,
+   "real": "Island"
+  },
+  {
+   "key": "l7",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Plains"
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "ol",
+   "seat": 0
+  },
+  {
+   "op": "play",
+   "key": "l7",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l7": "battlefield"
+  },
+  "controller": {
+   "ol": 0
+  },
+  "counters": {
+   "om": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "hand": {
+   "0": 1
+  }
+ },
+ "notes": "Omnath, Locus of the Roil, printed: 'If you CONTROL eight or more lands'. I own six lands and play a seventh, and I also control a land that came from the opponent: eight lands I control, so Omnath gets its counter and I draw a card (the land left my hand, so one card is in it)."
+}

@@ -1,0 +1,45 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Speaker of the Heavens. Printed: 'Activate only if you have at least 7 life more than your starting life total and ONLY AS A SORCERY.' On turn 2 (seat 1's turn) seat 0 has 27 life, but a sorcery-speed ability cannot be activated on an opponent's turn: refused, Speaker stays untapped, no token.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Speaker of the Heavens",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 27
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation: window:sorcery"
+  }
+ ],
+ "expect": {
+  "turn_seats": [
+   0,
+   1
+  ],
+  "tapped": {
+   "sp": false
+  },
+  "tokens": {
+   "Angel": 0
+  }
+ }
+}

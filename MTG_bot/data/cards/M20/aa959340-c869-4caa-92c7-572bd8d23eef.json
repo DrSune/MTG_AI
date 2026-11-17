@@ -280,5 +280,60 @@
  },
  "probe": {
   "sha": "15cf0cd8d8a72d21bf33f4bf437421abcbe119234caa0517678d3b3910f6c7ca"
+ },
+ "verified": {
+  "tree_sha": "5bd004b1ee56b62492a3096976755cfc11ab09f974e02ec12ca80260d79b9059",
+  "probe_sha": "15cf0cd8d8a72d21bf33f4bf437421abcbe119234caa0517678d3b3910f6c7ca",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "This land enters tapped.",
+    "status": "OK",
+    "evidence": "[play land]: 'card: zone hand -> battlefield; tapped False -> True'; also in [from your hand, the card enters during the opponent's turn]: 'tapped False -> True'. The tree has EtBState(tapped=True).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}: Add {C}.",
+    "status": "OK",
+    "evidence": "[activate [1] from battlefield]: 'card becomes tapped (by card/TAP)', 'ABILITY_ACTIVATED', 'you: mana C+1': cost {T}, one colourless mana for me.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever this land or another land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[stimulus: you play a land -> none]: fewer than seven land names on my side, so the intervening 'if' (QTY_GE 7 over the distinct NAMEs of lands I control) is never true and no token is made in any variant. The tree's token is Zombie, Creature - Zombie, 2/2, colour B, count 1. Packs G08_1 (Field itself as the seventh name), G08_2 (seven lands, six names), G08_3 (another land as the seventh name), G08_4 (the opponent's names do not count), G08_5 (the opponent's land entering), G08_6 (eighth name), G08_7 (a name lost in response: the 'if' is rechecked). G08_8 (two lands enter at once: two triggers, two Zombies), G08_9 (a land under my control that the opponent owns counts toward the seven names).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/field_of_the_dead_1.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_2.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_3.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_4.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_5.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_6.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_7.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_8.json",
+   "tools/scenarios/cards/M20/field_of_the_dead_9.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 3,
+   "score": 0.21428571428571427,
+   "survived": [
+    "each occurrence -> once per event at 1/2",
+    "controller YOU->OPPONENT at 1/2/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/2/event/subject",
+    "widen filter (drop part 1) at 1/2/event/subject",
+    "controller YOU->OPPONENT at 1/2/event/subject/children/0/who",
+    "amount+1 at 1/2/condition/count",
+    "amount-1 at 1/2/condition/count",
+    "widen filter (drop part 0) at 1/2/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/2/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/2/condition/quantity/selector/filter/children/0/who",
+    "amount+1 at 1/2/effect/args/count"
+   ]
+  }
  }
 }

@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Shock", "key": "shock", "targets": ["p1"]}
+  ],
+  "expect": {
+    "zone": {"shock": "graveyard", "orrery": "battlefield"},
+    "life": {"0": 20, "1": 18},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: 'You may spend mana as though it were mana of any color.' With the Orrery on the battlefield, one colorless mana pays Shock's {R}: Shock resolves and deals 2 to the opponent (20 -> 18) and the pool is spent."
+}

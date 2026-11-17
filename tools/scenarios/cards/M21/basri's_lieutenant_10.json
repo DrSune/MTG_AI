@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "gold", "name": "Gold Zapper", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["W", "U"], "zone": "battlefield", "controller": 1},
+    {"key": "tri", "name": "Tri Zapper", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["R", "G", "W"], "zone": "battlefield", "controller": 1},
+    {"key": "red", "name": "Red Zapper", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["R"], "zone": "battlefield", "controller": 1},
+    {"key": "grey", "name": "Grey Zapper", "type": "Artifact Creature — Imp", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "gold", "target": "lt", "amount": 3, "controller": 1},
+    {"op": "deal_damage", "source": "tri", "target": "lt", "amount": 3, "controller": 1},
+    {"op": "deal_damage", "source": "red", "target": "lt", "amount": 1, "controller": 1},
+    {"op": "deal_damage", "source": "grey", "target": "lt", "amount": 2, "controller": 1}
+  ],
+  "expect": {
+    "zone": {"lt": "battlefield"},
+    "damage": {"lt": 3}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'protection from multicolored'. Damage from a two-colour source (white-blue) and a three-colour source is prevented (CR 702.16e); damage from a one-colour source (1, red) and a colourless source (2, artifact) is dealt: exactly 3 damage is marked on the 3/4 Lieutenant, which lives."
+}

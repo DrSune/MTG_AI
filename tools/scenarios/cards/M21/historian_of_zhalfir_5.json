@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Historian of Zhalfir, printed: '... if YOU control a Teferi planeswalker, draw a card.' The Teferi planeswalker is the opponent's: I draw nothing (hand stays 0).",
+ "cards": [
+  {"key": "hist", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hist": true}, "block": {}}
+ ],
+ "expect": {"hand": {"0": 0, "1": 0}, "life": {"1": 17}}}

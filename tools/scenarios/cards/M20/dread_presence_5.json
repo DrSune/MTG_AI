@@ -1,0 +1,70 @@
+{
+ "set": "M20",
+ "name": "dread_presence_sees_a_swamp_that_enters_at_the_same_moment_as_itself",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever a Swamp you control enters, choose one - ...'. Permanents that enter at the same moment see each other enter (CR 603.6a). Dread Presence and a Swamp of seat 0 went to the graveyard from the battlefield this turn; Brought Back ({W}{W}) returns both tapped in one instruction: Dread Presence triggers for the Swamp that came back with it. Seat 0 picks the draw mode: one card drawn (hand 1), 19 life.",
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sw1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "back",
+   "real": "Brought Back",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "move",
+   "key": "dread",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "sw1",
+   "to": "graveyard"
+  },
+  {
+   "op": "cast",
+   "key": "back",
+   "controller": 0,
+   "targets": [
+    "dread",
+    "sw1"
+   ],
+   "decisions": [
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dread": "battlefield",
+   "sw1": "battlefield"
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "0": 19
+  }
+ }
+}

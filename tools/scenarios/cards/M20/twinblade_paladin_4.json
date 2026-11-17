@@ -1,0 +1,34 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 24,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "pal",
+   "real": "Twinblade Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "pal": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 24,
+   "1": 21
+  },
+  "battlefield_keywords": {
+   "Twinblade Paladin": []
+  }
+ },
+ "notes": "Twinblade Paladin, printed: 'As long as you have 25 or more life, this creature has double strike.' I have 24 life: no double strike. My 3/3 Paladin attacks the empty board and deals its 3 damage once (24 to 21)."
+}

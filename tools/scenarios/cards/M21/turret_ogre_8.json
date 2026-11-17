@@ -1,0 +1,56 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Turret Ogre. Printed: '... if you control another creature with power 4 or greater, ...'. Seat 0's 3/3 Beast carries a +1/+1 counter, so its power is 4 and it qualifies: the Ogre enters and deals 2 damage to seat 1 (18).",
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "beast",
+   "name": "Counter Beast",
+   "type": "Creature — Beast",
+   "power": 3,
+   "toughness": 3,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ogre",
+   "real": "Turret Ogre"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ogre": "battlefield"
+  },
+  "power": {
+   "beast": 4
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

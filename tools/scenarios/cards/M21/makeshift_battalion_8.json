@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Makeshift Battalion, printed: 'Whenever THIS CREATURE and at least two other creatures attack, ...' The Battalion stays home while three other creatures attack: the trigger is the Battalion's own and needs it to attack, so no counter (the opponent takes 6: 20 -> 14).",
+ "cards": [
+  {"key": "bat", "real": "Makeshift Battalion", "zone": "battlefield", "controller": 0},
+  {"key": "a", "name": "Bear A", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "b", "name": "Bear B", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "c", "name": "Bear C", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"bat": false, "a": true, "b": true, "c": true}}
+ ],
+ "expect": {"counters": {"bat": {}}, "life": {"0": 20, "1": 14}, "attackers": {"bat": false, "a": true, "b": true, "c": true}, "power": {"bat": 3}}}

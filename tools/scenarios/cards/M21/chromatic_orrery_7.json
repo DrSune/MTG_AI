@@ -1,0 +1,25 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "rbear", "name": "Red Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 0},
+    {"key": "rox", "name": "Red Ox", "type": "Creature — Ox", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 0},
+    {"key": "gold", "name": "Gold Imp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["W", "U"], "zone": "battlefield", "controller": 0},
+    {"key": "wox", "name": "White Ox", "type": "Creature — Ox", "power": 2, "toughness": 2, "colors": ["W"], "zone": "battlefield", "controller": 0},
+    {"key": "statue", "name": "Grey Statue", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "forest", "real": "Forest", "zone": "battlefield", "controller": 0},
+    {"key": "gopp", "name": "Green Opp", "type": "Creature — Elf", "power": 1, "toughness": 1, "colors": ["G"], "zone": "battlefield", "controller": 1},
+    {"key": "bopp", "name": "Black Opp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["B"], "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "activate", "key": "orrery", "idx": 2, "seat": 0}
+  ],
+  "expect": {
+    "tapped": {"orrery": true},
+    "hand": {"0": 3},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: '{5}, {T}: Draw a card for each color among permanents you control.' You control red (two red creatures: one color), white and blue (Gold Imp is both; White Ox adds no new color), plus colorless permanents (the Orrery, Grey Statue, a Forest: no color). The opponent controls green and black permanents (not yours). Three colors, so three cards (hand 0 -> 3); {5} is paid from the pool and the Orrery taps."
+}

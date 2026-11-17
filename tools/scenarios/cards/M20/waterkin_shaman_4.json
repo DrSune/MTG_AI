@@ -1,0 +1,49 @@
+{
+ "set": "M20",
+ "name": "waterkin_shaman_the_bonus_lasts_until_end_of_turn_and_no_longer",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: '... this creature gets +1/+1 until end of turn.' A flier enters under seat 0 and then the turn ends (cleanup, CR 514.2): the bonus is gone and the Shaman is its printed 2/1 again. Its twin H04_3 pins that the bonus is there (3/2) while the turn goes on.",
+ "cards": [
+  {
+   "key": "shaman",
+   "real": "Waterkin Shaman",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "name": "My Bird",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "f1"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "battlefield"
+  },
+  "power": {
+   "shaman": 2
+  },
+  "toughness": {
+   "shaman": 1
+  }
+ }
+}

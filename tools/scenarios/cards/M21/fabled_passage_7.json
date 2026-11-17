@@ -1,0 +1,71 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fp",
+   "real": "Fabled Passage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "caves",
+   "real": "Bloodfell Caves",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature",
+   "power": 1,
+   "toughness": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "oforest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "weird",
+   "name": "Odd Basic Relic",
+   "type": "Basic Artifact",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "fp",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "needs a decision from ('card:1', 'card:2')"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I06). Printed: 'Search your library for a basic land card'. The search ask offers exactly the basic lands in YOUR library: the Forest (card:1) and the Swamp (card:2). The nonbasic land (Bloodfell Caves, card:3), the nonland (card:4) and the opponent's library's Forest (card:5) are not offered, nor is a card that is Basic but not a land (the Odd Basic Relic, card:6): 'a basic land card' needs both."
+}

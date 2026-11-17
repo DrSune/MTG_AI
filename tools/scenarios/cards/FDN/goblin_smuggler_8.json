@@ -1,0 +1,27 @@
+{"set": "FDN", "name": "D03_4_haste_taps_and_attacks_the_turn_it_enters",
+ "notes": "Printed: 'Haste (This creature can attack and {T} as soon as it comes under your control.)' The Smuggler is cast this turn ({2}{R}); at once it taps for its ability targeting my 2/2 Bear on the battlefield, and the Bear attacks: the opposing untapped 4/4 is never offered the block and the Bear deals 2 (20 -> 18). A second new Smuggler-turn creature without haste (a 2/2 entered this turn) cannot attack and is never asked.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "fresh", "name": "Fresh Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "smug"},
+  {"op": "enter", "key": "fresh"},
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"smug": false, "bear": true, "fresh": true}, "block": {"ogiant": "bear"}}
+ ],
+ "expect": {
+  "zone": {"smug": "battlefield", "fresh": "battlefield"},
+  "tapped": {"smug": true},
+  "attackers": {"bear": true, "fresh": false},
+  "not_asked": ["fresh"],
+  "not_asked_to_block": ["ogiant"],
+  "blocked": {"bear": []},
+  "life": {"0": 20, "1": 18},
+  "mana_pool": {"0": {}}
+ }
+}

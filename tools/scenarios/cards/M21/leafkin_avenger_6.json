@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Leafkin Avenger, printed: '{T}: Add {G} for each creature with power 4 or greater you control.' Seat 0 controls only TWO creatures of power 4 or greater (Leafkin and a 4/4); the plain 3/3 is too small and the opponent's 5/5 is not mine. The tap adds GG, which cannot pay Thrashing Brontodon's {1}{G}{G}: the cast is refused and the Brontodon stays in hand.",
+ "cards": [
+  {"key": "leaf", "real": "Leafkin Avenger", "zone": "battlefield", "controller": 0},
+  {"key": "four", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0},
+  {"key": "small", "name": "Small Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Big Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1},
+  {"key": "bront", "real": "Thrashing Brontodon", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "bront", "real": "Thrashing Brontodon", "tap": true, "expect_raise": "cannot pay"}
+ ],
+ "expect": {"zone": {"bront": "hand"}, "tapped": {"leaf": false}}}

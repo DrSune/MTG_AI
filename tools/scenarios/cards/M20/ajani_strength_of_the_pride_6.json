@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed token ability: 'Whenever YOU gain life'. After the -2, the OPPONENT's lifelink creature deals 3 damage and the opponent gains 3 life: the token's controller gained nothing, so the Pridemate gets no counter and stays 2/2.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Opp Lifelinker", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1, "keywords": ["LIFELINK"]},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "activate", "key": "aj", "idx": 1, "seat": 0},
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 3, "controller": 1}
+ ],
+ "expect": {
+  "tokens": {"Ajani's Pridemate": 1},
+  "battlefield_pt": {"Ajani's Pridemate": [2, 2]},
+  "life": {"0": 20, "1": 23},
+  "damage": {"wall": 3}
+ }
+}

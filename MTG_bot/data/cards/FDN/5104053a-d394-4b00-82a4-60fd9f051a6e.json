@@ -5,21 +5,42 @@
  "name": "Fierce Empath",
  "text_sha": "1f61f120c4fc809f684c2f1831e70f683b51c1931d64cd42456275bdce7de9f7",
  "verified": {
-  "tree_sha": "f3126232d4f60b6461110758210bada0e5659f3a7dc09266d172fd0e8d5130e7",
-  "probe_sha": "b6e772e50686952492eb74a987b38e26f520e03d5bf58ce640402acf1a5072f6",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-fdn1",
+  "tree_sha": "aae7297f9d8dd01d0ce3900f5b8b4d10af1b366d7f7f215e3d5616d932e75310",
+  "probe_sha": "0abf3ca26d8fcf1ec4ae4b7b8ce4c7810c6fc8e66657e910f2462eca6a6d59ac",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.",
+    "clause": "When this creature enters, you may search your library for a creature card with mana value 6 or greater,",
     "status": "NOT_EXERCISED",
-    "evidence": "[cast]: ask may [fire, skip] (skip variant shown), trigger [0] fires, but the probe library has no such card. Pack fierce_empath_1: with mana value 6 and 7 creatures, a mana value 5 creature and a mana value 6 sorcery in the library, the chosen mana value 6 creature alone goes to hand; seat 1's library is untouched. fierce_empath_2: only the mana value 5 creature and the sorcery, nothing moves.",
+    "evidence": "the trigger fires on cast and the may is asked ('ask may: [fire, skip]'), but no library card in the trace qualifies, so no search result is ever shown. Tree = the compiler's B2b-fierce-empath-etb parse (its search pick is the canonical ONE_OF). Known engine limit, not a card fault: a library search that finds something cannot fail to find (BACKLOG B-107, CR 701.19b), for every tutor. Packs: D09_1 (only the two creatures of mana value 6 or more are offered, one goes to hand), D09_2 (6 counts, 5 does not), D09_3 and D09_5 (nothing in my library qualifies; the opponent's library is not searched), D09_4 (declining the may does nothing).",
+    "issue": ""
+   },
+   {
+    "clause": "reveal it,",
+    "status": "OK",
+    "evidence": "judged from the tree and the trace: A(Verb.REVEAL, controller YOU, count 1) follows the SEARCH inside the OptionalEffect, as in the compiler's parse. The runner has no REVEAL lane and a REVEAL after a SEARCH names the library's top card, so no pack can read it.",
+    "issue": ""
+   },
+   {
+    "clause": "put it into your hand,",
+    "status": "NOT_EXERCISED",
+    "evidence": "nothing is found in the trace. SEARCH destination Zone(HAND, YOU). Packs D09_1 and D09_2 (the found card is in my hand, the other candidates and the opponent's card stay in the library).",
+    "issue": ""
+   },
+   {
+    "clause": "then shuffle.",
+    "status": "OK",
+    "evidence": "judged from the tree: A(Verb.SHUFFLE, zone Zone(LIBRARY, YOU)) is the last step of the may's Seq, so declining the may does not shuffle (pack D09_4 pins the library order after a decline); no lane tells a shuffle from its absence after a search.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/FDN/fierce_empath_1.json",
-   "tools/scenarios/cards/FDN/fierce_empath_2.json"
+   "tools/scenarios/cards/FDN/fierce_empath_3.json",
+   "tools/scenarios/cards/FDN/fierce_empath_4.json",
+   "tools/scenarios/cards/FDN/fierce_empath_5.json",
+   "tools/scenarios/cards/FDN/fierce_empath_6.json",
+   "tools/scenarios/cards/FDN/fierce_empath_7.json"
   ],
   "mutation": {
    "mutants": 13,

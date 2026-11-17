@@ -1,0 +1,73 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[+1]: Put a +1/+1 counter on up to one target creature. It gains vigilance until end of turn.' The vigilance lasts 'until end of turn' and the counter does not: after the turn ends the Bear is a 3/3 with its counter and no vigilance.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oppbear",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "bear"
+   ]
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "bear": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "bear": 3
+  },
+  "toughness": {
+   "bear": 3
+  },
+  "battlefield_keywords": {
+   "Bear": []
+  }
+ }
+}

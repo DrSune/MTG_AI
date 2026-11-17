@@ -1,0 +1,83 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[-1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.' Each attacking creature triggers it separately (CR 508.3a, 603.2c), so two attackers put TWO triggers on the stack, which their controller orders (first-legal). Here the two creatures attack, the triggers wait, ONE resolves (the resolve op) and then seat 1 is put to 0 life, so the game ends before the other resolves: exactly one attacker has a counter (the Wolf, whose trigger the first-legal order resolves first) and the Bear has none. One trigger for both attackers would have put a counter on both.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Wolf",
+   "type": "Creature — Wolf",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "wolf": true,
+    "bear": true
+   },
+   "decisions": [
+    "first-legal"
+   ],
+   "respond_to_triggers": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "resolve"
+     },
+     {
+      "op": "life",
+      "seat": 1,
+      "set": 0
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 3
+   },
+   "wolf": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "bear": {}
+  },
+  "attackers": {
+   "wolf": true,
+   "bear": true
+  },
+  "lost": {
+   "1": true
+  }
+ }
+}

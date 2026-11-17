@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Leafkin Avenger, printed: '{7}{R}: This creature deals damage equal to its power to target player or planeswalker.' With a +1/+1 counter its power is 5. Targeting the OPPONENT (a player) the damage is 5 (20 -> 15) and my own life stays at 20. A creature is not a legal target: the second activation, naming the opponent's creature, is refused. The first activation's mana is spent; the second is given its own full {7}{R} so that only the target can be the reason for the refusal.",
+ "cards": [
+  {"key": "leaf", "real": "Leafkin Avenger", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 7}},
+ "steps": [
+  {"op": "activate", "key": "leaf", "idx": 1, "seat": 0, "targets": ["p1"]},
+  {"op": "mana", "seat": 0, "add": {"R": 1, "C": 7}},
+  {"op": "activate", "key": "leaf", "idx": 1, "seat": 0, "targets": ["bear"], "expect_raise": "illegal activation: target:selection:off_population"}
+ ],
+ "expect": {"life": {"0": 20, "1": 15}, "zone": {"bear": "battlefield"}, "mana_pool": {"0": {"R": 1, "C": 7}}}}

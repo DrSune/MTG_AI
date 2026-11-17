@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "wagon", "name": "Big Wagon", "type": "Artifact — Vehicle", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "attackers": {"tyr": false},
+    "not_asked": ["tyr"],
+    "tapped": {"tyr": false},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'As long as you control a CREATURE with power 4 or greater'. A noncreature artifact (a Vehicle that is not crewed) with printed power 5 is not a creature: the Tyrannodon keeps defender and is not offered an attack."
+}

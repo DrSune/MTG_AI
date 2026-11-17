@@ -1,0 +1,61 @@
+{
+ "set": "FDN",
+ "name": "D02_2_24_life_is_not_enough",
+ "notes": "Printed: 'If you would gain life, you gain that much life plus 1 instead.' and 'This creature gets +2/+2 as long as you have 25 or more life.' The lifelinker deals 3 damage: 3 life becomes 4 (20 -> 24). 24 is not 25 or more, so the Angel stays a 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ang",
+   "real": "Angel of Vitality",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ll",
+   "name": "Lifelinker",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "keywords": [
+    "LIFELINK"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Big Wall",
+   "type": "Creature",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "ll",
+   "target": "wall",
+   "amount": 3
+  }
+ ],
+ "expect": {
+  "damage": {
+   "wall": 3
+  },
+  "life": {
+   "0": 24,
+   "1": 20
+  },
+  "power": {
+   "ang": 2
+  },
+  "toughness": {
+   "ang": 2
+  }
+ }
+}

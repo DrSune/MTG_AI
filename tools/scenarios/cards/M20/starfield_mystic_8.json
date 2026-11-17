@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_the_opponents_enchantment_spells_are_not_cheaper",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Enchantment spells YOU cast cost {1} less to cast.' On seat 1's own turn it casts Moldervine Reclamation ({3}{B}{G}): with four mana it is refused (no reduction for the opponent), with five it resolves.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "mold", "real": "Moldervine Reclamation", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"B": 1, "G": 1, "C": 2}},
+  {"op": "cast", "key": "mold", "controller": 1, "expect_raise": "illegal cast"},
+  {"op": "mana", "seat": 1, "add": {"C": 1}},
+  {"op": "cast", "key": "mold", "controller": 1}
+ ],
+ "expect": {
+  "zone": {"mold": "battlefield", "mystic": "battlefield"},
+  "mana_pool": {"1": {}},
+  "counters": {"mystic": {}}
+ }
+}

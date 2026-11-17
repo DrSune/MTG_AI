@@ -233,5 +233,51 @@
  },
  "probe": {
   "sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6"
+ },
+ "verified": {
+  "tree_sha": "0f216f8849d5c6b4c814cbd73cdf5869251c4beb6d15799d790d0bf307d1c317",
+  "probe_sha": "b567f16430a59f0d5ae0d994b7c093cc3b8e61bf827dc0b730c306736d8476d6",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] 'keywords +FLYING'; static section 'card keywords: FLYING'; tree keywords[0] FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "If you would gain life, you gain that much life plus 1 instead.",
+    "status": "OK",
+    "evidence": "[stimulus: you gain 3 life]: 'you gains 4 life (by card/GAIN_LIFE)', 'you: life 20 -> 24' (one replaced gain, +1). Tree: ReplacementAbility over LifeGainedEvent(actor CONTROLLER_IS YOU), action GAIN_LIFE amount QBin(ADD, QProp(event AMOUNT), 1) controller YOU. The probe never has the opponent gain life: F02_2 (the opponent's lifelink gain stays exact) and F02_1 (a spell's 'you gain 2 life' becomes 3) pin who and what is replaced.",
+    "issue": ""
+   },
+   {
+    "clause": "This creature gets +2/+2 as long as you have 25 or more life.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: StaticAbility MODIFY_PT +2/+2 on IS_SOURCE, condition QTY_GE 25 over QProp(controller LIFE). In the trace the board is 2/2 at 20 life and after the gain to 24: the bonus is never on. F02_3 (24 life: 2/2), F02_4 (exactly 25: 4/4, bystander still 2/2), F02_5 (30 life: 4/4), F02_6 (the opponent's 40 life does not count).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/angel_of_vitality_4.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_5.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_6.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_7.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_8.json",
+   "tools/scenarios/cards/M20/angel_of_vitality_9.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 5,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/effect/args/power/magnitude",
+    "amount-1 at 1/1/effect/args/power/magnitude",
+    "amount+1 at 1/1/effect/args/toughness/magnitude",
+    "amount-1 at 1/1/effect/args/toughness/magnitude",
+    "amount+1 at 1/1/condition/count"
+   ]
+  }
  }
 }

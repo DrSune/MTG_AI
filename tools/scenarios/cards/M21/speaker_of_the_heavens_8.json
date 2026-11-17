@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Speaker of the Heavens. Printed: '... and only as a sorcery.' Seat 0 has 27 life in its own main phase but a Shock it cast is still on the stack: a sorcery-speed ability cannot be activated with the stack non-empty (refused). Once the Shock resolves (2 damage to seat 1), the activation works and makes one 4/4 Angel.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Speaker of the Heavens",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 27
+  },
+  {
+   "op": "cast",
+   "key": "shock",
+   "real": "Shock",
+   "targets": [
+    "p1"
+   ],
+   "hold": true
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "illegal activation: window:sorcery"
+  },
+  {
+   "op": "resolve"
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sp": true
+  },
+  "tokens": {
+   "Angel": 1
+  },
+  "life": {
+   "0": 27,
+   "1": 18
+  },
+  "zone": {
+   "shock": "graveyard"
+  }
+ }
+}

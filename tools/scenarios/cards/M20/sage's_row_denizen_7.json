@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "sages_row_denizen_a_multicolored_blue_creature_counts_and_each_one_triggers",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'another blue creature you control'. A blue-green creature is blue, so it triggers (one mill of two); a second blue creature triggers again (two more): seat 1 mills four cards in total, the top four of its library, two per trigger.",
+ "cards": [
+  {"key": "denizen", "real": "Sage's Row Denizen", "zone": "battlefield", "controller": 0},
+  {"key": "bluegreen", "name": "Blue Green Hydra", "type": "Creature — Hydra", "power": "2", "toughness": "2", "colors": ["U", "G"], "zone": "hand", "controller": 0},
+  {"key": "blue", "name": "Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "bluegreen", "decisions": ["player:1"]},
+  {"op": "enter", "key": "blue", "decisions": ["player:1"]}
+ ],
+ "expect": {
+  "zone": {"bluegreen": "battlefield", "blue": "battlefield"},
+  "graveyard": {"0": [], "1": ["Library 5", "Library 4", "Library 3", "Library 2"]},
+  "library": {"1": ["Library 1", "Library 0"]}
+ }
+}

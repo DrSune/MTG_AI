@@ -235,5 +235,47 @@
  },
  "probe": {
   "sha": "44eb459e2867d7d44e331a0247e41897157d0c7f6136bd94b61dd8e275d0e4f4"
+ },
+ "verified": {
+  "tree_sha": "c0c2a614210e1955c3b3b9b2c6e4e5cd9cc3da9bb875cd2a423f3757aad8c5d9",
+  "probe_sha": "44eb459e2867d7d44e331a0247e41897157d0c7f6136bd94b61dd8e275d0e4f4",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Whenever a creature you control enters, scry 1.",
+    "status": "OK",
+    "evidence": "[stimulus: a creature enters under your control]: \"card's triggered ability [0] triggers\", 'ask scry: [top, bottom]'. [you cast a creature (Yoked Ox)]: one trigger, one scry ask. [you cast an instant or sorcery (Raise the Alarm)]: two Soldier tokens enter, two triggers ('ask trigger: [card, card:2]'), two scry asks. [stimulus: a creature enters under the opponent's control -> none]: no trigger. Scry 1 (the SCRY count is 1, my library).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell that targets a creature you control, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus casts a spell that targets anything (Raise the Alarm and Yoked Ox have no target) and in each cast variant only trigger [0] (the scry) fires, never trigger [1]. Trigger [1] (CastSpellEvent, spell TARGETS a creature I control, cast by me; draw 1, me) never fires in the trace. Packs G05_1 (my spell at my creature: one card), G05_2 (at the opponent's creature: none), G05_3 (the opponent's spell at my creature, and my spell at a player: none), G05_4 (one spell with two targets, one of them my creature: one card), G05_5 (the scry itself).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/season_of_growth_1.json",
+   "tools/scenarios/cards/M20/season_of_growth_2.json",
+   "tools/scenarios/cards/M20/season_of_growth_3.json",
+   "tools/scenarios/cards/M20/season_of_growth_4.json",
+   "tools/scenarios/cards/M20/season_of_growth_5.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 5,
+   "score": 0.38461538461538464,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/subject",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller",
+    "widen filter (drop part 0) at 1/1/event/filter/inner_filter",
+    "widen filter (drop part 1) at 1/1/event/filter/inner_filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/inner_filter/children/0/who",
+    "controller YOU->OPPONENT at 1/1/event/actor/who",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
  }
 }

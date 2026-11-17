@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "troll", "real": "Barkhide Troll", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "troll", "controller": 0, "tap": true, "expect_raise": "cannot pay"}
+ ],
+ "expect": {
+  "zone": {"troll": "hand"},
+  "tapped": {"druid": false},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Leafkin Druid, printed: 'If you control four or more creatures, add {G}{G} instead.' Three creatures (the Druid and two Bears) is not four: tapping the Druid adds only {G}, so {G}{G} cannot be paid. The cast is refused, the Troll stays in hand and the Druid stays untapped."
+}

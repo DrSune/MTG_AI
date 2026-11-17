@@ -1,0 +1,89 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cavalier of Night (M20). Printed: 'When this creature dies, return target creature card with mana value 3 or less from your graveyard to the battlefield.' Seat 0's graveyard holds creature cards of mana value 1, 3 and 4, and the opponent's holds one of mana value 3. The Cavalier dies; legal targets are Cheap (1) and Three (3), seat 0 picks Three: it returns under seat 0's control. Four (4) and the opponent's card stay in their graveyards, Cheap stays too.",
+ "cards": [
+  {
+   "key": "cn",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "smasher",
+   "name": "Smasher",
+   "type": "Creature",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "cheap",
+   "name": "Cheap",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "three",
+   "name": "Three",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "four",
+   "name": "Four",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "cmc": 4,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "oppthree",
+   "name": "Opp Three",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "smasher",
+   "target": "cn",
+   "amount": 5,
+   "decisions": [
+    "three"
+   ],
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cn": "graveyard",
+   "three": "battlefield",
+   "cheap": "graveyard",
+   "four": "graveyard",
+   "oppthree": "graveyard"
+  },
+  "controller": {
+   "three": 0
+  }
+ }
+}

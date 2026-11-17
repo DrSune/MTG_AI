@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "lt",
+   "real": "Basri's Lieutenant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cog",
+   "name": "Counter Cog",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  {
+   "key": "land",
+   "name": "Counter Land",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "cog",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "land",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cog": "graveyard",
+   "land": "graveyard",
+   "lt": "battlefield"
+  },
+  "tokens": {
+   "Knight": 0
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'Whenever this creature or another CREATURE you control dies'. A noncreature artifact and a land of yours, each carrying +1/+1 counters, go from the battlefield to the graveyard: they are not creatures, so nothing triggers and no Knight is created."
+}

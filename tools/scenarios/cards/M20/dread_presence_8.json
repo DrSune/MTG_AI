@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "name": "dread_presence_mode_two_any_target_my_own_creature_and_a_planeswalker",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'This creature deals 2 damage to any target and you gain 2 life.' Any target is not limited to the opponent's side. First Swamp: seat 0 targets its own 4/4 (2 damage marked, seat 0 at 22). The one land drop is used, so the planeswalker is reached with the second Swamp, put in by another effect: the opponent's Ajani (loyalty set to 5) takes 2 and goes to 3 loyalty, seat 0 at 24.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "swamp2", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "mybig", "name": "My Ox", "type": "Creature", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "ajani", "real": "Ajani, Inspiring Leader", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "ajani", "set": 5},
+  {"op": "play", "key": "swamp", "seat": 0, "decisions": ["1", "mybig"]},
+  {"op": "enter", "key": "swamp2", "decisions": ["1", "ajani"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "swamp2": "battlefield", "mybig": "battlefield", "ajani": "battlefield"},
+  "damage": {"mybig": 2},
+  "counters": {"ajani": {"LOYALTY": 3}},
+  "hand": {"0": 0},
+  "life": {"0": 24, "1": 20}
+ }
+}

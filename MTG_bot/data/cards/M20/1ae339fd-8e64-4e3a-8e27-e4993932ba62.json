@@ -124,5 +124,40 @@
  },
  "probe": {
   "sha": "645ba4e75b8d58447930f37247da927aae3a3d9fc34d860004067f0d34bc5816"
+ },
+ "verified": {
+  "tree_sha": "036eb023cb622dcd5961cd832ba918d2768aa595abcaca127f170d39880360f1",
+  "probe_sha": "645ba4e75b8d58447930f37247da927aae3a3d9fc34d860004067f0d34bc5816",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "status": "OK",
+    "evidence": "[cast]: 'card: zone hand -> battlefield; P/T - -> 4/4; keywords +TRAMPLE' and 'Static: card keywords: TRAMPLE' (the tree's keywords hold exactly TRAMPLE). [stimulus: this creature attacks and opp_giant blocks it] shows 4 damage into a 4/4 blocker, so no excess damage is in the trace; pack G03_3 pins it (a 4/4 blocked by a 0/2: 2 lethal to the blocker, 2 to the player).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast a spell that targets this creature, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[stimulus: you cast an instant or sorcery (Raise the Alarm)], [you cast a creature (Yoked Ox)], [on the opponent's turn, you cast an instant (Raise the Alarm)] and [you cast Raise the Alarm, then your end step comes] are all untargeted spells and all read 'same as on the board without the card': no spell ever targets the card, so trigger [0] (CastSpellEvent, spell TARGETS this creature, cast by me; draw 1, me) never fires in the trace. Packs G03_1 (my spell at my Rhino: one card drawn), G03_2 (my spell at another creature, and the opponent's spell at my Rhino: nobody draws).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/gnarlback_rhino_1.json",
+   "tools/scenarios/cards/M20/gnarlback_rhino_3.json",
+   "tools/scenarios/cards/M20/gnarlback_rhino_4.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 1,
+   "score": 0.25,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

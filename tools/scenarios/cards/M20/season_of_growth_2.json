@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sog", "real": "Season of Growth", "zone": "battlefield", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["obear"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard"},
+  "power": {"obear": 6},
+  "hand": {"0": 0, "1": 0}
+ },
+ "notes": "Season of Growth, printed: 'a creature YOU control'. I cast Titanic Growth at the opponent's creature: it resolves (6/6) and nobody draws."
+}

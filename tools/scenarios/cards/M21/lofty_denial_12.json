@@ -1,0 +1,86 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Lofty Denial, printed: 'Counter target spell unless its controller pays {1}. If you control a creature with flying, counter that spell unless its controller pays {4} instead.' The condition is read as Lofty Denial RESOLVES (CR 608.2c), not as it is cast. Seat 1 casts it while it controls a flier; the flier leaves the battlefield while Lofty Denial waits on the stack. When it resolves there is no creature with flying: the tax is the base {1}, seat 0's one {R} pays it and the Shieldmate resolves. (The step after a held cast settles the stack, so it carries the answer word PAY.)",
+ "cards": [
+  {
+   "key": "mate",
+   "real": "Staunch Shieldmate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lofty",
+   "real": "Lofty Denial",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "bird",
+   "name": "Sky Bird",
+   "type": "Creature \u2014 Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "R": 1
+  },
+  "1": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "mate",
+   "real": "Staunch Shieldmate",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "lofty",
+   "real": "Lofty Denial",
+   "controller": 1,
+   "targets": [
+    "mate"
+   ],
+   "tap": true,
+   "hold": true
+  },
+  {
+   "op": "move",
+   "key": "bird",
+   "to": "graveyard",
+   "decisions": [
+    "PAY"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mate": "battlefield",
+   "lofty": "graveyard",
+   "bird": "graveyard"
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  },
+  "kickback_asks": {
+   "0": [
+    "PAY"
+   ]
+  }
+ }
+}

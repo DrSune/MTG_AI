@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D07_4_each_big_creature_draws_its_own_card",
+ "notes": "Printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' Two 4-power creatures enter one after the other: each triggers the draw once, so two cards are drawn in all (hand 2 of the 2 declared: both entered, two drawn).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "b1", "name": "Four A", "type": "Creature — Beast", "power": "4", "toughness": "4", "zone": "hand", "controller": 0},
+  {"key": "b2", "name": "Four B", "type": "Creature — Beast", "power": "6", "toughness": "6", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "b1"},
+  {"op": "enter", "key": "b2"}
+ ],
+ "expect": {
+  "zone": {"b1": "battlefield", "b2": "battlefield"},
+  "hand": {"0": 2},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

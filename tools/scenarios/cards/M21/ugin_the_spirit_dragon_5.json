@@ -1,0 +1,20 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ugin, the Spirit Dragon. Printed: '[-X]: Exile each permanent with mana value X or less that's one or more colors.' X = 2 is paid from loyalty (7 -> 5). Exiled (to exile, not the graveyard), whoever controls them: a red mana-value-2 Creature, an opponent's white-blue mana-value-2 Creature (two colors is one or more) and an opponent's blue mana-value-1 Enchantment. Not exiled: a green mana-value-3 Creature and an opponent's black mana-value-3 Creature (more than X), a colorless mana-value-2 Artifact and a colorless Land (not one or more colors), and Ugin herself (colorless).",
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "r2", "name": "Red Two", "type": "Creature — Goblin", "power": 2, "toughness": 2, "cmc": 2, "colors": ["R"], "zone": "battlefield", "controller": 0},
+  {"key": "g3", "name": "Green Three", "type": "Creature — Beast", "power": 3, "toughness": 3, "cmc": 3, "colors": ["G"], "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "Colorless Two", "type": "Artifact", "cmc": 2, "zone": "battlefield", "controller": 0},
+  {"key": "l0", "name": "Bare Land", "type": "Land", "cmc": 0, "zone": "battlefield", "controller": 0},
+  {"key": "m2", "name": "Opp Gold Two", "type": "Creature — Spirit", "power": 2, "toughness": 2, "cmc": 2, "colors": ["W", "U"], "zone": "battlefield", "controller": 1},
+  {"key": "b3", "name": "Opp Black Three", "type": "Creature — Zombie", "power": 3, "toughness": 3, "cmc": 3, "colors": ["B"], "zone": "battlefield", "controller": 1},
+  {"key": "e1", "name": "Opp Blue Enchantment", "type": "Enchantment", "cmc": 1, "colors": ["U"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 2}
+ ],
+ "expect": {
+  "zone": {"ugin": "battlefield", "r2": "exile", "m2": "exile", "e1": "exile", "g3": "battlefield", "b3": "battlefield", "a2": "battlefield", "l0": "battlefield"},
+  "counters": {"ugin": {"LOYALTY": 5}}
+ }}

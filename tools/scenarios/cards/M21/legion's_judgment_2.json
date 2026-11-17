@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Legion's Judgment, printed: 'Destroy target creature with power 4 or greater.' The target may be one of MY OWN creatures: my 6/6 is destroyed (the spell has no controller restriction), and the opponent's 4/4 is untouched since only one target is chosen.",
+ "cards": [
+  {"key": "lj", "real": "Legion's Judgment", "zone": "hand", "controller": 0},
+  {"key": "mine", "name": "My Six Ape", "type": "Creature — Ape", "power": 6, "toughness": 6, "zone": "battlefield", "controller": 0},
+  {"key": "four", "name": "Opp Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "lj", "real": "Legion's Judgment", "targets": ["mine"]}
+ ],
+ "expect": {"zone": {"lj": "graveyard", "mine": "graveyard", "four": "battlefield"}}}

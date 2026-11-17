@@ -1,0 +1,19 @@
+{"set": "FDN", "name": "D02_3_two_gains_each_get_plus_one_and_26_counts",
+ "notes": "Printed: 'If you would gain life, you gain that much life plus 1 instead.' and '+2/+2 as long as you have 25 or more life.' Two separate lifelink events: 3 life becomes 4 (24), then 1 life becomes 2 (26). Each event gets its own plus 1, and 26 is 25 or more, so the Angel is a 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 3},
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 1}
+ ],
+ "expect": {
+  "damage": {"wall": 4},
+  "life": {"0": 26, "1": 20},
+  "power": {"ang": 4},
+  "toughness": {"ang": 4}
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_the_discount_is_for_enchantment_spells_not_for_their_abilities",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Enchantment spells you cast cost {1} less to cast.' It reduces the cost of casting a spell, not of activating an ability of an enchantment already in play. Zephyr Charge ({1}{U}: Target creature gains flying until end of turn) is on the battlefield: with one mana its activation is refused; with the second mana it is activated at its full cost, the Bear gains flying, and the pool is empty.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "zc", "real": "Zephyr Charge", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 1}},
+ "steps": [
+  {"op": "activate", "key": "zc", "idx": 0, "seat": 0, "targets": ["bear"], "expect_raise": "illegal"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "zc", "idx": 0, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {
+  "battlefield_keywords": {"My Bear": ["FLYING"]},
+  "mana_pool": {"0": {}},
+  "counters": {"mystic": {}}
+ }
+}

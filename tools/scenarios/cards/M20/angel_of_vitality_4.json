@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Angel of Vitality (M20). Printed: 'If you would gain life, you gain that much life plus 1 instead.' Sorin's Thirst (a spell, not lifelink) says 'you gain 2 life': with the Angel seat 0 gains 3 (20 -> 23). Its 2 damage lands on the opponent's creature.",
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "thirst", "real": "Sorin's Thirst", "zone": "hand", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 2}},
+ "steps": [
+  {"op": "cast", "key": "thirst", "controller": 0, "targets": ["wall"]}
+ ],
+ "expect": {
+  "life": {"0": 23, "1": 20},
+  "damage": {"wall": 2},
+  "zone": {"thirst": "graveyard", "ang": "battlefield"}
+ }
+}

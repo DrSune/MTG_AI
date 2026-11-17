@@ -1,0 +1,88 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Terror of the Peaks. Printed: 'Whenever another creature you control enters, this creature deals damage equal to that creature's power to any target.' A 3/3 enters under seat 0's control: 3 damage to the target chosen (seat 1: 20 -> 17). A 4/4 enters under seat 1's control: no trigger. A 2/2 enters under seat 0's control and its 2 damage goes to seat 1's 3/3 Wall creature (the target chosen is a creature: 2 damage marked, not dead). Terror itself takes no part.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "name": "My Ox",
+   "type": "Creature — Ox",
+   "power": 3,
+   "toughness": 3,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "orc",
+   "name": "Opp Orc",
+   "type": "Creature — Orc",
+   "power": 4,
+   "toughness": 4,
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "imp",
+   "name": "My Imp",
+   "type": "Creature — Imp",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "power": 0,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "ox",
+   "decisions": [
+    "player:1"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "orc"
+  },
+  {
+   "op": "enter",
+   "key": "imp",
+   "decisions": [
+    "wall"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "zone": {
+   "ox": "battlefield",
+   "orc": "battlefield",
+   "imp": "battlefield",
+   "wall": "battlefield",
+   "t": "battlefield"
+  },
+  "damage": {
+   "wall": 2
+  }
+ }
+}

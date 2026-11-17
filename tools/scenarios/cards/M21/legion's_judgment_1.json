@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Legion's Judgment, printed: 'Destroy target creature with power 4 or greater.' (Sorcery, {2}{W}.) A 3/3 is not a legal target (the cast is refused). The opponent's 4/4 (power exactly 4) is: it is destroyed and goes to the graveyard, while the 3/3 stays. The spell costs {2}{W}, paid in full, and goes to my graveyard.",
+ "cards": [
+  {"key": "lj", "real": "Legion's Judgment", "zone": "hand", "controller": 0},
+  {"key": "three", "name": "Opp Three Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 1},
+  {"key": "four", "name": "Opp Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "lj", "real": "Legion's Judgment", "targets": ["three"], "expect_raise": "illegal target selection: selection:off_population"},
+  {"op": "cast", "key": "lj", "real": "Legion's Judgment", "targets": ["four"]}
+ ],
+ "expect": {"zone": {"lj": "graveyard", "four": "graveyard", "three": "battlefield"}, "mana_pool": {"0": {}}}}

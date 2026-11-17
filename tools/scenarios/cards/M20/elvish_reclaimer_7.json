@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: 'Sacrifice a land' (a cost: a land seat 0 controls). Seat 0 controls two lands, the opponent one, and seat 0 also controls a creature: the sacrifice ask offers exactly seat 0's two lands (card:1 and card:2) and neither the opponent's land, the creature nor the Reclaimer.",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Test Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Test Land Two", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "ol", "name": "Opp Land", "type": "Land", "zone": "battlefield", "controller": 1},
+  {"key": "bear", "name": "Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "rec", "idx": 1, "seat": 0, "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {}
+}

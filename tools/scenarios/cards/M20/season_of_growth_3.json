@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sog", "real": "Season of Growth", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 1},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}, "1": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "controller": 1, "targets": ["bear"]},
+  {"op": "cast", "real": "Shock", "key": "shock", "controller": 0, "targets": ["p1"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard", "shock": "graveyard"},
+  "power": {"bear": 6},
+  "life": {"0": 20, "1": 18},
+  "hand": {"0": 0, "1": 0}
+ },
+ "notes": "Season of Growth, printed: 'Whenever YOU cast a spell that targets a CREATURE you control'. Two non-triggers: the opponent casts Titanic Growth at my creature (not my spell), then I cast Shock at the opponent player (a spell of mine, but it targets a player, not a creature I control). Both resolve and nobody draws."
+}

@@ -422,40 +422,43 @@
  },
  "verified": {
   "tree_sha": "2ee94cee8858b7d893c7d49789d4ff11743af279edfe96ac4ecda152ed382512",
-  "probe_sha": "9916e86c7201dd5541de2a62449728efbe99d02e1754e2f590b9f0e76ba2f2c1",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "381722d2a4b6929d79a24e2512273c67afd573ad860550a59e6aea725a9f5c9a",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Whenever this creature or another Elemental you control enters, look at the top card of your library.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: the Reef's own entry triggers ([cast], [enters during the opponent's turn]); a non-Elemental (you_spare, Yoked Ox, tokens) does not. Another Elemental is not on the board. Packs: risen_reef_another_elemental_enters, risen_reef_non_elemental_or_opponents_elemental_no_trigger; pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "status": "OK",
+    "evidence": "abilities[0] = ZoneChangeEvent(to battlefield/YOU, subject FOr(FAnd(CONTROLLER_IS YOU, SUBTYPE_EQ Elemental, TYPE_EQ Creature, FNot IS_SOURCE), IS_SOURCE)) -> Seq(LOOK_AT 1, ...). [cast]: \"card's triggered ability [0] triggers\" as the Reef enters and the top card (you:Library 5#1) is looked at and moves library -> hand; the same in [from your hand, the card enters during the opponent's turn]. The 'another Elemental you control' half is not in the trace (no other Elemental enters): H07_4 (another Elemental of mine triggers it), H07_5 (a Bear of mine and an opposing Elemental do not); H07_1 pins that the Reef's own entry looks once, not twice. After the survivors run: H07_6 (two Elementals returned by one Brought Back trigger twice: two cards looked at and put into hand).",
     "issue": ""
    },
    {
     "clause": "If it's a land card, you may put it onto the battlefield tapped.",
     "status": "NOT_EXERCISED",
-    "evidence": "The filler top card is never a land. Pack risen_reef_land_on_top_put_onto_battlefield_tapped (may: fire -> the land enters tapped); pack also run against the packet's own tree (runpack --card --draft work_v1/drafts/<id>.py): same result.",
+    "evidence": "Tree: Conditional(TYPE_EQ Land) then OptionalEffect(MOVE_ZONE referent result -> battlefield/YOU, tapped_on_enter True). The top card in the trace is never a land and no may-offer is made. Packs: H07_1 (a Forest on top, accepted: it is on the battlefield under me, tapped, not in hand), H07_4 (the same through another Elemental entering).",
     "issue": ""
    },
    {
     "clause": "If you don't put the card onto the battlefield, put it into your hand.",
     "status": "OK",
-    "evidence": "[cast]: the top card (you:Library 5#1, not a land) moves library -> hand. Declined land: pack risen_reef_land_on_top_declined_goes_to_hand.",
+    "evidence": "Tree: for a land, Conditional(FNot MAY_DONE) then MOVE_ZONE -> hand/YOU; for a nonland, else_effect MOVE_ZONE -> hand/YOU. [cast] and the opponent-turn variant: 'you:Library 5#1 moves library -> hand (by card/MOVE_ZONE)' for the nonland top card, with no may-offer. The declined-land path is not in the trace: H07_2 (a Forest on top, declined: it goes to my hand, not the battlefield); H07_3 (a nonland on top: hand, no ask); H07_1/H07_2/H07_4 keep the next card on top.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/risen_reef_1.json",
-   "tools/scenarios/cards/M20/risen_reef_2.json",
-   "tools/scenarios/cards/M20/risen_reef_3.json",
-   "tools/scenarios/cards/M20/risen_reef_4.json"
+   "tools/scenarios/cards/M20/risen_reef_5.json",
+   "tools/scenarios/cards/M20/risen_reef_6.json",
+   "tools/scenarios/cards/M20/risen_reef_7.json",
+   "tools/scenarios/cards/M20/risen_reef_8.json",
+   "tools/scenarios/cards/M20/risen_reef_9.json",
+   "tools/scenarios/cards/M20/risen_reef_10.json"
   ],
   "mutation": {
-   "mutants": 17,
+   "mutants": 18,
    "killed": 7,
-   "score": 0.4117647058823529,
+   "score": 0.3888888888888889,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "widen filter (drop part 0) at 1/0/event/subject/children/0",
     "widen filter (drop part 2) at 1/0/event/subject/children/0",
     "widen filter (drop part 3) at 1/0/event/subject/children/0",

@@ -5,58 +5,47 @@
  "name": "Sanctum of All",
  "text_sha": "87ceef25f7abc5d7cd8c9fb26de53a45601c4f65b4f134f232f4bca8932e507d",
  "verified": {
-  "tree_sha": "980def50f2e88d029e71b4e8167ab832a9a892a98d8e6894dd607b01f51e47e9",
+  "tree_sha": "aac972b9eb7547ba2b0c8687f99e65b514bd3712b709d20eb8410a23e2e92fcb",
   "probe_sha": "aa2d09e1fdec34dc2c62a439d9b911f1e97466606827318bc44f0eb47db00b27",
-  "date": "2026-11-12",
-  "reviewer": "claude-sonnet-verifier-wave1b-A",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield",
-    "status": "OK",
-    "evidence": "[turns pass]: ask may, ask choose [0,1,2]; no Shrine on the board, so nothing found; packs A13_3..A13_7 (each zone choice and decline)",
+    "clause": "At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield.",
+    "status": "NOT_EXERCISED",
+    "evidence": "in the turns-pass stimulus the trigger fires once, with the may ask [fire, skip] and the choose ask [0, 1, 2] (both zones, library only, graveyard only), but the standard board holds no Shrine, so no card is found or moved (the trace lists events by kind, so it does not show which upkeep the one trigger belongs to). Packs: K01_5 to K01_8 run the opponent's turn with no answerer and answer the may and choose asks at seat 0's own upkeep only: K01_5 (library only), K01_6 (graveyard only), K01_7 (both zones), K01_8 (skip), K01_9 (both zones also finds a Shrine in the controller's own library and never looks at the opponent's), K01_10 and K01_11 (one Shrine, not two, from a library or a graveyard holding two).",
     "issue": ""
    },
    {
-    "clause": "If you search your library this way, shuffle",
+    "clause": "If you search your library this way, shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "tree: SHUFFLE after the library options, none after graveyard-only; pack A13_8 shows graveyard-only leaves library order unchanged. The shuffle itself is not observable",
+    "evidence": "no search finds a card in the trace and no shuffle is shown. Packs: K01_5 (library searched: shuffled, seeded order pinned), K01_6 (graveyard only: library order untouched), K01_7 (both zones: shuffled though the card came from the graveyard), K01_8 (declined: no shuffle).",
     "issue": ""
    },
    {
-    "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, it triggers an additional time",
+    "clause": "If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.",
     "status": "NOT_EXERCISED",
-    "evidence": "packs A13_1 (six: doubled, life 32/8, hand 11), A13_2 (five: single)",
+    "evidence": "no other Shrine is on the standard board. Packs: K01_1 (six Shrines: Sanctum of Stone Fangs triggers twice), K01_2 (five: once), K01_3 (an opponent's Shrine: once), K01_4 (the Sanctum's own ability is not doubled).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/sanctum_of_all_12.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_13.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_14.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_15.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_16.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_17.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_18.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_19.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_20.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_21.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_22.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_1.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_2.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_3.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_4.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_5.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_6.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_7.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_8.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_9.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_10.json",
-   "tools/scenarios/cards/M21/sanctum_of_all_11.json"
+   "tools/scenarios/cards/M21/sanctum_of_all_23.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_24.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_25.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_26.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_27.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_28.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_29.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_30.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_31.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_32.json",
+   "tools/scenarios/cards/M21/sanctum_of_all_33.json"
   ],
   "mutation": {
-   "mutants": 31,
+   "mutants": 34,
    "killed": 6,
-   "score": 0.1935483870967742,
+   "score": 0.17647058823529413,
    "survived": [
     "drop step 0 at 1/0/effect/inner/options/0",
     "amount+1 at 1/0/effect/inner/options/0/steps/0/args/cards/count",
@@ -82,6 +71,9 @@
     "controller YOU->OPPONENT at 1/1/event/filter/children/0/who",
     "amount+1 at 1/1/event/filter/children/2/count",
     "amount-1 at 1/1/event/filter/children/2/count",
+    "widen filter (drop part 0) at 1/1/event/filter/children/2/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/1/event/filter/children/2/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/1/event/filter/children/2/quantity/selector/filter/children/0/who",
     "amount+1 at 1/1/effect/args/count"
    ]
   }

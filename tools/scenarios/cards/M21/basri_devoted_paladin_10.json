@@ -1,0 +1,98 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[-6]: Creatures you control get +2/+2 and gain flying until end of turn.' Seat 0's Bear and Giant get +2/+2 (4/4 and 6/6) and flying; seat 1's creature does not. A creature that enters after the ability resolved is not one of 'creatures you control' it applied to (CR 611.2c): the Latecomer stays 2/2 without flying. Basri (set to 7 loyalty) pays 6 and is at 1.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oppbear",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "late",
+   "name": "Latecomer",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "enter",
+   "key": "late"
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 1
+   }
+  },
+  "power": {
+   "bear": 4,
+   "giant": 6,
+   "late": 2,
+   "oppbear": 2
+  },
+  "toughness": {
+   "bear": 4,
+   "giant": 6,
+   "late": 2,
+   "oppbear": 2
+  },
+  "battlefield_keywords": {
+   "Bear": [
+    "FLYING"
+   ],
+   "Giant": [
+    "FLYING"
+   ],
+   "Latecomer": [],
+   "Their Bear": []
+  }
+ }
+}

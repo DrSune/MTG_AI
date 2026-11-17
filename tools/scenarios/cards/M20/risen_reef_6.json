@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "risen_reef_land_on_top_declined_goes_to_hand",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: '... you may put it onto the battlefield tapped. If you don't put the card onto the battlefield, put it into your hand.' The top card is a Forest and seat 0 declines: the Forest goes to seat 0's hand (hand 1), not the battlefield, and the card below it stays on top of the library.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "hand", "controller": 0},
+  {"key": "below", "name": "Second Card", "type": "Instant", "zone": "library", "controller": 0},
+  {"key": "land", "name": "Forest Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "reef", "controller": 0, "decisions": ["skip"]}
+ ],
+ "expect": {
+  "zone": {"reef": "battlefield", "land": "hand", "below": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["Second Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

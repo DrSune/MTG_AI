@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+    {"key": "flier", "name": "Your Flier", "type": "Creature — Bird", "power": 1, "toughness": 1, "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["act:enf:0", "obear"], "expect_raise": "words no ask took: ['act:card:0:0', 'card:3']"}
+  ],
+  "expect": {
+    "tapped": {"enf": false, "obear": false, "plains": false}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I11). Printed: '{1}{W}, {T}: ...' With your flier out but only one land (one mana, {1}{W} costs two) the menu offers no row for the ability and nothing is tapped."
+}

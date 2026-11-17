@@ -1,0 +1,70 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "om",
+   "real": "Omnath, Locus of the Roil",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "e1",
+   "name": "My Elemental A",
+   "type": "Creature \u2014 Elemental",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "e2",
+   "name": "My Elemental B",
+   "type": "Creature \u2014 Elemental",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oe",
+   "name": "Opp Elemental",
+   "type": "Creature \u2014 Elemental",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "om",
+   "decisions": [
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "om": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 17
+  }
+ },
+ "notes": "Omnath, Locus of the Roil, printed: 'When Omnath enters, it deals damage to any target equal to the number of Elementals you control.' I control two other Elementals and a Bear, the opponent one Elemental. Omnath enters and I target the opponent player: damage = my three Elementals (Omnath and the two others; not the Bear, not the opponent's Elemental), so the opponent goes from 20 to 17 and I stay at 20."
+}

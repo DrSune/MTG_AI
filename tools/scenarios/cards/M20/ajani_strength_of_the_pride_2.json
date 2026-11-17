@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed: '[+1]: You gain life equal to the number of creatures YOU CONTROL plus the number of planeswalkers you control.' Control counts, not ownership: seat 0 controls Mine One and Stolen Bear (owned by the opponent) but not Lent Bear (owned by seat 0, controlled by the opponent): 2 creatures + Ajani = 3 life (20 -> 23).",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "m1", "name": "Mine One", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "stolen", "name": "Stolen Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "lent", "name": "Lent Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 0},
+  {"op": "gain_control", "key": "lent", "seat": 1},
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "activate", "key": "aj", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "life": {"0": 23, "1": 20},
+  "controller": {"stolen": 0, "lent": 1},
+  "counters": {"aj": {"LOYALTY": 6}}
+ }
+}

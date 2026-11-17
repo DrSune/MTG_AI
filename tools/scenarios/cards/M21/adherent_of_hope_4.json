@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "paladin", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "counters": {"adh": {"PLUS_1_PLUS_1": 1}},
+    "power": {"adh": 3},
+    "toughness": {"adh": 2}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: '... if you control a BASRI planeswalker': any Basri planeswalker qualifies, not only Basri Ket. You control Basri, Devoted Paladin (a Basri planeswalker): the Adherent gets its counter at the beginning of your combat (3/2)."
+}

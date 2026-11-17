@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "hand", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"W": 4}},
+  "steps": [
+    {"op": "cast", "real": "Basri's Lieutenant", "key": "lt"},
+    {"op": "deal_damage", "source": "obear", "target": "lt", "amount": 5, "controller": 1}
+  ],
+  "expect": {
+    "zone": {"lt": "graveyard", "obear": "battlefield"},
+    "tokens": {"Knight": 1},
+    "battlefield_pt": {"Knight": [2, 2]},
+    "battlefield_keywords": {"Knight": ["VIGILANCE"]}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). With no other creature of yours, the Lieutenant's own enters-trigger can only target itself (the opponent's Bear is not a legal target): it puts the +1/+1 counter on itself (4/5). When it then dies it had a +1/+1 counter, so one 2/2 white Knight token with vigilance is created."
+}

@@ -1,0 +1,109 @@
+{
+ "set": "M20",
+ "name": "sages_row_denizen_two_blue_creatures_entering_at_once_trigger_it_twice",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever another blue creature you control enters, target player mills two cards.' One trigger for each blue creature, also when one effect puts both onto the battlefield at the same moment. Two blue creatures of seat 0 went to the graveyard from the battlefield this turn; Brought Back ({W}{W}) returns both tapped in one instruction. Two triggers, each with its own target: both target seat 1, who mills four cards in all, the top four of its library (Library 5, 4, 3, 2).",
+ "cards": [
+  {
+   "key": "denizen",
+   "real": "Sage's Row Denizen",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "Blue Merfolk One",
+   "type": "Creature \u2014 Merfolk",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "U"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b2",
+   "name": "Blue Merfolk Two",
+   "type": "Creature \u2014 Merfolk",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "U"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "back",
+   "real": "Brought Back",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "move",
+   "key": "b1",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "b2",
+   "to": "graveyard"
+  },
+  {
+   "op": "cast",
+   "key": "back",
+   "controller": 0,
+   "targets": [
+    "b1",
+    "b2"
+   ],
+   "hold": true
+  },
+  {
+   "op": "resolve"
+  },
+  {
+   "op": "pass",
+   "decisions": [
+    "first-legal",
+    "player:1",
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "b1": "battlefield",
+   "b2": "battlefield",
+   "back": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Brought Back"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2"
+   ]
+  },
+  "library": {
+   "1": [
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

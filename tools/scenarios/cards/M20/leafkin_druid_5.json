@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "druid", "real": "Leafkin Druid", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "c2", "name": "Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Bear A", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Bear B", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "scorp", "real": "Sedge Scorpion", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "scorp", "controller": 0, "tap": true}
+ ],
+ "expect": {
+  "zone": {"scorp": "battlefield"},
+  "tapped": {"druid": true},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Leafkin Druid, printed: 'If you control four or more creatures'. I control three creatures and the opponent two (five on the battlefield): the opponent's creatures do not count, so tapping the Druid adds {G} only. It pays Sedge Scorpion ({G}) exactly and nothing is left in the pool."
+}

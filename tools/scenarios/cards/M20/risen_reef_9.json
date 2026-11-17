@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "risen_reef_only_elementals_you_control_trigger_it",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: '... another Elemental you control enters'. A Bear of seat 0 and an Elemental entering under seat 1 do not trigger the Reef: no ask is made, the top card stays on the library, nothing is put in hand.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "oelem", "name": "Opp Elemental", "type": "Creature — Elemental", "power": "1", "toughness": "1", "zone": "hand", "controller": 1},
+  {"key": "top", "name": "Top Spell", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "bear"},
+  {"op": "enter", "key": "oelem"}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield", "oelem": "battlefield", "top": "library"},
+  "hand": {"0": 0, "1": 0},
+  "library": {"0": ["Top Spell", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

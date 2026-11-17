@@ -5,61 +5,70 @@
  "name": "Liliana, Waker of the Dead",
  "text_sha": "ee9308f04c8808759575da255de503377e67f85907ee34017f3818400807e4d5",
  "verified": {
-  "tree_sha": "b93e4ab6cad4da7438248772d53374936e9ef2591b9e43348c2f6b187f430e7d",
+  "tree_sha": "bd40a922a96262a561c7ebb58c077caf835c69a54f0faeda13941e041b97e908",
   "probe_sha": "9dc3632bff208adb936445aba443b4b612e313d0296d21aaa81eb4de48fab774",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1c-A",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "+1: Each player discards a card",
+    "clause": "Liliana, Waker of the Dead {2}{B}{B} Legendary Planeswalker — Liliana loyalty 4 (cast)",
     "status": "OK",
-    "evidence": "activate [0]: ask discard for you (6 cards) and for opp (2 cards), one card each moved to graveyard",
+    "evidence": "[cast]: hand -> stack -> battlefield, card gets 4 LOYALTY counter(s), mana B-2 C-2.",
     "issue": ""
    },
    {
-    "clause": "Each opponent who can't loses 3 life",
-    "status": "NOT_EXERCISED",
-    "evidence": "opponent always had cards; no life loss seen. Packs A07_1 (empty hand loses 3), A07_2 (can discard, no loss)",
-    "issue": ""
-   },
-   {
-    "clause": "-3: Target creature gets -X/-X until EOT, X = number of cards in your graveyard",
+    "clause": "[+1]: Each player discards a card.",
     "status": "OK",
-    "evidence": "you_giant 4/4 -> 2/2 with 2 cards in graveyard, reverts after turn; 2/2s die; X varied by pack A07_3 (3 cards -> 1/1)",
+    "evidence": "[activate [0]] (and its five variants): loyalty 4 -> 5; 'ask discard' offers my hand (six cards), then the opponent's (opp_spare, opp_trick); each chosen card moves hand -> graveyard (you: hand 6 -> 5, opp: hand 2 -> 1). Packs J04_1 to J04_4 (each player's own choice; three players).",
     "issue": ""
    },
    {
-    "clause": "-7: emblem: beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control; it gains haste",
+    "clause": "Each opponent who can't loses 3 life.",
     "status": "NOT_EXERCISED",
-    "evidence": "[2] not activatable (loyalty 4<7). Pack A07_4 (opponent's graveyard, haste, attacks)",
+    "evidence": "In every [activate [0]] variant the opponent holds two cards and discards: no life change (the can-discard branch); no opponent with an empty hand is ever in the trace. Packs J04_1 (empty hand: loses 3), J04_2 (exactly one card: discards it and loses nothing), J04_3 (my empty hand costs me nothing), J04_4 (three players, each opponent judged alone).",
+    "issue": ""
+   },
+   {
+    "clause": "[−3]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.",
+    "status": "OK",
+    "evidence": "[activate [1]] on each of six creatures: loyalty 4 -> 1; X = 2 (my graveyard): 2/2s and a 1/1 die, the 4/4 giants and the 3/3 become 2/2 and 3/3 -> 1/1, and revert 'after the turn ends'. The standard board has two cards in each graveyard, so whose graveyard is counted is not in the trace: packs J04_5 (mine 2, theirs 3: X = 2, every card counts), J04_6 (mine 3, theirs 0; ends at end of turn), J04_7 (lethal).",
+    "issue": ""
+   },
+   {
+    "clause": "[−7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\"",
+    "status": "NOT_EXERCISED",
+    "evidence": "'ability [2] not activatable from battlefield: cost:loyalty:4<7'. Packs J04_8 (a creature card from the OPPONENT's graveyard returns under my control with haste and attacks), J04_9 (one from my own graveyard), J04_10 (only creature cards are targets), J04_11 (nothing at the opponent's combat). Pack J04_12 (two creature cards in the graveyards: only the targeted one returns).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_6.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_7.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_8.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_9.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_10.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_11.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_1.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_2.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_3.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_4.json",
-   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_5.json"
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_12.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_13.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_14.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_15.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_16.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_17.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_18.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_19.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_20.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_21.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_22.json",
+   "tools/scenarios/cards/M21/liliana_waker_of_the_dead_23.json"
   ],
   "mutation": {
-   "mutants": 24,
+   "mutants": 26,
    "killed": 9,
-   "score": 0.375,
+   "score": 0.34615384615384615,
    "survived": [
     "drop step 0 at 1/0/effect",
     "controller ALL_OPPONENTS->YOU at 1/0/effect/steps/0/ref",
     "amount+1 at 1/0/effect/steps/0/effect/pred/inner/count",
-    "controller YOU->OPPONENT at 1/0/effect/steps/0/effect/pred/inner/who",
+    "controller YOU->OPPONENT at 1/0/effect/steps/0/effect/pred/inner/quantity/selector/zones/0/controller",
     "amount+1 at 1/0/effect/steps/0/effect/then_effect/args/amount",
     "amount-1 at 1/0/effect/steps/0/effect/then_effect/args/amount",
     "controller YOU->OPPONENT at 1/0/effect/steps/0/effect/then_effect/args/controller",
+    "controller YOU->OPPONENT at 1/1/effect/args/power/magnitude/selector/zones/0/controller",
+    "controller YOU->OPPONENT at 1/1/effect/args/toughness/magnitude/selector/zones/0/controller",
     "trigger scope: your turn -> each turn at 1/2/effect/args/emblem/abilities/0/event",
     "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/event/actor/who",
     "drop step 0 at 1/2/effect/args/emblem/abilities/0/effect",

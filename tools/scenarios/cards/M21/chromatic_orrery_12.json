@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "ooze", "real": "Scavenging Ooze", "zone": "battlefield", "controller": 0},
+    {"key": "dead", "name": "Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 1}
+  ],
+  "mana": {"0": {"C": 1}},
+  "steps": [
+    {"op": "activate", "key": "ooze", "idx": 0, "seat": 0, "targets": ["dead"], "expect_raise": "cost:mana"}
+  ],
+  "expect": {
+    "zone": {"dead": "graveyard"},
+    "counters": {"ooze": {}},
+    "life": {"0": 20, "1": 20},
+    "mana_pool": {"0": {"C": 1}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Control for the Orrery permission: with NO Orrery, one colorless mana cannot pay Scavenging Ooze's {G}: the activation is refused and nothing happens. (Run against pack I04_8, which differs only by the Orrery.)"
+}

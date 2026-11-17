@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Ornery Dilophosaur, printed: '... if YOU control a creature with power 4 or greater, ...' Only the opponent controls one (a 5/5 that does not block): the condition is false for me, the Dilophosaur stays a 2/2 and deals 2 (20 -> 18).",
+ "cards": [
+  {"key": "dilo", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Five Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dilo": true}, "block": {"big": null}}
+ ],
+ "expect": {"power": {"dilo": 2}, "toughness": {"dilo": 2}, "life": {"1": 18}}}

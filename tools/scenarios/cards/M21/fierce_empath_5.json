@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+    {"key": "oppbig", "name": "Opp Big Eight", "type": "Creature — Giant", "power": 8, "toughness": 8, "cmc": 8, "zone": "library", "controller": 1},
+    {"key": "small", "name": "Small Five", "type": "Creature — Giant", "power": 5, "toughness": 5, "cmc": 5, "zone": "library", "controller": 0},
+    {"key": "spell", "name": "Big Spell", "type": "Sorcery", "cmc": 7, "zone": "library", "controller": 0},
+    {"key": "isle", "name": "Plain Land", "type": "Land", "cmc": 0, "zone": "library", "controller": 0},
+    {"key": "big", "name": "Big Six", "type": "Creature — Giant", "power": 6, "toughness": 6, "cmc": 6, "zone": "library", "controller": 0}
+  ],
+  "mana": {"0": {"G": 3}},
+  "steps": [
+    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["fire", "first-legal"]}
+  ],
+  "expect": {
+    "zone": {"empath": "battlefield", "big": "hand", "small": "library", "spell": "library", "isle": "library", "oppbig": "library"},
+    "hand": {"0": 1, "1": 0}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I07). Printed: 'search YOUR library for a CREATURE card with mana value 6 OR GREATER'. The ask offers only the Big Six: the opponent's Opp Big Eight (declared first, but in THEIR library), the mana value 5 creature (just below 6), the mana value 7 sorcery (not a creature) and a land are not offered, so the first offered word, whatever the order, is the Big Six (mana value exactly 6 qualifies). Only you gain a card."
+}

@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "red", "name": "Red Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1, "attack": {"red": true}, "block": {"lt": "red"}}
+  ],
+  "expect": {
+    "attackers": {"red": true},
+    "blocked": {"red": ["lt"]},
+    "zone": {"red": "graveyard", "lt": "battlefield"},
+    "damage": {"lt": 2},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Control for 'protection from multicolored': a one-colour attacker is not covered. Red Wolf (red 2/2) attacks and the Lieutenant (3/4) blocks it: the Wolf's 2 combat damage is dealt (2 marked on the Lieutenant) and the Lieutenant's 3 kills the Wolf."
+}

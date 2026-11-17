@@ -1,0 +1,65 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Lofty Denial, printed: 'Counter target spell unless its controller pays {1}.' Any spell may be the target, not only a creature spell (a sorcery here): seat 0 casts the sorcery Crash Through ({R}; 'Creatures you control gain trample until end of turn. Draw a card.') and has nothing left, seat 1 counters it with Lofty Denial. Seat 0 cannot pay {1}: the sorcery is countered, so seat 0 draws nothing (its hand stays 0) and Crash Through is in the graveyard.",
+ "cards": [
+  {
+   "key": "ct",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "lofty",
+   "real": "Lofty Denial",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ct",
+   "real": "Crash Through",
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "lofty",
+   "real": "Lofty Denial",
+   "controller": 1,
+   "targets": [
+    "ct"
+   ],
+   "tap": true,
+   "decisions": [
+    "PAY"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ct": "graveyard",
+   "lofty": "graveyard"
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  },
+  "mana_pool": {
+   "0": {},
+   "1": {}
+  }
+ }
+}

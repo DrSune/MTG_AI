@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "oldrep", "name": "Chrome Replicator", "type": "Artifact Creature — Construct", "power": 4, "toughness": 4, "cmc": 5, "zone": "battlefield", "controller": 0},
+    {"key": "a", "name": "Bear A", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "zone": {"rep": "battlefield", "oldrep": "battlefield"},
+    "tokens": {"Construct": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). The Replicator itself counts: it enters, and another nonland nontoken permanent named Chrome Replicator is already on the battlefield, so you control two with the same name as one another: one Construct token."
+}

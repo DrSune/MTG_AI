@@ -1,0 +1,163 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Ugin, the Spirit Dragon. Printed: '[-10]: You gain 7 life, draw seven cards, then put up to seven permanent cards from your hand onto the battlefield.' Loyalty is seeded to 10. The library's top seven are a Creature (Drawn Bear) and six Sorceries; an eighth Sorcery lies below them. Hand before: a Creature, a Land, an Artifact, an Enchantment, an Instant and a Sorcery. The controller puts five permanent cards onto the battlefield (the four permanents in hand and the one just drawn, which proves the draw comes first) and then stops (up to seven, NONE). Life 20 -> 27; Ugin leaves (loyalty 0); the Instant and the Sorcery stay in hand with the six drawn Sorceries (8 cards); exactly seven were drawn, so the eighth Sorcery is still in the library.",
+ "cards": [
+  {
+   "key": "ugin",
+   "real": "Ugin, the Spirit Dragon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hc",
+   "name": "Hand Creature",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hl",
+   "name": "Hand Land",
+   "type": "Land",
+   "cmc": 0,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ha",
+   "name": "Hand Artifact",
+   "type": "Artifact",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "he",
+   "name": "Hand Enchantment",
+   "type": "Enchantment",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hi",
+   "name": "Hand Instant",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hs",
+   "name": "Hand Sorcery",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "d8",
+   "name": "Left Sorcery 8",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d7",
+   "name": "Drawn Sorcery 7",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d6",
+   "name": "Drawn Sorcery 6",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d5",
+   "name": "Drawn Sorcery 5",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d4",
+   "name": "Drawn Sorcery 4",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d3",
+   "name": "Drawn Sorcery 3",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d2",
+   "name": "Drawn Sorcery 2",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d1",
+   "name": "Drawn Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ugin",
+   "set": 10
+  },
+  {
+   "op": "activate",
+   "key": "ugin",
+   "idx": 2,
+   "seat": 0,
+   "decisions": [
+    "hc",
+    "hl",
+    "ha",
+    "he",
+    "d1",
+    "NONE"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ugin": "graveyard",
+   "hc": "battlefield",
+   "hl": "battlefield",
+   "ha": "battlefield",
+   "he": "battlefield",
+   "d1": "battlefield",
+   "hi": "hand",
+   "hs": "hand",
+   "d2": "hand",
+   "d7": "hand",
+   "d8": "library"
+  },
+  "life": {
+   "0": 27,
+   "1": 20
+  },
+  "hand": {
+   "0": 8
+  }
+ }
+}

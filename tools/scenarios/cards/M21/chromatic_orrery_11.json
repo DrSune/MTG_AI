@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "ooze", "real": "Scavenging Ooze", "zone": "battlefield", "controller": 0},
+    {"key": "dead", "name": "Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 1}
+  ],
+  "mana": {"0": {"C": 1}},
+  "steps": [
+    {"op": "activate", "key": "ooze", "idx": 0, "seat": 0, "targets": ["dead"]}
+  ],
+  "expect": {
+    "zone": {"dead": "exile"},
+    "counters": {"ooze": {"PLUS_1_PLUS_1": 1}},
+    "life": {"0": 21, "1": 20},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: 'You may spend mana as though it were mana of any color.' The permission covers activated abilities as well as spells: one colorless mana pays Scavenging Ooze's {G} activation (exile target card from a graveyard; a creature card: +1/+1 counter and 1 life)."
+}

@@ -1,0 +1,60 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Garruk's Uprising, printed: 'Creatures you control have trample.' With the enchantment on the battlefield my Bear has trample, and so does a creature that enters afterwards (Late Cat, put onto the battlefield from my hand); the opponent's Wolf, which is not mine, has none.",
+ "cards": [
+  {
+   "key": "up",
+   "real": "Garruk's Uprising",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wolf",
+   "name": "Opp Wolf",
+   "type": "Creature \u2014 Wolf",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "late",
+   "name": "Late Cat",
+   "type": "Creature \u2014 Cat",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "late"
+  }
+ ],
+ "expect": {
+  "battlefield_keywords": {
+   "My Bear": [
+    "TRAMPLE"
+   ],
+   "Late Cat": [
+    "TRAMPLE"
+   ],
+   "Opp Wolf": []
+  }
+ }
+}

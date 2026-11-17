@@ -1,0 +1,76 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Warded Battlements, printed: 'Attacking creatures you control get +1/+0.' Two 2/2s attack: Attacker A is unblocked and deals 3 (seat 1: 17). Attacker B is blocked by a 2/2: B deals 3 (the blocker takes 3 and dies) and takes 2. After combat the bonus is gone: Attacker A is 2/2 again.",
+ "cards": [
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Attacker A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Attacker B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "blk",
+   "name": "Blocker",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "a": true,
+    "b": true
+   },
+   "block": {
+    "blk": "b"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "1": 17
+  },
+  "zone": {
+   "a": "battlefield",
+   "b": "graveyard",
+   "blk": "graveyard"
+  },
+  "damage_received": {
+   "blk": 3,
+   "b": 2
+  },
+  "power": {
+   "a": 2
+  },
+  "toughness": {
+   "a": 2
+  }
+ }
+}

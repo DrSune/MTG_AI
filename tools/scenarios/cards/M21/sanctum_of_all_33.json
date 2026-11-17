@@ -1,0 +1,57 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Sanctum of All. Printed: 'you may search your library and/or graveyard for A Shrine card and put it onto the battlefield.' At turn 3's upkeep seat 0 fires the may and searches its graveyard only (option 2) with two Shrines in it: exactly one (Shrine A, its choice) is put onto the battlefield, never two; Shrine B stays in the graveyard.",
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ga",
+   "name": "Shrine A",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "gb",
+   "name": "Shrine B",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "2",
+    "ga",
+    "gb"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield",
+   "ga": "battlefield",
+   "gb": "graveyard"
+  }
+ }
+}

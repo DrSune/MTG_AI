@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: '{4}{G}{G}: ...' The cost is {4}{G}{G}, six mana of which two are green: with {G}{G} and only three colorless the activation is refused; with the fourth colorless it is paid and the pool is empty.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Card One", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "C": 3}},
+ "steps": [
+  {"op": "activate", "key": "jol", "idx": 1, "seat": 0, "expect_raise": "illegal activation: cost"},
+  {"op": "mana", "seat": 0, "add": {"C": 1}},
+  {"op": "activate", "key": "jol", "idx": 1, "seat": 0}
+ ],
+ "expect": {"power": {"jol": 1}, "toughness": {"jol": 1}, "mana_pool": {"0": {}}}}

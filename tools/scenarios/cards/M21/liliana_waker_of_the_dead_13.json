@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[+1]: Each player discards a card. Each opponent who can't loses 3 life.' Each player discards, so both seats are asked: I discard my only card, and the opponent, who holds exactly one card, discards it. The opponent COULD discard, so it loses no life (20 stays 20): whether a player can't is decided as the discard starts, not by the hand left afterwards. Both hands are empty and both cards are in the graveyards.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Silk", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Their Silk", "type": "Instant", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine", "theirs"]}
+ ],
+ "expect": {"zone": {"mine": "graveyard", "theirs": "graveyard"}, "hand": {"0": 0, "1": 0}, "life": {"0": 20, "1": 20}, "counters": {"lil": {"LOYALTY": 5}}}}

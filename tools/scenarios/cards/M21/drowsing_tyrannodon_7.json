@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "big", "name": "Four-Power Ally", "type": "Creature — Ape", "power": 4, "toughness": 1, "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "move", "key": "big", "to": "graveyard"},
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "zone": {"big": "graveyard"},
+    "attackers": {"tyr": false},
+    "not_asked": ["tyr"],
+    "tapped": {"tyr": false},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'AS LONG AS you control a creature with power 4 or greater'. The only 4-power creature is gone before combat (it left the battlefield): the permission ends and the Tyrannodon can't attack."
+}

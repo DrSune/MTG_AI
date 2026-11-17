@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "counters": {"adh": {}, "lt": {}},
+    "power": {"adh": 2},
+    "toughness": {"adh": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'if you control a Basri planeswalker'. You control a planeswalker that is not a Basri (Garruk, Unleashed) and a creature with Basri in its name (Basri's Lieutenant, not a planeswalker): neither is a Basri planeswalker, so at the beginning of your combat the Adherent gets no counter (still 2/1)."
+}

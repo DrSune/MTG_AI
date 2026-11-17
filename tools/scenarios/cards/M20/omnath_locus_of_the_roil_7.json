@@ -1,0 +1,120 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "om",
+   "real": "Omnath, Locus of the Roil",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "l2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "l3",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "l4",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "l5",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "l6",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "g1",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "g2",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "bb",
+   "real": "Brought Back",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "g1",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "g2",
+   "to": "graveyard"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "bb",
+   "controller": 0,
+   "targets": [
+    "g1",
+    "g2"
+   ],
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bb": "graveyard",
+   "g1": "battlefield",
+   "g2": "battlefield"
+  },
+  "tapped": {
+   "g1": true,
+   "g2": true
+  },
+  "counters": {
+   "om": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "hand": {
+   "0": 2
+  }
+ },
+ "notes": "Omnath, Locus of the Roil, printed: 'Whenever a land you control enters, put a +1/+1 counter on target Elemental you control. If you control eight or more lands, draw a card.' Two of my lands went to the graveyard this turn; Brought Back returns both to the battlefield at the same time. Each land entering triggers Landfall on its own: Omnath gets two counters, and with eight lands now on my side each of the two resolutions draws a card (the spell left my hand, so two cards are in it)."
+}

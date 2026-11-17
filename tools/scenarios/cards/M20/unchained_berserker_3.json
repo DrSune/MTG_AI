@@ -1,0 +1,66 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_attacks_as_a_3_1_and_deals_3",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'This creature gets +2/+0 as long as it's attacking.' The 1/1 Berserker attacks and a green 1/4 blocks it: the Berserker deals exactly 3 (1 + 2, not 1, 2 or 4) so the blocker survives with 3 damage marked, and it takes the blocker's 1 and dies. No damage reaches seat 1. (The toughness during combat is pinned by H06_10, because the Berserker dies after combat from marked damage either way.)",
+ "cards": [
+  {
+   "key": "ber",
+   "real": "Unchained Berserker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Green Wall",
+   "type": "Creature \u2014 Wall",
+   "power": "1",
+   "toughness": "4",
+   "colors": [
+    "G"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ber": true
+   },
+   "block": {
+    "wall": "ber"
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "ber": true
+  },
+  "blocked": {
+   "ber": [
+    "wall"
+   ]
+  },
+  "damage_received": {
+   "ber": 1,
+   "wall": 3
+  },
+  "damage": {
+   "wall": 3
+  },
+  "zone": {
+   "ber": "graveyard",
+   "wall": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

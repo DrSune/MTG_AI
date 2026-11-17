@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Ornery Dilophosaur, printed: '... this creature gets +2/+2 until end of turn.' It lasts only until end of turn: after the +2/+2 attack of J09_1 and the advance of the turn, the Dilophosaur is a 2/2 again.",
+ "cards": [
+  {"key": "dilo", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dilo": true, "ape": false}},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"power": {"dilo": 2}, "toughness": {"dilo": 2}, "life": {"1": 16}}}

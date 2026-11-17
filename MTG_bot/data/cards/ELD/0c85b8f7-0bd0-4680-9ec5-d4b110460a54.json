@@ -5,39 +5,44 @@
  "name": "Fabled Passage",
  "text_sha": "d9f8854693eaa36c7a28b76860570591496c41e8fcc21a6972c4df6387f4e7b1",
  "verified": {
-  "tree_sha": "18f576f996944ab2e9992d48b4bedc30068cff799c133136dde0829d294d0f5c",
+  "tree_sha": "264e86bb1292a2367afa425a4a6a4378bd7c0f6e560545894c348a96bc387583",
   "probe_sha": "b0ba2cb5adadc1ad1405b2f01c052706fec51c582973f19b3d5dde49103e07c4",
-  "date": "2026-11-14",
-  "reviewer": "reprint-wave-2026-11-14",
+  "date": "2026-11-17",
+  "reviewer": "reprint-of-wave4-2026-11-17",
   "clauses": [
    {
     "clause": "{T}, Sacrifice this land:",
     "status": "OK",
-    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', then 'card moves battlefield -> graveyard (by card/SACRIFICE)'. [play land] is an ordinary land drop",
+    "evidence": "[activate [0] from battlefield]: 'card becomes tapped (by card/TAP)', 'card moves battlefield -> graveyard (by card/SACRIFICE)', then ABILITY_ACTIVATED: both costs are paid, the sacrifice goes to the graveyard even though the search finds nothing (the standard library holds no basic land). Pack I06_5: a tapped Passage is refused ('cost:tap:source_tapped'), not sacrificed.",
     "issue": ""
    },
    {
     "clause": "Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
     "status": "NOT_EXERCISED",
-    "evidence": "The probe library holds no basic land, so the activation fetches nothing. Pack three_lands_stays_tapped: the basic Forest enters tapped, the nonbasic Bloodfell Caves stays in the library (pass). The shuffle cannot be observed (not journalled)",
-    "issue": "Tree note, no behaviour difference: the SEARCH selector is ONE_OF where the compiler's B5c-cost-sacrifice-search emits CHOOSE. For a count-1 search both resolve to one chosen candidate (selectors.py resolve_selector), so neither is stronger than printed."
+    "evidence": "The standard library has no basic land, so the trace only shows the sacrifice and nothing fetched. Tree abilities[0] effect Seq: SEARCH (ONE_OF, count 1, SUPERTYPE_EQ Basic and TYPE_EQ Land, your library, destination your battlefield, tapped_on_enter), SHUFFLE of your library, then the Conditional. Packs on the live tree: I06_1 (the only basic land enters tapped; the nonbasic land and the nonland stay; library 9 -> 8), I06_3 (two basics: the chosen Swamp enters tapped, exactly one land is fetched, the Forest stays), I06_4 (the ask offers exactly the basics of YOUR library: not the nonbasic land, the nonland, nor the opponent's Forest), I06_6 (no basic in the library: nothing enters, the Passage is still sacrificed). The shuffle is not observable in the runner (no lane, no journal row): a run of I06_3 shows the library's cards in a changed order afterwards, and the tree has the SHUFFLE step of the right library after the SEARCH. I06_8 (through the menu: no mana, tapped and sacrificed, the chosen basic land enters tapped).",
+    "issue": ""
    },
    {
     "clause": "Then if you control four or more lands, untap that land.",
     "status": "NOT_EXERCISED",
-    "evidence": "Conditional(CONTROLLER_COUNT_GE 4 Land) -> UNTAP(referent='result'), the same as the B5c-then-if-lands-untap template. Pack four_lands_untaps: three other lands plus the Forest -> untapped (pass). Pack three_lands_stays_tapped: two other lands plus the Forest, with five opponent lands that must not count -> stays tapped (pass)",
+    "evidence": "Never reached with a land in the trace. Tree: Conditional(QTY_GE 4 over QCount of your lands on the battlefield) then UNTAP the 'result' referent (the land just put onto the battlefield). Packs on the live tree: I06_1 (the Forest is the third land of yours, the opponent's lands do not count: stays tapped), I06_2 (the Forest makes four: it is untapped, and an already tapped Island of yours is not untapped), I06_6 (four lands but no land was put onto the battlefield: the tapped Island stays tapped, so 'that land' is the fetched one only). I06_7 (lands you CONTROL: the opponent's land under your control counts toward four).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/fabled_passage_1.json",
-   "tools/scenarios/cards/M21/fabled_passage_2.json",
-   "tools/scenarios/cards/M21/fabled_passage_3.json"
+   "tools/scenarios/cards/M21/fabled_passage_4.json",
+   "tools/scenarios/cards/M21/fabled_passage_5.json",
+   "tools/scenarios/cards/M21/fabled_passage_6.json",
+   "tools/scenarios/cards/M21/fabled_passage_7.json",
+   "tools/scenarios/cards/M21/fabled_passage_8.json",
+   "tools/scenarios/cards/M21/fabled_passage_9.json",
+   "tools/scenarios/cards/M21/fabled_passage_10.json",
+   "tools/scenarios/cards/M21/fabled_passage_11.json"
   ],
   "mutation": {
-   "mutants": 17,
+   "mutants": 20,
    "killed": 5,
-   "score": 0.29411764705882354,
+   "score": 0.25,
    "survived": [
     "widen filter (drop part 0) at 1/0/cost/parts/0/target/filter",
     "drop step 0 at 1/0/effect",
@@ -50,7 +55,10 @@
     "zone BATTLEFIELD->HAND at 1/0/effect/steps/0/args/destination",
     "controller YOU->OPPONENT at 1/0/effect/steps/0/args/destination/controller",
     "amount+1 at 1/0/effect/steps/2/pred/count",
-    "amount-1 at 1/0/effect/steps/2/pred/count"
+    "amount-1 at 1/0/effect/steps/2/pred/count",
+    "widen filter (drop part 0) at 1/0/effect/steps/2/pred/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/effect/steps/2/pred/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/effect/steps/2/pred/quantity/selector/filter/children/0/who"
    ]
   },
   "reprint_of": "M21"

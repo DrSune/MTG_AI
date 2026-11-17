@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+    {"key": "bear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["basri"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "basri": "graveyard", "bear": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' Basri Ket (a planeswalker, mana value 3) is a legal target and is destroyed (it goes to the graveyard); the opponent's creature is untouched."
+}

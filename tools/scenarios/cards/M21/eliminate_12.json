@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "swamp", "real": "Swamp", "zone": "battlefield", "controller": 0},
+    {"key": "plains", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "mv4", "name": "Four Drop", "type": "Creature — Ogre", "power": 4, "toughness": 4, "cmc": 4, "zone": "battlefield", "controller": 1},
+    {"key": "mv3", "name": "Three Drop", "type": "Creature — Bear", "power": 3, "toughness": 3, "cmc": 3, "zone": "battlefield", "controller": 1},
+    {"key": "mv2", "name": "Two Drop", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 1},
+    {"key": "pw", "real": "Basri Ket", "zone": "battlefield", "controller": 1},
+    {"key": "pw6", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "act", "seat": 0, "words": ["cast:elim", "NOPE"], "expect_raise": "it offers ('card:4', 'card:5', 'card:6')"}
+  ],
+  "expect": {"zone": {"elim": "hand"}},
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' The menu's target ask for Eliminate offers exactly the Three Drop (card:4), the Two Drop (card:5) and Basri Ket, a mana value 3 planeswalker (card:6); the Four Drop (card:3) and Basri, Devoted Paladin, mana value 6 (card:7), are not offered."
+}

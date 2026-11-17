@@ -190,5 +190,43 @@
  },
  "probe": {
   "sha": "b30881dbd4d0fbee8011720ddc272f238bb4f5e7676eb528e4cb75ab0cefb5f8"
+ },
+ "verified": {
+  "tree_sha": "111f9d8debd805d138a76855483bcaa6493103012100e984c299d2b99b8691e2",
+  "probe_sha": "b30881dbd4d0fbee8011720ddc272f238bb4f5e7676eb528e4cb75ab0cefb5f8",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "This spell costs {1} less to cast if you control a creature with flying.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[cast] (and all six discard variants): 'you: ... mana C-2 U-1', the full {2}{U} is paid, with only the opponent's flier (opp_flier) on the board. No variant has a creature with flying that I control, so the discount never applies in the trace (the tree's CostModifier is IS_SOURCE, controller YOU, reduce generic 1, if at least 1 creature I control has flying). Packs G00_1 (my flier: two mana pay it), G00_2 (two fliers: exactly {1} less, not {2}), G00_3 (only an opposing flier and my non-flier: full cost). G00_4 (the opponent's flier comes under my control: it counts, control not ownership).",
+    "issue": ""
+   },
+   {
+    "clause": "Draw two cards.",
+    "status": "OK",
+    "evidence": "[cast]: 'you:Library 5#1 moves library -> hand (by card/DRAW)' and 'you:Library 4#1 moves library -> hand (by card/DRAW)', 'you: hand 7 -> 8; library 6 -> 4': the spell leaves the hand and two cards come in, drawn by me; the spell then moves stack -> graveyard. DRAW amount 2, controller YOU in the tree.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/winged_words_1.json",
+   "tools/scenarios/cards/M20/winged_words_3.json",
+   "tools/scenarios/cards/M20/winged_words_4.json",
+   "tools/scenarios/cards/M20/winged_words_5.json",
+   "tools/scenarios/cards/M20/winged_words_6.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 6,
+   "score": 0.6,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/controller_ref",
+    "amount+1 at 1/0/delta/amount",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter"
+   ]
+  }
  }
 }

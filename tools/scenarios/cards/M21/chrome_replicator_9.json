@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "t1", "name": "Triplet", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "t2", "name": "Triplet", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "t3", "name": "Triplet", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "u1", "name": "Pair", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "u2", "name": "Pair", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "x", "name": "Odd One", "type": "Enchantment", "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "tokens": {"Construct": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). 'create a 4/4 colorless Construct artifact creature token': ONE token whether you control one such pair or several groups (three Triplet and two Pair): the effect is a single token, not one per pair or per group."
+}

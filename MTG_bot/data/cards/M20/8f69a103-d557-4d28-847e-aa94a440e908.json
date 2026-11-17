@@ -130,5 +130,35 @@
  },
  "probe": {
   "sha": "3d729c7ea12250e4b871c3ba0d4b620bcf7abc9492ae7afbc704a9c4e6450982"
+ },
+ "verified": {
+  "tree_sha": "fc2dd80e824f802994804630acfc1d121bc1e78d5a9c5ea78216e7fa09a89c68",
+  "probe_sha": "3d729c7ea12250e4b871c3ba0d4b620bcf7abc9492ae7afbc704a9c4e6450982",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Put target creature with power 4 or greater on the bottom of its owner's library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: target slot (cast): 1..1 of [you_giant, opp_giant]: the two 4/4s are offered and the 3/3 opp_tapped, the 2/2s and the 1/1 are not (the 'power 4 or greater' boundary shows from both sides); 'you_giant moves battlefield -> library', you library 6 -> 7; 'opp_giant moves battlefield -> library', opp library 6 -> 7. Tree: MOVE_ZONE TARGET creature QTY_GE 4 POWER to Zone(LIBRARY, OWNER, BOTTOM). The trace shows library sizes only, so the BOTTOM position and 'owner' (each giant is owned by its controller) are not pinned. F06_1 (bottom of the opponent's library, below its own card and the fillers), F06_3 (a stolen creature goes to its owner's library, not the caster's), F06_2 (a 3/3 is an illegal target), F06_4 (own beginning of combat: refused window:phase), F06_5 (opponent's turn: refused window:not_your_turn).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/eternal_isolation_1.json",
+   "tools/scenarios/cards/M20/eternal_isolation_2.json",
+   "tools/scenarios/cards/M20/eternal_isolation_3.json",
+   "tools/scenarios/cards/M20/eternal_isolation_4.json",
+   "tools/scenarios/cards/M20/eternal_isolation_5.json",
+   "tools/scenarios/cards/M20/eternal_isolation_6.json"
+  ],
+  "mutation": {
+   "mutants": 7,
+   "killed": 6,
+   "score": 0.8571428571428571,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/args/cards/filter"
+   ]
+  }
  }
 }

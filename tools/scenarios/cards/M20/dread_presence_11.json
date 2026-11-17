@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "name": "dread_presence_the_trigger_offers_exactly_the_two_modes",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'choose one - ...' with two bullets. A Swamp enters under seat 0 with no decision word given: the engine stops at the mode ask, and the message names every word it offers, exactly the two modes.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "swamp", "expect_raise": "needs a decision from ('0', '1')"}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield"}
+ }
+}

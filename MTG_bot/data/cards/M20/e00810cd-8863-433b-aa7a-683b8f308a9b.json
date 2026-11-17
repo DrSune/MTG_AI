@@ -256,5 +256,46 @@
  },
  "probe": {
   "sha": "5499c43b68bb89ebc12e89b36bb2d2a14f2527d40334137c01cbde1561353453"
+ },
+ "verified": {
+  "tree_sha": "9e859ff752e47033b566dba93416c4e60458e62ed163bcd6165c8cc9b879ef8c",
+  "probe_sha": "5499c43b68bb89ebc12e89b36bb2d2a14f2527d40334137c01cbde1561353453",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "{1}, {T}: Choose a card name, then reveal the top card of your library.",
+    "status": "OK",
+    "evidence": "[activate [0]]: 'ask name' offers card names, 'card becomes tapped', 'you: mana C-1' (the {1} and the {T} are paid), ABILITY_ACTIVATED. The reveal is information only (tree REVEAL controller YOU count 1, no REVEAL lane in the runner): judged from the tree and trace, and its effect is what the next clause's trace rows show (only the name of the top card, Library 5, matches). F01_2 names the second card of the library: nothing happens and the library is unchanged.",
+    "issue": ""
+   },
+   {
+    "clause": "If that card has the chosen name, sacrifice this artifact and draw three cards.",
+    "status": "OK",
+    "evidence": "[activate [0] | ask 1 -> Library 5] (the top card): 'card moves battlefield -> graveyard (by card/SACRIFICE)', then three draws (Library 5#1, 4#1, 3#1), 'you: hand 6 -> 9; library 6 -> 3'. [ask 1 -> Library 0..4 / Forest / Lockbox]: only cost, no sacrifice, no draw. Tree: Conditional(QTY_GE 1 over the revealed top card with NAME_CHOSEN) then Seq(SACRIFICE IS_SOURCE, DRAW 3 YOU). F01_1 repeats it with named cards (hand 3, Lockbox in the graveyard).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree has timing=ActivationWindow.SORCERY, but the probe activates only in the main phase with an empty stack, so a refusal never shows. F01_3 (own beginning of combat: window:sorcery), F01_4 (Shock waiting on the stack in the own main phase: refused; legal once the stack is empty), F01_5 (opponent's turn: refused).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/diviner's_lockbox_1.json",
+   "tools/scenarios/cards/M20/diviner's_lockbox_2.json",
+   "tools/scenarios/cards/M20/diviner's_lockbox_3.json",
+   "tools/scenarios/cards/M20/diviner's_lockbox_4.json",
+   "tools/scenarios/cards/M20/diviner's_lockbox_5.json"
+  ],
+  "mutation": {
+   "mutants": 12,
+   "killed": 11,
+   "score": 0.9166666666666666,
+   "survived": [
+    "drop step 1 at 1/0/effect"
+   ]
+  }
  }
 }

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_no_white_creature_can_block_it_any_other_can",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Protection from white (This creature can't be blocked ... by anything white.)'. Four potential blockers on seat 1: a white one and a white-green one (both white) are never offered a block; a green one and a colourless one are offered it, and each ask is exactly the Berserker or no block. Nobody blocks, so seat 1 takes 3.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "white", "name": "White Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["W"], "zone": "battlefield", "controller": 1},
+  {"key": "wg", "name": "White Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["W", "G"], "zone": "battlefield", "controller": 1},
+  {"key": "green", "name": "Green Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1},
+  {"key": "plain", "name": "Plain Golem", "type": "Artifact Creature — Golem", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ber": true}}
+ ],
+ "expect": {
+  "block_asks": {"green": "<ber>,NONE", "plain": "<ber>,NONE"},
+  "not_asked_to_block": ["white", "wg"],
+  "life": {"0": 20, "1": 17}
+ }
+}

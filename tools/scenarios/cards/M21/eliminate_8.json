@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "tough", "name": "Hardy Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "keywords": ["INDESTRUCTIBLE"], "zone": "battlefield", "controller": 1},
+    {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["tough"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "tough": "battlefield", "mine": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature...' (not exile, not 'sacrifice'). An indestructible creature of mana value 2 is a legal target but is not destroyed (CR 702.12b); Eliminate is spent; your own creature is untouched too."
+}

@@ -1,0 +1,96 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "om",
+   "real": "Omnath, Locus of the Roil",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l5",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l6",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l7",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "l7",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "l7": "battlefield"
+  },
+  "counters": {
+   "om": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "hand": {
+   "0": 0
+  }
+ },
+ "notes": "Omnath, Locus of the Roil, printed: 'If you control eight or more lands'. I control seven lands after my land drop and the opponent controls three more (ten lands on the battlefield): only the lands I control count, so seven is not eight and I draw nothing."
+}

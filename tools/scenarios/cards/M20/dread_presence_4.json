@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "dread_presence_mode_one_draw_a_card_lose_1_life",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a Swamp you control enters, choose one - You draw a card and you lose 1 life. / This creature deals 2 damage to any target and you gain 2 life.' Seat 0 plays a Swamp and picks the first mode: seat 0 draws exactly one card (its own top card, Library 5; the opponent's library is untouched) and goes to 19. Nobody is damaged and nobody gains life.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "spare", "name": "Spare Card", "type": "Creature", "power": "1", "toughness": "1", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "swamp", "seat": 0, "decisions": ["0"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "spare": "hand", "obear": "battlefield", "dread": "battlefield"},
+  "hand": {"0": 2, "1": 0},
+  "life": {"0": 19, "1": 20},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

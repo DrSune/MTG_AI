@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "sages_row_denizen_target_player_may_be_you",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... target player mills two cards.' Any player may be chosen, the controller included: seat 0 targets itself and mills exactly its own top two cards (Library 5 and Library 4); seat 1's graveyard and library are untouched.",
+ "cards": [
+  {"key": "denizen", "real": "Sage's Row Denizen", "zone": "battlefield", "controller": 0},
+  {"key": "blue", "name": "Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blue", "decisions": ["player:0"]}
+ ],
+ "expect": {
+  "zone": {"blue": "battlefield"},
+  "graveyard": {"0": ["Library 5", "Library 4"], "1": []},
+  "library": {"0": ["Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

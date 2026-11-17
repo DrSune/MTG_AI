@@ -1,0 +1,20 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of All. Printed: 'If an ability of another Shrine you control triggers while you control six or more Shrines, that ability triggers an additional time.' Only Shrines you control: seat 0 controls six Shrines (Sanctum of All and five plain ones); seat 1 controls Sanctum of Stone Fangs. On seat 1's turn-2 first main phase its Stone Fangs triggers once, X = 1 (seat 1 controls one Shrine): seat 1 gains 1 (21), seat 0 loses 1 (19). It is not doubled.",
+ "cards": [
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "s1", "name": "Shrine One", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
+  {"key": "s2", "name": "Shrine Two", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
+  {"key": "s3", "name": "Shrine Three", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
+  {"key": "s4", "name": "Shrine Four", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
+  {"key": "s5", "name": "Shrine Five", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "battlefield", "controller": 0},
+  {"key": "ofangs", "real": "Sanctum of Stone Fangs", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "ofangs": "battlefield"},
+  "life": {"0": 19, "1": 21}
+ }}

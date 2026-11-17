@@ -1,0 +1,80 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "orrery",
+   "real": "Chromatic Orrery",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rbear",
+   "name": "Red Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f4",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f5",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:orrery:2"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 1
+  },
+  "tapped": {
+   "orrery": true,
+   "f1": true,
+   "f2": true,
+   "f3": true,
+   "f4": true,
+   "f5": true
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I04). Printed: '{5}, {T}: Draw a card for each color among permanents you control.' With the Orrery and five Forests the menu offers the draw ability: all five Forests are tapped for the {5} and the Orrery for {T}; the only color among your permanents is red (the Red Bear; Forests and the Orrery are colorless), so exactly one card is drawn."
+}

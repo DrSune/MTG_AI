@@ -1,0 +1,64 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[-6]: Creatures you control get +2/+2 and gain flying until end of turn.' 'Until end of turn': after the turn ends seat 0's creatures are 2/2 and 4/4 again and have lost flying.",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature — Giant",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "basri",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 2,
+   "giant": 4
+  },
+  "toughness": {
+   "bear": 2,
+   "giant": 4
+  },
+  "battlefield_keywords": {
+   "Bear": [],
+   "Giant": []
+  }
+ }
+}

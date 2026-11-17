@@ -1,0 +1,67 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Diviner's Lockbox (M20). Printed: 'Activate only as a sorcery.' In seat 0's own beginning of combat (not a main phase) the activation is refused (the sorcery-timing window), and nothing was paid, tapped or drawn.",
+ "cards": [
+  {
+   "key": "box",
+   "real": "Diviner's Lockbox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "name": "Top Card",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "C": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "box",
+   "idx": 0,
+   "seat": 0,
+   "decisions": [
+    "Top Card"
+   ],
+   "expect_raise": "window:sorcery"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "box": "battlefield",
+   "top": "library"
+  },
+  "tapped": {
+   "box": false
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  }
+ }
+}

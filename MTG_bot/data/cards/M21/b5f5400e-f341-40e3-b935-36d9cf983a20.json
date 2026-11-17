@@ -5,38 +5,41 @@
  "name": "Adherent of Hope",
  "text_sha": "95654ffb2d9f6bbc3c5770658828ddf1e345ff0f66b180137e44737466ec2168",
  "verified": {
-  "tree_sha": "ce16d2c20c6a2609c8b3d6e804501988ab7f64e021d2784ea846956ffd7dcf7b",
-  "probe_sha": "a90b93c02d98fd1e8fddd4152471505f4a6d806ad85b8622ee162dc16ca106f0",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-F",
+  "tree_sha": "0250ad8a64e585463ba7ca398d38bd9634183a8c2783358c79517556800bd7c6",
+  "probe_sha": "ae6edfefe592ab8d48845e1ce15f5b5226e4a41e0d99268545d1ad5943b877d7",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature.",
     "status": "NOT_EXERCISED",
-    "evidence": "Trace: the trigger fires at your combat ([stimulus: this creature attacks alone], [... you_bear attacks]) and, with no Basri on the board, puts no counter; it does not fire on the opponent's combat. The condition-true case is not on the board. Packs: adherent_of_hope_your_turns_only.json (your Basri Ket; your combat, the opponent's combat, your next combat -> exactly 2 counters, 4/3) PASS; adherent_of_hope_opponents_basri.json (the opponent's Basri Ket -> no counter, 2/1) PASS. Tree = compiler template B2a-adherent-of-hope.",
-    "issue": "'Basri planeswalker' is read as NAME_CONTAINS 'Basri' + TYPE_EQ Planeswalker rather than the planeswalker subtype; equivalent for every printed card."
-   },
-   {
-    "clause": "{1}{W} 2/1 creature",
-    "status": "OK",
-    "evidence": "[cast]: mana W-2; P/T - -> 2/1",
+    "evidence": "The standard board has no Basri planeswalker and the probe never reaches a beginning of combat with the card out, so the trigger never appears in the trace ('the card has 1 triggered ability node(s)'; every stimulus gives none). Tree abilities[0] (identical to the compiler's own B2a-adherent-of-hope form): TurnPhaseEvent(COMBAT, actor you), intervening condition QTY_GE 1 over your planeswalkers with 'Basri' in the name, PUT_COUNTER one +1/+1 counter on this creature (IS_SOURCE). The Basri planeswalker is read by name (the pool's Basri planeswalkers, Basri Ket and Basri, Devoted Paladin, both have Basri in the name). Packs on the live tree: I08_1 (Basri Ket and your turn: exactly one counter on the Adherent only), I08_2 (Basri, Devoted Paladin also qualifies), I08_3 (Garruk, Unleashed, a non-Basri planeswalker, and the creature Basri's Lieutenant do not: no counter), I08_4 (the opponent's Basri: no counter), I08_5 (the opponent's turn: no counter), I08_6 (the Basri planeswalker leaves with the trigger on the stack: nothing on resolution, the intervening if is read again). Control, not ownership: I08_7 (a Basri Ket you gain control of qualifies), I08_8 (your own Basri Ket taken by the opponent does not). I08_9 (two Basri planeswalkers and two Adherents: each Adherent gets exactly one counter, on itself).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/adherent_of_hope_1.json",
-   "tools/scenarios/cards/M21/adherent_of_hope_2.json"
+   "tools/scenarios/cards/M21/adherent_of_hope_3.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_4.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_5.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_6.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_7.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_8.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_9.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_10.json",
+   "tools/scenarios/cards/M21/adherent_of_hope_11.json"
   ],
   "mutation": {
    "mutants": 8,
-   "killed": 2,
-   "score": 0.25,
+   "killed": 0,
+   "score": 0.0,
    "survived": [
+    "trigger scope: your turn -> each turn at 1/0/event",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
     "amount+1 at 1/0/condition/count",
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "widen filter (drop part 2) at 1/0/condition/inner_filter",
-    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/who",
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
     "amount+1 at 1/0/effect/args/count"
    ]
   }

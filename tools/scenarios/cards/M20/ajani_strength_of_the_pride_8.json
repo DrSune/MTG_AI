@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed: 'at least 15 life more than your starting life total'. Starting life is 20 and seat 0 has 34, one short of 35: the 0 ability does nothing, Ajani and the opponent's artifacts and creatures all stay (and Ajani's loyalty stays 5).",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "oc", "name": "Opp Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ot", "name": "Opp Trinket", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "life", "seat": 0, "set": 34},
+  {"op": "activate", "key": "aj", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"aj": "battlefield", "oc": "battlefield", "ot": "battlefield"},
+  "counters": {"aj": {"LOYALTY": 5}}
+ }
+}

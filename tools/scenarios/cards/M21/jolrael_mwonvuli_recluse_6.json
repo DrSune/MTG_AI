@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever you draw your second card each turn, ...' This is true in any of my turns, not only the first: in my turn 3 the draw step gives me my first card and a Crash Through my second, which makes one Cat. (The turns before it, with no card of mine drawn in turn 1 and the opponent's turn 2, make none.)",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "ct1", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "cast", "key": "ct1", "real": "Crash Through"}
+ ],
+ "expect": {"tokens": {"Cat": 1}, "turn_seats": [0, 1, 0], "hand": {"0": 2}}}

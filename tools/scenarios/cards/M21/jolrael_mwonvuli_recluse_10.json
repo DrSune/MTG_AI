@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: '{4}{G}{G}: Until end of turn, ...' It lasts only until end of turn. With two cards in hand the creatures are 2/2 this turn; the turn is advanced, and Jolrael is a 1/2 and the Tiger a 6/5 again.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "tiger", "name": "My Tiger", "type": "Creature — Cat", "power": 6, "toughness": 5, "zone": "battlefield", "controller": 0},
+  {"key": "c1", "name": "Card One", "type": "Instant", "zone": "hand", "controller": 0},
+  {"key": "c2", "name": "Card Two", "type": "Instant", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2, "C": 4}},
+ "steps": [
+  {"op": "activate", "key": "jol", "idx": 1, "seat": 0},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"power": {"jol": 1, "tiger": 6}, "toughness": {"jol": 2, "tiger": 5}}}

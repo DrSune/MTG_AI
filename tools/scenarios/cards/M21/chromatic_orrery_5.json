@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 1},
+    {"key": "shock", "real": "Shock", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Shock", "key": "shock", "targets": ["p1"], "expect_raise": "cost:mana:R"}
+  ],
+  "expect": {
+    "zone": {"shock": "hand", "orrery": "battlefield"},
+    "life": {"0": 20, "1": 20},
+    "mana_pool": {"0": {"C": 1}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: 'YOU may spend mana as though it were mana of any color.' The Orrery is the OPPONENT's: it gives its controller the permission, not you, so your one colorless mana cannot pay Shock's {R}: the cast is refused and Shock stays in hand."
+}

@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. ...\"' Only a CREATURE card may be chosen. Both graveyards hold one noncreature card each (an instant and a sorcery) and no creature card, so the emblem's trigger has no target: nothing is put onto the battlefield and both cards stay where they are.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "gy1", "name": "My Dead Spell", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "gy2", "name": "Their Dead Spell", "type": "Sorcery", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {}}
+ ],
+ "expect": {"zone": {"lil": "graveyard", "gy1": "graveyard", "gy2": "graveyard"}, "graveyard": {"0": ["Liliana, Waker of the Dead", "My Dead Spell"], "1": ["Their Dead Spell"]}}}

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_each_angel_you_control_entering_gains_4",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an Angel you control enters, you gain 4 life.' Two Angels enter under seat 0: one trigger each, seat 0 gains 4 twice (28). A non-Angel creature of seat 0 and an Angel entering under seat 1 gain nothing: seat 1 stays at 20. No token is made by an entering Angel.",
+ "cards": [
+  {"key": "bishop", "real": "Bishop of Wings", "zone": "battlefield", "controller": 0},
+  {"key": "angel1", "name": "My Angel One", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "hand", "controller": 0},
+  {"key": "angel2", "name": "My Angel Two", "type": "Creature — Angel", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "human", "name": "My Human", "type": "Creature — Human", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "oangel", "name": "Opp Angel", "type": "Creature — Angel", "power": "4", "toughness": "4", "keywords": ["FLYING"], "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "angel1"},
+  {"op": "enter", "key": "human"},
+  {"op": "enter", "key": "oangel"},
+  {"op": "enter", "key": "angel2"}
+ ],
+ "expect": {
+  "zone": {"angel1": "battlefield", "angel2": "battlefield", "human": "battlefield", "oangel": "battlefield", "bishop": "battlefield"},
+  "life": {"0": 28, "1": 20},
+  "tokens": {"Spirit": 0}
+ }
+}

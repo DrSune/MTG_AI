@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D04_6_double_strike_ends_when_life_drops_below_25",
+ "notes": "Printed: 'As long as you have 25 or more life, this creature has double strike.' Seat 0 has 25 life, so double strike is on. On the opponent's turn their 1/1 attacks unblocked: seat 0 loses 1 life (24), and the Paladin has no double strike any more. Losing life is not gaining life: no counter.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pal", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "pinger", "name": "Pinger", "type": "Creature", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 25},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"pinger": true}}
+ ],
+ "expect": {
+  "life": {"0": 24, "1": 20},
+  "counters": {"pal": {}},
+  "battlefield_keywords": {"Twinblade Paladin": []}
+ }
+}

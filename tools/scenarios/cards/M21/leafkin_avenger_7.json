@@ -1,0 +1,54 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Leafkin Avenger, printed: '{7}{R}: This creature deals damage equal to its power to target player or planeswalker.' The ability waits on the stack (the activation holds priority) and the Leafkin leaves the battlefield (to the graveyard) before it resolves. The ability still resolves and deals damage equal to the power the Leafkin last had on the battlefield (last known information, CR 608.2h): 5 with its +1/+1 counter, so the opponent goes from 20 to 15 and I lose nothing.",
+ "cards": [
+  {
+   "key": "leaf",
+   "real": "Leafkin Avenger",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "leaf",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "p1"
+   ],
+   "hold": true
+  },
+  {
+   "op": "move",
+   "key": "leaf",
+   "to": "graveyard"
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 15
+  },
+  "zone": {
+   "leaf": "graveyard"
+  }
+ }
+}

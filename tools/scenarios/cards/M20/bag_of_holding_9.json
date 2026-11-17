@@ -1,0 +1,102 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_two_discards_are_two_triggers_one_for_each_card",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever you discard a card, exile that card from your graveyard.' Each card discarded is its own trigger, even when one spell discards both. Seat 0 casts Mind Rot on itself and discards its two cards (both named Discard Card); the Bag has two triggers waiting on the stack. Seat 1 counters one of them with Tale's End ('Counter target activated ability, triggered ability, or legendary spell'): the other still resolves, so exactly one Discard Card is exiled and exactly one stays in the graveyard (graveyard: one Discard Card and Mind Rot; with a single trigger for both cards, countering it would leave both).",
+ "cards": [
+  {
+   "key": "bag",
+   "real": "Bag of Holding",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mr",
+   "real": "Mind Rot",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "d1",
+   "name": "Discard Card",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "d2",
+   "name": "Discard Card",
+   "type": "Creature",
+   "power": "3",
+   "toughness": "3",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tale",
+   "real": "Tale's End",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 1,
+   "C": 2
+  },
+  "1": {
+   "U": 1,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "mr",
+   "controller": 0,
+   "targets": [
+    "p0"
+   ],
+   "hold": true
+  },
+  {
+   "op": "resolve",
+   "decisions": [
+    "first-legal"
+   ],
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "tale",
+   "controller": 1,
+   "targets": [
+    "ability:bag"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tale": "graveyard",
+   "mr": "graveyard"
+  },
+  "graveyard": {
+   "0": [
+    "Discard Card",
+    "Mind Rot"
+   ],
+   "1": [
+    "Tale's End"
+   ]
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  }
+ }
+}

@@ -1,0 +1,77 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Warded Battlements, printed: 'Attacking creatures you control get +1/+0.' Only 'attacking creatures YOU control': in seat 1's turn its two 2/2s attack seat 0; one is unblocked and deals 2 (seat 0: 18), the other is blocked by seat 0's 2/2, which is not attacking and deals only 2 (no bonus for the blocker, none for the attacker). Both die.",
+ "cards": [
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "My Blocker",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Their A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "name": "Their B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "o1": true,
+    "o2": true
+   },
+   "block": {
+    "mine": "o2"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "zone": {
+   "mine": "graveyard",
+   "o2": "graveyard",
+   "o1": "battlefield"
+  },
+  "damage_received": {
+   "mine": 2,
+   "o2": 2
+  }
+ }
+}

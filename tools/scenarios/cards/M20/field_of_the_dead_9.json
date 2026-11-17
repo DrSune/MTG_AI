@@ -1,0 +1,76 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fotd",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Field of the Dead"
+  },
+  {
+   "key": "pl",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "is",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "sw",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "mt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "fo",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "ota",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Test Land A",
+   "type": "Land"
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "ota",
+   "seat": 0
+  },
+  {
+   "op": "play",
+   "key": "fo",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fo": "battlefield"
+  },
+  "controller": {
+   "ota": 0
+  },
+  "tokens": {
+   "Zombie": 1
+  }
+ },
+ "notes": "Field of the Dead, printed: 'if you CONTROL seven or more lands with different names'. I own Field of the Dead and four basics, play a Forest, and also control the opponent's Test Land A: seven names under my control, so one Zombie."
+}

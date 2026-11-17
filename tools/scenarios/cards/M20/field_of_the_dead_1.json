@@ -1,0 +1,77 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fotd",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Field of the Dead"
+  },
+  {
+   "key": "pl",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "is",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "sw",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "mt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "fo",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "ta",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Test Land A",
+   "type": "Land"
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "fotd",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "fotd": "battlefield"
+  },
+  "tapped": {
+   "fotd": true
+  },
+  "tokens": {
+   "Zombie": 1
+  },
+  "battlefield_pt": {
+   "Zombie": [
+    2,
+    2
+   ]
+  }
+ },
+ "notes": "Field of the Dead, printed: 'This land enters tapped. Whenever this land or another land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.' I control six lands with six different names and play Field of the Dead itself: it enters tapped, I now control seven lands with seven different names, so its own entering triggers and I get one 2/2 Zombie."
+}

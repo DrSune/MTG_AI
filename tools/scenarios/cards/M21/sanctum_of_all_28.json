@@ -1,0 +1,20 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Sanctum of All. Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search your library this way, shuffle.' At turn 3's upkeep seat 0 fires the may and searches its graveyard only (option 2): Shrine G comes from the graveyard onto the battlefield under seat 0's control; Shrine L in the library is never looked at and stays. The library was not searched, so it is NOT shuffled: after the draw step takes the top filler (Library 5), the remaining order is the original one, Library 4 down to Library 0, then the plain Enchantment and Shrine L.",
+ "cards": [
+  {"key": "a", "real": "Sanctum of All", "zone": "hand", "controller": 0},
+  {"key": "sl", "name": "Shrine L", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "library", "controller": 0},
+  {"key": "plain", "name": "Plain Enchantment", "type": "Legendary Enchantment", "cmc": 1, "zone": "library", "controller": 0},
+  {"key": "sg", "name": "Shrine G", "type": "Legendary Enchantment — Shrine", "cmc": 1, "zone": "graveyard", "controller": 0},
+  {"key": "pg", "name": "Plain Graveyard Enchantment", "type": "Legendary Enchantment", "cmc": 1, "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "a"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn", "decisions": ["fire", "2", "sg"]}
+ ],
+ "expect": {
+  "zone": {"a": "battlefield", "sg": "battlefield", "sl": "library", "pg": "graveyard"},
+  "controller": {"sg": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Plain Enchantment", "Shrine L"]}
+ }}

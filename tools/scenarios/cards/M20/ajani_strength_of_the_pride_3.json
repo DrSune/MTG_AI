@@ -1,0 +1,18 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed: '[-2]: Create a 2/2 white Cat Soldier creature token named Ajani's Pridemate with \"Whenever you gain life, put a +1/+1 counter on this token.\"' One 2/2 token named Ajani's Pridemate is created under seat 0's control (exactly one), Ajani goes from loyalty 5 to 3, and nothing else changes.",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "activate", "key": "aj", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "tokens": {"Ajani's Pridemate": 1},
+  "battlefield_pt": {"Ajani's Pridemate": [2, 2]},
+  "counters": {"aj": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20}
+ }
+}

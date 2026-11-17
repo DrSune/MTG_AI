@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Tide Skimmer. Printed: 'Whenever YOU attack with two or more creatures with flying, draw a card.' On turn 2 seat 1 attacks seat 0 with two 1/1 flying Birds (no blocks): seat 0, Tide Skimmer's controller, draws nothing (hand 0; it is not seat 0's turn, so no draw step either) and seat 1 draws nothing from it (its hand is just its turn-2 draw: 1). Life 20 - 2 = 18.",
+ "cards": [
+  {
+   "key": "ts",
+   "real": "Tide Skimmer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ob1",
+   "name": "Opp Bird One",
+   "type": "Creature — Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ob2",
+   "name": "Opp Bird Two",
+   "type": "Creature — Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "ob1": true,
+    "ob2": true
+   }
+  }
+ ],
+ "expect": {
+  "turn_seats": [
+   0,
+   1
+  ],
+  "attackers": {
+   "ob1": true,
+   "ob2": true
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  },
+  "life": {
+   "0": 18
+  }
+ }
+}

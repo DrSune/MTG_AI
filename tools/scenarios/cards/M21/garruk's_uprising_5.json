@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' The 'if' is an intervening condition (CR 603.4): it is true when the enchantment enters (my 4/4 is there) and is checked again as the trigger resolves. In response to the waiting trigger the 4/4 leaves the battlefield; the trigger then does nothing and I draw no card (hand 0).",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "up", "hold": true},
+  {"op": "move", "key": "ape", "to": "graveyard"}
+ ],
+ "expect": {"zone": {"up": "battlefield", "ape": "graveyard"}, "hand": {"0": 0}}}

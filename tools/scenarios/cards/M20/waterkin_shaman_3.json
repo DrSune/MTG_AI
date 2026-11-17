@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "waterkin_shaman_each_flier_you_control_entering_gives_it_plus_1_plus_1",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.' Two fliers enter under seat 0: two triggers, the 2/1 Shaman becomes 4/3. A ground creature and a creature with reach (not flying) of seat 0, and a flier entering under seat 1, add nothing. The Shaman is the one that grows: the entering fliers keep their own printed sizes (1/1 and 2/2).",
+ "cards": [
+  {"key": "shaman", "real": "Waterkin Shaman", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "My Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0},
+  {"key": "f2", "name": "My Drake", "type": "Creature — Drake", "power": "2", "toughness": "2", "keywords": ["FLYING"], "zone": "hand", "controller": 0},
+  {"key": "ground", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "reach", "name": "My Spider", "type": "Creature — Spider", "power": "1", "toughness": "3", "keywords": ["REACH"], "zone": "hand", "controller": 0},
+  {"key": "oflier", "name": "Opp Bird", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "f1"},
+  {"op": "enter", "key": "ground"},
+  {"op": "enter", "key": "reach"},
+  {"op": "enter", "key": "oflier"},
+  {"op": "enter", "key": "f2"}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield", "f2": "battlefield", "ground": "battlefield", "reach": "battlefield", "oflier": "battlefield"},
+  "power": {"shaman": 4, "f1": 1, "f2": 2, "ground": 2, "reach": 1, "oflier": 1},
+  "toughness": {"shaman": 3, "f1": 1, "f2": 2, "ground": 2, "reach": 3, "oflier": 1}
+ }
+}

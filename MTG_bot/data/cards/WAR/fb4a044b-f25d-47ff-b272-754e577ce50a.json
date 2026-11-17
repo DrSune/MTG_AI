@@ -5,39 +5,48 @@
  "name": "Turret Ogre",
  "text_sha": "3a7b49d3eb1a631730e508f53b43531779b75a99806cb56dabb017c41ecbe2ad",
  "verified": {
-  "tree_sha": "8361960490e01e46a2e338d31b638ac467deb93ef6b63ab688214840ab035c16",
+  "tree_sha": "bbcfc0815a8f5d0109caa676651712d330289298c65fa835821f9f650b0cf331",
   "probe_sha": "492ac0a58dcb3772acff1441a7c8995100f826afbbb8fb653213a99064f3ad1e",
-  "date": "2026-11-14",
-  "reviewer": "reprint-wave-2026-11-14",
+  "date": "2026-11-17",
+  "reviewer": "reprint-of-wave4-2026-11-17",
   "clauses": [
    {
     "clause": "Reach",
-    "status": "NOT_EXERCISED",
-    "evidence": "keywords[0] REACH ('keywords +REACH' on cast); no probe stimulus has a flier attack into it. Pack reach_blocks_flier: the opponent's 2/2 flier attacks and the Ogre's block stands (pass)",
+    "status": "OK",
+    "evidence": "cast: card keywords +REACH.",
     "issue": ""
    },
    {
-    "clause": "When this creature enters, if you control another creature with power 4 or greater, this creature deals 2 damage to each opponent.",
+    "clause": "When this creature enters, ... this creature deals 2 damage to each opponent.",
     "status": "OK",
-    "evidence": "[cast] and the opponent's-turn entry: the trigger fires with you_giant (4/4) on board and 'opp is dealt 2 damage', opp 20 -> 18, your life unchanged; [a creature enters under your control] -> none (only its own entry). Tree matches the compiler's B2a-turret-ogre (CONTROLLER_IS YOU, POWER_GE 4, FNot IS_SOURCE; ALL opponents). The false condition is not in the trace: pack no_other_big, where only the Ogre itself (power 4) and the opponent's 5/5 qualify, deals no damage (pass)",
+    "evidence": "[cast] and the flash-in stimulus: the trigger fires and the opponent takes 2 (20 -> 18); nobody else is hurt.",
+    "issue": ""
+   },
+   {
+    "clause": "... if you control another creature with power 4 or greater, ...",
+    "status": "NOT_EXERCISED",
+    "evidence": "you_giant (4/4, power exactly 4) is on every standard board, so the condition is true in every trace; its false branch is never seen. Packs: K07_1 (false: my 3/3, their 5/5, the Ogre's own power 4), K07_3 and K07_4 (checked again as the trigger resolves), K07_2 (each opponent in a three-player game), K07_5 (current power: a 3/3 with a +1/+1 counter qualifies).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/turret_ogre_1.json",
-   "tools/scenarios/cards/M21/turret_ogre_2.json",
-   "tools/scenarios/cards/M21/turret_ogre_3.json"
+   "tools/scenarios/cards/M21/turret_ogre_4.json",
+   "tools/scenarios/cards/M21/turret_ogre_5.json",
+   "tools/scenarios/cards/M21/turret_ogre_6.json",
+   "tools/scenarios/cards/M21/turret_ogre_7.json",
+   "tools/scenarios/cards/M21/turret_ogre_8.json"
   ],
   "mutation": {
    "mutants": 13,
-   "killed": 8,
-   "score": 0.6153846153846154,
+   "killed": 7,
+   "score": 0.5384615384615384,
    "survived": [
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "widen filter (drop part 2) at 1/0/condition/inner_filter",
-    "widen filter (drop part 3) at 1/0/condition/inner_filter",
-    "amount-1 at 1/0/condition/inner_filter/children/2/count"
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 3) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount-1 at 1/0/condition/quantity/selector/filter/children/2/count"
    ]
   },
   "reprint_of": "M21"

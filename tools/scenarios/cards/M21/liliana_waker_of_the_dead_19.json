@@ -1,0 +1,12 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\"' Liliana has seven loyalty, so the -7 is paid and she leaves (0 loyalty) with the emblem made. At the beginning of my combat the emblem puts a creature card from A graveyard, the opponent's here (my own graveyard holds no creature card), onto the battlefield under MY control; it gains haste, so it attacks the same turn and the opponent goes from 20 to 17.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "dead", "name": "Opp Dead Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"dead": true}, "decisions": ["dead"]}
+ ],
+ "expect": {"zone": {"lil": "graveyard", "dead": "battlefield"}, "controller": {"dead": 0}, "attackers": {"dead": true}, "life": {"0": 20, "1": 17}, "tapped": {"dead": true}}}

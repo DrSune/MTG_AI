@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "counters": {"adh": {}},
+    "power": {"adh": 2},
+    "toughness": {"adh": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'if YOU control a Basri planeswalker'. Basri Ket is the OPPONENT's: at the beginning of your combat the Adherent gets no counter (still 2/1)."
+}

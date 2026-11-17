@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 40, "seed": 7},
+ "notes": "Ajani, Strength of the Pride (M20). Printed: 'at least 15 life more than your STARTING life total'. In a game that starts at 40 life (Commander) seat 0 has 54: one short of 55, so nothing is exiled (a threshold of 35, which 54 would pass, would be the fixed 20-life reading).",
+ "cards": [
+  {"key": "aj", "real": "Ajani, Strength of the Pride", "zone": "battlefield", "controller": 0},
+  {"key": "oc", "name": "Opp Creature", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "ot", "name": "Opp Trinket", "type": "Artifact", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "aj", "set": 5},
+  {"op": "life", "seat": 0, "set": 54},
+  {"op": "activate", "key": "aj", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"aj": "battlefield", "oc": "battlefield", "ot": "battlefield"},
+  "counters": {"aj": {"LOYALTY": 5}}
+ }
+}

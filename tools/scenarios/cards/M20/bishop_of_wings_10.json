@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_the_spirit_tokens_are_white",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... create a 1/1 white Spirit creature token with flying.' Two Angels of seat 0 die and make two Spirits. A token has no pack key, so seat 1 designates the tokens by their handles (card:18 and card:19: six pack cards, twelve library fillers, then the tokens in the order made). Noxious Grasp ('creature or planeswalker that's green or white') and Fry ('white or blue') are both cast on a Spirit: each is legal only if the Spirit is white (green and white, and white and blue, meet only in white). Both Spirits are destroyed and seat 1 gains 1 life from Grasp.",
+ "cards": [
+  {"key": "bishop", "real": "Bishop of Wings", "zone": "battlefield", "controller": 0},
+  {"key": "a1", "name": "My Angel One", "type": "Creature — Angel", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0},
+  {"key": "a2", "name": "My Angel Two", "type": "Creature — Angel", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1},
+  {"key": "grasp", "real": "Noxious Grasp", "zone": "hand", "controller": 1},
+  {"key": "fry", "real": "Fry", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "killer", "target": "a1", "amount": 9, "controller": 1},
+  {"op": "deal_damage", "source": "killer", "target": "a2", "amount": 9, "controller": 1},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"B": 1, "R": 1, "C": 2}},
+  {"op": "act", "seat": 1, "words": ["cast:grasp", "card:18", "cast:fry", "card:19"]}
+ ],
+ "expect": {
+  "zone": {"grasp": "graveyard", "fry": "graveyard", "bishop": "battlefield"},
+  "tokens": {"Spirit": 0},
+  "life": {"0": 20, "1": 21}
+ }
+}

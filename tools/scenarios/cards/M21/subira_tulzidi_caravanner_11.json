@@ -1,0 +1,108 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Subira, Tulzidi Caravanner. Printed: '{1}: Another target creature with power 2 or less can't be blocked this turn.' Seat 0 pays {1} targeting its 1/1 Runner; with that ability on the stack, Burn Bright (+2/+0 to its creatures) resolves first and the Runner is a 3/1: its power is no longer 2 or less, so the target is illegal as the ability resolves (CR 608.2b) and it does nothing. The Runner attacks and the untapped 0/9 Wall may block it: its block ask offers the Runner, the Wall blocks it, and no damage reaches seat 1.",
+ "cards": [
+  {
+   "key": "sub",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Subira, Tulzidi Caravanner"
+  },
+  {
+   "key": "runner",
+   "zone": "battlefield",
+   "controller": 0,
+   "name": "Runner",
+   "type": "Creature — Human",
+   "power": 1,
+   "toughness": 1
+  },
+  {
+   "key": "bb",
+   "zone": "hand",
+   "controller": 0,
+   "real": "Burn Bright"
+  },
+  {
+   "key": "wall",
+   "zone": "battlefield",
+   "controller": 1,
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "power": 0,
+   "toughness": 9
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "sub",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "runner"
+   ],
+   "hold": true
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 3
+   },
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "bb",
+   "real": "Burn Bright"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "runner": true,
+    "sub": false
+   },
+   "block": {
+    "wall": "runner"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "runner": 3
+  },
+  "zone": {
+   "bb": "graveyard"
+  },
+  "attackers": {
+   "runner": true,
+   "sub": false
+  },
+  "block_asks": {
+   "wall": "<runner>,NONE"
+  },
+  "blocked": {
+   "runner": [
+    "wall"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "damage": {
+   "wall": 3
+  }
+ }
+}

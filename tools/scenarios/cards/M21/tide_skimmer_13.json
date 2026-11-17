@@ -1,0 +1,64 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Tide Skimmer. Printed: 'Whenever you attack with two or more creatures with flying, draw a card.' One attack, one trigger: seat 0 attacks with Tide Skimmer and two 1/1 flying Birds (three creatures with flying) and draws exactly one card, not two or three (hand 1). Life 20 - 2 - 1 - 1 = 16.",
+ "cards": [
+  {
+   "key": "ts",
+   "real": "Tide Skimmer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b1",
+   "name": "Bird One",
+   "type": "Creature — Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b2",
+   "name": "Bird Two",
+   "type": "Creature — Bird",
+   "power": 1,
+   "toughness": 1,
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "ts": true,
+    "b1": true,
+    "b2": true
+   }
+  }
+ ],
+ "expect": {
+  "attackers": {
+   "ts": true,
+   "b1": true,
+   "b2": true
+  },
+  "hand": {
+   "0": 1
+  },
+  "life": {
+   "1": 16
+  }
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_an_angel_token_dying_counts_through_last_known_information",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.' An Angel TOKEN of seat 0 dies and ceases to exist (CR 704.5d), yet the trigger that names it still happens: it is read as it last existed (an Angel seat 0 controlled), so exactly one Spirit exists and no Angel token does.",
+ "cards": [
+  {
+   "key": "bishop",
+   "real": "Bishop of Wings",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "angel",
+   "name": "Angel Token",
+   "type": "Creature \u2014 Angel",
+   "power": "4",
+   "toughness": "4",
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "killer",
+   "name": "Killer",
+   "type": "Creature \u2014 Giant",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "angel",
+   "amount": 9,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "angel": "ceased"
+  },
+  "tokens": {
+   "Spirit": 1,
+   "Angel Token": 0
+  }
+ }
+}

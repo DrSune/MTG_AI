@@ -1,0 +1,46 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 25,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "pal",
+   "real": "Twinblade Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "pal": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 25,
+   "1": 19
+  },
+  "battlefield_keywords": {
+   "Twinblade Paladin": [
+    "DOUBLE_STRIKE"
+   ],
+   "My Bear": []
+  }
+ },
+ "notes": "Twinblade Paladin, printed: 'As long as you have 25 or more life, this creature has double strike.' I have exactly 25 life: the Paladin (and only the Paladin) has double strike. It attacks the empty board and deals 3 first-strike and 3 regular damage (25 to 19); my Bear has no keyword."
+}

@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+    {"key": "kite", "name": "Paper Kite", "type": "Artifact", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"W": 1, "C": 1}},
+  "steps": [
+    {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["obear"], "expect_raise": "illegal activation: condition:false"}
+  ],
+  "expect": {
+    "tapped": {"enf": false, "obear": false},
+    "mana_pool": {"0": {"W": 1, "C": 1}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I11). Printed: 'Activate only if you control a CREATURE with flying.' A noncreature artifact of yours with flying is not a creature with flying: the activation is refused."
+}

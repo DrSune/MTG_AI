@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_a_bag_that_left_and_came_back_remembers_nothing",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Return all cards exiled with this artifact ...'. A card that changes zones is a new object (CR 400.7): Spare A was exiled with the first Bag. That Bag is returned to its owner's hand and put onto the battlefield again; the new Bag exiled nothing. Sacrificing it for {4} returns nothing: Spare A stays in exile, the Bag is in the graveyard, and the hand is Spare B plus the card drawn at the loot (2).",
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "spare_b", "name": "Spare B", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]},
+  {"op": "move", "key": "bag", "to": "hand"},
+  {"op": "enter", "key": "bag"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "spare_a": "exile", "spare_b": "hand"},
+  "hand": {"0": 2},
+  "mana_pool": {"0": {}}
+ }
+}

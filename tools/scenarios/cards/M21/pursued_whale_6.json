@@ -1,0 +1,31 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Pursued Whale. Printed: 'When this creature enters, EACH OPPONENT creates a 1/1 red Pirate creature token ...'. In a three-player game the Whale enters under seat 0's control: seat 1 and seat 2 each create a Pirate (two 1/1 Pirate tokens on the battlefield) and seat 0 creates none.",
+ "cards": [
+  {
+   "key": "whale",
+   "real": "Pursued Whale",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "whale"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Pirate": 2
+  },
+  "zone": {
+   "whale": "battlefield"
+  }
+ }
+}

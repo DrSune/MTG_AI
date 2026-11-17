@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_only_enchantment_spells_get_the_discount",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Enchantment spells you cast cost {1} less'. A creature spell (Pack Mastiff, {1}{R}) and an artifact spell (Marauder's Axe, {2}) of seat 0 are not enchantment spells: one mana pays neither, both casts are refused and both cards stay in hand.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "dog", "real": "Pack Mastiff", "zone": "hand", "controller": 0},
+  {"key": "axe", "real": "Marauder's Axe", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "dog", "controller": 0, "expect_raise": "illegal cast"},
+  {"op": "cast", "key": "axe", "controller": 0, "expect_raise": "illegal cast"}
+ ],
+ "expect": {
+  "zone": {"dog": "hand", "axe": "hand"},
+  "mana_pool": {"0": {"R": 1}}
+ }
+}

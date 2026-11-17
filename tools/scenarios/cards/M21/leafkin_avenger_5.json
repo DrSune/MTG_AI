@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Leafkin Avenger, printed: '{T}: Add {G} for each creature with power 4 or greater you control.' Seat 0 controls three creatures of power 4 or greater: Leafkin itself (4), a 4/4 and a 3/3 carrying a +1/+1 counter (power 4); also a plain 3/3 (power 3, too small) and the opponent's 5/5 (not mine). So the tap adds exactly GGG. Nothing else is in the pool, and Thrashing Brontodon ({1}{G}{G}) is cast by tapping Leafkin alone: it resolves, Leafkin is tapped and no mana is left over (a fourth G would float).",
+ "cards": [
+  {"key": "leaf", "real": "Leafkin Avenger", "zone": "battlefield", "controller": 0},
+  {"key": "four", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0},
+  {"key": "pumped", "name": "Pumped Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+  {"key": "small", "name": "Small Ape", "type": "Creature — Ape", "power": 3, "toughness": 3, "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Big Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1},
+  {"key": "bront", "real": "Thrashing Brontodon", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "bront", "real": "Thrashing Brontodon", "tap": true}
+ ],
+ "expect": {"zone": {"bront": "battlefield"}, "tapped": {"leaf": true}, "mana_pool": {"0": {}}}}

@@ -228,5 +228,48 @@
  },
  "probe": {
   "sha": "8486577bc8920c8f485911d34ee48533a40e1316129c11ffd45c4019415b1c2a"
+ },
+ "verified": {
+  "tree_sha": "adbe2b8f100006caad03754bf8671ae45bf7f40ceabd792f395de799322e94ec",
+  "probe_sha": "8486577bc8920c8f485911d34ee48533a40e1316129c11ffd45c4019415b1c2a",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Flying",
+    "status": "OK",
+    "evidence": "[cast] 'keywords +FLYING'; the static section lists 'card keywords: FLYING'; tree keywords[0] is KeywordAbility(FLYING).",
+    "issue": ""
+   },
+   {
+    "clause": "When this creature enters, if you control another creature named Faerie Miscreant, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree reads right: ZoneChangeEvent(IS_SOURCE, to battlefield YOU) with the intervening-if as the condition: QTY_GE 1 over a count of battlefield objects FAnd(CONTROLLER_IS YOU, NAME_EQ 'Faerie Miscreant', TYPE_EQ Creature, FNot(IS_SOURCE)); effect DRAW 1 controller YOU. The trace only shows the negative side ([cast]: hand 7 -> 6, no other Miscreant, no draw, so the entering creature is not its own 'another'); no stimulus puts a second Miscreant in play. F00_1 draws exactly one card with another of your own Miscreants in play; F00_2 draws nothing with only a differently named creature of yours plus the opponent's Miscreant; F00_3/F00_4 hold the trigger on the stack and show the condition is checked again as it resolves (CR 603.4).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/faerie_miscreant_1.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_3.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_4.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_5.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_6.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_7.json",
+   "tools/scenarios/cards/M20/faerie_miscreant_8.json"
+  ],
+  "mutation": {
+   "mutants": 10,
+   "killed": 3,
+   "score": 0.3,
+   "survived": [
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller"
+   ]
+  }
  }
 }

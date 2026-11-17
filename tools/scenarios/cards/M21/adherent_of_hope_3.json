@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "adh", "real": "Adherent of Hope", "zone": "battlefield", "controller": 0},
+    {"key": "other", "name": "Bystander Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0}
+  ],
+  "expect": {
+    "counters": {"adh": {"PLUS_1_PLUS_1": 1}, "other": {}, "basri": {"LOYALTY": 3}},
+    "power": {"adh": 3, "other": 2},
+    "toughness": {"adh": 2, "other": 2}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I08). Printed: 'At the beginning of combat on your turn, if you control a Basri planeswalker, put a +1/+1 counter on this creature.' You control Basri Ket and it is your turn: at the beginning of combat the Adherent gets exactly ONE +1/+1 counter (3/2); no other creature does."
+}

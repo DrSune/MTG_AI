@@ -1,0 +1,17 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Ugin, the Spirit Dragon. Printed: '[-X]: Exile each permanent with mana value X or less that's one or more colors.' X = 0 costs no loyalty (7 stays 7) and exiles each colored permanent of mana value 0: a red token (a token's mana value is 0; it is exiled and ceases to exist) and a red mana-value-0 Creature card. Not exiled: a red mana-value-1 Creature, and a colorless token of mana value 0.",
+ "cards": [
+  {"key": "ugin", "real": "Ugin, the Spirit Dragon", "zone": "battlefield", "controller": 0},
+  {"key": "tk", "name": "Red Token", "type": "Creature — Goblin", "power": 1, "toughness": 1, "cmc": 0, "colors": ["R"], "token": true, "zone": "battlefield", "controller": 0},
+  {"key": "z0", "name": "Zero Red", "type": "Creature — Goblin", "power": 1, "toughness": 1, "cmc": 0, "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "o1", "name": "One Red", "type": "Creature — Goblin", "power": 1, "toughness": 1, "cmc": 1, "colors": ["R"], "zone": "battlefield", "controller": 1},
+  {"key": "ct", "name": "Colorless Token", "type": "Artifact", "cmc": 0, "token": true, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "activate", "key": "ugin", "idx": 1, "seat": 0, "x": 0}
+ ],
+ "expect": {
+  "zone": {"ugin": "battlefield", "tk": "ceased", "z0": "exile", "o1": "battlefield", "ct": "battlefield"},
+  "counters": {"ugin": {"LOYALTY": 7}}
+ }}

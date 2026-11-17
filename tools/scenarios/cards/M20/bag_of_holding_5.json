@@ -1,0 +1,32 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_each_returned_card_goes_to_its_own_owners_hand",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you discard a card, exile that card from your graveyard.' and 'Return all cards exiled with this artifact to their owner's hand.' Seat 0 loots away Mine A; the Bag then changes hands (seat 1 gains control), untaps in seat 1's untap step, and seat 1, its controller, loots away Theirs B: 'you' is the Bag's controller, so Theirs B is exiled with it too. Control goes back to seat 0, the Bag untaps on seat 0's turn and is sacrificed for {4}: Mine A returns to seat 0's hand, Theirs B to its OWNER's hand, seat 1's. Hands: seat 0 holds Spare 0, one drawn at the loot, one for its next turn, and Mine A (4); seat 1 holds Spare 1, one for its turn, one drawn at the loot, and Theirs B (4).",
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "mine_a", "name": "Mine A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "spare0", "name": "Spare 0", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "theirs_b", "name": "Theirs B", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 1},
+  {"key": "spare1", "name": "Spare 1", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["mine_a"]},
+  {"op": "gain_control", "key": "bag", "seat": 1},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 1, "add": {"C": 2}},
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 1, "decisions": ["theirs_b"]},
+  {"op": "gain_control", "key": "bag", "seat": 0},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "mana", "seat": 0, "add": {"C": 4}},
+  {"op": "activate", "key": "bag", "idx": 2, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"bag": "graveyard", "mine_a": "hand", "theirs_b": "hand", "spare0": "hand", "spare1": "hand"},
+  "hand": {"0": 4, "1": 4},
+  "mana_pool": {"0": {}, "1": {}}
+ }
+}

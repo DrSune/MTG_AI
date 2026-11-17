@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever you draw your SECOND card each turn, create a 2/2 green Cat creature token.' Three Crash Throughs, three cards drawn in one turn: only the second one makes a Cat. The third draw does not: exactly one Cat in total.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "ct1", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "ct2", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "ct3", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "cast", "key": "ct1", "real": "Crash Through"},
+  {"op": "cast", "key": "ct2", "real": "Crash Through"},
+  {"op": "cast", "key": "ct3", "real": "Crash Through"}
+ ],
+ "expect": {"tokens": {"Cat": 1}, "hand": {"0": 3}}}

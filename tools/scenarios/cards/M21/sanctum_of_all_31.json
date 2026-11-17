@@ -1,0 +1,68 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Sanctum of All. Printed: 'At the beginning of your upkeep, you may search YOUR library and/or graveyard for a Shrine card and put it onto the battlefield.' At turn 3's upkeep seat 0 fires the may and searches both zones (option 0). Shrine L is in seat 0's library, Shrine G in its graveyard, and Opp Shrine in seat 1's library. Taking Shrine L from seat 0's library works (a search of both zones includes the library); Shrine G and seat 1's Opp Shrine stay where they are.",
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sl",
+   "name": "Shrine L",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sg",
+   "name": "Shrine G",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "osl",
+   "name": "Opp Shrine",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "0",
+    "sl"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield",
+   "sl": "battlefield",
+   "sg": "graveyard",
+   "osl": "library"
+  },
+  "controller": {
+   "sl": 0
+  }
+ }
+}

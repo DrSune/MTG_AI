@@ -1,0 +1,73 @@
+{
+ "set": "M20",
+ "name": "dread_presence_its_second_mode_resolves_even_if_it_has_left_the_battlefield",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'This creature deals 2 damage to any target and you gain 2 life.' The mode-two trigger is on the stack with the opponent's 3/3 as its target when Dread Presence is destroyed in response (step two): the ability is independent of its source (CR 113.7a), so it still resolves, the damage is dealt by Dread Presence as it last existed (2 marked on the 3/3) and seat 0 still gains 2 life (22).",
+ "cards": [
+  {
+   "key": "dread",
+   "real": "Dread Presence",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "swamp",
+   "real": "Swamp",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "obig",
+   "name": "Opp Ox",
+   "type": "Creature \u2014 Ox",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "killer",
+   "name": "Killer",
+   "type": "Creature \u2014 Giant",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "swamp",
+   "seat": 0,
+   "decisions": [
+    "1",
+    "obig"
+   ],
+   "hold": true
+  },
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "dread",
+   "amount": 9,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dread": "graveyard",
+   "obig": "battlefield"
+  },
+  "damage": {
+   "obig": 2
+  },
+  "life": {
+   "0": 22,
+   "1": 20
+  }
+ }
+}

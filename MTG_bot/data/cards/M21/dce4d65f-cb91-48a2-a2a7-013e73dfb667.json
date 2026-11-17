@@ -5,25 +5,29 @@
  "name": "Legion's Judgment",
  "text_sha": "a28f289a9935666666b5555e215900a91fbc74e6046ab7ef6053d653bf759d06",
  "verified": {
-  "tree_sha": "3de2f0b8c17d9f23286b4589a92483e5f1131d26623a736ed6c8be6a2df5dc41",
-  "probe_sha": "cfabbe9ba116d3226fdc2b02fb2bc9c3cd2cbeb090090034ec813f108691f4e3",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-I",
+  "tree_sha": "f388231e5506110ab476303494e8ebdbfff8a6cef0c957bc666874041504b6c5",
+  "probe_sha": "6531a418e74668bc521dba61e82de3f35b4a62e5011233f26b94d824a84dc3e9",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "Sorcery {2}{W} (card type / cost)",
+    "clause": "Legion's Judgment {2}{W} Sorcery (cast)",
     "status": "OK",
-    "evidence": "tree SpellAbility(kind=SORCERY); both cast variants pay 'mana W-3' (3 total for {2}{W})",
+    "evidence": "[cast targets=...]: hand -> stack -> graveyard, mana C-2 W-1. Pack J10_3 (a sorcery: refused in the opponent's turn).",
     "issue": ""
    },
    {
     "clause": "Destroy target creature with power 4 or greater.",
     "status": "OK",
-    "evidence": "target slot (cast): 1..1 of [you_giant, opp_giant] (only the 4/4s; the 2/2 bears excluded, either controller allowed); [cast targets=['you_giant']] and ['opp_giant']: target moves battlefield -> graveyard (by card/DESTROY), dies",
+    "evidence": "'target slot (cast): 1..1 of [you_giant, opp_giant]': the 4/4s of either side are offered and the 2/2s, the 1/1 and the 3/3 opp_tapped are not (the threshold is exactly 4); [cast targets=['you_giant']] and ['opp_giant']: 'moves battlefield -> graveyard (by card/DESTROY)'. Packs J10_1 (a 3/3 refused, a 4/4 destroyed), J10_2 (my own 6/6).",
     "issue": ""
    }
   ],
-  "packs": [],
+  "packs": [
+   "tools/scenarios/cards/M21/legion's_judgment_1.json",
+   "tools/scenarios/cards/M21/legion's_judgment_2.json",
+   "tools/scenarios/cards/M21/legion's_judgment_3.json"
+  ],
   "mutation": {
    "mutants": 6,
    "killed": 5,

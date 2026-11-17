@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_blocking_is_not_attacking_it_stays_1_1",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... as long as it's attacking.' On seat 1's turn a green 2/2 attacks and the Berserker blocks it: a blocker is not an attacker, so it deals only 1 (not 3) and takes 2, which kills it.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "raider", "name": "Green Raider", "type": "Creature — Elf", "power": "2", "toughness": "2", "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 1, "attack": {"raider": true}, "block": {"ber": "raider"}}
+ ],
+ "expect": {
+  "attackers": {"raider": true},
+  "blocked": {"raider": ["ber"]},
+  "damage_received": {"ber": 2, "raider": 1},
+  "damage": {"raider": 1},
+  "zone": {"ber": "graveyard", "raider": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

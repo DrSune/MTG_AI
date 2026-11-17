@@ -1,0 +1,18 @@
+{"set": "M20", "name": "D00_3_own_spell_untaxed",
+ "notes": "Printed: 'Spells your OPPONENTS cast that target this creature cost {2} more to cast.' Seat 0 controls Boreal Elemental and casts Disfigure at it with only {B} in the pool: its own controller's spell is not taxed, so the cast resolves and the Elemental is 1/2 until end of turn.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "boreal", "real": "Boreal Elemental", "zone": "battlefield", "controller": 0},
+  {"key": "disfigure", "real": "Disfigure", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "cast", "key": "disfigure", "real": "Disfigure", "controller": 0, "targets": ["boreal"]}
+ ],
+ "expect": {
+  "zone": {"disfigure": "graveyard", "boreal": "battlefield"},
+  "power": {"boreal": 1},
+  "toughness": {"boreal": 2},
+  "mana_pool": {"0": {}}
+ }
+}

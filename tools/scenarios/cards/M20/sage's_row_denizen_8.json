@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "name": "sages_row_denizen_the_target_ask_offers_only_the_two_players",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... target player mills two cards.' With a creature on each side, the target ask still offers only players: no decision word is given, so the engine stops at the ask and the message lists every word it offers, exactly the two players.",
+ "cards": [
+  {"key": "denizen", "real": "Sage's Row Denizen", "zone": "battlefield", "controller": 0},
+  {"key": "blue", "name": "Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "blue", "expect_raise": "needs a decision from ('player:0', 'player:1')"}
+ ],
+ "expect": {
+  "zone": {"blue": "battlefield"}
+ }
+}

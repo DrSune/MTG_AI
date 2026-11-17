@@ -1,0 +1,26 @@
+{"set": "FDN", "name": "D03_2_unblockable_only_this_turn",
+ "notes": "Printed: '... can't be blocked this turn.' On turn 1 the Smuggler targets my 2/2. Two turns later (seat 0's turn 3) the effect is over: the 2/2 attacks, the opposing 4/4 is offered the block and takes it, killing the 2/2; the opponent's life stays 20.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "smug", "real": "Goblin Smuggler", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "ogiant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "smug", "idx": 0, "seat": 0, "targets": ["bear"]},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "end_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"bear": true}, "block": {"ogiant": "bear"}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "attackers": {"bear": true},
+  "block_asks": {"ogiant": "<bear>,NONE"},
+  "blocked": {"bear": ["ogiant"]},
+  "zone": {"bear": "graveyard", "ogiant": "battlefield"},
+  "damage": {"ogiant": 2},
+  "life": {"0": 20, "1": 20}
+ }
+}

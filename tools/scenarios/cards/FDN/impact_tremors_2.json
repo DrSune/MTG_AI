@@ -1,0 +1,49 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Impact Tremors, printed: 'Whenever a creature you control enters, this enchantment deals 1 damage to each opponent.' Dragon Fodder ('Create two 1/1 red Goblin creature tokens') puts two creatures onto the battlefield in one event: each creature that enters is its own occurrence, so two triggers and two damage (20 -> 18). The two simultaneous triggers are the controller's to order (first-legal).",
+ "cards": [
+  {
+   "key": "tremors",
+   "real": "Impact Tremors",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fodder",
+   "real": "Dragon Fodder",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "fodder",
+   "real": "Dragon Fodder",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "tokens": {
+   "Goblin": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

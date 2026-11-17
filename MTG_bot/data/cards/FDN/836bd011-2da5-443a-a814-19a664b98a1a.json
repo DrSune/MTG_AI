@@ -6,20 +6,22 @@
  "text_sha": "d6e0ad7a5d543fdbab4d0c5de3880cc0753fc69a786c9642a0613ff68c425c5b",
  "verified": {
   "tree_sha": "be1bdf4ac88f4e7e4b9f90ec22704a240390faa142ae6e83e1df5d8c22f34215",
-  "probe_sha": "20a4fa53e88e149a5457f1262fbf27b31cbdb9e3b4f01e6bff8026ff1abffcf8",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-fdn1",
+  "probe_sha": "554b79c88b8f1f0fed2c0167667c5cafbe4b8e70b392e8a2209d100e08129b24",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Attacking creatures you control get +1/+0.",
     "status": "OK",
-    "evidence": "[stimulus: another creature you control (you_bear) attacks]: 'opp is dealt 3 damage' from the 2/2. [stimulus: on the opponent's turn, opp_bear attacks you] is the same as without the card (no bonus for the opponent's attacker); no P/T change on non-attacking creatures. Pack goblin_oriflamme_only_while_attacking.json PASSES (bonus only for your attacker, gone after combat, none for the opponent's attacker); wrong twin fails.",
+    "evidence": "Trace, [another creature you control (you_bear) attacks]: 'opp is dealt 3 damage (combat) (by you_bear/DEAL_DAMAGE)' (2 + 1); [on the opponent's turn, opp_bear attacks you]: none (no bonus). Packs E09_1 (+1 power: the unblocked attacker deals 3, a blocked one deals 3 to its blocker; the bonus is gone after combat), E09_2 (the opponent's attacker and my non-attacking blocker get no bonus) and E09_3 (power only: a 2/2 attacker blocked by a 2/2 first striker dies in the first-strike step and deals nothing, so its toughness is not raised). E09_4 (an attacker of a planeswalker gets the bonus too: it deals 3).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/FDN/goblin_oriflamme_1.json",
-   "tools/scenarios/cards/FDN/goblin_oriflamme_2.json"
+   "tools/scenarios/cards/FDN/goblin_oriflamme_3.json",
+   "tools/scenarios/cards/FDN/goblin_oriflamme_4.json",
+   "tools/scenarios/cards/FDN/goblin_oriflamme_5.json",
+   "tools/scenarios/cards/FDN/goblin_oriflamme_6.json"
   ],
   "mutation": {
    "mutants": 6,

@@ -1,0 +1,96 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cryptic Caves (M20). Printed: 'Activate only if YOU control five or more lands.' Seat 0 controls four lands (the Caves and three more) while the opponent controls four of its own: eight lands in play, but only four are seat 0's, so the activation is refused. Nothing is paid, tapped, sacrificed or drawn.",
+ "cards": [
+  {
+   "key": "caves",
+   "real": "Cryptic Caves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "name": "Test Land One",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "name": "Test Land Two",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "name": "Test Land Three",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Land One",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "name": "Opp Land Two",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o3",
+   "name": "Opp Land Three",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o4",
+   "name": "Opp Land Four",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "caves",
+   "idx": 1,
+   "seat": 0,
+   "expect_raise": "condition:false"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "caves": "battlefield"
+  },
+  "tapped": {
+   "caves": false
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_two_enchantments_leaving_at_once_give_two_counters",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.' One trigger for each enchantment, also when they go in the same moment. Two Pacifisms of seat 0 enchant the opponent's Bear; when it dies both Auras are put into the graveyard together by one state-based action (CR 704.5m): two triggers, two counters, the Mystic is 4/4.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "paci1", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "paci2", "real": "Pacifism", "zone": "hand", "controller": 0},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "killer", "name": "Killer", "type": "Creature — Giant", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "paci1", "host": "obear"},
+  {"op": "enchant", "aura": "paci2", "host": "obear"},
+  {"op": "deal_damage", "source": "killer", "target": "obear", "amount": 9, "controller": 1, "decisions": ["first-legal"]}
+ ],
+ "expect": {
+  "zone": {"paci1": "graveyard", "paci2": "graveyard", "obear": "graveyard"},
+  "counters": {"mystic": {"PLUS_1_PLUS_1": 2}},
+  "power": {"mystic": 4},
+  "toughness": {"mystic": 4}
+ }
+}

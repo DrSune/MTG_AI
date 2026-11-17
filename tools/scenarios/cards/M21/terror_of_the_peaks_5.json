@@ -1,0 +1,54 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Terror of the Peaks. Printed: 'Spells your opponents cast that target this creature cost an additional 3 life to cast.' Seat 1 casts Shock ({R}) at seat 0's Terror: it pays {R} and 3 life (seat 1: 20 -> 17); Shock resolves and Terror (5/4) has 2 damage. The mana pool is spent exactly.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "s",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "t"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 17
+  },
+  "zone": {
+   "t": "battlefield",
+   "s": "graveyard"
+  },
+  "damage": {
+   "t": 2
+  },
+  "mana_pool": {
+   "1": {}
+  }
+ }
+}

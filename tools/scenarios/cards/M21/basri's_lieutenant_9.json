@@ -1,0 +1,25 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "gold", "name": "Gold Imp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["W", "U"], "zone": "battlefield", "controller": 1},
+    {"key": "tri", "name": "Tri Imp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["R", "G", "W"], "zone": "battlefield", "controller": 1},
+    {"key": "red", "name": "Red Imp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["R"], "zone": "battlefield", "controller": 1},
+    {"key": "grey", "name": "Grey Imp", "type": "Artifact Creature — Imp", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"lt": true}, "block": {"red": "lt", "grey": "lt"}}
+  ],
+  "expect": {
+    "attackers": {"lt": true},
+    "tapped": {"lt": false},
+    "not_asked_to_block": ["gold", "tri"],
+    "block_asks": {"red": "<lt>,NONE", "grey": "<lt>,NONE"},
+    "blocked": {"lt": ["red", "grey"]},
+    "zone": {"red": "graveyard", "grey": "graveyard", "lt": "battlefield"},
+    "damage": {"lt": 2},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'Vigilance, protection from multicolored'. Protection from multicolored: a creature of two colors (Gold Imp, white and blue) and one of three colors (Tri Imp) can't block it (CR 702.16f) and are never offered a block; a one-colour creature (Red Imp) and a colourless one (Grey Imp) are offered a block and may block it, and their 1 + 1 combat damage is dealt (a monocoloured or colourless source is not covered). Vigilance: the attacker does not tap."
+}

@@ -1,0 +1,68 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Impact Tremors, printed: 'Whenever a creature you control enters, this enchantment deals 1 damage to each opponent.' Two of seat 0's creatures enter (put onto the battlefield, not cast): each is one trigger, one damage each, so seat 1 goes 20 -> 18. Seat 1's own creature entering triggers nothing (seat 1 is not damaged by it, seat 0 is not damaged at all).",
+ "cards": [
+  {
+   "key": "tremors",
+   "real": "Impact Tremors",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "name": "My Ox",
+   "type": "Creature — Ox",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "t1",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "m1"
+  },
+  {
+   "op": "enter",
+   "key": "m2"
+  },
+  {
+   "op": "enter",
+   "key": "t1"
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "m1": "battlefield",
+   "m2": "battlefield",
+   "t1": "battlefield"
+  }
+ }
+}

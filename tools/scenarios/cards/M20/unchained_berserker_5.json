@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_unblocked_deals_3_and_is_1_1_again_after_combat",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'This creature gets +2/+0 as long as it's attacking.' The Berserker attacks alone and is unblocked: seat 1 takes 3. Once combat is over it is no longer attacking and is a 1/1 again (it never grew in toughness either).",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ber": true}}
+ ],
+ "expect": {
+  "attackers": {"ber": true},
+  "life": {"0": 20, "1": 17},
+  "power": {"ber": 1},
+  "toughness": {"ber": 1},
+  "zone": {"ber": "battlefield"}
+ }
+}

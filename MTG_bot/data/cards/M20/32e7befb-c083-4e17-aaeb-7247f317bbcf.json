@@ -169,26 +169,34 @@
  },
  "verified": {
   "tree_sha": "582a72b49493ead08465a6bfe118d2631986c1f38e4ec8b06daf9c51cd4b90f6",
-  "probe_sha": "b5a7a5e9a462a284e9355e8c0a0e5cd23370e509bec854fbfb75b6bba022ea00",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "ea2e768fde49c0de29bb9967ad79806cbe6b2c583e070a6756446afdf8d6a058",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Protection from white (This creature can't be blocked, targeted, dealt damage, enchanted, or equipped by anything white.)",
-    "status": "OK",
-    "evidence": "keywords +PROTECTION (COLOR_HAS W); [this card is dealt 1 damage] and [this card is dealt lethal damage] by opp_giant (white on the probe board, tools/cards/probe.py EXTRA): same as without the card (no damage); [this creature attacks and opp_giant blocks it]: no block, opp 20 -> 17. Pack unchained_berserker_attacking_bonus.json: P1's white 2/2 is never asked to block, the green 2/2 is offered <ber>,NONE.",
+    "status": "NOT_EXERCISED",
+    "evidence": "keywords[0] = PROTECTION(COLOR_HAS W); [cast] shows 'keywords +PROTECTION'. The trace shows damage and a block from opp_giant gone ([this card is dealt 1 damage -> none] and [... opp_giant blocks it]: no block, no damage event), but nothing on the board that is not white, and no targeting, enchanting or equipping, so the colour boundary and three of the five protections are not shown. Packs: H06_4 (white and white-green creatures are never offered a block, green and colourless ones are), H06_5 (a white source's damage is prevented, a green source's kills it), H06_6 (a white instant cannot target it, a red one can), H06_7 (a white Aura cannot enchant it, a green one can), H06_8 (it blocks a white attacker and takes no damage from it). H06_9 adds the fifth protection: a white Equipment (Ancestral Blade) cannot be equipped to it, a colourless one (Marauder's Axe) can.",
     "issue": ""
    },
    {
     "clause": "This creature gets +2/+0 as long as it's attacking.",
     "status": "OK",
-    "evidence": "[this creature attacks alone, unblocked]: opp is dealt 3 combat damage (1+2); Static: 1/1 when not attacking. Pack unchained_berserker_attacking_bonus.json: back to 1/1 once combat ends; PASS on live and this tree; the variant expecting 3 power after combat FAILS. G3 pack unchained_berserker_attacking_toughness_stays_1.json PASS (attacking 3/1 blocked by a green 1/1: both die, the toughness bonus is +0); FAILS on the amount+1 toughness mutant (a 3/2 survives the block).",
+    "evidence": "abilities[0] = StaticAbility(MODIFY_PT power +2, toughness +0, DurationWhileCondition(IS_ATTACKING)) on IS_SOURCE. [stimulus: this creature attacks alone, unblocked]: 'opp is dealt 3 damage (combat)' (1 + 2); [Static]: 'card on the battlefield: 1/1' (not attacking, no bonus). Not pinned by the trace, pinned by packs: the toughness (H06_1: it dies to the blocker's 1 damage, its toughness stays 1), the end of the bonus (H06_2: 1/1 again after combat) and 'attacking' rather than 'in combat' (H06_3: as a blocker it deals only 1). After the survivors run: H06_10 pins the toughness DURING combat (a first-strike blocker's 1 damage kills the attacking Berserker before regular damage, so the blocker takes none; with +2/+1 it would survive and deal 3). H06_1 alone could not: the marked damage kills a 1-toughness creature at the end of combat either way.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/unchained_berserker_1.json",
-   "tools/scenarios/cards/M20/unchained_berserker_2.json"
+   "tools/scenarios/cards/M20/unchained_berserker_3.json",
+   "tools/scenarios/cards/M20/unchained_berserker_4.json",
+   "tools/scenarios/cards/M20/unchained_berserker_5.json",
+   "tools/scenarios/cards/M20/unchained_berserker_6.json",
+   "tools/scenarios/cards/M20/unchained_berserker_7.json",
+   "tools/scenarios/cards/M20/unchained_berserker_8.json",
+   "tools/scenarios/cards/M20/unchained_berserker_9.json",
+   "tools/scenarios/cards/M20/unchained_berserker_10.json",
+   "tools/scenarios/cards/M20/unchained_berserker_11.json",
+   "tools/scenarios/cards/M20/unchained_berserker_12.json"
   ],
   "mutation": {
    "mutants": 4,

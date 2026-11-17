@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Cryptic Caves (M20). Printed: '{1}, {T}, Sacrifice this land: Draw a card. Activate only if you control five or more lands.' Seat 0 controls exactly five lands, the Caves among them. The activation is legal (five is enough), the {1} is paid from the pool, the Caves is tapped and sacrificed as the cost, and the draw still happens although only four lands remain when it resolves: hand 1, Caves in the graveyard, the pool empty.",
+ "cards": [
+  {"key": "caves", "real": "Cryptic Caves", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Test Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Test Land Two", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "name": "Test Land Three", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "name": "Test Land Four", "type": "Land", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "activate", "key": "caves", "idx": 1, "seat": 0}
+ ],
+ "expect": {
+  "zone": {"caves": "graveyard", "l1": "battlefield", "l2": "battlefield", "l3": "battlefield", "l4": "battlefield"},
+  "hand": {"0": 1, "1": 0},
+  "mana_pool": {"0": {}}
+ }
+}

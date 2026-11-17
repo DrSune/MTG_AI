@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: '{2}, {T}, Sacrifice a land' pays with a land seat 0 CONTROLS (CR 701.21a), whoever owns it. Seat 0 controls its own Test Land One and a land owned by the opponent (Stolen Land, control changed to seat 0), and the opponent controls a land owned by seat 0 (Lent Land): the sacrifice ask offers exactly the two lands seat 0 controls (card:1, card:2), not the lent one (card:3).",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Test Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "stolen", "name": "Stolen Land", "type": "Land", "zone": "battlefield", "controller": 1},
+  {"key": "lent", "name": "Lent Land", "type": "Land", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 0},
+  {"op": "gain_control", "key": "lent", "seat": 1},
+  {"op": "activate", "key": "rec", "idx": 1, "seat": 0, "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+ ],
+ "expect": {
+  "controller": {"stolen": 0, "lent": 1}
+ }
+}

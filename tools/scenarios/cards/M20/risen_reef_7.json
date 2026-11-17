@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "risen_reef_a_nonland_top_card_goes_to_hand_without_a_choice",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Printed: 'If it's a land card, you may put it onto the battlefield tapped. If you don't put the card onto the battlefield, put it into your hand.' The top card is an Instant: no may-offer is made (a step without decisions raises at any ask), and the Instant goes to hand. The card below it stays in the library.",
+ "cards": [
+  {"key": "reef", "real": "Risen Reef", "zone": "hand", "controller": 0},
+  {"key": "below", "name": "Second Card", "type": "Basic Land — Forest", "zone": "library", "controller": 0},
+  {"key": "top", "name": "Top Spell", "type": "Instant", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "U": 1, "C": 1}},
+ "steps": [
+  {"op": "cast", "key": "reef", "controller": 0}
+ ],
+ "expect": {
+  "zone": {"reef": "battlefield", "top": "hand", "below": "library"},
+  "hand": {"0": 1},
+  "library": {"0": ["Second Card", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

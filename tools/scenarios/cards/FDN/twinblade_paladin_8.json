@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "D04_5_only_my_life_gain_counts_and_double_strike_is_for_my_life",
+ "notes": "Printed: 'Whenever YOU gain life, put a +1/+1 counter ...' and 'As long as YOU have 25 or more life, ...'. The opponent's 4/4 lifelinker deals 4 damage: the opponent gains 4 (20 -> 24) and the Paladin gets no counter. Then the opponent's life is set to 30 while mine stays 20: the Paladin has no double strike.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pal", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Opp Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 4, "controller": 1},
+  {"op": "life", "seat": 1, "set": 30}
+ ],
+ "expect": {
+  "damage": {"wall": 4},
+  "life": {"0": 20, "1": 30},
+  "counters": {"pal": {}},
+  "power": {"pal": 3},
+  "toughness": {"pal": 3},
+  "battlefield_keywords": {"Twinblade Paladin": []}
+ }
+}

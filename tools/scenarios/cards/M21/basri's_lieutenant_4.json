@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "cbear", "name": "Counter Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "big5", "name": "Big Five", "type": "Creature — Giant", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1},
+    {"key": "big4", "name": "Big Four", "type": "Creature — Giant", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"lt": true, "cbear": true}, "block": {"big5": "lt", "big4": "cbear"}}
+  ],
+  "expect": {
+    "attackers": {"lt": true, "cbear": true},
+    "blocked": {"lt": ["big5"], "cbear": ["big4"]},
+    "zone": {"lt": "graveyard", "cbear": "graveyard", "big5": "battlefield", "big4": "battlefield"},
+    "tokens": {"Knight": 2},
+    "damage": {"big5": 4, "big4": 3}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'Whenever this creature or another creature you control dies, if it had a +1/+1 counter on it, create a 2/2 white Knight creature token with vigilance.' The Lieutenant (4/5 with a counter) and Counter Bear (3/3 with a counter) die in the same combat damage step: each death triggers separately (the Lieutenant sees its own death and the other creature's, CR 603.10a), so exactly two Knights."
+}

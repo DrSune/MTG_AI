@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Historian of Zhalfir, printed: 'Whenever THIS CREATURE attacks, if you control a Teferi planeswalker, draw a card.' I control Teferi, Master of Time, but the Historian stays home and a Bear attacks: the trigger is the Historian's own attack, so no draw (hand stays 0, the Bear deals 2).",
+ "cards": [
+  {"key": "hist", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hist": false, "bear": true}}
+ ],
+ "expect": {"hand": {"0": 0}, "life": {"1": 18}, "attackers": {"hist": false, "bear": true}}}

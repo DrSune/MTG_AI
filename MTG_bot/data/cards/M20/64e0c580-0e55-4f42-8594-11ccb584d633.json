@@ -207,26 +207,30 @@
  },
  "verified": {
   "tree_sha": "3929a07e13ca4815b4f9ca98396911e4365bcb1449b229dd700bb075bfd34dbb",
-  "probe_sha": "67a97f08fdfa694f9a6088550ad964023093ccc5c3391f9edc41f89e8550c153",
-  "date": "2026-11-05",
-  "reviewer": "claude-verifiers-m20v1",
+  "probe_sha": "35475325cd47051c5bccbf601554b4bb23d87eb45e30cc5638fab928527a83ab",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Whenever a creature you control with flying enters, this creature gets +1/+1 until end of turn.",
     "status": "NOT_EXERCISED",
-    "evidence": "Only non-fliers enter in G1 (correctly nothing). Packs waterkin_shaman_1 (two own fliers: 4/3; own ground creature and the opponent's flier: nothing) and waterkin_shaman_2 (ends with the turn) pass; twins fail.",
+    "evidence": "abilities[0] = ZoneChangeEvent(to battlefield/YOU, subject FAnd(CONTROLLER_IS YOU, TYPE_EQ Creature, KEYWORD_HAS FLYING)) -> MODIFY_PT (power +1, toughness +1, DurationEot) on IS_SOURCE. The probe's entering creature has no flying ([a creature enters under your control -> none]). Packs: H04_1 (two fliers of mine: the 2/1 Shaman is 4/3; a ground creature, a reach creature and an opposing flier add nothing; the entering fliers keep their own sizes), H04_3 (one flier: exactly 3/2), H04_2 (after the turn ends it is 2/1 again). After the survivors run: H04_4 (two fliers returned by one Brought Back trigger twice: 4/3), H04_5 (damage and the bonus end together in cleanup, CR 514.2: a Shaman with 1 damage survives the end of the turn).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M20/waterkin_shaman_1.json",
-   "tools/scenarios/cards/M20/waterkin_shaman_2.json"
+   "tools/scenarios/cards/M20/waterkin_shaman_3.json",
+   "tools/scenarios/cards/M20/waterkin_shaman_4.json",
+   "tools/scenarios/cards/M20/waterkin_shaman_5.json",
+   "tools/scenarios/cards/M20/waterkin_shaman_6.json",
+   "tools/scenarios/cards/M20/waterkin_shaman_7.json"
   ],
   "mutation": {
-   "mutants": 8,
+   "mutants": 9,
    "killed": 1,
-   "score": 0.125,
+   "score": 0.1111111111111111,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
     "widen filter (drop part 0) at 1/0/event/subject",
     "widen filter (drop part 1) at 1/0/event/subject",

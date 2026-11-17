@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "orrery",
+   "real": "Chromatic Orrery",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rbear",
+   "name": "Red Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "colors": [
+    "R"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f4",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:orrery:2"
+   ],
+   "expect_raise": "words no ask took: ['act:card:0:2']"
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 0
+  },
+  "tapped": {
+   "orrery": false,
+   "f1": false,
+   "f2": false,
+   "f3": false,
+   "f4": false
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I04). Printed: '{T}: Add {C}{C}{C}{C}{C}.' and '{5}, {T}: Draw a card for each color among permanents you control.' The Orrery cannot pay its own {5} with its own mana ability: tapping it for mana taps it, and the draw ability needs {T} too. With the Orrery and only four Forests the menu offers no row for the draw ability (the window asks nothing) and nothing is tapped."
+}

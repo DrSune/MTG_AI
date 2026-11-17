@@ -544,5 +544,61 @@
  },
  "probe": {
   "sha": "0e8cb586f132527a9ac3fc9582dc2de26729d772401feca9138b389975b09c0b"
+ },
+ "verified": {
+  "tree_sha": "9b3970e55f03ae9bf25cdc19c584bded884e3049ce35d5056753c70ef58f1191",
+  "probe_sha": "0e8cb586f132527a9ac3fc9582dc2de26729d772401feca9138b389975b09c0b",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "When Omnath enters, it deals damage to any target equal to the number of Elementals you control.",
+    "status": "OK",
+    "evidence": "[cast | ask 1 -> X] for X in you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant, you_elemental, opp_elemental: \"card's triggered ability [0] triggers\", 'X is targeted', 'X is dealt 2 damage (by card/DEAL_DAMAGE)': 2 is Omnath plus you_elemental; the opponent's opp_elemental and my two non-Elementals are not counted. 'ask target' offers creatures, the player 'you' and 'card' (Omnath itself); no non-creature permanent (you_relic, you_charm). The same 2 damage in [from your hand, the card enters during the opponent's turn]. No variant targets a player: pack G06_1 pins the damage to a player (three Elementals, opponent 20 to 17). G06_7 (an opponent's Elemental under my control is counted). G06_9: the number is counted as the ability resolves (an Elemental leaves in response).",
+    "issue": ""
+   },
+   {
+    "clause": "Landfall — Whenever a land you control enters, put a +1/+1 counter on target Elemental you control.",
+    "status": "OK",
+    "evidence": "[stimulus: you play a land]: \"card's triggered ability [1] triggers\", 'ask target: [you_elemental, card]' (my Elementals only, not opp_elemental), 'you_elemental is targeted', 'you_elemental gets 1 PLUS_1_PLUS_1 counter(s)', P/T 2/2 -> 3/3. A land entering under the opponent's control is not in the trace: pack G06_5. G06_6: two lands entering at the same time trigger Landfall twice (two counters). G06_10: the target gone in response, the whole ability does not resolve (no counter, no card).",
+    "issue": ""
+   },
+   {
+    "clause": "If you control eight or more lands, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[stimulus: you play a land] shows the counter and no draw (fewer than eight lands on my side): the then branch of the Conditional (QTY_GE 8 over lands I control, DRAW 1 me) never runs in the trace. Packs G06_2 (eighth land: counter and a card), G06_3 (seventh: counter, no card), G06_4 (the opponent's lands do not count), G06_5. G06_6 (two lands enter at once: two triggers, two counters, two cards), G06_7/G06_8 (a land that came from the opponent counts toward eight).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_1.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_2.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_4.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_5.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_6.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_7.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_8.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_9.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_10.json",
+   "tools/scenarios/cards/M20/omnath_locus_of_the_roil_11.json"
+  ],
+  "mutation": {
+   "mutants": 28,
+   "killed": 17,
+   "score": 0.6071428571428571,
+   "survived": [
+    "widen filter (drop part 2) at 1/0/effect/args/amount/selector/filter",
+    "each occurrence -> once per event at 1/1",
+    "widen filter (drop part 0) at 1/1/event/subject",
+    "drop step 1 at 1/1/effect",
+    "widen filter (drop part 2) at 1/1/effect/steps/0/args/target/filter",
+    "amount+1 at 1/1/effect/steps/1/pred/count",
+    "amount-1 at 1/1/effect/steps/1/pred/count",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/pred/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/pred/quantity/selector/filter/children/0/who",
+    "amount+1 at 1/1/effect/steps/1/then_effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/steps/1/then_effect/args/controller"
+   ]
+  }
  }
 }

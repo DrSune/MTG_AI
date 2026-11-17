@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "D07_3_power_4_creature_entering_under_my_control_draws",
+ "notes": "Printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' With the Uprising in play: my 3/3 entering draws nothing; my 4/4 entering draws one card; the opponent's 5/5 entering under their control draws nothing for anyone (seat 0 has 1 card in hand and the opponent has none). The 4/4 is exactly the one that drew.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "small", "name": "My Three", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "big", "name": "My Four", "type": "Creature — Beast", "power": "4", "toughness": "4", "zone": "hand", "controller": 0},
+  {"key": "obig", "name": "Opp Five", "type": "Creature — Beast", "power": "5", "toughness": "5", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "small"},
+  {"op": "enter", "key": "obig"},
+  {"op": "enter", "key": "big"}
+ ],
+ "expect": {
+  "zone": {"small": "battlefield", "big": "battlefield", "obig": "battlefield"},
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

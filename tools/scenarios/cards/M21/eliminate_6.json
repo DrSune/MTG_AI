@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "paladin", "real": "Basri, Devoted Paladin", "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["paladin"], "expect_raise": "illegal target"}
+  ],
+  "expect": {
+    "zone": {"elim": "hand", "paladin": "battlefield"},
+    "mana_pool": {"0": {"B": 1, "C": 1}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'with mana value 3 or less.' Basri, Devoted Paladin is a planeswalker of mana value 6: not a legal target, the cast is refused."
+}

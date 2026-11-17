@@ -1,0 +1,19 @@
+{"set": "FDN", "name": "D07_1_no_power_4_creature_of_mine_no_draw",
+ "notes": "Printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' I control only a 3/3; the opponent controls a 6/6, which is not mine. The Uprising is cast and enters: the 'if' is false, so nothing is drawn (the hand is empty: the Uprising left it, and the library keeps all six cards).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "three", "name": "My Three", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 0},
+  {"key": "six", "name": "Opp Six", "type": "Creature — Beast", "power": "6", "toughness": "6", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "up"}
+ ],
+ "expect": {
+  "zone": {"up": "battlefield"},
+  "hand": {"0": 0, "1": 0},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}}
+ }
+}

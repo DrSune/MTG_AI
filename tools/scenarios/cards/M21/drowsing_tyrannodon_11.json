@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "big", "name": "Four-Power Ally", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "big", "seat": 1},
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "controller": {"big": 1},
+    "attackers": {"tyr": false},
+    "not_asked": ["tyr"],
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'as long as you CONTROL a creature with power 4 or greater'. Your only 4-power creature is taken by the opponent: you control none, the Tyrannodon can't attack."
+}

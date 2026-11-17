@@ -1,0 +1,18 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "cmc": 2, "zone": "battlefield", "controller": 0},
+    {"key": "spirit", "name": "Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "cmc": 0, "token": true, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["mine"]}
+  ],
+  "expect": {
+    "zone": {"elim": "graveyard", "mine": "graveyard", "spirit": "battlefield"},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker with mana value 3 or less.' Any controller's creature may be targeted, including your own (no controller restriction): you destroy your own mana value 2 Bear, and the opponent's token is left alone."
+}

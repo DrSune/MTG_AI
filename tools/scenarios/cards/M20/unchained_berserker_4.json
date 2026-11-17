@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_attacking_its_toughness_is_still_1_a_first_striker_kills_it_first",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'This creature gets +2/+0 as long as it's attacking.' The bonus is to power only, and it applies while the creature is attacking, so the toughness read DURING combat is 1. A green 1/4 with first strike blocks the attacking Berserker: its first-strike damage (1) is lethal to a toughness of 1 and the Berserker dies before the regular damage step, so the blocker takes no damage at all (a toughness of 2 would survive the first strike and deal its 3 in the regular step). The blocker survives undamaged.",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Green First Striker", "type": "Creature — Wall", "power": "1", "toughness": "4", "keywords": ["FIRST_STRIKE"], "colors": ["G"], "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"ber": true}, "block": {"wall": "ber"}}
+ ],
+ "expect": {
+  "attackers": {"ber": true},
+  "blocked": {"ber": ["wall"]},
+  "damage_received": {"ber": 1},
+  "zone": {"ber": "graveyard", "wall": "battlefield"},
+  "life": {"0": 20, "1": 20}
+ }
+}

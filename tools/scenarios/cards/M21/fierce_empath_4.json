@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+    {"key": "big", "name": "Big Six", "type": "Creature — Giant", "power": 6, "toughness": 6, "cmc": 6, "zone": "library", "controller": 0},
+    {"key": "big2", "name": "Big Seven", "type": "Creature — Giant", "power": 7, "toughness": 7, "cmc": 7, "zone": "library", "controller": 0}
+  ],
+  "mana": {"0": {"G": 3}},
+  "steps": [
+    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["fire", "big2"]}
+  ],
+  "expect": {
+    "zone": {"empath": "battlefield", "big2": "hand", "big": "library"},
+    "hand": {"0": 1},
+    "library": {"0": ["*", "*", "*", "*", "*", "*", "*"]}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I07). Printed: 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' Two creature cards qualify (mana value 6 and 7): you fire the may-offer, choose the Big Seven, and exactly ONE card (that one) goes to your hand; the Big Six stays in the library, which keeps 7 cards (8 minus the found card)."
+}

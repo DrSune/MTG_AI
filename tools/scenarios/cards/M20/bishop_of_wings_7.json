@@ -1,0 +1,55 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_sees_an_angel_die_at_the_same_moment_it_dies_itself",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.' Planar Cleansing destroys the Bishop and seat 0's Angel at the same time: a dies trigger looks back in time (CR 603.10a), so the Bishop's trigger for the Angel still happens and exactly one Spirit is created after both are dead.",
+ "cards": [
+  {
+   "key": "bishop",
+   "real": "Bishop of Wings",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "angel",
+   "name": "My Angel",
+   "type": "Creature \u2014 Angel",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0,
+   "keywords": []
+  },
+  {
+   "key": "sweep",
+   "real": "Planar Cleansing",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 3,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sweep",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bishop": "graveyard",
+   "angel": "graveyard"
+  },
+  "tokens": {
+   "Spirit": 1
+  }
+ }
+}

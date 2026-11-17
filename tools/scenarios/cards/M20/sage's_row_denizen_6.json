@@ -1,0 +1,26 @@
+{
+ "set": "M20",
+ "name": "sages_row_denizen_only_another_blue_creature_you_control",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever ANOTHER BLUE CREATURE YOU CONTROL enters, ...'. None of these trigger it, so no target is ever asked (a step without decisions raises at any ask) and both libraries stay whole: the Denizen itself entering (it is blue, but it is not another creature), a green creature of seat 0, a colourless creature of seat 0, a blue noncreature artifact of seat 0, and a blue creature entering under seat 1.",
+ "cards": [
+  {"key": "denizen", "real": "Sage's Row Denizen", "zone": "hand", "controller": 0},
+  {"key": "green", "name": "Green Elf", "type": "Creature — Elf", "power": "2", "toughness": "2", "colors": ["G"], "zone": "hand", "controller": 0},
+  {"key": "colorless", "name": "Plain Golem", "type": "Artifact Creature — Golem", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "blueart", "name": "Blue Relic", "type": "Artifact", "colors": ["U"], "zone": "hand", "controller": 0},
+  {"key": "oblue", "name": "Opp Blue Merfolk", "type": "Creature — Merfolk", "power": "2", "toughness": "2", "colors": ["U"], "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "denizen"},
+  {"op": "enter", "key": "green"},
+  {"op": "enter", "key": "colorless"},
+  {"op": "enter", "key": "blueart"},
+  {"op": "enter", "key": "oblue"}
+ ],
+ "expect": {
+  "zone": {"denizen": "battlefield", "green": "battlefield", "colorless": "battlefield", "blueart": "battlefield", "oblue": "battlefield"},
+  "graveyard": {"0": [], "1": []},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ }
+}

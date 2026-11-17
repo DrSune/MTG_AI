@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "obig", "name": "Opp Big Five", "type": "Creature — Giant", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1},
+    {"key": "obig2", "name": "Opp Big Six", "type": "Creature — Giant", "power": 6, "toughness": 6, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "attackers": {"tyr": false},
+    "not_asked": ["tyr"],
+    "tapped": {"tyr": false},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'as long as YOU control a creature with power 4 or greater'. Only the opponent controls creatures with power 4 or more (a 5/5 and a 6/6): the Tyrannodon keeps defender and is not offered an attack."
+}

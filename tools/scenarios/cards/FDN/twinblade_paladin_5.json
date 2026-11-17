@@ -1,0 +1,21 @@
+{"set": "FDN", "name": "D04_2_exactly_25_life_gives_double_strike",
+ "notes": "Printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' and 'As long as you have 25 or more life, this creature has double strike.' Two lifelink events (4 life, then 1 life: 20 -> 24 -> 25): two counters (5/5), and at exactly 25 life the Paladin has double strike.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pal", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 4},
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 1}
+ ],
+ "expect": {
+  "damage": {"wall": 5},
+  "life": {"0": 25, "1": 20},
+  "counters": {"pal": {"PLUS_1_PLUS_1": 2}},
+  "power": {"pal": 5},
+  "toughness": {"pal": 5},
+  "battlefield_keywords": {"Twinblade Paladin": ["DOUBLE_STRIKE"]}
+ }
+}

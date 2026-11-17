@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "obig", "name": "Opp Big Five", "type": "Creature — Giant", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "obig", "seat": 0},
+    {"op": "combat", "seat": 0, "attack": {"tyr": true}}
+  ],
+  "expect": {
+    "controller": {"obig": 0},
+    "attackers": {"tyr": true},
+    "tapped": {"tyr": true},
+    "life": {"0": 20, "1": 17}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'as long as you CONTROL a creature with power 4 or greater' (control, not ownership). You gain control of the opponent's 5/5: the Tyrannodon may attack despite defender and deals 3 (20 -> 17)."
+}

@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "rbear", "name": "Red Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 0},
+    {"key": "gopp", "name": "Green Opp", "type": "Creature — Elf", "power": 1, "toughness": 1, "colors": ["G"], "zone": "battlefield", "controller": 1},
+    {"key": "bopp", "name": "Black Opp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["B"], "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "gain_control", "key": "gopp", "seat": 0},
+    {"op": "gain_control", "key": "rbear", "seat": 1},
+    {"op": "activate", "key": "orrery", "idx": 2, "seat": 0}
+  ],
+  "expect": {
+    "controller": {"gopp": 0, "rbear": 1},
+    "tapped": {"orrery": true},
+    "hand": {"0": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: 'a card for each color among permanents you CONTROL' (control, not ownership). You gain control of the opponent's green creature and the opponent takes your only red one: you control green (and the colorless Orrery): exactly 1 card."
+}

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_exile_or_hand_is_not_a_graveyard",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: '... is put into a graveyard from the battlefield ...'. Seat 0's Charm exiled and seat 0's other Charm returned to its owner's hand are not put into a graveyard: no counter, the Mystic stays 2/2.",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "charm", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "charm2", "name": "My Other Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "charm", "to": "exile"},
+  {"op": "move", "key": "charm2", "to": "hand"}
+ ],
+ "expect": {
+  "zone": {"charm": "exile", "charm2": "hand", "mystic": "battlefield"},
+  "counters": {"mystic": {}},
+  "power": {"mystic": 2},
+  "toughness": {"mystic": 2}
+ }
+}

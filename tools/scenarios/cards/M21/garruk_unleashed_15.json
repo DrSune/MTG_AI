@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk, Unleashed, printed: '[-2]: Create a 3/3 green Beast creature token. Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.' I control one creature (two with the Beast) and the opponent three: the opponent controls more, so the counter is put on Garruk: 4 - 2 + 1 = 3.",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Thrull", "type": "Creature — Thrull", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Rat", "type": "Creature — Rat", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1},
+  {"key": "o3", "name": "Opp Bat", "type": "Creature — Bat", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "garruk", "idx": 1, "seat": 0}
+ ],
+ "expect": {"tokens": {"Beast": 1}, "counters": {"garruk": {"LOYALTY": 3}}}}

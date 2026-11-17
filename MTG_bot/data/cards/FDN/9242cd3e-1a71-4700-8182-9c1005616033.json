@@ -150,23 +150,28 @@
  },
  "verified": {
   "tree_sha": "bcbde256ea97e8485e35b91fcac1b26c08d10629f040030e91152ced78796ebd",
-  "probe_sha": "eb2ecdf9ce6e200f7f6b5ef293d8570eea6935651115ac57bf53b9b37142811d",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m1",
+  "probe_sha": "3565f129d808139a962261dd8b08625eb79dad6e6bcd90c5fcd4831788c498ad",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Whenever a creature you control enters, this enchantment deals 1 damage to each opponent.",
     "status": "OK",
-    "evidence": "[stimulus: a creature enters under your control] trigger fires, opp is dealt 1 damage (by card), 20 -> 19; [you cast a creature (Aegis Turtle)] the same; [a creature enters under the opponent's control] and [you play a land] no trigger; the enchantment entering itself does not trigger it.",
+    "evidence": "Trace, [stimulus: a creature enters under your control]: 'card's triggered ability [0] triggers', 'opp is dealt 1 damage (by card/DEAL_DAMAGE)', opp life 20 -> 19 (exactly 1, to the opponent, the enchantment the source). [stimulus: you cast a creature (Aegis Turtle)]: the same one trigger, opp 20 -> 19. [a creature enters under the opponent's control], [you play a land]: none. The tree reads the same (subject creature you control, 1 damage, ALL players of the opponent zone). Packs E00_1 (two of mine -> 18, the opponent's own creature adds nothing), E00_2 (Dragon Fodder's two tokens: one trigger each) and E00_3 (3 players: each opponent takes 1) pin the count and 'each'.",
     "issue": ""
    }
   ],
-  "packs": [],
+  "packs": [
+   "tools/scenarios/cards/FDN/impact_tremors_1.json",
+   "tools/scenarios/cards/FDN/impact_tremors_2.json",
+   "tools/scenarios/cards/FDN/impact_tremors_3.json"
+  ],
   "mutation": {
-   "mutants": 6,
+   "mutants": 7,
    "killed": 5,
-   "score": 0.8333333333333334,
+   "score": 0.7142857142857143,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "widen filter (drop part 0) at 1/0/event/subject"
    ]
   }

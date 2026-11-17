@@ -1,0 +1,20 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "tyr", "real": "Drowsing Tyrannodon", "zone": "battlefield", "controller": 0},
+    {"key": "oatk", "name": "Opp Attacker", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1, "attack": {"oatk": true}, "block": {"tyr": "oatk"}}
+  ],
+  "expect": {
+    "attackers": {"oatk": true},
+    "blocked": {"oatk": ["tyr"]},
+    "zone": {"oatk": "graveyard", "tyr": "battlefield"},
+    "damage": {"tyr": 2},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I10). Printed: 'Defender (This creature can't attack.)': it can still BLOCK. The opponent's 2/2 attacks, the Tyrannodon blocks it, kills it and takes 2 damage (3/3 survives)."
+}

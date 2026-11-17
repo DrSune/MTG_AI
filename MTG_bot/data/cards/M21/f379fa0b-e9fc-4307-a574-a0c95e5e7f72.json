@@ -5,37 +5,40 @@
  "name": "Chrome Replicator",
  "text_sha": "e3226749f4ed4928a4a40f3cf68fec9a1c8650c5a3ab14f94f97e968f853d9fc",
  "verified": {
-  "tree_sha": "23dca78597224c3bb5bc3205f4f3545d139b9c011ee3ca7b35b5f236a7402579",
-  "probe_sha": "a383ab30c66fa2a95ffaf5bab6080be7f0a8906af7ec973751eef5dbca953a5e",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-E",
+  "tree_sha": "dbce4060af5067c55744b32e0a85bb506cf8ab63c0b1383ba7b42ea81d796526",
+  "probe_sha": "b86bcd7d281332f3127e9597a7fbb2778ebc1c21b51a15892a7a0a3446bd38bf",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another,",
+    "clause": "When this creature enters, if you control two or more nonland, nontoken permanents with the same name as one another, create a 4/4 colorless Construct artifact creature token.",
     "status": "NOT_EXERCISED",
-    "evidence": "[cast] and the MOVE_ZONE entry trigger ability [0], but the probe board has no same-name pair, so no token (right). Tree identical to the compiler's parse (NAME_PARTITION_COUNT_GE 2 over FNot(IS_TOKEN) + FNot(Land); the predicate counts only permanents the controller controls, quantity.py:1241). Packs pass on the live tree and this packet's tree: chrome_replicator_pair (a second Replicator: one token), chrome_replicator_lands_tokens_dont_count (two Plains and two engine-minted Saproling tokens: no token), chrome_replicator_opp_pair (the opponent's same-name pair: no token)",
-    "issue": "harness note: a pack-placed token golden ('real': 'Treasure') is NOT a token to IS_TOKEN, because games.identity_of drops is_token; use engine-minted tokens in packs"
-   },
-   {
-    "clause": "create a 4/4 colorless Construct artifact creature token.",
-    "status": "NOT_EXERCISED",
-    "evidence": "TokenSpec Construct, 'Artifact Creature — Construct', 4/4, no colours, no abilities; pack chrome_replicator_pair: exactly one 'Construct' token, battlefield_pt [4, 4]",
+    "evidence": "The standard board has no two permanents of one name, so the trace only shows the false case: [cast] and the opponent's-turn entry have no 'triggered ability triggers' event and no token (the intervening-if is read as the creature enters, CR 603.4), which agrees with the printed text. The true case and the token never appear. Tree abilities[0]: enters-event (ZoneChangeEvent to your battlefield, IS_SOURCE), condition QTY_GE(count = QDistinct(NAME over your nonland nontoken permanents) + 1, quantity = QCount of the same set) i.e. 'more permanents than names', effect CREATE_TOKEN 1 of a 4/4 Construct artifact creature (colorless: no colors). Packs on the live tree: I03_1 (two Twin Bear + Lone Wolf: exactly one 4/4 Construct), I03_2 (all names different: none), I03_3 (the opponent has a same-named pair, and one Solo Bear on each side: none), I03_4 (two tokens, two lands, one nontoken plus one token of a name: none), I03_5 (the entering Replicator counts: another permanent named Chrome Replicator: one token), I03_6 (a triple and a pair: still exactly one token). Control, not ownership: I03_7 (one Twin Bear yours plus one you gain control of: a token), I03_8 (two of yours, the opponent gains one: none).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/chrome_replicator_1.json",
-   "tools/scenarios/cards/M21/chrome_replicator_2.json",
-   "tools/scenarios/cards/M21/chrome_replicator_3.json"
+   "tools/scenarios/cards/M21/chrome_replicator_4.json",
+   "tools/scenarios/cards/M21/chrome_replicator_5.json",
+   "tools/scenarios/cards/M21/chrome_replicator_6.json",
+   "tools/scenarios/cards/M21/chrome_replicator_7.json",
+   "tools/scenarios/cards/M21/chrome_replicator_8.json",
+   "tools/scenarios/cards/M21/chrome_replicator_9.json",
+   "tools/scenarios/cards/M21/chrome_replicator_10.json",
+   "tools/scenarios/cards/M21/chrome_replicator_11.json"
   ],
   "mutation": {
-   "mutants": 6,
-   "killed": 2,
+   "mutants": 12,
+   "killed": 4,
    "score": 0.3333333333333333,
    "survived": [
-    "amount+1 at 1/0/condition/count",
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
+    "controller YOU->OPPONENT at 1/0/event/to_zone/controller",
+    "widen filter (drop part 0) at 1/0/condition/count/left/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/count/left/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/count/left/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/count/left/selector/filter/children/0/who",
+    "amount+1 at 1/0/condition/count/right",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
     "amount+1 at 1/0/effect/args/count"
    ]
   }

@@ -1,0 +1,152 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "notes": "Ugin, the Spirit Dragon. Printed: '[-10]: You gain 7 life, draw seven cards, then put up to seven PERMANENT CARDS from YOUR HAND onto the battlefield.' Loyalty is seeded to 10. The pick ask offers exactly the five permanent cards in seat 0's hand (Creature card:1, Artifact card:2, Enchantment card:3, Land card:4, Planeswalker card:5) and NONE: not the Instant (card:6) or the Sorcery (card:7) in hand, not the seven drawn Sorceries, not the Creature in seat 0's graveyard (card:8) or in the opponent's hand (card:9).",
+ "cards": [
+  {
+   "key": "ugin",
+   "real": "Ugin, the Spirit Dragon",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "hc",
+   "name": "Hand Creature",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ha",
+   "name": "Hand Artifact",
+   "type": "Artifact",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "he",
+   "name": "Hand Enchantment",
+   "type": "Enchantment",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hl",
+   "name": "Hand Land",
+   "type": "Land",
+   "cmc": 0,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hp",
+   "name": "Hand Walker",
+   "type": "Legendary Planeswalker — Test",
+   "loyalty": 3,
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hi",
+   "name": "Hand Instant",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hs",
+   "name": "Hand Sorcery",
+   "type": "Sorcery",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gc",
+   "name": "Graveyard Creature",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "oc",
+   "name": "Opponent Hand Creature",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "d1",
+   "name": "Drawn Sorcery 1",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d2",
+   "name": "Drawn Sorcery 2",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d3",
+   "name": "Drawn Sorcery 3",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d4",
+   "name": "Drawn Sorcery 4",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d5",
+   "name": "Drawn Sorcery 5",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d6",
+   "name": "Drawn Sorcery 6",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "d7",
+   "name": "Drawn Sorcery 7",
+   "type": "Sorcery",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "ugin",
+   "set": 10
+  },
+  {
+   "op": "activate",
+   "key": "ugin",
+   "idx": 2,
+   "seat": 0,
+   "expect_raise": "needs a decision from ('card:1', 'card:2', 'card:3', 'card:4', 'card:5', 'NONE')"
+  }
+ ],
+ "expect": {}
+}

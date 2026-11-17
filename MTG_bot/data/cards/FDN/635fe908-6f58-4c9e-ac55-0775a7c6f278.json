@@ -5,34 +5,36 @@
  "name": "Angel of Vitality",
  "text_sha": "02f03e978cfe57298a82e27221529b41f858ad8c82ce82cb2d184cca3dcbf223",
  "verified": {
-  "tree_sha": "fcba0e02ca1b95d3f8d832bf42fb19c934677000b5dae708dde5f88d58729d9b",
+  "tree_sha": "0f216f8849d5c6b4c814cbd73cdf5869251c4beb6d15799d790d0bf307d1c317",
   "probe_sha": "6a427ca5ae5ac1c87dd158b9e0c34546d5bb602cbbfda8739046574fa1ab2454",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1d",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "keywords +FLYING",
+    "evidence": "cast: P/T 2/2, keywords +FLYING; 'this creature attacks and opp_giant blocks it': no block row, the opponent goes 20 -> 18.",
     "issue": ""
    },
    {
     "clause": "If you would gain life, you gain that much life plus 1 instead.",
     "status": "OK",
-    "evidence": "gain 3: 'you gains 4 life (by card/GAIN_LIFE)', 20 -> 24",
+    "evidence": "'you gain 3 life': 'you gains 4 life (by card/GAIN_LIFE)', life 20 -> 24, once (not 5); tree = the compiler's B5b-repl-life-plus parse. The opponent's gain is not in the trace: pack D02_4/D02_5; two separate gains: D02_3.",
     "issue": ""
    },
    {
-    "clause": "+2/+2 as long as you have 25 or more life",
+    "clause": "This creature gets +2/+2 as long as you have 25 or more life.",
     "status": "NOT_EXERCISED",
-    "evidence": "trace tops out at 24 life; edge and turn-off unshown",
+    "evidence": "the trace tops out at 24 life, so the P/T stays 2/2. Tree: static MODIFY_PT +2/+2 on itself with condition QTY_GE(25, controller LIFE) = the compiler's B14-self-as-long-as parse. Packs: D02_1 (exactly 25: 4/4), D02_2 (24: 2/2), D02_3 (26: 4/4), D02_4 (only my own life counts).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/FDN/angel_of_vitality_1.json",
-   "tools/scenarios/cards/FDN/angel_of_vitality_2.json",
-   "tools/scenarios/cards/FDN/angel_of_vitality_3.json"
+   "tools/scenarios/cards/FDN/angel_of_vitality_4.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_5.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_6.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_7.json",
+   "tools/scenarios/cards/FDN/angel_of_vitality_8.json"
   ],
   "mutation": {
    "mutants": 10,

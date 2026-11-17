@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "spirit", "name": "Counter Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0, "counters": {"PLUS_1_PLUS_1": 1}},
+    {"key": "plainspirit", "name": "Plain Spirit", "type": "Creature — Spirit", "power": 1, "toughness": 1, "token": true, "zone": "battlefield", "controller": 0},
+    {"key": "zap", "name": "Zapper", "type": "Creature", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "deal_damage", "source": "zap", "target": "plainspirit", "amount": 1, "controller": 1},
+    {"op": "deal_damage", "source": "zap", "target": "spirit", "amount": 2, "controller": 1}
+  ],
+  "expect": {
+    "zone": {"spirit": "ceased", "plainspirit": "ceased", "lt": "battlefield"},
+    "tokens": {"Knight": 1}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). A token creature dies too (CR 700.4) and is read as it last existed (CR 608.2h, 704.5d): the counterless Plain Spirit token dies and makes no Knight; the Counter Spirit token (2/2 with a +1/+1 counter) dies and 'it had a +1/+1 counter on it' is true, so exactly one Knight."
+}

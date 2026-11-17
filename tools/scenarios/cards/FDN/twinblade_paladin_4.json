@@ -1,0 +1,20 @@
+{"set": "FDN", "name": "D04_1_one_counter_per_gain_no_double_strike_below_25",
+ "notes": "Printed: 'Whenever you gain life, put a +1/+1 counter on this creature.' and 'As long as you have 25 or more life, this creature has double strike.' Seat 0's lifelinker deals 3 damage: one life gain (20 -> 23) is one counter, not three: the 3/3 Paladin is a 4/4. 23 is below 25: no double strike.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pal", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 3}
+ ],
+ "expect": {
+  "damage": {"wall": 3},
+  "life": {"0": 23, "1": 20},
+  "counters": {"pal": {"PLUS_1_PLUS_1": 1}},
+  "power": {"pal": 4},
+  "toughness": {"pal": 4},
+  "battlefield_keywords": {"Twinblade Paladin": []}
+ }
+}

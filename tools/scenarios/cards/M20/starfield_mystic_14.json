@@ -1,0 +1,101 @@
+{
+ "set": "M20",
+ "name": "starfield_mystic_an_aura_of_mine_falling_off_counts_whoever_owns_the_host",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever an enchantment you control ...'. Control, not the host, decides: seat 0's Pacifism on the opponent's Bear goes to the graveyard when that Bear dies (the Aura is no longer attached to a creature, CR 704.5m): one counter. The opponent's Pacifism on seat 0's Bear goes to the graveyard when that Bear dies: seat 0 does not control it, so no counter. One counter in all, the Mystic is 3/3; the dying Bears add nothing. (The two Auras start in hand and the enchant step puts them onto the battlefield attached, so no setup sweep buries them.)",
+ "cards": [
+  {
+   "key": "mystic",
+   "real": "Starfield Mystic",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mypaci",
+   "real": "Pacifism",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "theirpaci",
+   "real": "Pacifism",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "mybear",
+   "name": "My Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "killer",
+   "name": "Killer",
+   "type": "Creature \u2014 Giant",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "mypaci",
+   "host": "obear"
+  },
+  {
+   "op": "enchant",
+   "aura": "theirpaci",
+   "host": "mybear"
+  },
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "mybear",
+   "amount": 9,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "obear",
+   "amount": 9,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mypaci": "graveyard",
+   "theirpaci": "graveyard",
+   "mybear": "graveyard",
+   "obear": "graveyard"
+  },
+  "counters": {
+   "mystic": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "mystic": 3
+  },
+  "toughness": {
+   "mystic": 3
+  }
+ }
+}

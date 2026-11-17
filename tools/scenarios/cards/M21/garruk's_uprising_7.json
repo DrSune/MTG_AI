@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'Creatures you control have trample.' It ends with the enchantment: the Uprising is moved to the graveyard and my Bear, which had trample, has none; the opponent's Wolf never had any.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "key": "up", "to": "graveyard"}
+ ],
+ "expect": {"battlefield_keywords": {"My Bear": []}, "zone": {"up": "graveyard"}}}

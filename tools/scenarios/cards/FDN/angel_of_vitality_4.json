@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D02_1_exactly_25_life_gives_plus_two_plus_two",
+ "notes": "Printed: 'If you would gain life, you gain that much life plus 1 instead.' and 'This creature gets +2/+2 as long as you have 25 or more life.' Seat 0's 4/4 lifelinker deals 4 damage: the 4 life becomes 5 (20 -> 25), and exactly 25 is '25 or more', so the 2/2 Angel is a 4/4.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 0},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 4}
+ ],
+ "expect": {
+  "damage": {"wall": 4},
+  "life": {"0": 25, "1": 20},
+  "power": {"ang": 4},
+  "toughness": {"ang": 4}
+ }
+}

@@ -1,0 +1,16 @@
+{"set": "FDN", "name": "D04_4_24_life_is_a_single_strike",
+ "notes": "Printed: 'As long as you have 25 or more life, this creature has double strike.' Seat 0's life is 24. The 3/3 Paladin attacks and is unblocked: it deals its 3 damage once (20 -> 17), and has no double strike.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "pal", "real": "Twinblade Paladin", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "life", "seat": 0, "set": 24},
+  {"op": "combat", "seat": 0, "attack": {"pal": true}}
+ ],
+ "expect": {
+  "attackers": {"pal": true},
+  "life": {"0": 24, "1": 17},
+  "battlefield_keywords": {"Twinblade Paladin": []}
+ }
+}

@@ -5,33 +5,44 @@
  "name": "Celestial Enforcer",
  "text_sha": "490730d1d421e608fa370e2f19d64f8bacb74d5b728709e36cd017a1db0fa2a0",
  "verified": {
-  "tree_sha": "da74f047b6762c89314abc90337c2a63bfe49b842a90f6265255cd9af8640127",
-  "probe_sha": "f0410bacbf7484b8822201f4862a6b4774bff36c49caeaa98e649afc952bf25b",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4M",
+  "tree_sha": "8b08fd969eb32a057263c7e703cc60b166c4b27cc0257a29257e9c51c7258e0e",
+  "probe_sha": "545e07168ef5629b2dd9e8ddef7e57565f3362255189d51048da5bfcff299fcf",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "{1}{W}, {T}: Tap target creature.",
-    "status": "OK",
-    "evidence": "abilities[0] (= canonical B3-tap-target-creature): cost W + 1 generic + CostTap; TAP TARGET Creature (any controller). Not activated in the trace (gate false). Packs Pfe4e53aa9d_enforcer_taps_with_your_flier.json PASS (pays {1}{W}, taps itself and the target) and Pfe4e53aa9d_enforcer_summoning_sick.json PASS ({T} refused the turn it enters)",
-    "issue": "engine-limit: no priority, so this instant-speed ability is used only in its controller's own action window (weaker only)."
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe's board gives the ability no activation ('ability [0] not activatable from battlefield: condition:false': you have no flier), so the cost, the target slot and the effect never appear in the trace. Tree abilities[0]: cost CostManaColor(W,1), CostManaGeneric(1), CostTap; effect TAP over a TARGET Selector(count 1, TYPE_EQ Creature, any controller). Packs on the live tree: I11_1 (with your flier: {1}{W} is paid, the Enforcer taps, the targeted opposing creature taps, the other one does not), I11_4 (your own Bear is a legal target and taps), I11_3 (the menu's target ask offers the Enforcer, your flier, your Bear and the opposing Bear, and not an artifact), I11_5 (no white mana: refused, 'cost:mana:W'), I11_6 (one mana only: refused, 'cost:mana_generic'), I11_7 (a tapped Enforcer: refused, 'cost:tap:source_tapped').",
+    "issue": ""
    },
    {
     "clause": "Activate only if you control a creature with flying.",
-    "status": "OK",
-    "evidence": "abilities[0].condition (= canonical B5a-activate-only-flying) CONTROLLER_COUNT_GE 1 (Creature, KEYWORD_HAS FLYING). Standard board: only the opponent has a flier (opp_flier), and the trace shows 'ability [0] not activatable from battlefield: condition:false'. With your own flier: pack Pfe4e53aa9d_enforcer_taps_with_your_flier.json PASS",
+    "status": "NOT_EXERCISED",
+    "evidence": "The refusal is in the trace ('ability [0] not activatable from battlefield: condition:false' on a board where only the opponent has a flier, opp_flier), which agrees with 'you control'; the allowed case is never shown. Tree: the ActivatedAbility's condition QTY_GE 1 over creatures you control with KEYWORD_HAS FLYING (the compiler's B5a-activate-only-flying form). Packs on the live tree: I11_1 (your flier: allowed), I11_2 (only the opponent's flier: refused, 'illegal activation: condition:false'), I11_8 (a restriction on activating, not an intervening if: the flier leaves while the ability is on the stack and it still resolves, CR 602.5b). I11_9 (a noncreature artifact with flying is not a creature with flying: refused). Control, not ownership: I11_10 (a flier you gain control of enables it), I11_11 (your flier taken by the opponent: refused). Through the menu: I11_12 (your flier and two lands: offered and resolves), I11_13 (only the opponent's flier: no row), I11_14 (your flier but one land: no row).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/celestial_enforcer_1.json",
-   "tools/scenarios/cards/M21/celestial_enforcer_2.json",
-   "tools/scenarios/cards/M21/celestial_enforcer_3.json"
+   "tools/scenarios/cards/M21/celestial_enforcer_4.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_5.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_6.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_7.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_8.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_9.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_10.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_11.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_12.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_13.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_14.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_15.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_16.json",
+   "tools/scenarios/cards/M21/celestial_enforcer_17.json"
   ],
   "mutation": {
-   "mutants": 10,
-   "killed": 1,
-   "score": 0.1,
+   "mutants": 12,
+   "killed": 3,
+   "score": 0.25,
    "survived": [
     "drop cost part 0 (CostManaColor) at 1/0/cost",
     "drop cost part 1 (CostManaGeneric) at 1/0/cost",
@@ -41,7 +52,7 @@
     "target->all at 1/0/effect/args/target",
     "amount+1 at 1/0/effect/args/target/count",
     "amount+1 at 1/0/condition/count",
-    "widen filter (drop part 0) at 1/0/condition/inner_filter"
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter"
    ]
   }
  }

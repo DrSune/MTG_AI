@@ -5,52 +5,52 @@
  "name": "Thieves' Guild Enforcer",
  "text_sha": "4670741b1f616f1e76b405af6cf6f25b5ec01693365f05ea107aacfe85953d20",
  "verified": {
-  "tree_sha": "a2c6ea72b7930ecdb1977e54fca8461649d2d73ac2792749b47b44e380e6acda",
-  "probe_sha": "e928d65011f5f8d6b52cea499b9d23e9f9c5055d016fc5e4612be8d2d8ef8543",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-C",
+  "tree_sha": "3e4f448200894b45ea072ed2fb655f34015e88d92b016b5c1ae3771006e15361",
+  "probe_sha": "ed7f997fed797b154450e4412e47b816a80005c20c76b12ada6049530a2a56b9",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
-   {
-    "clause": "Creature {B} 1/1 (cast)",
-    "status": "OK",
-    "evidence": "[cast]: P/T - -> 1/1; mana B-1",
-    "issue": ""
-   },
    {
     "clause": "Flash",
     "status": "OK",
-    "evidence": "[cast]: keywords +FLASH",
-    "issue": "engine-limit: no priority window for the non-active player, so the card cannot actually be cast on the opponent's turn (weaker only)."
+    "evidence": "cast: card keywords +FLASH.",
+    "issue": ""
    },
    {
     "clause": "Whenever this creature ... enters, each opponent mills two cards.",
     "status": "OK",
-    "evidence": "[cast]: ability [0] triggers, opp:Library 5#2 and 4#2 library -> graveyard (opp library 6 -> 4); [the card enters during the opponent's turn]: mills 2 again; your library untouched",
+    "evidence": "[cast] and the flash-in stimulus: card's triggered ability [0] triggers and opp's top two cards (Library 5, Library 4 on the cast) move library -> graveyard, opp library 6 -> 4; seat 0's library is untouched.",
     "issue": ""
    },
    {
     "clause": "... or another Rogue you control enters ...",
     "status": "NOT_EXERCISED",
-    "evidence": "the probe's entering creatures are not Rogues ([a creature enters under your control]: none); pack thieves_guild_enforcer_other_rogue_enters.json: your Rogue entering mills the opponent's top two, your non-Rogue and the opponent's Rogue mill nothing, PASS",
+    "evidence": "no Rogue other than the card enters in the trace (the 'creature enters under your control' stimulus triggers nothing). Packs: K05_1 (another Rogue of mine mills two; a non-Rogue of mine and the opponent's Rogue do not), K05_2 (three players: each opponent mills two), K05_8 (two Rogues entering in one event, put onto the battlefield together by Ugin's [-10] as a supporting card: one trigger each, four cards milled).",
     "issue": ""
    },
    {
     "clause": "As long as an opponent has eight or more cards in their graveyard, this creature gets +2/+1 and has deathtouch.",
     "status": "NOT_EXERCISED",
-    "evidence": "the probe's opponent graveyard never reaches 8 (Static: 1/1); pack thieves_guild_enforcer_eight_in_graveyard.json: the count goes 6 -> 8 while the Enforcer is on the battlefield, it becomes 3/2 with deathtouch and 1 damage destroys a 5/5, PASS; control thieves_guild_enforcer_seven_no_bonus.json: at 7 it stays 1/1 without deathtouch, PASS",
+    "evidence": "the static section shows 1/1 with only FLASH: the opponent never has eight cards. Packs: K05_3 (eight: 3/2 deathtouch, kills a 0/9 blocker), K05_4 (seven theirs, ten mine: nothing), K05_5 (three players: one opponent with eight is enough), K05_6 and K05_7 (follows the graveyard as it changes).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/thieves'_guild_enforcer_1.json",
-   "tools/scenarios/cards/M21/thieves'_guild_enforcer_2.json",
-   "tools/scenarios/cards/M21/thieves'_guild_enforcer_3.json"
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_4.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_5.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_6.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_7.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_8.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_9.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_10.json",
+   "tools/scenarios/cards/M21/thieves'_guild_enforcer_11.json"
   ],
   "mutation": {
-   "mutants": 20,
+   "mutants": 21,
    "killed": 8,
-   "score": 0.4,
+   "score": 0.38095238095238093,
    "survived": [
+    "each occurrence -> once per event at 1/0",
     "widen filter (drop part 0) at 1/0/event/subject/children/0",
     "widen filter (drop part 2) at 1/0/event/subject/children/0",
     "widen filter (drop part 3) at 1/0/event/subject/children/0",
@@ -60,9 +60,9 @@
     "amount+1 at 1/1/effect/steps/0/args/power/magnitude",
     "amount-1 at 1/1/effect/steps/0/args/power/magnitude",
     "amount+1 at 1/1/effect/steps/0/args/toughness/magnitude",
+    "controller who OPPONENT->none (your own zone) at 1/1/condition",
     "amount+1 at 1/1/condition/count",
-    "amount-1 at 1/1/condition/count",
-    "controller OPPONENT->YOU at 1/1/condition/who"
+    "amount-1 at 1/1/condition/count"
    ]
   }
  }

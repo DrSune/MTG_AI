@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D02_5_opponent_gain_not_raised",
+ "notes": "Printed: 'If you would gain life, you gain that much life plus 1 instead.' The opponent's 4/4 lifelinker deals 4 damage: the opponent gains exactly 4 (20 -> 24), not 5; seat 0 is untouched (20) and the Angel is a 2/2.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ang", "real": "Angel of Vitality", "zone": "battlefield", "controller": 0},
+  {"key": "ll", "name": "Opp Lifelinker", "type": "Creature", "power": "4", "toughness": "4", "keywords": ["LIFELINK"], "zone": "battlefield", "controller": 1},
+  {"key": "wall", "name": "Big Wall", "type": "Creature", "power": "9", "toughness": "9", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "deal_damage", "source": "ll", "target": "wall", "amount": 4, "controller": 1}
+ ],
+ "expect": {
+  "damage": {"wall": 4},
+  "life": {"0": 20, "1": 24},
+  "power": {"ang": 2},
+  "toughness": {"ang": 2}
+ }
+}

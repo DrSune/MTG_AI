@@ -1,0 +1,15 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-3]: Target creature gets -X/-X until end of turn, where X is the number of cards in your graveyard.' I have two cards in my graveyard (a creature card and an instant: every card counts, not only creatures) and the opponent has three in theirs, which do not count. The opponent's 4/4 Ogre gets -2/-2 and is a 2/2. Loyalty 4 - 3 = 1.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "mg1", "name": "My Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 0},
+  {"key": "mg2", "name": "My Used Spell", "type": "Instant", "zone": "graveyard", "controller": 0},
+  {"key": "tg1", "name": "Their Dead One", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 1},
+  {"key": "tg2", "name": "Their Dead Two", "type": "Instant", "zone": "graveyard", "controller": 1},
+  {"key": "tg3", "name": "Their Dead Three", "type": "Sorcery", "zone": "graveyard", "controller": 1},
+  {"key": "ogre", "name": "Opp Ogre", "type": "Creature — Ogre", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "lil", "idx": 1, "seat": 0, "targets": ["ogre"]}
+ ],
+ "expect": {"power": {"ogre": 2}, "toughness": {"ogre": 2}, "zone": {"ogre": "battlefield"}, "counters": {"lil": {"LOYALTY": 1}}}}

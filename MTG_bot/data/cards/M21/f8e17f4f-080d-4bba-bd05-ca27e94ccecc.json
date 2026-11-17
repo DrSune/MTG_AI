@@ -5,33 +5,36 @@
  "name": "Terror of the Peaks",
  "text_sha": "f92a19305862d4a4d1933c19d5ab6102650641809db1a91203edfe8812e5fd90",
  "verified": {
-  "tree_sha": "5c79013b4c7855687c4d3672157eff70e2a603c74f4a6d272a848574698cbf07",
-  "probe_sha": "09215fcd23db949fd44e122ef7db97db414e1737f678fdb35c0028099225e332",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4L",
+  "tree_sha": "5c80fa9fe0e792f4ad4e7991dc20d3a3a3d867081ee3e90dddb070624607c00e",
+  "probe_sha": "63e243ce3a25ae4340b72b130af523fa5692a856f098057a4f9b85ace462c985",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "keywords +FLYING; [stimulus: this creature attacks and opp_giant blocks it]: no DECLARE_BLOCKERS row (a non-flier cannot block it), opp dealt 5.",
+    "evidence": "cast: card keywords +FLYING.",
     "issue": ""
    },
    {
     "clause": "Spells your opponents cast that target this creature cost an additional 3 life to cast.",
     "status": "NOT_EXERCISED",
-    "evidence": "Tree: CostModifier(filter TARGETS_SOURCE, controller_ref OPPONENT, CostDeltaIncreaseLife 3). No opponent spell in the probe. Packs: terror_of_the_peaks_opp_spell_tax.json (opp Shock at Terror: opp 20 -> 17) PASS; terror_of_the_peaks_no_tax_cases.json (opp Shock at another creature, own Shock at Terror: no life paid) PASS.",
+    "evidence": "no spell targets the card in the trace. Packs: K08_1 (an opponent's Shock at it pays {R} and 3 life), K08_2 (its own controller's spell, and an opponent's spell at another creature, pay nothing), K08_3 (at 2 life the 3 life cannot be paid: refused), K08_4 (at exactly 3 life it is payable).",
     "issue": ""
    },
    {
     "clause": "Whenever another creature you control enters, this creature deals damage equal to that creature's power to any target.",
     "status": "OK",
-    "evidence": "[stimulus: a creature enters under your control]: you_spare 3/3 enters -> you_bear dealt 3 (by card). [stimulus: you cast a creature (Staunch Shieldmate)]: 1/3 enters -> 1 damage. Opponent's creature entering, a land played, and Terror's own entry: no trigger. Target ask: all creatures of both sides, the card itself, you, opp (any target).",
+    "evidence": "you_spare (3/3) enters: the target ask offers all ten any-target objects (creatures, the card itself, both players) and you_bear takes 3; the cast Staunch Shieldmate (1/3) deals 1; an opponent's creature entering and the card's own cast trigger nothing. K08_5 adds a player and a creature target.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/terror_of_the_peaks_1.json",
-   "tools/scenarios/cards/M21/terror_of_the_peaks_2.json"
+   "tools/scenarios/cards/M21/terror_of_the_peaks_5.json",
+   "tools/scenarios/cards/M21/terror_of_the_peaks_6.json",
+   "tools/scenarios/cards/M21/terror_of_the_peaks_7.json",
+   "tools/scenarios/cards/M21/terror_of_the_peaks_8.json",
+   "tools/scenarios/cards/M21/terror_of_the_peaks_9.json"
   ],
   "mutation": {
    "mutants": 11,

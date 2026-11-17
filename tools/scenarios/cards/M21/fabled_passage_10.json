@@ -1,0 +1,22 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
+    {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+    {"key": "om", "real": "Mountain", "zone": "battlefield", "controller": 1},
+    {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
+    {"key": "top", "name": "Top Card", "type": "Creature", "power": 1, "toughness": 1, "zone": "library", "controller": 0}
+  ],
+  "steps": [
+    {"op": "gain_control", "key": "om", "seat": 0},
+    {"op": "activate", "key": "fp", "idx": 0, "seat": 0}
+  ],
+  "expect": {
+    "controller": {"om": 0},
+    "zone": {"fp": "graveyard", "forest": "battlefield"},
+    "tapped": {"forest": false}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I06). Printed: 'if you CONTROL four or more lands' (control, not ownership). Two of your lands plus the opponent's Mountain under your control are three; with the fetched Forest, four: the Forest is untapped."
+}

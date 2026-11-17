@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "name": "dread_presence_mode_two_any_target_the_opponent_player",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'This creature deals 2 damage to any target and you gain 2 life.' Any target includes a player: seat 0 targets the opponent, who goes to 18; seat 0 goes to 22. The opponent's creature is not damaged.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "swamp", "real": "Swamp", "zone": "hand", "controller": 0},
+  {"key": "obig", "name": "Opp Ox", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "swamp", "seat": 0, "decisions": ["1", "player:1"]}
+ ],
+ "expect": {
+  "zone": {"swamp": "battlefield", "obig": "battlefield"},
+  "hand": {"0": 0},
+  "life": {"0": 22, "1": 18}
+ }
+}

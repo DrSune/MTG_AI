@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "rhino", "real": "Gnarlback Rhino", "zone": "battlefield", "controller": 0},
+  {"key": "tg", "real": "Titanic Growth", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"G": 2}},
+ "steps": [
+  {"op": "cast", "real": "Titanic Growth", "key": "tg", "targets": ["rhino"]}
+ ],
+ "expect": {
+  "zone": {"tg": "graveyard"},
+  "power": {"rhino": 8},
+  "hand": {"0": 1},
+  "mana_pool": {"0": {}}
+ },
+ "notes": "Gnarlback Rhino, printed: 'Whenever you cast a spell that targets this creature, draw a card.' I cast Titanic Growth targeting my Rhino: the spell resolves (the Rhino is 8/8) and I draw exactly one card (my hand was only the spell, so one card is in hand now)."
+}

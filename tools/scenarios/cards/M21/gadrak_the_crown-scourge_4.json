@@ -1,0 +1,23 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "g", "real": "Gadrak, the Crown-Scourge", "zone": "battlefield", "controller": 0},
+    {"key": "a1", "name": "Cog One", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "a2", "name": "Cog Two", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "a3", "name": "Clockwork Bear", "type": "Artifact Creature — Construct", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "o1", "name": "Opp Cog One", "type": "Artifact", "zone": "battlefield", "controller": 1},
+    {"key": "o2", "name": "Opp Cog Two", "type": "Artifact", "zone": "battlefield", "controller": 1},
+    {"key": "o3", "name": "Opp Cog Three", "type": "Artifact", "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "combat", "seat": 0, "attack": {"g": true}}
+  ],
+  "expect": {
+    "attackers": {"g": false},
+    "not_asked": ["g"],
+    "tapped": {"g": false},
+    "life": {"0": 20, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I09). Printed: 'Gadrak can't attack unless you control four or more artifacts.' You control three artifacts (two artifacts and an artifact creature) and the opponent controls three more (six on the battlefield, three yours): Gadrak is never offered an attack, deals no damage and stays untapped."
+}

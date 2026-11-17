@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "gold", "name": "Gold Wolf", "type": "Creature — Wolf", "power": 3, "toughness": 3, "colors": ["R", "G"], "zone": "battlefield", "controller": 1},
+    {"key": "red", "name": "Red Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "colors": ["R"], "zone": "battlefield", "controller": 1}
+  ],
+  "steps": [
+    {"op": "advance_turn"},
+    {"op": "combat", "seat": 1, "attack": {"gold": true, "red": true}, "block": {"lt": "gold"}}
+  ],
+  "expect": {
+    "attackers": {"gold": true, "red": true},
+    "blocked": {"gold": ["lt"]},
+    "zone": {"gold": "graveyard", "red": "battlefield", "lt": "battlefield"},
+    "damage": {},
+    "life": {"0": 18, "1": 20}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'protection from multicolored'. The opponent attacks with Gold Wolf (red-green 3/3) and Red Wolf (2/2); the Lieutenant (3/4) blocks the multicolored Gold Wolf: the Wolf's 3 combat damage to the Lieutenant is prevented (CR 702.16e: no damage marked), the Lieutenant's 3 damage kills it; the unblocked Red Wolf deals 2 to you (20 -> 18)."
+}

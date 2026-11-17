@@ -1,0 +1,16 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "lt", "real": "Basri's Lieutenant", "zone": "battlefield", "controller": 0},
+    {"key": "bear", "name": "Bear One", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "bear2", "name": "Bear Two", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "niambi", "real": "Niambi, Esteemed Speaker", "zone": "hand", "controller": 0}
+  ],
+  "mana": {"0": {"W": 1, "U": 1}},
+  "steps": [
+    {"op": "cast", "real": "Niambi, Esteemed Speaker", "key": "niambi", "expect_raise": "needs a decision from ('card:1', 'card:2')"}
+  ],
+  "expect": {"life": {"0": 20, "1": 20}},
+  "notes": "Verifier I, wave 4 (batch I, I02). Printed: 'protection from multicolored' (CR 702.16b: it can't be the target of spells or abilities from multicolored sources). Niambi (white-blue) enters and its trigger 'return another target creature you control' offers Bear One (card:1) and Bear Two (card:2) only: the Lieutenant (card:0) is protected from the multicolored source and Niambi (card:3) is not 'another'."
+}

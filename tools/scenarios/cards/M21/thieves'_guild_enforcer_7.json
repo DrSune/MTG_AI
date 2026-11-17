@@ -1,0 +1,213 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Thieves' Guild Enforcer. Printed: 'As long as AN OPPONENT has EIGHT or more cards in THEIR graveyard, this creature gets +2/+1 and has deathtouch.' Seat 1's graveyard holds seven cards (one short) while seat 0's own graveyard holds ten: the Enforcer stays a 1/1 with no deathtouch. It attacks and seat 1's 0/9 Wall blocks it: 1 damage does not kill the Wall.",
+ "cards": [
+  {
+   "key": "enf",
+   "real": "Thieves' Guild Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wall",
+   "name": "Opp Wall",
+   "type": "Creature — Wall",
+   "power": 0,
+   "toughness": 9,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "og1",
+   "name": "OG Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og2",
+   "name": "OG Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og3",
+   "name": "OG Card 3",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og4",
+   "name": "OG Card 4",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og5",
+   "name": "OG Card 5",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og6",
+   "name": "OG Card 6",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "og7",
+   "name": "OG Card 7",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "mg1",
+   "name": "MG Card 1",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg2",
+   "name": "MG Card 2",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg3",
+   "name": "MG Card 3",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg4",
+   "name": "MG Card 4",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg5",
+   "name": "MG Card 5",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg6",
+   "name": "MG Card 6",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg7",
+   "name": "MG Card 7",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg8",
+   "name": "MG Card 8",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg9",
+   "name": "MG Card 9",
+   "type": "Instant",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "mg10",
+   "name": "MG Card 10",
+   "type": "Creature — Bear",
+   "power": 1,
+   "toughness": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "enf": true
+   },
+   "block": {
+    "wall": "enf"
+   }
+  }
+ ],
+ "expect": {
+  "power": {
+   "enf": 1
+  },
+  "toughness": {
+   "enf": 1
+  },
+  "battlefield_keywords": {
+   "Thieves' Guild Enforcer": []
+  },
+  "zone": {
+   "enf": "battlefield",
+   "wall": "battlefield"
+  },
+  "blocked": {
+   "enf": [
+    "wall"
+   ]
+  },
+  "damage": {
+   "wall": 1
+  }
+ }
+}

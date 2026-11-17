@@ -1,0 +1,76 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Terror of the Peaks. Printed: '... cost an additional 3 life to cast.' A player can pay life only up to their life total (CR 119.4): seat 1 has 2 life, so its Shock cannot be cast at Terror (refused before anything is paid: Shock stays in hand, {R} stays in the pool, life stays 2). The same Shock at seat 0's Bear is castable.",
+ "cards": [
+  {
+   "key": "t",
+   "real": "Terror of the Peaks",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "My Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 1,
+   "set": 2
+  },
+  {
+   "op": "cast",
+   "key": "s",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "t"
+   ],
+   "expect_raise": "illegal target selection"
+  },
+  {
+   "op": "cast",
+   "key": "s",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 2
+  },
+  "zone": {
+   "t": "battlefield",
+   "bear": "graveyard",
+   "s": "graveyard"
+  },
+  "mana_pool": {
+   "1": {}
+  }
+ }
+}

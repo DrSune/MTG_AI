@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Historian of Zhalfir, printed: 'Whenever this creature attacks, if you control a Teferi planeswalker, draw a card.' I control Teferi, Master of Time (a Teferi planeswalker). The Historian attacks, unblocked: I draw exactly one card (hand 0 -> 1) and deal 3 (20 -> 17).",
+ "cards": [
+  {"key": "hist", "real": "Historian of Zhalfir", "zone": "battlefield", "controller": 0},
+  {"key": "tef", "real": "Teferi, Master of Time", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"hist": true}}
+ ],
+ "expect": {"hand": {"0": 1}, "life": {"0": 20, "1": 17}, "attackers": {"hist": true}}}

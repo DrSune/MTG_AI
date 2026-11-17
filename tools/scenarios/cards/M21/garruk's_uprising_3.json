@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk's Uprising, printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' I control a 4/4 (power exactly 4) and cast the enchantment ({2}{G}): its enters trigger draws me exactly one card. The hand was only the enchantment: after the cast it holds the one drawn card.",
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "ape", "name": "Four Ape", "type": "Creature — Ape", "power": 4, "toughness": 4, "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "up", "real": "Garruk's Uprising"}
+ ],
+ "expect": {"zone": {"up": "battlefield"}, "hand": {"0": 1}, "mana_pool": {"0": {}}}}

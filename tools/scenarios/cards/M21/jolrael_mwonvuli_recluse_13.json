@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever you draw your second card each turn, create a 2/2 green Cat creature token.' It counts the cards drawn in the whole turn, also those drawn before Jolrael was on the battlefield. In turn 1 I cast a Crash Through (my first card of the turn, Jolrael is still in my hand), then put Jolrael onto the battlefield, then cast a second Crash Through: my second card of the turn is drawn with Jolrael in play, and it makes one Cat.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "hand", "controller": 0},
+  {"key": "ct1", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "ct2", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "ct1", "real": "Crash Through"},
+  {"op": "enter", "key": "jol"},
+  {"op": "cast", "key": "ct2", "real": "Crash Through"}
+ ],
+ "expect": {"tokens": {"Cat": 1}, "zone": {"jol": "battlefield"}, "hand": {"0": 2}}}

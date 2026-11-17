@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever you draw your second card each turn, ...' The count is per turn. In turn 1 I draw one card (a Crash Through); the turn passes through the opponent's turn 2 to my turn 3, where my draw step gives me my FIRST card of that turn. Two cards drawn over two turns are no second card of any turn: no Cat.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "ct1", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "cast", "key": "ct1", "real": "Crash Through"},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"}
+ ],
+ "expect": {"tokens": {"Cat": 0}, "turn_seats": [0, 1, 0], "hand": {"0": 2}}}

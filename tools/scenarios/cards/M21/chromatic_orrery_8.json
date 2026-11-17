@@ -1,0 +1,21 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "orrery", "real": "Chromatic Orrery", "zone": "battlefield", "controller": 0},
+    {"key": "statue", "name": "Grey Statue", "type": "Artifact", "zone": "battlefield", "controller": 0},
+    {"key": "forest", "real": "Forest", "zone": "battlefield", "controller": 0},
+    {"key": "gopp", "name": "Green Opp", "type": "Creature — Elf", "power": 1, "toughness": 1, "colors": ["G"], "zone": "battlefield", "controller": 1},
+    {"key": "ropp", "name": "Red Opp", "type": "Creature — Imp", "power": 1, "toughness": 1, "colors": ["R"], "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "activate", "key": "orrery", "idx": 2, "seat": 0}
+  ],
+  "expect": {
+    "tapped": {"orrery": true},
+    "hand": {"0": 0},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I04). Printed: 'Draw a card for each color among permanents you control.' Every permanent you control is colorless (the Orrery, an artifact, a land), and colorless is not a color: zero cards are drawn, though the cost is paid. The opponent's green and red permanents do not count."
+}

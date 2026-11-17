@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Garruk's Uprising, printed: 'Whenever a creature you control with power 4 or greater enters, draw a card.' The trigger is for each creature, also when several enter at the same time. Three Glorious Anthems (each: 'Creatures you control get +1/+1.') make every creature I control +3/+3; Goblin Wizardry ('Create two 1/1 red Goblin Wizard creature tokens with prowess.') puts two 1/1 tokens onto the battlefield in one go, and they enter as 4/4s: the Uprising triggers once for each of them and I draw two cards (the hand held only the instant and now holds the two drawn cards). The two triggers are both mine and wait on the stack together: their order is asked and either order gives the same result.",
+ "cards": [
+  {
+   "key": "up",
+   "real": "Garruk's Uprising",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "an1",
+   "real": "Glorious Anthem",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "an2",
+   "real": "Glorious Anthem",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "an3",
+   "real": "Glorious Anthem",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gw",
+   "real": "Goblin Wizardry",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "gw",
+   "real": "Goblin Wizardry",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Goblin Wizard": 2
+  },
+  "hand": {
+   "0": 2
+  },
+  "zone": {
+   "gw": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

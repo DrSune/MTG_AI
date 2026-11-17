@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Turret Ogre. Printed: '... this creature deals 2 damage to EACH OPPONENT.' In a three-player game seat 0 controls a 4/4 (power exactly 4) and casts the Ogre: both opponents take 2 (seats 1 and 2 at 18) and seat 0 takes none.",
+ "cards": [
+  {
+   "key": "ogre",
+   "real": "Turret Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "big",
+   "name": "My Four",
+   "type": "Creature — Giant",
+   "power": 4,
+   "toughness": 4,
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ogre",
+   "real": "Turret Ogre"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ogre": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 18,
+   "2": 18
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

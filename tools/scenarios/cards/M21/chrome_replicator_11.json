@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "rep", "real": "Chrome Replicator", "zone": "hand", "controller": 0},
+    {"key": "mine", "name": "Twin Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+    {"key": "mine2", "name": "Twin Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
+  ],
+  "mana": {"0": {"C": 5}},
+  "steps": [
+    {"op": "gain_control", "key": "mine2", "seat": 1},
+    {"op": "cast", "real": "Chrome Replicator", "key": "rep"}
+  ],
+  "expect": {
+    "controller": {"mine2": 1},
+    "tokens": {"Construct": 0}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I03). Printed: 'if you CONTROL two or more ... permanents with the same name'. You own two Twin Bears but the opponent gains control of one: you control only one, so no token."
+}

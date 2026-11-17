@@ -1,0 +1,22 @@
+{"set": "FDN", "name": "D09_3_no_qualifying_card_in_my_library_finds_nothing",
+ "notes": "Printed: 'you may search YOUR library for a creature card with mana value 6 or greater'. My library holds a mana value 5 creature and a mana value 6 sorcery only; the OPPONENT's library holds a mana value 8 creature. I take the may: nothing in my library qualifies and the opponent's library is not searched, so nothing is found: my hand stays empty (the Empath left it), and the opponent's creature stays in the opponent's library.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "five", "name": "Mid Beast", "type": "Creature — Beast", "power": "5", "toughness": "5", "zone": "library", "controller": 0, "cmc": 5},
+  {"key": "sorc", "name": "Big Spell", "type": "Sorcery", "zone": "library", "controller": 0, "cmc": 6},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Beast", "power": "8", "toughness": "8", "zone": "library", "controller": 1, "cmc": 8}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "empath", "decisions": ["fire"]}
+ ],
+ "expect": {
+  "zone": {"empath": "battlefield", "five": "library", "sorc": "library", "obig": "library"},
+  "hand": {"0": 0, "1": 0},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Opp Big", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  }
+ }
+}

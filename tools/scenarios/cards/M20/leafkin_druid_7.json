@@ -1,0 +1,76 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c1",
+   "name": "Bear A",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "c2",
+   "name": "Bear B",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Opp Bear",
+   "type": "Creature \u2014 Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "troll",
+   "real": "Barkhide Troll",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "gain_control",
+   "key": "o1",
+   "seat": 0
+  },
+  {
+   "op": "cast",
+   "key": "troll",
+   "controller": 0,
+   "tap": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "troll": "battlefield"
+  },
+  "controller": {
+   "o1": 0
+  },
+  "tapped": {
+   "druid": true
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Leafkin Druid, printed: 'If you CONTROL four or more creatures'. The Druid, two Bears and the opponent's Bear that now comes under my control are four creatures I control (I own only three): one tap makes {G}{G} and pays Barkhide Troll."
+}

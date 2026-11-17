@@ -1,0 +1,23 @@
+{
+ "set": "M20",
+ "name": "bag_of_holding_loot_draws_one_discards_one_and_the_discard_is_exiled",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever you discard a card, exile that card from your graveyard. / {2}, {T}: Draw a card, then discard a card.' Seat 0 pays {2} and taps the Bag: it draws one card (Library 5) and discards Spare A, which the Bag's trigger exiles from the graveyard: Spare A is in exile, the graveyard is empty, the hand holds Spare B and the drawn card (2). The Bag is tapped and the pool is spent.",
+ "cards": [
+  {"key": "bag", "real": "Bag of Holding", "zone": "battlefield", "controller": 0},
+  {"key": "spare_a", "name": "Spare A", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0},
+  {"key": "spare_b", "name": "Spare B", "type": "Creature", "power": "3", "toughness": "3", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 2}},
+ "steps": [
+  {"op": "activate", "key": "bag", "idx": 1, "seat": 0, "decisions": ["spare_a"]}
+ ],
+ "expect": {
+  "zone": {"spare_a": "exile", "spare_b": "hand", "bag": "battlefield"},
+  "tapped": {"bag": true},
+  "hand": {"0": 2, "1": 0},
+  "graveyard": {"0": [], "1": []},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}}
+ }
+}

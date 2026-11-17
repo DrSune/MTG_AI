@@ -369,5 +369,57 @@
  },
  "probe": {
   "sha": "9083b0632665a6a89ae269002a57e9a27d1edf5b06c7dbb10008d91c73b8b272"
+ },
+ "verified": {
+  "tree_sha": "461bf7883df0cc99f4866ebeebfacd54c596e53de93b1be3a343e3776b1a50c0",
+  "probe_sha": "9083b0632665a6a89ae269002a57e9a27d1edf5b06c7dbb10008d91c73b8b272",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "This creature gets +2/+2 as long as there are three or more land cards in your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard graveyard (you_fallen, you_used) holds no land card, so the trace is always the printed 1/2 ('card on the battlefield: 1/2'). Tree: StaticAbility MODIFY_PT +2/+2 on IS_SOURCE, condition QTY_GE 3 over a count of Lands in Zone(GRAVEYARD, YOU). F08_1 (exactly three: 3/4), F08_2 (two own lands, a creature card and four opposing lands: 1/2), F08_3 (five: 3/4, not 5/6), F08_4 (one leaves the graveyard: back to 1/2).",
+    "issue": ""
+   },
+   {
+    "clause": "{2}, {T}, Sacrifice a land: Search your library for a land card, put it onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "[activate [1] from battlefield]: 'card becomes tapped', 'you_land moves battlefield -> graveyard (by card/SACRIFICE)', 'you: mana C-2': the cost is paid as printed, but the filler library holds no land card, so the search finds nothing: no land enters, no shuffle shows. Tree: SEARCH 1 ONE_OF Land in Zone(LIBRARY, YOU) to Zone(BATTLEFIELD, YOU) tapped_on_enter, then SHUFFLE your library. F08_5 (the land is found and enters tapped, the sacrificed land goes to the graveyard, the library is shuffled), F08_6 (the sacrifice ask offers exactly your two lands), F08_7 (no land of yours: refused), F08_8 (only {1}: refused cost:mana_generic).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/elvish_reclaimer_2.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_3.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_4.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_5.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_6.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_7.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_8.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_9.json",
+   "tools/scenarios/cards/M20/elvish_reclaimer_10.json"
+  ],
+  "mutation": {
+   "mutants": 23,
+   "killed": 9,
+   "score": 0.391304347826087,
+   "survived": [
+    "amount+1 at 1/0/effect/args/power/magnitude",
+    "amount-1 at 1/0/effect/args/power/magnitude",
+    "amount+1 at 1/0/effect/args/toughness/magnitude",
+    "amount-1 at 1/0/effect/args/toughness/magnitude",
+    "amount+1 at 1/0/condition/count",
+    "amount-1 at 1/0/condition/count",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/zones/0/controller",
+    "widen filter (drop part 0) at 1/1/cost/parts/1/target/filter",
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "amount+1 at 1/1/effect/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/1/effect/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/1/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/1/effect/steps/0/args/destination/controller"
+   ]
+  }
  }
 }

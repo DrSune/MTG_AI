@@ -1,0 +1,58 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Eternal Isolation (M20) is a sorcery: in seat 0's own beginning of combat (not a main phase) the cast is refused (the sorcery-timing window), nothing is paid and the Giant stays.",
+ "cards": [
+  {
+   "key": "ei",
+   "real": "Eternal Isolation",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "giant",
+   "name": "Giant",
+   "type": "Creature",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "to_step",
+   "step": "COMBAT"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 2
+   }
+  },
+  {
+   "op": "cast",
+   "key": "ei",
+   "controller": 0,
+   "targets": [
+    "giant"
+   ],
+   "expect_raise": "window:phase"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ei": "hand",
+   "giant": "battlefield"
+  },
+  "mana_pool": {
+   "0": {
+    "W": 2
+   }
+  }
+ }
+}

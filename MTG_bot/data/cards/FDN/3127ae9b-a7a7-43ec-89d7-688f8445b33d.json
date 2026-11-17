@@ -5,42 +5,51 @@
  "name": "Garruk's Uprising",
  "text_sha": "272cf8b97081eac971a122b396760699c67f435be6df9116f5c2ff765871c214",
  "verified": {
-  "tree_sha": "cfc8288795876923f3258564d6be645418ac80ddc88e3c23451cf951ee3bb751",
-  "probe_sha": "24d91423a334b17b599b65566390b6ba81eb7f92c8fc5d4eb4bf2f0d73be4ba5",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-fdn1",
+  "tree_sha": "fa2986081096cf04feb4ca26eb4040eccabcafd69acbbee6c5e380b5d50a60af",
+  "probe_sha": "970cf3ed95783cf372335ea9202edffc938a3073b29370d9ce440a0b9987a28c",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "When this enchantment enters, if you control a creature with power 4 or greater, draw a card.",
     "status": "OK",
-    "evidence": "[cast]: trigger [0], you draws (seat 0 controls you_giant 4/4: power exactly 4 counts); same on the opponent's-turn entry. The false case is not on the probe board: pack garruks_uprising_1 (seat 0 controls only a 3/3, the opponent a 5/5): no draw.",
+    "evidence": "cast: trigger [0] fires with you_giant (4/4, exactly power 4) on board and exactly one card is drawn; 'from your hand, the card enters during the opponent's turn': trigger and one draw again; tree = the compiler's B2b-etb-power-condition-draw parse. The false 'if' and the check as it resolves are not in the trace: packs D07_1 (3/3 only: no draw), D07_2 (power exactly 4: one draw), D07_5 (the 4/4 leaves in response: no draw).",
     "issue": ""
    },
    {
     "clause": "Creatures you control have trample.",
     "status": "OK",
-    "evidence": "Static diff: you_bear and you_giant +TRAMPLE, no opponent's creature; you_spare (entering) and Aegis Turtle (cast) get TRAMPLE.",
+    "evidence": "cast: you_bear and you_giant gain +TRAMPLE; 'you cast a creature (Aegis Turtle)': the new creature enters with +TRAMPLE; no opposing creature gains it; creatures die with -TRAMPLE. Pack D07_6 shows it in combat (3 trample over a chump blocker, none for the opponent's attacker).",
     "issue": ""
    },
    {
     "clause": "Whenever a creature you control with power 4 or greater enters, draw a card.",
     "status": "NOT_EXERCISED",
-    "evidence": "Only negatives in the trace: you_spare 3/3 enters -> none; Aegis Turtle 0/5 -> none; the opponent's creature entering -> none. Pack garruks_uprising_2: seat 0's 4/4 entering draws one, its 3/3 and the opponent's 5/5 do not (seat 0 hand 2 -> 1, seat 1 draws nothing).",
+    "evidence": "the only creatures that enter in the trace have power 3 (you_spare) and 0 (Aegis Turtle), and the opponent's one has power 3: the trigger never fires and nothing shows a power-4 creature entering. Tree = the compiler's B2b-power-ge-enters-draw parse. Packs: D07_3 (3/3 draws nothing, my 4/4 draws one, the opponent's 5/5 draws nothing), D07_4 (each big creature draws its own card). Pack D07_7: two Knight tokens made at once (4/4 with Anthem of Champions) each trigger it, two draws.",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/FDN/garruk's_uprising_1.json",
-   "tools/scenarios/cards/FDN/garruk's_uprising_2.json"
+   "tools/scenarios/cards/FDN/garruk's_uprising_3.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_4.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_5.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_6.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_7.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_8.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_9.json",
+   "tools/scenarios/cards/FDN/garruk's_uprising_10.json"
   ],
   "mutation": {
-   "mutants": 20,
+   "mutants": 23,
    "killed": 10,
-   "score": 0.5,
+   "score": 0.43478260869565216,
    "survived": [
-    "widen filter (drop part 0) at 1/0/condition/inner_filter",
-    "widen filter (drop part 1) at 1/0/condition/inner_filter",
-    "amount-1 at 1/0/condition/inner_filter/children/1/count",
+    "widen filter (drop part 0) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/0/condition/quantity/selector/filter",
+    "widen filter (drop part 2) at 1/0/condition/quantity/selector/filter",
+    "controller YOU->OPPONENT at 1/0/condition/quantity/selector/filter/children/0/who",
+    "amount-1 at 1/0/condition/quantity/selector/filter/children/2/count",
+    "each occurrence -> once per event at 1/2",
     "controller YOU->OPPONENT at 1/2/event/to_zone/controller",
     "widen filter (drop part 0) at 1/2/event/subject",
     "widen filter (drop part 1) at 1/2/event/subject",

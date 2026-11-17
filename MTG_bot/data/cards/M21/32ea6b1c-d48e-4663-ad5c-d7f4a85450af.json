@@ -5,55 +5,62 @@
  "name": "Garruk, Unleashed",
  "text_sha": "bb685f6d031c54f7cc77daffac4d68370f30da59e85dbc4762bbec0103c75642",
  "verified": {
-  "tree_sha": "5ad77f60072d5433b43a17a4764bbf1e842108c7e9a5db88e21540e40499c9f7",
+  "tree_sha": "47ac8544ee6c01891bb01fa2f2202c2312d05893e17867fd02be0bb3664d688a",
   "probe_sha": "9ff52eec6a537e31b03bdf6df30f382745845eae6be02bad6b4be779fd40c9af",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1c-A",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "+1: Up to one target creature gets +3/+3 and gains trample until end of turn",
+    "clause": "Garruk, Unleashed {2}{G}{G} Legendary Planeswalker — Garruk loyalty 4 (cast)",
     "status": "OK",
-    "evidence": "activate [0]: slot 0..1; each target +3/+3 and +TRAMPLE, reverted after turn; no-target variant ok",
+    "evidence": "[cast]: hand -> stack -> battlefield, card gets 4 LOYALTY counter(s), mana C-2 G-2.",
     "issue": ""
    },
    {
-    "clause": "-2: Create a 3/3 green Beast creature token",
+    "clause": "[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.",
     "status": "OK",
-    "evidence": "you:Beast created 3/3 on battlefield",
+    "evidence": "[activate [0]] on each of the six creatures: loyalty 4 -> 5, P/T +3/+3 and keywords +TRAMPLE (you_bear 2/2 -> 5/5), both gone 'after the turn ends'; target slot 0..1, and [activate [0]] with no target pays the loyalty only. Packs J05_1, J05_2, J05_3.",
     "issue": ""
    },
    {
-    "clause": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk",
+    "clause": "[−2]: Create a 3/3 green Beast creature token.",
     "status": "OK",
-    "evidence": "true branch seen (opp 4 vs you 3 incl. Beast): loyalty 4 -> 3 (cost 2, +1); false branch and equality pinned by A08_1, A08_2",
+    "evidence": "[activate [1]]: loyalty 4 -> 3 (-2, then +1), 'you:Beast moves new -> battlefield', 3/3; the engine's token object has colors ('G',) (inspected in J05_4's final state). Packs J05_4 to J05_7 count the tokens.",
     "issue": ""
    },
    {
-    "clause": "-7: emblem: at the beginning of your end step, you may search for a creature card, put it onto the battlefield, then shuffle",
+    "clause": "Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.",
+    "status": "OK",
+    "evidence": "[activate [1]]: the opponent controls four creatures against my three (with the Beast): 'card gets 1 LOYALTY counter(s)'. The false branch and the 'Then' order are not in the trace: packs J05_4 (one against two before, two against two after the Beast: no counter), J05_5 (one against three: counter), J05_6 (three against two: none), J05_7 (only creatures count). Known limit, in BACKLOG 'Open engine faults': at three or more seats the comparison sums ALL opponents' creatures (the printed 'an opponent' is any one); the verified two-player play is exact.",
+    "issue": ""
+   },
+   {
+    "clause": "[−7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"",
     "status": "NOT_EXERCISED",
-    "evidence": "[2] not activatable (loyalty 4<7). Packs A08_3 (accept), A08_4 (decline)",
+    "evidence": "'ability [2] not activatable from battlefield: cost:loyalty:4<7'. Packs J05_8 (the chosen creature card enters, the rest stays in the library), J05_9 (declined: nothing moves and the library is not shuffled), J05_10 (no trigger at the opponent's end step). Known limit, in BACKLOG B-107's residue: a library search can never fail to find (CR 701.19b), so after 'fire' a creature card present in the library must be taken; the 'may' still lets the player decline the whole search (J05_9).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/garruk_unleashed_3.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_4.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_5.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_6.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_7.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_8.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_9.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_10.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_1.json",
-   "tools/scenarios/cards/M21/garruk_unleashed_2.json"
+   "tools/scenarios/cards/M21/garruk_unleashed_11.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_12.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_13.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_14.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_15.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_16.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_17.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_18.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_19.json",
+   "tools/scenarios/cards/M21/garruk_unleashed_20.json"
   ],
   "mutation": {
-   "mutants": 34,
-   "killed": 21,
-   "score": 0.6176470588235294,
+   "mutants": 36,
+   "killed": 22,
+   "score": 0.6111111111111112,
    "survived": [
-    "widen filter (drop part 0) at 1/1/effect/steps/1/pred/inner_filter",
-    "widen filter (drop part 1) at 1/1/effect/steps/1/pred/inner_filter",
+    "amount: more than -> at least as many at 1/1/effect/steps/1/pred",
+    "widen filter (drop part 0) at 1/1/effect/steps/1/pred/quantity/selector/filter",
+    "widen filter (drop part 1) at 1/1/effect/steps/1/pred/quantity/selector/filter",
     "widen filter (drop part 0) at 1/1/effect/steps/1/then_effect/args/target/filter",
     "trigger scope: your turn -> each turn at 1/2/effect/args/emblem/abilities/0/event",
     "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/event/actor/who",

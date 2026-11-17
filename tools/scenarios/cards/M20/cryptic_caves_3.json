@@ -1,0 +1,65 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cryptic Caves (M20). Printed: '{1}, {T}, Sacrifice this land: Draw a card.' Seat 0 controls five lands (the restriction is met) but has no mana for the {1}: the activation is refused (the {1} is part of the cost), and the Caves is neither tapped nor sacrificed, nothing is drawn.",
+ "cards": [
+  {
+   "key": "caves",
+   "real": "Cryptic Caves",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "name": "Test Land One",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "name": "Test Land Two",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "name": "Test Land Three",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "name": "Test Land Four",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "caves",
+   "idx": 1,
+   "seat": 0,
+   "expect_raise": "cost:mana_generic"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "caves": "battlefield"
+  },
+  "tapped": {
+   "caves": false
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  }
+ }
+}

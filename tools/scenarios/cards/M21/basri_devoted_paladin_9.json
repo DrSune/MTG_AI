@@ -1,0 +1,71 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Basri, Devoted Paladin, printed: '[-1]: Whenever a creature attacks this turn, put a +1/+1 counter on it.' 'This turn' only: the -1 is activated in seat 0's turn, then seat 1's turn comes and seat 1's creature attacks. No counter (the effect ended with the turn): it deals 2 (seat 0: 18).",
+ "cards": [
+  {
+   "key": "basri",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oppbear",
+   "name": "Their Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "basri",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "oppbear": true
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "basri": {
+    "LOYALTY": 3
+   },
+   "oppbear": {},
+   "bear": {}
+  },
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "attackers": {
+   "oppbear": true
+  }
+ }
+}

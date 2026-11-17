@@ -1,0 +1,25 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Cryptic Caves (M20). Printed: 'Activate only if you control five or more lands.' Control counts, not ownership: seat 0 owns five lands (the Caves and four more) but the opponent has taken control of two of them, so seat 0 controls only three and the activation is refused (condition:false). Nothing is paid, tapped, sacrificed or drawn.",
+ "cards": [
+  {"key": "caves", "real": "Cryptic Caves", "zone": "battlefield", "controller": 0},
+  {"key": "l1", "name": "Test Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l2", "name": "Test Land Two", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l3", "name": "Lent Land One", "type": "Land", "zone": "battlefield", "controller": 0},
+  {"key": "l4", "name": "Lent Land Two", "type": "Land", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 1}},
+ "steps": [
+  {"op": "gain_control", "key": "l3", "seat": 1},
+  {"op": "gain_control", "key": "l4", "seat": 1},
+  {"op": "activate", "key": "caves", "idx": 1, "seat": 0, "expect_raise": "condition:false"}
+ ],
+ "expect": {
+  "zone": {"caves": "battlefield"},
+  "tapped": {"caves": false},
+  "controller": {"l3": 1, "l4": 1},
+  "hand": {"0": 0, "1": 0},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

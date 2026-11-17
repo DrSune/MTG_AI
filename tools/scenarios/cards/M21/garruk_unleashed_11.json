@@ -1,0 +1,11 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk, Unleashed, printed: '[+1]: Up to one target creature gets +3/+3 and gains trample until end of turn.' I aim it at my own 2/2 Bear: it is a 5/5 with trample, and the other creature (the opponent's 2/2 Wolf, not the target) is untouched. Loyalty 4 -> 5.",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0},
+  {"key": "wolf", "name": "Opp Wolf", "type": "Creature — Wolf", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "garruk", "idx": 0, "seat": 0, "targets": ["bear"]}
+ ],
+ "expect": {"power": {"bear": 5, "wolf": 2}, "toughness": {"bear": 5, "wolf": 2}, "battlefield_keywords": {"My Bear": ["TRAMPLE"], "Opp Wolf": []}, "counters": {"garruk": {"LOYALTY": 5}}}}

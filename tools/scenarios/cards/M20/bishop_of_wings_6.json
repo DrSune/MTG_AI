@@ -1,0 +1,90 @@
+{
+ "set": "M20",
+ "name": "bishop_of_wings_one_spirit_for_each_angel_of_yours_that_dies",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Printed: 'Whenever an Angel you control dies, create a 1/1 white Spirit creature token with flying.' Two Angels of seat 0 die in the same combat-free step sequence: two triggers, exactly two Spirit tokens. The opponent's Angel dying adds none.",
+ "cards": [
+  {
+   "key": "bishop",
+   "real": "Bishop of Wings",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "angel1",
+   "name": "My Angel One",
+   "type": "Creature — Angel",
+   "power": "4",
+   "toughness": "4",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "angel2",
+   "name": "My Angel Two",
+   "type": "Creature — Angel",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oangel",
+   "name": "Opp Angel",
+   "type": "Creature — Angel",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "killer",
+   "name": "Killer",
+   "type": "Creature — Giant",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "oangel",
+   "amount": 9,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "angel1",
+   "amount": 9,
+   "controller": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "killer",
+   "target": "angel2",
+   "amount": 9,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "angel1": "graveyard",
+   "angel2": "graveyard",
+   "oangel": "graveyard",
+   "bishop": "battlefield"
+  },
+  "tokens": {
+   "Spirit": 2
+  }
+ }
+}

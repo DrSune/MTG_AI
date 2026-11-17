@@ -1,0 +1,129 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "g",
+   "real": "Gadrak, the Crown-Scourge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "src",
+   "name": "Pinger",
+   "type": "Creature — Wizard",
+   "power": 1,
+   "toughness": 9,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mybear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "oppbear",
+   "name": "Opp Bear",
+   "type": "Creature — Bear",
+   "power": 2,
+   "toughness": 2,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "tok",
+   "name": "Spirit",
+   "type": "Creature — Spirit",
+   "power": 1,
+   "toughness": 1,
+   "token": true,
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "survivor",
+   "name": "Survivor Elk",
+   "type": "Creature — Elk",
+   "power": 3,
+   "toughness": 3,
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "cog",
+   "name": "Broken Cog",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isle",
+   "name": "Burnt Land",
+   "type": "Land",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "mybear",
+   "amount": 2
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "oppbear",
+   "amount": 2
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "tok",
+   "amount": 1
+  },
+  {
+   "op": "deal_damage",
+   "source": "src",
+   "target": "survivor",
+   "amount": 2
+  },
+  {
+   "op": "move",
+   "key": "cog",
+   "to": "graveyard"
+  },
+  {
+   "op": "move",
+   "key": "isle",
+   "to": "graveyard"
+  },
+  {
+   "op": "end_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mybear": "graveyard",
+   "oppbear": "graveyard",
+   "tok": "ceased",
+   "survivor": "battlefield",
+   "g": "battlefield",
+   "cog": "graveyard",
+   "isle": "graveyard"
+  },
+  "tokens": {
+   "Treasure": 2
+  }
+ },
+ "notes": "Verifier I, wave 4 (batch I, I09). Printed: 'At the beginning of your end step, create a Treasure token for each nontoken creature that died this turn.' Your nontoken Bear and the opponent's nontoken Bear die (either player's creatures count), a Spirit TOKEN dies (not counted: nontoken), and a 3/3 takes 2 damage and lives: at your end step exactly 2 Treasures are created. A noncreature artifact and a land also go from the battlefield to a graveyard this turn: they are not creatures, so they are not counted (still exactly 2 Treasures)."
+}

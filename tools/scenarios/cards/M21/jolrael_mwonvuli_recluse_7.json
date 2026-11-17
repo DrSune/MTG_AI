@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever YOU draw your second card each turn, ...' The opponent draws two cards in my turn (two Opts, instants, cast by seat 1: 'Scry 1. Draw a card.'): that is their second card, not mine. I draw nothing and no Cat is made.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "opt1", "real": "Opt", "zone": "hand", "controller": 1},
+  {"key": "opt2", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"U": 2}},
+ "steps": [
+  {"op": "cast", "key": "opt1", "real": "Opt", "controller": 1, "decisions": ["top"]},
+  {"op": "cast", "key": "opt2", "real": "Opt", "controller": 1, "decisions": ["top"]}
+ ],
+ "expect": {"tokens": {"Cat": 0}, "hand": {"0": 0, "1": 2}}}

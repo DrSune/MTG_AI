@@ -1,0 +1,10 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Ornery Dilophosaur, printed: 'Deathtouch (Any amount of damage this deals to a creature is enough to destroy it.)' I control no creature with power 4 or greater, so the Dilophosaur stays a 2/2. It attacks and the opponent's 5/5 blocks: the 2 damage it deals is enough to destroy the 5/5, which goes to the graveyard (a 2/2's damage alone would not), and the Dilophosaur, dealt 5, dies as well.",
+ "cards": [
+  {"key": "dilo", "real": "Ornery Dilophosaur", "zone": "battlefield", "controller": 0},
+  {"key": "big", "name": "Opp Five Ape", "type": "Creature — Ape", "power": 5, "toughness": 5, "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "combat", "seat": 0, "attack": {"dilo": true}, "block": {"big": "dilo"}}
+ ],
+ "expect": {"zone": {"dilo": "graveyard", "big": "graveyard"}, "life": {"0": 20, "1": 20}}}

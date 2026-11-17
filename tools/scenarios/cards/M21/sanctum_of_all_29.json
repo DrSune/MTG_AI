@@ -1,0 +1,69 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Sanctum of All. Printed: 'At the beginning of your upkeep, you may search your library and/or graveyard for a Shrine card and put it onto the battlefield. If you search your library this way, shuffle.' At turn 3's upkeep seat 0 fires the may and searches both zones (option 0): it takes Shrine G from the graveyard, and exactly one Shrine comes (Shrine L stays in the library). Its library WAS searched, so it is shuffled although the card came from the graveyard (the seeded order below; unshuffled it would be Library 4, 3, 2, 1, 0, Shrine L).",
+ "cards": [
+  {
+   "key": "a",
+   "real": "Sanctum of All",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sl",
+   "name": "Shrine L",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sg",
+   "name": "Shrine G",
+   "type": "Legendary Enchantment — Shrine",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "a"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn",
+   "decisions": [
+    "fire",
+    "0",
+    "sg"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "a": "battlefield",
+   "sg": "battlefield",
+   "sl": "library"
+  },
+  "controller": {
+   "sg": 0
+  },
+  "library": {
+   "0": [
+    "Shrine L",
+    "Library 2",
+    "Library 5",
+    "Library 1",
+    "Library 0",
+    "Library 3"
+   ]
+  }
+ }
+}

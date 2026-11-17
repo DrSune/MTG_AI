@@ -1,0 +1,52 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Speaker of the Heavens. Printed: '{T}: Create a 4/4 white Angel creature token with flying. Activate only if you have at least 7 life more than your starting life total and only as a sorcery.' Starting life is 20; seat 0 is at 27, exactly 7 more, on its own turn with an empty stack. Tapping Speaker creates one 4/4 Angel token with flying; Speaker is tapped and the life total is unchanged.",
+ "cards": [
+  {
+   "key": "sp",
+   "real": "Speaker of the Heavens",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 27
+  },
+  {
+   "op": "activate",
+   "key": "sp",
+   "idx": 0,
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "sp": true
+  },
+  "tokens": {
+   "Angel": 1
+  },
+  "battlefield_pt": {
+   "Angel": [
+    4,
+    4
+   ]
+  },
+  "battlefield_keywords": {
+   "Angel": [
+    "FLYING"
+   ]
+  },
+  "life": {
+   "0": 27,
+   "1": 20
+  }
+ }
+}

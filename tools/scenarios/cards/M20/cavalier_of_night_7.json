@@ -1,0 +1,62 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Cavalier of Night (M20). Printed: 'return target creature card with mana value 3 or less': 3 or less includes 3. The only creature card in seat 0's graveyard has mana value exactly 3 (next to a non-creature card of mana value 1): it returns to the battlefield, and the non-creature stays.",
+ "cards": [
+  {
+   "key": "cn",
+   "real": "Cavalier of Night",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "smasher",
+   "name": "Smasher",
+   "type": "Creature",
+   "power": "9",
+   "toughness": "9",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "three",
+   "name": "Three",
+   "type": "Creature",
+   "power": "2",
+   "toughness": "2",
+   "cmc": 3,
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "art",
+   "name": "Trinket",
+   "type": "Artifact",
+   "cmc": 1,
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "deal_damage",
+   "source": "smasher",
+   "target": "cn",
+   "amount": 5,
+   "controller": 1
+  }
+ ],
+ "expect": {
+  "zone": {
+   "cn": "graveyard",
+   "three": "battlefield",
+   "art": "graveyard"
+  },
+  "controller": {
+   "three": 0
+  }
+ }
+}

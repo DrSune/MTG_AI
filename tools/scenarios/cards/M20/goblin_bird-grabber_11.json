@@ -1,0 +1,19 @@
+{"set": "M20", "name": "D08_5_the_gate_needs_a_creature_with_flying",
+ "notes": "Printed: 'Activate only if you control a CREATURE with flying.' I control an uncrewed Vehicle that has flying (an artifact, not a creature) and no creature with flying: the activation is refused and the {R} stays in the pool. Then a real flying creature of mine enters and the same activation is legal.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "grab", "real": "Goblin Bird-Grabber", "zone": "battlefield", "controller": 0},
+  {"key": "wagon", "name": "Sky Wagon", "type": "Artifact — Vehicle", "power": "3", "toughness": "3", "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+  {"key": "myflier", "name": "My Flier", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "mana", "seat": 0, "add": {"R": 1}},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0, "expect_raise": "illegal activation"},
+  {"op": "enter", "key": "myflier"},
+  {"op": "activate", "key": "grab", "idx": 0, "seat": 0}
+ ],
+ "expect": {
+  "battlefield_keywords": {"Goblin Bird-Grabber": ["FLYING"]},
+  "mana_pool": {"0": {}}
+ }
+}

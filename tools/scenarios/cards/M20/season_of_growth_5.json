@@ -1,0 +1,19 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sog", "real": "Season of Growth", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "name": "My Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "theirs", "name": "Opp Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "mine", "decisions": ["bottom"]},
+  {"op": "enter", "key": "theirs", "decisions": ["bottom"]}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "theirs": "battlefield"},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"],
+              "1": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}
+ },
+ "notes": "Season of Growth, printed: 'Whenever a creature you control enters, scry 1.' My creature enters: I scry 1 and put the top card (Library 5) on the bottom. The opponent's creature enters afterwards: no scry for me (my library is not touched again) and the opponent's own library is as it was."
+}

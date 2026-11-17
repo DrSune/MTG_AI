@@ -1,0 +1,22 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Subira, Tulzidi Caravanner. Printed: '{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.' The grant lasts this turn only. Turn 1: Subira pays {1}{R}, discards the one card in hand. Turn 2 is seat 1's, turn 3 is seat 0's: its draw step draws one card (hand 1) and the 1/1 Runner attacks unblocked for 1, which draws nothing more.",
+ "cards": [
+  {"key": "sub", "zone": "battlefield", "controller": 0, "real": "Subira, Tulzidi Caravanner"},
+  {"key": "h1", "zone": "hand", "controller": 0, "name": "Hand One", "type": "Instant"},
+  {"key": "runner", "zone": "battlefield", "controller": 0, "name": "Runner", "type": "Creature — Human", "power": 1, "toughness": 1}
+ ],
+ "mana": {"0": {"R": 1, "C": 1}},
+ "steps": [
+  {"op": "activate", "key": "sub", "idx": 1, "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "advance_turn"},
+  {"op": "combat", "seat": 0, "attack": {"runner": true, "sub": false}}
+ ],
+ "expect": {
+  "turn_seats": [0, 1, 0],
+  "zone": {"h1": "graveyard"},
+  "attackers": {"runner": true, "sub": false},
+  "life": {"0": 20, "1": 19},
+  "hand": {"0": 1}
+ }}

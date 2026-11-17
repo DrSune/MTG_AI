@@ -1,0 +1,82 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ww",
+   "real": "Winged Words",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bird",
+   "name": "My Bird",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tg",
+   "real": "Titanic Growth",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "G": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "real": "Titanic Growth",
+   "key": "tg",
+   "controller": 0,
+   "targets": [
+    "bird"
+   ],
+   "expect_raise": "illegal cast"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1
+   }
+  },
+  {
+   "op": "cast",
+   "real": "Titanic Growth",
+   "key": "tg",
+   "controller": 0,
+   "targets": [
+    "bird"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "tg": "graveyard",
+   "ww": "hand"
+  },
+  "power": {
+   "bird": 5
+  },
+  "hand": {
+   "0": 1
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Winged Words, printed: 'THIS SPELL costs {1} less to cast'. Winged Words is in my hand and I control a flier, but the discount is for Winged Words only: Titanic Growth ({1}{G}) keeps its full cost, so one green mana cannot pay it (refused, it stays in hand) and two mana do (the flier becomes 5/5); Winged Words is untouched in my hand."
+}

@@ -1,0 +1,109 @@
+{
+ "set": "M20",
+ "name": "D08_4_flying_lasts_only_until_end_of_turn",
+ "notes": "Printed: '{R}: This creature gains flying until end of turn.' After the activation the Goblin has flying; once the turn ends (and again at the start of my next turn) it does not: the opponent's ground 3/3 may block it, is offered that block and takes it, killing the 1-toughness Goblin (the Goblin's 2 damage stays marked on the 3/3).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "grab",
+   "real": "Goblin Bird-Grabber",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "myflier",
+   "name": "My Flier",
+   "type": "Creature \u2014 Bird",
+   "power": "1",
+   "toughness": "1",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "obear",
+   "name": "Opp Brute",
+   "type": "Creature \u2014 Brute",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "activate",
+   "key": "grab",
+   "idx": 0,
+   "seat": 0
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "grab": true
+   },
+   "block": {
+    "obear": "grab"
+   }
+  }
+ ],
+ "expect": {
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "battlefield_keywords": {
+   "My Flier": [
+    "FLYING"
+   ]
+  },
+  "attackers": {
+   "grab": true
+  },
+  "block_asks": {
+   "obear": "<grab>,NONE"
+  },
+  "blocked": {
+   "grab": [
+    "obear"
+   ]
+  },
+  "zone": {
+   "grab": "graveyard",
+   "obear": "battlefield"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "damage": {
+   "obear": 2
+  }
+ }
+}

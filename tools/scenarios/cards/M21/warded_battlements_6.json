@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Warded Battlements, printed: 'Attacking creatures you control get +1/+0.' An attacking creature is attacking whatever it attacks: a 2/2 that attacks seat 1's planeswalker is an attacking creature, so it deals 3 and the walker goes 5 -> 2 loyalty (seat 1's life is untouched).",
+ "cards": [
+  {
+   "key": "wall",
+   "real": "Warded Battlements",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Attacker A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "name": "Walker",
+   "type": "Legendary Planeswalker — Test",
+   "loyalty": "5",
+   "counters": {
+    "LOYALTY": 5
+   },
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "a": "pw"
+   }
+  }
+ ],
+ "expect": {
+  "counters": {
+   "pw": {
+    "LOYALTY": 2
+   }
+  },
+  "life": {
+   "1": 20
+  },
+  "attackers": {
+   "a": true
+  }
+ }
+}

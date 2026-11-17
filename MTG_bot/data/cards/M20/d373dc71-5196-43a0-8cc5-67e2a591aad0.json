@@ -226,5 +226,42 @@
  },
  "probe": {
   "sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01"
+ },
+ "verified": {
+  "tree_sha": "589e0347fb8b253acb4fad5e79bf2e8d5d2b349b24cf9b577d23f89b744e4b00",
+  "probe_sha": "7bc4491c13a0ef789e0b94cd98db475abea6a5930c238d4b04b20ddb7d9a0c01",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Whenever you gain life, put a +1/+1 counter on this creature.",
+    "status": "OK",
+    "evidence": "[stimulus: you gain 3 life]: \"card's triggered ability [0] triggers\", 'you gains 3 life (by you_bear/GAIN_LIFE)', 'card gets 1 PLUS_1_PLUS_1 counter(s) (by card/PUT_COUNTER)', 'card: counters {} -> {PLUS_1_PLUS_1: 1}; P/T 3/3 -> 4/4', 'you: life 20 -> 23': one counter for one gain of three, on this creature. The opponent gaining life is not in the trace: pack G07_3.",
+    "issue": ""
+   },
+   {
+    "clause": "As long as you have 25 or more life, this creature has double strike.",
+    "status": "NOT_EXERCISED",
+    "evidence": "My life is 20 or 23 in every variant and 'Static: card on the battlefield: 3/3' shows no keyword; the condition (QTY_GE 25 over my life, grant DOUBLE_STRIKE to this creature) is never true in the trace. Packs G07_1 (24: none, 3 damage), G07_2 (25: double strike, 6 damage, only this creature), G07_5 (22 plus 3 life to 25: gets it, 8 damage with the counter), G07_6 (25 then 23: loses it).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/twinblade_paladin_4.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_5.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_6.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_7.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_8.json",
+   "tools/scenarios/cards/M20/twinblade_paladin_9.json"
+  ],
+  "mutation": {
+   "mutants": 4,
+   "killed": 2,
+   "score": 0.5,
+   "survived": [
+    "amount+1 at 1/1/condition/count",
+    "amount-1 at 1/1/condition/count"
+   ]
+  }
  }
 }

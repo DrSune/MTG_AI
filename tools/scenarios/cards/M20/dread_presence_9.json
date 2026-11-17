@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "dread_presence_only_swamps_you_control_a_forest_and_the_opponents_swamp_do_nothing",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever a Swamp you control enters, ...'. A Forest that seat 0 plays does not trigger it (no mode is asked, nothing is drawn, no life changes), and neither does a Swamp that seat 1 plays on its own turn (a step without decisions raises at any ask). Nothing is damaged.",
+ "cards": [
+  {"key": "dread", "real": "Dread Presence", "zone": "battlefield", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "hand", "controller": 0},
+  {"key": "oswamp", "real": "Swamp", "zone": "hand", "controller": 1},
+  {"key": "obear", "name": "Opp Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "play", "key": "forest", "seat": 0},
+  {"op": "advance_turn"},
+  {"op": "play", "key": "oswamp", "seat": 1}
+ ],
+ "expect": {
+  "zone": {"forest": "battlefield", "oswamp": "battlefield", "obear": "battlefield"},
+  "hand": {"0": 0},
+  "life": {"0": 20, "1": 20}
+ }
+}

@@ -1,0 +1,19 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "enf", "real": "Celestial Enforcer", "zone": "battlefield", "controller": 0},
+    {"key": "flier", "name": "Your Flier", "type": "Creature — Bird", "power": 1, "toughness": 1, "keywords": ["FLYING"], "zone": "battlefield", "controller": 0},
+    {"key": "obear", "name": "Opp Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1},
+    {"key": "obear2", "name": "Opp Ox", "type": "Creature — Ox", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"W": 1, "C": 1}},
+  "steps": [
+    {"op": "activate", "key": "enf", "idx": 0, "seat": 0, "targets": ["obear"]}
+  ],
+  "expect": {
+    "tapped": {"enf": true, "obear": true, "obear2": false, "flier": false},
+    "mana_pool": {"0": {}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I11). Printed: '{1}{W}, {T}: Tap target creature. Activate only if you control a creature with flying.' You control a creature with flying: the ability is allowed; {1}{W} is paid from the pool, the Enforcer taps (cost) and the targeted opposing creature is tapped; the other opposing creature and your flier are untouched."
+}

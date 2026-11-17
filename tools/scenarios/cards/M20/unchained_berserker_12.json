@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "name": "unchained_berserker_cannot_be_equipped_by_a_white_equipment_but_can_by_others",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Protection from white (This creature can't be ... equipped ... by anything white.)'. Ancestral Blade is a white Equipment (Equip {1}), Marauder's Axe a colourless one (Equip {2}, +2/+0). Seat 0 has the mana for both. Equipping the white Blade to the Berserker is refused; equipping the Axe works and stays attached: the Berserker is 3/1 (1/1 plus 2/+0).",
+ "cards": [
+  {"key": "ber", "real": "Unchained Berserker", "zone": "battlefield", "controller": 0},
+  {"key": "blade", "real": "Ancestral Blade", "zone": "battlefield", "controller": 0},
+  {"key": "axe", "real": "Marauder's Axe", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"C": 3}},
+ "steps": [
+  {"op": "activate", "key": "blade", "idx": 2, "seat": 0, "targets": ["ber"], "expect_raise": "illegal"},
+  {"op": "activate", "key": "axe", "idx": 1, "seat": 0, "targets": ["ber"]}
+ ],
+ "expect": {
+  "attached": {"axe": "ber", "blade": null},
+  "power": {"ber": 3},
+  "toughness": {"ber": 1},
+  "mana_pool": {"0": {"C": 1}}
+ }
+}

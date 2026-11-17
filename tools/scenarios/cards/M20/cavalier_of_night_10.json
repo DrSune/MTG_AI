@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Cavalier of Night (M20). Printed: 'you may sacrifice another creature': a creature you control, whoever owns it. Seat 0 controls a creature the opponent owns (Stolen Bear, control changed to seat 0) and sacrifices it: it is offered, goes to its OWNER's graveyard, and the reflexive trigger destroys the opponent's Victim.",
+ "cards": [
+  {"key": "cav", "real": "Cavalier of Night", "zone": "hand", "controller": 0},
+  {"key": "stolen", "name": "Stolen Bear", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "victim", "name": "Victim", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1},
+  {"key": "other", "name": "Other", "type": "Creature", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"B": 5}},
+ "steps": [
+  {"op": "gain_control", "key": "stolen", "seat": 0},
+  {"op": "cast", "key": "cav", "controller": 0, "decisions": ["fire", "victim"]}
+ ],
+ "expect": {
+  "zone": {"cav": "battlefield", "stolen": "graveyard", "victim": "graveyard", "other": "battlefield"},
+  "graveyard": {"0": [], "1": ["Stolen Bear", "Victim"]}
+ }
+}

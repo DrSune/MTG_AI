@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Garruk, Unleashed, printed: '[-2]: ... Then if an opponent controls more creatures than you, put a loyalty counter on Garruk.' Only creatures are counted: the opponent controls one creature and three noncreature permanents (an artifact, an enchantment and a land) while I control the Beast alone. One against one is not more: no counter, loyalty 4 - 2 = 2.",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "o1", "name": "Opp Thrull", "type": "Creature — Thrull", "power": 1, "toughness": 1, "zone": "battlefield", "controller": 1},
+  {"key": "o2", "name": "Opp Relic", "type": "Artifact", "zone": "battlefield", "controller": 1},
+  {"key": "o3", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1},
+  {"key": "o4", "name": "Opp Swamp", "type": "Basic Land — Swamp", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "activate", "key": "garruk", "idx": 1, "seat": 0}
+ ],
+ "expect": {"tokens": {"Beast": 1}, "counters": {"garruk": {"LOYALTY": 2}}}}

@@ -1,0 +1,21 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Elvish Reclaimer (M20). Printed: 'as long as there are three or more land cards in your graveyard.' With three land cards the Reclaimer is 3/4; when one of them leaves the graveyard (exiled by another effect) only two remain and the bonus ends: 1/2 again.",
+ "cards": [
+  {"key": "rec", "real": "Elvish Reclaimer", "zone": "battlefield", "controller": 0},
+  {"key": "g1", "name": "Dead Land One", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "g2", "name": "Dead Land Two", "type": "Land", "zone": "graveyard", "controller": 0},
+  {"key": "g3", "name": "Dead Land Three", "type": "Land", "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "pass"},
+  {"op": "move", "key": "g3", "to": "exile"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"g3": "exile"},
+  "power": {"rec": 1},
+  "toughness": {"rec": 2}
+ }
+}

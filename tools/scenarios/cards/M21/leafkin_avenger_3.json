@@ -1,0 +1,68 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Leafkin Avenger, printed: '{7}{R}: This creature deals damage equal to its power to target player or planeswalker.' Seat 0's Leafkin carries a +1/+1 counter, so its power is 5 and not the printed 4. The opponent's Basri, Devoted Paladin (a planeswalker) is given 6 loyalty. The ability is paid from exactly {R} and seven colorless, targets the planeswalker and removes 5 loyalty (CR 120.3c): 6 - 5 = 1. Neither player loses life, and no damage mark stays on anything.",
+ "cards": [
+  {
+   "key": "leaf",
+   "real": "Leafkin Avenger",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "pw",
+   "real": "Basri, Devoted Paladin",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "loyalty",
+   "key": "pw",
+   "set": 6
+  },
+  {
+   "op": "activate",
+   "key": "leaf",
+   "idx": 1,
+   "seat": 0,
+   "targets": [
+    "pw"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "pw": {
+    "LOYALTY": 1
+   },
+   "leaf": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "zone": {
+   "pw": "battlefield",
+   "leaf": "battlefield"
+  }
+ }
+}

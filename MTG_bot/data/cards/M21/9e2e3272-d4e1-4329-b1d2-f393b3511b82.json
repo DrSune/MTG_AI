@@ -5,56 +5,63 @@
  "name": "Subira, Tulzidi Caravanner",
  "text_sha": "56737bac2a373551999060087da09680698c07314d364973946be92aa12178f0",
  "verified": {
-  "tree_sha": "44129ed8eb37d54287f27b71e416cdc9416a03eda2d2ed615f42e98a5f2b13f3",
-  "probe_sha": "cd7ed7582ca542e289ae204dcce29e3e54691405bee4c51d3b9c9dac1c266802",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4L",
+  "tree_sha": "5ba10599d9a89e2a671a8873382e9a8a548e7bbd06043443a351f699b84b5da9",
+  "probe_sha": "02ab665412995eb4fbd09b06f896cfc6dd40bfffd102ccea98337ac20eea2456",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
     "clause": "Haste",
-    "status": "NOT_EXERCISED",
-    "evidence": "keywords +HASTE in the trace; no attack the turn it is cast. Pack subira_haste.json (cast, then attack the same turn for 2) PASS.",
+    "status": "OK",
+    "evidence": "cast: card keywords +HASTE; the {T} ability [1] is activated in the turn the card enters and the attack stimuli have it attacking (opp 20 -> 18).",
     "issue": ""
    },
    {
-    "clause": "{1}: Another target creature with power 2 or less can't be blocked this turn.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Ability [0] target slot: 1..1 of [you_bear, opp_flier, opp_bear] (power <= 2, either side, Subira itself excluded; you_giant/opp_giant/opp_tapped excluded); cost 'mana W-1'. No combat after it in the probe. Tree = the corpus parse. Packs: subira_unblockable.json (wall cannot block it) PASS; subira_unblockable_after_pump.json (pumped to 4/2 after resolution, still unblockable, CR 608.2b) PASS; subira_unblockable_this_turn_only.json (blockable on the next turn) PASS.",
-    "issue": "engine-limit: no priority, so the instant-speed ability is used only in its controller's action window"
+    "clause": "{1}: Another target creature with power 2 or less (cost and target slot)",
+    "status": "OK",
+    "evidence": "activate [0]: the target slot is [you_bear, opp_flier, opp_bear]: Subira herself (another) and the 3/3 opp_tapped and 4/4 giants (power over 2) are not offered, the 2/2 bears (power exactly 2) are; each activation pays C-1 only.",
+    "issue": ""
    },
    {
-    "clause": "{1}{R}, {T}, Discard your hand:",
+    "clause": "... can't be blocked this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "the three activations show targeting and payment only and no combat follows them, so the prevention's effect is never seen. Packs: K00_1 (the targeted creature is not offered to the blocker, untargeted ones are), K00_2 (lasts this turn only), K00_5 (the power limit is checked again as the ability resolves).",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{R}, {T}, Discard your hand (cost)",
     "status": "OK",
-    "evidence": "[activate [1] from battlefield]: card becomes tapped; all five hand cards move hand -> graveyard; 'you: hand 5 -> 0; mana R-1 W-1'.",
+    "evidence": "activate [1]: card becomes tapped, all six cards in hand move hand -> graveyard (hand 6 -> 0), mana C-1 R-1.",
     "issue": ""
    },
    {
     "clause": "Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
     "status": "NOT_EXERCISED",
-    "evidence": "Tree: DelayedTrigger(DurationEot, DamageDealtEvent(to a player, source creature you control with POWER_LE 2, combat)) -> DRAW 1. No combat after the activation in the probe. Packs: subira_delayed_draw_power_check.json (2-power connects -> 1 card, 3-power -> none) PASS; subira_delayed_draw_blocked_and_eot.json (blocked -> none; next turn -> none) PASS.",
+    "evidence": "the activation trace ends at the cost; no combat damage follows it, so no draw is ever seen. Packs: K00_3 (one draw per qualifying creature, none for power 3 or damage to a creature), K00_4 (ends with the turn), K00_6 (power is read as the damage is dealt).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_1.json",
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_2.json",
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_3.json",
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_4.json",
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_5.json",
-   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_6.json"
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_7.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_8.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_9.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_10.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_11.json",
+   "tools/scenarios/cards/M21/subira_tulzidi_caravanner_12.json"
   ],
   "mutation": {
-   "mutants": 25,
+   "mutants": 26,
    "killed": 16,
-   "score": 0.64,
+   "score": 0.6153846153846154,
    "survived": [
     "until-end-of-turn->permanent at 1/0/effect/args/duration",
+    "each occurrence -> once per event at 1/1/effect",
     "widen filter (drop part 0) at 1/1/effect/event/source",
     "widen filter (drop part 1) at 1/1/effect/event/source",
     "widen filter (drop part 2) at 1/1/effect/event/source",
     "controller YOU->OPPONENT at 1/1/effect/event/source/children/0/who",
-    "amount+1 at 1/1/effect/event/source/children/2/count",
-    "amount-1 at 1/1/effect/event/source/children/2/count",
+    "amount+1 at 1/1/effect/event/source/children/2/inner/count",
+    "amount-1 at 1/1/effect/event/source/children/2/inner/count",
     "amount+1 at 1/1/effect/effect/args/amount",
     "controller YOU->OPPONENT at 1/1/effect/effect/args/controller"
    ]

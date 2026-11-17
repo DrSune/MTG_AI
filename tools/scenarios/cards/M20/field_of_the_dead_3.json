@@ -1,0 +1,74 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "fotd",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Field of the Dead"
+  },
+  {
+   "key": "pl",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Plains"
+  },
+  {
+   "key": "is",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Island"
+  },
+  {
+   "key": "sw",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Swamp"
+  },
+  {
+   "key": "mt",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Mountain"
+  },
+  {
+   "key": "fo",
+   "zone": "battlefield",
+   "controller": 0,
+   "real": "Forest"
+  },
+  {
+   "key": "ta",
+   "zone": "hand",
+   "controller": 0,
+   "name": "Test Land A",
+   "type": "Land"
+  }
+ ],
+ "steps": [
+  {
+   "op": "play",
+   "key": "ta",
+   "seat": 0
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ta": "battlefield"
+  },
+  "tokens": {
+   "Zombie": 1
+  },
+  "battlefield_pt": {
+   "Zombie": [
+    2,
+    2
+   ]
+  }
+ },
+ "notes": "Field of the Dead, printed: 'Whenever this land or ANOTHER land you control enters, if you control seven or more lands with different names, create a 2/2 black Zombie creature token.' Field of the Dead and five basic lands are six names; I play a land with a seventh name: I control seven different names and get one Zombie."
+}

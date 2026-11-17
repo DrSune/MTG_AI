@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Jolrael, Mwonvuli Recluse, printed: 'Whenever you draw your second card each turn, create a 2/2 green Cat creature token.' In turn 1 (seat 0 skips its draw step) I cast two Crash Throughs, each 'Draw a card.' The first card drawn this turn changes nothing; the second makes exactly one 2/2 Cat.",
+ "cards": [
+  {"key": "jol", "real": "Jolrael, Mwonvuli Recluse", "zone": "battlefield", "controller": 0},
+  {"key": "ct1", "real": "Crash Through", "zone": "hand", "controller": 0},
+  {"key": "ct2", "real": "Crash Through", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"R": 2}},
+ "steps": [
+  {"op": "cast", "key": "ct1", "real": "Crash Through"},
+  {"op": "cast", "key": "ct2", "real": "Crash Through"}
+ ],
+ "expect": {"tokens": {"Cat": 1}, "battlefield_pt": {"Cat": [2, 2]}, "hand": {"0": 2}}}

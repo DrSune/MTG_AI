@@ -1,0 +1,14 @@
+{"set": "M21", "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Garruk, Unleashed, printed: '[-7]: You get an emblem with \"At the beginning of your end step, you may search your library for a creature card, put it onto the battlefield, then shuffle.\"' It is a 'may': at my end step I decline. Nothing is searched, no creature is put onto the battlefield and, the shuffle being part of what I may do, the library is NOT shuffled: it keeps its order exactly (top first: Library Beast, Library Sorcery, Library Elf, then the six filler cards).",
+ "cards": [
+  {"key": "garruk", "real": "Garruk, Unleashed", "zone": "battlefield", "controller": 0},
+  {"key": "elf", "name": "Library Elf", "type": "Creature — Elf", "power": 1, "toughness": 1, "zone": "library", "controller": 0},
+  {"key": "sorcery", "name": "Library Sorcery", "type": "Sorcery", "zone": "library", "controller": 0},
+  {"key": "beast", "name": "Library Beast", "type": "Creature — Beast", "power": 5, "toughness": 5, "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "garruk", "set": 7},
+  {"op": "activate", "key": "garruk", "idx": 2, "seat": 0},
+  {"op": "end_turn", "decisions": ["skip"]}
+ ],
+ "expect": {"zone": {"garruk": "graveyard", "beast": "library", "elf": "library", "sorcery": "library"}, "library": {"0": ["Library Beast", "Library Sorcery", "Library Elf", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]}}}

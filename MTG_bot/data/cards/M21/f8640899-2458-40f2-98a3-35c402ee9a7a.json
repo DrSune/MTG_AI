@@ -5,38 +5,47 @@
  "name": "Jolrael, Mwonvuli Recluse",
  "text_sha": "1bd724bfeea107ef60be1ea3d0f269056ad659251a35d23c96b531b81f7c00f5",
  "verified": {
-  "tree_sha": "b7e71ce3d3d072a9d16e009d79009ea196a9ebce23763f48be2792513119ade1",
-  "probe_sha": "53ecb51740e740ecb103c9222c84f92d67a208ba1bad3eb27ac39fa872af0612",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4K",
+  "tree_sha": "f747eb61ab376cc4bfad34ba751b75c2ee39dfcd33c0cfb0ba4536aad88e2b08",
+  "probe_sha": "a1672a240364c89f8121d626286379c078b2412f855dfbb16b4bffe9e5734f48",
+  "date": "2026-11-17",
+  "reviewer": "claude-sonnet-verifier-wave4",
   "clauses": [
    {
-    "clause": "(card body) Legendary Creature - Human Druid {1}{G} 1/2",
+    "clause": "Jolrael, Mwonvuli Recluse {1}{G} Legendary Creature — Human Druid 1/2 (cast)",
     "status": "OK",
-    "evidence": "[cast]: mana G-1 W-1, P/T 1/2",
+    "evidence": "[cast]: hand -> stack -> battlefield, P/T 1/2, mana C-1 G-1.",
     "issue": ""
    },
    {
     "clause": "Whenever you draw your second card each turn, create a 2/2 green Cat creature token.",
     "status": "OK",
-    "evidence": "[stimulus: you draw a card] -> none; [stimulus: you draw two cards, one after the other] -> triggers once, '+ you:Cat (battlefield, you, 2/2)'; [stimulus: the opponent draws a card] -> none. TokenSpec Cat type_line 'Creature — Cat', colors ('G',), 2/2. Third draws and other turns NOT_EXERCISED by the trace: pack K_jolrael_second_draw_each_turn.json PASSES (Read the Tides draws 3 on your turn -> exactly 1 Cat; on the opponent's turn two Opts -> a 2nd Cat on your second draw that turn; step-by-step replay confirms one Cat per turn).",
+    "evidence": "'you draw two cards, one after the other': \"card's triggered ability [0] triggers\", 'you:Cat moves new -> battlefield', 2/2 (the token's colors are ('G',), inspected in J06_1's final state); 'you draw a card' and 'the opponent draws a card': none. Packs J06_1 (two draws, one Cat), J06_2 (three draws: still one), J06_3 (a card in turn 1 and the draw step of turn 3 are no second card), J06_4 (second card of a later turn), J06_5 (the opponent's two draws). Pack J06_10 (the opponent's turn counts as a turn). Pack J06_11 (the first card of the turn was drawn before Jolrael entered: it still counts).",
     "issue": ""
    },
    {
     "clause": "{4}{G}{G}: Until end of turn, creatures you control have base power and toughness X/X, where X is the number of cards in your hand.",
     "status": "OK",
-    "evidence": "[activate [1]]: mana G-2 W-4 (6 mana, two green); with 5 cards in hand card 1/2 -> 5/5, you_bear 2/2 -> 5/5, you_giant 4/4 -> 5/5, no opp creature changes; 'after the turn ends' all revert. NOT_EXERCISED parts (resolution-time X, locked set, layer 7b): pack K_jolrael_x_fixed_at_resolution.json PASSES: X = your hand (2; opponent holds 4), stays 2/2 after your hand drops to 1 (CR 608.2h), a creature entering afterwards keeps 1/1 (CR 611.2c), a creature with a +1/+1 counter is 3/3, the opponent's 8/8 untouched.",
+    "evidence": "[activate [1]]: paid C-4 G-2; hand 6 -> card, you_bear, you_giant all 6/6 (mine only), back 'after the turn ends'. Packs J06_6 (my hand, not theirs; base P/T under a +1/+1 counter; the opponent's creature untouched), J06_7 (X fixed when the ability resolves, a creature entering later is not affected), J06_8 (ends at end of turn), J06_9 (cost {4}{G}{G}).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_1.json",
-   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_2.json"
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_3.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_4.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_5.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_6.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_7.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_8.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_9.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_10.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_11.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_12.json",
+   "tools/scenarios/cards/M21/jolrael_mwonvuli_recluse_13.json"
   ],
   "mutation": {
-   "mutants": 11,
-   "killed": 10,
-   "score": 0.9090909090909091,
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
    "survived": [
     "widen filter (drop part 1) at 1/1/effect/args/target/filter"
    ]

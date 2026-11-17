@@ -1,0 +1,25 @@
+{"set": "FDN", "name": "D09_1_search_takes_exactly_one_creature_with_mana_value_6_or_more",
+ "notes": "Printed: 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' My library holds creatures of mana value 6 and 7, a creature of mana value 5, and a mana value 6 sorcery; the opponent's library holds a mana value 8 creature. I take the may and the search offers only the two creatures of mana value 6 or more (the mana value 5 creature and the sorcery are not offered). I take the mana value 6 one: exactly that one card goes to my hand; the other three stay in my library; the opponent's library is untouched and in its original order.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "six", "name": "Big Beast", "type": "Creature — Beast", "power": "6", "toughness": "6", "zone": "library", "controller": 0, "cmc": 6},
+  {"key": "seven", "name": "Huge Beast", "type": "Creature — Beast", "power": "7", "toughness": "7", "zone": "library", "controller": 0, "cmc": 7},
+  {"key": "five", "name": "Mid Beast", "type": "Creature — Beast", "power": "5", "toughness": "5", "zone": "library", "controller": 0, "cmc": 5},
+  {"key": "sorc", "name": "Big Spell", "type": "Sorcery", "zone": "library", "controller": 0, "cmc": 6},
+  {"key": "obig", "name": "Opp Big", "type": "Creature — Beast", "power": "8", "toughness": "8", "zone": "library", "controller": 1, "cmc": 8}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "empath", "decisions": ["fire", "six"]}
+ ],
+ "expect": {
+  "zone": {"empath": "battlefield", "six": "hand", "seven": "library", "five": "library", "sorc": "library", "obig": "library"},
+  "hand": {"0": 1, "1": 0},
+  "library": {
+   "0": ["*", "*", "*", "*", "*", "*", "*", "*", "*"],
+   "1": ["Opp Big", "Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]
+  },
+  "mana_pool": {"0": {}}
+ }
+}

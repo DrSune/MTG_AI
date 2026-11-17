@@ -1,0 +1,18 @@
+{"set": "FDN", "name": "D07_2_power_exactly_4_draws_one_card",
+ "notes": "Printed: 'When this enchantment enters, if you control a creature with power 4 or greater, draw a card.' I control a 4/4 (power exactly 4 counts: '4 or greater'). The Uprising is cast and enters: exactly one card is drawn (the Uprising left the hand, one card came in: hand 1, five cards left in the library).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "up", "real": "Garruk's Uprising", "zone": "hand", "controller": 0},
+  {"key": "four", "name": "My Four", "type": "Creature — Beast", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"G": 1, "C": 2}},
+ "steps": [
+  {"op": "cast", "key": "up"}
+ ],
+ "expect": {
+  "zone": {"up": "battlefield"},
+  "hand": {"0": 1, "1": 0},
+  "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}}
+ }
+}

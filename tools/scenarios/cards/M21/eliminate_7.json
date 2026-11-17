@@ -1,0 +1,17 @@
+{
+  "set": "M21",
+  "world": {"life": 20, "seed": 7},
+  "cards": [
+    {"key": "elim", "real": "Eliminate", "zone": "hand", "controller": 0},
+    {"key": "statue", "name": "Cheap Statue", "type": "Artifact", "cmc": 2, "zone": "battlefield", "controller": 1}
+  ],
+  "mana": {"0": {"B": 1, "C": 1}},
+  "steps": [
+    {"op": "cast", "real": "Eliminate", "key": "elim", "targets": ["statue"], "expect_raise": "illegal target"}
+  ],
+  "expect": {
+    "zone": {"elim": "hand", "statue": "battlefield"},
+    "mana_pool": {"0": {"B": 1, "C": 1}}
+  },
+  "notes": "Verifier I, wave 4 (batch I, I05). Printed: 'Destroy target creature or planeswalker ...' A noncreature artifact of mana value 2 is neither a creature nor a planeswalker: not a legal target."
+}

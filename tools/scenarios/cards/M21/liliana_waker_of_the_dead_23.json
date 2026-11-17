@@ -1,0 +1,13 @@
+{"set": "M21", "world": {"life": 20, "seed": 7},
+ "notes": "Liliana, Waker of the Dead, printed: '[-7]: You get an emblem with \"At the beginning of combat on your turn, put target creature card from a graveyard onto the battlefield under your control. It gains haste.\"' It is a TARGET: one creature card, not every creature card in the graveyards. Two creature cards are available, my Dead Bear in my graveyard and the opponent's Dead Ogre in theirs. I choose the Ogre: only the Ogre is put onto the battlefield (under my control, with haste: it attacks for 3, 20 -> 17), and the Bear stays in my graveyard.",
+ "cards": [
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "My Dead Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "graveyard", "controller": 0},
+  {"key": "ogre", "name": "Opp Dead Ogre", "type": "Creature — Ogre", "power": 3, "toughness": 3, "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {"ogre": true}, "decisions": ["ogre"]}
+ ],
+ "expect": {"zone": {"lil": "graveyard", "ogre": "battlefield", "bear": "graveyard"}, "controller": {"ogre": 0}, "attackers": {"ogre": true}, "life": {"0": 20, "1": 17}}}
