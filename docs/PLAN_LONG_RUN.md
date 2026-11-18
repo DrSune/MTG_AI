@@ -37,6 +37,8 @@ Nothing here is built until it has been sparred, planned and red-teamed.
    - **The candidate.** The main learner faces frozen versions, the heuristic and exploiters
      trained against the current main, all weighted by prioritized fictitious self-play.
    - **To decide:** the exploiters' share and how often they are refreshed.
+   - **Plan (draft, 2026-11-18):** [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md), with item 3, the
+     Teacher, the critic and the drafter as one system.
 2. **The value function.**
    - BACKLOG: "The value loss moves the policy through the shared trunk": a value-only update
      moved the policy as much as a full one (189 §8).
@@ -58,6 +60,7 @@ Nothing here is built until it has been sparred, planned and red-teamed.
      replayed by learning value: prioritized level replay, the Teacher's cheapest form
      (OWNER_VISION_LEARNING §6).
    - **To decide:** the mix for the long run.
+   - **Plan (draft, 2026-11-18):** [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md) §3.4 and §3.8.
 4. **The planner, v1.** Being built (DESIGN_PLANNER §5). Its registered A/B decides whether the long
    run carries it.
 5. **Memory: what a player has legitimately seen in hidden zones** (PLAN_PLANNING §5, P1). Certain,

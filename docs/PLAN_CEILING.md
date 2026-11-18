@@ -579,6 +579,11 @@ The plan takes 1000 as the direction, not a gate: F1 goes as high as it keeps cl
 
 ### 7.1 The league
 
+> **2026-11-18:** the league for the long run, built on this section's decisions (PFSP x(1 − x),
+> searched opponents at 3% or less, no privileged critic), is designed in
+> [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md) §3.2-§3.5. Why: the long run needs it before H1, since
+> r29's pool cannot grow while no gate passes.
+
 **Start: r27's newest network.** D8 (the owner's): inherit representations, not policy; keep the
 small model in the opponent league, so the large one is rewarded for beating it, not imitating it.
 - Starting from F1's network would make the ceiling read a read of F1 plus PPO.
@@ -687,6 +692,12 @@ capacity.
   did. That decision is the owner's.
 
 ## 9. Decks chosen for learning: the Teacher and the drafter (owner, 2026-11-11)
+
+> **2026-11-18:** the Teacher, the critic and the drafter as one system with the league, and the
+> check of each borrowed method's assumptions, are in [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md).
+> §9.1's v0 signals (learnability and value error per family) are checked there (§2.3) and kept
+> as instruments, not yet as steering. Why: near-even play makes learnability flat over deal
+> cells, and fresh deals leave value error dominated by luck.
 
 The owner: "Making the drafter, and training that for maximizing learning, would also be really
 great (learning is probably winrate agains frozen opponents from a very varied pool, weighted based

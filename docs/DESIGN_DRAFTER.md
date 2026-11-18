@@ -9,6 +9,20 @@ Scope note, from `DESIGN_TEACHER.md` §4.1:481. Commander has no draft. "Draftin
 **deck construction**, a `T = 100` sequential MDP producing a 100-card singleton deck inside a
 commander's colour identity. The 8-seat Limited loop is the smaller, later case (§8 stage 5).
 
+> **Status, 2026-11-18.** This document stays the long-term design of the drafter's control
+> surface: two knobs, nicheness measured and never rewarded, three modes in one model. The staged
+> path on today's 60-card format, and how the drafter, the critic and the Teacher fit together,
+> is [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md) §3.6-§3.8 and §6:
+> - D0, critic swaps, is built and gated;
+> - D1 adds the synergy-aware critic and a counter mode;
+> - D2 is the pick head;
+> - quality-diversity search and nicheness come after D2.
+>
+> **Why.** This design predates the rebuild and the measurement that critic-drafted decks are
+> pilot-relative tempo decks (KNOWLEDGE/2026-11-12/193; 2026-11-13/205 S2). A reader should find
+> the live order without reading this whole document. The stage table in §8 is superseded by
+> that order.
+
 ---
 
 ## 0. The position, in one paragraph
