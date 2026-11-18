@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "name": "A04_4_cast_from_exile_all_three_go_to_your_hand",
+ "notes": "Printed: 'If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' Not only the graveyard: See the Truth cast from EXILE (the test permission; {1}{U} from the pool) puts all three top cards into the hand, none on the bottom. The spell, cast from exile, ends in the graveyard.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "stt", "real": "See the Truth", "zone": "exile", "controller": 0},
+  {"key": "t3", "name": "Top Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t2", "name": "Top Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t1", "name": "Top One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "test_permission_cast", "key": "stt", "from": "exile"}
+ ],
+ "expect": {
+  "zone": {"stt": "graveyard", "t1": "hand", "t2": "hand", "t3": "hand"},
+  "hand": {"0": 3},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}},
+  "kick_rows": {"stt": {"from": "exile"}}
+ }
+}

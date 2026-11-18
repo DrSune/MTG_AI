@@ -1,0 +1,111 @@
+{
+ "set": "M21",
+ "name": "A04_3_cast_from_your_graveyard_all_three_go_to_your_hand",
+ "notes": "Printed: 'If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' See the Truth is cast from seat 0's graveyard (the test permission; {1}{U} from the pool). The top three cards of seat 0's library (Top One, Top Two, Top Three) ALL go into its hand, with no choice asked and none left on the bottom: the library keeps the six fillers in order, nothing is put under it. The opponent's library and hand are untouched. The spell goes back to the graveyard. The cards are only LOOKED at: no REVEAL shows them to the opponent.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "stt",
+   "real": "See the Truth",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "t3",
+   "name": "Top Three",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "t2",
+   "name": "Top Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "t1",
+   "name": "Top One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "name": "Their Top",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "test_permission_cast",
+   "key": "stt",
+   "from": "graveyard"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "stt": "graveyard",
+   "t1": "hand",
+   "t2": "hand",
+   "t3": "hand",
+   "o1": "library"
+  },
+  "hand": {
+   "0": 3,
+   "1": 0
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Their Top",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "kick_rows": {
+   "stt": {
+    "from": "graveyard"
+   }
+  },
+  "revealed": {
+   "t1": false,
+   "t2": false,
+   "t3": false
+  }
+ }
+}
