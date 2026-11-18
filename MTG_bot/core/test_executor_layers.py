@@ -611,6 +611,9 @@ class TestTimestamps(LayerCase):
         self.assertEqual(self.pt(self.alpha), (5, 5))
 
     def test_an_equipment_gets_a_new_timestamp_as_it_becomes_attached(self):
+        # the Banner is an Equipment here: an attached creature or a permanent that is neither an
+        # Aura nor an Equipment becomes unattached (CR 704.5p)
+        self.world.cards[self.banner].identity = card_id("Banner", type_line="Artifact — Equipment")
         equipped = Selector(
             QUnbounded(),
             SelectorMode.ALL,

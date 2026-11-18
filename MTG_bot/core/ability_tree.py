@@ -2643,6 +2643,18 @@ TYPE_LINE_KINDS = frozenset({
     "Basic", "Legendary", "Ongoing", "Snow", "World"})
 
 
+#: The keywords a copy effect's exception adds bare ("except it has haste", CR 707.9a): keyword
+#: abilities (CR 702) whole without a parameter. Not Protection (its quality), Enchant or Equip
+#: (an Aura's or Equipment's structure), Fight (a keyword action, CR 701.14) or Treasure (a
+#: token's type marker).
+COPY_EXCEPTION_KEYWORDS = frozenset({
+    Keyword.DEATHTOUCH, Keyword.DEFENDER, Keyword.DOUBLE_STRIKE, Keyword.FIRST_STRIKE,
+    Keyword.FLASH, Keyword.FLYING, Keyword.HASTE, Keyword.HEXPROOF, Keyword.INDESTRUCTIBLE,
+    Keyword.LIFELINK, Keyword.MENACE, Keyword.PROWESS, Keyword.REACH, Keyword.TRAMPLE,
+    Keyword.VIGILANCE,
+})
+
+
 @dataclass(frozen=True)
 class CopyOf:
     """"A copy of <source>": the copiable values of one object (CR 707.2: what is printed on it,
@@ -2676,14 +2688,26 @@ class CopyOf:
                 "CopyOf: source names one object (a TARGET or CHOOSE of one, or a referent), "
                 f"got {sel.mode.name} of {sel.count!r}"
             )
+        # The referents that name an object to copy: the trigger's ("that spell", "that
+        # creature") and the one an instruction acted on ("it"). "This creature" is the CHOOSE of
+        # IS_SOURCE (one encoding: the referent "source" would be a second); a player
+        # ("controller") is no object, and "target" re-reads a designation the TARGET names.
+        if sel.referent is not None and sel.referent not in ("event", "result"):
+            raise ValueError(
+                "CopyOf: a referent source is `event` (the trigger's object) or `result` (the "
+                f"object an instruction acted on), got {sel.referent!r}"
+            )
         for word in self.subtypes:
             if not isinstance(word, str) or not word.strip() or word in TYPE_LINE_KINDS:
                 raise ValueError(
                     f"CopyOf: subtypes are subtype words (no card type or supertype), got {word!r}"
                 )
         for keyword in self.keywords:
-            if not isinstance(keyword, Keyword):
-                raise ValueError(f"CopyOf: keywords must be Keyword, got {keyword!r}")
+            if not isinstance(keyword, Keyword) or keyword not in COPY_EXCEPTION_KEYWORDS:
+                raise ValueError(
+                    "CopyOf: an exception's keyword is a keyword ability complete without a "
+                    f"parameter (COPY_EXCEPTION_KEYWORDS), got {keyword!r}"
+                )
         for ability in self.abilities:
             # A keyword is the `keywords` field's (one encoding); an exception gains a triggered,
             # activated or static ability (CR 707.9a).
@@ -3799,6 +3823,12 @@ def _copy_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
     assert isinstance(target, Selector)
     if _names_the_stack(target) or _names_the_stack(copy.source):
         return "a permanent becomes a copy of a permanent or a card (CR 613.2a), no stack object"
+    if target.referent is not None or not target.zones or any(
+        z.kind is not ZoneKind.BATTLEFIELD for z in target.zones
+    ):
+        return "`cards` names the permanents that become copies: a selector over the battlefield"
+    if target == copy.source:
+        return "an object becoming a copy of itself changes nothing: `cards` names others"
     if "count" in roles or "new_targets" in roles:
         return "`count` and `new_targets` are a copy put onto the stack's"
     if not isinstance(roles.get("duration"), DurationEot):
@@ -4487,34 +4517,47 @@ def _is_result_role(role: str) -> bool:
     return Selector not in allowed and all(t in (*_F_CLASSES, *_EV_CLASSES) for t in allowed)
 
 
-def _is_result_misplaced(node: Any, allowed: bool, in_atom: bool = False) -> bool:
+def _is_result_misplaced(
+    node: Any, allowed: bool, in_atom: bool = False, after: bool = False
+) -> bool:
     """Is an IS_RESULT atom reachable from ``node`` outside the Atom roles
     :func:`_is_result_role` admits? ``allowed`` is whether ``node`` sits in one.
     Everywhere else (a selector, an ability's or a Conditional's condition, a
     trigger's event, a duration) no resolution has a ``result`` register to read.
-    One exception, ``in_atom`` (a role of a resolving instruction): "all other <objects>"
-    after an instruction that made or moved one ("Then exile all other Nightmare tokens you
-    control", Abyssal Harvester) is FNot(IS_RESULT) in a selector's filter, the complement of
-    the register, which has no referent form."""
+    One exception, ``in_atom`` (a role of a resolving instruction, not its duration) with
+    ``after`` (a step stands before it in its Seq): "all other <objects>" after an instruction
+    that made or moved one ("Then exile all other Nightmare tokens you control", Abyssal
+    Harvester) is FNot(IS_RESULT) in a selector's filter, the complement of the register, which
+    has no referent form. A first step has no register to complement."""
     if isinstance(node, tuple):
-        return any(_is_result_misplaced(item, allowed, in_atom) for item in node)
+        return any(_is_result_misplaced(item, allowed, in_atom, after) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
         return False
     if isinstance(node, Atom):
         return any(
-            _is_result_misplaced(value, _is_result_role(role), True)
+            _is_result_misplaced(value, _is_result_role(role), role != "duration", after)
             for role, value in node.args.pairs
         )
+    if isinstance(node, Seq):
+        return any(
+            _is_result_misplaced(step, allowed, in_atom, after or k > 0)
+            for k, step in enumerate(node.steps)
+        )
     if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
-        in_atom = False  # another ability's parts: read when it triggers or resolves
+        in_atom = after = False  # another ability's parts: read when it triggers or resolves
     if isinstance(node, FAtom) and node.pred is FAtomPred.IS_RESULT and not allowed:
         return True
-    if in_atom and isinstance(node, FNot) and node.inner == FAtom(pred=FAtomPred.IS_RESULT):
+    if (
+        in_atom
+        and after
+        and isinstance(node, FNot)
+        and node.inner == FAtom(pred=FAtomPred.IS_RESULT)
+    ):
         return False
     if isinstance(node, Selector):
         allowed = False
     return any(
-        _is_result_misplaced(getattr(node, f.name), allowed, in_atom)
+        _is_result_misplaced(getattr(node, f.name), allowed, in_atom, after)
         for f in dataclasses.fields(node)
     )
 
@@ -4662,6 +4705,12 @@ def event_object_fault(*nodes: Any) -> str | None:
             return None
         if isinstance(node, (TriggeredAbility, DelayedTrigger)):
             event = node.event if node.event is not None else event
+            if node.condition is not None and any(
+                isinstance(n, QProp) and n.field is QPropField.ORDINAL for n in walk(node.condition)
+            ):
+                # The cast's place among the turn's casts never changes, so an intervening "if" on
+                # it is the event's own `ordinal` ("your second spell each turn"): one encoding.
+                return "QProp ORDINAL stands in a cast trigger's effect; a condition is `ordinal`'s"
         elif isinstance(node, _A_CLASSES):
             event = None
         if isinstance(node, QProp) and node.field is QPropField.ORDINAL and not isinstance(

@@ -1662,8 +1662,9 @@ class Executor:
         """CR 704.5d: "If a token is in a zone other than the battlefield, it
         ceases to exist" (111.7, 111.8). A dead, bounced or exiled token is not a
         card in a graveyard, hand or exile: it leaves the world, so graveyard counts
-        and "target creature card from your graveyard" never see it. A token on the
-        stack is not a thing in this engine (spell copies are not tokens). No journal
+        and "target creature card from your graveyard" never see it. A copy of a spell
+        carries the token mark (copies.py) and lives while it is on the stack (CR
+        707.10a), so the stack is skipped like the battlefield. No journal
         row: ceasing to exist is not a zone change and triggers nothing. Returns the
         tokens removed (Handle-sorted).
 
@@ -1717,27 +1718,37 @@ class Executor:
                     out.append(card)
         return sorted(out)
 
-    def _protected_equipment(self) -> list[Handle]:
-        """CR 704.5n: the Equipment attached to an illegal permanent (Handle-sorted).
-        The sweep unattaches them; they stay on the battlefield, and the next
-        recompute ends the equipped bonuses. Illegal means (CR 301.5, 301.5c): the
-        host is not a creature (Riddleform once its "until end of turn" animation
-        ends), the Equipment is itself a creature (nothing here has reconfigure),
-        or the host has protection from the Equipment (CR 702.16d). Creature
-        is the live type line, the GRANT_TYPE overlay included: the TYPE_EQ
-        reading attack legality uses. A phased-out Equipment does not exist (CR
-        702.26b)."""
+    def _illegally_attached(self) -> list[Handle]:
+        """CR 704.5n, 704.5p: the permanents that become unattached and stay on the battlefield
+        (Handle-sorted). The next recompute ends what they gave their hosts.
+        - 704.5n: an Equipment attached to an illegal permanent (CR 301.5, 301.5c): the host is
+          not a creature (Riddleform once its "until end of turn" animation ends), the Equipment
+          is itself a creature (nothing here has reconfigure), or the host has protection from
+          the Equipment (CR 702.16d). Creature is the live type line, the GRANT_TYPE overlay
+          included: the TYPE_EQ reading attack legality uses.
+        - 704.5p: a permanent attached to something that is neither an Aura nor an Equipment (no
+          ENCHANT or EQUIP marker): an Equipment that became a copy of a non-Equipment
+          artifact (Masterful Replication, CR 707.2). When the copy effect ends it is an
+          Equipment again, unattached: it is not re-equipped for free.
+        A phased-out permanent does not exist (CR 702.26b)."""
         world = self.world
         creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
         freed: list[Handle] = []
         for card, host in self.attachments.items():
             if (
                 card not in world.cards
-                or "EQUIP" not in world.cards[card].identity.keywords
                 or world.zone_of(card).kind != ZONE_BATTLEFIELD
                 or card in self.phased_out
             ):
                 continue
+            identity = world.cards[card].identity
+            if "EQUIP" not in identity.keywords:
+                words = identity.type_line.split()
+                if "ENCHANT" not in identity.keywords and "Aura" not in words and (
+                    "Equipment" not in words
+                ):
+                    freed.append(card)  # CR 704.5p
+                continue  # an Aura's attachment is 704.5m's (_unattached_auras)
             ctx = self._ctx(
                 source=card, controller=self.controller_of(card), bindings=None, decisions=()
             )
@@ -1866,7 +1877,7 @@ class Executor:
             unattached = self._unattached_auras()  # CR 704.5m
             walkers = self._zero_loyalty_walkers()  # CR 704.5i
             legends = self._legend_rule_groups()  # CR 704.5j
-            freed = self._protected_equipment()  # CR 704.5n
+            freed = self._illegally_attached()  # CR 704.5n, 704.5p
             if (
                 not dying
                 and not unattached
@@ -1883,8 +1894,8 @@ class Executor:
             ]
             before = self.journal.snapshot()
             start = len(self.events)
-            # CR 704.5n: checked in the same snapshot as the other actions
-            # (CR 704.3, simultaneous); the Equipment stays on the battlefield and
+            # CR 704.5n, 704.5p: checked in the same snapshot as the other actions
+            # (CR 704.3, simultaneous); the permanent stays on the battlefield and
             # the next pass, after the recompute, sees the equipped bonuses gone.
             for card in freed:
                 host = self.attachments.pop(card)

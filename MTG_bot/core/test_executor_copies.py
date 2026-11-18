@@ -146,6 +146,32 @@ def test_becoming_a_copy_until_end_of_turn_swaps_the_values_and_gives_them_back(
     assert r.ex.ledger.effective_pt(state.identity, beta, state.counters) == (2, 2)
 
 
+def test_an_equipment_that_becomes_a_copy_of_a_creature_is_unattached_for_good() -> None:
+    """Masterful Replication makes the equipped Colossus Hammer an Alpha Golem: no longer an
+    Equipment, it becomes unattached (CR 704.5p); when the copy effect ends it is an Equipment
+    again, still unattached, and the Bear stays 2/2 (no free re-equip)."""
+    r = _runner("M20", [
+        _real("mr", "Masterful Replication", zone="hand"),
+        _real("hammer", "Colossus Hammer"),
+        _synthetic("alpha", "Alpha Golem", "Artifact Creature — Golem", "4", "4"),
+        _synthetic("bear", "Bear", "Creature — Bear", "2", "2"),
+    ], mana={"0": {"U": 6}})
+    r.run_step({"op": "enchant", "aura": "hammer", "host": "bear"})
+    bear = r.handles["bear"]
+
+    def bear_pt() -> tuple:
+        state = r.world.cards[bear]
+        return r.ex.ledger.effective_pt(state.identity, bear, state.counters)
+
+    assert bear_pt() == (12, 12)
+    r.run_step({"op": "cast", "key": "mr", "real": "Masterful Replication", "targets": ["alpha"],
+                "decisions": ["1"]})
+    assert r.handles["hammer"] not in r.ex.attachments and bear_pt() == (2, 2)
+    r.run_step({"op": "advance_turn"})
+    assert r.world.cards[r.handles["hammer"]].identity.name == "Colossus Hammer"
+    assert r.handles["hammer"] not in r.ex.attachments and bear_pt() == (2, 2)
+
+
 def test_a_copy_that_leaves_the_battlefield_is_the_printed_card_and_died_as_the_copy() -> None:
     """A permanent that is a copy and dies: its last known information is the copy (CR 608.2h,
     603.10a), the card in the graveyard is the printed one (CR 400.7)."""
@@ -230,6 +256,109 @@ def test_a_copied_loyalty_ability_removes_no_loyalty() -> None:
     assert r.world.cards[r.handles["chandra"]].counters["LOYALTY"] == 3
     assert r.world.players[r.p1].life == 18
     assert r.world.zone_of(r.handles["bear"]).kind == "graveyard"
+
+
+def test_the_regulator_copies_the_ability_of_a_chandra_cast_this_turn() -> None:
+    """Chandra cast this turn left her spell's frame among the objects that left the stack: "copy
+    that ability" is still the [-2] her activation put there, never her spell (which put a second
+    Chandra onto the battlefield, the legend rule then offering a fresh one)."""
+    r = _runner("M20", [
+        _real("reg", "Chandra's Regulator"),
+        _real("chandra", "Chandra, Novice Pyromancer", zone="hand"),
+        _synthetic("bear", "Bear", "Creature — Bear", "2", "2", seat=1),
+    ], mana={"0": {"R": 5, "C": 1}})
+    r.run_step({"op": "cast", "key": "chandra", "real": "Chandra, Novice Pyromancer"})
+    r.run_step({"op": "activate", "key": "chandra", "idx": 2, "seat": 0, "targets": ["p1"],
+                "decisions": ["fire", "bear"]})
+    assert r.world.players[r.p1].life == 18
+    assert r.world.zone_of(r.handles["bear"]).kind == "graveyard"
+    assert r.world.cards[r.handles["chandra"]].counters["LOYALTY"] == 3
+    assert _tokens(r, "Chandra, Novice Pyromancer") == []
+
+
+def _asks(monkeypatch) -> list:
+    """Every target ask of the game, (site, vocabulary)."""
+    from MTG_bot.core.executor import quantity
+
+    seen: list = []
+    take = quantity.ExecCtx.take_decision_of
+
+    def spy(self, seat, vocab, site, *args, **kwargs):
+        if site.startswith("target:"):
+            seen.append((site, tuple(vocab)))
+        return take(self, seat, vocab, site, *args, **kwargs)
+
+    monkeypatch.setattr(quantity.ExecCtx, "take_decision_of", spy)
+    return seen
+
+
+def test_a_copy_is_never_its_own_new_target(monkeypatch) -> None:
+    """Double Vision copies Sublime Epiphany's "Counter target spell": the copy's new target may
+    be Shock or the Epiphany itself, never the copy (CR 115.5)."""
+    seen = _asks(monkeypatch)
+    r = _runner("M21", [
+        _real("dv", "Double Vision"),
+        _real("se", "Sublime Epiphany", zone="hand"),
+        _real("shock", "Shock", seat=1, zone="hand"),
+    ], mana={"0": {"U": 6}, "1": {"R": 1}})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "controller": 1, "targets": ["p0"],
+                "hold": True})
+    before = set(r.world.cards)
+    r.run_step({"op": "cast", "key": "se", "real": "Sublime Epiphany", "controller": 0,
+                "targets": ["shock"], "decisions": ["0", "first-legal"], "hold": True})
+    # Double Vision's trigger: the copy, its target kept
+    r.run_step({"op": "resolve", "decisions": ["first-legal"]})
+    [copy] = set(r.world.cards) - before
+    [(_, vocab)] = [ask for ask in seen if ask[0].startswith(f"target:{r.p0}:{copy}:")]
+    assert str(copy) not in vocab and str(r.handles["shock"]) in vocab
+
+
+def test_a_kept_target_that_changed_zones_is_no_target_of_the_copy() -> None:
+    """Shock at the opponent's Bear; with Double Vision's trigger waiting the Bear is bounced and
+    put back: a new object (CR 400.7). The copy keeps its target, the old Bear: it does not
+    resolve, nor does Shock, and the new Bear is untouched (the copy keeps the original's
+    declaration, CR 707.10)."""
+    r = _runner("M21", [
+        _real("dv", "Double Vision"),
+        _real("shock", "Shock", zone="hand"),
+        _synthetic("bear", "Bear", "Creature — Bear", "2", "2", seat=1),
+    ], mana={"0": {"R": 1}})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["bear"], "hold": True})
+    r.run_step({"op": "move", "key": "bear", "to": "hand", "hold": True})
+    r.run_step({"op": "enter", "key": "bear", "hold": True})
+    assert len(r.ex.stack.frames) == 2  # Shock and Double Vision's trigger wait
+    r.run_step({"op": "pass", "decisions": ["first-legal"]})
+    assert r.world.zone_of(r.handles["bear"]).kind == "battlefield"
+    assert r.ex.damage.get(r.handles["bear"], 0) == 0
+
+
+def test_rite_of_replication_kicked_makes_five_tokens_its_caster_controls() -> None:
+    """Kicked at the opponent's Hawk: five token copies, the caster's (the pack's token lane
+    counts every battlefield)."""
+    r = _runner("FDN", [
+        _real("rite", "Rite of Replication", zone="hand"),
+        _real("hawk", "Healer's Hawk", seat=1),
+    ], mana={"0": {"U": 2, "C": 7}})
+    r.run_step({"op": "cast", "key": "rite", "real": "Rite of Replication", "targets": ["hawk"],
+                "kicked": True})
+    assert len(_tokens(r, "Healer's Hawk")) == 5
+
+
+def test_a_token_copy_of_an_aura_enters_attached_to_what_its_controller_chooses() -> None:
+    """Extravagant Replication copies Pacifism (on the opponent's Bear) at the upkeep: the token
+    enters attached to the creature its controller chooses (CR 303.4f), not unattached and put
+    into the graveyard."""
+    r = _runner("FDN", [
+        _real("er", "Extravagant Replication"),
+        _real("pac", "Pacifism"),
+        _synthetic("bear", "Bear", "Creature — Bear", "2", "2", seat=1),
+        _synthetic("bear2", "Bear Two", "Creature — Bear", "3", "3", seat=1),
+    ])
+    r.run_step({"op": "enchant", "aura": "pac", "host": "bear"})
+    r.run_step({"op": "advance_turn"})
+    r.run_step({"op": "advance_turn", "decisions": ["bear2"]})  # the target is the one legal
+    [token] = _tokens(r, "Pacifism")
+    assert r.ex.attachments[token] == r.handles["bear2"]
 
 
 # ---------------------------------------------------------------- what the network reads

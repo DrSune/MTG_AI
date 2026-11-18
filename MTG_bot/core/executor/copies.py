@@ -1,7 +1,7 @@
 """Copies of objects (CR 707; DESIGN_ATOM_ONTOLOGY §18).
 
-One value, ``CopyOf``, names what is copied and the copy effect's exceptions; three verbs put it
-somewhere:
+One value, ``CopyOf``, names what is copied and the copy effect's exceptions; two verbs put the
+copy in one of three places:
 
 * ``CREATE_TOKEN(tokens=CopyOf)``: a token that's a copy (CR 707.5, created as one, 111.1);
 * ``COPY(source=CopyOf)``: copies of a spell or an ability put onto the stack (CR 707.10), never
@@ -110,10 +110,11 @@ def with_exceptions(values: Values, copy: CopyOf) -> Values:
     identity, record = values
     type_line = identity.type_line
     if copy.subtypes:
-        head, dash, subtypes = type_line.partition(" — ")
+        face, faces, back = type_line.partition(" // ")  # a two-faced card's front face's line
+        head, dash, subtypes = face.partition(" — ")
         words = subtypes.split() if dash else []
         words += [s for s in copy.subtypes if s not in words]
-        type_line = f"{head} — {' '.join(words)}"
+        type_line = f"{head} — {' '.join(words)}{faces}{back}"
     if record is None:
         record = _bare_record(identity)
     keywords = record.keywords + tuple(
@@ -165,27 +166,32 @@ _SUPERTYPES = frozenset({"Basic", "Legendary", "Ongoing", "Snow", "World"})
 # ------------------------------------------------------------------ the stack (CR 707.10)
 
 
-def stack_object(executor: Executor, ctx: ExecCtx, handle: Handle) -> StackObject | None:
-    """The spell or ability on the stack that ``handle`` names, or as it last existed there once
-    it left (CR 608.2h: "copy that spell" after it was countered still copies it): a spell's own
-    handle, an ability's, or the permanent whose activation is the trigger's event ("copy that
-    ability": the ability that activation put on the stack, ``legality.activate``). None for an
+def stack_object(
+    executor: Executor, ctx: ExecCtx, handle: Handle, of_event: bool
+) -> StackObject | None:
+    """The spell or ability on the stack that ``handle`` names. A target ("copy target instant or
+    sorcery spell") is one on the stack now: one that left it is no legal target (CR 608.2b).
+    The trigger's event (``of_event``: "copy that spell|ability") is the object that cast or
+    activation put on the stack, as it last existed there once it left (CR 608.2h: "copy that
+    spell" after it was countered still copies it), never a later cast of the same card or
+    another activation: a spell's frame pushed at or before the cast row, the ability's frame its
+    activation pushed (``legality.activate``; the event's subject is the permanent). None for an
     object with none (a mana ability never uses the stack, CR 605.3b)."""
     stack = executor.stack
-    frames = [*stack.frames, *stack.left.values()]
-    own = next((f for f in frames if f.handle == handle), None)
-    if own is not None:
-        return own
+    if not of_event:
+        return next((f for f in stack.frames if f.handle == handle), None)
     event = ctx.event
-    if getattr(event, "kind", None) != KIND_ABILITY_ACTIVATED or event.subject != handle:
-        return None
-    idx = event.activation[0]
-    made = [
-        f for f in frames
-        if f.spell_kind == "ACTIVATED" and f.source == handle and f.ability_idx == idx
-        and f.controller == event.cause and f.declared_clock >= event.clock
-    ]
-    return min(made, key=lambda f: f.declared_clock, default=None)
+    frames = [*stack.frames, *stack.left.values()]
+    if event.kind == KIND_ABILITY_ACTIVATED:
+        idx = event.activation[0]
+        made = [
+            f for f in frames
+            if f.spell_kind == "ACTIVATED" and f.source == event.subject and f.ability_idx == idx
+            and f.controller == event.cause and f.declared_clock >= event.clock
+        ]
+        return min(made, key=lambda f: f.declared_clock, default=None)
+    cast = [f for f in frames if f.handle == handle and f.declared_clock <= event.clock]
+    return max(cast, key=lambda f: f.declared_clock, default=None)
 
 
 def put_copies(ctx: ExecCtx, copy: CopyOf, count: int, new_targets: bool) -> list[Handle]:
@@ -199,8 +205,9 @@ def put_copies(ctx: ExecCtx, copy: CopyOf, count: int, new_targets: bool) -> lis
     executor = ctx.executor
     assert executor is not None
     made: list[Handle] = []
+    of_event = copy.source.referent == "event"
     for handle in copied_objects(ctx, copy.source):
-        frame = stack_object(executor, ctx, handle)
+        frame = stack_object(executor, ctx, handle, of_event)
         if frame is None:
             continue
         for _ in range(count):
@@ -232,12 +239,14 @@ def _put_copy(executor: Executor, ctx: ExecCtx, frame: StackObject, new_targets:
         if record is not None:
             executor.binder.handle_record[handle] = record
         source = handle
+    # The copy keeps the original's declaration clock: its targets are the objects chosen then and
+    # its source the original's (CR 707.10, 707.10b), so one that changed zones since is a new
+    # object it does not name (CR 400.7).
     copy = replace(
         frame,
         handle=handle,
         controller=copier,
         payment=None,
-        declared_clock=executor.journal.clock,
         from_zone=None,
         decisions=(),
         slot_designations=dict(frame.slot_designations),
@@ -257,9 +266,16 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
     """CR 707.10c: the copy's controller may leave any number of its targets unchanged, even an
     illegal one, and change the others to legal ones; their number does not change. Asked one
     target at a time, slot by slot (``target:<seat>:<copy>:<digest>``, the target ask's shape),
-    the target it has first among the options: what the slot may take now, never an object this
-    slot already holds (CR 115.3) nor one an "another target" slot shares (stack's rule)."""
+    the target it has first among the options: what the slot may take now, never the copy
+    itself (CR 115.5), an object this slot already holds (CR 115.3) or one an "another target"
+    slot shares (stack's rule).
+
+    A changed target is chosen now, so the copy's targets are judged from now on (its
+    ``declared_clock``); a kept one that changed zones since the original chose it is a new
+    object the copy does not target (CR 400.7) and is dropped, as an illegal target is not
+    affected (CR 608.2b)."""
     from MTG_bot.core.executor.query import activation_target_slots, spell_target_slots
+    from MTG_bot.core.executor.returns import moved_since
     from MTG_bot.core.executor.stack import another_target_reason
 
     copier = copy.controller
@@ -277,13 +293,19 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
         groups = [tuple(copy.declared_targets)]
     else:
         groups = [tuple(copy.slot_designations.get(repr(slot.selector), ())) for slot in slots]
+    kept: set[Handle] = set()
+    changed = False
     for i, slot in enumerate(slots):
         group = list(groups[i])
         for j, old in enumerate(group):
             options = [old]
             for handle in slot.candidates:
                 trial = [*groups[:i], (*group[:j], handle, *group[j + 1:]), *groups[i + 1:]]
-                if handle not in group and another_target_reason(slots, trial) is None:
+                if (
+                    handle != copy.handle
+                    and handle not in group
+                    and another_target_reason(slots, trial) is None
+                ):
                     options.append(handle)
             if len(options) > 1:
                 vocab = tuple(str(h) for h in options)
@@ -291,7 +313,18 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
                     copier, vocab, f"target:{copier}:{about}:{site_digest(vocab)}"
                 )
                 group[j] = next(h for h in options if str(h) == answer)
+            if group[j] == old:
+                kept.add(old)
+            else:
+                changed = True
         groups[i] = tuple(sorted(group))
+    if changed:
+        gone = {
+            h for h in kept
+            if h.namespace == "card" and moved_since(executor.journal, h, copy.declared_clock)
+        }
+        groups = [tuple(h for h in group if h not in gone) for group in groups]
+        copy.declared_clock = executor.journal.clock
     copy.declared_targets = tuple(sorted({h for group in groups for h in group}))
     if len(slots) > 1:
         copy.slot_designations = {

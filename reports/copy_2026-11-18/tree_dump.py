@@ -13,7 +13,9 @@ Facts (read on a card's tree with records applied):
 - was-kicked: FAtomPred.WAS_KICKED (a spell copy's lane, quantity._eval_atom);
 - counter: COUNTER_SPELL (a countered frame leaves through SpellStack.remove);
 - cast-trigger / activation-trigger: a TriggeredAbility on a CastSpellEvent (binding._put reads
-  ORDINAL) or an AbilityActivatedEvent.
+  ORDINAL) or an AbilityActivatedEvent;
+- ordinal / not-result: QProp ORDINAL and FNot(IS_RESULT), the round's other two IR pieces (the
+  census, census.py).
 """
 from __future__ import annotations
 
@@ -52,6 +54,10 @@ def facts(card) -> list[str]:
                 out.add("counter")
         if isinstance(n, at.FAtom) and n.pred is at.FAtomPred.WAS_KICKED:
             out.add("was-kicked")
+        if isinstance(n, at.QProp) and n.field is getattr(at.QPropField, "ORDINAL", None):
+            out.add("ordinal")
+        if isinstance(n, at.FNot) and n.inner == at.FAtom(pred=at.FAtomPred.IS_RESULT):
+            out.add("not-result")
         if isinstance(n, at.TriggeredAbility):
             if isinstance(n.event, at.CastSpellEvent):
                 out.add("cast-trigger")

@@ -1431,11 +1431,18 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         creator = resolved[0]
     created: list[Handle] = []
     for _ in range(n):
+        host = None
         if copied is not None:
             identity, record = copied
             handle = ctx.world.add_card(replace(identity, is_token=True), creator, ZONE_BATTLEFIELD)
             if ctx.executor is not None and record is not None:
                 ctx.executor.binder.register_token(handle, record, by_oracle_id=False)
+            # A copy of an Aura enters attached to what its controller chooses (CR 303.4f); with
+            # nothing it could enchant the token isn't created (303.4g).
+            enters, host = _aura_entry_host(ctx, handle, creator)
+            if not enters:
+                _uncreate(ctx, handle)
+                continue
         else:
             assert isinstance(spec, TokenSpec)
             handle = _new_spec_token(ctx, spec, creator)
@@ -1446,9 +1453,21 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append(
             (len(ctx.events), "CREATE_TOKEN", name, f"token:{name}:{seq}", str(handle))
         )
+        if host is not None:
+            _attach_entering_aura(ctx, handle, host)
     # The tokens are the objects this instruction acted on, so a later one names
     # them ("create a 1/1 Soldier creature token, then attach this Equipment to it").
     ctx.bindings["result"] = created
+
+
+def _uncreate(ctx: ExecCtx, handle: Handle) -> None:
+    """A token that is not created after all (CR 303.4g: an Aura with nothing it could
+    enchant): gone from the world inside the instruction, before its atom's journal diff, so no
+    row ever shows it."""
+    ctx.world.zone_of(handle).entries.remove(handle)
+    del ctx.world.cards[handle]
+    if ctx.executor is not None:
+        ctx.executor.binder.handle_record.pop(handle, None)
 
 
 def _new_spec_token(ctx: ExecCtx, spec: TokenSpec, creator: Handle) -> Handle:

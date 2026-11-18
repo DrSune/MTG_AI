@@ -67,11 +67,12 @@ MUST_BE_BLOCKED = StaticAbility(effect=Atom(Verb.MANDATE_BLOCK, AtomArgs(pairs=(
 
 
 class LimitCase(BlockerCase):
-    def custom(self, name, power, toughness, seat, abilities=(), keywords=(), types=("Creature",)):
+    def custom(self, name, power, toughness, seat, abilities=(), keywords=(), types=("Creature",),
+               subtypes=()):
         """A battlefield permanent carrying hand-built abilities (its record attached)."""
-        type_line = " ".join(types)
+        type_line = " ".join(types) + (f" — {' '.join(subtypes)}" if subtypes else "")
         record = CardRecord(
-            oracle_id=oid(), name=name, type_line=type_line, types=types, subtypes=(),
+            oracle_id=oid(), name=name, type_line=type_line, types=types, subtypes=subtypes,
             supertypes=(), colors=(), color_identity=frozenset(), mana_cost=None, mana_value=2,
             power=QConst(power) if power is not None else None,
             toughness=QConst(toughness) if toughness is not None else None, loyalty=None,

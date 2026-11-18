@@ -37,7 +37,10 @@
   {
    "op": "combat",
    "seat": 0,
-   "attack": {}
+   "decisions": [
+    "DECLINE",
+    "ATTACK"
+   ]
   },
   {
    "op": "to_step",
@@ -54,7 +57,11 @@
   "zone": {
    "hawk": "battlefield",
    "ed": "graveyard"
+  },
+  "life": {
+   "0": 21,
+   "1": 19
   }
  },
- "notes": "Printed: 'Create a token that's a copy of target creature you control, except it has haste and \"At the beginning of the end step, sacrifice this token.\"' The token copy has haste (its attack ask) and is sacrificed at the end step; the Hawk stays."
+ "notes": "Printed: 'Create a token that's a copy of target creature you control, except it has haste and \"At the beginning of the end step, sacrifice this token.\"' The token copy has haste: it attacks the turn it is made (the Hawk declines), 1 damage and 1 life (lifelink, copied, CR 707.2); it is sacrificed at the end step, the Hawk stays."
 }

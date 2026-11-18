@@ -57,7 +57,9 @@ class TokenCase(LimitCase):
     def equipment(self, effect, zone=ZONE_BATTLEFIELD):
         """An Equipment whose enters trigger is ``effect`` (Ancestral Blade's shape)."""
         trigger = TriggeredAbility(event=ENTERS, condition=None, effect=effect)
-        handle = self.custom("Blade", None, None, self.p0, (trigger,), types=("Artifact",))
+        # an Equipment (CR 301.5): an attached permanent that is none is unattached (704.5p)
+        handle = self.custom("Blade", None, None, self.p0, (trigger,), types=("Artifact",),
+                             subtypes=("Equipment",))
         if zone != ZONE_BATTLEFIELD:
             self.world.move_to_zone(handle, self.p0, zone)
         return handle

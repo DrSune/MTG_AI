@@ -1,0 +1,75 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 5,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "controller": 0
+  },
+  {
+   "op": "activate",
+   "key": "chandra",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "fire",
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "bear": "graveyard"
+  },
+  "counters": {
+   "chandra": {
+    "LOYALTY": 3
+   }
+  },
+  "tokens": {
+   "Chandra, Novice Pyromancer": 0
+  }
+ },
+ "notes": "Printed: as Chandra's Regulator. Chandra, Novice Pyromancer is cast this turn, then her [-2] at the opponent, paid ('fire'): 'that ability' is the [-2] her activation put on the stack, not her spell, which also left the stack this turn (no second Chandra). The copy's new target is the Bear; Chandra stays at 3 (CR 606.4, 707.10)."
+}

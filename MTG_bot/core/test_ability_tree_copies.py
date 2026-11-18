@@ -21,6 +21,7 @@ from MTG_bot.core.ability_tree import (
     Cost,
     DurationEot,
     DurationUntilNextTurn,
+    DurationWhileCondition,
     FAnd,
     FAtom,
     FAtomPred,
@@ -57,6 +58,7 @@ _TARGET = Selector(QConst(1), SelectorMode.TARGET, _CREATURE, zones=_BF)
 _SPELL = Selector(QConst(1), SelectorMode.TARGET, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Instant"),
                   zones=_STACK)
 _ALL = Selector(QUnbounded(), SelectorMode.ALL, _CREATURE, zones=_BF)
+_SELF = Selector(QConst(1), SelectorMode.CHOOSE, FAtom(pred=FAtomPred.IS_SOURCE), zones=_BF)
 
 
 def _ref(name: str) -> Selector:
@@ -115,6 +117,16 @@ def test_a_copys_exceptions_are_canonical() -> None:
         (lambda: CopyOf(_TARGET, subtypes=("Nightmare", "Nightmare")), "distinct"),
         (lambda: CopyOf(_TARGET, abilities=(KeywordAbility(keyword=Keyword.HASTE),)), "keyword"),
         (lambda: CopyOf(_TARGET, abilities=(SpellAbility(kind=SpellKind.INSTANT),)), "keyword"),
+        # an exception's keyword is whole without a parameter, and a keyword ability at all
+        (lambda: CopyOf(_TARGET, keywords=(Keyword.PROTECTION,)), "parameter"),
+        (lambda: CopyOf(_TARGET, keywords=(Keyword.ENCHANT,)), "parameter"),
+        (lambda: CopyOf(_TARGET, keywords=(Keyword.EQUIP,)), "parameter"),
+        (lambda: CopyOf(_TARGET, keywords=(Keyword.FIGHT,)), "parameter"),
+        # the referents that name an object to copy are `event` and `result`: "this creature"
+        # is the CHOOSE of IS_SOURCE (a second encoding), a player no object
+        (lambda: CopyOf(_ref("source")), "referent"),
+        (lambda: CopyOf(_ref("controller")), "referent"),
+        (lambda: CopyOf(_ref("target")), "referent"),
     ],
 )
 def test_a_copyof_that_names_no_one_object_or_no_exception_is_refused(build, why) -> None:
@@ -154,6 +166,15 @@ def test_a_copyof_that_names_no_one_object_or_no_exception_is_refused(build, why
                      "count": QConst(2)}, "stack's"),
         (Verb.COPY, {"source": CopyOf(_SPELL), "cards": _ALL, "duration": DurationEot()},
          "no stack object"),
+        # `cards` names permanents, and others than the copied object
+        (Verb.COPY, {"source": CopyOf(_TARGET), "cards": _ref("controller"),
+                     "duration": DurationEot()}, "over the battlefield"),
+        (Verb.COPY, {"source": CopyOf(_TARGET), "cards": Selector(
+            QUnbounded(), SelectorMode.ALL, _CREATURE,
+            zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),)),
+            "duration": DurationEot()}, "over the battlefield"),
+        (Verb.COPY, {"source": CopyOf(_SELF), "cards": _SELF, "duration": DurationEot()},
+         "itself"),
     ],
 )
 def test_the_copy_forms_that_must_not_validate(verb, roles, match) -> None:
@@ -202,6 +223,12 @@ def test_the_event_a_copy_reads_is_the_triggers() -> None:
     with pytest.raises(ValueError, match="ORDINAL"):  # a spell has no triggering cast
         _card(SpellAbility(kind=SpellKind.SORCERY, effect=_atom(
             Verb.COPY, source=CopyOf(_SPELL), count=QProp("event", QPropField.ORDINAL))))
+    # an intervening "if" on the cast's ordinal is the event's own `ordinal` (one encoding), and
+    # the binder fixes the ordinal only for the effect
+    gate = FAtom(pred=FAtomPred.QTY_GE, count=QProp("event", QPropField.ORDINAL),
+                 field=QPropField.MANA_VALUE)
+    with pytest.raises(ValueError, match="ORDINAL"):
+        _card(TriggeredAbility(event=_CAST, condition=gate, effect=stack_copy))
 
 
 def test_the_complement_of_the_result_register_stands_in_a_resolving_selector_only() -> None:
@@ -223,3 +250,11 @@ def test_the_complement_of_the_result_register_stands_in_a_resolving_selector_on
     with pytest.raises(ValueError, match="IS_RESULT"):  # nor a Conditional's gate
         _card(SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(
             made, Conditional(pred=not_result, then_effect=exile)))))
+    with pytest.raises(ValueError, match="IS_RESULT"):  # a first step has no register before it
+        _card(ActivatedAbility(cost=Cost(), effect=Seq(steps=(exile, made))))
+    with pytest.raises(ValueError, match="IS_RESULT"):  # nor an instruction alone
+        _card(ActivatedAbility(cost=Cost(), effect=exile))
+    lasting = _atom(Verb.MODIFY_PT, target=_TARGET, power=QConst(1), toughness=QConst(1),
+                    duration=DurationWhileCondition(filter=not_result))
+    with pytest.raises(ValueError, match="IS_RESULT"):  # a duration is read after the resolution
+        _card(ActivatedAbility(cost=Cost(), effect=Seq(steps=(made, lasting))))
