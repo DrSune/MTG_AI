@@ -1,0 +1,2 @@
+M21 500 games; turns > 60: 0 max 35 ; reasons of the long ones: [] ; most acts in a step: max 7 >= 10: 0 ; quarantines: 0 ; outcomes: [('win', 500)]
+M20 500 games; turns > 60: 0 max 40 ; reasons of the long ones: [] ; most acts in a step: max 6 >= 10: 0 ; quarantines: 0 ; outcomes: [('win', 500)]

@@ -826,6 +826,10 @@ class Learner:
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
+        # the rails a training game hit: each should read 0 (docs/BACKLOG.md "Scaffolds to remove")
+        self.counts["rail:turn_cap"] += r.get("outcome") == "draw-cap"
+        self.counts["rail:act_cap"] += r.get("act_cap_hits", 0)
+        self.counts["rail:quarantined"] += r.get("quarantined", 0) > 0
         rows, result = [], None
         for seat in (0, 1):
             steps = self.traj.pop((r["gid"], seat), None)
@@ -1246,7 +1250,9 @@ class Learner:
                     by_set[set_code] += zs
             # per update, like "games": the void training games and the job requests refused
             # while a full batch waited
-            counts = {"voids": self.counts["train:void"], "throttled": self.counts["throttled"]}
+            counts = {"voids": self.counts["train:void"], "throttled": self.counts["throttled"],
+                      "turn_caps": self.counts["rail:turn_cap"], "act_caps": self.counts["rail:act_cap"],
+                      "quarantines": self.counts["rail:quarantined"]}
             per_update = {k: v - self._iter_counts.get(k, 0) for k, v in counts.items()}
             self._iter_counts = counts
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,

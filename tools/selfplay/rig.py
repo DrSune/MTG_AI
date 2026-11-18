@@ -187,5 +187,8 @@ def play_game(seed: int, agents: list[Any], *, deck_mode: str = "stress",
         "leaky": leaky,
         "asks": [st["asks"] for st in router.stats],
         "lives": [game.world.players[s].life for s in game.world.player_order],
+        # the rails that bound (a turn-cap end is the outcome "draw-cap")
+        "act_cap_hits": game.act_cap_hits,
+        "quarantined": len(game.executor.binder.quarantined),
         "wall_s": round(time.monotonic() - started, 3),
     }
