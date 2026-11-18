@@ -5,6 +5,18 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-18 (the copy round B3: CopyOf, COPY's handler, layer-1 copy effects, 11 cards of M21, M20 and FDN; DESIGN_ATOM_ONTOLOGY §18, gate round B3 pending; branch `worktree-agent-a875029fa86089517` on main 70e63ee7; evidence `reports/copy_2026-11-18/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| trees changed, 19 sets | **20** compiler trees in 11 sets, **22** with records applied (M20 Chandra's Regulator, Masterful Replication; FDN Abyssal Harvester, Rite of Replication); **13** newly whole; **0** verified cards in or out; the review's fixes and the Seq refusal: **0** trees | `.venv/bin/python reports/copy_2026-11-18/tree_dump.py <checkout> <out.json>` on a `git archive` of 70e63ee7 and on the branch, then `tree_diff.py <base> <branch>` | `tree_diff.txt`, `tree_diff_fixes.txt`; 139 still-verified cards read a changed engine path (create-token, counter, cast-trigger, was-kicked, activation-trigger) |
+| copy trees, 19 sets, records applied | CREATE_TOKEN of a CopyOf **9** (3 with exceptions), COPY onto the stack **9**, COPY with `cards` **1**, QProp ORDINAL **1**, FNot(IS_RESULT) **1** | `.venv/bin/python reports/copy_2026-11-18/census.py <trees.json>` | `census.txt`; the wordings: `copy_scan.py` (71 cards, 81 printings say "copy"), the compiler trees still holding an unparsed copy sentence: `unparsed_copy.py` (`unparsed_copy.txt`, 67 of the 81 printings; 3 of them mapped by this round's records) |
+| 300 seeded heuristic games, verified pools | **300/300 identical replay digests, journal dumps and raw event logs** (100 each, M21, M20, FDN; 279, 286, 261 deckable on both sides), 0 crashes either side; CREATE_TOKEN **268** and COUNTER **33** calls on each side, copies 0 (no copy card is verified) | `reports/copy_2026-11-18/replay.py <checkout> <trees_base> <trees_branch> 100 <out>` on both, `replay_compare.py` | `replay_compare.txt`, the branch side after the review's fixes |
+| the round's tests and packs on main 70e63ee7 | `test_executor_copies.py` **16 of 16** fail; `test_ability_tree_copies.py` and `test_templates_b20.py` fail to import (no `CopyOf`, no `templates_b20`); the 15 packs **15 of 15** fail | a `git archive` of 70e63ee7 with the branch's three test files and 15 packs copied in, `pytest` on each | no CopyOf, no COPY handler, needs-atom records |
+| the review's fix tests on 05ce9c0b (the round before the fixes) | **17** fail (5 engine tests, 12 refusal cases), and the cast-Chandra Regulator pack | the same on a `git archive` of 05ce9c0b | all pass on the branch |
+| deal pools | M21 engine and castable **303 -> 305**, deckable **283 -> 285** (Double Vision, Sublime Epiphany); dropping both reproduces the stress-pile hash **a1f93553ae44f555** (now **15bf49e1ffeaa526**) | `test_deck_modes.py`, `test_executor_games.py` | |
+| `tools/check.sh` on the round's final tree | **CHECK GREEN**: `pytest MTG_bot` 7380 passed / 39 deselected / 71 subtests, `pytest tools` 400 passed, 806/806 packs, ruff clean | `tools/check.sh` (CPU only, niced, beside r29) | f70b612a with this entry's docs; `ontology_conformance.py` PASS (errors 0, warns 7: V3's 4 and V5's drift, as on main) |
+
 ## 2026-11-18 (engine wave E3: counters belong to one object, CR 122.2 and 400.7; on the battlefield a side is control, CR 110.2, with the class-D audit; G1 deals recorded cards; a spell an ability casts is paid with mana abilities; G3's dead static looks, one-top-card picks and proven equivalent mutants; no IR change; branch `worktree-agent-aa826eade9066c90a` on fa284327, main 69b3f5ad and 2c8eca31 merged; evidence `reports/engine_wave_e3_2026-11-18/`)
 
 | Number | Value | Command | Notes |

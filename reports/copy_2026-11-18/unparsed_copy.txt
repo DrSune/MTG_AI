@@ -1,0 +1,67 @@
+ZNR Glasspool Mimic // Glasspool Shore: 1 copy sentence(s) unparsed: ("You may have this creature enter as a copy of a creature you control, except it's a Shapeshifter Rogue in ad
+ZNR Jace, Mirror Mage: 1 copy sentence(s) unparsed: ("When Jace enters, if Jace was kicked, create a token that's a copy of Jace, except it's not legendary and it
+ZNR Lithoform Engine: 3 copy sentence(s) unparsed: ('{2}, {T}: Copy target activated or triggered ability you control.', 'activated')
+ZNR Scute Swarm: 1 copy sentence(s) unparsed: ("If you control six or more lands, create a token that's a copy of this creature instead.", 'spell-effect')
+ZNR Sea Gate Stormcaller: 3 copy sentence(s) unparsed: ('When this creature enters, copy the next instant or sorcery spell with mana value 2 or less you cast this tu
+ZNR Skyclave Relic: 1 copy sentence(s) unparsed: ('When this artifact enters, if it was kicked, create two tapped tokens that are copies of this artifact.', 't
+ZNR Verazol, the Split Current: 2 copy sentence(s) unparsed: ('If you do, copy that spell.', 'spell-effect')
+M20 Chandra's Regulator: 2 copy sentence(s) unparsed: ('If you do, copy that ability.', 'spell-effect')
+M20 Masterful Replication: 1 copy sentence(s) unparsed: ('Each other artifact you control becomes a copy of that artifact until end of turn.', 'spell-effect')
+M20 Repeated Reverberation: 2 copy sentence(s) unparsed: ('When you next cast an instant spell, cast a sorcery spell, or activate a loyalty ability this turn, copy tha
+KHM Absorb Identity: 1 copy sentence(s) unparsed: ('You may have Shapeshifters you control become copies of that creature until end of turn.', 'spell-effect')
+KHM Battle for Bretagard: 1 copy sentence(s) unparsed: ("For each of them, create a token that's a copy of it.", 'spell-effect')
+KHM Dual Strike: 2 copy sentence(s) unparsed: ('When you next cast an instant or sorcery spell with mana value 4 or less this turn, copy that spell.', 'trig
+KHM Esika's Chariot: REFUSED StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, n
+KHM Littjara Mirrorlake: 1 copy sentence(s) unparsed: ("{2}{G}{G}{U}, {T}, Sacrifice this land: Create a token that's a copy of target creature you control, except 
+KHM Moritte of the Frost: 1 copy sentence(s) unparsed: ("You may have Moritte enter as a copy of a permanent you control, except it's legendary and snow in addition 
+KHM Mystic Reflection: 1 copy sentence(s) unparsed: ('The next time one or more creatures or planeswalkers enter this turn, they enter as copies of the chosen cre
+KHM Orvar, the All-Form: 2 copy sentence(s) unparsed: ("Whenever you cast an instant or sorcery spell, if it targets one or more other permanents you control, creat
+KHM Reflections of Littjara: REFUSED StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its o
+KHM Valki, God of Lies // Tibalt, Cosmic Impostor: 1 copy sentence(s) unparsed: ('Valki becomes a copy of that card.', 'spell-effect')
+10E Clone: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield.', 'spell-effect')
+10E Sculpting Steel: 1 copy sentence(s) unparsed: ('You may have this artifact enter as a copy of any artifact on the battlefield.', 'spell-effect')
+M10 Clone: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield.', 'spell-effect')
+M10 Hive Mind: 2 copy sentence(s) unparsed: ('Whenever a player casts an instant or sorcery spell, each other player copies that spell.', 'triggered')
+M11 Clone: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield.', 'spell-effect')
+M12 Chandra, the Firebrand: 2 copy sentence(s) unparsed: ('[−2]: When you next cast an instant or sorcery spell this turn, copy that spell.', 'spell-effect')
+M12 Phantasmal Image: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield, except it\'s an Illusion in a
+M13 Chandra, the Firebrand: 2 copy sentence(s) unparsed: ('[−2]: When you next cast an instant or sorcery spell this turn, copy that spell.', 'spell-effect')
+M13 Clone: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield.', 'spell-effect')
+M13 Spelltwine: 2 copy sentence(s) unparsed: ('Copy those cards.', 'spell-effect')
+M14 Chandra, Pyromaster: 2 copy sentence(s) unparsed: ('Choose an instant or sorcery card exiled this way and copy it three times.', 'spell-effect')
+M14 Clone: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of any creature on the battlefield.', 'spell-effect')
+M14 Elite Arcanist: 2 copy sentence(s) unparsed: ('{X}, {T}: Copy the exiled card.', 'spell-effect')
+M14 Strionic Resonator: 2 copy sentence(s) unparsed: ('{2}, {T}: Copy target triggered ability you control.', 'activated')
+M14 Wild Ricochet: 2 copy sentence(s) unparsed: ('Then copy that spell.', 'spell-effect')
+M15 Chandra, Pyromaster: 2 copy sentence(s) unparsed: ('Choose an instant or sorcery card exiled this way and copy it three times.', 'spell-effect')
+M15 Kurkesh, Onakke Ancient: 2 copy sentence(s) unparsed: ('If you do, copy that ability.', 'spell-effect')
+M15 Mercurial Pretender: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of a creature you control, except it has "{2}{U}{U}: Return this 
+ORI Flameshadow Conjuring: 1 copy sentence(s) unparsed: ("If you do, create a token that's a copy of that creature.", 'spell-effect')
+ORI Psychic Rebuttal: 2 copy sentence(s) unparsed: ('Spell mastery — If there are two or more instant and/or sorcery cards in your graveyard, you may copy the sp
+ORI Pyromancer's Goggles: 1 copy sentence(s) unparsed: ('When that mana is spent to cast a red instant or sorcery spell, copy that spell and you may choose new targe
+M19 Doublecast: 2 copy sentence(s) unparsed: ('When you next cast an instant or sorcery spell this turn, copy that spell.', 'triggered')
+M19 Metamorphic Alteration: 1 copy sentence(s) unparsed: ('Enchanted creature is a copy of the chosen creature.', 'spell-effect')
+M19 Mirror Image: 1 copy sentence(s) unparsed: ('You may have this creature enter as a copy of a creature you control.', 'spell-effect')
+DOM Helm of the Host: 1 copy sentence(s) unparsed: ("At the beginning of combat on your turn, create a token that's a copy of equipped creature, except the token
+DOM Mishra's Self-Replicator: 1 copy sentence(s) unparsed: ("If you do, create a token that's a copy of this creature.", 'spell-effect')
+DOM Naru Meha, Master Wizard: 2 copy sentence(s) unparsed: ('When Naru Meha enters, copy target instant or sorcery spell you control.', 'triggered')
+DOM The Mirari Conjecture: 2 copy sentence(s) unparsed: ('III — Until end of turn, whenever you cast an instant or sorcery spell, copy it.', 'spell-effect')
+WAR Finale of Promise: 2 copy sentence(s) unparsed: ('If X is 10 or more, copy each of those spells twice.', 'spell-effect')
+WAR God-Eternal Kefnet: 2 copy sentence(s) unparsed: ('Whenever you reveal an instant or sorcery card this way, copy that card and you may cast the copy.', 'trigge
+WAR Narset's Reversal: 2 copy sentence(s) unparsed: ("Copy target instant or sorcery spell, then return it to its owner's hand.", 'spell-effect')
+WAR Ral, Storm Conduit: 3 copy sentence(s) unparsed: ('Whenever you cast or copy an instant or sorcery spell, Ral deals 1 damage to target opponent or planeswalker
+WAR Saheeli, Sublime Artificer: 1 copy sentence(s) unparsed: ("[−2]: Target artifact you control becomes a copy of another target artifact or creature you control until en
+WAR Spark Double: 1 copy sentence(s) unparsed: ("You may have this creature enter as a copy of a creature or planeswalker you control, except it enters with 
+FDN Abyssal Harvester: 1 copy sentence(s) unparsed: ("Create a token that's a copy of it, except it's a Nightmare in addition to its other types.", 'spell-effect'
+FDN Pyromancer's Goggles: 1 copy sentence(s) unparsed: ('When that mana is spent to cast a red instant or sorcery spell, copy that spell and you may choose new targe
+FDN Teach by Example: 2 copy sentence(s) unparsed: ('When you next cast an instant or sorcery spell this turn, copy that spell.', 'triggered')
+ELD Banish into Fable: 2 copy sentence(s) unparsed: ('When you cast this spell from your hand, copy it if you control an artifact, then copy it if you control an 
+ELD Lucky Clover: 2 copy sentence(s) unparsed: ('Whenever you cast an Adventure instant or sorcery spell, copy it.', 'triggered')
+ELD Mirrormade: 1 copy sentence(s) unparsed: ('You may have this enchantment enter as a copy of any artifact or enchantment on the battlefield.', 'spell-ef
+ELD Oko, the Trickster: 1 copy sentence(s) unparsed: ('[0]: Until end of turn, Oko becomes a copy of target creature you control.', 'spell-effect')
+ELD Sorcerer's Broom: 1 copy sentence(s) unparsed: ("If you do, create a token that's a copy of this creature.", 'spell-effect')
+THB Nightmare Shepherd: 1 copy sentence(s) unparsed: ("If you do, create a token that's a copy of that creature, except it's 1/1 and it's a Nightmare in addition t
+THB Protean Thaumaturge: 1 copy sentence(s) unparsed: ('Constellation — Whenever an enchantment you control enters, you may have this creature become a copy of anot
+IKO Lutri, the Spellchaser: 2 copy sentence(s) unparsed: ('When Lutri enters, if you cast it, copy target instant or sorcery spell you control.', 'triggered')
+IKO Mythos of Illuna: 1 copy sentence(s) unparsed: ('If {R}{G} was spent to cast this spell, instead create a token that\'s a copy of that permanent, except the 
+IKO Offspring's Revenge: 1 copy sentence(s) unparsed: ("Create a token that's a copy of that card, except it's 1/1.", 'spell-effect')

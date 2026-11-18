@@ -1222,13 +1222,55 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     names only yours), Quilled Greatwurm (six counters removed from among creatures, a removal
     cost the IR refuses), Vizier of the Menagerie (its mana rider), Zul Ashur (ward), the
     flashback cards whose spell sentence is unparsed (Bulk Up, Inspiration from Beyond, Mystical
-    Teachings, Revenge of the Rats, Electroduplicate, Self-Reflection), Chandra, Flameshaper,
-    Kellan.
+    Teachings, Revenge of the Rats; Electroduplicate and Self-Reflection compile whole since the
+    copy round B3, DESIGN_ATOM_ONTOLOGY §18), Chandra, Flameshaper, Kellan.
   - FDN High Fae Trickster: "as though they had flash" changes when, not where (FLASHPERM,
     KNOWLEDGE 209 §7); a card's own optional alternative cost (M20 Sephara) is a SpellAbility
     piece, not a permission.
   - A filter on the `result` register ("cast a creature spell from among them") and a PERMIT
     reading another register are refused until a card brings them.
+- **The copy lane still blocked** (2026-11-18, the copy round B3, DESIGN_ATOM_ONTOLOGY §18; the
+  wordings: `reports/copy_2026-11-18/copy_scan.txt`, 71 cards, 81 printings of the 19 sets). Each
+  waits on one piece, refused by the IR or unparsed until its card brings tests:
+  - Copies of a triggered ability (M14 Strionic Resonator, ZNR Lithoform Engine's first ability):
+    the copy keeps the context its trigger made (CR 603.3c-d, 707.10). `copies._put_copy` raises
+    on one; no compiled tree reaches it.
+  - Copies of a permanent spell (Lithoform Engine's third ability): the copy becomes a token as
+    it resolves (CR 608.3f). No template.
+  - "Enters as a copy" (the Clone family, Sculpting Steel, Mirror Image, Phantasmal Image,
+    Mercurial Pretender, Spark Double, Glasspool Mimic, Moritte, Mirrormade: 13 printings): a
+    replacement as the permanent enters (CR 707.5, 614.1c), with its "as it enters" choice.
+    CopyOf is its value; the form is the round that builds it.
+  - Other exceptions (CR 707.9b-c): "isn't legendary" (Helm of the Host, Jace, Mirror Mage),
+    "it's 1/1" (Offspring's Revenge, Nightmare Shepherd), "starting loyalty is 1", "enters with an
+    additional +1/+1 counter" (Littjara Mirrorlake), "except it has this ability" (Protean
+    Thaumaturge). CopyOf takes subtypes, keywords and abilities only.
+  - A permanent becoming a copy for another duration (Valki, Protean Thaumaturge: indefinitely):
+    COPY's `cards` takes DurationEot only. "Becomes a copy" has no template yet (Masterful
+    Replication is a record): ELD Oko, the Trickster's [0], KHM Absorb Identity, WAR Saheeli,
+    Sublime Artificer (its exception is a card type) wait for one.
+  - A copy clause whose other half does not parse (`reports/copy_2026-11-18/unparsed_copy.txt`):
+    "<trigger>, you may pay {N}. If you do, <copy>" (DOM Mishra's Self-Replicator, ELD Sorcerer's
+    Broom, ORI Flameshadow Conjuring, M15 Kurkesh, ZNR Verazol; THB Nightmare Shepherd's "you may
+    exile it"): the antecedent has no template, and B20 reads no "If you do," prefix yet (add it
+    with that template). A legendary's short name in a trigger (DOM Naru Meha, IKO Lutri: "When
+    Naru Meha enters, copy target ..." does not parse, "When this creature enters, copy target
+    ..." does). Compound sentences (WAR Narset's Reversal's "then return it"; M14 Wild Ricochet's
+    target change before "Then copy that spell"). Conditional or typed copies of a cast (ELD Lucky
+    Clover, Banish into Fable, DOM The Mirari Conjecture, WAR Finale of Promise, ZNR Sea Gate
+    Stormcaller, KHM Reflections of Littjara, ORI Psychic Rebuttal).
+  - Casting a copy (CR 707.12: Chandra, Pyromaster, God-Eternal Kefnet, Spelltwine, Elite
+    Arcanist), copying for each player (Hive Mind), delayed copies ("When you next cast ...",
+    Teach by Example and Repeated Reverberation: round B8; Pyromancer's Goggles: round B11). The
+    delayed ones reuse COPY(source=CopyOf(event)) under a DelayedTrigger on a CastSpellEvent or
+    an AbilityActivatedEvent: `event_object_fault` already reads a delayed trigger's event.
+  - Engine residue (the fresh-eyes review, §18): a copy effect's rebinding gives the permanent's
+    own static abilities new timestamps where CR 613.7a keeps the object's (only an order between
+    two statics of one layer can show it); when a copy's controller changes a target, the copy's
+    declaration clock moves to then, so a copied activated ability whose source changed zones
+    between the activation and the copy reads that source anew (CR 707.10b keeps the old one);
+    `SpellStack.left` keeps one frame per card, so a cast trigger whose spell left the stack, the
+    same card then cast again and gone too, copies nothing.
 - **The OptionalEffect around ADD_LAND_PLAY, GRANT_ACTIVATION and MANA_POLICY** (2026-11-17,
   divergence D32; gate round 13). §10's R5-2 point 8 ruled every permission-like atom bare (its
   "you may" is its use); ontology round R13 made PERMIT so and left the three wrapped in M21 Azusa,
@@ -1825,6 +1867,18 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### What the network sees
 
+- **A copy shows as the card it copies, its exceptions only in part** (2026-11-18, the copy round
+  B3, DESIGN_ATOM_ONTOLOGY §18). A copy's identity is the copied card's (`copies.py`), so its card
+  token is that oracle id's row (`features.encode` `ci[0]`), with its live keywords (haste from
+  Electroduplicate's exception is in `layers.keywords`) and the token column on a token copy or a
+  spell copy; that is AGENTS §10's minimum. Unseen: a subtype an exception adds (Abyssal
+  Harvester's Nightmare; no subtype column, as for any live type), an ability an exception adds
+  (Electroduplicate's end-step sacrifice: the card row is the copied card's tree; on the stack its
+  trigger shows an ability index past the printed ones), what a permanent that became a copy was
+  before and that the effect ends at end of turn (Masterful Replication), and which stack object a
+  spell copy copies. A token copy and its original read alike but for the token column.
+  Candidate: a "copy of" entity pointer and an exception row at the next observation-schema
+  change. `tools/selfplay/` was not edited by the round, so old checkpoints compute what they did.
 - **A permission shows only as the rows it offers** (2026-11-17, ontology round R13). A card a
   permission lets the seat play is an option of the act ask (its entity carries its zone; a
   `:via:` row points at the permission's source), but no card column says "playable from here"

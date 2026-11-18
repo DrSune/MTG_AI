@@ -212,6 +212,33 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     Flame's Catalyst's [-2]); with "this turn" it is a PERMIT over the target (Jace, Telepath
     Unbound's [-3]). "Flashback {cost}" is the card's own static PERMIT with `alternative` and
     `spell_rider(Zone(ANY, ANY))` (B19-flashback).
+- **Copies** (the copy round B3, DESIGN_ATOM_ONTOLOGY §18; `parse` first: templates_b20 reads
+  "create a token that's a copy of", "copy target instant or sorcery spell", Thousand-Year Storm's
+  count and "You may choose new targets"). What is copied is one `CopyOf(source, ...)`; where the
+  copy goes is the verb:
+  - "Create a token that's a copy of X" is `CREATE_TOKEN(tokens=CopyOf(X), count=QConst(n))`,
+    never a COPY. X is one object: "this creature" `Selector(QConst(1), CHOOSE,
+    FAtom(IS_SOURCE), zones=(BATTLEFIELD,))`, a TARGET of one, "it" (`referent="result"`: the
+    card an instruction before it moved, Abyssal Harvester) or "that creature" (`"event"`).
+    Never `referent="source"`: "this" is the CHOOSE of IS_SOURCE.
+  - "Except ..." goes in the CopyOf: "it's a Nightmare in addition to its other types"
+    `subtypes=("Nightmare",)`; "it has haste" `keywords=(Keyword.HASTE,)` (bare keyword
+    abilities, `ability_tree.COPY_EXCEPTION_KEYWORDS`); "it has '<ability>'" `abilities=(...)`
+    (a triggered, activated or static ability). Any other exception is needs-atom (BACKLOG, "The
+    copy lane still blocked").
+  - "Copy that spell|ability" (a cast or activation trigger) is `COPY(source=CopyOf(<event
+    referent>))`; "copy target instant or sorcery spell" `COPY(source=CopyOf(TARGET over the
+    stack))`. "You may choose new targets for the copy" is `new_targets=True` on that COPY, never
+    a sentence of its own; "copy it twice" `count=QConst(2)` (absent is one). No exception, no
+    duration: a copy on the stack lasts until it leaves it.
+  - "Each other artifact you control becomes a copy of that artifact until end of turn" is
+    `COPY(source=CopyOf(<that artifact>), cards=<the permanents, over the battlefield>,
+    duration=DurationEot())`: the permanents that become copies are `cards`, never `target`.
+  - "For each other instant and sorcery spell you've cast before it this turn" is
+    `QBin(SUB, QProp("event", ORDINAL), QConst(1))` in a cast trigger's effect; never in its
+    condition (an intervening "if" on the ordinal is `CastSpellEvent.ordinal`).
+  - "All other <objects>" after an instruction that made or moved one is
+    `FNot(FAtom(IS_RESULT))` in the moved objects' filter, in a later step of the Seq.
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it
