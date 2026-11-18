@@ -5,6 +5,17 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-18 (gate round W3's fixes, FIX-THEN-GO: one reviewer on 5a310010; the fixes e96f30ed, then main b84282a9 merged (engine waves W0 and W1) in 3c63ec6d; DESIGN_ATOM_ONTOLOGY §19 "Gate round W3"; evidence `reports/w3_2026-11-18/gate/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| the gate fixes' tests at 5a310010 | **21 fail** (10 IR refusal cases: a hand of no one player 4, a characteristic-only state 4, two extra-trigger statics 1, a reveal of a public object 1; 10 row tests, the form field; TestSeenRows; the G3 cause test), 61 pass | `reports/w3_2026-11-18/at_commit.py 5a310010 <ability_tree, verbs, binding, gates> <the two W3 test files> <the G3 cause test> -q` | `fix_tests_at_5a310010.txt`; all pass on the branch |
+| trees the gate fixes change, 19 sets | **0** compiler trees, **0** with records applied, **0** verified in or out | `tree_dump.py` on the branch before (bf2ca5b4's trees; 5a310010 changed none) and after the fixes, `tree_diff.py` | `tree_diff_gate_fixes.txt` |
+| the planner's bitwise test on the branch merged with main | 5a310010's (unpinned) **fails** at 2 and 4 threads (two updates' weights differ); the pinned one **passes** at 2 and 4 | `at_commit.py 5a310010 tools/selfplay/test_planner.py <its test> -q` with `OMP_NUM_THREADS` 2, 4; `pytest` the same | `planner_test_unpinned_2_threads.txt`, `planner_test_unpinned_4_threads.txt` |
+| the Mazemind Tome bounce test on the engine before W1 | **fails** (the old exile instance exiles the replayed Tome, 'exile' != 'battlefield'); passes after the merge | `at_commit.py e96f30ed <the ten executor files main changed> MTG_bot/core/test_executor_w3.py::TestMazemindTome -q` | `tome_bounce_on_the_engine_before_w1.txt` |
+| seen rows of four seeded random games ("all" pools: M21 0, 3; M20 0, 3) | **16** rows, each with its viewers and form: SCRY "top", REVEAL "result", "top" and "hand", LOOK_AT "top" | `TestSeenRows` | the contract memory v1 reads (`verbs.SEEN_VERBS`) |
+| `tools/check.sh` on the merged tree | **CHECK RED, main's four reds only**: `pytest MTG_bot` 7597 passed / 39 deselected / 87 subtests; `pytest tools` 456 passed / 2 xfailed / 4 failed, the latent-fault guard's F40, F60 and F36 and its own F60 assertion, which fail on main b84282a9 alone (`fault_guard_on_main_b84282a9.txt`: 5 there, F43 among them, recorded here); 817/817 packs; ruff clean | `tools/check.sh` (CPU only, niced, beside r29) | the working tree of the final commit |
+
 ## 2026-11-18 (ontology round W3: state triggers, an ability triggering an additional time, what a reveal shows; KNOWLEDGE 215's F23, F24, F63 with F51; DESIGN_ATOM_ONTOLOGY §19, gate round W3 pending; branch `worktree-agent-a3637301ad1c4f789` on main 0b7f9c22; evidence `reports/w3_2026-11-18/`)
 
 | Number | Value | Command | Notes |
