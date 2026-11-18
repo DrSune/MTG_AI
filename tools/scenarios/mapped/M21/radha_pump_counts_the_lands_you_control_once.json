@@ -1,0 +1,101 @@
+{
+ "set": "M21",
+ "name": "radha_pump_counts_the_lands_you_control_once",
+ "notes": "Printed: '{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control.' Six lands of yours pay the cost (all tapped); the opponent's two Plains do not count: X = 6, Radha 9/9. X is counted as the ability resolves (CR 608.2h): a Forest played afterwards does not grow her.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pl1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "pl2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "g4",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:radha:2",
+    "land:g4"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "radha": 9
+  },
+  "toughness": {
+   "radha": 9
+  },
+  "zone": {
+   "g4": "battlefield"
+  },
+  "tapped": {
+   "m1": true,
+   "m2": true,
+   "m3": true,
+   "g1": true,
+   "g2": true,
+   "g3": true,
+   "g4": false
+  }
+ }
+}

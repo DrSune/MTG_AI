@@ -1,0 +1,63 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_eight_casts_from_hand_without_paying",
+ "notes": "Printed: '[-8]: ... Until end of turn, you may cast spells from your hand without paying their mana costs.' With no land and an empty pool, Gnarled Sage ({3}{G}{G}) and Shock ({R}), drawn by the -8, are cast from hand through the permission (cast:<card>:via:<Chandra>, CR 118.9): the Sage resolves, Shock deals 2 to the opponent.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 9
+   }
+  },
+  {
+   "key": "gs",
+   "real": "Gnarled Sage",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:2",
+    "cast:gs:via:cf",
+    "cast:sh:via:cf",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gs": "battlefield",
+   "sh": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 1
+   }
+  }
+ }
+}

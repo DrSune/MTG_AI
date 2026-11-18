@@ -28,7 +28,7 @@ are neutral; each one is teaching the agent something.
 | **`TURN_CAP = 60`** (registered 2026-10-24) | `core/executor/games.py:138,1554`; `tools/selfplay/learner.py` `reward` (`--draw-reward`) | A non-rules safety rail. Scored as a draw (0 > loss = -1) it would pay a losing policy to stall (D10), so self-play scores it `--draw-reward` (default -1, a loss for both seats) and reports it as `draw-cap`. Remove once a real match clock exists. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
 | **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:159,1499-1511` | Same incentive problem as the cap; self-play scores it like the cap (`draw-stall`). Keep it as a progress probe until optional-loop actions exist. |
 | **10 actions per player per step** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; 10 in each main phase from 2026-11-06, B-74; per player and step since 2026-11-11, when the loop gave priority in every step, DESIGN_PRIORITY §2.6) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`_play_turns`; `Executor.acted` counts); the pack runner's `act` op | A rail, not a rule: CR 117 sets no limit on how often a player who keeps priority acts. It makes a player who never passes pass after its tenth action in a step (a free ability activated forever), recorded as any pass is. Priority did not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
-| **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot; `cards/M21/prismite_1.json` pins that no game pays with Prismite's, and the packs that activated it wait in `known_bugs/2026-11-17/payer_never_pays_a_filter/`) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Every mana ability of a permanent is a way it pays, and it taps once (2026-11-17: only the first was priced, so Gift of Paradise's granted ability never paid on a land with a mana ability of its own). A mana ability whose effect is a Conditional is priced by the branch the state picks (M20 Leafkin Druid, 2026-11-17: it made no mana in a game before, its packs having activated it directly); `test_executor_legality.TestManaAbilitiesWhilePaying.test_every_verified_mana_ability_is_one_the_payer_prices` pins every mana ability of the M21, M20 and FDN verified deal pools as priced, Prismite's and Kykar's excepted (their costs, not their effects). Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. |
+| **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell` | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot; `cards/M21/prismite_1.json` pins that no game pays with Prismite's, and the packs that activated it wait in `known_bugs/2026-11-17/payer_never_pays_a_filter/`) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Every mana ability of a permanent is a way it pays, and it taps once (2026-11-17: only the first was priced, so Gift of Paradise's granted ability never paid on a land with a mana ability of its own). A mana ability whose effect is a Conditional is priced by the branch the state picks (M20 Leafkin Druid, 2026-11-17: it made no mana in a game before, its packs having activated it directly); `test_executor_legality.TestManaAbilitiesWhilePaying.test_every_verified_mana_ability_is_one_the_payer_prices` pins every mana ability of the M21, M20 and FDN verified deal pools as priced, Prismite's and Kykar's excepted (their costs, not their effects). Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. The owner, 2026-11-18: keep the engine's payment for now. Network quality and maturity come first; realism of play is a later learning point, not the current bottleneck, and that deferral covers mana activation only. The end state: the network activates its own mana abilities (CR 601.2g), at any priority point too, with no auto-pay option, so tap triggers (M20's Leyline of Abundance, Manabarbs), convoke and spend restrictions are its choices (OWNER_VISION_LEARNING §12, PLAN_PLANNING §3). |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later step adds the mana at that step, standing in for the lands the player taps there. Since 2026-11-11 a cast step may instead tap real lands with `"tap": true` (the menu's automatic payment, the row above); the op stays as the short form. Remove when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
 | **Benchmark: stateless prompts, conservative hidden-card labels** (2026-10-24; `TAP_ALL_MANA` and "X always 0" removed 2026-11-05: payment is the row above, X is one menu row per payable value; multi-slot rows hidden until 2026-11-06, now one target question per slot; one act window per main phase until 2026-11-11, now a decision at every priority point) | `MTG_bot/bench/router.py`, `protocol.py`, `llm.py` | Each is a harness simplification. Remove with tool mode (`notes` memory). An LLM seat now pays one call per priority point it can act at, so its clock is measured (DESIGN_PRIORITY §3.6). |
@@ -115,6 +115,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Casting, the stack and targets
 
+- **A spell an ability casts is paid from the mana pool only** (2026-11-18, mapper wave 5).
+  WEAKER than printed. When an ability casts a spell (the CAST atom), both
+  `query._cast_option_payable` and `stack.cast_card` price and pay it through
+  `legality.build_payment_plan`, which reads the pool and never taps an untapped land (CR 601.2g
+  lets the payer do so). `query._clamp_cast_target_slot` then drops the target the pool cannot pay
+  for. So Chandra, Flame's Catalyst's −2, with Shock in the graveyard and an untapped Mountain, is
+  not offered; mana never floats in a dealt game. Pack:
+  `tools/scenarios/known_bugs/2026-11-18/ability_cast_pays_from_the_pool_only/`. The Catalyst
+  waits for this fix before its blind verification.
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
 - **Target recheck gap (not reachable in current games)**: Enthralling Hold's "as you cast it"
@@ -640,7 +649,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   own that died under an opponent's control would no longer count (weaker). The one-meaning fix:
   write those from-zones Zone(BATTLEFIELD, ANY) (re-verify both), then read control on a
   battlefield endpoint here too.
-
+- **An "Activate only as a sorcery" gate with no activated ability to attach to refuses the whole
+  card** (2026-11-18, mapper wave 5). When a card's cost sentence does not parse, the gate sentence
+  still matches its template, and the gate loop (`compiler.py` ~2390) raises
+  `StateCorruptionError` instead of leaving the gate unparsed. The cost sentence here is M20
+  Bloodsoaked Altar's "{T}, Pay 2 life, Discard a card, Sacrifice a creature: ...". Cards refused
+  this way: Bloodsoaked Altar, Diviner's Lockbox (M20), Ravenous Amulet and Suspicious Shambler
+  (FDN). A verified record rescues a refused card in games (`compiler.py` ~2541-2558,
+  `games._rescued`), so the Altar's correct record is enough once it is stamped.
 - **Orphaned sentences on a permanent's cast carrier** (2026-11-14, found by G0's `carrier`
   lint, KNOWLEDGE/2026-11-14/207 §5.1). 26 partly compiled cards hold an effect on a permanent
   spell's SpellAbility, so it happens as the card is cast. WAR Teferi, Time Raveler's "Draw a
@@ -1516,6 +1532,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Gates, probe, soak and the pack runner
 
+- **Pack-runner traps found by mapper wave 5** (2026-11-18):
+  - In a two-player pack, a player's loss (an empty library) silently skips the remaining steps,
+    so the pack can pass vacuously. Pin `"lost"` in multi-turn packs until the runner fails a
+    pack that ends early.
+  - A target slot with one legal candidate is never asked, so a decision word meant for it drifts
+    onto the next ask.
+  - A card key such as "p1" would shadow the player word.
+  - The notes of the top-level packs `chandra_heart_of_fire_branch01` and
+    `chandra_catalyst_recast_draw_journalled_once` are stale since round 13.
 - **The probe moves no two objects at once** (2026-11-13, ontology round R10). Since a zone change
   of several objects gathers, G3 offers the critical "each occurrence -> once per event" mutant on
   every per-object zone-change trigger over another object: 20 more verified trees (8 -> 28,
@@ -1846,13 +1871,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   source entity (`features.py` ~503 reads only a `card:` handle from the site) and an emblem's
   trigger on the stack is left out (~514-521). Fix before a run deals the makers (M21 Basri Ket,
   Garruk, Unleashed, Liliana, Waker of the Dead once re-verified).
-- **The observation holds no turn history** (2026-11-13, the life family): `players_f` has each
-  player's life exactly (`life / 20`), but nothing of what happened this turn: life gained or lost,
-  cards drawn, spells cast. So the state the turn-history atoms and the event ordinals read is
-  hidden: whether Vengeful Warchief's "first time each turn" is used up, Mystic Skyfish's second
-  draw, LIFE_GAINED_THIS_TURN_GE's sum. The card tokens show the atom (`@ordinal num:1`); only the
-  network's own inference covers the count. Add per-player turn counters (life gained, life lost,
-  gain and loss events, draws, casts) at the next observation-schema change.
 - **Card tokens bucket every number above 5** (`features._bucket`: `num:0`..`num:5`, `num:6+`):
   Twinblade Paladin's and Angel of Vitality's 25, Serra Ascendant's 30 and Elderscale Wurm's 7 read
   alike, as do Thieves' Guild Enforcer's 8 and Speaker of the Heavens' 7. The life totals they are
@@ -2122,6 +2140,36 @@ live document at all.
   ([`DESIGN_BENCHMARK.md`](DESIGN_BENCHMARK.md)); only its public-leaderboard half is parked, below.
 
 ### Parked, with the reason
+
+**The plan's horizon: how many action sequences ahead it plans** (owner, 2026-11-18;
+PLAN_PLANNING §5).
+- **The question.** The plan module starts with the current action sequence (v1), then one or two
+  ahead (v2). The owner: "we must make sure that the planning sequence number is optimal. Maybe it
+  should plan next two, not just next one. Maybe even more."
+- **The cases that decide it:**
+  - a combo deck balancing survival until its combo is assembled (or the draws make it safe)
+    against sending everything in before it loses;
+  - a sweeper kept for as long as the opponent keeps back, and used when they commit.
+- **How to settle it**, once v1 works:
+  - hindsight heads at several horizons at once (the actions and uses of the next 1, 2 and 4
+    sequences);
+  - ablate what the policy reads from each horizon;
+  - the puzzles by horizon (B2 at two rounds, D multi-turn), and the combo and sweeper puzzles.
+
+  The useful horizon is where reading further stops paying.
+
+**Repeated reasoning ("think again") with a game clock** (owner, 2026-11-18; OWNER_VISION_LEARNING §12,
+PLAN_PLANNING §5).
+- **What it is.** The network may run another pass over the board and its plan before acting:
+  - a pass counter is an input;
+  - "think again", "revise" and "act" are its choices;
+  - each pass costs time on a real game clock in self-play, where running out loses. That makes
+    the trade-off learnable without a hand-set penalty, and it serves the match-clock goal.
+- **Parked because** more compute per decision is not the limit today. The capacity probe found
+  that a network grown to 16 layers or to double width fits r27's value no better (KNOWLEDGE
+  2026-11-12/194 K1-K2).
+- **Would unpark when** network size limits quality: a capacity probe in which a bigger network
+  fits clearly better. The owner wants it done before that limit binds.
 
 **NeMo-RL (`nvcr.io/nvidia/nemo-rl`).** NVIDIA's RL toolkit, multi-arch on NGC. Parked rather than adopted:
 it is shaped around LLM post-training (GRPO/DPO over HuggingFace models with vLLM rollouts), and this

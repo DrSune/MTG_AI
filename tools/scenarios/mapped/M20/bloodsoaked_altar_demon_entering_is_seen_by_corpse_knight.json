@@ -1,0 +1,76 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_demon_entering_is_seen_by_corpse_knight",
+ "notes": "Printed: '{T}, Pay 2 life, Discard a card, Sacrifice a creature: Create a 5/5 black Demon creature token with flying.' Through the menu the Altar is tapped, 2 life paid, the one card discarded and the Bear sacrificed (Corpse Knight stays); the Demon token entering under your control is seen by Corpse Knight ('Whenever another creature you control enters, each opponent loses 1 life').",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "knight",
+   "real": "Corpse Knight",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Your Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "card",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:altar:0",
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 1
+  },
+  "zone": {
+   "bear": "graveyard",
+   "card": "graveyard",
+   "knight": "battlefield"
+  },
+  "tapped": {
+   "altar": true
+  },
+  "life": {
+   "0": 18,
+   "1": 19
+  },
+  "battlefield_pt": {
+   "Demon": [
+    5,
+    5
+   ]
+  },
+  "battlefield_keywords": {
+   "Demon": [
+    "FLYING"
+   ]
+  }
+ }
+}

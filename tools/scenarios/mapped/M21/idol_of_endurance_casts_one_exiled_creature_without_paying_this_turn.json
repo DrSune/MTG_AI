@@ -1,0 +1,109 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_casts_one_exiled_creature_without_paying_this_turn",
+ "notes": "Printed: '{1}{W}, {T}: Until end of turn, you may cast A creature spell from among cards exiled with this artifact without paying its mana cost.' The Idol exiles Walking Corpse and Alpine Watchdog; its ability ({1}{W}, the Idol tapped) lets Walking Corpse be cast from exile for nothing (the five Plains are all spent): a black spell cast from elsewhere, which Quirion Dryad sees (its second counter: the white Idol's own cast gave the first). One cast only: the Watchdog is then not offered (the menu has nothing).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "aw",
+   "real": "Alpine Watchdog",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol",
+    "act:idol:1",
+    "cast:wc:via:idol"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:aw:via:idol"
+   ],
+   "expect_raise": "words no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "battlefield",
+   "aw": "exile"
+  },
+  "tapped": {
+   "idol": true,
+   "w1": true,
+   "w2": true,
+   "w3": true,
+   "w4": true,
+   "w5": true
+  },
+  "counters": {
+   "dryad": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "kick_rows": {
+   "wc": {
+    "from": "exile"
+   }
+  }
+ }
+}

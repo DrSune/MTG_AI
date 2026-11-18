@@ -1,0 +1,86 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_eight_free_casts_end_with_the_turn",
+ "notes": "Printed: 'Until end of turn, you may cast spells from your hand without paying their mana costs.' The -8 draws Gnarled Sage; nothing is cast. On your next turn, with no mana, the Sage is no longer offered for free (CR 611.2a, 514.2), while Chandra's +1 is (so the menu asks). Three Forests below the Sage keep the library from running out before that turn's draw.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 9
+   }
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "f2",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "f3",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gs",
+   "real": "Gnarled Sage",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:2"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:gs:via:cf"
+   ],
+   "expect_raise": "does not offer 'cast:card:4:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gs": "hand",
+   "cf": "battlefield"
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "hand": {
+   "0": 8
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

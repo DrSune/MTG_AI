@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_casts_only_cards_exiled_with_it",
+ "notes": "Printed: '... from among cards EXILED WITH THIS ARTIFACT ...' Alpine Watchdog was already in exile (not exiled by the Idol): after the activation it is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "aw",
+   "real": "Alpine Watchdog",
+   "zone": "exile",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol",
+    "act:idol:1",
+    "cast:aw:via:idol"
+   ],
+   "expect_raise": "does not offer 'cast:card:7:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "exile",
+   "aw": "exile"
+  },
+  "tapped": {
+   "idol": true
+  }
+ }
+}

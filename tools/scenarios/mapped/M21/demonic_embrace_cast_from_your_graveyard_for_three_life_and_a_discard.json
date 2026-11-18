@@ -1,0 +1,100 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_cast_from_your_graveyard_for_three_life_and_a_discard",
+ "notes": "Printed: 'You may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs.' From the graveyard through its own permission (cast:de:via:de): {1}{B}{B} paid with three Swamps, 3 life paid (20 -> 17), the Forest discarded; it enchants Walking Corpse (5/3). A black spell cast from elsewhere: Quirion Dryad gets a counter.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fodder",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "battlefield",
+   "fodder": "graveyard"
+  },
+  "attached": {
+   "de": "corpse"
+  },
+  "life": {
+   "0": 17,
+   "1": 20
+  },
+  "power": {
+   "corpse": 5
+  },
+  "toughness": {
+   "corpse": 3
+  },
+  "hand": {
+   "0": 0
+  },
+  "counters": {
+   "dryad": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "tapped": {
+   "s1": true,
+   "s2": true,
+   "s3": true
+  },
+  "kick_rows": {
+   "de": {
+    "from": "graveyard"
+   }
+  }
+ }
+}

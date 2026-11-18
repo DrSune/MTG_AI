@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "name": "radha_casts_no_spell_from_the_top",
+ "notes": "Printed: 'you may play LANDS from the top of your library.' Shock on top is not castable from the library although a Mountain could pay for it: the menu offers nothing.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:top",
+    "p1"
+   ],
+   "expect_raise": "words no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "top": "library"
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

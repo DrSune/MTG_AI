@@ -263,3 +263,81 @@ The plan that follows this, with its gates and the owner's decisions: `docs/PLAN
   learner's Elo against a very varied frozen pool: an Elo fit weights a win by the opponent's
   strength. The Teacher picks deck families by measured progress, and the drafter is trained for it
   later (PLAN_CEILING §9).
+
+
+## 12. The network pays its own mana, and plans its turn (2026-11-18, open)
+
+The owner, on PLAN_PLANNING's first draft: "the model should handle land-tapping at some point too.
+I am sure some cards interact like 'when a/your/opponent land is tapped...'. If not in these sets,
+then in others. We cant just ignore those/their functionality." And: "It must make a full plan for
+the turn, and possibly revise/critique it before moving on, no? Having it attend between its
+finalized plan and everything on the board seems smart. I am thinking something like a plan-input
+and a reasoning-turn-counter. The plan is empty at the start of a turn, and the reasoning-turn-counter
+is zero. When reasoning turn counter increments to one, is when the model thinks once more, now with
+its plan as input too, as part of the 'board'. I think this could use the weights better/increase
+information density. And then give it some option to reason again, revise plan, or execute plan."
+"Dont rush to conclusions, spar with me and make sure we get the best plans before we start any
+meaningful work."
+
+**Notes (in discussion; nothing built).**
+- **Paying.**
+  - Cards that care which source pays exist in our own sets. M20's Leyline of Abundance: "Whenever
+    you tap a creature for mana, add an additional {G}"; it waits on round B12.
+  - The ingested sets hold more:
+    - 11 printings that trigger on a permanent tapped for mana: Manabarbs, Overgrowth, Verdant
+      Haven, Wolfwillow Haven, Nyxbloom Ancient, Burning Earth, Glittering Frost;
+    - 22 convoke cards in M15, where paying taps your own creatures, which then cannot block;
+    - 27 mana-spend restrictions.
+  - Commander is full of them. The engine's payer (BACKLOG "Automatic payment") picks the sources
+    by a fixed rule, so these choices are not the network's. PLAN_PLANNING §3's O1 (outcome-level
+    options for which colours stay open) does not cover them.
+- **Plans.**
+  - The network carries nothing from one decision to the next. AlphaStar and OpenAI Five carry an
+    LSTM state, where their intentions live, so the comparison drawn in PLAN_PLANNING §2 holds for
+    what a sequence of choices can express, not for deliberation or commitment.
+  - D3's binding "multi-step planning with every step trained" (2026-09-10) is not in today's
+    network. DESIGN_ACTION_SPACE's decoder was never built.
+
+**The owner's answers (2026-11-18, second round).**
+- **Payment.** The owner: "I dont like 'auto-pay' that much, so mark it as backlog fix item, because
+  I think it is right now, but at a later point we want the network to actually know how to use
+  lands too. For now making the network high-quality and mature is the priority, realism-of-play is
+  a later learning point, and not our current bottleneck." The engine keeps paying, and the
+  network's own payment is BACKLOG ("Automatic payment").
+- **Plans.**
+  - The plan runs through the opponent's turn (saving Cancel for the instant round, or letting the
+    opponent act more before the stack resolves). Both scopes are tested: "this action sequence
+    just now, or ... one or two action sequences in the future, but revise them when you actually
+    need to execute since state can have changed significantly during opponents turn".
+  - The owner agrees "very very much" with what trains the plan: hindsight, and the search's lines.
+- **"Think again".** Repeated reasoning paid by a game clock goes to the BACKLOG, "before we are
+  limited on quality from network-size".
+- **Measurement.** The owner: "Not sure how you are sure the cieling reading works at all. I can
+  see how we can use theory for it, cant see how we can measure it without a good model at doing
+  it." Agreed. Every headroom read so far (205) is a lower bound: what a one-turn lookahead over
+  today's network finds. Puzzle answers are therefore proven by exact solving in our engine where
+  the puzzle is small enough, and model-verified puzzles are reported apart (PLAN_PLANNING §4).
+- **Order.** Left to the coordinator: P0 first, as the best information.
+- **Scope of "later"** (the owner, third round): "realism-of-play later only counts for mana
+  activation". Every other choice stays the network's now.
+- **Readable plans.** The owner: they are "only possible if we use a large look-up table to match
+  actions together properly, or a LLM to explain what the actions would actually resolve to".
+  Answered in PLAN_PLANNING §5: a readable step is a verb from the network's own option vocabulary
+  plus pointers to cards that exist now. The engine labels it and matching is exact by card
+  handle; steps about objects that do not exist yet stay hidden.
+
+**The owner's answers (2026-11-18, third round).**
+- **Both, hidden plus readable.** "We can have implicit knowledge like cards being kept in hand
+  might be saved for later. If it is part of the planned sequence for next action sequence we can
+  assume it is being held with some objective in mind."
+- **The horizon goes to the BACKLOG**: "Maybe it should plan next two, not just next one. Maybe even
+  more, I dont know what is optimal". The owner's cases are combo decks ("balance just surviving
+  until it has the full combo, or good conditions to execute it with draws, or it just needs to send
+  all in before losing soon") and a held sweeper ("As long as they keep it, you should keep your
+  card, but it should be the plan to use it when they commit/if they do"). "Not sure how to encode
+  this in the plan implementation best possible. Spar with me here."
+- **History.** On "history, planner functionality, history encoder (of opponents actions, since
+  board history is visible with cards, and how long they have been somewhere, and possibly where
+  they were before, though this is a lot of things to attend to, and not sure all of it matters)":
+  "Work what you are sure of how to implement for this account. When unsure, dont rush to
+  conclusions, spar with me to find the optimal path forward."

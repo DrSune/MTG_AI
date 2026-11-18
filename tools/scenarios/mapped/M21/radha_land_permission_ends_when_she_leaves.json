@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "name": "radha_land_permission_ends_when_she_leaves",
+ "notes": "Printed: 'You may ... play lands from the top of your library.' A static ability: it works while Radha is on the battlefield (CR 604.2, 611.3a). This turn the Mountain on top is played from the library; Radha is then destroyed (another effect), and on your next turn the Forest on top of the library (Opt above it was drawn) is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "top2",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "top1",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:top1"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "radha",
+   "to": "graveyard"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:top2"
+   ],
+   "expect_raise": "words no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "top1": "battlefield",
+   "x": "hand",
+   "top2": "library",
+   "radha": "graveyard"
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

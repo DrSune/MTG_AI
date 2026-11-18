@@ -1,0 +1,55 @@
+{
+ "set": "M21",
+ "name": "radha_has_no_first_strike_during_an_opponents_turn",
+ "notes": "Printed: 'DURING YOUR TURN, Radha has first strike.' On the opponent's turn their 3/3 attacks and Radha blocks: no first strike, so both deal damage at once and both die.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "att",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "att": true
+   },
+   "block": {
+    "radha": "att"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "radha": "graveyard",
+   "att": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

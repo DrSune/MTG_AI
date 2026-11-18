@@ -1,0 +1,68 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_eight_discards_the_hand_and_draws_seven",
+ "notes": "Printed: '[-8]: Discard your hand, then draw seven cards.' Chandra at 9 loyalty: the Forest and Opt in hand are discarded, then seven cards are drawn (hand 7); loyalty 9 -> 1.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 9
+   }
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Walking Corpse",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "graveyard",
+   "o1": "graveyard",
+   "cf": "battlefield"
+  },
+  "hand": {
+   "0": 7
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 1
+   }
+  }
+ }
+}

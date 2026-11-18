@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_from_the_graveyard_still_pays_its_mana_cost",
+ "notes": "Printed: '... in addition to paying its other costs.' The mana cost {1}{B}{B} is still paid: with no mana source the cast from the graveyard is not offered (the Forest in hand is, as a land).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "fodder",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse"
+   ],
+   "expect_raise": "does not offer 'cast:card:0:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "graveyard",
+   "fodder": "hand"
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

@@ -1,0 +1,48 @@
+{
+ "set": "M21",
+ "name": "radha_has_first_strike_during_your_turn",
+ "notes": "Printed: 'During your turn, Radha has first strike.' On your turn Radha (3/3) attacks and a 3/3 blocks: she deals her damage first (CR 510.4) and the blocker dies before it deals any; Radha survives with no damage marked.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "blk",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "radha": true
+   },
+   "block": {
+    "blk": "radha"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "radha": "battlefield",
+   "blk": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

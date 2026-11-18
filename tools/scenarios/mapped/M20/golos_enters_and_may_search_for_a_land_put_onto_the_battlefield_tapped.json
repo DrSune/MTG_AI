@@ -1,0 +1,88 @@
+{
+ "set": "M20",
+ "name": "golos_enters_and_may_search_for_a_land_put_onto_the_battlefield_tapped",
+ "notes": "Printed: 'When Golos enters, you may search your library for a land card, put that card onto the battlefield tapped, then shuffle.' Golos is cast through the menu (five Plains tapped); as its trigger resolves the search is taken ('fire') and the Forest is picked from the two lands: it enters tapped. The Island stays, and so does Shock (not a land, never offered).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "island",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:golos",
+    "fire",
+    "forest"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "golos": "battlefield",
+   "forest": "battlefield",
+   "island": "library",
+   "shock": "library"
+  },
+  "tapped": {
+   "forest": true,
+   "w1": true
+  }
+ }
+}

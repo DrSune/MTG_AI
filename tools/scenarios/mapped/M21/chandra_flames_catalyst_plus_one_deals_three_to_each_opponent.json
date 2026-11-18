@@ -1,0 +1,39 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_plus_one_deals_three_to_each_opponent",
+ "notes": "Printed: '[+1]: Chandra deals 3 damage to each opponent.' Three players: through the menu the +1 deals 3 to each of the two opponents and none to its controller; loyalty 5 -> 6.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:0"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 17,
+   "2": 17
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 6
+   }
+  }
+ }
+}

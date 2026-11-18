@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_enchants_only_a_creature",
+ "notes": "Printed: 'Enchant creature.' Cast from hand, its target ask offers the two creatures, Walking Corpse and the opponent's Bear (card:1, card:6), never the noncreature artifact Relic.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "relic",
+   "name": "Relic",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de",
+    "relic"
+   ],
+   "expect_raise": "it offers ('card:1', 'card:6')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "hand",
+   "relic": "battlefield"
+  }
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_second_plus_one_deals_two_to_any_target",
+ "notes": "Printed: '[+1]: Chandra deals 2 damage to any target.' Through the menu the second +1 targets the opponent: 20 -> 18; loyalty 5 -> 6.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:1",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "bear": "battlefield"
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 6
+   }
+  }
+ }
+}
