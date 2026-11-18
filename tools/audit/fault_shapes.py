@@ -5,12 +5,13 @@ A fault reaches a game only through a card that holds its shape, and a training 
 (``games.get_supply("verified", code)``). Each shape here is a function from one pool's cards to the
 names of the cards holding it, named by 215's fault id. They are ``census.py``'s detectors
 (``reports/engine_fault_triage_2026-11-18/``), kept where 215 judged them to encode a fault's
-shape, and narrowed where its census listed a broader carrier set (F18d, F38, F40, F14c): a shape
-that names a card should mean the card can reach the fault, or be one of the carriers 215 judged.
+shape, and narrowed where its census listed a broader carrier set (F18d, F38, F40): a shape that
+names a card should mean the card can reach the fault, or be one of the carriers 215 judged. A
+fault a wave closes loses its shape here (wave W1: F14, F14b, F33, F44, F45d, F48, F50; F14c's
+shape stays for its residue).
 
 What a shape cannot see (215 §3): wordings no tree shows (the text census), and a fault whose reach
-needs two cards in one game (F14's carrier and enabler, F27's self-damage and lifelink) is the
-pair of its halves' sets.
+needs two cards in one game (F27's self-damage and lifelink) is the pair of its halves' sets.
 """
 
 from __future__ import annotations
@@ -51,19 +52,8 @@ def outer(path: tuple) -> str:
     return next((c for c, _f in reversed(path) if c in ABILITY_KINDS or c in ("TokenSpec", "EmblemSpec")), "?")
 
 
-def in_token(path: tuple) -> bool:
-    return any(c == "TokenSpec" for c, _f in path)
-
-
 def zones_of(sel: Any) -> set:
     return {z.kind for z in sel.zones} if isinstance(sel, at.Selector) else set()
-
-
-def is_source_sel(sel: Any) -> bool:
-    """A selector naming the ability's own source ("this creature")."""
-    return isinstance(sel, at.Selector) and (
-        sel.referent == "source"
-        or sel.referent is None and isinstance(sel.filter, at.FAtom) and sel.filter.pred is at.FAtomPred.IS_SOURCE)
 
 
 def atoms(card: Any, *verbs: at.Verb) -> Iterator[tuple[tuple, at.Atom]]:
@@ -81,33 +71,6 @@ def each(holds: Callable[[Any], bool]) -> Shape:
 
 
 # ---------------------------------------------------------------- the reachable faults' carriers
-
-def f14_carrier(card: Any) -> bool:
-    """An activated or triggered ability's verb (not PUT_COUNTER, which E3 fixed) acting on its own
-    source: it acts on the new object if the source left and came back (CR 400.7)."""
-    return any(outer(p) in ("TriggeredAbility", "ActivatedAbility", "DelayedTrigger") and not in_token(p)
-               and a.verb is not at.Verb.PUT_COUNTER and any(is_source_sel(v) for _r, v in a.args.pairs)
-               for p, a in atoms(card))
-
-
-def f14_enabler(card: Any) -> bool:
-    """Returns a permanent card to the battlefield from a graveyard, exile or a hand."""
-    for _p, a in atoms(card, at.Verb.MOVE_ZONE):
-        dest = a.args.get("destination")
-        if isinstance(dest, at.Zone) and dest.kind is at.ZoneKind.BATTLEFIELD:
-            for role in ("cards", "target"):
-                sel = a.args.get(role)
-                if sel is not None and (zones_of(sel) & {at.ZoneKind.GRAVEYARD, at.ZoneKind.EXILE, at.ZoneKind.HAND}
-                                        or getattr(sel, "referent", None) is not None):
-                    return True
-    return False
-
-
-def f14b_carrier(card: Any) -> bool:
-    """An activated or triggered ability reading a chosen quality (NAME_CHOSEN)."""
-    return any(isinstance(n, at.FAtom) and n.pred is at.FAtomPred.NAME_CHOSEN
-               and outer(p) in ("TriggeredAbility", "ActivatedAbility") for p, n in walk(card))
-
 
 def f13_carrier(card: Any) -> bool:
     """A static restriction on the card's own targeting ("can target only a tapped creature"), a
@@ -168,33 +131,6 @@ def f43_carrier(card: Any) -> bool:
                for _p, n in walk(card))
 
 
-def f44_aura(card: Any) -> bool:
-    """An Aura with an enchant filter (its host can stop matching it)."""
-    return "Aura" in card.subtypes and any(isinstance(n, at.KeywordAbility) and n.keyword.name == "ENCHANT"
-                                           for _p, n in walk(card))
-
-
-def f44_host_changer(card: Any) -> bool:
-    """Changes control, types or creature-ness of a permanent (an Aura's host can stop matching)."""
-    return any(True for _p, _a in atoms(card, at.Verb.GAIN_CONTROL, at.Verb.GRANT_TYPE, at.Verb.SET_PT))
-
-
-def f45d_carrier(card: Any) -> bool:
-    """Returns two or more permanent cards to the battlefield at once (an Aura among them enchants
-    a creature returning with it)."""
-    for _p, a in atoms(card, at.Verb.MOVE_ZONE):
-        dest = a.args.get("destination")
-        if isinstance(dest, at.Zone) and dest.kind is at.ZoneKind.BATTLEFIELD:
-            for role in ("cards", "target"):
-                sel = a.args.get(role)
-                if isinstance(sel, at.Selector) and zones_of(sel) & {at.ZoneKind.GRAVEYARD, at.ZoneKind.EXILE}:
-                    c = sel.count
-                    if sel.mode is at.SelectorMode.ALL or isinstance(c, (at.QUnbounded, at.QAtMost)) or (
-                            isinstance(c, at.QConst) and c.value > 1):
-                        return True
-    return False
-
-
 def f63_carrier(card: Any) -> bool:
     """A REVEAL (journalled as the zone's whole contents: a hand reveal lists the library)."""
     return any(True for _p, _a in atoms(card, at.Verb.REVEAL))
@@ -203,8 +139,10 @@ def f63_carrier(card: Any) -> bool:
 # --------------------------------------------- the latent faults (no card should hold the shape)
 
 def f14c_carrier(card: Any) -> bool:
-    """An effect that exiles an object and returns it in the same resolution (a flicker): its last
-    known information is lost between the two moves (CR 400.7, 603.10a)."""
+    """An effect that exiles an object and returns it in the same resolution (a flicker). Its last
+    known information survives since E1 (85dd1bfa; W1 pins it), but an Aura flickered so loses the
+    attachment it returns with: the binder detaches the old object at the next drain, after the
+    return attached the new one (BACKLOG, "What engine wave W1 left")."""
     for _p, n in walk(card):
         if isinstance(n, at.Seq):
             exiled = False
@@ -329,11 +267,6 @@ def f31_carrier(card: Any) -> bool:
     return any(isinstance(n, at.FAtom) and n.pred.name == "IS_EXILED_WITH_SOURCE" for _p, n in walk(card))
 
 
-def f33_carrier(card: Any) -> bool:
-    """A cast-zone read (CAST_THIS_TURN_FROM): it reads the object off the stack and battlefield."""
-    return any(isinstance(n, at.FAtom) and "CAST" in n.pred.name and "FROM" in n.pred.name for _p, n in walk(card))
-
-
 def f35_life(cards: list) -> set:
     """Two different life-gain replacements in one pool: their order is never asked (CR 616.1)."""
     have = {c.name for c in cards if any(isinstance(n, at.ReplacementAbility) and isinstance(n.event, at.LifeGainedEvent)
@@ -372,34 +305,4 @@ def f47_carrier(card: Any) -> bool:
                     many = not (c is None or isinstance(c, at.QConst) and c.value == 1)
                 elif isinstance(step, at.Conditional) and many:
                     return True
-    return False
-
-
-def f48_carrier(card: Any) -> bool:
-    """An effect that moves an object and then moves it again ('exile it, then return it'): a token
-    would come back (CR 111.8)."""
-    for _p, n in walk(card):
-        if isinstance(n, at.Seq):
-            moved = False
-            for step in n.steps:
-                for _q, a in walk(step):
-                    if isinstance(a, at.Atom) and a.verb is at.Verb.MOVE_ZONE:
-                        sel = a.args.get("cards") or a.args.get("target")
-                        if moved and isinstance(sel, at.Selector) and sel.referent in ("result", "target", "event"):
-                            return True
-                        moved = True
-    return False
-
-
-def f50_carrier(card: Any) -> bool:
-    """An effect that moves or sacrifices an object and then deals damage in the same resolution:
-    damage is marked on a permanent that left (CR 120.1, 400.7)."""
-    for _p, n in walk(card):
-        if isinstance(n, at.Seq):
-            moved = False
-            for step in n.steps:
-                verbs = {a.verb for _q, a in walk(step) if isinstance(a, at.Atom)}
-                if moved and at.Verb.DEAL_DAMAGE in verbs:
-                    return True
-                moved = moved or bool(verbs & {at.Verb.MOVE_ZONE, at.Verb.SACRIFICE, at.Verb.DESTROY})
     return False

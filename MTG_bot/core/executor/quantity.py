@@ -244,6 +244,18 @@ class ExecCtx:
     # read the objects as they are right after the event, one that left too (as a card in its
     # new zone, not by its last known information: :func:`departed_lki`, :func:`last_known`).
     after_event: bool = False
+    # The names this resolution chose (CHOOSE_NAME, by quality; None a card name) while its
+    # source is gone (:meth:`gone`): Diviner's Lockbox's "choose a card name, then reveal ... if
+    # that card has the chosen name" belongs to the ability, not to the new object its card
+    # became (CR 400.7). Transient, per resolution, like may_done.
+    chosen: dict[str | None, str] = field(default_factory=dict)
+
+    def gone(self, handle: Handle) -> bool:
+        """Has ``handle`` become a new object since the resolving ability named it (CR 400.7)? The
+        ``gone`` register is computed as the ability begins to resolve: its source
+        (``TriggerBinder._source_gone``, ``legality.resolve_activated``) and the objects of its
+        event (``TriggerBinder._gone``); empty outside a resolution."""
+        return handle in (self.bindings.get("gone") or ())
 
     def take_decision(self, vocab: tuple[str, ...], what: str) -> str:
         """Consume the next decision for THIS demand site; raise when no
@@ -519,7 +531,9 @@ class LastKnown(NamedTuple):
     "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped; ``left``
     the clock of the journal row of that departure, the one this snapshot answers for;
     ``record`` its compiled record then, the abilities beside ``identity`` (a copy of it made
-    after it left copies both, CR 707.2, 608.2h)."""
+    after it left copies both, CR 707.2, 608.2h); ``host`` what it was attached to then, the
+    "enchanted creature" or "equipped creature" of an Aura's or Equipment's ability that waited
+    while it left (CR 608.2h)."""
 
     power: int | None
     toughness: int | None
@@ -536,6 +550,7 @@ class LastKnown(NamedTuple):
     tapped: bool = False
     left: int = 0
     record: CardRecord | None = None
+    host: Handle | None = None
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -595,8 +610,16 @@ def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     (Angelic Ascension's "its controller" after the exile); and for an object the trigger's
     event named that has become a new object since (the ``gone`` register,
     ``TriggerBinder._gone``: Terror of the Peaks' "that creature's power" once that creature
-    has left). None otherwise: a card that has been sitting in a graveyard is read as it is
-    now (its owner controls nothing, CR 108.4a; its printed power, CR 400.7)."""
+    has left), and for the ability's source in that register; each of them also once it is back
+    on the battlefield as a new object (the flickered creature's power for Terror of the Peaks,
+    Icon of Ancestry's chosen type: CR 400.7, 608.2h). None otherwise: a card that has been
+    sitting in a graveyard is read as it is now (its owner controls nothing, CR 108.4a; its
+    printed power, CR 400.7), and a permanent on the battlefield is read live.
+
+    The snapshot is the card's latest departure (``Executor.departed_lki``), which is the named
+    object's when the card has left the battlefield once since the ability began; a source that
+    left twice while its ability waited would answer for the later object (none such in the pools:
+    BACKLOG, "What engine wave W1 left")."""
     found = departed_lki(handle, ctx)
     if found is not None or ctx.after_event:
         return found
@@ -606,9 +629,10 @@ def last_known(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
     snap = ex.departed_lki.get(handle)
     if snap is None:
         return None
-    if handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
+    gone = ctx.gone(handle)
+    if not gone and handle in ctx.world.cards and ctx.world.zone_of(handle).kind == ZONE_BATTLEFIELD:
         return None
-    if handle == ctx.source or snap.op == ex._op_seq or handle in (ctx.binding_handles("gone") or ()):
+    if handle == ctx.source or snap.op == ex._op_seq or gone:
         return snap
     return None
 
@@ -917,7 +941,12 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
     pred = atom.pred
     world = ctx.world
     if pred is FAtomPred.IS_SOURCE:
-        return handle == ctx.source
+        # CR 113.7a, 400.7: a resolving ability names the object its source was when it was
+        # activated or triggered. A source that has changed zones since (the ``gone`` register,
+        # TriggerBinder._source_gone, legality.resolve_activated) is a new object: no object is
+        # "this creature" any more (an equip attaches nothing, a pump pumps nothing), and the new
+        # one is "another" creature. Its information is read by its last known (:func:`last_known`).
+        return handle == ctx.source and not ctx.gone(handle)
     if pred is FAtomPred.IS_ANY_TARGET:
         # The object is one of the ability's designated targets (Frost
         # Breath, Selfless Savior anaphora), judged against the call's
@@ -1011,6 +1040,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 "executor: IS_ATTACHED_TO_SOURCE needs an executor-backed "
                 "ExecCtx (bare ExecCtx has no attachment table)"
             )
+        if ctx.gone(ctx.source):
+            # The source has become a new object since its ability began (CR 400.7). Its
+            # "enchanted creature" is the creature the old object enchanted as it left (CR
+            # 608.2h): Sleep Paralysis' "tap enchanted creature" after the Aura was destroyed and
+            # Brought Back onto another creature. That creature must not have changed zones since.
+            lki = last_known(ctx.source, ctx)
+            entry = _last_battlefield_entry(ctx, handle)
+            return (
+                lki is not None
+                and lki.host == handle
+                and (entry is None or entry.clock < lki.left)
+            )
         if ctx.executor.attachments.get(ctx.source) == handle:
             return True
         # Judged on its own departure (Malefic Scythe's dies trigger, CR 603.10a), the object
@@ -1088,11 +1129,18 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # colour, Icon of Ancestry's creature type, chosen as the source entered (EtBState.effect,
         # CR 614.12a). A source that has left the battlefield answers from its last known
         # information (CR 113.7a, 608.2h): the Icon's {3},{T} ability after a Disenchant in
-        # response, a protection its granter gave before it left. No record is an UNANSWERED
-        # question: flagged, never "False" (the FLIP_WON convention).
+        # response, a protection its granter gave before it left. So does one that came back
+        # as a new object (the ``gone`` register) and chose again: the ability's choice is the
+        # old object's, not the new one's (CR 400.7). A name the resolving ability chose itself
+        # while its source is gone is the resolution's (``ExecCtx.chosen``: Diviner's Lockbox
+        # Disenchanted in response). No record is an UNANSWERED question: flagged, never "False"
+        # (the FLIP_WON convention).
         ex = ctx.executor
         quality = atom.string_value
-        chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
+        if ctx.gone(ctx.source):
+            chosen = ctx.chosen.get(quality)
+        else:
+            chosen = None if ex is None else ex.name_choices.get((ctx.source, quality))
         if chosen is None and ex is not None and ctx.source is not None:
             snap = last_known(ctx.source, ctx)
             if snap is not None:
@@ -1407,8 +1455,10 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # (_object_cast_row): See the Truth cast from your hand and then cast
         # again from your graveyard the same turn is a new spell, cast from
         # the graveyard. An object that has left them is read by what it was
-        # (CR 608.2h, the Vessel's trigger resolving after it died): this
-        # turn's casts of the card.
+        # (CR 608.2h, the Vessel's trigger resolving after it died): the cast
+        # of its last stack or battlefield residency, not another cast of the
+        # card this turn (one cast from a graveyard, returned to the hand and
+        # cast from there reads as cast from the hand).
         from MTG_bot.core.executor.events import KIND_CAST
         from MTG_bot.core.executor.selectors import (
             ZONE_KIND_TO_STATE,
@@ -1417,12 +1467,9 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
 
         assert atom.zone is not None and atom.who is not None
         from_state = ZONE_KIND_TO_STATE[atom.zone.kind]
-        rows = [
-            e for e in _turn_rows(ctx, pred.name) if e.kind == KIND_CAST and e.subject == handle
-        ]
-        if handle in world.cards and world.zone_of(handle).kind in (ZONE_STACK, ZONE_BATTLEFIELD):
-            own = _object_cast_row(ctx, handle)
-            rows = [e for e in rows if e is own]
+        turn = _turn_rows(ctx, pred.name)
+        own = _object_cast_row(ctx, handle, last_residency=True)
+        rows = [e for e in turn if e.kind == KIND_CAST and e is own]
         for e in rows:
             caster, _ordinal, _kind, row_from, _x, _kicked = e.cast
             if row_from != from_state:
@@ -1766,7 +1813,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
         # filter. PRINTED-property reading: the ground truth is the card's
         # COMPILED record. A card HAS a kicker iff its FRONT-FACE ability
         # tuple carries a KickerAbility node, the same top-level scan
-        # legal_casts and the cast fold use via legality.kicker_of. The
+        # the menu and the cast fold use via legality.kicker_of. The
         # record resolves through legality.spell_record (the per-handle
         # bridge, else the oracle-id registry), so cards OFF the battlefield
         # answer too. A BackFace node carries its abilities in its OWN
@@ -1898,15 +1945,20 @@ def _last_battlefield_entry(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     return None
 
 
-def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
+def _object_cast_row(
+    ctx: ExecCtx, handle: Handle, *, last_residency: bool = False
+) -> GameEvent | None:
     """The CAST row of the object ``handle`` is now, or None when this object
     was not cast (CR 400.7: a card that changes zones becomes a new
     object). On the stack, the CAST row after its move onto the stack; on the
     battlefield, the CAST row inside the stack residency its last entry came
     from (a resolving permanent spell is the object that was cast, the
     WAS_KICKED permanent-lane reading); in any other zone, or a token that
-    ceased to exist (no token was cast, CR 111.1), None. The whole
-    journal is read: the object's cast may be older than this turn."""
+    ceased to exist (no token was cast, CR 111.1), None. ``last_residency``: a
+    card in any other zone answers for the object it last was on the stack or
+    the battlefield (CR 608.2h), read the same way as of its departure from
+    there. The whole journal is read: the object's cast may be older than this
+    turn."""
     from MTG_bot.core.executor.events import KIND_CAST, KIND_ZONE_CHANGE
 
     jrn = ctx.journal
@@ -1918,13 +1970,26 @@ def _object_cast_row(ctx: ExecCtx, handle: Handle) -> GameEvent | None:
     if handle not in ctx.world.cards:
         return None
     zone = ctx.world.zone_of(handle).kind
-    if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
-        return None
     rows = [
         e
         for e in jrn.events
         if e.subject == handle and e.kind in (KIND_ZONE_CHANGE, KIND_CAST)
     ]
+    if zone not in (ZONE_STACK, ZONE_BATTLEFIELD):
+        if not last_residency:
+            return None
+        left = next(
+            (
+                i
+                for i in range(len(rows) - 1, -1, -1)
+                if rows[i].kind == KIND_ZONE_CHANGE
+                and rows[i].zone_move[0] in (ZONE_STACK, ZONE_BATTLEFIELD)
+            ),
+            None,
+        )
+        if left is None:
+            return None  # never on the stack or the battlefield
+        zone, rows = rows[left].zone_move[0], rows[:left]
     need_entry = zone == ZONE_BATTLEFIELD
     for e in reversed(rows):
         if need_entry:

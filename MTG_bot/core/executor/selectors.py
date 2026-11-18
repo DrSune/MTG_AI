@@ -583,8 +583,9 @@ def resolve_selector(
 
     The event referent ("it", "they") names the objects a trigger's event names, those the
     effect can still find (CR 400.7: not one that has become a new object since,
-    ``TriggerBinder._gone``). ``info``: a read of their information (CR 608.2h: "that
-    creature's controller"), which finds every one, as it last existed.
+    ``TriggerBinder._gone``); so does "this creature" its source (the ``gone`` register,
+    ``quantity._eval_atom``'s IS_SOURCE). ``info``: a read of their information (CR 608.2h:
+    "that creature's controller"), which finds every one, as it last existed.
 
     ALL returns the filtered population in zone order; CHOOSE takes the
     first ``count`` of the Handle-sorted candidates (``QUnbounded`` takes
@@ -638,6 +639,10 @@ def resolve_selector(
     if sel.referent is not None:
         if sel.referent in ("source", "controller"):
             candidates = [ctx.source if sel.referent == "source" else ctx.controller]
+            if sel.referent == "source" and not info:
+                # CR 113.7a, 400.7: a source that has become a new object since its ability was
+                # activated or triggered is not the object the ability names (IS_SOURCE's rule).
+                candidates = [h for h in candidates if not ctx.gone(h)]
         elif sel.referent == "target":
             bound = ctx.binding_handles("target")
             if bound is None:
@@ -659,8 +664,7 @@ def resolve_selector(
                 raise ReferentAbsentRegisterError(sel.referent)
             candidates = bound
             if sel.referent == "event" and not info:
-                gone = ctx.binding_handles("gone") or ()
-                candidates = [h for h in bound if h not in gone]
+                candidates = [h for h in bound if not ctx.gone(h)]
         else:
             raise NotImplementedError(
                 f"executor: selector referent {sel.referent!r} is not in the "

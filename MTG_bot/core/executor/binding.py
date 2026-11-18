@@ -144,6 +144,7 @@ from MTG_bot.core.executor.quantity import (
 )
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
+    _filter_names_the_source,
     controller_matches,
     controller_of,
     filter_bound_player_refs,
@@ -339,6 +340,23 @@ class DelayedBinding:
     controller: Handle
 
 
+def _leaving_subject(event: object) -> tuple[object, object]:
+    """The subject filters of a trigger condition about an object leaving the battlefield:
+    (``left``, ``dies``), ``dies`` when it leaves for a graveyard ("dies", CR 700.4); None where
+    the condition is no such move."""
+    dies = event.filter if isinstance(event, CreatureDiesEvent) else None
+    left = dies
+    if (
+        isinstance(event, ZoneChangeEvent)
+        and event.from_zone.kind is ZoneKind.BATTLEFIELD
+        and event.to_zone.kind is not ZoneKind.BATTLEFIELD
+    ):
+        left = event.subject
+        if event.to_zone.kind is ZoneKind.GRAVEYARD:
+            dies = event.subject
+    return left, dies
+
+
 def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
     """CR 113.6m ("An ability whose cost or effect specifies that it moves
     the object it's on out of a particular zone functions only in that zone, unless its
@@ -354,21 +372,9 @@ def functions_from_graveyard(ability: object, aura: bool = False) -> bool:
     object it enchants leaving the battlefield ("When enchanted creature dies, return this
     card to its owner's hand", Angelic Destiny): it finds the Aura card in its owner's
     graveyard once the state-based check has put it there (CR 603.6e)."""
-    from MTG_bot.core.executor.selectors import _filter_names_the_source
-
     if not isinstance(ability, TriggeredAbility):
         return False
-    event = ability.event
-    dies = event.filter if isinstance(event, CreatureDiesEvent) else None
-    left = dies  # the subject of a leaves-the-battlefield trigger condition
-    if (
-        isinstance(event, ZoneChangeEvent)
-        and event.from_zone.kind is ZoneKind.BATTLEFIELD
-        and event.to_zone.kind is not ZoneKind.BATTLEFIELD
-    ):
-        left = event.subject
-        if event.to_zone.kind is ZoneKind.GRAVEYARD:
-            dies = event.subject
+    left, dies = _leaving_subject(ability.event)
     if dies is not None and _filter_names_the_source(dies):
         return False
     if (
@@ -1829,13 +1835,15 @@ class TriggerBinder:
 
     def _source_gone(self, obj) -> list[Handle]:
         """CR 113.7a, 400.7: the ability's source, when it has become a new object since the
-        ability triggered; the effect puts no counter on it (``verbs`` PUT_COUNTER: a creature that
-        left the battlefield and came back while its "put a +1/+1 counter on this creature"
-        waited gets none). A trigger that looks back (CR 603.10a) saw its source as it was before
-        its event, so a move in that event counts (WAR Rising Populace dying in the wrath it
-        triggers on); any other saw it as it is after its event, so only a later move does (FDN
-        Skyknight Squire returned together with the creature it triggers on). A source the event
-        register names is judged as the event's object (:meth:`_gone`, CR 400.7d)."""
+        ability triggered; the effect does not act on it ("this creature" names nothing: a
+        creature that left the battlefield and came back while its "put a +1/+1 counter on this
+        creature" waited gets none) and reads it by its last known information. A trigger that
+        looks back (CR 603.10a) saw its source as it was before its event, so a move in that
+        event counts (WAR Rising Populace dying in the wrath it triggers on); any other saw it as
+        it is after its event, so only a later move does (FDN Skyknight Squire returned together
+        with the creature it triggers on). A source the event register names is judged as the
+        event's object (:meth:`_gone`, CR 400.7d); an Aura put into its owner's graveyard with
+        the permanent it enchanted is found there (:meth:`_aura_finds_itself`, CR 400.7e)."""
         from MTG_bot.core.executor.returns import moved_since
 
         source, event = obj.source, obj.ctx.event
@@ -1859,7 +1867,37 @@ class TriggerBinder:
                 if row.batch == event.batch:
                     since = row.clock
                     break
-        return [source] if moved_since(journal, source, since) else []
+        if not moved_since(journal, source, since) or self._aura_finds_itself(obj, since):
+            return []
+        return [source]
+
+    def _aura_finds_itself(self, obj, since: int) -> bool:
+        """CR 400.7e: an Aura's ability that triggers when the permanent it enchants leaves the
+        battlefield finds the new object the Aura became in its owner's graveyard, when the Aura
+        was put there at the same time as that permanent left, or as the state-based action for
+        an Aura attached to nothing (CR 704.5m), and has not moved since: FDN Angelic Destiny's
+        "When enchanted creature dies, return this card to its owner's hand"."""
+        record = self.handle_record.get(obj.source)
+        left, _dies = _leaving_subject(obj.node.event)
+        if (
+            record is None
+            or "Aura" not in record.subtypes
+            or left is None
+            or not _filter_names_the_source(left, pred=FAtomPred.IS_ATTACHED_TO_SOURCE)
+        ):
+            return False
+        moves = []
+        for row in reversed(self.executor.journal.events):
+            if row.clock <= since:
+                break
+            if row.kind == KIND_ZONE_CHANGE and row.subject == obj.source:
+                moves.append(row)
+        if len(moves) != 1:
+            return False  # it moved again: a new object the ability cannot find (CR 400.7)
+        move = moves[0]
+        return move.zone_move[:2] == (ZONE_BATTLEFIELD, ZONE_GRAVEYARD) and (
+            move.batch == obj.ctx.event.batch or move.cause_verb == "STATE_CHECK"
+        )
 
     def resolve(self, obj) -> str:
         """CR 608.2: a triggered ability on the stack resolves (``stack.resolve_top``).

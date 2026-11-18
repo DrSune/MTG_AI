@@ -103,5 +103,48 @@ class AuraEntryTest(unittest.TestCase):
         self.assertNotEqual(self.world.zone_of(self.sphere).kind, ZONE_GRAVEYARD)
 
 
+class AnAuraEnteringWithACreatureTest(unittest.TestCase):
+    """F45d (CR 303.4f; Brought Back's ruling): an Aura an effect puts onto the battlefield
+    together with a creature chooses what it will enchant among the objects already there, never
+    a permanent entering at the same time; with nothing else it stays where it is (303.4g). The
+    Bear is added first, so it has the lower handle and moved first in the old per-card loop. End
+    to end: the pack brought_back_aura_cannot_enchant_the_creature_returning_with_it."""
+
+    def setUp(self) -> None:
+        supply = get_supply("all")
+        self.world = GameWorld(num_players=2, start_life=20, master_seed=21)
+        self.ex = Executor(self.world)
+        self.p0, self.p1 = self.world.player_order
+        self.bear = self.world.add_card(card_id("Bear", "2", "2"), self.p0, ZONE_GRAVEYARD)
+        record = next(
+            supply.pool.results[oid].card for oid, m in supply.metas.items() if m.name == "Capture Sphere"
+        )
+        self.sphere = self.world.add_card(identity_of(record), self.p0, ZONE_GRAVEYARD)
+        self.ex.attach_pool(supply.pool)
+
+    def _return_both(self) -> None:
+        move = Atom(
+            verb=Verb.MOVE_ZONE,
+            args=AtomArgs(
+                pairs=(
+                    ("cards", Selector(QConst(2), SelectorMode.TARGET, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),))),
+                    ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
+                )
+            ),
+        )
+        self.ex.execute(move, source=self.bear, controller=self.p0, bindings={"cards": [self.bear, self.sphere]})
+
+    def test_it_cannot_enchant_a_creature_entering_with_it(self) -> None:
+        self._return_both()
+        self.assertEqual(self.world.zone_of(self.bear).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(self.world.zone_of(self.sphere).kind, ZONE_GRAVEYARD)
+        self.assertNotIn(self.sphere, self.ex.attachments)
+
+    def test_it_enchants_a_creature_already_there(self) -> None:
+        other = self.world.add_card(card_id("Other", "1", "1"), self.p1, ZONE_BATTLEFIELD)
+        self._return_both()
+        self.assertEqual(self.ex.attachments.get(self.sphere), other)
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

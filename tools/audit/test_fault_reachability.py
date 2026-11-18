@@ -70,23 +70,6 @@ LATENT: dict[str, fs.Shape] = {
 PINNED: dict[str, tuple[fs.Shape, tuple[set[str], set[str], set[str]]]] = {
     # reachable and wrong today (215 §4 R rows), or reaching the network
     "F13": (fs.each(fs.f13_carrier), ({"Enthralling Hold"}, set(), set())),
-    "F14 carriers": (fs.each(fs.f14_carrier), (
-        {"Alpine Houndmaster", "Archfiend's Vessel", "Burlfist Oak", "Chandra's Pyreling", "Dire Fleet Warmonger",
-         "Malefic Scythe", "Mazemind Tome", "Mystic Skyfish", "Nine Lives", "Ornery Dilophosaur", "Riddleform",
-         "Sabertooth Mauler", "Seasoned Hallowblade", "Short Sword", "Siege Striker", "Silversmote Ghoul",
-         "Snarespinner", "Watcher of the Spheres"},
-        {"Ancestral Blade", "Cavalier of Gales", "Chandra's Spitfire", "Colossus Hammer", "Diviner's Lockbox",
-         "Griffin Protector", "Heart-Piercer Bow", "Immortal Phoenix", "Lavakin Brawler", "Marauder's Axe",
-         "Marauding Raptor", "Mask of Immolation", "Netcaster Spider", "Sanitarium Skeleton", "Waterkin Shaman",
-         "Wolfrider's Saddle"},
-        {"Adventuring Gear", "Ball Lightning", "Fireshrieker", "Goldvein Pick", "Mazemind Tome", "Pirate's Cutlass"})),
-    "F14 enablers": (fs.each(fs.f14_enabler), (
-        {"Liliana, Waker of the Dead", "Obsessive Stitcher", "Rise Again", "Silversmote Ghoul", "Transmogrify",
-         "Ugin, the Spirit Dragon"},
-        {"Blood for Bones", "Brought Back", "Cavalier of Night", "Gravewaker", "Risen Reef", "Sorin, Imperious Bloodlord"},
-        {"Deadly Plot", "Fake Your Own Death", "Nullpriest of Oblivion", "Rise of the Dark Realms", "Zombify"})),
-    "F14b": (fs.each(fs.f14b_carrier), (set(), {"Diamond Knight", "Diviner's Lockbox", "Icon of Ancestry"},
-                                        {"Diamond Mare"})),
     "F18b": (fs.each(fs.multi_slot_trigger), (set(), {"Drakuseth, Maw of Flames"}, {"Drakuseth, Maw of Flames"})),
     "F19": (fs.each(fs.f19_carrier), ({"Runed Halo"}, {"Veil of Summer"}, set())),
     "F23": (fs.each(fs.f23_carrier), ({"Mazemind Tome", "Nine Lives"}, set(), {"Mazemind Tome"})),
@@ -112,18 +95,6 @@ PINNED: dict[str, tuple[fs.Shape, tuple[set[str], set[str], set[str]]]] = {
         {"Boneclad Necromancer", "Brightwood Tracker", "Cavalier of Night", "Cavalier of Thorns", "Gravedigger",
          "Icon of Ancestry", "Keldon Raider", "Riddlemaster Sphinx", "Risen Reef", "Sorin, Imperious Bloodlord"},
         {"Crossway Troublemakers", "High-Society Hunter", "Incinerating Blast", "Spinner of Souls", "Vivien Reid"})),
-    "F44 auras": (fs.each(fs.f44_aura), (
-        {"Capture Sphere", "Demonic Embrace", "Dub", "Enthralling Hold", "Faith's Fetters", "Furor of the Bitten",
-         "Infernal Scarring", "Light of Promise", "Rousing Read", "Setessan Training"},
-        {"Angelic Gift", "Feral Invocation", "Gift of Paradise", "Glaring Aegis", "Hard Cover", "Maniacal Rage",
-         "Oakenform", "Pacifism", "Sleep Paralysis", "Wolfkin Bond"},
-        {"Blanchwood Armor", "Pacifism", "Starlight Snare", "Unflinching Courage", "Untamed Hunger"})),
-    "F44 host changers": (fs.each(fs.f44_host_changer), (
-        {"Demonic Embrace", "Dub", "Enthralling Hold", "Jolrael, Mwonvuli Recluse", "Kinetic Augur", "Riddleform",
-         "Traitorous Greed"},
-        {"Act of Treason", "Ironroot Warlord", "Sorin, Vampire Lord", "Wakeroot Elemental"},
-        {"Enigma Drake", "Involuntary Employment"})),
-    "F45d": (fs.each(fs.f45d_carrier), (set(), {"Brought Back"}, {"Rise of the Dark Realms"})),
     "F63": (fs.each(fs.f63_carrier), (
         {"Alpine Houndmaster", "Basri's Aegis", "Chandra's Firemaw", "Cultivate", "Duress", "Fierce Empath",
          "Garruk's Harbinger", "Garruk's Warsteed", "Garruk, Savage Herald", "Kitesail Freebooter", "Liliana's Scorn",
@@ -133,17 +104,15 @@ PINNED: dict[str, tuple[fs.Shape, tuple[set[str], set[str], set[str]]]] = {
          "Sorin's Guide", "Thought Distortion", "Vivien, Nature's Avenger", "Yanling's Harbinger"},
         {"Duress", "Fierce Empath", "Pilfer", "Spinner of Souls", "Vivien Reid"})),
     # latent: the carriers 215 judged unable to reach the fault (§4's reasons)
+    # F14c's residue after W1: an Aura flickered in one resolution loses its new attachment
     "F14c": (fs.each(fs.f14c_carrier), ({"Transmogrify"}, set(), set())),  # returns another card, not the exiled one
     "F31": (fs.each(fs.f31_carrier), ({"Idol of Endurance"}, {"Bag of Holding"}, set())),
-    "F33": (fs.each(fs.f33_carrier), ({"Archfiend's Vessel"}, set(), set())),
     "F36": (fs.each(fs.f36_carrier), ({"Radha, Heart of Keld"}, {"Diviner's Lockbox", "Goblin Ringleader", "Mystic Forge"},
                                       set())),
     "F37": (fs.each(fs.f37_carrier), ({"Chandra, Heart of Fire", "Necromentia", "Siege Striker"},
                                       {"Battalion Foot Soldier", "Cavalier of Flame"}, set())),
     "F41": (fs.each(fs.f41_carrier), ({"Teferi, Timeless Voyager"}, {"Cavalier of Gales", "Eternal Isolation"}, set())),
     "F47": (fs.each(fs.f47_carrier), (set(), set(), {"Faebloom Trick"})),  # its Conditional reads MAY_DONE
-    "F48": (fs.each(fs.f48_carrier), ({"Garruk, Savage Herald", "Transmogrify"}, {"Risen Reef"}, set())),
-    "F50": (fs.each(fs.f50_carrier), (set(), {"Sorin, Imperious Bloodlord"}, set())),  # its target follows the sacrifice
 }
 
 

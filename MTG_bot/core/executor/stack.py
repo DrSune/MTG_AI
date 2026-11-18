@@ -100,7 +100,7 @@ class StackObject:
     public on the stack, and what its resolution reads (CR 608).
 
     * ``node`` — the :class:`SpellAbility` IR (the same object
-      ``legal_casts`` returned and resolution runs);
+      ``legality.spell_castable`` returned and resolution runs);
     * ``x_value`` — the locked X (601.2f — X is chosen with the total cost
       and can no longer change);
     * ``declared_targets`` — the designation tuple (601.2c; canonical
@@ -263,7 +263,7 @@ def is_land_card(world: GameWorld, handle: Handle) -> bool:
     data-only word test, same convention as TYPE_EQ). The corpus'
     lands carry no SpellAbility node (they compile to a bare {T}
     ActivatedAbility), which is exactly why the land drop is its own option
-    shape on the ``legal_casts`` surface."""
+    shape on the menu (``menu.menu``)."""
     from MTG_bot.core.executor.quantity import _type_line_tokens
 
     state = world.cards.get(handle)
@@ -751,7 +751,7 @@ def cast(
 ) -> StackObject:
     """The folded CR 601.2 → 601.4 move (the ``CAST`` decision of the
     Slate's field schedule — legality, declaration, payment, resolution,
-    one call; ``legal_casts`` MUST be consulted first: an illegal cast
+    one call; the menu (``menu.menu``) MUST be consulted first: an illegal cast
     raises ``ValueError``).
 
     Order (each step is the CR's):

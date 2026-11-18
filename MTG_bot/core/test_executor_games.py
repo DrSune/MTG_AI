@@ -93,7 +93,7 @@ from MTG_bot.core.executor.query import (
     spell_target_slots,
 )
 from MTG_bot.core.executor.selectors import resolve_selector
-from MTG_bot.core.executor.stack import cast, park, play_land
+from MTG_bot.core.executor.stack import cast, park, play_land, stack_zone
 from MTG_bot.core.identity import CardIdentity, Handle, LegalityFlags
 from MTG_bot.core.state import (
     ZONE_BATTLEFIELD,
@@ -101,6 +101,7 @@ from MTG_bot.core.state import (
     ZONE_GRAVEYARD,
     ZONE_HAND,
     ZONE_LIBRARY,
+    ZONE_STACK,
     GameWorld,
 )
 from MTG_bot.core.test_executor_binding import card_id, reset_oracle_ids
@@ -1438,9 +1439,15 @@ class Round14dJournalTest(unittest.TestCase):
             ZONE_HAND,
         )
         # the cast feed's own emitter — the same row stack.cast writes at
-        # 601.2h (unit-scoped to the predicate, pipeline-shaped data).
-        world.move_card(spell, world.players[p0].zone(ZONE_GRAVEYARD))
-        executor.journal.emit_cast(spell, p0, "sorcery", ZONE_HAND, None)
+        # 601.2h (unit-scoped to the predicate, pipeline-shaped data), between the
+        # journalled moves onto the stack and, as it resolves, off it: a card off
+        # the stack is read by the cast of its last stack residency (CR 608.2h).
+        for zone in (stack_zone(world, p0), world.players[p0].zone(ZONE_GRAVEYARD)):
+            before = executor.journal.snapshot()
+            world.move_card(spell, zone)
+            executor.journal.record_atom(before, None, "MOVE", [])
+            if zone.kind == ZONE_STACK:
+                executor.journal.emit_cast(spell, p0, "sorcery", ZONE_HAND, None)
         ctx = ctx_for(executor, source=spell, controller=p0)
         from_hand = FAtom(
             FAtomPred.CAST_THIS_TURN_FROM,
