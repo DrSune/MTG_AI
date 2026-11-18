@@ -12,7 +12,7 @@
  ],
  "mana": {"0": {"U": 2, "C": 5}},
  "steps": [
-  {"op": "cast", "key": "scholar", "real": "Scholar of the Ages", "decisions": ["inst_a", "sorc_b", "inst_c"]}
+  {"op": "cast", "key": "scholar", "real": "Scholar of the Ages", "decisions": ["inst_a", "sorc_b"]}
  ],
  "expect": {
   "zone": {"scholar": "battlefield", "inst_a": "hand", "sorc_b": "hand", "inst_c": "graveyard", "dead_bear": "graveyard", "opp_inst": "graveyard"},

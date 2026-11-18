@@ -9,6 +9,6 @@
  "steps": [
   {"op": "enter", "key": "kr"},
   {"op": "loyalty", "key": "gsh", "set": 5},
-  {"op": "activate", "key": "gsh", "idx": 0, "seat": 0, "decisions": ["wk", "fire", "fire", "0"]}
+  {"op": "activate", "key": "gsh", "idx": 0, "seat": 0}
  ],
  "expect": {"tapped": {"wk": false}, "mana_pool": {"0": {"C": 1}}, "counters": {"gsh": {"LOYALTY": 6}}, "hand": {"0": 1}}}

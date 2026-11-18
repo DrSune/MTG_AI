@@ -5,5 +5,5 @@
   {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "battlefield", "controller": 0}
  ],
  "mana": {"0": {"C": 2}},
- "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["bear"]}],
+ "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0}],
  "expect": {"zone": {"vine": "graveyard", "bear": "battlefield"}, "hand": {"0": 1}}}

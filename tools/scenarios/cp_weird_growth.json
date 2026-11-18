@@ -9,7 +9,7 @@
   "steps": [
     { "op": "life", "seat": 1, "set": 6 },
     { "op": "cast", "real": "Rain of Revelation", "key": "rain", "decisions": ["card:7"] },
-    { "op": "combat", "seat": 0, "attack": { "weird": true }, "block": { "guard": null }, "decisions": ["ATTACK"] }
+    { "op": "combat", "seat": 0, "attack": { "weird": true }, "block": { "guard": null } }
   ],
   "expect": {
     "life": { "1": 3 },

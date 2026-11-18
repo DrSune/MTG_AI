@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F01 CONTROL of tools/scenarios/runed_halo_names_brash_taunter.json (the trigger lane's closing pack): the same board with Runed Halo naming another card (the Red Imp). Brash Taunter's 'Whenever this creature is dealt damage, it deals that much damage to target opponent' now has its legal target, seat 0, and deals it 3 (20 -> 17). So the closing pack's 20 is the ability removed for want of a legal player (CR 603.3d), not a trigger that never fires.",
+ "cards": [
+  {"key": "h", "real": "Runed Halo", "zone": "hand", "controller": 0},
+  {"key": "bt", "real": "Brash Taunter", "zone": "battlefield", "controller": 1},
+  {"key": "imp", "name": "Red Imp", "power": "1", "toughness": "1", "colors": ["R"], "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "h", "decisions": ["Red Imp"]},
+  {"op": "deal_damage", "source": "imp", "target": "bt", "amount": 3, "controller": 0}
+ ],
+ "expect": {"life": {"0": 17, "1": 20}, "zone": {"bt": "battlefield"}, "damage": {"bt": 3}}
+}

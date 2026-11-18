@@ -1,0 +1,17 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F01 CHECK, spell lane (CR 601.2c: a spell needing a target it cannot have is not cast). Seat 1's Runed Halo names Duress ('You have protection from the chosen card name'), so seat 0's Duress ('Target opponent reveals their hand...') has no legal player. The menu a game acts from (menu.menu, read through the bench router by the act op) offers seat 0 nothing, so it is never asked and the act op's word is left over; the cast itself is refused. Control: f01_spell_control_duress_with_a_legal_opponent.json.",
+ "cards": [
+  {"key": "halo", "real": "Runed Halo", "zone": "hand", "controller": 1},
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "enter", "key": "halo", "decisions": ["Duress"]},
+  {"op": "act", "seat": 0, "words": ["cast:du"], "expect_raise": "words no ask took: ['cast:"},
+  {"op": "cast", "key": "du", "expect_raise": "illegal"}
+ ],
+ "expect": {"zone": {"du": "hand", "opt": "hand"}}
+}

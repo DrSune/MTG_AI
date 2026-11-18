@@ -50,10 +50,7 @@
       "op": "cast",
       "real": "Nullpriest of Oblivion",
       "key": "priest",
-      "kicked": true,
-      "decisions": [
-        "crag"
-      ]
+      "kicked": true
     }
   ],
   "expect": {

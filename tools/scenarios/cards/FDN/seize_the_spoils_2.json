@@ -12,7 +12,7 @@
  "mana": {"0": {"R": 1, "C": 2}},
  "steps": [
   {"op": "cast", "key": "spoils", "real": "Seize the Spoils", "decisions": ["spare"]},
-  {"op": "cast", "key": "growth", "real": "Giant Growth", "targets": ["bear"], "tap": true, "decisions": ["G"]}
+  {"op": "cast", "key": "growth", "real": "Giant Growth", "targets": ["bear"], "tap": true}
  ],
  "expect": {
   "zone": {"spoils": "graveyard", "spare": "graveyard", "growth": "graveyard", "bear": "battlefield", "d1": "hand", "d2": "hand"},

@@ -9,7 +9,7 @@
   {"op": "end_turn"},
   {"op": "advance_turn"},
   {"op": "loyalty", "key": "ocat", "set": 5},
-  {"op": "activate", "key": "ocat", "idx": 0, "seat": 1, "decisions": ["player:0"]}
+  {"op": "activate", "key": "ocat", "idx": 0, "seat": 1}
  ],
  "expect": {
   "life": {"0": 17, "1": 20},

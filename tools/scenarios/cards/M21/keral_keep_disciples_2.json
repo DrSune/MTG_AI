@@ -7,7 +7,7 @@
   {"key": "basri", "real": "Basri Ket", "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["ke"], "decisions": ["player:1"]}
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["ke"]}
  ],
  "expect": {
   "life": {"0": 20, "1": 20},

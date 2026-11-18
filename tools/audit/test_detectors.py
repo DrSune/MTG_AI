@@ -30,6 +30,10 @@ def game(
     layers_rows: list[tuple[object, ...]] | None = None,
     repl_rows: list[tuple[object, ...]] | None = None,
     binder_dump: dict[str, list[object]] | None = None,
+    printed_pt: dict[str, tuple[int | None, int | None]] | None = None,
+    pt_changes: list[tuple[str, int]] | None = None,
+    counter_removals: list[tuple[str, int, int]] | None = None,
+    delayed_seen: dict[int, int] | None = None,
 ) -> D.ReplayData:
     return D.ReplayData(
         seed="fixture",
@@ -41,6 +45,10 @@ def game(
         layers_rows=layers_rows,
         repl_rows=repl_rows,
         binder_dump=binder_dump,
+        printed_pt=printed_pt,
+        pt_changes=pt_changes,
+        counter_removals=counter_removals,
+        delayed_seen=delayed_seen,
     )
 
 
@@ -332,59 +340,98 @@ def _counter(handle: str, clock: int, n: int, i: int) -> D.Row:
 
 
 _IDENT = {"card:1": "Trufflesnout", "card:2": "Trufflesnout"}
+_PRINTED = {"card:1": (2, 2), "card:2": (2, 2)}  # Trufflesnout is a 2/2
+
+
+def _d5(rows: list[D.Row], **kw: object) -> D.Verdict:
+    """D5 on a game watched for P/T effects (none unless ``pt_changes`` says so)."""
+    kw.setdefault("printed_pt", _PRINTED)
+    kw.setdefault("pt_changes", [])
+    kw.setdefault("counter_removals", [])
+    return D.d5_pt_recompute(game(rows, identity_name=_IDENT, **kw))  # type: ignore[arg-type]
+
+
+def _leave(handle: str, i: int, clock: int, to: str = "hand") -> D.Row:
+    return D.Row(i, clock, D.KIND_ZONE_CHANGE, handle, P0, "MOVE", (D.BATTLEFIELD, to, P0, P0))
 
 
 def test_d5_clean_two_plain_copies() -> None:
-    g = game(
-        [_dies("card:1", 5, (2, 2), 0), _dies("card:2", 9, (2, 2), 1)],
-        identity_name=_IDENT,
-    )
-    assert D.d5_pt_recompute(g).status == "clean"
+    assert _d5([_dies("card:1", 5, (2, 2), 0), _dies("card:2", 9, (2, 2), 1)]).status == "clean"
 
 
 def test_d5_clean_counter_applied() -> None:
-    g = game(
-        [
-            _dies("card:1", 5, (2, 2), 0),
-            _counter("card:2", 6, 1, 1),
-            _dies("card:2", 9, (3, 3), 2),
-        ],
-        identity_name=_IDENT,
-    )
-    assert D.d5_pt_recompute(g).status == "clean"
+    rows = [_dies("card:1", 5, (2, 2), 0), _counter("card:2", 6, 1, 1), _dies("card:2", 9, (3, 3), 2)]
+    assert _d5(rows).status == "clean"
 
 
 def test_d5_fires_counter_blind_trufflesnout() -> None:
-    # bugged copy carries a +1/+1 but still asserts the uncountered base
-    g = game(
-        [
-            _dies("card:1", 5, (2, 2), 0),  # anchor: 2/2, no counters
-            _counter("card:2", 6, 1, 1),
-            _dies("card:2", 9, (2, 2), 2),  # asserted 2/2 anyway
-        ],
-        identity_name=_IDENT,
-    )
-    v = D.d5_pt_recompute(g)
+    # the copy carries a +1/+1 counter but still dies as the uncountered printed 2/2
+    rows = [_dies("card:1", 5, (2, 2), 0), _counter("card:2", 6, 1, 1), _dies("card:2", 9, (2, 2), 2)]
+    v = _d5(rows)
     assert v.status == "HIT"
     assert {h.klass for h in v.hits} == {"counter-blind"}
 
 
-def test_d5_unexplained_diff_carries_benign_note() -> None:
-    # same identity, different non-zero deltas with no anchor -> Rule A hit
-    g = game(
-        [
-            _counter("card:1", 1, 1, 0),
-            _dies("card:1", 5, (3, 3), 1),
-            _counter("card:2", 2, 2, 2),
-            _dies("card:2", 9, (4, 4), 3),
-        ],
-        identity_name=_IDENT,
-    )
-    # Rule A needs same-asserted-different-delta (asserts here differ: 3/3 vs
-    # 4/4); Rule B needs a zero-delta anchor (none). Both rules stay silent —
-    # this guards the FP floor: consistent counter folds must not fire.
-    v = D.d5_pt_recompute(g)
-    assert v.status == "clean"
+def test_d5_consistent_counter_folds_stay_silent() -> None:
+    # two copies with different counters, each dying as printed + its own counters
+    rows = [_counter("card:1", 1, 1, 0), _dies("card:1", 5, (3, 3), 1),
+            _counter("card:2", 2, 2, 2), _dies("card:2", 9, (4, 4), 3)]
+    assert _d5(rows).status == "clean"
+    # a death the fold cannot explain (no counter, no effect) is still a hit
+    v = _d5([_dies("card:1", 5, (4, 4), 0)])
+    assert v.status == "HIT" and v.hits[0].klass == "unexplained-diff"
+
+
+def test_d5_counters_stay_with_the_object_they_were_on() -> None:
+    """KNOWLEDGE 215 F65, M21 soak seed 229: a Watcher of the Spheres with two +1/+1 counters is
+    bounced and recast (a new object, CR 400.7) and dies a plain 2/2 beside another copy that died
+    a plain 2/2: rightly, but the old fold summed the first life's counters (counter-blind, twice).
+    FDN 123's shape too: one card dying twice, a counter in each life."""
+    two_lives = [_enter("card:2", 0, 0), _counter("card:2", 1, 2, 1), _leave("card:2", 2, 2),
+                 _enter("card:2", 3, 3), _dies("card:1", 4, (2, 2), 4), _dies("card:2", 5, (2, 2), 5)]
+    assert _d5(two_lives).status == "clean"
+    twice = [_enter("card:1", 0, 0), _counter("card:1", 1, 1, 1), _dies("card:1", 2, (3, 3), 2),
+             _leave("card:1", 3, 3, "graveyard"), _enter("card:1", 4, 4), _counter("card:1", 5, 1, 5),
+             _dies("card:1", 6, (3, 3), 6)]
+    assert _d5(twice).status == "clean"
+    # a counter placed in the CURRENT life still has to show
+    blind = [*two_lives[:4], _counter("card:2", 4, 1, 6), _dies("card:2", 7, (2, 2), 7)]
+    assert _d5(blind).status == "HIT"
+
+
+def test_d5_a_death_under_a_pt_effect_is_not_judged() -> None:
+    """KNOWLEDGE 215 F65, M21 soak seed 172: one Pack Leader dies a 4/3 under another's "Other Dogs
+    you control get +1/+1" and a pump, a second dies 3/3 with one +1/+1 counter. Both are right,
+    but the old fold anchored the second on the first (4/3 + 1/1 = 5/4) and cried counter-blind.
+    The journal carries no P/T effect, so the watched ledger names the objects that had one; a
+    death with one in that life is not judged, and one recorded in an earlier life does not count."""
+    rows = [_enter("card:1", 0, 0), _dies("card:1", 5, (4, 3), 1),
+            _enter("card:2", 2, 6), _counter("card:2", 7, 1, 3), _dies("card:2", 8, (3, 3), 4)]
+    v = _d5(rows, pt_changes=[("card:1", 1), ("card:1", 2)])
+    assert v.status == "clean" and "1 not" in v.note
+    # Mold Adder 0/0 after Stab, an effect in the life it died in: not judged
+    assert _d5([_enter("card:1", 0, 0), _dies("card:1", 2, (0, 0), 1)], pt_changes=[("card:1", 1)]).status == "clean"
+    # an effect from an earlier life does not excuse this one's wrong P/T
+    earlier = [_enter("card:1", 0, 0), _leave("card:1", 1, 2), _enter("card:1", 2, 3), _dies("card:1", 4, (0, 0), 3)]
+    assert _d5(earlier, pt_changes=[("card:1", 1)]).status == "HIT"
+
+
+def test_d5_a_life_with_a_counter_removed_is_not_judged() -> None:
+    """M20 Barkhide Troll enters with a +1/+1 counter and removes it for hexproof ("{1}, Remove a
+    +1/+1 counter from this creature"): it dies a 2/2, rightly. The journal has no removal row, so
+    the fold would count the counter; the watch places the removal between two looks (after clock
+    lo, by hi), and a life it may fall in is not judged."""
+    troll = [_enter("card:1", 0, 0), _counter("card:1", 1, 1, 1), _dies("card:1", 6, (2, 2), 2)]
+    assert _d5(troll).status == "HIT"  # unwatched removal: the fold says 3/3
+    assert _d5(troll, counter_removals=[("card:1", 3, 8)]).status == "clean"  # removed in (3, 8]
+    assert _d5(troll, counter_removals=[("card:1", 6, 8)]).status == "HIT"  # only after it died
+
+
+def test_d5_needs_the_printed_pt_and_the_watch() -> None:
+    rows = [_dies("card:1", 5, (2, 2), 0)]
+    assert _d5(rows, pt_changes=None).status == "EXEMPT"
+    assert _d5(rows, printed_pt=None).status == "EXEMPT"
+    assert _d5(rows, printed_pt={"card:1": (None, None)}).note.startswith("0 deaths judged")
 
 
 # --------------------------------------------------------------------------
@@ -422,11 +469,37 @@ def test_d6_exempt_without_registers() -> None:
 
 
 def test_d6_fires_on_pending_delayed_trigger() -> None:
+    # unwatched (no first-seen clocks), every pending delayed trigger is flagged, as before
     g = game(
-        [], binder_dump={"attached": [], "delayed": [("delayed", 4, "card:9", "t")]}
+        [], binder_dump={"attached": [], "delayed": [(4, "Eot", "card:9", P1, "Evt")]}
     )
     v = D.d6_lifecycle(g)
     assert v.status == "HIT" and v.hits[0].klass == "registered-never-drained"
+
+
+def _upkeep(clock: int, active: str) -> D.Row:
+    return D.Row(clock, clock, D.KIND_TURN_PHASE, "None", active, "TURN", ("UPKEEP", active))
+
+
+def test_d6_a_delayed_trigger_of_the_game_s_last_turn_is_in_its_window() -> None:
+    """KNOWLEDGE 215 F65, M21 soak seeds 9, 193, 235, 281: Subira's or Basri's "until end of turn"
+    delayed trigger, made in the turn the game ended in, is pending at the end because the cleanup
+    that sweeps it never came (CR 514.2; the game ended at a loss, CR 104.2a). The old (i) flagged
+    every pending one. One that saw a later turn begin did outlive its window, and still fires;
+    an until-your-next-turn one lives until its controller's next turn."""
+    eot = (4, "Eot", "card:77", P1, "DamageDealtEvent")
+    last_turn = game([_upkeep(5, P1)], binder_dump={"attached": [], "delayed": [eot]}, delayed_seen={4: 10})
+    assert D.d6_lifecycle(last_turn).status == "clean"
+    outlived = game([_upkeep(5, P1), _upkeep(12, P0)], binder_dump={"attached": [], "delayed": [eot]},
+                    delayed_seen={4: 10})
+    v = D.d6_lifecycle(outlived)
+    assert v.status == "HIT" and v.hits[0].klass == "registered-never-drained"
+    unt = (5, "UntilNextTurn", "card:7", P0, "Evt")
+    theirs = game([_upkeep(12, P1)], binder_dump={"attached": [], "delayed": [unt]}, delayed_seen={5: 10})
+    assert D.d6_lifecycle(theirs).status == "clean"
+    mine = game([_upkeep(12, P1), _upkeep(15, P0)], binder_dump={"attached": [], "delayed": [unt]},
+                delayed_seen={5: 10})
+    assert D.d6_lifecycle(mine).status == "HIT"
 
 
 def test_d6_fires_on_dead_handle_binding() -> None:
@@ -442,6 +515,23 @@ def test_d6_fires_on_dead_handle_binding() -> None:
 
 
 def test_d6_fires_on_double_replacement() -> None:
+    # one source holding two live records of one replacement: a registration that never detached
+    g = game(
+        [],
+        repl_rows=[
+            ("repl", 1, "card:9", P0, "t1", "live", "EVT-A", "replace"),
+            ("repl", 2, "card:9", P0, "t1", "live", "EVT-A", "replace"),
+        ],
+    )
+    v = D.d6_lifecycle(g)
+    assert v.status == "HIT"
+    assert v.hits[0].klass == "multi-replacement-per-event"
+
+
+def test_d6_two_copies_of_one_replacement_are_two_effects() -> None:
+    """KNOWLEDGE 215 F65, M21 soak seeds 114, 297: two Fiery Emancipations each register "it deals
+    triple that damage instead"; both apply, one after the other (CR 616.1), so two live records
+    of two sources for one event are no fault. The old (iii) counted records per event."""
     g = game(
         [],
         repl_rows=[
@@ -449,9 +539,7 @@ def test_d6_fires_on_double_replacement() -> None:
             ("repl", 2, "card:3", P0, "t2", "live", "EVT-A", "replace"),
         ],
     )
-    v = D.d6_lifecycle(g)
-    assert v.status == "HIT"
-    assert v.hits[0].klass == "multi-replacement-per-event"
+    assert D.d6_lifecycle(g).status == "clean"
 
 
 def test_d6_dormant_duplicate_is_silent() -> None:

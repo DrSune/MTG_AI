@@ -5,7 +5,7 @@
   "seed": 7,
   "library_top": true
  },
- "notes": "Ugin, the Spirit Dragon. Printed: '[-10]: You gain 7 life, draw seven cards, then put up to SEVEN permanent cards from your hand onto the battlefield.' Loyalty is seeded to 10. Nine permanent cards wait in hand (three Creatures, two Artifacts, two Enchantments, two Lands) and an Instant; seven Sorceries are drawn. The controller picks p1 to p7: seven are put onto the battlefield and the engine asks for no eighth, so p8 and p9 stay in hand with the Instant and the seven drawn Sorceries (10 cards). Life 27.",
+ "notes": "Ugin, the Spirit Dragon. Printed: '[-10]: You gain 7 life, draw seven cards, then put up to SEVEN permanent cards from your hand onto the battlefield.' Loyalty is seeded to 10. Nine permanent cards wait in hand (three Creatures, two Artifacts, two Enchantments, two Lands) and an Instant; seven Sorceries are drawn. The controller picks perm1 to perm7: seven are put onto the battlefield and the engine asks for no eighth, so perm8 and perm9 stay in hand with the Instant and the seven drawn Sorceries (10 cards). Life 27.",
  "cards": [
   {
    "key": "ugin",
@@ -14,7 +14,7 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "perm1",
    "name": "Permanent 1",
    "type": "Creature — Bear",
    "zone": "hand",
@@ -23,7 +23,7 @@
    "toughness": 2
   },
   {
-   "key": "p2",
+   "key": "perm2",
    "name": "Permanent 2",
    "type": "Creature — Bear",
    "zone": "hand",
@@ -32,7 +32,7 @@
    "toughness": 2
   },
   {
-   "key": "p3",
+   "key": "perm3",
    "name": "Permanent 3",
    "type": "Creature — Bear",
    "zone": "hand",
@@ -41,35 +41,35 @@
    "toughness": 2
   },
   {
-   "key": "p4",
+   "key": "perm4",
    "name": "Permanent 4",
    "type": "Artifact",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "p5",
+   "key": "perm5",
    "name": "Permanent 5",
    "type": "Artifact",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "p6",
+   "key": "perm6",
    "name": "Permanent 6",
    "type": "Enchantment",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "p7",
+   "key": "perm7",
    "name": "Permanent 7",
    "type": "Enchantment",
    "zone": "hand",
    "controller": 0
   },
   {
-   "key": "p8",
+   "key": "perm8",
    "name": "Permanent 8",
    "type": "Land",
    "zone": "hand",
@@ -77,7 +77,7 @@
    "cmc": 0
   },
   {
-   "key": "p9",
+   "key": "perm9",
    "name": "Permanent 9",
    "type": "Land",
    "zone": "hand",
@@ -153,28 +153,28 @@
    "idx": 2,
    "seat": 0,
    "decisions": [
-    "p1",
-    "p2",
-    "p3",
-    "p4",
-    "p5",
-    "p6",
-    "p7"
+    "perm1",
+    "perm2",
+    "perm3",
+    "perm4",
+    "perm5",
+    "perm6",
+    "perm7"
    ]
   }
  ],
  "expect": {
   "zone": {
    "ugin": "graveyard",
-   "p1": "battlefield",
-   "p2": "battlefield",
-   "p3": "battlefield",
-   "p4": "battlefield",
-   "p5": "battlefield",
-   "p6": "battlefield",
-   "p7": "battlefield",
-   "p8": "hand",
-   "p9": "hand",
+   "perm1": "battlefield",
+   "perm2": "battlefield",
+   "perm3": "battlefield",
+   "perm4": "battlefield",
+   "perm5": "battlefield",
+   "perm6": "battlefield",
+   "perm7": "battlefield",
+   "perm8": "hand",
+   "perm9": "hand",
    "hi": "hand"
   },
   "life": {

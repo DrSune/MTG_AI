@@ -7,7 +7,7 @@
  ],
  "mana": {"0": {"R": 1, "C": 4}},
  "steps": [
-  {"op": "cast", "key": "ib", "targets": ["ogiant"], "decisions": ["first-legal", "first-legal"]}
+  {"op": "cast", "key": "ib", "targets": ["ogiant"], "decisions": ["first-legal"]}
  ],
  "expect": {
   "zone": {"ib": "graveyard", "ogiant": "graveyard"},

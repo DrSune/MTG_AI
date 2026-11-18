@@ -10,7 +10,7 @@
   {"key": "beast", "name": "Lib Beast", "type": "Creature — Beast", "power": "3", "toughness": "3", "zone": "library", "controller": 0}
  ],
  "steps": [
-  {"op": "enter", "key": "guide", "decisions": ["fire", "desert"]}
+  {"op": "enter", "key": "guide", "decisions": ["fire"]}
  ],
  "expect": {
   "zone": {"guide": "battlefield", "forest": "library", "desert": "library"},

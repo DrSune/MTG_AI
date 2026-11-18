@@ -1,7 +1,7 @@
 {
  "set": "FDN",
  "name": "E02_7_crossway_troublemakers_one_life_cannot_pay_two",
- "notes": "G2 verifier, batch E. Printed: 'Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' A player can pay life only if their life total is at least the payment (CR 119.4), so with 1 life seat 0 cannot pay 2: although it takes the may (fire), no life is paid (1, not -1), no card is drawn (hand stays 0) and seat 0 is still in the game.",
+ "notes": "G2 verifier, batch E. Printed: 'Whenever a Vampire you control dies, you may pay 2 life. If you do, draw a card.' A player can pay life only if their life total is at least the payment (CR 119.4), so with 1 life seat 0 cannot pay 2: the may is not even offered (a choice that can do nothing, AGENTS §10), no life is paid (1, not -1), no card is drawn (hand stays 0) and seat 0 is still in the game.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "troub", "real": "Crossway Troublemakers", "zone": "battlefield", "controller": 0},
@@ -10,7 +10,7 @@
  ],
  "steps": [
   {"op": "life", "seat": 0, "set": 1},
-  {"op": "deal_damage", "source": "ogre", "target": "vamp", "amount": 5, "decisions": ["fire"]}
+  {"op": "deal_damage", "source": "ogre", "target": "vamp", "amount": 5}
  ],
  "expect": {
   "zone": {"vamp": "graveyard"},

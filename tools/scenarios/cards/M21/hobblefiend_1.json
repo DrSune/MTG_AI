@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"R": 2}},
  "steps": [
-  {"op": "activate", "key": "hob", "idx": 0, "seat": 0, "decisions": ["fod"]},
+  {"op": "activate", "key": "hob", "idx": 0, "seat": 0},
   {"op": "combat", "seat": 0, "attack": {"hob": true}, "block": {"chump": "hob"}, "divide": {"chump": 1}}
  ],
  "expect": {

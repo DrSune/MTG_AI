@@ -12,7 +12,7 @@
  "steps": [
   {"op": "cast", "key": "aegis", "controller": 0, "targets": ["bear"], "expect_raise": "illegal cast"},
   {"op": "mana", "seat": 0, "add": {"W": 1}},
-  {"op": "cast", "key": "aegis", "controller": 0, "targets": ["bear"], "decisions": ["obear"]}
+  {"op": "cast", "key": "aegis", "controller": 0, "targets": ["bear"]}
  ],
  "expect": {
   "zone": {"aegis": "battlefield"},

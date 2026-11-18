@@ -8,6 +8,6 @@
  ],
  "mana": {"0": {"R": 1}},
  "steps": [
-  {"op": "cast", "key": "s1", "decisions": ["player:1"]}
+  {"op": "cast", "key": "s1", "targets": ["p1"]}
  ],
  "expect": {"life": {"0": 20, "1": 18}, "zone": {"s1": "graveyard", "obear": "graveyard", "mybear": "battlefield", "inc": "battlefield"}, "damage_received": {"obear": 2, "mybear": 0}}}

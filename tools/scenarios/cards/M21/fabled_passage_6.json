@@ -12,7 +12,7 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
@@ -62,11 +62,11 @@
    "forest": "library",
    "swamp": "battlefield",
    "caves": "library",
-   "p1": "battlefield"
+   "plains1": "battlefield"
   },
   "tapped": {
    "swamp": true,
-   "p1": false
+   "plains1": false
   },
   "library": {
    "0": [

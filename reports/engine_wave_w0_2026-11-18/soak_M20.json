@@ -1,0 +1,18 @@
+{
+ "games": 300,
+ "crashed": 0,
+ "crashes": [],
+ "detector_hits": [],
+ "outliers": [],
+ "repeatable_activations": [],
+ "trigger_loops": [],
+ "cards_cast": 261,
+ "set": "M20",
+ "mode": "verified",
+ "unverified_records": false,
+ "deck_mode": "stress",
+ "seeds": [
+  1,
+  300
+ ]
+}

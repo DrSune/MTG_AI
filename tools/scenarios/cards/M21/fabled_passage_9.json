@@ -3,7 +3,7 @@
   "world": {"life": 20, "seed": 7},
   "cards": [
     {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
-    {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 0},
     {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0, "start_tapped": true},
     {"key": "s1", "real": "Swamp", "zone": "battlefield", "controller": 0},
     {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
@@ -15,7 +15,7 @@
   ],
   "expect": {
     "zone": {"fp": "graveyard", "caves": "library", "top": "library"},
-    "tapped": {"i1": true, "p1": false, "s1": false, "m1": false},
+    "tapped": {"i1": true, "plains1": false, "s1": false, "m1": false},
     "library": {"0": ["*", "*", "*", "*", "*", "*", "*", "*"]}
   },
   "notes": "Verifier I, wave 4 (batch I, I06). The library holds no basic land: the search finds nothing, but the Passage was tapped and sacrificed as the cost (graveyard) and nothing else is fetched. You still control four lands (Plains, a tapped Island, Swamp, Mountain), but 'untap THAT land' names the land that was put onto the battlefield, and there is none: the tapped Island stays tapped."

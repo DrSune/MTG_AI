@@ -8,7 +8,7 @@
   {"key": "topc", "name": "Top Card", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "library", "controller": 0}
  ],
  "steps": [
-  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom", "bottom"]}
+  {"op": "play", "key": "temple", "seat": 0, "decisions": ["bottom"]}
  ],
  "expect": {
   "zone": {"temple": "battlefield", "topc": "library", "secondc": "library"},

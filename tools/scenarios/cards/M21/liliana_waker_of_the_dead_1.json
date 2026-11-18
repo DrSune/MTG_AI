@@ -6,7 +6,7 @@
   {"key": "mine", "name": "Silk", "type": "Instant", "zone": "hand", "controller": 0}
  ],
  "steps": [
-  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine"]}
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0}
  ],
  "expect": {
   "zone": {"mine": "graveyard"},

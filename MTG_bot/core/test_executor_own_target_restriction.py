@@ -8,7 +8,8 @@ import unittest
 
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import get_supply, identity_of
-from MTG_bot.core.executor.query import aura_enchant_slot, legal_casts
+from MTG_bot.core.executor.legality import spell_castable
+from MTG_bot.core.executor.query import aura_enchant_slot
 from MTG_bot.core.executor.stack import cast
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
 from MTG_bot.core.test_executor_binding import card_id
@@ -32,7 +33,7 @@ class OwnTargetRestrictionTest(unittest.TestCase):
         self.world.players[self.p0].mana_pool.update({"U": 5})
 
     def slot(self):
-        node = next(r.node for r in legal_casts(self.world, self.ex, self.p0) if r.handle == self.hold)
+        node = spell_castable(self.ex, self.p0, self.hold)[1]
         return aura_enchant_slot(self.ex, node, spell_handle=self.hold, seat=self.p0)
 
     def test_untapped_creatures_are_not_offered(self) -> None:

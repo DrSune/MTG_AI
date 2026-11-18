@@ -11,7 +11,7 @@
  "steps": [
   {
    "op": "cast", "real": "Murasa Sproutling", "key": "sprout_kicked",
-   "kicked": true, "decisions": ["kc"]
+   "kicked": true
   },
   {"op": "cast", "real": "Murasa Sproutling", "key": "sprout_plain"}
  ],

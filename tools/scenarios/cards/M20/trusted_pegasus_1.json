@@ -8,7 +8,7 @@
   {"key": "giant", "name": "Opp Giant", "type": "Creature — Giant", "power": "4", "toughness": "4", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}, "decisions": ["bear"]}
+  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}}
  ],
  "expect": {
   "attackers": {"peg": true, "bear": true},

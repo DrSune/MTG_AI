@@ -1,0 +1,4 @@
+ 166  decision words no ask took (dropped; decoys pinned by kickback_asks/not_asked_to_block)
+  25  a card key that is a player word (renamed: p1 -> plains1 ...)
+  15  a cast whose player:N word was lifted into its targets (moved to targets: [pN])
+ 206  packs of the default sweep and the suite (known_bugs aside)

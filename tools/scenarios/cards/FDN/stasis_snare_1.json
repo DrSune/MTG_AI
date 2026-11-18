@@ -11,7 +11,7 @@
  "steps": [
   {"op": "advance_turn"},
   {"op": "mana", "seat": 0, "add": {"W": 2, "C": 1}},
-  {"op": "cast", "key": "snare", "controller": 0, "decisions": ["wolf"]}
+  {"op": "cast", "key": "snare", "controller": 0}
  ],
  "expect": {
   "turn_seats": [0, 1],

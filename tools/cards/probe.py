@@ -1,8 +1,8 @@
 """Gate G1: play one card in the real engine on a standard board, in every variant, and say what
 happened. docs/PLAN_CARD_ONBOARDING.md.
 
-- Every action goes through the engine's own legality surface (``legal_casts``,
-  ``spell_target_slots``, ``legal_activations``, ``activation_target_slots``,
+- Every action goes through the engine's own legality surface (``menu.menu``, the rows a game's
+  player acts from, ``spell_target_slots``, ``legal_activations``, ``activation_target_slots``,
   ``validate_target_selection``): the probe can only do what a real game allows.
 - Each variant runs in a fresh world (``tools/run_scenarios.py``'s ``ScenarioRunner``), so variants
   never leak into each other. The board is the same for every card, so traces compare.
@@ -51,10 +51,10 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.coverage import build_full_registry
 from MTG_bot.core.executor import GameOver
 from MTG_bot.core.executor.legality import ability_playable, activate
+from MTG_bot.core.executor.menu import menu
 from MTG_bot.core.executor.query import (
     activation_target_slots,
     legal_activations,
-    legal_casts,
     spell_target_slots,
     validate_target_selection,
 )
@@ -101,6 +101,16 @@ LAND_SUBTYPES = {"Plains", "Island", "Swamp", "Mountain", "Forest", "Gate", "Des
 
 def _seat_name(world: Any, handle: Handle) -> str:
     return "you" if handle == world.player_order[0] else "opp"
+
+
+def hand_rows(r: ScenarioRunner, h: Handle) -> list[Any]:
+    """The card's rows on the seat's menu (``menu.menu``, what a game offers): a land drop, or a
+    cast per declaration, base and kicked, from the hand and at its X = 0 witness (the probe tries
+    its own X values). A spell whose targets cannot all be chosen is not offered (CR 601.2c);
+    ``query.legal_casts`` listed it, so the card tools tried what no game offers (BACKLOG B-54,
+    KNOWLEDGE/2026-11-18/215 F15)."""
+    return [row for row in menu(r.ex, r.p0) if row.handle == h and row.kind in ("land", "cast")
+            and row.path is None and not row.x]
 
 
 @dataclass
@@ -596,14 +606,14 @@ class Probe:
         if isinstance(r, Variant):
             return notes, [r]
         h = r.handles["card"]
-        rows = [row for row in legal_casts(r.world, r.ex, r.p0) if row.handle == h]
+        rows = hand_rows(r, h)
         name = self.names(r)
         if not rows:
             notes.append("not castable or playable from hand on the standard board (all mana available)")
             return notes, []
         variants: list[Variant] = []
         for row in rows:
-            if row.land:
+            if row.kind == "land":
                 variants += self.explore("hand", "play land",
                                          lambda rr: play_land(rr.ex, rr.p0, rr.handles["card"]))
                 continue
@@ -617,8 +627,9 @@ class Probe:
                                                 seat=r.p0))
                 short = [s for s in slots if s.min_count > len(s.candidates)]
                 if short:
-                    # CR 601.2c: a spell (or mode) that needs a target it cannot have is not cast; the
-                    # query still lists it (B-54), the probe does not try.
+                    # CR 601.2c: a mode that needs a target it cannot have is not cast. The menu
+                    # offers a modal spell when some mode set can be cast, so a mode can still
+                    # come here; the probe does not try it.
                     notes.append(f"{where} skipped: a target slot needs "
                                  f"{short[0].min_count}, the board offers {len(short[0].candidates)}")
                     continue

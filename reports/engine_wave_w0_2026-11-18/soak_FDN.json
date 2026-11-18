@@ -1,0 +1,29 @@
+{
+ "games": 300,
+ "crashed": 0,
+ "crashes": [],
+ "detector_hits": [
+  {
+   "detector": "d6_lifecycle",
+   "detail": "live layer #20 kind=mandate_block tag=Eot bound to card:14 ended in 'graveyard'",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "live layer #56 kind=mandate_block tag=Eot bound to card:119 ended in 'graveyard'",
+   "games": 1
+  }
+ ],
+ "outliers": [],
+ "repeatable_activations": [],
+ "trigger_loops": [],
+ "cards_cast": 225,
+ "set": "FDN",
+ "mode": "verified",
+ "unverified_records": false,
+ "deck_mode": "stress",
+ "seeds": [
+  1,
+  300
+ ]
+}

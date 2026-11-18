@@ -11,7 +11,7 @@
  "steps": [
   {"op": "enter", "key": "a"},
   {"op": "advance_turn"},
-  {"op": "advance_turn", "decisions": ["fire", "2", "sg"]}
+  {"op": "advance_turn", "decisions": ["fire", "2"]}
  ],
  "expect": {
   "zone": {"a": "battlefield", "sg": "battlefield", "sl": "library", "pg": "graveyard"},

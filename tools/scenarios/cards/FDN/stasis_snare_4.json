@@ -8,7 +8,7 @@
   {"key": "wolf", "name": "Wolf", "power": "3", "toughness": "3", "type": "Creature — Wolf", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "enter", "key": "snare", "hold": true, "decisions": ["wolf"]},
+  {"op": "enter", "key": "snare", "hold": true},
   {"op": "move", "key": "snare", "to": "graveyard"}
  ],
  "expect": {

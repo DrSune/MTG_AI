@@ -88,7 +88,6 @@ from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
 from MTG_bot.core.executor.query import (
     activation_target_slots,
     is_aura_spell,
-    legal_casts,
     legal_targets,
     optional_offer,
     spell_target_slots,
@@ -278,16 +277,12 @@ class KickerLaneTest(unittest.TestCase):
             return
         self.fail("no castable non-kicker instant in the ZNR engine pool")
 
-    def test_legal_casts_enumerates_kicker_both_ways(self) -> None:
+    def test_the_menu_offers_a_kicker_both_ways(self) -> None:
         record = _record_named(self.supply, "Roost of Drakes")
         handle = self.world.add_card(identity_of(record), self.p0, ZONE_HAND)
         self.world.players[self.p0].mana_pool.clear()
         self.world.players[self.p0].mana_pool["U"] = 4
-        kicks = {
-            row.kicked
-            for row in legal_casts(self.world, self.executor, self.p0)
-            if row.handle == handle
-        }
+        kicks = {row.kicked for row in menu(self.executor, self.p0) if row.handle == handle}
         self.assertEqual(kicks, {True, False}, "CR 601.2b: the choice, both ways")
 
 
@@ -354,23 +349,16 @@ class XKickerLaneTest(unittest.TestCase):
         assert reason is not None
         self.assertIn("cost:mana", reason)
 
-    def test_legal_casts_prices_the_x_kicker_both_ways(self) -> None:
-        # base {1}{U} and the X=0 kick witness share a cost, so BOTH rows
-        # ride the surface even on a base-priced pool; a caller asking X=3
-        # on a 2-mana pool keeps only the base row (an honest shortage).
+    def test_the_menu_prices_the_x_kicker_both_ways(self) -> None:
+        # base {1}{U} and the X=0 kick share a cost, so BOTH rows are on the menu
+        # even on a base-priced pool; an X-kick the 2-mana pool cannot pay (X=1 and
+        # up) is no row (an honest shortage), and X=3 is refused as a shortage.
         handle = self._hand(2)
-        both = {
-            row.kicked
-            for row in legal_casts(self.world, self.executor, self.p0)
-            if row.handle == handle
-        }
-        self.assertEqual(both, {True, False}, "CR 601.2b: both, at the X=0 floor")
-        big = {
-            row.kicked
-            for row in legal_casts(self.world, self.executor, self.p0, x=3)
-            if row.handle == handle
-        }
-        self.assertEqual(big, {False}, "an unaffordable X-kick disappears")
+        rows = {(row.kicked, row.x) for row in menu(self.executor, self.p0) if row.handle == handle}
+        self.assertEqual(rows, {(False, None), (True, 0)}, "CR 601.2b: both, at the X=0 floor")
+        reason = spell_castable(self.executor, self.p0, handle, x=3, kicked=True)[0]
+        assert reason is not None
+        self.assertIn("cost:mana", reason, "an unaffordable X-kick disappears")
 
     def test_was_kicked_window_sees_the_x_kicked_cast(self) -> None:
         handle = self._hand(6)
@@ -1931,7 +1919,7 @@ class Round16eControlTest(unittest.TestCase):
 
     def test_enthralling_hold_gate_attach_and_death_return(self) -> None:
         # The synthesized Enchant slot: no battlefield creature -> the
-        # legal_casts row disappears (CR 601.2e); with one -> cast puts
+        # cast row disappears (CR 601.2e); with one -> cast puts
         # the aura onto the battlefield ATTACHED (CR 303.4a) before the
         # effect runs, the GAIN_CONTROL static steals the creature, and
         # killing the aura drops the attachment edge and returns control.

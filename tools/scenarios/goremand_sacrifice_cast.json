@@ -38,10 +38,7 @@
     {
       "op": "cast",
       "real": "Goremand",
-      "key": "gor",
-      "decisions": [
-        "feed"
-      ]
+      "key": "gor"
     }
   ],
   "expect": {

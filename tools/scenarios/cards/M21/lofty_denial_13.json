@@ -60,10 +60,7 @@
   },
   {
    "op": "enter",
-   "key": "bird",
-   "decisions": [
-    "PAY"
-   ]
+   "key": "bird"
   }
  ],
  "expect": {
@@ -77,6 +74,7 @@
     "R": 1
    },
    "1": {}
-  }
+  },
+  "kickback_asks": {"0": []}
  }
 }

@@ -1,0 +1,10 @@
+G3 pack edits: 208 modified packs; 208 play the same game (journal dump, final zones, lives) with
+the base runner on the old pack and W0 runner on the new pack (g3_pack_journals.py, run on both checkouts;
+branch shas in g3_pack_journals_branch.txt).
+
+Three unedited packs play differently: their cast step held a player:N word that the old runner both
+lifted into the targets of a TARGETLESS spell and left for the trigger it was meant for. The lift is gone;
+the journal loses one row, the spell targeting the player. Gorehorn Raider (FDN; its raid trigger targets
+player:1 and journals the same row, so the base had it twice):
+   - TARGETING player:1 raider TARGET (Handle(namespace='card', index=0), Handle(namespace='player', index=0))
+   (havoc_jester_sees_its_controller_sacrifice_a_stolen_creature: Village Rites; znr_eval_rockslide_spellkind_triangle: Joraga Visionary: the same phantom row)

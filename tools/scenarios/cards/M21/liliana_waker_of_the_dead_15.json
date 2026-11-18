@@ -6,6 +6,6 @@
   {"key": "s2card", "name": "Seat Two Silk", "type": "Instant", "zone": "hand", "controller": 2}
  ],
  "steps": [
-  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine", "s2card"]}
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine"]}
  ],
  "expect": {"zone": {"mine": "graveyard", "s2card": "graveyard"}, "life": {"0": 20, "1": 17, "2": 20}, "hand": {"1": 0, "2": 0}, "counters": {"lil": {"LOYALTY": 5}}}}

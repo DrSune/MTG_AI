@@ -10,8 +10,8 @@
  ],
  "mana": {"0": {"G": 1, "C": 3}},
  "steps": [
-  {"op": "cast", "key": "tome", "controller": 0, "decisions": ["first-legal"]},
-  {"op": "cast", "key": "cub", "controller": 0, "decisions": ["first-legal"]}
+  {"op": "cast", "key": "tome", "controller": 0},
+  {"op": "cast", "key": "cub", "controller": 0}
  ],
  "expect": {
   "zone": {"tome": "battlefield", "cub": "battlefield"},

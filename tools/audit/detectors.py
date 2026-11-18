@@ -17,7 +17,9 @@ Two scan modes:
 
 Independence rule (D5): the effective-PT recompute is derived HERE from
 journal rows only (COUNTER_PLACED increments, CREATURE_DIES was-PT
-assertions). Engine ledger code is NEVER imported.
+assertions) and the printed P/T. Engine ledger code is NEVER imported; the
+replay's :class:`Watch` reads the ledger's dump only to say which deaths a
+counter fold cannot judge (a P/T effect applied in that life).
 
 Output: ``tools/audit/anomalies.json`` — per seed per detector: hits (row
 references) or clean/exempt. Run::
@@ -137,6 +139,18 @@ class ReplayData:
     repl_rows: list[tuple[object, ...]] | None = None
     binder_dump: dict[str, list[Any]] | None = None
     crashed: str | None = None
+    #: Each object's printed power and toughness (None for "*"): D5's base.
+    printed_pt: dict[str, tuple[int | None, int | None]] | None = None
+    #: Every P/T change the engine's ledger recorded, as (target, clock) (:class:`Watch`): D5
+    #: judges only the deaths with none in that life. None when the game was not watched.
+    pt_changes: list[tuple[str, int]] | None = None
+    #: Every removal of a P/T counter, as (target, lo, hi): it happened after journal clock lo and
+    #: by hi (:class:`Watch`; the journal has no removal row). D5 does not judge a life it may
+    #: fall in. None when the game was not watched.
+    counter_removals: list[tuple[str, int, int]] | None = None
+    #: The journal clock each delayed trigger (by its binder seq) was first seen pending
+    #: (:class:`Watch`): D6 (i)'s window. None when the game was not watched.
+    delayed_seen: dict[int, int] | None = None
 
 
 @dataclass
@@ -196,6 +210,19 @@ class Presence:
             else:
                 break
         return state
+
+    def entered(self, handle: str, clock: int) -> int:
+        """The clock at which ``handle`` last entered the battlefield at or before ``clock``: the
+        start of the life it is in then (-1 when no row shows it entering). Counters and effects
+        of an earlier life left with that object (CR 400.7, 122.2)."""
+        start, on_before = -1, False
+        for at, on in self.marks.get(handle, []):
+            if at > clock:
+                break
+            if on and not on_before:
+                start = at
+            on_before = on
+        return start
 
 
 def build_presence(rows: list[Row]) -> Presence:
@@ -463,18 +490,22 @@ def d4_tokens(g: ReplayData) -> Verdict:
 # D5 independent layer recompute
 
 
-@dataclass
-class _Death:
-    handle: str
-    row: Row
-    was_pt: tuple[int, int]
-    pt_delta: tuple[int, int]
-
-
 def d5_pt_recompute(g: ReplayData) -> Verdict:
-    """Independently re-derive effective PT and diff vs the engine's own
-    CREATURE_DIES was-PT assertions. The fold is re-implemented HERE:
-    counters stack on the base — nothing imported from the engine's ledger."""
+    """Independently re-derive effective P/T at each death and diff it with the engine's own
+    CREATURE_DIES was-P/T: the printed P/T plus the P/T counters placed in the creature's CURRENT
+    life (an object that left the battlefield and came back is a new object, and its counters
+    stayed with the old one: CR 400.7, 122.2). The fold is re-implemented HERE.
+
+    A death is judged only where that fold is the whole of layer 7: a printed number (not a
+    characteristic-defining "*"), and no P/T effect recorded on the object in that life. A static
+    (Pack Leader's "Other Dogs you control get +1/+1"), an until-end-of-turn pump or shrink (Stab
+    on a Mold Adder) or a set changes the P/T too, and the journal carries none of them (no
+    MODIFY_PT/SET_PT rows): the replay's :class:`Watch` names the objects the engine's ledger gave
+    one, and those deaths are counted as not judged. So is a life in which a P/T counter may have
+    been removed (Barkhide Troll's "Remove a +1/+1 counter": the journal has no removal row, the
+    watch places it between two of its looks). Before 2026-11-18 (KNOWLEDGE 215, F65) the fold
+    summed counters over every life and anchored on another copy's death, so a Watcher of the
+    Spheres recast without counters, and a Pack Leader beside another, read as counter-blind."""
     v = Verdict("D5_pt_recompute", "clean")
     deaths = [
         r
@@ -484,103 +515,80 @@ def d5_pt_recompute(g: ReplayData) -> Verdict:
     if not deaths:
         v.note = "no was-PT assertions (no deaths) in this game"
         return v
+    if g.printed_pt is None or g.pt_changes is None or g.counter_removals is None:
+        v.status = "EXEMPT"
+        v.note = "printed P/T or the watch of P/T effects not captured: no death can be judged"
+        return v
+    pres = build_presence(g.rows)
     placements = counter_deltas(g.rows)
-
-    def fold(handle: str, died_at: int) -> tuple[int, int]:
-        dp = dt = 0
-        for clock, kind_name, amount in placements.get(handle, []):
-            if clock <= died_at:
-                step = PT_COUNTER_DELTA.get(kind_name, (0, 0))
-                dp += step[0] * amount
-                dt += step[1] * amount
-        return dp, dt
-
-    parsed: list[_Death] = []
+    effects: dict[str, list[tuple[int, int]]] = {}  # the clock span each effect or removal lies in
+    for target, clock in g.pt_changes:
+        effects.setdefault(target, []).append((clock, clock))
+    for target, lo, hi in g.counter_removals:
+        effects.setdefault(target, []).append((lo + 1, hi))
+    unjudged = 0
     for row in deaths:
-        data = row.data
+        handle, data = row.subject, row.data
         assert data is not None
         try:
-            was_pt = (_to_int(data[3]), _to_int(data[4]))
+            was = (_to_int(data[3]), _to_int(data[4]))
         except (TypeError, ValueError):
+            unjudged += 1
             continue
-        dp, dt = fold(row.subject, row.clock)
-        parsed.append(_Death(row.subject, row, was_pt, (dp, dt)))
-
-    groups: dict[str, list[_Death]] = {}
-    for death in parsed:
-        key = g.identity_name.get(death.handle) or "?"
-        if key == "?":
-            # Without the printed identity the grouping must not merge
-            # strangers; per-handle checks below still run.
-            key = death.handle
-        groups.setdefault(key, []).append(death)
-
-    for key, deaths_g in sorted(groups.items()):
-        # Rule A — counter-invariant assertions: same asserted PT with
-        # different counter deltas means the fold ignored the counters.
-        # Base-unknown, SET_PT-proof.
-        by_assert: dict[tuple[int, int], list[_Death]] = {}
-        for death in deaths_g:
-            by_assert.setdefault(death.was_pt, []).append(death)
-        for asserted, bucket in by_assert.items():
-            deltas = {d.pt_delta for d in bucket}
-            if len(deltas) > 1 and any(d != (0, 0) for d in deltas):
-                v.status = "HIT"
-                for death in bucket:
-                    v.hits.append(
-                        Hit(
-                            "D5_pt_recompute",
-                            g.seed,
-                            f"counter-invariant assert: {death.handle} died "
-                            f"asserted {asserted[0]}/{asserted[1]} with pt-delta "
-                            f"{death.pt_delta} while a same-identity copy "
-                            f"({key}) asserts the SAME PT with a different "
-                            "counter fold — recompute says they must differ",
-                            death.row.index,
-                            death.row.clock,
-                            death.handle,
-                            klass="counter-blind",
-                        )
-                    )
-        # Rule B — anchor fold check: a zero-delta death pins the base;
-        # other copies must assert base+delta exactly.
-        anchors = [d for d in deaths_g if d.pt_delta == (0, 0)]
-        if not anchors:
+        born = pres.entered(handle, row.clock)
+        printed = g.printed_pt.get(handle, (None, None))
+        if None in printed or any(lo <= row.clock and hi >= born for lo, hi in effects.get(handle, ())):
+            unjudged += 1
             continue
-        base = anchors[0].was_pt
-        for death in deaths_g:
-            if death.pt_delta == (0, 0):
-                continue
-            expected = (base[0] + death.pt_delta[0], base[1] + death.pt_delta[1])
-            if death.was_pt == expected:
-                continue
-            blind = death.was_pt == base
-            v.status = "HIT"
-            v.hits.append(
-                Hit(
-                    "D5_pt_recompute",
-                    g.seed,
-                    f"recompute mismatch on {death.handle} ({key}): assert "
-                    f"{death.was_pt[0]}/{death.was_pt[1]} vs fold "
-                    f"{expected[0]}/{expected[1]} (anchor base {base[0]}/{base[1]} "
-                    f"+ counters {death.pt_delta})"
-                    + (
-                        " — COUNTER-BLIND: assertion equals the uncountered base"
-                        if blind
-                        else "; NOTE: a SET_PT/MODIFY_PT layer is a possible "
-                        "benign reading (those verbs are not journalled)"
-                    ),
-                    death.row.index,
-                    death.row.clock,
-                    death.handle,
-                    klass="counter-blind" if blind else "unexplained-diff",
-                )
+        dp = dt = 0
+        for clock, kind_name, amount in placements.get(handle, []):
+            if born <= clock <= row.clock:
+                step = PT_COUNTER_DELTA.get(kind_name, (0, 0))
+                dp, dt = dp + step[0] * amount, dt + step[1] * amount
+        expected = (printed[0] + dp, printed[1] + dt)
+        if was == expected:
+            continue
+        blind = was == printed and (dp, dt) != (0, 0)
+        v.status = "HIT"
+        v.hits.append(
+            Hit(
+                "D5_pt_recompute",
+                g.seed,
+                f"recompute mismatch on {handle} ({g.identity_name.get(handle, '?')}): it died "
+                f"{was[0]}/{was[1]}, but printed {printed[0]}/{printed[1]} + this life's counters "
+                f"{(dp, dt)} = {expected[0]}/{expected[1]}, with no P/T effect recorded on it"
+                + (" (COUNTER-BLIND: the uncountered printed P/T)" if blind else ""),
+                row.index,
+                row.clock,
+                handle,
+                klass="counter-blind" if blind else "unexplained-diff",
             )
+        )
+    v.note = f"{len(deaths) - unjudged} deaths judged, {unjudged} not (a P/T effect in that life, or a printed '*')"
     return v
 
 
 # --------------------------------------------------------------------------
 # D6 lifecycle audit
+
+
+def _in_window(entry: Any, seen: dict[int, int], turns: list[tuple[int, str]]) -> bool:
+    """Is a delayed trigger pending at game end (a binder dump row: seq, tag, source, controller,
+    event) still inside its window? An until-end-of-turn one ("Eot") lasts until the cleanup of
+    the turn it was made in (CR 514.2), so while no turn has begun since it was first seen; an
+    until-your-next-turn one until its controller's next turn begins. ``turns``: (clock, active
+    player) of each turn's UPKEEP row. A trigger the watch never saw was made after its last look,
+    with the game ending right after it."""
+    seq, tag, controller = entry[0], str(entry[1]), str(entry[3])
+    first = seen.get(seq)
+    if first is None:
+        return True
+    began = [active for clock, active in turns if clock > first]
+    if tag == "Eot":
+        return not began
+    if tag == "UntilNextTurn":
+        return controller not in began
+    return False
 
 
 def d6_lifecycle(g: ReplayData) -> Verdict:
@@ -597,11 +605,17 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
 
     if g.binder_dump is not None:
         # (i) registered-never-drained: a delayed trigger still pending at
-        # game end never fired AND never expired — the clock-bounded window
-        # is the whole game (delayed durations are clock-bound by their
-        # duration node, so survival to game end means the window bound was
-        # met without a drain).
+        # game end that outlived its window. A turn-window trigger may be
+        # pending at the end rightly: a game that ends inside the turn (a
+        # loss, CR 104.2a) never reaches the cleanup that sweeps it (Subira's
+        # or Basri's "until end of turn" activated in the final turn: M21 soak
+        # seeds 9, 193, 235, 281, KNOWLEDGE 215 F65). Unwatched, every pending
+        # one is flagged, as before.
+        turns = [(r.clock, str(r.data[1])) for r in g.rows
+                 if r.kind == KIND_TURN_PHASE and r.data and str(r.data[0]) == "UPKEEP"]
         for entry in g.binder_dump.get("delayed", []):
+            if g.delayed_seen is not None and _in_window(entry, g.delayed_seen, turns):
+                continue
             hit(
                 f"delayed trigger still pending at game end (never drained, "
                 f"never expired): {entry!r:.160s}",
@@ -625,26 +639,27 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
                 )
 
     if g.repl_rows is not None:
-        # (iii) replacement fired >1x per event: two replacement records
-        # competing for the same event identity (containment case). FP
-        # story: legal sequential replacement choice per CR 614.
-        # Only LIVE records can apply to an event. An ``expired`` row is a
+        # (iii) one replacement registered twice: two LIVE records of the same
+        # source with the same event and action (a registration that did not
+        # detach, the containment case). Two sources with the same printed
+        # replacement are two effects, each applied in turn (CR 616.1: two
+        # Fiery Emancipations triple and triple again, M21 soak seeds 114, 297,
+        # KNOWLEDGE 215 F65), so they are not counted. An ``expired`` row is a
         # re-entering card's previous registration, self-detached by
         # replacements.attach_source the instant the new one registers, so
         # the two never co-exist and cannot apply to one event together
         # (CR 614.3).
-        by_event: dict[str, list[tuple[object, ...]]] = {}
+        by_record: dict[tuple[str, str, str], list[tuple[object, ...]]] = {}
         for row in g.repl_rows:
             if row and row[0] == "repl" and row[5] == "live":
-                by_event.setdefault(str(row[6]), []).append(row)
-        for event, rows in sorted(by_event.items()):
+                by_record.setdefault((str(row[2]), str(row[6]), str(row[7])), []).append(row)
+        for (source, event, _action), rows in sorted(by_record.items()):
             if len(rows) > 1:
                 hit(
-                    f"{len(rows)} replacement records for one event "
-                    f"{event[:120]!r} (statuses "
-                    f"{[str(r[5]) for r in rows]})",
+                    f"{len(rows)} live records of one replacement of {source} for one event "
+                    f"{event[:120]!r}",
                     "multi-replacement-per-event",
-                    str(rows[0][2]),
+                    source,
                 )
 
     if g.layers_rows is not None:
@@ -702,6 +717,99 @@ DETECTORS = (d1_life, d2_mana, d3_counters, d4_tokens, d5_pt_recompute, d6_lifec
 # replay generation (mirrors the games.py --repro recipe exactly)
 
 
+class Watch:
+    """What the detectors need from a game while it runs, which its end state no longer shows; a
+    ``stop_after`` for ``games._play`` (called at every priority point, turn top and declaration;
+    it reads and never stops the game):
+
+    - the journal clock at which each delayed trigger is first seen pending (D6 (i)'s window);
+    - every P/T change the engine's ledger recorded, by target and clock (D5's judgeable deaths):
+      the cleanup sweeps until-end-of-turn changes out of the ledger, so the end state has only
+      the last turn's;
+    - every removal of a P/T counter (the executor's REMOVE_COUNTER event; the journal has no
+      removal row), placed between this look and the one before it.
+
+    It reads the binder's pending list, the ledger's dump and the executor's event log, nothing
+    else."""
+
+    def __init__(self) -> None:
+        self.delayed_seen: dict[int, int] = {}
+        self.pt_changes: dict[int, tuple[str, int]] = {}  # ledger record id -> (target, clock)
+        self.counter_removals: list[tuple[str, int, int]] = []
+        self._seen = (-1, 0)  # (journal clock, event log length) at the last look
+
+    def __call__(self, game: Any, _boundary: str = "") -> bool:
+        ex = game.executor
+        clock = ex.journal.clock
+        for delayed in ex.binder.delayed:
+            self.delayed_seen.setdefault(delayed.seq, clock)
+        for row in ex.ledger.dump():  # (target, kind, ..., created clock [7], ..., record id [10], status)
+            self.pt_changes.setdefault(row[10], (str(row[0]), int(row[7])))
+        last_clock, last_event = self._seen
+        for event in ex.events[last_event:]:  # (i, "REMOVE_COUNTER", card, kind, n)
+            if event[1] == "REMOVE_COUNTER" and event[3] in PT_COUNTER_DELTA:
+                self.counter_removals.append((str(event[2]), last_clock, clock))
+        self._seen = (clock, len(ex.events))
+        return False
+
+
+def replay_data(game: Any, seed: object, start_life: dict[str, int], crashed: str | None = None,
+                watch: Watch | None = None) -> ReplayData:
+    """Everything the detectors read from a finished game: its journal rows, the end state (lives,
+    zones, names, printed P/T), the registers' dumps, and what ``watch`` saw while it ran (None
+    fields when it was not watched). The one builder of the replay scan, the soak and the
+    exploit scan."""
+    world, ex = game.world, game.executor
+    if watch is not None:
+        watch(game)  # the end state's own pending triggers and ledger rows
+    rows = [Row(i, int(str(r[0])), str(r[1]), str(r[2]), str(r[3]), str(r[4]), _parse_data(r[5]))
+            for i, r in enumerate(ex.journal.dump())]
+    # Map world state by str-tag keys. We must iterate the engine's own
+    # Handle objects (dataclass equality is class-scoped, so a reconstructed
+    # mirror Handle never matches an engine map key).
+    final_zone: dict[str, str] = {}
+    identity_name: dict[str, str] = {}
+    printed_pt: dict[str, tuple[int | None, int | None]] = {}
+    for handle, record in world.cards.items():
+        tag = str(handle)
+        try:
+            final_zone[tag] = str(world.zone_of(handle).kind)
+        except (KeyError, ValueError):
+            pass  # unzoned card (removed from play) — no final zone
+        identity = record.identity
+        identity_name[tag] = str(identity.name or identity.type_line)
+        printed_pt[tag] = (_printed(identity.power), _printed(identity.toughness))
+    binder: dict[str, list[Any]] = {}
+    for group in ex.binder.dump():
+        if isinstance(group, tuple) and len(group) == 2 and isinstance(group[1], (list, tuple)):
+            binder[str(group[0])] = list(group[1])
+    return ReplayData(
+        seed=str(seed),
+        rows=rows,
+        start_life=start_life,
+        final_life={str(h): int(p.life) for h, p in world.players.items()},
+        final_zone=final_zone,
+        identity_name=identity_name,
+        layers_rows=[tuple(r) for r in ex.layers.dump()],
+        repl_rows=[tuple(r) for r in ex.replacements.dump()],
+        binder_dump=binder,
+        crashed=crashed,
+        printed_pt=printed_pt,
+        pt_changes=sorted(watch.pt_changes.values()) if watch is not None else None,
+        counter_removals=list(watch.counter_removals) if watch is not None else None,
+        delayed_seen=dict(watch.delayed_seen) if watch is not None else None,
+    )
+
+
+def _printed(value: object) -> int | None:
+    """A printed power or toughness as a number; None for "*" (a characteristic-defining ability)
+    or none printed."""
+    try:
+        return int(str(value))
+    except ValueError:
+        return None
+
+
 def replay_game(
     seed: int, pool: str, deck_pairs_seed: int, turn_cap: int
 ) -> ReplayData:
@@ -717,56 +825,13 @@ def replay_game(
     decks = deal_decks(seed, deck_pairs_seed, supply)
     game = _setup_game(seed, supply, decks)
     start_life = {str(h): int(p.life) for h, p in game.world.players.items()}
+    watch = Watch()
     crashed = None
     try:
-        _play(game, RandomPolicy(seed), game.world.player_order, turn_cap)
+        _play(game, RandomPolicy(seed), game.world.player_order, turn_cap, stop_after=watch)
     except BaseException as error:  # noqa: BLE001 - a crash is recorded; its rows still scan
         crashed = f"{type(error).__name__}: {error}"
-    world = game.world
-    rows = [
-        Row(
-            i,
-            int(str(r[0])),
-            str(r[1]),
-            str(r[2]),
-            str(r[3]),
-            str(r[4]),
-            _parse_data(r[5]),
-        )
-        for i, r in enumerate(game.executor.journal.dump())
-    ]
-    # Map world state by str-tag keys. We must iterate the engine's own
-    # Handle objects (dataclass equality is class-scoped, so a reconstructed
-    # mirror Handle never matches an engine map key).
-    final_zone: dict[str, str] = {}
-    identity_name: dict[str, str] = {}
-    for handle, record in world.cards.items():
-        tag = str(handle)
-        try:
-            final_zone[tag] = str(world.zone_of(handle).kind)
-        except (KeyError, ValueError):
-            pass  # unzoned card (removed from play) — no final zone
-        identity_name[tag] = str(record.identity.name or record.identity.type_line)
-    binder: dict[str, list[Any]] = {}
-    for group in game.executor.binder.dump():
-        if (
-            isinstance(group, tuple)
-            and len(group) == 2
-            and isinstance(group[1], (list, tuple))
-        ):
-            binder[str(group[0])] = list(group[1])
-    return ReplayData(
-        seed=str(seed),
-        rows=rows,
-        start_life=start_life,
-        final_life={str(h): int(p.life) for h, p in world.players.items()},
-        final_zone=final_zone,
-        identity_name=identity_name,
-        layers_rows=[tuple(r) for r in game.executor.layers.dump()],
-        repl_rows=[tuple(r) for r in game.executor.replacements.dump()],
-        binder_dump=binder,
-        crashed=crashed,
-    )
+    return replay_data(game, seed, start_life, crashed, watch)
 
 
 def load_catalog() -> dict[str, ReplayData]:
@@ -846,10 +911,10 @@ def main(argv: list[str] | None = None) -> int:
             ),
             "journal_rows_lack": (
                 "no mana verbs (D2 stays exempt), no SET_PT/MODIFY_PT/GRANT "
-                "rows (D5 fold sees counters only; unexplained diffs carry a "
-                "benign-layer note), no counter-removal rows (D3 removal side "
-                "exempt), no per-trigger fire counts (D6 drained = still-"
-                "attached-or-pending at end, window bounded by game end)"
+                "rows and no counter-removal rows (D5 judges only the deaths "
+                "the replay's Watch saw no P/T effect or removal on; D3's "
+                "removal side exempt), no per-trigger fire counts (D6 drained "
+                "= still pending at end past its window, which the Watch dates)"
             ),
         },
     }

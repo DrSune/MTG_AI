@@ -8,7 +8,7 @@
  ],
  "steps": [
   {"op": "enter", "key": "mine", "decisions": ["bottom"]},
-  {"op": "enter", "key": "theirs", "decisions": ["bottom"]}
+  {"op": "enter", "key": "theirs"}
  ],
  "expect": {
   "zone": {"mine": "battlefield", "theirs": "battlefield"},

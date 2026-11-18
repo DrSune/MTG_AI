@@ -9,7 +9,7 @@
  ],
  "mana": {"1": {"U": 1}},
  "steps": [
-  {"op": "cast", "key": "opt", "controller": 1, "decisions": ["first-legal", "first-legal"]}
+  {"op": "cast", "key": "opt", "controller": 1, "decisions": ["first-legal"]}
  ],
  "expect": {
   "zone": {"opt": "graveyard"},

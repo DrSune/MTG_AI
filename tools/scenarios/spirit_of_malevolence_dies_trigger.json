@@ -25,10 +25,7 @@
    "op": "deal_damage",
    "source": "bt",
    "target": "dv",
-   "amount": 5,
-   "decisions": [
-    "foe"
-   ]
+   "amount": 5
   }
  ],
  "expect": {

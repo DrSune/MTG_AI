@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"G": 1, "C": 4}},
  "steps": [
-  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true, "decisions": ["forest"]}
+  {"op": "cast", "key": "gfa", "real": "Grow from the Ashes", "kicked": true}
  ],
  "expect": {
   "zone": {"gfa": "graveyard", "forest": "battlefield", "hollow": "library"},

@@ -120,7 +120,6 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
 
 __all__ = [
     "ActivationOption",
-    "CastOption",
     "OptionChoice",
     "TargetSlot",
     "activation_target_slots",
@@ -129,7 +128,6 @@ __all__ = [
     "cast_mode_options",
     "choose_options",
     "legal_activations",
-    "legal_casts",
     "legal_search",
     "legal_targets",
     "modal_choose",
@@ -975,111 +973,6 @@ def _cast_effect_actionable(
 
 
 # ------------------------------------------------------------------ casting
-
-
-@dataclass(frozen=True)
-class CastOption:
-    """One row of the ``CAST``/``PLAY_LAND`` decision surface — the
-    SAME object ``legal_casts`` enumerates and ``stack.cast``/
-    ``stack.play_land`` re-check (query answer and legality oracle are one
-    computation, never two that can disagree).
-
-    Two shapes share this row type because they share the Slate field
-    (the CAST decision covers the land drop — both are "put a card
-    from hand into play", and BOTH must be enumerable on one
-    surface, or the model sees a hidden action):
-
-    * spell row — ``land=False``: the :class:`SpellAbility` node (IR
-      identity), the compiled 601.2f cost fold in ``payment``
-      (X enumerated at its documented 0-floor witness when the caller
-      passed no ``x``), and the handle;
-    * land row — ``land=True``: ``node=None, payment=None`` — a land has
-      no SpellAbility node and no cost (CR 305.1 special action), and
-      modelling it as ``payment=empty`` would pretend at a cost fold
-      that does not exist.
-
-    ``order_key``: rows sort Handle-first, spells and lands interleaved by
-    their card handle — the world's own object order, stable across
-    replays.
-
-    ``kicked`` (CR 601.2b): a card with a KickerAbility the
-    executor can price appears TWICE on the surface when both totals are
-    payable — the base row (``kicked=False``) and the kicked row
-    (``kicked=True``, its payment folded WITH the kicker cost). Rows sort
-    Handle-first, base before kicked (the CR's natural order: the cheaper
-    declaration first), so the surface enumerates every legal way to
-    cast without hiding the optional-cost action."""
-
-    handle: Handle
-    node: SpellAbility | None
-    land: bool
-    payment: PaymentPlan | None
-    kicked: bool = False
-
-    def order_key(self) -> tuple[Handle, int]:
-        return (self.handle, 1 if self.kicked else 0)
-
-
-def legal_casts(
-    world: GameWorld, executor: Executor, seat: Handle, *, x: int | None = None
-) -> list[CastOption]:
-    """Every card ``seat`` may put into play from hand RIGHT NOW — spells
-    via :func:`legality.spell_castable` (window + cost fold), lands via
-    :func:`stack.land_playable` (the CR 305.1 special action, its own
-    option SHAPE on the same surface — the land drop must not be a
-    hidden action). PURE: world read-only, no journal write, no rng —
-    pre-cast enumeration of the total cost (601.2f) is a QUERY, exactly
-    as ``legal_activations`` is; the cast itself RE-checks.
-
-    X handling (the X_VALUE field folded): with ``x=None`` a QX spell is
-    enumerated on the documented **X=0 witness** (a legal declaration, CR
-    107.1) so the row stays enumerable; pass ``x=k`` to ask "is it
-    castable declaring X=k" — the row's payment then folds {X}=k, and a
-    too-big k disappears the row (shortage reason, never a raise).
-
-    A cost the executor cannot check at all RAISES through the scan — the
-    loud-half convention of ``legal_activations``: a hole in the legality
-    oracle must crash the query, never silently shrink the option set."""
-    from MTG_bot.core.executor.stack import is_land_card, land_playable
-
-    rows: list[CastOption] = []
-    hand = world.players[seat].zone("hand").entries
-    for handle in sorted(hand):
-        if land_playable(executor, seat, handle) is None:
-            rows.append(CastOption(handle=handle, node=None, land=True, payment=None))
-            continue
-        if not is_land_card(world, handle):
-            reason, node, _record, plan = spell_castable(executor, seat, handle, x=x)
-            if reason is None and node is not None and plan is not None:
-                rows.append(
-                    CastOption(handle=handle, node=node, land=False, payment=plan)
-                )
-                # CR 601.2b: a priced kicker means the SAME card is
-                # legally castable two ways — enumerate the kicked row too
-                # when the total (printed + kicker) is payable. A card
-                # without a kicker yields no second row (honest reason
-                # from the fold, swallowed here exactly like an
-                # unaffordable base cast). An X-kicker rides this lane
-                # too — its kicked row folds {X} at the caller's x (the
-                # X=0 witness when none was passed), so an X-kicker shows
-                # BOTH rows even on a base-priced pool: the zero-floor
-                # kick is a legal declaration, and the priced-to-x kicked
-                # row disappears on shortage.
-                kreason, _kn, _kr, kplan = spell_castable(
-                    executor, seat, handle, x=x, kicked=True
-                )
-                if kreason is None and kplan is not None:
-                    rows.append(
-                        CastOption(
-                            handle=handle,
-                            node=node,
-                            land=False,
-                            payment=kplan,
-                            kicked=True,
-                        )
-                    )
-    rows.sort(key=CastOption.order_key)
-    return rows
 
 
 def filter_has_pred(filter_: object, pred: FAtomPred) -> bool:

@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"B": 1}},
  "steps": [
-  {"op": "cast", "key": "du", "real": "Duress", "controller": 0, "decisions": ["1"]}
+  {"op": "cast", "key": "du", "real": "Duress", "controller": 0}
  ],
  "expect": {
   "zone": {"du": "graveyard", "trick": "graveyard", "elf": "hand"},

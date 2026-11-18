@@ -53,10 +53,7 @@
    },
    "may": {
     "hunter": true
-   },
-   "decisions": [
-    "tok"
-   ]
+   }
   },
   {
    "op": "deal_damage",

@@ -10,6 +10,6 @@
  "steps": [
   {"op": "cast", "real": "Revitalize", "key": "rv1"},
   {"op": "cast", "real": "Revitalize", "key": "rv2"},
-  {"op": "cast", "real": "Shock", "key": "osh", "controller": 1, "decisions": ["player:0"]}
+  {"op": "cast", "real": "Shock", "key": "osh", "controller": 1, "targets": ["p0"]}
  ],
  "expect": {"zone": {"osh": "graveyard"}, "power": {"ms": 4}, "toughness": {"ms": 4}, "life": {"0": 24}}}

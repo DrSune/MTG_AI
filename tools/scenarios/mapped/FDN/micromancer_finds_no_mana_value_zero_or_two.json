@@ -10,7 +10,7 @@
   {"key": "spark", "name": "Lib Spark", "type": "Sorcery", "cmc": 1, "zone": "library", "controller": 0}
  ],
  "steps": [
-  {"op": "enter", "key": "micro", "decisions": ["fire", "zero"]}
+  {"op": "enter", "key": "micro", "decisions": ["fire"]}
  ],
  "expect": {
   "zone": {"micro": "battlefield", "spark": "hand", "zero": "library", "blast": "library"},

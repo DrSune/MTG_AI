@@ -80,8 +80,9 @@ Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds 
 printed text demands, so it FAILS today and passes once the bug is fixed; then it moves to
 `tools/scenarios/`, or is deleted when a regression test already covers it. Run them with
 `tools/run_scenarios.py --dir tools/scenarios/known_bugs`; they are outside the default sweep. The
-M20 mappers' repros, run against their draft trees, are in `tools/scenarios/known_bugs/2026-11-05/`
-(its README lists them and says how to run each). The 2026-11-18 triage of every entry below, with
+M20 mappers' 2026-11-05 repros are all fixed; the last folder (Cavalier of Dawn's "up to one" with
+none chosen, 215's K1) went in W0, its pack being
+`tools/scenarios/mapped/M20/cavalier_of_dawn_no_target_makes_no_golem.json`. The 2026-11-18 triage of every entry below, with
 its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repros are in
 `tools/scenarios/known_bugs/2026-11-18/`.
 
@@ -691,7 +692,8 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   - Since then B-50 (CR 400.7, f908287) and B-69 (two replacements on one event, a528b03) are
     fixed, and the M20 verified-pool soak found 0 detector hits in 300 games (/184 §12):
     re-measure on the castable pool before triaging.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F65):* re-measured: 300 verified-mode games per pool, 0 crashes; M20 0 hits; every M21 and FDN hit traced to a detector artefact (D5 folds counters across lives and ignores static and end-of-turn P/T; D6 counts a game that ended inside a delayed trigger's turn, and two copies of one replacement) or to an end-of-turn mandate record left on a dead card with no reachable effect. Detector fixes in W0; the record in W1.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F65):* re-measured: 300 verified-mode games per pool, 0 crashes; M20 0 hits; every M21 and FDN hit traced to a detector artefact (D5 folds counters across lives and ignores static and end-of-turn P/T; D6 counts a game that ended inside a delayed trigger's turn, and two copies of one replacement) or to an end-of-turn mandate record left on a dead card with no reachable effect. The record is W1's.
+  - *Detectors fixed 2026-11-18 (engine wave W0):* D5 judges a death by the printed P/T plus the counters of that life only (CR 400.7), and only where no P/T effect or counter removal touched it (the soak's `detectors.Watch` reads them from the ledger and the event log, which the journal does not carry); D6 (i) flags a delayed trigger that outlived its window, not one of the game's last turn; D6 (iii) counts one source's duplicate records, not two copies of one replacement (CR 616.1). The soak baseline with them (`reports/engine_wave_w0_2026-11-18/soak_*.json`, 300 games per pool): 0 crashes, and one hit class left, D6 (iv)'s mandate_block record (FDN seeds 50, 64), W1's.
 
 ---
 
@@ -1659,33 +1661,6 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Gates, probe, soak and the pack runner
 
-- **G3's draw-idiom rule is coarser than the executor's draw lane** (2026-11-18, verification
-  wave 6).
-  - `gates._draw_idiom` (`gates.py` ~646, used by the dead-role rule ~765) treats every
-    MOVE_ZONE from a library top into a hand as the draw idiom. But an ALL over a library's top is
-    a partition (`verbs.py` ~378-381) and skips the draw lane (~389-399), the only reader of
-    `destination.controller`. `selectors.move_destination` returns the owner for any
-    non-battlefield destination.
-  - So See the Truth keeps a critical survivor that plays byte-identically (`controller
-    YOU->OPPONENT` at `1/0/effect/steps/1/then_effect/args/destination/controller`). It is judged
-    OK by wave 6's blind verifier (`runs/verify_wave6_2026-11-18/verdicts/A/A04.json`), and it
-    stamps once the rule matches the executor's lane.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G1):* tooling; it holds See the Truth's stamp. Wave W0.
-- **A cast step with `"tap": true` reports "cannot pay" for any refusal** (2026-11-18, wave 6). A
-  window or timing refusal says the same, because `menu.cast_taps` returns None whenever
-  `spell_castable` fails. An `expect_raise: "cannot pay"` can therefore pass for the wrong reason:
-  pair each refusal with a positive control.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G2):* tooling. Wave W0.
-- **Pack-runner traps found by mapper wave 5** (2026-11-18):
-  - In a two-player pack, a player's loss (an empty library) silently skips the remaining steps,
-    so the pack can pass vacuously. Pin `"lost"` in multi-turn packs until the runner fails a
-    pack that ends early.
-  - A target slot with one legal candidate is never asked, so a decision word meant for it drifts
-    onto the next ask.
-  - A card key such as "p1" would shadow the player word.
-  - The notes of the top-level packs `chandra_heart_of_fire_branch01` and
-    `chandra_catalyst_recast_draw_journalled_once` are stale since round 13.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G3):* tooling under every wave's acceptance packs, so wave W0 comes first.
 - **The probe moves no two objects at once** (2026-11-13, ontology round R10). Since a zone change
   of several objects gathers, G3 offers the critical "each occurrence -> once per event" mutant on
   every per-object zone-change trigger over another object: 20 more verified trees (8 -> 28,
