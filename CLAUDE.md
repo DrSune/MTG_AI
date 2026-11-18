@@ -10,7 +10,8 @@ a replacement — read the real thing.
 `KNOWLEDGE/2026-11-06/187-handoff.md`); the owner chose outcome PPO as the learner and search at
 play time, with the distillation parked (DECISIONS D21).
 
-**Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22).
+**Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22). **Planning (2026-11-18):** `docs/PLAN_PLANNING.md` (how options reach the network, the planning
+puzzle suite, the ladder from measurement to the no-ceiling run, and the order beside the card work).
 
 **Running since 2026-11-17 23:13: r29, launch 2** (`KNOWLEDGE/2026-11-14/208`; §9 is the
 pre-launch record, §10 the failed launch 1). Launch 1 at 20:21 trained nothing, because a worker

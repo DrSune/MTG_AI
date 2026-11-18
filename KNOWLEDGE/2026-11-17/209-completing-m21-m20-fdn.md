@@ -340,3 +340,8 @@ census's rounds follow, renumbered.
   zone, and neither self-play nor Commander gives a player a sideboard (CR 400.11).
 - **Hare Apparent's deck rule is honoured by the deck builders** (CR 100.2a). The rulings agent
   applies both labels.
+
+**Amended 2026-11-18 (coordinator).** The folds of round 14 (I2 + I5 + I6) and round 15 (I3 + I4)
+now ride with the rounds whose cards need them. The rounds that complete M21 and M20 cards come
+first: B3, then B6, B4 + B12, B13 with I5, and on. Why, and at what cost:
+`docs/PLAN_PLANNING.md` §6.
