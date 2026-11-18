@@ -1,0 +1,352 @@
+compiler trees changed (33):
+   10E Platinum Angel
+   10E Rule of Law
+   10E Steel Golem
+   ELD Deafening Silence
+   FDN Giant Cindermaw
+   FDN Herald of Eternal Dawn
+   FDN Leyline Axe
+   IKO Drannith Magistrate
+   KHM Quakebringer
+   KHM Weathered Runestone
+   M10 Platinum Angel
+   M10 Silence
+   M11 Leyline of Anticipation
+   M11 Leyline of Punishment
+   M11 Leyline of Sanctity
+   M11 Leyline of Vitality
+   M11 Leyline of the Void
+   M11 Platinum Angel
+   M11 Silence
+   M14 Silence
+   M20 Grafdigger's Cage
+   M20 Leyline of Abundance
+   M20 Leyline of Anticipation
+   M20 Leyline of Combustion
+   M20 Leyline of Sanctity
+   M20 Leyline of the Void
+   M20 Rule of Law
+   M21 Nine Lives
+   THB Kunoros, Hound of Athreos
+   WAR Single Combat
+   WAR Tibalt, Rakish Instigator
+   ZNR Archon of Emeria
+   ZNR Roiling Vortex
+trees with records applied changed (33):
+   10E Platinum Angel compiler -> compiler unverified
+   10E Rule of Law compiler -> compiler unverified
+   10E Steel Golem compiler -> compiler unverified
+   ELD Deafening Silence compiler -> compiler unverified
+   FDN Giant Cindermaw needs-atom record -> record unverified
+   FDN Herald of Eternal Dawn compiler -> compiler unverified
+   FDN Leyline Axe compiler -> compiler unverified
+   IKO Drannith Magistrate compiler -> compiler unverified
+   KHM Quakebringer compiler -> compiler unverified
+   KHM Weathered Runestone compiler -> compiler unverified
+   M10 Platinum Angel compiler -> compiler unverified
+   M10 Silence compiler -> compiler unverified
+   M11 Leyline of Anticipation compiler -> compiler unverified
+   M11 Leyline of Punishment compiler -> compiler unverified
+   M11 Leyline of Sanctity compiler -> compiler unverified
+   M11 Leyline of Vitality compiler -> compiler unverified
+   M11 Leyline of the Void compiler -> compiler unverified
+   M11 Platinum Angel compiler -> compiler unverified
+   M11 Silence compiler -> compiler unverified
+   M14 Silence compiler -> compiler unverified
+   M20 Grafdigger's Cage needs-atom record -> record unverified
+   M20 Leyline of Abundance needs-atom record -> needs-atom record unverified
+   M20 Leyline of Anticipation needs-atom record -> needs-atom record unverified
+   M20 Leyline of Combustion needs-atom record -> needs-atom record unverified
+   M20 Leyline of Sanctity needs-atom record -> record unverified
+   M20 Leyline of the Void needs-atom record -> record unverified
+   M20 Rule of Law needs-atom record -> record unverified
+   M21 Nine Lives compiler -> compiler verified
+   THB Kunoros, Hound of Athreos compiler -> compiler unverified
+   WAR Single Combat compiler -> compiler unverified
+   WAR Tibalt, Rakish Instigator compiler -> compiler unverified
+   ZNR Archon of Emeria compiler -> compiler unverified
+   ZNR Roiling Vortex compiler -> compiler unverified
+compiler: fewer unparsed sentences (32):
+   10E Platinum Angel 1 -> 0
+   10E Rule of Law 1 -> 0
+   10E Steel Golem 1 -> 0
+   ELD Deafening Silence 1 -> 0
+   FDN Giant Cindermaw 1 -> 0
+   FDN Herald of Eternal Dawn 1 -> 0
+   FDN Leyline Axe 1 -> 0
+   IKO Drannith Magistrate 1 -> 0
+   KHM Quakebringer 4 -> 3
+   KHM Weathered Runestone 2 -> 0
+   M10 Platinum Angel 1 -> 0
+   M10 Silence 1 -> 0
+   M11 Leyline of Anticipation 2 -> 1
+   M11 Leyline of Punishment 3 -> 1
+   M11 Leyline of Sanctity 1 -> 0
+   M11 Leyline of Vitality 2 -> 1
+   M11 Leyline of the Void 2 -> 1
+   M11 Platinum Angel 1 -> 0
+   M11 Silence 1 -> 0
+   M14 Silence 1 -> 0
+   M20 Grafdigger's Cage 2 -> 0
+   M20 Leyline of Abundance 2 -> 1
+   M20 Leyline of Anticipation 2 -> 1
+   M20 Leyline of Combustion 2 -> 1
+   M20 Leyline of Sanctity 1 -> 0
+   M20 Leyline of the Void 2 -> 1
+   M20 Rule of Law 1 -> 0
+   THB Kunoros, Hound of Athreos 2 -> 0
+   WAR Single Combat 2 -> 1
+   WAR Tibalt, Rakish Instigator 2 -> 1
+   ZNR Archon of Emeria 2 -> 1
+   ZNR Roiling Vortex 3 -> 2
+compiler: newly compiling whole (19): [('10E', 'Platinum Angel'), ('10E', 'Rule of Law'), ('10E', 'Steel Golem'), ('ELD', 'Deafening Silence'), ('FDN', 'Giant Cindermaw'), ('FDN', 'Herald of Eternal Dawn'), ('FDN', 'Leyline Axe'), ('IKO', 'Drannith Magistrate'), ('KHM', 'Weathered Runestone'), ('M10', 'Platinum Angel'), ('M10', 'Silence'), ('M11', 'Leyline of Sanctity'), ('M11', 'Platinum Angel'), ('M11', 'Silence'), ('M14', 'Silence'), ('M20', "Grafdigger's Cage"), ('M20', 'Leyline of Sanctity'), ('M20', 'Rule of Law'), ('THB', 'Kunoros, Hound of Athreos')]
+verified cards leaving the verified pool (1): [('M21', 'Nine Lives')]
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (246):
+   10E Pacifism ['prevent-other']
+   10E Phantom Warrior ['prevent-other']
+   ELD Fabled Passage ['enter']
+   ELD Thornwood Falls ['gain-life']
+   ELD Wind-Scarred Crag ['gain-life']
+   FDN Ancestor Dragon ['gain-life']
+   FDN Angel of Vitality ['gain-life']
+   FDN Apothecary Stomper ['gain-life']
+   FDN Arbiter of Woe ['gain-life']
+   FDN Archway Angel ['gain-life']
+   FDN Bishop's Soldier ['gain-life']
+   FDN Bloodfell Caves ['gain-life']
+   FDN Blossoming Sands ['gain-life']
+   FDN Circuitous Route ['enter']
+   FDN Cloudblazer ['gain-life']
+   FDN Crossway Troublemakers ['gain-life']
+   FDN Dazzling Angel ['gain-life']
+   FDN Deadly Plot ['enter']
+   FDN Deadly Riposte ['gain-life']
+   FDN Diamond Mare ['gain-life']
+   FDN Dismal Backwater ['gain-life']
+   FDN Drogskol Reaver ['gain-life']
+   FDN Dwynen, Gilt-Leaf Daen ['gain-life']
+   FDN Evolving Wilds ['enter']
+   FDN Fake Your Own Death ['enter']
+   FDN Felidar Savior ['gain-life']
+   FDN Fleeting Flight ['prevent-other']
+   FDN Goblin Smuggler ['prevent-other']
+   FDN Grow from the Ashes ['enter']
+   FDN Guarded Heir ['gain-life']
+   FDN Healer's Hawk ['gain-life']
+   FDN Herald of Faith ['gain-life']
+   FDN Inspiring Overseer ['gain-life']
+   FDN Joust Through ['gain-life']
+   FDN Jungle Hollow ['gain-life']
+   FDN Linden, the Steadfast Queen ['gain-life']
+   FDN Mazemind Tome ['gain-life']
+   FDN Moment of Craving ['gain-life']
+   FDN Moment of Triumph ['gain-life']
+   FDN Nullpriest of Oblivion ['enter', 'gain-life']
+   FDN Pacifism ['prevent-other']
+   FDN Pelakka Wurm ['gain-life']
+   FDN Regal Caracal ['gain-life']
+   FDN Rise of the Dark Realms ['enter']
+   FDN Rugged Highlands ['gain-life']
+   FDN Scavenging Ooze ['gain-life']
+   FDN Scoured Barrens ['gain-life']
+   FDN Solemn Simulacrum ['enter']
+   FDN Sphinx of the Final Word ['prevent-other']
+   FDN Starlight Snare ['prevent-other']
+   FDN Swiftwater Cliffs ['gain-life']
+   FDN Tatyova, Benthic Druid ['gain-life']
+   FDN Thornwood Falls ['gain-life']
+   FDN Tranquil Cove ['gain-life']
+   FDN Unflinching Courage ['gain-life']
+   FDN Vampire Interloper ['prevent-other']
+   FDN Vampire Nighthawk ['gain-life']
+   FDN Vampire Spawn ['gain-life']
+   FDN Wardens of the Cycle ['gain-life']
+   FDN Wind-Scarred Crag ['gain-life']
+   FDN Zombify ['enter']
+   IKO Bloodfell Caves ['gain-life']
+   IKO Blossoming Sands ['gain-life']
+   IKO Bristling Boar ['prevent-other']
+   IKO Capture Sphere ['prevent-other']
+   IKO Dismal Backwater ['gain-life']
+   IKO Evolving Wilds ['enter']
+   IKO Frost Lynx ['prevent-other']
+   IKO Jungle Hollow ['gain-life']
+   IKO Pacifism ['prevent-other']
+   IKO Rugged Highlands ['gain-life']
+   IKO Scoured Barrens ['gain-life']
+   IKO Swiftwater Cliffs ['gain-life']
+   IKO Thornwood Falls ['gain-life']
+   IKO Tranquil Cove ['gain-life']
+   IKO Wind-Scarred Crag ['gain-life']
+   KHM Revitalize ['gain-life']
+   M10 Baneslayer Angel ['gain-life']
+   M10 Pacifism ['prevent-other']
+   M10 Phantom Warrior ['prevent-other']
+   M11 Baneslayer Angel ['gain-life']
+   M11 Cultivate ['enter']
+   M11 Pacifism ['prevent-other']
+   M12 Frost Breath ['prevent-other']
+   M12 Pacifism ['prevent-other']
+   M12 Solemn Simulacrum ['enter']
+   M12 Sorin's Thirst ['gain-life']
+   M12 Tectonic Rift ['prevent-other']
+   M13 Evolving Wilds ['enter']
+   M13 Pacifism ['prevent-other']
+   M13 Vampire Nighthawk ['gain-life']
+   M14 Frost Breath ['prevent-other']
+   M14 Pacifism ['prevent-other']
+   M14 Phantom Warrior ['prevent-other']
+   M14 Scavenging Ooze ['gain-life']
+   M14 Soulmender ['gain-life']
+   M15 Evolving Wilds ['enter']
+   M15 Frost Lynx ['prevent-other']
+   M15 Radiant Fountain ['gain-life']
+   M15 Soulmender ['gain-life']
+   M19 Bristling Boar ['prevent-other']
+   M19 Daybreak Chaplain ['gain-life']
+   M19 Diamond Mare ['gain-life']
+   M19 Frilled Sea Serpent ['prevent-other']
+   M19 Gift of Paradise ['gain-life']
+   M19 Gravewaker ['enter']
+   M19 Herald of Faith ['gain-life']
+   M19 Pelakka Wurm ['gain-life']
+   M19 Revitalize ['gain-life']
+   M19 Tectonic Rift ['prevent-other']
+   M20 Aerial Assault ['gain-life']
+   M20 Agonizing Syphon ['gain-life']
+   M20 Ajani, Inspiring Leader ['gain-life']
+   M20 Ajani, Strength of the Pride ['gain-life']
+   M20 Angel of Vitality ['gain-life']
+   M20 Bishop of Wings ['gain-life']
+   M20 Blightbeetle ['prevent-other']
+   M20 Blood Burglar ['gain-life']
+   M20 Blood for Bones ['enter']
+   M20 Bloodfell Caves ['gain-life']
+   M20 Blossoming Sands ['gain-life']
+   M20 Bristling Boar ['prevent-other']
+   M20 Brought Back ['enter']
+   M20 Cavalier of Night ['enter', 'gain-life']
+   M20 Cavalier of Thorns ['enter']
+   M20 Dawning Angel ['gain-life']
+   M20 Daybreak Chaplain ['gain-life']
+   M20 Dismal Backwater ['gain-life']
+   M20 Dread Presence ['gain-life']
+   M20 Elvish Reclaimer ['enter']
+   M20 Evolving Wilds ['enter']
+   M20 Frilled Sea Serpent ['prevent-other']
+   M20 Frost Lynx ['prevent-other']
+   M20 Fry ['prevent-other']
+   M20 Gift of Paradise ['gain-life']
+   M20 Goblin Smuggler ['prevent-other']
+   M20 Golos, Tireless Pilgrim ['cast', 'enter']
+   M20 Gravewaker ['enter']
+   M20 Healer of the Glade ['gain-life']
+   M20 Impassioned Orator ['gain-life']
+   M20 Jungle Hollow ['gain-life']
+   M20 Maniacal Rage ['prevent-other']
+   M20 Manifold Key ['prevent-other']
+   M20 Moldervine Reclamation ['gain-life']
+   M20 Moment of Heroism ['gain-life']
+   M20 Mystic Forge ['cast']
+   M20 Natural End ['gain-life']
+   M20 Noxious Grasp ['gain-life']
+   M20 Overgrowth Elemental ['gain-life']
+   M20 Pacifism ['prevent-other']
+   M20 Phantom Warrior ['prevent-other']
+   M20 Pulse of Murasa ['gain-life']
+   M20 Risen Reef ['enter']
+   M20 Rugged Highlands ['gain-life']
+   M20 Savannah Sage ['gain-life']
+   M20 Scoured Barrens ['gain-life']
+   M20 Shifting Ceratops ['prevent-other']
+   M20 Sleep Paralysis ['prevent-other']
+   M20 Sorin's Thirst ['gain-life']
+   M20 Sorin, Imperious Bloodlord ['enter', 'gain-life']
+   M20 Sorin, Vampire Lord ['gain-life']
+   M20 Soulmender ['gain-life']
+   M20 Swiftwater Cliffs ['gain-life']
+   M20 Tectonic Rift ['prevent-other']
+   M20 Thornwood Falls ['gain-life']
+   M20 Thought Distortion ['prevent-other']
+   M20 Tomebound Lich ['gain-life']
+   M20 Tranquil Cove ['gain-life']
+   M20 Vampire Opportunist ['gain-life']
+   M20 Vampire of the Dire Moon ['gain-life']
+   M20 Veil of Summer ['prevent-other']
+   M20 Wind-Scarred Crag ['gain-life']
+   M20 Wolfrider's Saddle ['prevent-other']
+   M21 Alchemist's Gift ['gain-life']
+   M21 Anointed Chorister ['gain-life']
+   M21 Archfiend's Vessel ['gain-life']
+   M21 Aven Gagglemaster ['gain-life']
+   M21 Baneslayer Angel ['gain-life']
+   M21 Basri's Acolyte ['gain-life']
+   M21 Blood Glutton ['gain-life']
+   M21 Bloodfell Caves ['gain-life']
+   M21 Blossoming Sands ['gain-life']
+   M21 Canopy Stalker ['gain-life']
+   M21 Capture Sphere ['prevent-other']
+   M21 Chandra, Flame's Catalyst ['cast']
+   M21 Chandra, Heart of Fire ['cast']
+   M21 Conclave Mentor ['gain-life']
+   M21 Cultivate ['enter']
+   M21 Demonic Embrace ['cast']
+   M21 Destructive Tampering ['prevent-other']
+   M21 Dismal Backwater ['gain-life']
+   M21 Elder Gargaroth ['gain-life']
+   M21 Enthralling Hold ['prevent-other']
+   M21 Fabled Passage ['enter']
+   M21 Faith's Fetters ['gain-life', 'prevent-other']
+   M21 Frost Breath ['prevent-other']
+   M21 Gadrak, the Crown-Scourge ['prevent-other']
+   M21 Garruk, Unleashed ['enter']
+   M21 Ghostly Pilferer ['prevent-other']
+   M21 Gloom Sower ['gain-life']
+   M21 Hooded Blightfang ['gain-life']
+   M21 Idol of Endurance ['cast']
+   M21 Indulging Patrician ['gain-life']
+   M21 Jungle Hollow ['gain-life']
+   M21 Life Goes On ['gain-life']
+   M21 Liliana, Waker of the Dead ['enter']
+   M21 Mangara, the Diplomat ['gain-life']
+   M21 Mazemind Tome ['gain-life']
+   M21 Niambi, Esteemed Speaker ['gain-life']
+   M21 Obsessive Stitcher ['enter']
+   M21 Pack Leader ['prevent-other']
+   M21 Pursued Whale ['prevent-other']
+   M21 Radha, Heart of Keld ['cast']
+   M21 Radiant Fountain ['gain-life']
+   M21 Revitalize ['gain-life']
+   M21 Rin and Seri, Inseparable ['gain-life']
+   M21 Rise Again ['enter']
+   M21 Rugged Highlands ['gain-life']
+   M21 Sanctum of All ['enter']
+   M21 Sanctum of Stone Fangs ['gain-life']
+   M21 Scavenging Ooze ['gain-life']
+   M21 Scoured Barrens ['gain-life']
+   M21 Shacklegeist ['prevent-other']
+   M21 Sigiled Contender ['gain-life']
+   M21 Silversmote Ghoul ['enter']
+   M21 Solemn Simulacrum ['enter']
+   M21 Speaker of the Heavens ['gain-life']
+   M21 Spirit of Malevolence ['gain-life']
+   M21 Sporeweb Weaver ['gain-life']
+   M21 Subira, Tulzidi Caravanner ['prevent-other']
+   M21 Swiftwater Cliffs ['gain-life']
+   M21 Tavern Swindler ['gain-life']
+   M21 Teferi, Timeless Voyager ['prevent-other']
+   M21 Thornwood Falls ['gain-life']
+   M21 Tome Anima ['prevent-other']
+   M21 Tranquil Cove ['gain-life']
+   M21 Transmogrify ['enter']
+   M21 Trufflesnout ['gain-life']
+   M21 Ugin, the Spirit Dragon ['enter', 'gain-life']
+   M21 Vito, Thorn of the Dusk Rose ['gain-life']
+   M21 Wind-Scarred Crag ['gain-life']
+   M21 Witch's Cauldron ['gain-life']
+   ORI Evolving Wilds ['enter']
+   WAR Sorin's Thirst ['gain-life']
+   WAR Vampire Opportunist ['gain-life']
+   ZNR Nullpriest of Oblivion ['enter', 'gain-life']
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '261->261', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '286->286', 'M21': '280->279', 'ORI': '23->23', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}

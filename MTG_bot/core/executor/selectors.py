@@ -471,6 +471,10 @@ def _emit_partition_journal(
 # NON-skippable by construction.
 _TARGET_BINDING_MSG = "executor: 'target' referent has no target binding"
 
+# The resolution-time picks: the modes in which a player chooses cards as the effect resolves
+# (CR 608.2d), which :func:`resolve_selector`'s ``possible`` narrows.
+_PICKS = (SelectorMode.CHOOSE, SelectorMode.ONE_OF)
+
 
 def _no_register_msg(referent: str) -> str:
     return (
@@ -578,6 +582,7 @@ def resolve_selector(
     sacrifice: bool = False,
     search: bool = False,
     info: bool = False,
+    possible: Callable[[Handle], bool] | None = None,
 ) -> list[Handle]:
     """A Selector IR -> concrete handles.
 
@@ -634,6 +639,17 @@ def resolve_selector(
     ``sacrifice:<seat>:<source>:<digest>`` key. Every other CHOOSE is the
     effect's controller's pick (CR 608.2d), which inside EachPlayer is the
     rotated player.
+
+    ``possible``: can the move a resolution pick feeds happen for this card
+    (``verbs._possible_entries``: a card a prohibition keeps off the
+    battlefield, Grafdigger's Cage)? The player can't choose an impossible
+    option (CR 608.2d), so a CHOOSE or ONE_OF offers only the cards it holds
+    for, and one with none left asks nothing and chooses nothing (CR 101.3:
+    Blood for Bones' "return a creature card from your graveyard to the
+    battlefield" under the Cage, whose "another creature card" then picks
+    from them all). Never a TARGET designation (chosen on cast, CR 601.2c:
+    its move just doesn't happen), a referent (bound, never chosen) or an
+    ALL, RANDOM or REST, which choose nothing.
     """
     partition_window: list[Handle] | None = None
     if sel.referent is not None:
@@ -739,6 +755,12 @@ def resolve_selector(
         # The triggering event's object, or every object a gathered event names
         # ("they", ability_tree.gathers_objects): bound, never chosen, so no count slices it.
         return candidates
+    if possible is not None and sel.referent is None and sel.mode in _PICKS:
+        # CR 608.2d: the player can't choose an option that's impossible. A card the pick's move
+        # can't happen for is no option, so a pick with none left asks nothing and chooses
+        # nothing (CR 101.3). The window a REST reads was stashed above, so the cards left out
+        # go with the rest.
+        candidates = [h for h in candidates if possible(h)]
 
     # The CAST-lane predicate arrives as ``ok``; the three clamp shapes are
     # the docstring's. A POPULATION clamp consumes the WHOLE population
@@ -783,7 +805,7 @@ def resolve_selector(
                     executor,
                     ctx.source,
                     "finite CAST head cannot execute: "
-                    + cast_refusal_note(executor, bad),
+                    + cast_refusal_note(executor, bad, ctx.controller),
                 )
                 candidates = []
             # Clean head: leave the RAW population to the mode fold
@@ -927,7 +949,7 @@ def resolve_selector(
                     executor,
                     ctx.source,
                     "CAST TARGET designation left the legal set: "
-                    + cast_refusal_note(executor, dropped),
+                    + cast_refusal_note(executor, dropped, ctx.controller),
                 )
         if any(z.kind is ZoneKind.PLAYER for z in sel.zones):
             # A CARD designation on a PLAYER-SIDE designation (∃ over the

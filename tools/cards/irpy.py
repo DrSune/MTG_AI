@@ -40,7 +40,7 @@ def namespace() -> dict[str, Any]:
     # form, and the two count forms, so a draft cannot spell a second encoding of them.
     for builder in (at.at_least, at.at_most, at.number_you_control, at.number_in):
         ns[builder.__name__] = builder
-    # The reveals' builders (DESIGN_ATOM_ONTOLOGY §19): a whole hand, and "reveal it|them".
+    # The reveals' builders (DESIGN_ATOM_ONTOLOGY §20): a whole hand, and "reveal it|them".
     for builder in (at.reveal_hand, at.reveal_result):
         ns[builder.__name__] = builder
     ns["RESULT_REFERENT"] = at.RESULT_REFERENT

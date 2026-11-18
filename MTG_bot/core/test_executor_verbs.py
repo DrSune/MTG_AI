@@ -855,7 +855,7 @@ class TestManaScryShuffleLook(ExecutorCase):
         self.assertEqual(ev1[0][1], "LOOK_AT")
         self.assertEqual(ev2[0][1], "REVEAL")
         # one row per look: its cards by owner and zone, to whom, and what they are: a library's
-        # top (DESIGN_ATOM_ONTOLOGY §19)
+        # top (DESIGN_ATOM_ONTOLOGY §20)
         self.assertEqual(ev1[0][2:], (((str(self.p0), ZONE_LIBRARY, (str(self.libs[3]), str(self.libs[2]))),),
                                       str(self.p0), "top"))
         self.assertEqual(self.world.fingerprint(), fp)  # no state touched

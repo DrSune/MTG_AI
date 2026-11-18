@@ -937,7 +937,7 @@ def reveal_one_from_among(pick_filter: Filter) -> OptionalEffect:
     the pick is exactly ONE_OF (Garruk's Harbinger; Icon of Ancestry's "of the chosen type",
     B17). The reveal shows the card picked, so it reads the move's ``result`` after it: nothing
     happens between the two (no priority, no choice), and a reveal before the pick could only
-    name the look's first cards, whatever was picked (DESIGN_ATOM_ONTOLOGY §19)."""
+    name the look's first cards, whatever was picked (DESIGN_ATOM_ONTOLOGY §20)."""
     pool = Zone(
         kind=ZoneKind.LIBRARY,
         controller=ControllerRef.YOU,

@@ -452,7 +452,7 @@ class TestL5NoBlindDraw(LibraryProbe):
                     self.world.players[self.p0].zone(ZONE_LIBRARY).entries
                 )
                 # the search and its tail, every step but the SHUFFLE, as one resolution: "reveal
-                # it" reads the card the search found (its `result`, DESIGN_ATOM_ONTOLOGY §19)
+                # it" reads the card the search found (its `result`, DESIGN_ATOM_ONTOLOGY §20)
                 run = [
                     from_dict("Atom", s) if s.get("tag") == "Atom" else from_dict("Effect", s)
                     for s in steps

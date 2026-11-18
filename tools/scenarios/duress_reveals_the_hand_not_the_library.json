@@ -1,6 +1,6 @@
 {"set": "M21",
  "world": {"life": 20, "seed": 7},
- "notes": "Duress (CR 701.20a). Printed: 'Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card.' The reveal shows seat 1's hand (Shock and a Bear), never seat 1's library (Forest). On main 0b7f9c22 the reveal's record listed seat 1's whole library (a count 'QUnbounded' read the library), so a memory reading it would know the opponent's library. Gate round W3, DESIGN_ATOM_ONTOLOGY §19.",
+ "notes": "Duress (CR 701.20a). Printed: 'Target opponent reveals their hand. You choose a noncreature, nonland card from it. That player discards that card.' The reveal shows seat 1's hand (Shock and a Bear), never seat 1's library (Forest). On main 0b7f9c22 the reveal's record listed seat 1's whole library (a count 'QUnbounded' read the library), so a memory reading it would know the opponent's library. Gate round W3, DESIGN_ATOM_ONTOLOGY §20.",
  "cards": [
   {"key": "duress", "real": "Duress", "zone": "hand", "controller": 0},
   {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1},

@@ -1,6 +1,6 @@
 """Per checkout: every card of the 19 sets with its compiler tree sha, its tree with card records
 applied (verified or not), whether that tree is the verified one, and the facts gate round W3's
-engine changes read (DESIGN_ATOM_ONTOLOGY §19). Run from each checkout; diff the two JSON files
+engine changes read (DESIGN_ATOM_ONTOLOGY §20). Run from each checkout; diff the two JSON files
 with tree_diff.py (round B3's, unchanged).
 
     tree_dump.py <checkout> <out.json>

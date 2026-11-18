@@ -4,7 +4,7 @@
 The drafts are each record's STORED tree, rendered under main by render_records.py (a record's
 ``mapping.draft_py`` can be older than its tree: Brightwood Tracker's predates its "in a random
 order"), with each reveal patched into its one encoding by patch_drafts.py (DESIGN_ATOM_ONTOLOGY
-§19). Yarok, the Desecrated's needs-atom record becomes the compiler's tree (the new extra-trigger
+§20). Yarok, the Desecrated's needs-atom record becomes the compiler's tree (the new extra-trigger
 template). M19 Vivien Reid, a reprint record with no mapping of its own, takes FDN's clauses.
 
     remap_records.py <drafts dir> [card name...]
@@ -19,7 +19,7 @@ sys.path[:0] = [str(REPO), str(REPO / "tools" / "cards")]
 import cardtool  # noqa: E402
 
 DRAFTS = Path(sys.argv[1])
-NOTE = ("Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: {what}. "
+NOTE = ("Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §20) from the stored tree: {what}. "
         "Nothing else changed.")
 HAND = "the reveal names the hand, reveal_hand(TARGET_OPPONENT)"
 FOUND = "\"reveal it|them\" is reveal_result(), the cards the search found"

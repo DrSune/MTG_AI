@@ -177,7 +177,7 @@ def test_a_true_world_reshuffles_both_libraries_whole() -> None:
     """A true world (the audit's) and the labeller's second future keep the deal's cards and
     shuffle both libraries whole, the same way for one seed, whatever the rows say a player saw.
     The seen rows are true since ontology round W3 (a scry's cards for the scryer, a reveal's for
-    all: DESIGN_ATOM_ONTOLOGY §19), but no memory reads them yet; the old rows were not, and
+    all: DESIGN_ATOM_ONTOLOGY §20), but no memory reads them yet; the old rows were not, and
     reading them as if they were kept unseen cards in place, often the next draw
     (KNOWLEDGE/2026-11-12/197)."""
     supply = get_supply("castable")

@@ -1832,11 +1832,32 @@ class Executor:
             losers.extend(h for h in cards if str(h) != kept)
         return sorted(losers)
 
+    def prohibited_outcome(self, player: Handle, *, won: bool) -> bool:
+        """Can't ``player`` lose (``won`` False) or win the game now? A live "can't lose the
+        game" / "can't win the game" prohibition (``ReplacementRegistry.prevents_game_outcome``,
+        CR 101.2)."""
+        return self.replacements.prevents_game_outcome(player, won=won)
+
+    def lose(self, player: Handle, cause: str, why: str, *, by_win: bool = False) -> bool:
+        """``player`` loses the game, the one place a loss is recorded: it joins
+        ``lost_players`` with a GAME_LOST row (cause, why), unless it already lost or, for a loss
+        of its own (a state-based action, CR 704.5a-b; a LOSE_GAME effect, 104.3e), it can't lose
+        (:meth:`prohibited_outcome`). ``by_win``: an opponent won (WIN_GAME, 104.2b), which no
+        "can't lose" stops. True when the player lost."""
+        if player in self.lost_players or (
+            not by_win and self.prohibited_outcome(player, won=False)
+        ):
+            return False
+        self.lost_players.append(player)
+        self.journal.emit(KIND_GAME_LOST, player, None, cause, (why,))
+        return True
+
     def _player_losses(self) -> None:
         """The player-loss state-based actions, the first lane of every check
         (CR 704.3): a player with 0 or less life (704.5a), or who attempted to
-        draw from an empty library since the last check (704.5b), loses. Each
-        loser joins ``lost_players`` with a GAME_LOST row saying why. When at
+        draw from an empty library since the last check (704.5b), loses, unless
+        they can't (:meth:`lose`). Each loser joins ``lost_players`` with a
+        GAME_LOST row saying why. When at
         most one player is left, the game is over (CR 104.2a; everyone at
         once is a draw, 104.4a) and :class:`GameOver` ends it at this check.
         A LOSE_GAME effect ended a two-player game when it resolved, so nobody
@@ -1845,14 +1866,17 @@ class Executor:
         remaining = [p for p in players if p not in self.lost_players]
         if len(remaining) > 1:
             for player in remaining:
+                # B4's poison (704.5c) is the next reason here, behind the same prohibition
                 if self.world.players[player].life <= 0:
                     why = "LIFE"
                 elif player in self.drew_from_empty:
                     why = "EMPTY_LIBRARY"
                 else:
                     continue
-                self.lost_players.append(player)
-                self.journal.emit(KIND_GAME_LOST, player, None, "STATE_CHECK", (why,))
+                # a player who can't lose stays in at 0 life and loses at the first check after
+                # the prohibition ends (Platinum Angel's ruling); a draw from an empty library is
+                # judged once, "since the last check" (704.5b)
+                self.lose(player, "STATE_CHECK", why)
         self.drew_from_empty.clear()
         if self.lost_players and sum(p not in self.lost_players for p in players) <= 1:
             raise GameOver(", ".join(str(p) for p in self.lost_players))

@@ -4,9 +4,278 @@
  "oracle_id": "753cb2b2-24ce-484f-a2d0-be6fd2c67ebd",
  "name": "Grafdigger's Cage",
  "text_sha": "fea8c1b7b941c14c73e83aa212c16b7ec12ee64943446fac21e00858eaf99c84",
- "needs_atom": {
-  "missing": "Two 'can't' prohibitions with no node or engine lane. (1) 'Creature cards in graveyards and libraries can't enter the battlefield.' needs a prohibition on a ZONE CHANGE (graveyard or library -> battlefield, creature cards, any controller): PREVENT_EFFECT over ZoneChangeEvent is accepted by the IR but nothing consumes it (executor/verbs.py _v_prevent registers it; replacements.py's prevention consumers cover damage, life gain, draw, counters, dies, untap, attack/block declaration and activation only), and ZoneChangeEvent.from_zone holds one zone, so 'graveyards and libraries' needs a zone set or two nodes. A ReplacementAbility has no 'do nothing' action. (2) 'Players can't cast spells from graveyards or libraries.' needs a cast prohibition by origin zone: no consumer in legality.py reads a PREVENT_EFFECT over CastSpellEvent(from_zone=...). Written as PREVENT_EFFECT statics, the card would silently do nothing. No compiled precedent in the 19 sets for either sentence.",
-  "author": "claude-mapper-m20-3",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "ZoneChangeEvent",
+           "from_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           },
+           "to_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           },
+           "subject": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAtom",
+           "pred": {
+            "tag": "FAtomPred",
+            "name": "TYPE_EQ"
+           },
+           "string_value": "Creature",
+           "color": null,
+           "colors": [],
+           "count": null,
+           "counter_kind": null,
+           "keyword": null,
+           "who": null,
+           "inner_filter": null
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "ZoneChangeEvent",
+           "from_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           },
+           "to_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           },
+           "subject": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Seq",
+     "steps": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAnd",
+           "children": []
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "CastSpellEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "from_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "GRAVEYARD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "PREVENT_EFFECT"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "condition",
+          {
+           "tag": "FAnd",
+           "children": []
+          }
+         ],
+         [
+          "event",
+          {
+           "tag": "CastSpellEvent",
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "from_zone": {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "LIBRARY"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ARTIFACT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "ontology-b12",
+  "date": "2026-11-18",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Creature cards in graveyards and libraries can't enter the battlefield.",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Players can't cast spells from graveyards or libraries.",
+    "ir": "abilities[1]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "d81ed4304a6892ac436a61b17e9d32bc96bcaa30d246d7c5800b87a88c4487aa"
  }
 }

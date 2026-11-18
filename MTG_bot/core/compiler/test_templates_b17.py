@@ -159,7 +159,7 @@ def test_the_reveal_is_garruks_harbingers_with_the_chosen_type(registry) -> None
     harbinger = only(registry, "You may reveal a creature card or Garruk planeswalker card from "
                                "among them and put it into your hand.").outcome.effect
     assert isinstance(effect, OptionalEffect) and isinstance(harbinger, OptionalEffect)
-    # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §19)
+    # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §20)
     (move, reveal), (h_move, h_reveal) = effect.inner.steps, harbinger.inner.steps
     assert reveal == h_reveal == reveal_result()
     assert move.args.get("cards").filter == FAnd(children=(CREATURE, TYPE))

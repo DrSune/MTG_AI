@@ -1,7 +1,7 @@
 {
  "name": "leyline_of_sanctity_you_have_hexproof",
  "set": "M20",
- "note": "Leyline of Sanctity: 'You have hexproof.' (CR 702.11c: you can't be the target of spells or abilities your opponents control). With the Leyline on P0's battlefield, P1's Duress ('Target opponent reveals their hand...') has no legal target, so it can't be cast (CR 601.2c); P1's Mind Rot ('Target player discards two cards.') can still target P1 itself, and does. The Leyline's opening-hand sentence is still needs-atom, so the pack puts it on the battlefield. Red before 2026-11-13: 'You have hexproof.' did not compile and player hexproof was never read, so Duress took P0's instant.",
+ "note": "Leyline of Sanctity: 'You have hexproof.' (CR 702.11c: you can't be the target of spells or abilities your opponents control). With the Leyline on P0's battlefield, P1's Duress ('Target opponent reveals their hand...') has no legal target, so it can't be cast (CR 601.2c); P1's Mind Rot ('Target player discards two cards.') can still target P1 itself, and does. The pack puts the Leyline on the battlefield (its opening-hand sentence compiles since round B12: mapped/M20/leyline_of_sanctity_from_the_opening_hand_stops_duress begins the game with it there). Red before 2026-11-13: 'You have hexproof.' did not compile and player hexproof was never read, so Duress took P0's instant.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "leyline", "real": "Leyline of Sanctity", "zone": "battlefield", "controller": 0},

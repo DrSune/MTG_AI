@@ -769,7 +769,7 @@ YOUR_HAND = reveal_hand(ControllerRef.YOU).args.get("cards")
 def test_a_reveal_of_the_card_picked_is_dead() -> None:
     """Garruk's Harbinger: "look at that many cards ... You may reveal a creature card ... from
     among them and put it into your hand. Put the rest on the bottom." The reveal follows the
-    pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §19): it opens no window and writes
+    pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §20): it opens no window and writes
     ``result`` again with the same cards, which no Conditional here reads, so nothing that plays
     reads it, and its ``cards`` offers no mutant; revealing your hand instead plays the same
     game."""
@@ -796,7 +796,7 @@ WARSTEED_OPTION = "1/0/effect/inner/options/{}/steps/{}/args"
 
 def test_a_reveal_of_the_card_found_is_dead() -> None:
     """"Search your library and/or graveyard ... reveal it": each of the three searches is followed
-    by the reveal of its ``result`` (DESIGN_ATOM_ONTOLOGY §19), which no game state reads: no
+    by the reveal of its ``result`` (DESIGN_ATOM_ONTOLOGY §20), which no game state reads: no
     mutant of its ``cards``, and every option plays the same game when it reveals your hand
     instead. Each search stays live. No top-of-library reveal is left in the ability."""
     ws = _card("Garruk's Warsteed")

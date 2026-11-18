@@ -1,5 +1,5 @@
 """Patch rendered record drafts (render_records.py) into the one encoding of each reveal
-(DESIGN_ATOM_ONTOLOGY §19), REVEAL atom by REVEAL atom, nothing else touched:
+(DESIGN_ATOM_ONTOLOGY §20), REVEAL atom by REVEAL atom, nothing else touched:
 - "<player> reveals their hand" (a target player's REVEAL of count QUnbounded) is
   reveal_hand(<that player>);
 - "reveal a <card> from among them and put it into your hand" (a top-1 REVEAL after a LOOK_AT,
@@ -61,6 +61,6 @@ folder = Path(sys.argv[1])
 for stem in sys.argv[2:]:
     path = folder / f"{stem}.py"
     text, done = patch(path.read_text())
-    path.write_text("# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n"
+    path.write_text("# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §20): REVEAL names the cards it shows.\n"
                     + text)
     print(stem, done or "no reveal of the old forms (the compiler's tree supplies it)")

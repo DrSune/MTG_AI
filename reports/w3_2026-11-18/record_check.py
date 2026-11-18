@@ -1,6 +1,6 @@
 """Did gate round W3's re-map change only the reveals? For each card record that changed between
 two checkouts: its stored tree with every REVEAL atom taken out must be byte-equal on both
-sides, with as many REVEAL atoms on each (DESIGN_ATOM_ONTOLOGY §19: a reveal re-encoded, or moved
+sides, with as many REVEAL atoms on each (DESIGN_ATOM_ONTOLOGY §20: a reveal re-encoded, or moved
 after the move it reveals the pick of, and nothing else).
 
     record_check.py <base checkout> <branch checkout>

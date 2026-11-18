@@ -334,7 +334,7 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     card for any count >= 1, so it leaves count dead. Several REVEALs qualify when each sits in its
     own option of one "choose one" (a count-1 Choose: the executor runs exactly one option, so at
     most one REVEAL runs; query.choose_options reads no option's contents). A REVEAL of named
-    ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §19) is
+    ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §20) is
     no look here: it opens no window, and its outputs are its row and, for the cards found, the
     ``result`` register written again with the same cards, which only a bare Conditional after it
     reads as fresh. ``mutants`` holds its ``cards`` dead; no operator yields another valid

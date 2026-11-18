@@ -1,6 +1,6 @@
 """Re-baseline the M21 golden trees (MTG_bot/core/golden/M21) after gate round W3's template
 changes: the state triggers (Nine Lives, Mazemind Tome), the extra-trigger static (Sanctum of
-All) and the reveals that name their cards (DESIGN_ATOM_ONTOLOGY §19). A golden refresh is a full
+All) and the reveals that name their cards (DESIGN_ATOM_ONTOLOGY §20). A golden refresh is a full
 regenerate (golden.write_goldens); the diff it leaves is the round's M21 tree change.
 
     regen_goldens.py <checkout>

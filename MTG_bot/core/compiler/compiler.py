@@ -70,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     chosen_quality_fault,
     own_nodes,
     permission_fault,
+    prohibition_placement_fault,
     walk,
 )
 from MTG_bot.core.compiler.ingest import RawCard, split_sentences
@@ -2474,9 +2475,12 @@ def compile_card(
         )
     # The same for a read of a chosen quality that no choice of the card chooses (its "As this
     # enters, choose ..." sentence unparsed, or another kind of type chosen), and for a choice no
-    # compiled sentence reads, a phantom ask (CR 607.2d, ability_tree.chosen_quality_fault).
-    fault = chosen_quality_fault(keywords, tuple(abilities)) or permission_fault(
-        keywords, tuple(abilities)
+    # compiled sentence reads, a phantom ask (CR 607.2d, ability_tree.chosen_quality_fault). A
+    # permission or a prohibition standing where it means nothing is refused the same way.
+    fault = (
+        chosen_quality_fault(keywords, tuple(abilities))
+        or permission_fault(keywords, tuple(abilities))
+        or prohibition_placement_fault(keywords, tuple(abilities))
     )
     if fault is not None:
         raise StateCorruptionError(f"compile_card: {fault}", context={"card": raw.identity.name})

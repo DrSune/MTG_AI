@@ -911,7 +911,7 @@ def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
     """``Target opponent|player reveals their hand.`` (Duress, Kitesail Freebooter, Distress):
     REVEAL of ALL the cards of that player's hand (CR 701.20a), the hand zone of the designated
     player, as "exile target player's graveyard" names that graveyard (Tormod's Crypt). The
-    reveal shows that hand, never the library (DESIGN_ATOM_ONTOLOGY §19)."""
+    reveal shows that hand, never the library (DESIGN_ATOM_ONTOLOGY §20)."""
     who = ControllerRef.TARGET_OPPONENT if m.group(1) == "opponent" else ControllerRef.TARGET_PLAYER
     return EffectOutcome(effect=reveal_hand(who))
 

@@ -1,0 +1,44 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "CR 103.6, the Leylines' ruling: after the mulligans the starting player takes their opening-hand actions, then each other player in turn order. Seat 0 fires Leyline of Sanctity's 'you may begin the game with it on the battlefield', seat 1 declines Leyline of the Void's: one may ask each, in that order (asked the other way round, the Void would begin on the battlefield). Red on main eaedfc1b: no opening-hand step, the lane unknown.",
+ "cards": [
+  {
+   "key": "sanctity",
+   "real": "Leyline of Sanctity",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "void",
+   "real": "Leyline of the Void",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "opening_hand": [
+  "fire",
+  "skip"
+ ],
+ "steps": [],
+ "expect": {
+  "zone": {
+   "sanctity": "battlefield",
+   "void": "hand",
+   "shock": "hand"
+  },
+  "hand": {
+   "0": 0,
+   "1": 2
+  }
+ }
+}

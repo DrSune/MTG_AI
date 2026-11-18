@@ -1,4 +1,4 @@
-"""Gate round W3's census (DESIGN_ATOM_ONTOLOGY §19, §5's rows, NUMBERS.md): over the 19 sets'
+"""Gate round W3's census (DESIGN_ATOM_ONTOLOGY §20, §5's rows, NUMBERS.md): over the 19 sets'
 cards, card records applied (verified or not), every form the round registers or rewrote, with
 the card, its set and whether its tree is the verified one.
 

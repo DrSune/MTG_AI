@@ -1,0 +1,4 @@
+M21: deckable 279 (base) / 279 (branch); taken out: ['236e1f57-7ef5-455a-82a6-8ff6b85d8849']; games 200; identical digests 200; identical journals 200; identical event logs 200; lane rows (base, branch) {'prohibited': (0, 0), 'win': (0, 0), 'lose_effect': (0, 0), 'pregame_may': (0, 0)}; crashes 0 (base) / 0 (branch)
+M20: deckable 286 (base) / 286 (branch); taken out: []; games 200; identical digests 200; identical journals 200; identical event logs 200; lane rows (base, branch) {'prohibited': (0, 0), 'win': (0, 0), 'lose_effect': (0, 0), 'pregame_may': (0, 0)}; crashes 0 (base) / 0 (branch)
+FDN: deckable 261 (base) / 261 (branch); taken out: []; games 200; identical digests 200; identical journals 200; identical event logs 200; lane rows (base, branch) {'prohibited': (0, 0), 'win': (0, 0), 'lose_effect': (0, 0), 'pregame_may': (0, 0)}; crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 600

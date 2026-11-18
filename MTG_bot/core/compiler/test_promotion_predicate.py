@@ -52,7 +52,7 @@ HAND_PICK = 2
 # Fire's second SEARCH, its [-9] now one search over both zones, count 13 -> 11); Chandra, Heart of
 # Fire's two PERMITs read the result register (referent 37 -> 39) and Demonic Embrace's own
 # graveyard cast discards a card as an additional cost (cost 25 -> 26): total 146 -> 145.
-# 2026-11-18, ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19): "reveal it|them|those cards" is
+# 2026-11-18, ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §20): "reveal it|them|those cards" is
 # REVEAL of the `result` referent (C2's CHOOSE form, bound, never asked), where the reveal read
 # the library's top: the five named tutors' three options each, Fierce Empath, Cultivate,
 # Alpine Houndmaster's two searches and Garruk's Harbinger's pick (referent 39 -> 59): total

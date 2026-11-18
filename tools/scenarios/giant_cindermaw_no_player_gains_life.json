@@ -1,0 +1,55 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "FDN Giant Cindermaw (round B12's B21-cant-gain-life; it compiles whole): 'Players can't gain life.' Moment of Triumph's 'Target creature gets +2/+2 until end of turn. You gain 2 life.' resolves, the pump happens and no life is gained (the ruling). Red on main eaedfc1b: the sentence did not parse.",
+ "cards": [
+  {
+   "key": "maw",
+   "real": "Giant Cindermaw",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "moment",
+   "real": "Moment of Triumph",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "moment",
+   "real": "Moment of Triumph",
+   "controller": 0,
+   "targets": [
+    "mine"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20
+  },
+  "power": {
+   "mine": 4
+  }
+ }
+}

@@ -1,6 +1,6 @@
 {"set": "M21",
  "world": {"life": 20, "seed": 7, "library_top": true},
- "notes": "Basri's Aegis (CR 701.20a). Printed: 'You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle.' Searching the graveyard alone (the option '2'), 'reveal it' shows the Basri found there, never the library's top card (Llanowar Visionary). No shuffle follows, so main 0b7f9c22's record, which read the library's top, told the opponent seat 0's next draw. Gate round W3, DESIGN_ATOM_ONTOLOGY §19.",
+ "notes": "Basri's Aegis (CR 701.20a). Printed: 'You may search your library and/or graveyard for a card named Basri, Devoted Paladin, reveal it, and put it into your hand. If you search your library this way, shuffle.' Searching the graveyard alone (the option '2'), 'reveal it' shows the Basri found there, never the library's top card (Llanowar Visionary). No shuffle follows, so main 0b7f9c22's record, which read the library's top, told the opponent seat 0's next draw. Gate round W3, DESIGN_ATOM_ONTOLOGY §20.",
  "cards": [
   {"key": "aegis", "real": "Basri's Aegis", "zone": "hand", "controller": 0},
   {"key": "basri", "real": "Basri, Devoted Paladin", "zone": "graveyard", "controller": 0},

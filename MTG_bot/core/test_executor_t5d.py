@@ -8,7 +8,7 @@ Rounding-policy (Peer "Round up each time.") and additional-trigger-count
   None the key is OMITTED from serialization (``_OMIT_IF_EMPTY``), so a
   tree without it keeps its golden bytes.
 * "That ability triggers an additional time" is a static ability (CR 603.2d,
-  DESIGN_ATOM_ONTOLOGY §19): ``TRIGGER_ADDITIONAL`` with the reusable {count}
+  DESIGN_ATOM_ONTOLOGY §20): ``TRIGGER_ADDITIONAL`` with the reusable {count}
   axis and its ``event``, an ``AbilityTriggerEvent`` whose filter is read over
   the triggering ability's SOURCE ("another Shrine you control" = SUBTYPE_EQ
   Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)); "while you control six or more

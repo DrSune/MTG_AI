@@ -5,8 +5,8 @@
  "name": "Leyline of Abundance",
  "text_sha": "0801eea5559c57b6f64254a6b3104492f94f234f67d84dd12934ead6cdf6252f",
  "needs_atom": {
-  "missing": "s1 'If this card is in your opening hand, you may begin the game with it on the battlefield.': no node for a pregame opening-hand action (CR 103.6); games.py deals the opening hand with no hook. s2 'Whenever you tap a creature for mana, add an additional {G}.': no event for 'tapped for mana' (AbilityActivatedEvent kinds are ANY/NON_MANA/LOYALTY, no MANA kind or {T}-in-cost test) and no triggered mana ability that resolves at once during payment (CR 605.1b).",
-  "author": "claude-mapper-m20-5",
-  "date": "2026-11-05"
+  "missing": "s2 'Whenever you tap a creature for mana, add an additional {G}.': no event for tapping a creature for mana (a mana ability of the creature with {T} in its cost, the ruling) and no triggered mana ability that resolves at once (CR 605.1b) (MANARIDER, round B11). s1, the opening-hand sentence, compiles since round B12 (B21-opening-hand: OpeningHandAbility, DESIGN_ATOM_ONTOLOGY §19); s3, the activated +1/+1 counters, compiles.",
+  "author": "ontology-b12",
+  "date": "2026-11-18"
  }
 }

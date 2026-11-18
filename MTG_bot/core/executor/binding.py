@@ -1365,7 +1365,19 @@ class TriggerBinder:
         """Does one CAST row's spell fit the node's spell description: its
         from-zone pair and its filter (the SPELL card is the row's subject)?"""
         caster, _ordinal, _kind, from_zone, _x, _kicked = event.cast
-        ctx = self._ctx(source, controller, event)
+        assert event.subject is not None  # the CAST row names the spell card
+        return self.spell_fits(
+            node, caster, event.subject, from_zone, self._ctx(source, controller, event)
+        )
+
+    def spell_fits(
+        self, node: CastSpellEvent, caster: Handle, spell: Handle, from_zone: str | None,
+        ctx: ExecCtx,
+    ) -> bool:
+        """Does a spell ``caster`` casts from ``from_zone`` fit the node's description: its
+        from-zone pair and its filter over the spell card? A trigger asks it of a CAST row
+        (:meth:`_cast_fits`), a prohibition of a cast about to begin (CR 601.3,
+        ``ReplacementRegistry.prevents_cast``)."""
         if node.from_zone is not None and not self._cast_zone_matches(
             node.from_zone, caster, from_zone, ctx
         ):
@@ -1374,10 +1386,23 @@ class TriggerBinder:
             node.from_zone_not, caster, from_zone, ctx
         ):
             return False
-        assert event.subject is not None  # the CAST row names the spell card
         # Gnarlback Rhino ("whenever you cast a spell that targets this creature"): TARGETS
         # reads the judged spell's own designation, its stack frame's (quantity._targets_of).
-        return eval_filter(node.filter, event.subject, ctx)
+        return eval_filter(node.filter, spell, ctx)
+
+    def casts_this_turn(
+        self, node: CastSpellEvent, caster: Handle, source: Handle, controller: Handle
+    ) -> int:
+        """How many spells ``caster`` cast this turn that fit ``node``: every CAST row of the
+        turn's window, those made before the asking permanent arrived and those countered since
+        included (Rule of Law's rulings), each judged as :meth:`_fitting_cast_ordinal` judges
+        them."""
+        return sum(
+            1
+            for row in self.executor.journal.turn_window()
+            if row.kind == KIND_CAST and row.cast[0] == caster
+            and self._cast_fits(node, row, source, controller)
+        )
 
     def _fitting_cast_ordinal(
         self, node: CastSpellEvent, event: GameEvent, source: Handle, controller: Handle

@@ -1,4 +1,4 @@
-"""Ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) in the engine: state triggers (CR 603.8),
+"""Ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §20) in the engine: state triggers (CR 603.8),
 "that ability triggers an additional time" as a static (CR 603.2d), and the records of what a
 reveal, a look and a scry showed (CR 701.20a, 701.22a). Each test fails on main 0b7f9c22 (the
 note on each says how), except the controls, which pass on both and say so: a state that does
@@ -487,7 +487,7 @@ class TestReveals(unittest.TestCase):
 class TestSeenRows(unittest.TestCase):
     """The gate's MINOR-5: the rows a memory may read (``verbs.SEEN_VERBS``) each say who saw their
     cards and what the cards are; the other rows that name hidden cards (a SEARCH's, a MOVE's)
-    say neither and are no one's knowledge (DESIGN_ATOM_ONTOLOGY §19). Four seeded random games
+    say neither and are no one's knowledge (DESIGN_ATOM_ONTOLOGY §20). Four seeded random games
     of the "all" pools write every form today (M21 0: a scry and a found card's reveal; M21 3: a
     reveal of the top; M20 0: a hand; M20 3: a look). At 5a310010 the rows carried no form, on
     main no viewers either."""

@@ -1,4 +1,4 @@
-"""Ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19): the IR's three new forms and every form that
+"""Ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §20): the IR's three new forms and every form that
 must not validate.
 
 - A state trigger (CR 603.8) is ``TriggeredAbility(event=StateTrigger(filter))``, its state read

@@ -708,7 +708,7 @@ class TestB2aTriggerEvents(unittest.TestCase):
                 "When there are four or more page counters on this artifact, exile it.",
             )
         )
-        # A state trigger (CR 603.8, DESIGN_ATOM_ONTOLOGY §19): four or more page counters on the
+        # A state trigger (CR 603.8, DESIGN_ATOM_ONTOLOGY §20): four or more page counters on the
         # object with the ability, checked as players would receive priority, never re-read as
         # the ability resolves.
         self.assertEqual(
@@ -1550,7 +1550,7 @@ class TestB2aEffectStructure(unittest.TestCase):
                 "When this creature enters, target opponent reveals their hand.",
             )
         )
-        # the hand, every card of it (DESIGN_ATOM_ONTOLOGY §19): never the library
+        # the hand, every card of it (DESIGN_ATOM_ONTOLOGY §20): never the library
         self.assertEqual(_atom(ability), reveal_hand(ControllerRef.TARGET_OPPONENT))
 
     def test_aven_gagglemaster_gain_life_qbin_mul_flying(self) -> None:

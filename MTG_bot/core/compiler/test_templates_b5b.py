@@ -599,7 +599,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_80_templates(self) -> None:
         # 80 until ontology round R13 moved the spell's rider to templates_b19; 80 again since
-        # gate round W3's B5b-entering-extra-trigger (DESIGN_ATOM_ONTOLOGY §19)
+        # gate round W3's B5b-entering-extra-trigger (DESIGN_ATOM_ONTOLOGY §20)
         self.assertEqual(len(TEMPLATES), 80)
 
     def test_unique_tids(self) -> None:
@@ -1185,7 +1185,7 @@ class TestStructuralAssertions(unittest.TestCase):
 
     def test_reveal_hand(self) -> None:
         """B5b-reveal-hand: REVEAL of ALL the cards of the target opponent's hand
-        (DESIGN_ATOM_ONTOLOGY §19), never the library."""
+        (DESIGN_ATOM_ONTOLOGY §20), never the library."""
         outcome = self._match_outcome("B5b-reveal-hand")
         atom = _as_atom(_as_effect(outcome).effect)
         self.assertEqual(atom, reveal_hand(ControllerRef.TARGET_OPPONENT))

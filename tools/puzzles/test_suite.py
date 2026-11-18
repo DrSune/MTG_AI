@@ -17,7 +17,7 @@ NAMES = {p.stem for p in PATHS}
 #: Puzzles whose recorded solve took longer are checked from their record only.
 RESOLVE_SECONDS = 5.0
 #: Cards a gate round re-baked, out of the verified pool until they are re-verified: gate round
-#: W3 (DESIGN_ATOM_ONTOLOGY §19) re-mapped Chandra's Flame Wave's "reveal it" to the card found.
+#: W3 (DESIGN_ATOM_ONTOLOGY §20) re-mapped Chandra's Flame Wave's "reveal it" to the card found.
 #: A puzzle dealing one cannot be trusted meanwhile, so it is an expected failure, strict: the
 #: card's re-verification turns the test red until its entry goes (BACKLOG, "Scaffolds to
 #: remove").

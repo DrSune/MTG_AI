@@ -107,7 +107,7 @@
  "mapping": {
   "author": "claude-ontology-w3",
   "date": "2026-11-18",
-  "draft_py": "# M20 Yarok, the Desecrated: the compiler builds the whole card since ontology gate round W3\n# (DESIGN_ATOM_ONTOLOGY §19): Deathtouch and lifelink are compiled, and \"If a permanent entering\n# causes a triggered ability of a permanent you control to trigger, that ability triggers an\n# additional time.\" is B5b-entering-extra-trigger: a static TRIGGER_ADDITIONAL whose\n# AbilityTriggerEvent names the abilities of the permanents you control (CONTROLLER_IS YOU) and,\n# as its cause, the event they triggered on, a ZoneChangeEvent to the battlefield (CR 603.2d).\nabilities = compiled\n",
+  "draft_py": "# M20 Yarok, the Desecrated: the compiler builds the whole card since ontology gate round W3\n# (DESIGN_ATOM_ONTOLOGY §20): Deathtouch and lifelink are compiled, and \"If a permanent entering\n# causes a triggered ability of a permanent you control to trigger, that ability triggers an\n# additional time.\" is B5b-entering-extra-trigger: a static TRIGGER_ADDITIONAL whose\n# AbilityTriggerEvent names the abilities of the permanents you control (CONTROLLER_IS YOU) and,\n# as its cause, the event they triggered on, a ZoneChangeEvent to the battlefield (CR 603.2d).\nabilities = compiled\n",
   "clauses": [
    {
     "clause": "Deathtouch, lifelink",
@@ -119,7 +119,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: the needs-atom note's trigger-cause axis is AbilityTriggerEvent.cause; the compiler's tree (B5b-entering-extra-trigger), a static TRIGGER_ADDITIONAL. Nothing else changed."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §20) from the stored tree: the needs-atom note's trigger-cause axis is AbilityTriggerEvent.cause; the compiler's tree (B5b-entering-extra-trigger), a static TRIGGER_ADDITIONAL. Nothing else changed."
  },
  "probe": {
   "sha": "9686cd6010e001d48add97a8b4522b42271c1b5a6e36a65320cd4d7eb22375ca"

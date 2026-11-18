@@ -1,0 +1,46 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "The twin of grafdiggers_cage_gravewaker_returns_nothing, with no Cage: the creature card returns to the battlefield tapped.",
+ "cards": [
+  {
+   "key": "waker",
+   "real": "Gravewaker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dead",
+   "real": "Vampire of the Dire Moon",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "waker",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "dead"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dead": "battlefield"
+  },
+  "tapped": {
+   "dead": true
+  }
+ }
+}

@@ -4,9 +4,73 @@
  "oracle_id": "bd0c0e85-ff24-46c9-a547-4f633355c131",
  "name": "Giant Cindermaw",
  "text_sha": "73b6b447754227e27ab6f8876031b23274666bd0b03da13b8b686e1de7853c1c",
- "needs_atom": {
-  "missing": "Players can't gain life.: no node expresses a standing 'can't gain life' prohibition over a player set. PREVENT_EFFECT has no LifeGainedEvent lane (replacements.py prevention consumers cover damage, untap, attack and block declarations only); a ReplacementAbility on LifeGainedEvent needs a replacement action and the executor accepts only actor CONTROLLER_IS YOU (replacements.py:526 raises NotImplementedError otherwise), so 'Players' (every player, the controller's own drawback included) cannot be stated. Trample keyword is compiled correctly.",
-  "author": "claude-mapper-A",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "TRAMPLE"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "PREVENT_EFFECT"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "condition",
+        {
+         "tag": "FAnd",
+         "children": []
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "LifeGainedEvent"
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "ontology-b12",
+  "date": "2026-11-18",
+  "draft_py": "abilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "Trample",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "Players can't gain life.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": ""
+ },
+ "probe": {
+  "sha": "8a5174dddcdadb3b4a0cdd1fb96a2ee252f1c2cf3e765dfc1fcc8a5124ec63dc"
  }
 }

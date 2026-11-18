@@ -1429,7 +1429,7 @@ class TestB2bEffectStructure(unittest.TestCase):
         seq = _seq_inner(option)
         # "a card named A and/or a card named B" is at most one card of each name: one
         # up-to-one pick per name, each revealed after it ("reveal them": what each found,
-        # DESIGN_ATOM_ONTOLOGY §19).
+        # DESIGN_ATOM_ONTOLOGY §20).
         self.assertEqual(len(seq.steps), 5)
         # SEARCH x2, in printed order
         for idx, name in ((0, "Alpine Watchdog"), (2, "Igneous Cur")):
@@ -1813,7 +1813,7 @@ class TestB2bEffectStructure(unittest.TestCase):
             search.args.get("destination"),
             Zone(ZoneKind.HAND, ControllerRef.YOU),
         )
-        # "reveal it": the card the search found (DESIGN_ATOM_ONTOLOGY §19)
+        # "reveal it": the card the search found (DESIGN_ATOM_ONTOLOGY §20)
         self.assertEqual(_atom_step(seq, 1), reveal_result())
 
     def test_nine_lives_lose_game(self) -> None:

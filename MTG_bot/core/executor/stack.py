@@ -1178,6 +1178,10 @@ def cast_card(
     from MTG_bot.core.executor.legality import effect_cast_cost
 
     world = executor.world
+    if executor.replacements.prevents_cast(caster, handle):
+        # CR 601.3: a cast a rule or effect prohibits does not begin, an effect's included (the
+        # may-offer never offers one, query.cast_designee_ok; a bound designee reaches here)
+        return
     record = spell_record(executor, handle)
     if record is None:
         raise ValueError(

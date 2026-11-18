@@ -1118,7 +1118,7 @@ class TestB4IrStructure(unittest.TestCase):
         assert isinstance(dest, Zone)
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.YOU)
-        # REVEAL of the card found ("reveal it", DESIGN_ATOM_ONTOLOGY §19)
+        # REVEAL of the card found ("reveal it", DESIGN_ATOM_ONTOLOGY §20)
         self.assertEqual(reveal_atom, reveal_result())
 
     # ------------------------------------------------------------------
@@ -1272,7 +1272,7 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         opt = outcome.effect
         assert isinstance(opt, OptionalEffect)
         seq = _as_seq(opt.inner)
-        # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §19)
+        # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §20)
         move = _as_atom(seq.steps[0])
         self.assertIs(move.verb, Verb.MOVE_ZONE)
         self.assertEqual(seq.steps[1], reveal_result())

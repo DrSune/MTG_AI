@@ -44,7 +44,7 @@ are neutral; each one is teaching the agent something.
 | **r28's guard: stop the run at 1.80 mulligan declarations per learner seat (per game while every game had one; a 10-update mean), or at a 50-update heuristic win rate 0.05 under the first 50 updates'** (2026-11-12, KNOWLEDGE 199 §3) | `tools/selfplay/guard.py`, unit `mtg-r28-guard` | A safety rail on r27's runaway, not a learning signal: the network never sees it. Ends with r28; drop it once the mulligan's learning holds without it (R1 met to the read at 400). |
 | **The planner's vocabularies: when (A1, A2, A3, A4+, later this turn, their next turn, my next turn, the two turns after, later, never) and the window kinds (my main phase, my combat, in response to their spell, to their ability, their combat, another instant-speed point)** (2026-11-18, planner v1, DESIGN_PLANNER §6, §7) | `tools/selfplay/planner.py` `WHEN`, `WINDOWS`, `window`, `_when` | Hand-chosen discretisations of an observable future, not policy rules: A4+ is the last ordered use and "the two turns after" the last bounded turn, so a plan further out reads only "later", and a window outside the six kinds reads "other". They decide what a plan can say, and so what plan-following can make the policy carry out. Remove when a learned form reads plans at least as well on the puzzles and L: a distribution over the number of decisions or turns to the next use, and the window as the journal's own event kinds before the use (PLAN_PLANNING §5's "event before its use"). |
 | **The planner's side losses: `--plan-coef 0.05` (hindsight), `--follow-coef 0.1` and `--follow-share 0.25` (plan-following, each sampled decision weighted 1/share)** (2026-11-18, planner v1, DESIGN_PLANNER §6, §7) | `tools/selfplay/learner.py` (the flags), `tools/selfplay/ppo.py` `planner_terms` | Weights set by hand, not measured (the A/B that reads them is registered: DESIGN_PLANNER §5's arms C, P and P0, inside PLAN_LONG_RUN's multi-arm A/B; KNOWLEDGE 216 C8): the hindsight loss starts near 9.7 nats, so 0.05 puts it near the value loss's weight inside the clipped gradient; plan-following's 0.1 is near PPO's own terms. Too high, they pull the trunk from winning; too low, the forecasts are noise and the plan is not followed. The share only buys compute (the 1/share weight keeps the expectation). Remove when the weights are measured: the registered A/B over a small grid on the puzzle categories and L, or a learned balance of the terms' gradients; the hindsight target itself gives way to the search's best plan where the search runs (DESIGN_PLANNER §2, P3). |
-| **G3 holds a REVEAL's `cards` dead** (2026-11-18, ontology round W3, DESIGN_ATOM_ONTOLOGY §19) | `tools/cards/gates.py` `mutants`, `_reveal_dead_roles` | A reveal of named cards (a hand, or the cards found) opens no window; its row is its only other output (and, for the cards found, `result` written again with the same cards), and nothing that plays reads the rows, so a mutant of `cards` changes no game G3 can see. No operator yields another valid `cards` today (a hand's controller flip names no one player's hand, refused; the referent admits RESULT_REFERENT alone). A wrong `cards` therefore passes G3 and plays the same game: a false record memory v1 would read, so the verifier checks the `revealed` lane (the opponent's hand cards true, library cards false). The exemption is a gate's blind spot, not a rule. Remove when memory v1 reads the reveal rows (PLAN_NETWORK_READINESS J3/J4): then the row is an output, and G3 mutates `cards` and compares the rows; an operator that mutates a `result` reveal's `cards` before then must leave it live before a bare Conditional, which reads the register. |
+| **G3 holds a REVEAL's `cards` dead** (2026-11-18, ontology round W3, DESIGN_ATOM_ONTOLOGY §20) | `tools/cards/gates.py` `mutants`, `_reveal_dead_roles` | A reveal of named cards (a hand, or the cards found) opens no window; its row is its only other output (and, for the cards found, `result` written again with the same cards), and nothing that plays reads the rows, so a mutant of `cards` changes no game G3 can see. No operator yields another valid `cards` today (a hand's controller flip names no one player's hand, refused; the referent admits RESULT_REFERENT alone). A wrong `cards` therefore passes G3 and plays the same game: a false record memory v1 would read, so the verifier checks the `revealed` lane (the opponent's hand cards true, library cards false). The exemption is a gate's blind spot, not a rule. Remove when memory v1 reads the reveal rows (PLAN_NETWORK_READINESS J3/J4): then the row is an output, and G3 mutates `cards` and compares the rows; an operator that mutates a `result` reveal's `cards` before then must leave it live before a bare Conditional, which reads the register. |
 | **Puzzles that deal a card awaiting re-verification are strict expected failures** (2026-11-18, ontology round W3: Chandra's Flame Wave, dealt by the planning suite's B3 twin pair `b3_counter_the_minor_spell`, `b3_hold_for_the_threat`) | `tools/puzzles/test_suite.py` `AWAITING_REVERIFICATION` | A gate round re-baked the card (its "reveal it" now names the card found), so it left the verified pool and `check_cards` refuses it; a puzzle's proven answer cannot be trusted until the card is re-verified, and a readout cannot build the pair meanwhile. Strict, so the card's re-verification turns the test red until its name leaves the set. Remove the entry when Chandra's Flame Wave is re-verified (before the next planning readout), and the set when it is empty. |
 | **One fixed `TEST_MASTER_SEED` for the test suite** (2026-09-11) | `MTG_bot/conftest.py:24` | It is the right default now, but a conformance suite should eventually run over k seeds and assert the result is seed-independent, which is what P13's seed band is for. Once P13 exists, replace the constant with a parametrised seed sweep. |
 
@@ -124,6 +124,15 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F11):* latent (no tree). With the first card (Commander has many); W0's guard flags it.
 
 ### Casting, the stack and targets
+
+- **A turn's earlier casts are judged by the card as it is now** (2026-11-18, round B12's review,
+  MINOR 3). `binding._fitting_cast_ordinal` (a trigger's "your second spell") and
+  `casts_this_turn` (Rule of Law, Deafening Silence) judge each earlier CAST row's spell by its
+  characteristics now, assuming they do not change after it resolves. A noncreature spell that
+  became a creature since (an animation, a copy effect) would not count toward Deafening Silence's
+  noncreature spell, so one more would be allowed (stronger); a creature spell that stopped being
+  one would count. No ELD card can do either, other sets' can. Fix: stamp the spell's types and
+  colours on the CAST row (the journal's `cast` tuple) and judge the filter on the stamp.
 
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
@@ -234,7 +243,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   "it", the creator's target, in a register of its own (a distinct binding name), not in
   `target`. Unparsed; build it with the card.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F22):* latent (unparsed). With the card.
-- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §19, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): a state trigger triggers again while it waits**
+- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §20, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): a state trigger triggers again while it waits**
   (2026-11-12, found reading Nine Lives' rulings). CR 603.8: "When there are four or more page counters on this artifact" (Mazemind
   Tome), "nine or more incarnation counters" (Nine Lives) trigger once and not again until the
   ability has left the stack ("Once the first triggered ability is on the stack, it won't trigger
@@ -250,7 +259,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
     `test_executor_w3.py`, pack `nine_lives_countered_exile_trigger_triggers_again`. Sublime
     Epiphany's stamp no longer waits on F23 once the round merges.
 
-- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §19, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): Yarok, the Desecrated and Sanctum of All make their extra
+- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §20, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): Yarok, the Desecrated and Sanctum of All make their extra
   trigger with a trigger of their own (2026-11-11).** CR 603.2d: the ability triggers that many times at once, so the copies go on
   the stack with everything else that triggered (CR 603.3b). The engine instead queues a trigger
   of the carrier (`compiler/templates_b5b.py:2482-2501`, fed by `binding._fan_ability_triggers`),
@@ -463,7 +472,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F47):* latent (FDN Faebloom Trick holds the shape, but its Conditional is MAY_DONE, not a test of the tokens). With the card.
-- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §19, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): the reveal record of "reveals their hand" lists the
+- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §20, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): the reveal record of "reveals their hand" lists the
   library, not the hand** (verbs.py ~1485; round-3 verification, 2026-11-06); nothing reads it
   today.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F51):* the same fault as F63 ('The journal is not a record of what players know'), wave W3.
@@ -608,7 +617,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   libraries after the opening turn, so the board card's draw met an empty library; the probe also
   built its runner outside its GameOver guard. Both fixed (the card-tooling guards, test_cards);
   Sanctum's probe runs with 0 errors, a new trace for its next re-verification.
-- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §19, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): the journal is not a record of what players know**
+- **CLOSED 2026-11-18 (round W3, DESIGN_ATOM_ONTOLOGY §20, branch `worktree-agent-a3637301ad1c4f789`; gate round W3 FIX-THEN-GO, fixed; it closes on merge): the journal is not a record of what players know**
   (2026-11-12, KNOWLEDGE/2026-11-12/197).
   SCRY journals how many cards were scried, not which went where (`verbs.py` `_v_scry`); REVEAL
   has no zone role and `_look` reads only the library, so "target opponent reveals their hand"
@@ -636,7 +645,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Compiler and ontology
 
-- **Limits of round W3** (2026-11-18, DESIGN_ATOM_ONTOLOGY §19; each refused or unparsed, so
+- **Limits of round W3** (2026-11-18, DESIGN_ATOM_ONTOLOGY §20; each refused or unparsed, so
   nothing plays wrong; each comes with its card):
   - *A look at a hand* (Peek, Thrull Surgeon, Agonizing Memories, Sorcerous Spyglass, The Raven's
     Warning): LOOK_AT reads the top of a library only. The fix is LOOK_AT `cards` over a hand, the
@@ -725,6 +734,8 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   the rotated "you": Peer into the Abyss ("their library", "their life"), Goremand and Run Afoul
   (a creature they control), Yarok's Fenlurker ("their hand"), Liliana, Waker of the Dead's "who
   can't", Transmogrify. A gated round: it changes verified trees, each re-verified after.
+  LOSE_GAME was born folded (gate round B12, MINOR 1): ALL_OPPONENTS in its `controller`, the
+  EachPlayer around the lone atom refused.
 - **ALL's count has two meanings** (2026-11-13, gate round 7, m3): `verbs._v_move_zone`'s
   non-partition lane and `verbs._hand_picks` take the first N of an ALL with a finite count
   (`pool[:n]`), where every other lane takes the whole population. Register it in
@@ -1254,6 +1265,46 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
     piece, not a permission.
   - A filter on the `result` register ("cast a creature spell from among them") and a PERMIT
     reading another register are refused until a card brings them.
+- **The prohibition and game-end lanes still blocked** (2026-11-18, round B12,
+  DESIGN_ATOM_ONTOLOGY §19; the wordings: `reports/b12_2026-11-18/wording_census.txt`). Each waits
+  on one piece:
+  - **Held back: an upside without its drawbacks.** DOM Lich's Mastery's "You can't lose the
+    game." is Platinum Angel's first atom, but its drawbacks (draw on gain, exile per life lost,
+    lose when it leaves) do not compile, and the partial pools (all, engine, castable) would deal
+    it stronger than printed (the round's review, MAJOR). B21-cant-lose reads only Platinum
+    Angel's whole sentence; a record maps Lich's Mastery whole once the three triggers have their
+    pieces ("for each 1 life you lost" and "leaves the battlefield" by name).
+  - The names in old triggers: 10E Phage the Untouchable ("Whenever Phage deals combat damage to a
+    player, that player loses the game": LOSE_GAME of `event_player()`; "When Phage enters, if you
+    didn't cast it from your hand, you lose the game") and Lich's Mastery's leave trigger read
+    "~", which only bucket B12's templates read (`compiler._self_named_sentence`).
+  - "Can't cast" with a condition or a chosen name: M12 Grand Abolisher ("During your turn"), M11
+    Angelic Arbiter ("who attacked with a creature this turn"), M13 Serra Avenger ("during your
+    first, second, or third turns"), ORI Alhammarret and THB Ashiok's Erasure (a chosen name or the
+    exiled card's).
+  - M11 Leyline of Punishment's "Damage can't be prevented." (a prevention of preventions).
+  - The win conditions: "you win the game" compiles (B21-win-game), but its cards' other halves do
+    not: the upkeep conditions (10E Mortal Combat, M13 Battle of Wits, M19 Liliana's Contract, ELD
+    Happily Ever After), THB Thassa's Oracle's X, FDN Maze's End's cost and Gates, WAR Jace's draw
+    replacement. Demonic Pact's modes and M13 Door to Nothingness's cost also wait.
+  - Land plays do not consult the enter prohibition: no land card of the 19 sets is a creature
+    card (the Cage, Kunoros) or a nonland card (Weathered Runestone), and the rulings let lands be
+    played from a graveyard. A creature land card brings `stack.land_playable`'s consult.
+  - Atemsis, All-Seeing's "you may reveal your hand": REVEAL reveals the top of a library only.
+  - Land-play prohibitions: M15 Aggressive Mining ("You can't play lands.") and WAR Tomik ("Your
+    opponents can't play land cards from graveyards.") need a land play's event and
+    `stack.land_playable`'s consult (a land play is a special action, CR 305.1, not a cast).
+  - "Each opponent who ..." and "each player this creature attacked this turn ... loses the game"
+    (WAR Nicol Bolas, Dragon-God's -8; ZNR Angel of Destiny): EachPlayer around LOSE_GAME(YOU) with
+    their conditions, which do not parse.
+  - A "one ... the other" split over cards that can't enter (gate round B12's MINOR 3,
+    assumption 10): a pick onto the battlefield offers only the cards that can enter (CR 608.2d)
+    and the REST takes every card the pick did not choose. That is right for "the rest" (Loot,
+    Exuberant Explorer; Collected Company's ruling), but "search for two creature cards, put one
+    onto the battlefield and the other into your hand" under the Cage would put both in hand
+    (stronger). No card of the 19 sets has one (Cultivate's split, M11 and M21, is over land
+    cards: `reports/b12_2026-11-18/pick_census.txt`). Its fix comes with such a card: the REST of
+    a split reads the split's count.
 - **The copy lane still blocked** (2026-11-18, the copy round B3, DESIGN_ATOM_ONTOLOGY §18; the
   wordings: `reports/copy_2026-11-18/copy_scan.txt`, 71 cards, 81 printings of the 19 sets). Each
   waits on one piece, refused by the IR or unparsed until its card brings tests:
@@ -1613,6 +1664,14 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Gates, probe, soak and the pack runner
 
+- **G1 and G3 do not reach round B12's forms** (2026-11-18, round B12, DESIGN_ATOM_ONTOLOGY §19).
+  The probe never runs the opening-hand step, a cast from a graveyard or a library, a card entering
+  from one, or a loss under "can't lose", and G3 has no operator for a prohibition's event fields
+  (a cast's QAtLeast ordinal, `actor`, `from_zone`; a GameOutcomeEvent's `won`). So M20 Rule of
+  Law gets 0 mutants and Grafdigger's Cage's 4 drop-step mutants survive the probe; the round's
+  packs (`tools/scenarios/mapped/M20/`) kill those 4 and pin Rule of Law's count. The verifiers
+  judge these cards on packs; a probe stimulus per lane and the operators come with the next
+  gate-tooling wave.
 - **A spell copy's move to the graveyard, and "a card put into a graveyard" watchers** (2026-11-18,
   verification wave 7).
   - A copy of an instant or sorcery is journalled `stack -> graveyard` as it resolves (CR 608.2n),
@@ -1918,7 +1977,7 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 ### What the network sees
 
 - **The reveal, look and scry rows are raw event-log rows** (2026-11-18, ontology round W3,
-  DESIGN_ATOM_ONTOLOGY §19). They are true now: one row per atom, each zone's owner, zone and
+  DESIGN_ATOM_ONTOLOGY §20). They are true now: one row per atom, each zone's owner, zone and
   cards, who saw them and what they are (the form: a library's top, a whole hand, or the cards an
   instruction found, so PLAN_NETWORK_READINESS §4.3's E4, E4a and E4b tell apart), a scry's cards
   for the scryer and its counts for everyone. Only these rows (`verbs.SEEN_VERBS`) are anyone's
@@ -1935,6 +1994,16 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   of All is still read as a consumer of Shrines, through its static's condition ("six or more
   Shrines you control"), so package mode loses nothing; the row is dead code, to remove with the
   next edit of packages.py. `tools/selfplay/` code was not edited by the round.
+- **A resolved prohibition has no entity** (2026-11-18, round B12's review). M11 Silence's "Your
+  opponents can't cast spells this turn" and ZNR Roiling Vortex's "can't gain life this turn" act
+  on the menus (a refused cast is no row) but leave nothing the network reads once the spell is in
+  the graveyard, as every resolved effect before them (Veil of Summer's "can't be countered").
+  A static's prohibition shows as its card's tree on the battlefield. Candidate: a resolved-effect
+  entity at the next observation-schema change.
+- **The opening-hand action is a may ask before the first turn** (2026-11-18, round B12, §19):
+  the card in hand is the ask's source and its tree carries OpeningHandAbility, with no step
+  column set (as for the mulligans). No new ask kind (it would start untrained); if the pregame
+  context needs a row of its own, a kind is the fix.
 
 - **A copy shows as the card it copies, its exceptions only in part** (2026-11-18, the copy round
   B3, DESIGN_ATOM_ONTOLOGY §18). A copy's identity is the copied card's (`copies.py`), so its card
