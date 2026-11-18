@@ -9,7 +9,10 @@ it), for one checkpoint:
 - with ``--search-seeds``, the searched pick: ``search.Searcher`` at window 1's anchor setting
   (KNOWLEDGE/2026-11-13/205: Gumbel root, m 16, n 4, horizon 1, uniform worlds, greedy
   continuation, skip at 0.97), act and priority decisions, one search per seed. Attack and block
-  decisions are not searched here (the searcher plans them at the combat boundaries instead).
+  decisions are not searched here (the searcher plans them at the combat boundaries instead);
+- for a planner network (docs/DESIGN_PLANNER.md v1), its forecast for each plannable object at
+  the root (``forecast``): when, verb, window and target. Its read-back is blank there: the
+  prelude is scripted, so the root is the network's first decision.
 
 Per category, the twin-consistent pass rate: the share of twin pairs whose greedy picks are right
 in both twins. A network that holds Cancel by habit passes one twin and fails the other.
@@ -30,10 +33,13 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+import numpy as np
+
 from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
 from MTG_bot.core.executor.games import TURN_CAP, _play
 from tools.puzzles import puzzle as P
 from tools.selfplay import features as FT
+from tools.selfplay import planner as PL
 from tools.selfplay.model import LocalSlot, load
 from tools.selfplay.rig import SelfplayRouter
 from tools.selfplay.search import Searcher
@@ -85,10 +91,25 @@ def root(pz: dict) -> tuple[Any, Any, dict]:
     raise ValueError(f"{pz['name']}: the game ended before the root")
 
 
+def forecast(slot: Any, executor: Any, ask: Any, feats: dict, ents: list,
+             handles: dict) -> dict[str, dict[str, str]]:
+    """A planner network's forecast at the root for each plannable object (planner.plannable),
+    by pack key: when, verb, window, and the target's pack key or "none"."""
+    _, fc = slot.infer((0, ask.seat, SPEC, True, False, feats, 4))
+    mask = PL.plannable(executor, executor.world.player_order[ask.seat], ents, feats)
+    out = {}
+    for r in np.flatnonzero(mask):
+        when, verb, win, target = (int(x) for x in fc[r])
+        out[P.keyed(str(ents[2 + r]), handles)] = {
+            "when": PL.WHEN[when], "verb": PL.VERBS[verb], "window": PL.WINDOWS[win],
+            "target": P.keyed(str(ents[target - 1]), handles) if target else "none"}
+    return out
+
+
 def read(slot: Any, table: FT.CardTable, pz: dict, search_seeds: int = 0) -> dict:
     ask, obs, handles = root(pz)
     words = [P.keyed(o.token, handles) for o in ask.options]
-    feats = FT.encode(obs.executor, ask.seat, ask, table, obs.ctx)
+    feats, ents = FT.encode_entities(obs.executor, ask.seat, ask, table, obs.ctx)
     a, v, probs = slot.infer((0, ask.seat, SPEC, True, False, feats, 2))
     right = set(pz["answer"])
     row = {
@@ -100,6 +121,8 @@ def read(slot: Any, table: FT.CardTable, pz: dict, search_seeds: int = 0) -> dic
         # visible cards the checkpoint's card table does not hold (row 1: features.CardTable)
         "unknown_cards": int((feats["cards_i"][:, 0] == 1).sum()),
     }
+    if slot.nets[SPEC].planner:
+        row["forecast"] = forecast(slot, obs.executor, ask, feats, ents, handles)
     if search_seeds and ask.kind in SEARCHED:
         picks = []
         for seed in range(search_seeds):
@@ -155,13 +178,16 @@ def main(argv: list[str] | None = None) -> int:
     report = []
     for path in args.checkpoints:
         t0 = time.perf_counter()
-        model, table, _ = load(path, "cpu")
+        model, table, _ = load(path, "cpu")  # a planner network loads as one (model.load)
         slot = LocalSlot({SPEC: model})
         rows = [read(slot, table, pz, args.search_seeds) for pz in puzzles.values()]
         rec = {"checkpoint": path, "rows": rows, "summary": summarise(rows, puzzles),
                "seconds": round(time.perf_counter() - t0, 1)}
         report.append(rec)
-        print(json.dumps({"checkpoint": path, "summary": rec["summary"], "seconds": rec["seconds"]}))
+        shown = {"checkpoint": path, "summary": rec["summary"], "seconds": rec["seconds"]}
+        if model.planner:  # each puzzle's root forecast (``forecast``)
+            shown["forecasts"] = {r["puzzle"]: r["forecast"] for r in rows}
+        print(json.dumps(shown))
         if args.out:
             Path(args.out).write_text(json.dumps(report, indent=1) + "\n")
     return 0

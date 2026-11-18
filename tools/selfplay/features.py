@@ -11,7 +11,9 @@ float16):
 * ``cards_i``   [E, CI]  card vocab id, zone, controller, owner, attached-to entity, and for a
                          stack object: its source's entity (an ability) and its first target;
                          the colour or creature type a permanent chose (C_CHOSEN), the
-                         card-table row of the card name it chose (C_NAMED)
+                         card-table row of the card name it chose (C_NAMED); the planner's
+                         read-back (C_PLAN_WHEN .. C_PLAN_TARGET, 0 here: planner.Tracker
+                         fills them)
 * ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost; on
                          the stack: depth, ability kind and index; targeted by a stack object
 * ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
@@ -181,7 +183,13 @@ C_CHOSEN = C_TARGET + 1
 # name"), as the card-table row of the card so named (0 = none). model.tokens reads it as a name
 # option's card (O_NAMED).
 C_NAMED = C_CHOSEN + 1
-CI = C_NAMED + 1
+# The planner's read-back (docs/DESIGN_PLANNER.md §1, planner.py): the seat's forecast of the
+# object's next use, written at its previous decision, as the vocabulary's index + 1 for when, the
+# verb and the window (planner.WHEN, VERBS, WINDOWS), and an entity pointer + 1 for the target;
+# 0 = none (no forecast, or the object changed zones since: CR 400.7). ``encode`` leaves them 0;
+# a planning seat's tracker writes them (planner.Tracker.encode).
+C_PLAN_WHEN, C_PLAN_VERB, C_PLAN_WINDOW, C_PLAN_TARGET = range(C_NAMED + 1, C_NAMED + 5)
+CI = C_PLAN_TARGET + 1
 # opts_i: option type, entity ref, second entity ref, ability index, the component token of a
 # value option (a quality ask's colour or creature type; 0 for every other option), and the
 # card-table row of the card a name option names (a "name" ask's; 0 for every other option)
@@ -600,6 +608,13 @@ def _this_turn(executor: Any) -> tuple[set, dict]:
 def encode(executor: Any, seat: int, ask: Any, table: CardTable,
            ctx: AskContext | None = None) -> dict[str, np.ndarray]:
     """Encode one Ask (``MTG_bot/bench/protocol.Ask``) for seat index ``seat``."""
+    return encode_entities(executor, seat, ask, table, ctx)[0]
+
+
+def encode_entities(executor: Any, seat: int, ask: Any, table: CardTable,
+                    ctx: AskContext | None = None) -> tuple[dict[str, np.ndarray], list[Handle]]:
+    """``encode``'s arrays, and the entities' handles in their order: me, the opponent, then
+    one per card row (a stack object's own handle, a spell's or an ability's)."""
     ctx = ctx or AskContext()
     world = executor.world
     order = world.player_order
@@ -840,7 +855,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         "ask_i": np.array([ask_kind_index(ask.kind, executor.phase)], dtype=np.int16),
         "opts_i": opts_i.astype(np.int16),
         "opts_f": _squash(opts_f).astype(np.float16),
-    }
+    }, [me_h, opp_h, *(h for h, _, _ in ents)]
 
 
 KNEE = 20.0

@@ -1587,7 +1587,8 @@ def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_di
 
     new = ("exile", "remove_counter", "divide")
     assert FT.ASK_KINDS[-3:] == new and set(new) <= SITE_KINDS and not set(new) & set(FT.ASK_GROWN_FROM)
-    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (9, 62, 24, 23, 6)
+    # (cards_i's last four, the planner's read-back, came after: 0 for every network without it)
+    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (13, 62, 24, 23, 6)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     with torch.no_grad():
         for p in net.parameters():
