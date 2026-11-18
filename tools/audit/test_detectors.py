@@ -616,6 +616,21 @@ def test_d6_a_resolved_permission_lives_off_the_battlefield() -> None:
     assert D.d6_lifecycle(game([], final_zone={"card:72": "graveyard"}, layers_rows=[static])).status == "HIT"
 
 
+def test_d6_a_resolved_combat_rule_outlives_its_source() -> None:
+    # FDN Joraga Invocation ("... must be blocked this turn if able"), cast in the game's last
+    # turn (FDN soak seeds 50, 64): its Eot mandate_block record is live at the game's end, its
+    # sorcery in the graveyard, its creatures on the battlefield (CR 611.2a; KNOWLEDGE 215 D6(iv)).
+    rule = (20, "mandate_block", "card:14", P0, "Eot", "live", ("card:13",), "payload", ())
+    g = game([], final_zone={"card:14": "graveyard", "card:13": D.BATTLEFIELD}, layers_rows=[rule])
+    assert D.d6_lifecycle(g).status == "clean"
+    # a static rule (no duration) still dies with its source (CR 611.3a), and a dead creature
+    # still bound is still a hit
+    static = (21, "mandate_block", "card:14", P0, "Permanent", "live", (), "payload", ())
+    assert D.d6_lifecycle(game([], final_zone={"card:14": "graveyard"}, layers_rows=[static])).status == "HIT"
+    dead = game([], final_zone={"card:14": "graveyard", "card:13": "graveyard"}, layers_rows=[rule])
+    assert D.d6_lifecycle(dead).status == "HIT"
+
+
 def test_d6_grant_dead_target_still_fires() -> None:
     # The narrowing is SOURCE-side only: a live grant bound to a dead
     # TARGET remains a hit.
