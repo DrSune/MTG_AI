@@ -1,0 +1,75 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_minus_nine_permission_ends_with_the_turn",
+ "notes": "Printed: 'You may cast them this turn.' Unused, the permission is gone on the controller's next turn: Shock stays in exile and no row casts it with {R} in the pool.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 10
+   }
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:2",
+    "shock"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ],
+   "expect_raise": "does not offer 'cast:card:1'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "exile"
+  },
+  "life": {
+   "1": 20
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

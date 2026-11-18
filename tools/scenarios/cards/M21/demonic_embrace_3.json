@@ -1,0 +1,80 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_from_the_graveyard_costs_exactly_three_life",
+ "notes": "Printed: 'paying 3 life'. At 4 life the controller pays 3 and keeps 1 (not 4 and dead, not 2 and 2 left).",
+ "world": {
+  "life": 4,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "battlefield",
+   "forest": "graveyard"
+  },
+  "life": {
+   "0": 1,
+   "1": 4
+  },
+  "attached": {
+   "de": "corpse"
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

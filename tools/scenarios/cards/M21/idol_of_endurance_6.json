@@ -1,0 +1,89 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_exiles_your_creature_cards_of_mana_value_three_or_less",
+ "notes": "Printed: 'When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.' In the controller's graveyard: Walking Corpse (mana value 2) and Sparkhunter Masticore (3) are exiled, Crypt Lurker (4) is not, nor Shock (no creature); the opponent's Walking Corpse stays in the opponent's graveyard. 'All' asks nothing.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sm",
+   "real": "Sparkhunter Masticore",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "cl",
+   "real": "Crypt Lurker",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "owc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "exile",
+   "sm": "exile",
+   "cl": "graveyard",
+   "shock": "graveyard",
+   "owc": "graveyard"
+  },
+  "tapped": {
+   "w1": true,
+   "w2": true,
+   "w3": true
+  }
+ }
+}

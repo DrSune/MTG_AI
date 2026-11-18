@@ -1,0 +1,120 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_cast_from_the_graveyard_pays_mana_three_life_and_one_discard",
+ "notes": "Printed: 'You may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs.' From the graveyard through its own permission: {1}{B}{B} (three Swamps), exactly 3 life (20 -> 17) and exactly one card of the two in hand (the Forest, the controller's pick; the Plains stays). It enchants Walking Corpse (5/3, flying). Quirion Dryad sees a black spell cast; Ghostly Pilferer on the other side sees a cast from a zone other than the hand.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pil",
+   "real": "Ghostly Pilferer",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "plains",
+   "real": "Plains",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse",
+    "forest"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "battlefield",
+   "forest": "graveyard",
+   "plains": "hand"
+  },
+  "attached": {
+   "de": "corpse"
+  },
+  "life": {
+   "0": 17,
+   "1": 20
+  },
+  "power": {
+   "corpse": 5
+  },
+  "toughness": {
+   "corpse": 3
+  },
+  "battlefield_keywords": {
+   "Walking Corpse": [
+    "FLYING"
+   ]
+  },
+  "hand": {
+   "0": 1,
+   "1": 1
+  },
+  "counters": {
+   "dryad": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "tapped": {
+   "s1": true,
+   "s2": true,
+   "s3": true
+  },
+  "kick_rows": {
+   "de": {
+    "from": "graveyard"
+   }
+  }
+ }
+}

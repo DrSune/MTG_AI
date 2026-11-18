@@ -1,0 +1,103 @@
+{
+ "set": "M20",
+ "name": "golos_on_the_opponents_turn_casts_only_the_instant",
+ "notes": "Printed: '{2}{W}{U}{B}{R}{G}: Exile the top three ... You may play them this turn'. The activation is at instant speed, so it can be made on the opponent's turn; the permission changes where a card may be played from, not when (CR 601.3): Shock (an instant) is cast from exile for nothing, the creature (Leafkin Druid) and the Mountain are not offered (no flash, not the controller's turn: CR 117.1a, 305.1).",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "murder",
+   "real": "Murder",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1,
+    "U": 1,
+    "B": 1,
+    "R": 1,
+    "G": 1,
+    "C": 2
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:golos:1",
+    "cast:shock:via:golos",
+    "p1"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:druid:via:golos"
+   ],
+   "expect_raise": "no ask took: ['cast:card:2:via:card:0']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "druid": "exile",
+   "mtn": "exile"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  },
+  "kick_rows": {
+   "shock": {
+    "from": "exile"
+   }
+  }
+ }
+}

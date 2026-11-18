@@ -1,0 +1,85 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_demon_is_black",
+ "notes": "Printed: 'a 5/5 black Demon creature token with flying'. The opponent activates the Altar on their own turn (their Yoked Ox is sacrificed, their Forest discarded): a flying Demon token. On the controller's turn Apostle of Purifying Light (protection from black: it can't be blocked by black creatures, CR 702.16f) attacks. The token is a flier and untapped, so it could block any other attacker, but not this one: the script word that would have it block Apostle is never used and no block is declared. (The same pack with a non-protected attacker, Leafkin Druid, has the token block it.)",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "apo",
+   "real": "Apostle of Purifying Light",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "act",
+   "seat": 1,
+   "words": [
+    "act:altar:0",
+    "forest"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "apo": true
+   },
+   "decisions": [
+    "apo"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 1
+  },
+  "attackers": {
+   "apo": true
+  },
+  "blocked": {
+   "apo": []
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  },
+  "zone": {
+   "ox": "graveyard",
+   "forest": "graveyard"
+  }
+ }
+}

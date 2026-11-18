@@ -1,0 +1,85 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_free_cast_still_pays_an_additional_cost",
+ "notes": "Printed: 'cast a creature spell ... without paying its mana cost'. Only the mana cost is waived (CR 118.9d): Sparkhunter Masticore's 'As an additional cost to cast this spell, discard a card' is still paid. With a Forest in hand the Masticore (mana value 3, exiled by the Idol) is cast from exile and the Forest is discarded; A08_8 is the same world with an empty hand, where no cast is offered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "sm",
+   "real": "Sparkhunter Masticore",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol",
+    "act:idol:1",
+    "cast:sm:via:idol"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sm": "battlefield",
+   "forest": "graveyard",
+   "idol": "battlefield"
+  },
+  "hand": {
+   "0": 0
+  },
+  "kick_rows": {
+   "sm": {
+    "from": "exile"
+   }
+  }
+ }
+}

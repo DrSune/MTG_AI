@@ -1,0 +1,85 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_pays_tap_two_life_a_discard_and_a_sacrifice_for_a_five_five_flying_demon",
+ "notes": "Printed: '{T}, Pay 2 life, Discard a card, Sacrifice a creature: Create a 5/5 black Demon creature token with flying.' Two creatures (Corpse Knight, Yoked Ox) and two cards in hand (Forest, Mountain): the controller sacrifices the Ox and discards the Forest, one each; the Altar taps, life 20 -> 18; one Demon, 5/5 with flying, enters under the controller's control (Corpse Knight, 'another creature you control enters', makes the opponent lose 1).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "knight",
+   "real": "Corpse Knight",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:altar:0",
+    "ox",
+    "forest"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ox": "graveyard",
+   "knight": "battlefield",
+   "forest": "graveyard",
+   "mtn": "hand",
+   "altar": "battlefield"
+  },
+  "tapped": {
+   "altar": true
+  },
+  "life": {
+   "0": 18,
+   "1": 19
+  },
+  "hand": {
+   "0": 1
+  },
+  "tokens": {
+   "Demon": 1
+  },
+  "battlefield_pt": {
+   "Demon": [
+    5,
+    5
+   ]
+  },
+  "battlefield_keywords": {
+   "Demon": [
+    "FLYING"
+   ]
+  }
+ }
+}

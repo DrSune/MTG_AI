@@ -1,0 +1,100 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_makes_the_creature_a_demon",
+ "notes": "Printed: 'Enchanted creature ... is a Demon in addition to its other types.' Demonic Embrace is cast on the opponent's Walking Corpse (a 5/3 flier now). Baneslayer Angel (protection from Demons, CR 702.16e) attacks: the enchanted creature, a Demon, is never offered the block, while the opponent's Test Bird (a flier and no Demon) is, and blocks.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bane",
+   "real": "Baneslayer Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bird",
+   "name": "Test Bird",
+   "power": "1",
+   "toughness": "1",
+   "type": "Creature \u2014 Bird",
+   "keywords": [
+    "FLYING"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de",
+    "corpse"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bane": true
+   },
+   "block": {
+    "bird": "bane"
+   }
+  }
+ ],
+ "expect": {
+  "attached": {
+   "de": "corpse"
+  },
+  "power": {
+   "corpse": 5
+  },
+  "not_asked_to_block": [
+   "corpse"
+  ],
+  "blocked": {
+   "bane": [
+    "bird"
+   ]
+  },
+  "zone": {
+   "corpse": "battlefield",
+   "bird": "graveyard",
+   "bane": "battlefield"
+  }
+ }
+}

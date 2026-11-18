@@ -1,0 +1,116 @@
+{
+ "set": "M20",
+ "name": "golos_exiles_the_top_three_and_plays_a_land_and_an_instant_for_free",
+ "notes": "Printed: '{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library. You may play them this turn without paying their mana costs.' The ability's seven mana empty the pool. The three top cards (Mountain, Shock, Leafkin Druid) go to exile, the fourth (Murder) stays, the opponent's library is untouched. The Mountain is played from exile (the land drop), Shock is cast from exile with nothing to pay it (no land untapped, empty pool) at the opponent; Leafkin Druid stays in exile unplayed.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "murder",
+   "real": "Murder",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "U": 1,
+   "B": 1,
+   "R": 1,
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "golos",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn",
+    "cast:shock:via:golos",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mtn": "battlefield",
+   "shock": "graveyard",
+   "druid": "exile",
+   "murder": "library"
+  },
+  "tapped": {
+   "mtn": false,
+   "golos": false
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "library": {
+   "0": [
+    "Murder",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "kick_rows": {
+   "shock": {
+    "from": "exile"
+   }
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

@@ -1,0 +1,96 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_activated_on_the_opponents_turn_casts_no_creature",
+ "notes": "A permission changes where a card may be cast from and at what cost, not when (CR 601.3, 117.1a). The Idol's ability can be activated on the opponent's turn, but a creature card without flash cannot then be cast: the exiled Walking Corpse is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "W": 1,
+    "C": 1
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:idol:1"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:wc:via:idol"
+   ],
+   "expect_raise": "no ask took: ['cast:card:4:via:card:0']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "exile"
+  },
+  "tapped": {
+   "idol": true
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

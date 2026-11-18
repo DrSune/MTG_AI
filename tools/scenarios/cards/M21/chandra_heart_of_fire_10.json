@@ -1,0 +1,48 @@
+{
+ "set": "M21",
+ "name": "a01_10_an_opponents_library_is_not_searched",
+ "notes": "Printed: 'any number of red instant and/or sorcery cards' from your graveyard and library. an_opponents_library_is_not_searched: the search's ask does not offer it (the first card is Chandra, the second Shock, a candidate, so the refused word is the pack's own card).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 10
+   }
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "ocrash",
+   "real": "Crash Through",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:2",
+    "ocrash"
+   ],
+   "expect_raise": "does not offer 'card:2'; it offers ('card:1', 'NONE')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ocrash": "library"
+  }
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_needs_a_card_to_discard",
+ "notes": "Printed: 'Discard a card'. With an empty hand the activation is refused though there is a creature to sacrifice and life to pay.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "cost:discard:insufficient_candidates"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "ox": "battlefield"
+  },
+  "life": {
+   "0": 20
+  },
+  "tapped": {
+   "altar": false
+  }
+ }
+}

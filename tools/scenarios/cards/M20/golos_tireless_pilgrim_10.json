@@ -1,0 +1,100 @@
+{
+ "set": "M20",
+ "name": "golos_free_cast_still_pays_an_additional_cost",
+ "notes": "Printed: 'play them this turn without paying their MANA costs'. Only the mana cost is waived (CR 118.9d): Bone Splinters ({B}; 'As an additional cost to cast this spell, sacrifice a creature') is cast from exile for no mana, the controller still sacrifices a creature (Yoked Ox, the controller's pick between it and Golos) and the spell destroys the opponent's creature.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "victim",
+   "name": "Test Victim",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature \u2014 Bear",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "murder",
+   "real": "Murder",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "splint",
+   "real": "Bone Splinters",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 1,
+   "U": 1,
+   "B": 1,
+   "R": 1,
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "golos",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:splint:via:golos",
+    "victim",
+    "ox"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "splint": "graveyard",
+   "ox": "graveyard",
+   "victim": "graveyard",
+   "golos": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "kick_rows": {
+   "splint": {
+    "from": "exile"
+   }
+  }
+ }
+}

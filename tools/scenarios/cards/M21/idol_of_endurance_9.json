@@ -1,0 +1,93 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_casts_only_cards_exiled_with_this_artifact",
+ "notes": "Printed: 'cast a creature spell from among cards exiled WITH THIS ARTIFACT'. The first Idol is cast and exiles Walking Corpse; a second Idol already in play exiled nothing, and an Alpine Watchdog sits in exile from elsewhere. The second Idol's ability is activated: neither the Corpse (exiled with the first) nor the Watchdog (exiled with nothing) can be cast through it.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "idol2",
+   "real": "Idol of Endurance",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "aw",
+   "real": "Alpine Watchdog",
+   "zone": "exile",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:idol2:1",
+    "cast:wc:via:idol2"
+   ],
+   "expect_raise": "no ask took: ['cast:card:7:via:card:1']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "wc": "exile",
+   "aw": "exile",
+   "idol": "battlefield"
+  },
+  "tapped": {
+   "idol2": true
+  }
+ }
+}

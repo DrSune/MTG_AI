@@ -1,0 +1,65 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_sacrifices_a_creature_you_control_not_one_you_own",
+ "notes": "Printed: 'Sacrifice a creature' (one you control, CR 701.21a). The controller owns a Yoked Ox the opponent controls (it cannot be sacrificed) and controls a Leafkin Druid the opponent owns (it is the only candidate): the Druid is sacrificed (to its owner's graveyard) and the owned Ox stays on the battlefield.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "myox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0,
+   "controlled_by": 1
+  },
+  {
+   "key": "hisdruid",
+   "real": "Leafkin Druid",
+   "zone": "battlefield",
+   "controller": 1,
+   "controlled_by": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:altar:0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "myox": "battlefield",
+   "hisdruid": "graveyard",
+   "forest": "graveyard"
+  },
+  "tokens": {
+   "Demon": 1
+  },
+  "controller": {
+   "myox": 1
+  },
+  "life": {
+   "0": 18
+  },
+  "tapped": {
+   "altar": true
+  }
+ }
+}

@@ -1,0 +1,48 @@
+{
+ "set": "M21",
+ "name": "a01_7_a_blue_instant_is_not_red",
+ "notes": "Printed: 'any number of red instant and/or sorcery cards' from your graveyard and library. a_blue_instant_is_not_red: the search's ask does not offer it (the first card is Chandra, the second Shock, a candidate, so the refused word is the pack's own card).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 10
+   }
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:2",
+    "opt"
+   ],
+   "expect_raise": "does not offer 'card:2'; it offers ('card:1', 'NONE')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "opt": "graveyard"
+  }
+ }
+}

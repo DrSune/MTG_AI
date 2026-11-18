@@ -1,0 +1,131 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_first_plus_one_discards_exiles_three_and_plays_them_paying_costs",
+ "notes": "Printed: '[+1]: Discard your hand, then exile the top three cards of your library. Until end of turn, you may play cards exiled this way.' The hand (Shock, Forest) is discarded; the top three (Mountain, Goblin Arsonist, Opt) are exiled, the fourth (Crash Through) stays. The Mountain is played from exile and Goblin Arsonist cast from exile paying {R} (the new Mountain taps); the discarded Shock is not playable (it is in the graveyard, not exiled this way); Opt stays in exile; the cast is seen by Quirion Dryad (a cast, not a put) and by Ghostly Pilferer on the other side (a cast from anywhere other than the hand).",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pil",
+   "real": "Ghostly Pilferer",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "real": "Goblin Arsonist",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:0",
+    "land:mtn",
+    "cast:gob"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ],
+   "expect_raise": "no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "forest": "graveyard",
+   "mtn": "battlefield",
+   "gob": "battlefield",
+   "opt": "exile",
+   "crash": "library"
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  },
+  "tapped": {
+   "mtn": true
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 6
+   },
+   "dryad": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "kick_rows": {
+   "gob": {
+    "from": "exile"
+   }
+  },
+  "library": {
+   "0": [
+    "Crash Through",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

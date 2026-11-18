@@ -1,0 +1,93 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_minus_nine_casts_the_exiled_cards_with_the_six_red",
+ "notes": "Printed: '[-9]: Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle. You may cast them this turn. Add six {R}.' Shock (from the graveyard) and Crash Through (from the library) are exiled and cast from exile this turn at their own cost: the six red pay {R} twice, four are left. Quirion Dryad sees two casts; Ghostly Pilferer on the other side sees two casts from outside the hand (two cards drawn).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 10
+   }
+  },
+  {
+   "key": "dryad",
+   "real": "Quirion Dryad",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pil",
+   "real": "Ghostly Pilferer",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:2",
+    "shock",
+    "crash",
+    "cast:shock",
+    "p1",
+    "cast:crash"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "crash": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "mana_pool": {
+   "0": {
+    "R": 4
+   }
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 1
+   },
+   "dryad": {
+    "PLUS_1_PLUS_1": 2
+   }
+  },
+  "hand": {
+   "0": 1,
+   "1": 2
+  },
+  "kick_rows": {
+   "shock": {
+    "from": "exile"
+   },
+   "crash": {
+    "from": "exile"
+   }
+  }
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "d185c829-ef12-403a-a071-7520a0293d4a",
+ "name": "Demonic Embrace",
+ "text_sha": "5cebe91c033caa77953c852ed697840a6165d4e4fc93a209c0c61d50ad8a9527",
+ "verified": {
+  "tree_sha": "7addba6f2a0f221aba99c4fb3668b3f3f127e19888af183aeed3267646d0dbe8",
+  "probe_sha": "8bd341b9a99e2adee46b48820e50002ed7c0ddfc21244bf9e8a9e073401d9ba2",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "Enchant creature",
+    "status": "OK",
+    "evidence": "Trace [cast]: 'target slot (cast): 1..1 of [you_bear, you_giant, opp_flier, opp_tapped, opp_bear, opp_giant]' (the six creatures; not the artifact, the enchantment or a player); [from your hand ... opponent's turn]: 'ask enchant: [the same six]'; 'card: keywords +ENCHANT'.",
+    "issue": ""
+   },
+   {
+    "clause": "Enchanted creature gets +3/+1,",
+    "status": "OK",
+    "evidence": "Trace [cast targets=...]: you_bear 2/2 -> 5/3, you_giant 4/4 -> 7/5, opp_flier 1/1 -> 4/2, opp_tapped 3/3 -> 6/4, opp_bear 2/2 -> 5/3, opp_giant 4/4 -> 7/5: +3 power, +1 toughness on the enchanted creature only (the aura's controller's or the opponent's).",
+    "issue": ""
+   },
+   {
+    "clause": "has flying,",
+    "status": "OK",
+    "evidence": "Trace: 'keywords +FLYING' on you_bear, you_giant, opp_tapped, opp_bear, opp_giant; opp_flier (printed flying) shows P/T only. Pack A04_1 shows 'Walking Corpse' with FLYING.",
+    "issue": ""
+   },
+   {
+    "clause": "and is a Demon in addition to its other types.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace has no type line. Pack A04_7: the opponent's Walking Corpse enchanted with Demonic Embrace is never offered the block against Baneslayer Angel (protection from Demons), while a non-Demon flier is, and blocks. Pack A04_8: the enchanted Walking Corpse is still a Zombie (Liliana's Devotee's 'Zombies you control get +1/+0' still applies: 6/3) and a creature.",
+    "issue": ""
+   },
+   {
+    "clause": "You may cast this card from your graveyard by paying 3 life and discarding a card in addition to paying its other costs.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace casts it from the hand only (mana B-2 C-1, no life, no discard). Pack A04_1: from the graveyard through its own permission: {1}{B}{B} paid, 3 life (20 -> 17), one of two hand cards discarded (the controller's pick), it enchants Walking Corpse (5/3, flying), seen as a cast (Quirion Dryad) and as a cast from outside the hand (Ghostly Pilferer). A04_2 (empty hand: not offered), A04_3 (4 life -> 1), A04_4 (2 life: not offered), A04_5 (an opponent's graveyard: not offered), A04_6 (opponent's turn: still sorcery speed).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/demonic_embrace_1.json",
+   "tools/scenarios/cards/M21/demonic_embrace_2.json",
+   "tools/scenarios/cards/M21/demonic_embrace_3.json",
+   "tools/scenarios/cards/M21/demonic_embrace_4.json",
+   "tools/scenarios/cards/M21/demonic_embrace_5.json",
+   "tools/scenarios/cards/M21/demonic_embrace_6.json",
+   "tools/scenarios/cards/M21/demonic_embrace_7.json",
+   "tools/scenarios/cards/M21/demonic_embrace_8.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 12,
+   "score": 0.631578947368421,
+   "survived": [
+    "drop step 2 at 1/0/effect",
+    "drop cost part 0 (CostLife) at 1/1/effect/args/additional",
+    "drop cost part 1 (CostDiscard) at 1/1/effect/args/additional",
+    "amount+1 at 1/1/effect/args/additional/parts/0/amount",
+    "amount-1 at 1/1/effect/args/additional/parts/0/amount",
+    "amount+1 at 1/1/effect/args/additional/parts/1/target/count",
+    "controller YOU->OPPONENT at 1/1/effect/args/additional/parts/1/target/zones/0/controller"
+   ]
+  }
+ }
+}
