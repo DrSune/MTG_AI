@@ -1,0 +1,80 @@
+{
+ "name": "c1_crackback_not_lethal",
+ "set": "M20",
+ "category": "C",
+ "twin": "c1_crackback_lethal",
+ "note": "Attack when the crack-back is not lethal (twin of c1_crackback_lethal: seat 0 at 3 life instead of 2). The Warden hits for 2 now (seat 1 to 2), seat 0 survives the Corpse's attack at 1, and the Warden's second attack in turn 3 wins: the Corpse cannot block a flier (1). Holding back leaves seat 1 at 2 after turn 3: undecided (0.5).",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 3,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "warden",
+   "real": "Warden of Evos Isle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card in hand",
+   "cards": []
+  }
+ ],
+ "horizon": 3,
+ "objective": "result",
+ "answer": [
+  "ATTACK"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "ATTACK": 1.0,
+   "DECLINE": 0.5
+  },
+  "best": [
+   "ATTACK"
+  ],
+  "runs": 113,
+  "decisions": 41,
+  "seconds": 0.21,
+  "worlds": 1
+ }
+}

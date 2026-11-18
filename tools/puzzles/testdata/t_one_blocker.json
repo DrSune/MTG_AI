@@ -1,0 +1,62 @@
+{
+ "name": "t_one_blocker",
+ "set": "M20",
+ "category": "T",
+ "twin": "t_one_blocker",
+ "note": "The solver's best-response game. Seat 0 has Goblin Assailant (2/2, asked first) and Centaur Courser (3/3); seat 1, at 3 life, has one untapped Walking Corpse (2/2) and nothing else. With both attacking a perfect opponent blocks the Courser and takes 2; either alone is blocked. Every option is 0. An opponent that never blocks loses to either attack, and one that blocks the first attacker it is offered loses to both.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 20,
+  "1": 3
+ },
+ "cards": [
+  {
+   "key": "assailant",
+   "real": "Goblin Assailant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "courser",
+   "real": "Centaur Courser",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card",
+   "cards": []
+  }
+ ],
+ "horizon": 1,
+ "objective": "win",
+ "answer": [
+  "ATTACK",
+  "DECLINE"
+ ],
+ "grade": "proven"
+}

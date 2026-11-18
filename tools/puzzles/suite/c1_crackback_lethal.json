@@ -1,0 +1,80 @@
+{
+ "name": "c1_crackback_lethal",
+ "set": "M20",
+ "category": "C",
+ "twin": "c1_crackback_not_lethal",
+ "note": "Do not attack when the crack-back is lethal. Seat 0 (2 life) has Warden of Evos Isle (2/2 flier); seat 1 (4 life) has Walking Corpse (2/2) and no cards in hand. Attacking taps the Warden through seat 1's turn, and the Corpse's attack kills seat 0 (0). Holding the Warden back keeps a blocker: undecided after seat 0's next turn (0.5). The twin: seat 0 at 3 life.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 2,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "warden",
+   "real": "Warden of Evos Isle",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card in hand",
+   "cards": []
+  }
+ ],
+ "horizon": 3,
+ "objective": "result",
+ "answer": [
+  "DECLINE"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "ATTACK": 0.0,
+   "DECLINE": 0.5
+  },
+  "best": [
+   "DECLINE"
+  ],
+  "runs": 61,
+  "decisions": 18,
+  "seconds": 0.12,
+  "worlds": 1
+ }
+}

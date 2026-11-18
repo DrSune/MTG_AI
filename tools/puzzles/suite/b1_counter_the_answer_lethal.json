@@ -1,0 +1,172 @@
+{
+ "name": "b1_counter_the_answer_lethal",
+ "set": "M21",
+ "category": "B1",
+ "twin": "b1_counter_the_answer_not_lethal",
+ "note": "Counter the answer and win now (the owner's first example). Seat 0 (4 life) attacks with Walking Corpse and Alpine Watchdog (2/2 each) into an empty board; seat 1 is at 4. In the declare-attackers step seat 1 casts Shock on the Corpse, and seat 0 holds Cancel with three Islands open. Countering it is lethal now (1). Passing leaves seat 1 at 2 and Cancel for seat 1's turn, where it stops Massacre Wurm if seat 1 holds it: undecided at the horizon (0.5). Seat 1 has six lands and one hidden card, Massacre Wurm or a land (1/2 each). The twin: seat 1 at 10, so the attack is not lethal anyway.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 4,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "watchdog",
+   "real": "Alpine Watchdog",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw4",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw5",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [
+  "PASS",
+  "PASS",
+  "ATTACK",
+  "ATTACK",
+  "cast:shock",
+  "corpse"
+ ],
+ "world_prior": [
+  {
+   "p": 0.5,
+   "label": "they hold Massacre Wurm",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Massacre Wurm",
+     "zone": "hand",
+     "controller": 1
+    }
+   ]
+  },
+  {
+   "p": 0.5,
+   "label": "they hold a land",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Swamp",
+     "zone": "hand",
+     "controller": 1
+    }
+   ]
+  }
+ ],
+ "horizon": 2,
+ "objective": "result",
+ "answer": [
+  "cast:cancel"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.5,
+   "cast:cancel": 1.0
+  },
+  "best": [
+   "cast:cancel"
+  ],
+  "runs": 46,
+  "decisions": 4,
+  "seconds": 0.2,
+  "worlds": 2
+ }
+}
