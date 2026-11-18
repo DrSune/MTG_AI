@@ -322,5 +322,78 @@
  },
  "probe": {
   "sha": "bafcd7cc702603ee086b4915807eaa886ea0e4dd7929fdb34e17fc077c68d3c7"
+ },
+ "verified": {
+  "tree_sha": "4a98ed9972852097d27847da3fe326119b4b4d669c9ca14a830f64d4b345c4e5",
+  "probe_sha": "bafcd7cc702603ee086b4915807eaa886ea0e4dd7929fdb34e17fc077c68d3c7",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave7",
+  "clauses": [
+   {
+    "clause": "Whenever you activate a loyalty ability of a Chandra planeswalker, you may pay {1}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard board has no Chandra planeswalker, so no stimulus can activate a loyalty ability (the card's only probe variants are its own cast and the generic stimuli: all 'same as on the board without the card'). Tree: TriggeredAbility(AbilityActivatedEvent(source Chandra planeswalker, kind LOYALTY, actor you)), effect OptionalEffect(PAY {1}). Packs (pass on the live tree and the packet's tree): A02_1/A02_2 (an activation of Chandra, Novice Pyromancer's [-2] offers the 'may pay' (fire/skip) and takes {1}: R 3 -> 2), A02_3 (declined: nothing paid), A02_4 (no mana: no offer at all), A02_5 (a non-Chandra planeswalker, Ajani, triggers nothing), A02_6 (the opponent's Chandra activating on their turn triggers nothing: 'you activate'), A02_7 (a no-target ability), A02_15 (the source died on its own cost), A02_16 (three players), A02_17 (the {1} is paid by tapping a Mountain, the way a game pays).",
+    "issue": ""
+   },
+   {
+    "clause": "If you do, copy that ability.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: Conditional(MAY_DONE) over COPY(CopyOf(referent 'event')). Packs: A02_1 (paid: the copy and the original both resolve: the opponent takes 2 and the Ogre 2), A02_2 (both hit the Ogre 4/4: it dies), A02_3 / A02_4 (not paid or unpayable: no copy), A02_7 (the copy of a no-target ability adds RR again: R 4), A02_15 (copy of an ability whose source is gone, CR 113.7a), A02_16 (a referent 'that creature's controller' follows the copy's own target). The copy is put on the stack, not activated, CR 707.10, 606.4: Chandra's loyalty drops once (5 -> 3, A02_1) and there is no second offer to pay (the words are used up: an ask would raise).",
+    "issue": ""
+   },
+   {
+    "clause": "You may choose new targets for the copy.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Tree: COPY(new_targets=True). Packs: A02_1 (the copy's target changed from the Ogre to the opponent: 18 life, the Ogre keeps 2 damage), A02_2 (the copy keeps its target: Ogre dies), A02_16 (three players: Ogre One / its controller hit by the original, Ogre Two / its controller by the copy). CR 707.10c: each target may be kept or changed to any legal one.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}, {T}, Discard a Mountain card or a red card: Draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Probe: '- ability [1] not activatable from battlefield: cost:discard:insufficient_candidates:0<1': the standard hand holds no red or Mountain card, so it never ran. Tree: cost {1}, CostDiscard(1 card of your hand, COLOR_HAS R or SUBTYPE Mountain), CostTap; effect DRAW 1. Packs: A02_8 (a red card), A02_9 (a Mountain card, which is not red), A02_10 (a red-green card is a red card): each taps the Regulator, pays {1} once (R 2 -> 1), discards the one chosen card and draws exactly one (the library's top card); A02_11 (the discard ask offers exactly the red card, the Mountain and the red-green card: not a Forest, not a white creature, not a colourless artifact); A02_12 (no qualifying card: not offered), A02_13 (no mana: not offered), A02_14 (a second activation in the turn: tapped, not offered), A02_18 (paid by tapping a Mountain).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/chandra's_regulator_1.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_2.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_3.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_4.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_5.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_6.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_7.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_8.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_9.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_10.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_11.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_12.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_13.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_14.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_15.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_16.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_17.json",
+   "tools/scenarios/cards/M20/chandra's_regulator_18.json"
+  ],
+  "mutation": {
+   "mutants": 16,
+   "killed": 2,
+   "score": 0.125,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/event/source",
+    "widen filter (drop part 1) at 1/0/event/source",
+    "controller YOU->OPPONENT at 1/0/event/actor/who",
+    "drop step 0 at 1/0/effect",
+    "drop step 1 at 1/0/effect",
+    "optional->mandatory at 1/0/effect/steps/0",
+    "drop cost part 0 (CostManaGeneric) at 1/0/effect/steps/0/inner/args/cost",
+    "amount+1 at 1/0/effect/steps/0/inner/args/cost/parts/0/amount",
+    "drop cost part 0 (CostManaGeneric) at 1/1/cost",
+    "drop cost part 2 (CostTap) at 1/1/cost",
+    "amount+1 at 1/1/cost/parts/0/amount",
+    "controller YOU->OPPONENT at 1/1/cost/parts/1/target/zones/0/controller",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
  }
 }

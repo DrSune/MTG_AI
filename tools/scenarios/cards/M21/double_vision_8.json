@@ -1,0 +1,62 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "weird",
+   "real": "Spellgorger Weird",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1",
+    "dv",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 16
+  },
+  "counters": {
+   "weird": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "zone": {
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'copy that spell'. A copy is put on the stack, not cast (CR 707.10): Spellgorger Weird ('Whenever you cast a noncreature spell, put a +1/+1 counter') sees only the one real cast and gets ONE counter, not two; the original and its copy deal 2 each to the opponent (16)."
+}

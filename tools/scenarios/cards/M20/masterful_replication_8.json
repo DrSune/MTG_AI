@@ -1,0 +1,82 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mr": "graveyard"
+  },
+  "tokens": {
+   "Golem": 2
+  },
+  "power": {
+   "alpha": 4,
+   "beta": 2,
+   "gamma": 2
+  },
+  "toughness": {
+   "alpha": 4,
+   "beta": 2,
+   "gamma": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'Choose one - • Create two 3/3 colorless Golem artifact creature tokens. • ...'. Mode one makes exactly two Golem tokens (no target is asked) and NOTHING else: my artifacts are not changed (Beta Construct stays 1/1 + its counter = 2/2, Alpha 4/4, Gamma 2/2). The spell cost {5}{U}."
+}

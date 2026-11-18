@@ -1,0 +1,56 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 5
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:chandra:1",
+    "fire"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "counters": {
+   "chandra": {
+    "LOYALTY": 4
+   }
+  },
+  "mana_pool": {
+   "0": {
+    "R": 4
+   }
+  }
+ },
+ "notes": "Printed: 'copy that ability' for any loyalty ability of a Chandra planeswalker, targets or none. Chandra, Novice Pyromancer's [-1] (Add {R}{R}, no target) with one R in the pool: the Regulator's {1} takes it (R 1 -> 0), the copy and the original each add RR: R 4. No target ask for the copy (it has none). Loyalty 5 -> 4: the copy cost none."
+}

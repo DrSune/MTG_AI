@@ -1,0 +1,66 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:crash"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 2
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "crash": "graveyard",
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'your first instant or sorcery spell each turn': one count over both kinds. A sorcery (Crash Through: draw a card) is cast first and is copied (two draws: the hand goes 2 -> 1 -> 3); the instant cast after it (Shock at the opponent) is the SECOND instant or sorcery of the turn, not the first instant: it is not copied (no new-target ask: the step has no word left), so the opponent takes 2 once (18)."
+}

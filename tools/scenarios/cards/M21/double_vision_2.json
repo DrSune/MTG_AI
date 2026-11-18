@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "ogre",
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "ogre": "graveyard",
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "R": 2
+   }
+  },
+  "graveyard": {
+   "0": [
+    "Shock"
+   ]
+  }
+ },
+ "notes": "Printed: 'You may choose new targets for the copy.' The copy keeps its target (the Ogre): the copy and the original deal 2 damage each, 4 in all, and the Ogre (4/4) dies. Nobody else is hurt. A copy of a spell ceases to exist when it leaves the stack (CR 707.10a): my graveyard holds the one real Shock card."
+}

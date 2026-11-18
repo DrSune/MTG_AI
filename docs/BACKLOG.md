@@ -1659,6 +1659,19 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Gates, probe, soak and the pack runner
 
+- **A spell copy's move to the graveyard, and "a card put into a graveyard" watchers** (2026-11-18,
+  verification wave 7).
+  - A copy of an instant or sorcery is journalled `stack -> graveyard` as it resolves (CR 608.2n),
+    then ceases at the next state-based check (CR 707.10a). Both steps are right.
+  - But a copy is not a card (CR 707.10), so a watcher of "a card is put into a graveyard from
+    anywhere" must not see it. No M20 or M21 card watches it, so nothing has tested it.
+  - Check before FDN's graveyard watchers are verified: a pack with Double Vision's copy and such a
+    watcher.
+- **Pack runner: a `player:N` word in a `cast` step's decisions is lifted into the cast's own
+  targets** (2026-11-18, verification wave 7). A later ask's player target, such as a copy's new
+  target, must go through `act` with `p1`. Sent to engine wave W0's G3 items, beside the
+  one-candidate drift.
+
 - **G3's draw-idiom rule is coarser than the executor's draw lane** (2026-11-18, verification
   wave 6).
   - `gates._draw_idiom` (`gates.py` ~646, used by the dead-role rule ~765) treats every

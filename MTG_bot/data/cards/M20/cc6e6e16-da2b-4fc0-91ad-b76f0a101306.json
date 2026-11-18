@@ -266,5 +266,67 @@
  },
  "probe": {
   "sha": "f28dfee75d054495b8ae38b410c8a6b93ee31a6e9d421869feabe66fdec25ff5"
+ },
+ "verified": {
+  "tree_sha": "09e8cda7cbf5901f6d1b86767161d146bda03ff8184dd0b9db2fd99ceb09441d",
+  "probe_sha": "f28dfee75d054495b8ae38b410c8a6b93ee31a6e9d421869feabe66fdec25ff5",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave7",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "status": "OK",
+    "evidence": "Tree: SpellAbility(INSTANT) with Choose(count 1) over two options. Probe: '[cast modes=[0]]' runs only the token mode and '[cast modes=[1] targets=[you_relic]]' only the copy mode, each variant one mode (the mode ask offers '0','1'; packs A01_1 / A01_8 show the other mode never runs). Cost {5}{U} paid once (mana C-5 U-1).",
+    "issue": ""
+   },
+   {
+    "clause": "Create two 3/3 colorless Golem artifact creature tokens.",
+    "status": "OK",
+    "evidence": "Probe '[cast modes=[0]]': 'you:Golem#1 moves new -> battlefield (by card/CREATE_TOKEN)' and Golem#2, 'change: + you:Golem#1 (battlefield, you, 3/3)', '+ you:Golem#2 (... 3/3)': two tokens, 3/3, under your control, no target asked. Tree: TokenSpec name Golem, type_line 'Artifact Creature — Golem', types (Artifact, Creature), no colours (colourless), no abilities. The trace cannot show colour or the artifact type: colourless is read from the tree (no colours), and pack A01_9 shows the tokens ARE artifacts (a second copy-mode cast changes both). Pack A01_8: mode one changes nothing else.",
+    "issue": ""
+   },
+   {
+    "clause": "Choose target artifact you control.",
+    "status": "OK",
+    "evidence": "Probe: '- target slot (cast modes=[1]): 1..1 of [you_relic]': one target; the standard board holds your artifact (you_relic), the opponent's (opp_relic), your creatures and your enchantment, and only your artifact is offered (not the opponent's artifact, not a non-artifact). Pack A01_7 pins the slot on a richer board: my three artifacts only, not my non-artifact creature, not the opponent's artifact creature.",
+    "issue": ""
+   },
+   {
+    "clause": "Each other artifact you control becomes a copy of that artifact until end of turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The standard board has one artifact of yours, the target itself, so '[cast modes=[1] targets=[you_relic]]' changes nothing. Tree: COPY(source=CopyOf(target artifact you control), cards=ALL artifacts you control that are not the target, duration EOT). Packs (all pass on the live tree and against the packet's tree): A01_1 (copiable values taken: name/type/P/T of the target; Beta's own counter kept, so a 1/1 with a counter is 5/5; non-artifacts, the opponent's artifact and the target unchanged; a noncreature artifact becomes a creature), A01_2 + A01_11 (ends at end of turn: P/T, name and type come back; a token stays a token), A01_3 (not copied: an Aura on the original, a pump on the original, damage, tapped status), A01_4 (the copy does not enter: no copied enters trigger, CR 707.4), A01_5 + A01_6 (abilities copied, usable while the original is tapped, gone at end of turn), A01_10 (copy of a nontoken by a token), A01_12 (the set is fixed as the spell resolves, CR 611.2c: an artifact entering later is unchanged), A01_13 (an Equipment that becomes a creature copy becomes unattached, CR 704.5p), A01_14 (the original's 'as it enters' colour choice is not copied, CR 707.6), A01_15 (copy of a noncreature artifact: no longer a creature, never asked to attack), A01_16 (a legendary target: the copy has the same name, so the legend rule applies and one is put into the graveyard, CR 704.5j). A01_17 (a copy of a copy copies the copy, CR 707.3: the second cast's target is already a copy), A01_18 (the target is gone on resolution: the spell does nothing, CR 608.2b). CR 707.2, 707.3, 613.2a. Open fault met (named, not judged): an Aura whose host stops matching its 'enchant' restriction stays attached (see the report; repro: a creature enchanted by 'Enchant creature' Oakenform, target a noncreature artifact: the Aura should go to the graveyard, CR 704.5m).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/masterful_replication_1.json",
+   "tools/scenarios/cards/M20/masterful_replication_2.json",
+   "tools/scenarios/cards/M20/masterful_replication_3.json",
+   "tools/scenarios/cards/M20/masterful_replication_4.json",
+   "tools/scenarios/cards/M20/masterful_replication_5.json",
+   "tools/scenarios/cards/M20/masterful_replication_6.json",
+   "tools/scenarios/cards/M20/masterful_replication_7.json",
+   "tools/scenarios/cards/M20/masterful_replication_8.json",
+   "tools/scenarios/cards/M20/masterful_replication_9.json",
+   "tools/scenarios/cards/M20/masterful_replication_10.json",
+   "tools/scenarios/cards/M20/masterful_replication_11.json",
+   "tools/scenarios/cards/M20/masterful_replication_12.json",
+   "tools/scenarios/cards/M20/masterful_replication_13.json",
+   "tools/scenarios/cards/M20/masterful_replication_14.json",
+   "tools/scenarios/cards/M20/masterful_replication_15.json",
+   "tools/scenarios/cards/M20/masterful_replication_16.json",
+   "tools/scenarios/cards/M20/masterful_replication_17.json",
+   "tools/scenarios/cards/M20/masterful_replication_18.json"
+  ],
+  "mutation": {
+   "mutants": 14,
+   "killed": 11,
+   "score": 0.7857142857142857,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/options/1/args/cards/filter",
+    "widen filter (drop part 2) at 1/0/effect/options/1/args/cards/filter",
+    "controller YOU->OPPONENT at 1/0/effect/options/1/args/cards/filter/children/0/who"
+   ]
+  }
  }
 }

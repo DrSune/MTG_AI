@@ -1,0 +1,76 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "axe",
+   "real": "Marauder's Axe",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "axe",
+   "host": "gamma"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  }
+ ],
+ "expect": {
+  "attached": {
+   "axe": null
+  },
+  "power": {
+   "axe": 4,
+   "gamma": 2,
+   "alpha": 4
+  },
+  "toughness": {
+   "axe": 4,
+   "gamma": 2,
+   "alpha": 4
+  }
+ },
+ "notes": "Printed: 'Each other artifact you control becomes a copy of that artifact'. Marauder's Axe (an Equipment, +2/+0) is attached to Gamma Bear (4/2 with it). The Axe becomes a copy of Alpha Golem: an artifact creature, no longer an Equipment, so it becomes unattached (CR 704.5p) and Gamma Bear is a 2/2 again; the Axe is a 4/4 artifact creature."
+}

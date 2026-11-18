@@ -1,0 +1,73 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 5
+   }
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:chandra:2",
+    "ogre",
+    "fire",
+    "player:1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "ogre": "battlefield"
+  },
+  "damage": {
+   "ogre": 2
+  },
+  "counters": {
+   "chandra": {
+    "LOYALTY": 3
+   }
+  },
+  "mana_pool": {
+   "0": {
+    "R": 2
+   }
+  }
+ },
+ "notes": "Printed: 'Whenever you activate a loyalty ability of a Chandra planeswalker, you may pay {1}. If you do, copy that ability. You may choose new targets for the copy.' Chandra, Novice Pyromancer's [-2] (2 damage to any target) is aimed at the Ogre (4/4). The Regulator's trigger: pay {1} (R 3 -> 2), the copy's target is changed to the opponent: the opponent takes 2 (20 -> 18) and the Ogre takes the original's 2 (marked, alive). The copy is put on the stack, not activated: Chandra pays loyalty once, 5 -> 3, and the copy triggers nothing (no second offer: the step's words are used up after 'fire' and the new target)."
+}

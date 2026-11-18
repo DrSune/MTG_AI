@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mutt",
+   "real": "Onakke Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mutt"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "ogre",
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "zone": {
+   "mutt": "battlefield",
+   "ogre": "graveyard",
+   "shock": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'your first INSTANT OR SORCERY spell each turn'. A creature spell (Onakke Ogre) is cast first; it is not an instant or sorcery and uses up nothing. The Shock is the first instant or sorcery of the turn, so it is copied: the copy keeps the opposing Ogre as its target and the two 2-damage hits kill the 4/4."
+}

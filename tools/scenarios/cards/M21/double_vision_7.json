@@ -1,0 +1,95 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock3",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock1",
+    "p1",
+    "p1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 2
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock2",
+    "p1",
+    "p1"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock3",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 10
+  },
+  "zone": {
+   "shock1": "graveyard",
+   "shock2": "graveyard",
+   "shock3": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ },
+ "notes": "Printed: 'your first instant or sorcery spell EACH TURN'. Turn 1 (mine): Shock one, copied: 4 damage to the opponent (16). Turn 2 (the opponent's): the count starts again, so my Shock two, cast at instant speed, is the first of that turn and is copied too: 4 more (12). Shock three is the second of turn 2 and is not copied (no word left for an ask): 2 more (10, not 8)."
+}

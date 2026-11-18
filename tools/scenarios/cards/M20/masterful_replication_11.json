@@ -1,0 +1,82 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "token": true
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Alpha Golem": 0,
+   "Beta Construct": 1
+  },
+  "power": {
+   "beta": 2
+  },
+  "toughness": {
+   "beta": 2
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ },
+ "notes": "Printed: 'until end of turn'. After the turn ends the Beta Construct token is Beta Construct again (not Alpha Golem), 1/1 and its counter: 2/2, and it did not cease to exist."
+}

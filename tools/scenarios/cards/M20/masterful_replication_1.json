@@ -1,0 +1,108 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "delta",
+   "name": "Delta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "trinket",
+   "name": "Trinket",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mr": "graveyard"
+  },
+  "power": {
+   "alpha": 4,
+   "beta": 5,
+   "gamma": 2,
+   "delta": 1,
+   "trinket": 4
+  },
+  "toughness": {
+   "alpha": 4,
+   "beta": 5,
+   "gamma": 2,
+   "delta": 1,
+   "trinket": 4
+  },
+  "counters": {
+   "beta": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "tokens": {
+   "Golem": 0
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'Choose one - ... • Choose target artifact you control. Each other artifact you control becomes a copy of that artifact until end of turn.' Mode two, target Alpha Golem (artifact creature 4/4). Each OTHER artifact I control becomes a copy: Beta Construct (1/1 with a +1/+1 counter) is a copy of a 4/4 and keeps its counter (counters are not copied, CR 707.2): 5/5; my noncreature Trinket becomes a 4/4 artifact creature. Not changed: Gamma Bear (not an artifact), the opponent's Delta Construct (not mine), and the target itself. No Golem tokens (the other mode). The spell cost {5}{U}."
+}

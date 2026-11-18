@@ -1,0 +1,76 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ajani",
+   "real": "Ajani, Strength of the Pride",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 5
+   }
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 5
+   }
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ajani:0"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 23,
+   "1": 20
+  },
+  "counters": {
+   "ajani": {
+    "LOYALTY": 6
+   },
+   "chandra": {
+    "LOYALTY": 5
+   }
+  },
+  "mana_pool": {
+   "0": {
+    "R": 3
+   }
+  }
+ },
+ "notes": "Printed: 'Whenever you activate a loyalty ability of a Chandra planeswalker'. Ajani, Strength of the Pride is a planeswalker but not a Chandra: its [+1] (gain life equal to creatures + planeswalkers you control = 1 + 2 = 3) triggers nothing. No offer to pay {1} (the step has no word left, an ask would raise), R stays 3, the life gain happens once (23, not 26)."
+}

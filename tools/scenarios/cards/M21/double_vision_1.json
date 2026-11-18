@@ -1,0 +1,70 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "ogre",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "ogre": "battlefield",
+   "shock": "graveyard"
+  },
+  "damage": {
+   "ogre": 2
+  },
+  "mana_pool": {
+   "0": {
+    "R": 2
+   }
+  },
+  "graveyard": {
+   "0": [
+    "Shock"
+   ]
+  }
+ },
+ "notes": "Printed: 'Whenever you cast your first instant or sorcery spell each turn, copy that spell. You may choose new targets for the copy.' Shock (R) is cast at the Ogre (4/4); the copy's target is changed to the opponent. The copy resolves first (it is on top): the opponent takes 2 (20 -> 18); then the original: the Ogre has 2 damage marked and lives. The copy is not cast: R is spent once (3 -> 2). A copy of a spell ceases to exist when it leaves the stack (CR 707.10a): my graveyard holds the one real Shock card."
+}
