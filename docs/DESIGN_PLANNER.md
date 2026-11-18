@@ -23,24 +23,40 @@ Not planned:
   that is later ("complex mechanics to code together").
 - The opponent's objects. They are targets, not plans.
 
-**What an intention says (readable, all observable after the fact):**
-- *use*: one of
-  - A1 to Ak, the order of this action sequence's uses;
-  - the next sequence;
-  - within two rounds;
+**What an intention says (readable, all observable after the fact; settled for v1, 2026-11-18):**
+- *when*: the turn-counted bucket of the object's next use, from this decision on:
+  - A1, A2, A3, A4+: this sequence's uses, in order;
+  - later this turn;
+  - the opponent's next turn;
+  - my next turn;
+  - the two turns after;
   - later;
-  - never.
-- *verb* of its next use: cast or play, activate, attack, block, a cost (sacrifice, discard,
-  exile), or hold.
-- *after*: the journal's event kind just before its use, such as the opponent's cast or attack,
-  or one's own turn.
-- *target* of its next use: a pointer to an entity, as the policy's options point.
+  - never (the game ends first).
 
-A "use" is mechanical: the object is the subject of one of its player's own decisions (an option
-that points at it).
+  A sequence is the seat's run of decisions in one step of one turn with no action of the
+  opponent in between. A held Cancel reads "the opponent's next turn". A sweeper kept back reads
+  "my next turn" or later.
+- *verb* of the next use: cast, play a land, activate, attack, block, a cost (sacrifice, discard,
+  exile), or none.
+- *window* of the next use: sorcery speed in my main phase, my combat, in response to their spell,
+  in response to their ability, their combat, or another instant-speed point. It is read off the
+  decision's own context (the ask, the step, the stack's top), so "Cancel, their next turn, in
+  response to their spell" is the plan the owner's example describes.
+- *target* of the next use: a pointer to an entity, as the policy's options point; none when its
+  target is not an entity at forecast time.
+
+**What counts as a use.** A use is mechanical: the object is the subject of one of its player's
+own decisions, with the verb read off the ask and its option:
+- a cast, land or activation row;
+- an attack ask answered with an attack;
+- a block ask answered with an attacker;
+- a cost choice that picks it.
+
+A target ask's answer is the target of the use before it.
 
 **How it is carried:**
-- Heads on each object's token write its intention at every decision.
+- Heads on each object's token write its intention at every decision, for the uses from that
+  decision on (its own action included).
 - The next decision reads it back as columns of that token. The actor stores them in the
   observation, so samples stay independent and there is no BPTT.
 - An object that changes zones is a new object (CR 400.7) and starts blank.
@@ -147,18 +163,23 @@ does not follow through on a plan (214 §4).
 **When.** At a round's first decision only, with small n, as part of P3 under PLAN_CEILING's gates
 A and B.
 
-## 5. Build steps (each read on its puzzles, KNOWLEDGE/2026-11-18/214)
-1. **v1:** use, verb, after and target labels on every plannable object; hindsight heads; the
-   label columns read back; plan-following. A registered A/B against the control on puzzles A and
-   C and on L.
-2. **v2:** the two-round horizon and holds; puzzles B and D.
-3. **v3:** round styles, the style critic, styles sampled at ε; the combo and sweeper puzzles.
-4. **v4:** search over plans, multi-turn (P3).
-5. **Then:** the hidden vector, measured (3.4).
+## 5. Build steps (each read on every puzzle category, KNOWLEDGE/2026-11-18/214)
+1. **v1** covers the old v1 and v2: the turn-counted *when* holds the horizon and the holds.
+   - It has: when, verb, window and target labels on every plannable object; hindsight heads;
+     the label columns read back; plan-following.
+   - It is a registered A/B against the control on every category and on L.
+   - **What it should move.** Memory, holds and coherence should move B (counters), D
+     (overextension) and A (sequencing). The C failures (attacking into a lethal crack-back, not
+     chumping) are value errors that v1 reaches only through the forecasting task, so no
+     prediction favours them.
+2. **v2:** round styles, the style critic, styles sampled at ε; the combo and sweeper puzzles.
+3. **v3:** search over plans, multi-turn (P3).
+4. **Then:** the hidden vector, measured (3.4).
 
 ## 6. Choices said aloud (the learnable-over-hardcoded rule)
-- **The use buckets.** The maximum A-index k, and "within two rounds" as the last bounded bucket.
-  Removable: a learned distribution over the number of turns to use.
+- **The when buckets.** A4+ as the last ordered index, and "the two turns after" as the last
+  bounded bucket; also the window kinds. Removable: a learned distribution over the number of
+  turns to use.
 - **The style statistics** (3.2). Removable: a learned clustering of rounds.
 - **The side losses' weights** (hindsight, plan-following). Read on an A/B; a weight that is too
   high pulls the trunk from winning.
