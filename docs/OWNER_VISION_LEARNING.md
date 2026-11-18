@@ -263,3 +263,37 @@ The plan that follows this, with its gates and the owner's decisions: `docs/PLAN
   learner's Elo against a very varied frozen pool: an Elo fit weights a win by the opponent's
   strength. The Teacher picks deck families by measured progress, and the drafter is trained for it
   later (PLAN_CEILING §9).
+
+
+## 12. The network pays its own mana, and plans its turn (2026-11-18, open)
+
+The owner, on PLAN_PLANNING's first draft: "the model should handle land-tapping at some point too.
+I am sure some cards interact like 'when a/your/opponent land is tapped...'. If not in these sets,
+then in others. We cant just ignore those/their functionality." And: "It must make a full plan for
+the turn, and possibly revise/critique it before moving on, no? Having it attend between its
+finalized plan and everything on the board seems smart. I am thinking something like a plan-input
+and a reasoning-turn-counter. The plan is empty at the start of a turn, and the reasoning-turn-counter
+is zero. When reasoning turn counter increments to one, is when the model thinks once more, now with
+its plan as input too, as part of the 'board'. I think this could use the weights better/increase
+information density. And then give it some option to reason again, revise plan, or execute plan."
+"Dont rush to conclusions, spar with me and make sure we get the best plans before we start any
+meaningful work."
+
+**Notes (in discussion; nothing built).**
+- **Paying.**
+  - Cards that care which source pays exist in our own sets. M20's Leyline of Abundance: "Whenever
+    you tap a creature for mana, add an additional {G}"; it waits on round B12.
+  - The ingested sets hold more:
+    - 11 printings that trigger on a permanent tapped for mana: Manabarbs, Overgrowth, Verdant
+      Haven, Wolfwillow Haven, Nyxbloom Ancient, Burning Earth, Glittering Frost;
+    - 22 convoke cards in M15, where paying taps your own creatures, which then cannot block;
+    - 27 mana-spend restrictions.
+  - Commander is full of them. The engine's payer (BACKLOG "Automatic payment") picks the sources
+    by a fixed rule, so these choices are not the network's. PLAN_PLANNING §3's O1 (outcome-level
+    options for which colours stay open) does not cover them.
+- **Plans.**
+  - The network carries nothing from one decision to the next. AlphaStar and OpenAI Five carry an
+    LSTM state, where their intentions live, so the comparison drawn in PLAN_PLANNING §2 holds for
+    what a sequence of choices can express, not for deliberation or commitment.
+  - D3's binding "multi-step planning with every step trained" (2026-09-10) is not in today's
+    network. DESIGN_ACTION_SPACE's decoder was never built.

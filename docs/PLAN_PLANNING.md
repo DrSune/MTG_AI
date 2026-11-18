@@ -23,6 +23,12 @@ The owner, 2026-11-18:
 > doing the no-ceiling scenario where we likely have to remove direct incentives, hardcodings and
 > rules ... Then make a plan ... how and when we implement this alongside the other stuff."
 
+**In discussion with the owner (2026-11-18, OWNER_VISION_LEARNING §12):**
+- the network paying its own mana, which would replace §3's O1;
+- a turn-plan module (plan tokens, repeated reasoning, revise or execute).
+
+No meaningful work starts until the plan is settled; the card work and r29 go on.
+
 ## Summary for the owner
 
 **How a turn reaches the network today.** One decision at a time, each from a menu of only the
