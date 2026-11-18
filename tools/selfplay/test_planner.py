@@ -367,17 +367,26 @@ def test_without_the_planner_nothing_changes(table) -> None:
     rng = np.random.default_rng(0)
     rows = [(f, 0, -0.5, 0.0, float(rng.normal()), float(rng.normal())) for f in feats]
     states = []
-    for with_arrays in (False, True):
-        if with_arrays:
-            for f in feats:
-                PL.attach(f, None)
-        torch.manual_seed(2)
-        model = M.build(table, d=32, layers=1, heads=4, ff=64)
-        opt = torch.optim.AdamW(model.parameters(), lr=1e-3)
-        stats = ppo_train(model, opt, a=a, device=torch.device("cpu"),
-                          rng=np.random.default_rng(3), **pack_buffer(rows))
-        assert "plan" not in stats and stats["steps"] == n
-        states.append(model.state_dict())
+    # Bitwise equal weights need one CPU thread: threaded kernels may sum in another order from
+    # run to run, so two updates WITHOUT planner arrays already differed by about 1e-8 at 2 and 4
+    # threads on some batches (gate round W3's review, MAJOR-1: seed 5's deal moved with the
+    # verified pool). One thread keeps the claim exact; reseeding would only move the deal again.
+    threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        for with_arrays in (False, True):
+            if with_arrays:
+                for f in feats:
+                    PL.attach(f, None)
+            torch.manual_seed(2)
+            model = M.build(table, d=32, layers=1, heads=4, ff=64)
+            opt = torch.optim.AdamW(model.parameters(), lr=1e-3)
+            stats = ppo_train(model, opt, a=a, device=torch.device("cpu"),
+                              rng=np.random.default_rng(3), **pack_buffer(rows))
+            assert "plan" not in stats and stats["steps"] == n
+            states.append(model.state_dict())
+    finally:
+        torch.set_num_threads(threads)
     assert all(torch.equal(v, states[1][k]) for k, v in states[0].items())
 
 

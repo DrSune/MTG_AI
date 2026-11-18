@@ -333,6 +333,12 @@ class ControllerRef(Enum):
 #: The refs naming the player a spell or ability designated: "target player" and
 #: "target opponent" read the same binding and differ only in who may be designated.
 DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
+#: The players whose hand one REVEAL shows (`reveal_hand`): one player each. "Each player reveals
+#: their hand" is EachPlayer around reveal_hand(YOU) (DESIGN_ATOM_ONTOLOGY §19, gate round W3).
+HAND_REVEALERS = frozenset({
+    ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT,
+    ControllerRef.DEFENDING_PLAYER,
+})
 
 #: Who gets an emblem (GET_EMBLEM's ``controller``, CR 114.2): the recipients the 19 sets print,
 #: "you", "each opponent" and "target opponent". Another one comes with the card that prints it.
@@ -596,6 +602,16 @@ class FAtomPred(Enum):
         # creature that was dealt damage this turn" (Ogre Siegebreaker,
         # Fathom Fleet Cutthroat). Required event + count.
     )
+
+
+#: The tests of an object's characteristics and identity alone (CR 109.3): each holds or fails for
+#: as long as it is that object, barring an effect that changes it, so a state of them alone
+#: (`StateTrigger`) would trigger again after every resolution, as the universal filter would.
+CHARACTERISTIC_PREDS = frozenset({
+    FAtomPred.TYPE_EQ, FAtomPred.SUBTYPE_EQ, FAtomPred.SUPERTYPE_EQ, FAtomPred.COLOR_HAS,
+    FAtomPred.COLOR_IN, FAtomPred.NAME_EQ, FAtomPred.NAME_CONTAINS, FAtomPred.KEYWORD_HAS,
+    FAtomPred.IS_TOKEN, FAtomPred.IS_PERMANENT,
+})
 
 
 class CounterKind(Enum):
@@ -2265,9 +2281,11 @@ class StateTrigger:
 
     Refused: IS_SOURCE anywhere its FAnd, FOr and FNot reach (the subject is that object
     already: as a conjunct a second form, negated a state that never holds, in a disjunction one
-    that always does; a count's own filter is another subject), the universal filter (it would
-    trigger at every check), and the state written as an event (a CounterPlacedEvent testing the
-    count it reaches: ``CounterPlacedEvent``)."""
+    that always does; a count's own filter is another subject), the universal filter and a filter
+    of the object's characteristics alone (:data:`CHARACTERISTIC_PREDS`: each holds or fails for
+    as long as it is that object, so it would trigger after every resolution), and the state
+    written as an event (a CounterPlacedEvent testing the count it reaches:
+    ``CounterPlacedEvent``)."""
 
     filter: Filter
 
@@ -2290,6 +2308,20 @@ class StateTrigger:
             raise ValueError(
                 "StateTrigger: the filter is read over the object with the ability; IS_SOURCE "
                 "says it again, never holds under FNot and always holds in an FOr"
+            )
+
+        def atoms(f: object) -> list[object]:
+            if isinstance(f, (FAnd, FOr)):
+                return [a for c in f.children for a in atoms(c)]
+            return atoms(f.inner) if isinstance(f, FNot) else [f]
+
+        if all(isinstance(a, FAtom) and a.pred in CHARACTERISTIC_PREDS for a in atoms(self.filter)):
+            # "When this is an enchantment" holds for as long as it is that object: it would
+            # trigger again after every resolution until the loop tripwire quarantined it, as
+            # the universal filter would (gate round W3, MINOR-2).
+            raise ValueError(
+                "StateTrigger: a state of the object's characteristics alone holds for as long as "
+                "it is that object; a state names a counter, a count, a status or a control test"
             )
 
 
@@ -3563,13 +3595,6 @@ class Seq:
                     "Seq: two equal copy steps would share one designation; \"twice\" is one "
                     "copy with a `count`, two printed copies are two different steps"
                 )
-        extra = [s.args.get("event") for s in self.steps
-                 if isinstance(s, Atom) and s.verb is Verb.TRIGGER_ADDITIONAL]
-        if len(extra) != len(set(extra)):
-            raise ValueError(
-                "Seq: two TRIGGER_ADDITIONAL steps over one AbilityTriggerEvent are one, its "
-                "count their sum (\"two additional times\")"
-            )
         looked = False
         for step in self.steps:
             own = list(walk(step, skip=_FOREIGN_ABILITY_NODES))
@@ -4046,6 +4071,14 @@ def _look_roles_fault(roles: dict[str, object]) -> str | None:
         or cards.filter != FAnd(children=())
     ):
         return "`cards` over a zone is a whole hand: ALL of one hand zone, unfiltered"
+    if zone.controller not in HAND_REVEALERS:
+        # ANY, OPPONENT or ALL_OPPONENTS would be every such player's hand in one row, a second
+        # encoding of the EachPlayer form (one row per player); OWNER names no player here.
+        return (
+            "`cards` over a hand is one player's (YOU, TARGET_PLAYER, TARGET_OPPONENT, "
+            "DEFENDING_PLAYER); each player's or each opponent's is EachPlayer around "
+            "reveal_hand(YOU)"
+        )
     return None
 
 
@@ -4809,14 +4842,30 @@ def _moves_or_makes(step: Any) -> bool:
     )
 
 
+#: The hidden zones a card can be found in or put into (CR 400.2): "reveal it" shows a card there.
+_HIDDEN_ZONES = (ZoneKind.HAND, ZoneKind.LIBRARY)
+
+
 def _finds(step: Any) -> bool:
-    """Does ``step`` run an instruction whose `result` "reveal it" can show: one that moves or
-    makes objects, a search (the cards found) or a look or reveal of a library's top (the cards
-    seen; ``verbs._look``)?"""
+    """Does ``step`` run an instruction whose `result` "reveal it" can show: a search (the cards
+    found), a look or a reveal of a library's top (the cards seen; ``verbs._look``), or a move out
+    of or into a hand or a library (the card picked from a look, the card put into a hand)? Not a
+    token made nor a move between public zones: "exile target creature, then reveal it" would
+    show what everyone sees (gate round W3, MINOR-3)."""
+
+    def hidden_move(atom: Atom) -> bool:
+        return any(
+            (isinstance(v, Zone) and v.kind in _HIDDEN_ZONES)
+            or (isinstance(v, Selector) and any(z.kind in _HIDDEN_ZONES for z in v.zones))
+            for role, v in atom.args.pairs
+            if role in ("destination", "from", "cards", "target")
+        )
+
     return any(
         isinstance(n, Atom) and (
-            n.verb in (*_RESULT_OBJECT_VERBS, Verb.SEARCH, Verb.LOOK_AT)
+            n.verb in (Verb.SEARCH, Verb.LOOK_AT)
             or (n.verb is Verb.REVEAL and n.args.get("count") is not None)
+            or (n.verb is Verb.MOVE_ZONE and hidden_move(n))
         )
         for n in walk(step, skip=(*_A_CLASSES, DelayedTrigger))
     )
@@ -4840,7 +4889,8 @@ def _is_result_misplaced(
     With nothing written before, the read finds no register (gate round B3, M3a-b: a first step,
     or after a DESTROY, which writes none, made no token).
     - "Reveal it", "reveal those cards" is REVEAL(cards=RESULT_REFERENT) after a step that
-      ``found`` cards (:func:`_finds`: a search, a look, a move; DESIGN_ATOM_ONTOLOGY §19)."""
+      ``found`` cards (:func:`_finds`: a search, a look, a move out of or into a hand or a
+      library; DESIGN_ATOM_ONTOLOGY §19)."""
     if isinstance(node, tuple):
         return any(_is_result_misplaced(item, allowed, in_atom, written, found) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
@@ -4966,6 +5016,32 @@ def extra_trigger_fault(*nodes: Any) -> str | None:
         return (
             "TRIGGER_ADDITIONAL is a static ability's effect (CR 603.2d): a card's, token's, "
             "emblem's or copy's own static, never a resolving effect or a granted static"
+        )
+
+    def doubled(abilities: tuple) -> bool:
+        # One object's statics: two over one ability triggering under one condition are one,
+        # their count the sum ("two additional times": one static of count 2). Another
+        # condition is another static (each counts while its own holds).
+        seen = set()
+        for ability in abilities:
+            if not isinstance(ability, StaticAbility):
+                continue
+            for n in walk(ability.effect, skip=_FOREIGN_ABILITY_NODES):
+                if isinstance(n, Atom) and n.verb is Verb.TRIGGER_ADDITIONAL:
+                    key = (n.args.get("event"), ability.condition)
+                    if key in seen:
+                        return True
+                    seen.add(key)
+        return False
+
+    # the card's own statics (its abilities, ``nodes[-1]``), then each token's, emblem's and copy's
+    owners = [nodes[-1] if nodes else ()] + [
+        n.abilities for n in _walk_value(nodes) if isinstance(n, (TokenSpec, EmblemSpec, CopyOf))
+    ]
+    if any(doubled(tuple(a)) for a in owners):
+        return (
+            "TRIGGER_ADDITIONAL: two statics of one object over one AbilityTriggerEvent and one "
+            "condition are one static, its count their sum (\"two additional times\")"
         )
     return None
 
@@ -5406,7 +5482,8 @@ class CardRecord:
                 "take a referent Selector (elsewhere it is Selector(referent='result'), or "
                 "there is no result register to read); or \"all other\" (FNot(IS_RESULT)) or a "
                 "copy of `result` with no instruction before it that moved or made objects; or a "
-                "reveal of `result` with none before it that found, looked at or moved cards"
+                "reveal of `result` with none before it that found or looked at cards, or moved "
+                "them out of or into a hand or a library"
             )
         if _reflexive_misplaced(self.abilities, barred="Emblem" in self.types):
             raise ValueError(

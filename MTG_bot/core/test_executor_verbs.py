@@ -854,9 +854,10 @@ class TestManaScryShuffleLook(ExecutorCase):
         )
         self.assertEqual(ev1[0][1], "LOOK_AT")
         self.assertEqual(ev2[0][1], "REVEAL")
-        # one row per look: its cards by owner and zone, to whom (DESIGN_ATOM_ONTOLOGY §19)
+        # one row per look: its cards by owner and zone, to whom, and what they are: a library's
+        # top (DESIGN_ATOM_ONTOLOGY §19)
         self.assertEqual(ev1[0][2:], (((str(self.p0), ZONE_LIBRARY, (str(self.libs[3]), str(self.libs[2]))),),
-                                      str(self.p0)))
+                                      str(self.p0), "top"))
         self.assertEqual(self.world.fingerprint(), fp)  # no state touched
 
     def _reveal_until_creature_then_take_it(self, controller) -> list:
@@ -878,7 +879,7 @@ class TestManaScryShuffleLook(ExecutorCase):
         events = self._reveal_until_creature_then_take_it(self.p0)
         self.assertEqual(
             events[0][1:],
-            ("REVEAL", ((str(self.p0), ZONE_LIBRARY, (str(spell), str(self.libs[3]))),), "ALL"),
+            ("REVEAL", ((str(self.p0), ZONE_LIBRARY, (str(spell), str(self.libs[3]))),), "ALL", "top"),
         )
         self.assertEqual(self.world.zone_of(self.libs[3]).kind, ZONE_HAND)  # that card
         self.assertEqual(self.world.zone_of(spell).kind, ZONE_LIBRARY)  # revealed, unmoved
@@ -891,7 +892,7 @@ class TestManaScryShuffleLook(ExecutorCase):
         events = self._reveal_until_creature_then_take_it(self.p1)
         self.assertEqual(
             events[0][1:],
-            ("REVEAL", ((str(self.p1), ZONE_LIBRARY, (str(lands[1]), str(lands[0]))),), "ALL"),
+            ("REVEAL", ((str(self.p1), ZONE_LIBRARY, (str(lands[1]), str(lands[0]))),), "ALL", "top"),
         )
         for land in lands:  # no "that card": nothing moves
             self.assertEqual(self.world.zone_of(land).kind, ZONE_LIBRARY)

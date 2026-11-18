@@ -1650,14 +1650,14 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     top_run = _arrange(ctx, player, tops, "TOP")
     lib.entries = bottom_run + lib.entries[: len(lib.entries) - n] + top_run
     # CR 701.22a: the scryer looks at the cards, so the row names each one and the end it went
-    # to, top first at each end, and is the scryer's alone (_seen's row layout). A fifth field
-    # is everyone's: how many went to the top and how many to the bottom, which the table sees
-    # as the cards go back face down (the old row's public count, split).
+    # to, top first at each end, and is the scryer's alone (_seen's row layout, form "top"). A
+    # sixth field is everyone's: how many went to the top and how many to the bottom, which the
+    # table sees as the cards go back face down (the old row's public count, split).
     placed = tuple((str(c), "TOP") for c in reversed(top_run)) + tuple(
         (str(c), "BOTTOM") for c in reversed(bottom_run)
     )
     ctx.events.append((
-        len(ctx.events), "SCRY", ((str(player), ZONE_LIBRARY, placed),), str(player),
+        len(ctx.events), "SCRY", ((str(player), ZONE_LIBRARY, placed),), str(player), "top",
         (len(top_run), len(bottom_run)),
     ))
 
@@ -1686,15 +1686,30 @@ def _v_shuffle(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "SHUFFLE", str(owner), zone.kind))
 
 
-def _seen(ctx: ExecCtx, atom: Atom, cards: Sequence[Handle]) -> None:
+#: The event-log rows that record what players saw (:func:`_seen`, :func:`_v_scry`): the only
+#: rows that name a card in a hidden zone together with who saw it. A memory takes a hidden
+#: card's identity from these rows alone, each by its viewers; the other rows that name hidden
+#: cards (a SEARCH's, a MOVE's: a tutor that reveals nothing, "the rest on the bottom") carry no
+#: viewers and are no one's knowledge (DESIGN_ATOM_ONTOLOGY §19).
+SEEN_VERBS = frozenset({"REVEAL", "LOOK_AT", "SCRY"})
+#: What a seen row's cards are (its ``form``): "top", a library's top cards, top first (a look, a
+#: reveal of the top or down to a match, a scry); "hand", a whole hand; "result", the cards an
+#: instruction found, picked or put somewhere, where they are now (a card found, in a hand; the
+#: cards Cultivate found, at unknown depths of a library).
+SEEN_FORMS = ("top", "hand", "result")
+
+
+def _seen(ctx: ExecCtx, atom: Atom, cards: Sequence[Handle], form: str) -> None:
     """The record of what a look or a reveal showed, the knowledge it gives (nothing moves): one
-    row per atom, ``(i, verb, ((owner, zone, cards), ...), viewers)``, a group per player's zone,
-    the cards in the order shown (a library's top first), none when nothing was shown. A reveal
-    shows them to all players (CR 701.20a: ``viewers`` "ALL"), a look to the looker alone, the
-    effect's controller. A SCRY row has the same layout, its cards each paired with the end it
-    went to, and a fifth, public field: how many went to each end (``_v_scry``). One row per
-    atom whatever it shows: a later random order is seeded by the event count
-    (``_library_order``), which what was revealed must not move."""
+    row per atom, ``(i, verb, ((owner, zone, cards), ...), viewers, form)``, a group per player's
+    zone, the cards in the order shown (a library's top first), none when nothing was shown. A
+    reveal shows them to all players (CR 701.20a: ``viewers`` "ALL"), a look to the looker alone,
+    the effect's controller. ``form`` says what the cards are (:data:`SEEN_FORMS`). A SCRY row has
+    the same layout, its cards each paired with the end it went to, and a sixth, public field:
+    how many went to each end (``_v_scry``). One row per atom whatever it shows: a later random
+    order is seeded by the event count (``_library_order``), which what was revealed must not
+    move."""
+    assert form in SEEN_FORMS, form
     viewers = "ALL" if atom.verb is Verb.REVEAL else str(ctx.controller)
     groups: dict[tuple[Handle, str], list[str]] = {}
     for card in cards:
@@ -1703,7 +1718,7 @@ def _seen(ctx: ExecCtx, atom: Atom, cards: Sequence[Handle]) -> None:
             key = (ctx.world.controller_of(card), ctx.world.zone_of(card).kind)
             groups.setdefault(key, []).append(str(card))
     shown = tuple((str(owner), zone, tuple(group)) for (owner, zone), group in groups.items())
-    ctx.events.append((len(ctx.events), atom.verb.name, shown, viewers))
+    ctx.events.append((len(ctx.events), atom.verb.name, shown, viewers, form))
 
 
 def _look(ctx: ExecCtx, atom: Atom) -> None:
@@ -1731,9 +1746,11 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
             # and stays fresh for a bare Conditional (run_atom's ``result_fresh``), as the old
             # top-card reveal left it.
             ctx.bindings["result"] = list(shown)
+            form = "result"
         else:
             shown = resolve_selector(sel, ctx)  # ALL of a hand: every card in it
-        _seen(ctx, atom, shown)
+            form = "hand"
+        _seen(ctx, atom, shown, form)
         return
     player = role_player(ctx, atom)
     lib = ctx.world.players[player].zone(ZONE_LIBRARY)
@@ -1774,7 +1791,7 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     # The look window — the handles shown, top-first, for the NEXT sentence
     # (Conditional subject / library-TOP partition candidates).
     ctx.look_window = tuple(seen_cards)
-    _seen(ctx, atom, seen_cards)
+    _seen(ctx, atom, seen_cards, "top")
 
 
 # ----------------------------------------------------------- turn/library verbs

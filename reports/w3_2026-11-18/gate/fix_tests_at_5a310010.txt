@@ -1,0 +1,582 @@
+.......FFFF....................F.................FFFF...F.............FF [ 87%]
+FFFFFFF.FF                                                               [100%]
+=================================== FAILURES ===================================
+____________ test_a_state_of_characteristics_alone_is_refused[type] ____________
+
+state = FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Enchantment', color=None, colors=(), count=None, counter_kind...None, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None)
+
+    @pytest.mark.parametrize("state", [
+        ENCHANTMENT, FNot(inner=ENCHANTMENT), FAnd(children=(ENCHANTMENT, SHRINE)),
+        FOr(children=(ENCHANTMENT, FAtom(pred=FAtomPred.IS_TOKEN))),
+    ], ids=["type", "not-type", "type-and-subtype", "type-or-token"])
+    def test_a_state_of_characteristics_alone_is_refused(state) -> None:
+        """The gate's MINOR-2: "when this is an enchantment" holds for as long as it is that object,
+        so it would trigger after every resolution until the loop tripwire, as the universal filter
+        would. A state names a counter, a count, a status or a control test; beside one, a
+        characteristic is a state's part (validated on 62cd34d8 and 5a310010 alike)."""
+>       with pytest.raises(ValueError, match="characteristics alone"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:158: Failed
+__________ test_a_state_of_characteristics_alone_is_refused[not-type] __________
+
+state = FNot(inner=FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Enchantment', color=None, colors=(), count=None, c...one, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None))
+
+    @pytest.mark.parametrize("state", [
+        ENCHANTMENT, FNot(inner=ENCHANTMENT), FAnd(children=(ENCHANTMENT, SHRINE)),
+        FOr(children=(ENCHANTMENT, FAtom(pred=FAtomPred.IS_TOKEN))),
+    ], ids=["type", "not-type", "type-and-subtype", "type-or-token"])
+    def test_a_state_of_characteristics_alone_is_refused(state) -> None:
+        """The gate's MINOR-2: "when this is an enchantment" holds for as long as it is that object,
+        so it would trigger after every resolution until the loop tripwire, as the universal filter
+        would. A state names a counter, a count, a status or a control test; beside one, a
+        characteristic is a state's part (validated on 62cd34d8 and 5a310010 alike)."""
+>       with pytest.raises(ValueError, match="characteristics alone"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:158: Failed
+______ test_a_state_of_characteristics_alone_is_refused[type-and-subtype] ______
+
+state = FAnd(children=(FAtom(pred=<FAtomPred.SUBTYPE_EQ: 'SUBTYPE_EQ'>, string_value='Shrine', color=None, colors=(), count=No...ne, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None)))
+
+    @pytest.mark.parametrize("state", [
+        ENCHANTMENT, FNot(inner=ENCHANTMENT), FAnd(children=(ENCHANTMENT, SHRINE)),
+        FOr(children=(ENCHANTMENT, FAtom(pred=FAtomPred.IS_TOKEN))),
+    ], ids=["type", "not-type", "type-and-subtype", "type-or-token"])
+    def test_a_state_of_characteristics_alone_is_refused(state) -> None:
+        """The gate's MINOR-2: "when this is an enchantment" holds for as long as it is that object,
+        so it would trigger after every resolution until the loop tripwire, as the universal filter
+        would. A state names a counter, a count, a status or a control test; beside one, a
+        characteristic is a state's part (validated on 62cd34d8 and 5a310010 alike)."""
+>       with pytest.raises(ValueError, match="characteristics alone"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:158: Failed
+_______ test_a_state_of_characteristics_alone_is_refused[type-or-token] ________
+
+state = FOr(children=(FAtom(pred=<FAtomPred.IS_TOKEN: 'IS_TOKEN'>, string_value=None, color=None, colors=(), count=None, count...ne, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None)))
+
+    @pytest.mark.parametrize("state", [
+        ENCHANTMENT, FNot(inner=ENCHANTMENT), FAnd(children=(ENCHANTMENT, SHRINE)),
+        FOr(children=(ENCHANTMENT, FAtom(pred=FAtomPred.IS_TOKEN))),
+    ], ids=["type", "not-type", "type-and-subtype", "type-or-token"])
+    def test_a_state_of_characteristics_alone_is_refused(state) -> None:
+        """The gate's MINOR-2: "when this is an enchantment" holds for as long as it is that object,
+        so it would trigger after every resolution until the loop tripwire, as the universal filter
+        would. A state names a counter, a count, a status or a control test; beside one, a
+        characteristic is a state's part (validated on 62cd34d8 and 5a310010 alike)."""
+>       with pytest.raises(ValueError, match="characteristics alone"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:158: Failed
+___________ test_two_additional_times_over_one_ability_are_one_count ___________
+
+    def test_two_additional_times_over_one_ability_are_one_count() -> None:
+        """"Two additional times" is one static of count 2: two equal steps in one static, or two
+        statics of one object over one event and one condition (the gate's MAJOR-2: they validated
+        beside the count-2 form), are its second encoding, on a card and on a token alike. Another
+        event, or another condition, is another static."""
+        six_shrines = at_least(6, quantity=number_you_control(SHRINE))
+        for doubled in (
+>           (StaticAbility(effect=Seq(steps=(extra(), extra()))),),
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            (StaticAbility(effect=extra()), StaticAbility(effect=extra())),
+            (StaticAbility(effect=extra(), condition=six_shrines),
+             StaticAbility(effect=extra(), condition=six_shrines)),
+        ):
+
+MTG_bot/core/test_ability_tree_w3.py:300: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<string>:4: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Seq(steps=(Atom(verb=<Verb.TRIGGER_ADDITIONAL: 'TRIGGER_ADDITIONAL'>, args=AtomArgs(pairs=(('count', QConst(value=1)),...kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), subject=None))))))))
+
+    def __post_init__(self) -> None:
+        if not self.steps:
+            raise ValueError("Seq: steps must be non-empty")
+        for step in self.steps:
+            if not _is_effect(step):
+                raise ValueError(
+                    f"Seq: step must be an Effect, got {type(step).__name__}"
+                )
+        for one, two in zip(self.steps, self.steps[1:]):
+            # Printed twice, a copy instruction is two designations (CR 601.2c) and two events
+            # (round R10); two equal steps cannot say that, as equal target slots share one
+            # designation (215's F16). "Copy it twice" is one COPY with `count` 2, two token
+            # copies one CREATE_TOKEN of 2 (DESIGN_ATOM_ONTOLOGY §18).
+            if one == two and isinstance(one, Atom) and isinstance(
+                one.args.get("source" if one.verb is Verb.COPY else "tokens"), CopyOf
+            ) and one.args.get("cards") is None:
+                raise ValueError(
+                    "Seq: two equal copy steps would share one designation; \"twice\" is one "
+                    "copy with a `count`, two printed copies are two different steps"
+                )
+        extra = [s.args.get("event") for s in self.steps
+                 if isinstance(s, Atom) and s.verb is Verb.TRIGGER_ADDITIONAL]
+        if len(extra) != len(set(extra)):
+>           raise ValueError(
+                "Seq: two TRIGGER_ADDITIONAL steps over one AbilityTriggerEvent are one, its "
+                "count their sum (\"two additional times\")"
+            )
+E           ValueError: Seq: two TRIGGER_ADDITIONAL steps over one AbilityTriggerEvent are one, its count their sum ("two additional times")
+
+MTG_bot/core/ability_tree.py:3569: ValueError
+_________________ test_any_other_cards_is_refused[every-hand] __________________
+
+sel = Selector(count=QUnbounded(), mode=<SelectorMode.ALL: 'ALL'>, filter=FAnd(children=()), zones=(Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.ANY: 'ANY'>, position=None),), referent=None)
+
+    @pytest.mark.parametrize("sel", [
+        Selector(QUnbounded(), SelectorMode.ALL, SOURCE, zones=(HAND_YOU,)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QConst(2), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(LIBRARY,)),
+        Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU, LIBRARY)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="event"),
+        Selector(QConst(1), SelectorMode.CHOOSE, SOURCE, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="result"),
+        *(Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.HAND, ref),))
+          for ref in (ControllerRef.ANY, ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
+                      ControllerRef.OWNER)),
+    ], ids=["filtered-hand", "chosen-card", "two-cards", "library", "library-top-pick", "graveyard",
+            "two-zones", "event-referent", "filtered-result", "every-hand", "opponents-hand",
+            "all-opponents-hands", "owners-hand"])
+    def test_any_other_cards_is_refused(sel) -> None:
+        """The last four are the gate's MAJOR-2: a hand of no one player. ANY, OPPONENT and
+        ALL_OPPONENTS revealed every such hand in one row, a second encoding of EachPlayer around
+        reveal_hand(YOU) (one row per player); OWNER validated and raised in play."""
+>       with pytest.raises(ValueError, match="REVEAL"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:395: Failed
+_______________ test_any_other_cards_is_refused[opponents-hand] ________________
+
+sel = Selector(count=QUnbounded(), mode=<SelectorMode.ALL: 'ALL'>, filter=FAnd(children=()), zones=(Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.OPPONENT: 'OPPONENT'>, position=None),), referent=None)
+
+    @pytest.mark.parametrize("sel", [
+        Selector(QUnbounded(), SelectorMode.ALL, SOURCE, zones=(HAND_YOU,)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QConst(2), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(LIBRARY,)),
+        Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU, LIBRARY)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="event"),
+        Selector(QConst(1), SelectorMode.CHOOSE, SOURCE, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="result"),
+        *(Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.HAND, ref),))
+          for ref in (ControllerRef.ANY, ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
+                      ControllerRef.OWNER)),
+    ], ids=["filtered-hand", "chosen-card", "two-cards", "library", "library-top-pick", "graveyard",
+            "two-zones", "event-referent", "filtered-result", "every-hand", "opponents-hand",
+            "all-opponents-hands", "owners-hand"])
+    def test_any_other_cards_is_refused(sel) -> None:
+        """The last four are the gate's MAJOR-2: a hand of no one player. ANY, OPPONENT and
+        ALL_OPPONENTS revealed every such hand in one row, a second encoding of EachPlayer around
+        reveal_hand(YOU) (one row per player); OWNER validated and raised in play."""
+>       with pytest.raises(ValueError, match="REVEAL"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:395: Failed
+_____________ test_any_other_cards_is_refused[all-opponents-hands] _____________
+
+sel = Selector(count=QUnbounded(), mode=<SelectorMode.ALL: 'ALL'>, filter=FAnd(children=()), zones=(Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPONENTS'>, position=None),), referent=None)
+
+    @pytest.mark.parametrize("sel", [
+        Selector(QUnbounded(), SelectorMode.ALL, SOURCE, zones=(HAND_YOU,)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QConst(2), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(LIBRARY,)),
+        Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU, LIBRARY)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="event"),
+        Selector(QConst(1), SelectorMode.CHOOSE, SOURCE, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="result"),
+        *(Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.HAND, ref),))
+          for ref in (ControllerRef.ANY, ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
+                      ControllerRef.OWNER)),
+    ], ids=["filtered-hand", "chosen-card", "two-cards", "library", "library-top-pick", "graveyard",
+            "two-zones", "event-referent", "filtered-result", "every-hand", "opponents-hand",
+            "all-opponents-hands", "owners-hand"])
+    def test_any_other_cards_is_refused(sel) -> None:
+        """The last four are the gate's MAJOR-2: a hand of no one player. ANY, OPPONENT and
+        ALL_OPPONENTS revealed every such hand in one row, a second encoding of EachPlayer around
+        reveal_hand(YOU) (one row per player); OWNER validated and raised in play."""
+>       with pytest.raises(ValueError, match="REVEAL"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:395: Failed
+_________________ test_any_other_cards_is_refused[owners-hand] _________________
+
+sel = Selector(count=QUnbounded(), mode=<SelectorMode.ALL: 'ALL'>, filter=FAnd(children=()), zones=(Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.OWNER: 'OWNER'>, position=None),), referent=None)
+
+    @pytest.mark.parametrize("sel", [
+        Selector(QUnbounded(), SelectorMode.ALL, SOURCE, zones=(HAND_YOU,)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QConst(2), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(LIBRARY,)),
+        Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU),)),
+        Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(HAND_YOU, LIBRARY)),
+        Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="event"),
+        Selector(QConst(1), SelectorMode.CHOOSE, SOURCE, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
+                 referent="result"),
+        *(Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.HAND, ref),))
+          for ref in (ControllerRef.ANY, ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
+                      ControllerRef.OWNER)),
+    ], ids=["filtered-hand", "chosen-card", "two-cards", "library", "library-top-pick", "graveyard",
+            "two-zones", "event-referent", "filtered-result", "every-hand", "opponents-hand",
+            "all-opponents-hands", "owners-hand"])
+    def test_any_other_cards_is_refused(sel) -> None:
+        """The last four are the gate's MAJOR-2: a hand of no one player. ANY, OPPONENT and
+        ALL_OPPONENTS revealed every such hand in one row, a second encoding of EachPlayer around
+        reveal_hand(YOU) (one row per player); OWNER validated and raised in play."""
+>       with pytest.raises(ValueError, match="REVEAL"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:395: Failed
+________________ test_a_card_revealed_is_one_from_a_hidden_zone ________________
+
+    def test_a_card_revealed_is_one_from_a_hidden_zone() -> None:
+        """The gate's MINOR-3: "reveal it" after a token made or a move between public zones
+        ("exile target creature, then reveal it") shows what everyone sees: refused. A move out of a
+        library or into a hand is a card to reveal."""
+        creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+        exile = A(Verb.MOVE_ZONE, target=creature, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+        bounce = A(Verb.MOVE_ZONE, target=creature, destination=Zone(ZoneKind.HAND, ControllerRef.OWNER))
+        token = A(Verb.CREATE_TOKEN, tokens=TokenSpec(name="Bear", type_line="Creature", types=("Creature",),
+                                                      subtypes=(), power=QConst(2), toughness=QConst(2),
+                                                      keywords=(), abilities=()))
+        pick = A(Verb.MOVE_ZONE, cards=Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+                 destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+        for public in (exile, token):
+>           with pytest.raises(ValueError, match="reveal of `result`"):
+E           Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:445: Failed
+_______ TestReveals.test_a_card_picked_from_a_look_is_the_card_revealed ________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_card_picked_from_a_look_is_the_card_revealed>
+
+    def test_a_card_picked_from_a_look_is_the_card_revealed(self) -> None:
+        """M20 Brightwood Tracker (its record): "reveal a creature card from among them and put
+        it into your hand" names the card picked. On main it named the look's first card, here a
+        land that went to the bottom."""
+        r = _runner([
+            _card("tracker", 0, real="Brightwood Tracker"),
+            _card("bear", 0, zone="library", real="Elvish Reclaimer"),
+            _card("land", 0, zone="library", real="Forest"),
+        ], code="M20", records=True, mana={"0": {"G": 6}})
+        library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
+        for key in ("bear", "land"):  # the top two: the land first, the creature under it
+            library.remove(r.handles[key])
+            library.append(r.handles[key])
+        r.run_step({"op": "activate", "key": "tracker", "idx": 0, "decisions": ["fire", "bear"]})
+        self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, ZONE_HAND)
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["bear"]),), ZONE_HAND, "ALL", "result")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:445: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee22c650>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+_ TestReveals.test_a_graveyard_search_reveals_the_card_found_not_the_library_top _
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_graveyard_search_reveals_the_card_found_not_the_library_top>
+
+    def test_a_graveyard_search_reveals_the_card_found_not_the_library_top(self) -> None:
+        """M21 Basri's Aegis, "search your library and/or graveyard ... reveal it", the graveyard
+        alone: no shuffle follows, so main's row (the library's top card) told the opponent the
+        next draw."""
+        r = _runner([
+            _card("aegis", 0, zone="hand", real="Basri's Aegis"),
+            _card("basri", 0, zone="graveyard", real="Basri, Devoted Paladin"),
+            _card("bear", 1),
+        ], mana={"0": {"W": 2, "G": 2}})
+        r.run_step({"op": "cast", "key": "aegis", "targets": ["bear"], "decisions": ["fire", "2", "basri"]})
+        self.assertEqual(r.world.zone_of(r.handles["basri"]).kind, ZONE_HAND)
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["basri"]),), ZONE_HAND, "ALL", "result")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:428: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee22cce0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+_________________ TestReveals.test_a_look_is_the_lookers_alone _________________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_look_is_the_lookers_alone>
+
+    def test_a_look_is_the_lookers_alone(self) -> None:
+        r = _runner([_card("a", 0, zone="library", real="Forest")])
+        top = str(r.world.players[r.p0].zone(ZONE_LIBRARY).entries[-1])
+        r.ex.execute(atom(Verb.LOOK_AT, controller=ControllerRef.YOU, count=QConst(1)), source=r.p0,
+                     controller=r.p0)
+>       self.assertEqual(_rows(r, "LOOK_AT"), [(str(r.p0), (top,), ZONE_LIBRARY, str(r.p0), "top")])
+                         ^^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:465: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee4192e0>
+kind = 'LOOK_AT'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+_______________ TestReveals.test_a_reveal_names_each_owners_zone _______________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_reveal_names_each_owners_zone>
+
+    def test_a_reveal_names_each_owners_zone(self) -> None:
+        """A reveal's cards are grouped by the zone holding them, its owner named (CR 400.3)."""
+        # not on main: imported here, so the module imports there and its other tests run
+        # (reports/w3_2026-11-18/engine_tests_on_main.txt)
+        from MTG_bot.core.ability_tree import reveal_result
+    
+        r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="graveyard")])
+        mine, theirs = r.handles["mine"], r.handles["theirs"]
+        r.ex.execute(reveal_result(), source=r.p0, controller=r.p0, bindings={"result": [mine, theirs]})
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(mine),), ZONE_HAND, "ALL", "result"),
+                         ^^^^^^^^^^^^^^^^^^
+                                              (str(r.p1), (str(theirs),), ZONE_GRAVEYARD, "ALL", "result")])
+
+MTG_bot/core/test_executor_w3.py:370: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee4186b0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+______ TestReveals.test_a_scry_names_each_card_and_its_end_for_the_scryer ______
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_scry_names_each_card_and_its_end_for_the_scryer>
+
+    def test_a_scry_names_each_card_and_its_end_for_the_scryer(self) -> None:
+        """CR 701.22a: the scryer sees the cards, and the table how many went to each end; main's
+        row held only how many were scried."""
+        r = _runner([_card("a", 0, zone="library", real="Forest")])
+        library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
+        top, second = str(library[-1]), str(library[-2])
+        r.ex.execute(atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(2)), source=r.p0,
+                     controller=r.p0, decisions=("top", "bottom"))
+>       self.assertEqual(_rows(r, "SCRY"),
+                         [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0), "top")])
+E       AssertionError: Lists differ: [('pl[20 chars] 'TOP'), ('card:5', 'BOTTOM')), 'library', 'player:0', (1, 1))] != [('pl[20 chars] 'TOP'), ('card:5', 'BOTTOM')), 'library', 'player:0', 'top')]
+E       
+E       First differing element 0:
+E       ('pla[18 chars], 'TOP'), ('card:5', 'BOTTOM')), 'library', 'player:0', (1, 1))
+E       ('pla[18 chars], 'TOP'), ('card:5', 'BOTTOM')), 'library', 'player:0', 'top')
+E       
+E         [('player:0',
+E           (('card:6', 'TOP'), ('card:5', 'BOTTOM')),
+E           'library',
+E           'player:0',
+E       -   (1, 1))]
+E       +   'top')]
+
+MTG_bot/core/test_executor_w3.py:455: AssertionError
+____________ TestReveals.test_an_empty_hand_is_revealed_as_nothing _____________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_an_empty_hand_is_revealed_as_nothing>
+
+    def test_an_empty_hand_is_revealed_as_nothing(self) -> None:
+        """M21 Duress at an empty hand: one row that names nothing, to all (one row per atom: a
+        later random order is seeded by the event count). On main it listed the library."""
+        r = _runner([_card("duress", 0, zone="hand", real="Duress"), _card("deep", 1, zone="library")])
+        r.world.players[r.p0].mana_pool["B"] = 1
+        r.run_step({"op": "cast", "key": "duress", "targets": ["p1"]})
+>       self.assertEqual([e[2:] for e in r.ex.events if e[1] == "REVEAL"], [((), "ALL", "hand")])
+E       AssertionError: Lists differ: [((), 'ALL')] != [((), 'ALL', 'hand')]
+E       
+E       First differing element 0:
+E       ((), 'ALL')
+E       ((), 'ALL', 'hand')
+E       
+E       - [((), 'ALL')]
+E       + [((), 'ALL', 'hand')]
+E       ?            ++++++++
+
+MTG_bot/core/test_executor_w3.py:359: AssertionError
+________________ TestReveals.test_duress_reveals_the_hand_only _________________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_duress_reveals_the_hand_only>
+
+    def test_duress_reveals_the_hand_only(self) -> None:
+        """M21 Duress: the row names the target's hand, to all, never its library. On main it
+        listed the target's whole library."""
+        r = _runner([
+            _card("duress", 0, zone="hand", real="Duress"),
+            _card("shock", 1, zone="hand", real="Shock"),
+            _card("bear", 1, zone="hand"),
+            _card("deep", 1, zone="library"),
+        ])
+        r.world.players[r.p0].mana_pool["B"] = 1
+        r.run_step({"op": "cast", "key": "duress", "targets": ["p1"], "decisions": ["shock"]})
+        hand = (str(r.handles["shock"]), str(r.handles["bear"]))
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p1), hand, ZONE_HAND, "ALL", "hand")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:350: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee39ec90>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+_____ TestReveals.test_each_player_reveals_their_own_hand_and_looks_alone ______
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_each_player_reveals_their_own_hand_and_looks_alone>
+
+    def test_each_player_reveals_their_own_hand_and_looks_alone(self) -> None:
+        """Under EachPlayer the reveal runs once per player, each row that player's hand; a look
+        there is each looker's alone (the rotated controller)."""
+        from MTG_bot.core.ability_tree import reveal_hand  # not on main (above)
+    
+        r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="hand"),
+                     _card("a", 0, zone="library"), _card("b", 1, zone="library")])
+        each = ControllerRef.ANY
+        r.ex.apply_effect(EachPlayer(ref=each, effect=reveal_hand(ControllerRef.YOU)), source=r.p0, controller=r.p0)
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["mine"]),), ZONE_HAND, "ALL", "hand"),
+                         ^^^^^^^^^^^^^^^^^^
+                                              (str(r.p1), (str(r.handles["theirs"]),), ZONE_HAND, "ALL", "hand")])
+
+MTG_bot/core/test_executor_w3.py:382: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee39e0c0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+____________ TestReveals.test_fierce_empath_reveals_the_card_found _____________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_fierce_empath_reveals_the_card_found>
+
+    def test_fierce_empath_reveals_the_card_found(self) -> None:
+        """M21 Fierce Empath: "reveal it" names the card the search found, now in the hand. On
+        main the row named the library's new top card, which nobody saw."""
+        r = _runner([
+            _card("empath", 0, zone="hand", real="Fierce Empath"),
+            _card("big", 0, zone="library", real="Pursued Whale"),
+            _card("top", 0, zone="library", real="Llanowar Visionary"),
+        ])
+        r.run_step({"op": "enter", "key": "empath", "decisions": ["fire", "big"]})
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["big"]),), ZONE_HAND, "ALL", "result")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:415: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xeb0aee912ff0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+        a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+>       return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                           ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:85: IndexError
+__ TestSeenRows.test_every_seen_row_names_its_viewers_and_what_its_cards_are ___
+
+self = <MTG_bot.core.test_executor_w3.TestSeenRows testMethod=test_every_seen_row_names_its_viewers_and_what_its_cards_are>
+
+    def test_every_seen_row_names_its_viewers_and_what_its_cards_are(self) -> None:
+        # not on main (TestReveals' note)
+        from MTG_bot.core.executor import games
+>       from MTG_bot.core.executor.verbs import SEEN_FORMS, SEEN_VERBS
+E       ImportError: cannot import name 'SEEN_FORMS' from 'MTG_bot.core.executor.verbs' (/home/sune/Desktop/MTG_AI/.claude/worktrees/agent-a3637301ad1c4f789/MTG_bot/core/executor/verbs.py)
+
+MTG_bot/core/test_executor_w3.py:479: ImportError
+___ test_an_extra_triggers_cause_is_mutated_and_the_cast_pack_kills_its_drop ___
+
+    def test_an_extra_triggers_cause_is_mutated_and_the_cast_pack_kills_its_drop() -> None:
+        """The gate's MINOR-6: Yarok with his cause dropped doubles every trigger of his
+        controller's permanents (stronger than printed) and passed both entering packs, for G3 had
+        no operator on the cause. Now it drops the cause (and widens a cause's subject, Naban's
+        Wizard), and the cast pack, a Kykar trigger no entering caused, kills the drop."""
+        yarok = _card("Yarok, the Desecrated", "M20")
+>       assert ("extra-trigger cause dropped", YAROK_EVENT) in _where(yarok)
+E       AssertionError: assert ('extra-trigger cause dropped', '1/0/effect/args/event') in {('amount+1', '1/0/effect/args/count'), ('controller YOU->OPPONENT', '1/0/effect/args/event/filter/who'), ('drop keyword DEATHTOUCH', '0'), ('drop keyword LIFELINK', '0')}
+E        +  where {('amount+1', '1/0/effect/args/count'), ('controller YOU->OPPONENT', '1/0/effect/args/event/filter/who'), ('drop keyword DEATHTOUCH', '0'), ('drop keyword LIFELINK', '0')} = _where(CardRecord(oracle_id='95b53836-18aa-451a-992d-2a111deeeab2', name='Yarok, the Desecrated', type_line='Legendary Creatu...ondition=None), SpellAbility(kind=<SpellKind.CREATURE: 'CREATURE'>, effect=None, additional_costs=())), is_token=False))
+
+tools/cards/test_gates.py:810: AssertionError
+=========================== short test summary info ============================
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_of_characteristics_alone_is_refused[type]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_of_characteristics_alone_is_refused[not-type]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_of_characteristics_alone_is_refused[type-and-subtype]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_of_characteristics_alone_is_refused[type-or-token]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_two_additional_times_over_one_ability_are_one_count
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_any_other_cards_is_refused[every-hand]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_any_other_cards_is_refused[opponents-hand]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_any_other_cards_is_refused[all-opponents-hands]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_any_other_cards_is_refused[owners-hand]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_card_revealed_is_one_from_a_hidden_zone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_card_picked_from_a_look_is_the_card_revealed
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_graveyard_search_reveals_the_card_found_not_the_library_top
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_look_is_the_lookers_alone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_reveal_names_each_owners_zone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_scry_names_each_card_and_its_end_for_the_scryer
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_an_empty_hand_is_revealed_as_nothing
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_duress_reveals_the_hand_only
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_each_player_reveals_their_own_hand_and_looks_alone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_fierce_empath_reveals_the_card_found
+FAILED MTG_bot/core/test_executor_w3.py::TestSeenRows::test_every_seen_row_names_its_viewers_and_what_its_cards_are
+FAILED tools/cards/test_gates.py::test_an_extra_triggers_cause_is_mutated_and_the_cast_pack_kills_its_drop
+21 failed, 61 passed in 4.46s
+restored ['MTG_bot/core/ability_tree.py', 'MTG_bot/core/executor/verbs.py', 'MTG_bot/core/executor/binding.py', 'tools/cards/gates.py']

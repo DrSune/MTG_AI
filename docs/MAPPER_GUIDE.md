@@ -380,11 +380,16 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   'event': AbilityTriggerEvent(filter=<the permanent whose ability triggers>, cause=<when printed>)}),
   condition=<"while you control six or more Shrines">)`. The cause is the entering that made it
   trigger, a ZoneChangeEvent into the battlefield (Yarok, Naban, Ancient Greenwarden); the
-  static's own test goes in its condition, never in the event's filter. `parse` Sanctum of All's
-  or Yarok's sentence.
+  static's own test goes in its condition, never in the event's filter. "Two additional
+  times" is one static with `count` 2, never two statics (the IR refuses two over one event
+  and one condition on one object). `parse` Sanctum of All's or Yarok's sentence.
 - **Reveals** (CR 701.20a, ontology W3; the draft namespace has `reveal_hand`, `reveal_result`).
-  "Target opponent reveals their hand" is `reveal_hand(ControllerRef.TARGET_OPPONENT)`. "Reveal
-  it", "reveal them", "reveal those cards" after a search or a move is `reveal_result()`. "You may
+  "Target opponent reveals their hand" is `reveal_hand(ControllerRef.TARGET_OPPONENT)`, always
+  one player's hand (YOU, TARGET_PLAYER, TARGET_OPPONENT, DEFENDING_PLAYER); "each opponent
+  reveals their hand" is `EachPlayer(ControllerRef.ALL_OPPONENTS, reveal_hand(ControllerRef.YOU))`,
+  never `reveal_hand(ALL_OPPONENTS)`. "Reveal it", "reveal them", "reveal those cards" after a
+  search, or after a move out of or into a hand or a library, is `reveal_result()` (after a token
+  made or a move between public zones it shows nothing hidden, and the IR refuses it). "You may
   reveal a creature card from among them and put it into your hand" is the pick, then
   `reveal_result()` (`templates_b4.reveal_one_from_among`; divergence D34). A REVEAL of the top
   of a library takes `controller` and `count`. Never a `count` of `QUnbounded()` for a hand, and

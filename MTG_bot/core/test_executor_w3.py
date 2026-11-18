@@ -80,9 +80,9 @@ def _card(key: str, seat: int, zone: str = "battlefield", real: str | None = Non
 
 
 def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
-    """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
-    row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
-    return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+    """The ``kind`` rows of the event log as (owner, cards, zone, viewers, form), one per group of
+    a row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers, form)."""
+    return [(owner, cards, zone, e[3], e[4]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
 
 
 # ---------------------------------------------------------------------------- state triggers
@@ -175,7 +175,9 @@ class TestStateTriggers(NineLivesCase):
     def test_a_new_object_triggers_on_its_own(self) -> None:
         """CR 603.8 with 400.7: an instance blocks the object it triggered for; Nine Lives that
         left and came back is a new object, which triggers for itself while the old instance
-        waits (that instance then finds no "it" to exile: the new object is not it)."""
+        waits. Once engine wave W1 fixes F14 the old instance finds no "it" to exile (the new
+        object is not it); until then it exiles the new object (gate round W3's review, MINOR-1),
+        which this test does not pin."""
         self.counters(9)
         with self.ex.holding_priority():
             (old,) = self.waiting()
@@ -345,7 +347,7 @@ class TestReveals(unittest.TestCase):
         r.world.players[r.p0].mana_pool["B"] = 1
         r.run_step({"op": "cast", "key": "duress", "targets": ["p1"], "decisions": ["shock"]})
         hand = (str(r.handles["shock"]), str(r.handles["bear"]))
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p1), hand, ZONE_HAND, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p1), hand, ZONE_HAND, "ALL", "hand")])
         self.assertEqual(r.world.zone_of(r.handles["shock"]).kind, "graveyard")
 
     def test_an_empty_hand_is_revealed_as_nothing(self) -> None:
@@ -354,7 +356,7 @@ class TestReveals(unittest.TestCase):
         r = _runner([_card("duress", 0, zone="hand", real="Duress"), _card("deep", 1, zone="library")])
         r.world.players[r.p0].mana_pool["B"] = 1
         r.run_step({"op": "cast", "key": "duress", "targets": ["p1"]})
-        self.assertEqual([e[2:] for e in r.ex.events if e[1] == "REVEAL"], [((), "ALL")])
+        self.assertEqual([e[2:] for e in r.ex.events if e[1] == "REVEAL"], [((), "ALL", "hand")])
 
     def test_a_reveal_names_each_owners_zone(self) -> None:
         """A reveal's cards are grouped by the zone holding them, its owner named (CR 400.3)."""
@@ -365,8 +367,8 @@ class TestReveals(unittest.TestCase):
         r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="graveyard")])
         mine, theirs = r.handles["mine"], r.handles["theirs"]
         r.ex.execute(reveal_result(), source=r.p0, controller=r.p0, bindings={"result": [mine, theirs]})
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(mine),), ZONE_HAND, "ALL"),
-                                              (str(r.p1), (str(theirs),), ZONE_GRAVEYARD, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(mine),), ZONE_HAND, "ALL", "result"),
+                                              (str(r.p1), (str(theirs),), ZONE_GRAVEYARD, "ALL", "result")])
 
     def test_each_player_reveals_their_own_hand_and_looks_alone(self) -> None:
         """Under EachPlayer the reveal runs once per player, each row that player's hand; a look
@@ -377,12 +379,12 @@ class TestReveals(unittest.TestCase):
                      _card("a", 0, zone="library"), _card("b", 1, zone="library")])
         each = ControllerRef.ANY
         r.ex.apply_effect(EachPlayer(ref=each, effect=reveal_hand(ControllerRef.YOU)), source=r.p0, controller=r.p0)
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["mine"]),), ZONE_HAND, "ALL"),
-                                              (str(r.p1), (str(r.handles["theirs"]),), ZONE_HAND, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["mine"]),), ZONE_HAND, "ALL", "hand"),
+                                              (str(r.p1), (str(r.handles["theirs"]),), ZONE_HAND, "ALL", "hand")])
         look = atom(Verb.LOOK_AT, controller=ControllerRef.YOU, count=QConst(1))
         r.ex.apply_effect(EachPlayer(ref=each, effect=look), source=r.p0, controller=r.p0)
-        self.assertEqual([(owner, viewers) for owner, _cards, _zone, viewers in _rows(r, "LOOK_AT")],
-                         [(str(r.p0), str(r.p0)), (str(r.p1), str(r.p1))])
+        self.assertEqual([(owner, viewers, form) for owner, _cards, _zone, viewers, form in _rows(r, "LOOK_AT")],
+                         [(str(r.p0), str(r.p0), "top"), (str(r.p1), str(r.p1), "top")])
 
     def test_the_card_revealed_is_the_next_sentences_it(self) -> None:
         """"Search your library for a card, reveal it. If it's a creature card, ...": the card
@@ -410,7 +412,7 @@ class TestReveals(unittest.TestCase):
             _card("top", 0, zone="library", real="Llanowar Visionary"),
         ])
         r.run_step({"op": "enter", "key": "empath", "decisions": ["fire", "big"]})
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["big"]),), ZONE_HAND, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["big"]),), ZONE_HAND, "ALL", "result")])
 
     def test_a_graveyard_search_reveals_the_card_found_not_the_library_top(self) -> None:
         """M21 Basri's Aegis, "search your library and/or graveyard ... reveal it", the graveyard
@@ -423,7 +425,7 @@ class TestReveals(unittest.TestCase):
         ], mana={"0": {"W": 2, "G": 2}})
         r.run_step({"op": "cast", "key": "aegis", "targets": ["bear"], "decisions": ["fire", "2", "basri"]})
         self.assertEqual(r.world.zone_of(r.handles["basri"]).kind, ZONE_HAND)
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["basri"]),), ZONE_HAND, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["basri"]),), ZONE_HAND, "ALL", "result")])
 
     def test_a_card_picked_from_a_look_is_the_card_revealed(self) -> None:
         """M20 Brightwood Tracker (its record): "reveal a creature card from among them and put
@@ -440,7 +442,7 @@ class TestReveals(unittest.TestCase):
             library.append(r.handles[key])
         r.run_step({"op": "activate", "key": "tracker", "idx": 0, "decisions": ["fire", "bear"]})
         self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, ZONE_HAND)
-        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["bear"]),), ZONE_HAND, "ALL")])
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["bear"]),), ZONE_HAND, "ALL", "result")])
 
     def test_a_scry_names_each_card_and_its_end_for_the_scryer(self) -> None:
         """CR 701.22a: the scryer sees the cards, and the table how many went to each end; main's
@@ -451,16 +453,55 @@ class TestReveals(unittest.TestCase):
         r.ex.execute(atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(2)), source=r.p0,
                      controller=r.p0, decisions=("top", "bottom"))
         self.assertEqual(_rows(r, "SCRY"),
-                         [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0))])
+                         [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0), "top")])
         # the public part, everyone's: one card went back on top, one to the bottom
-        self.assertEqual([e[4] for e in r.ex.events if e[1] == "SCRY"], [(1, 1)])
+        self.assertEqual([e[5] for e in r.ex.events if e[1] == "SCRY"], [(1, 1)])
 
     def test_a_look_is_the_lookers_alone(self) -> None:
         r = _runner([_card("a", 0, zone="library", real="Forest")])
         top = str(r.world.players[r.p0].zone(ZONE_LIBRARY).entries[-1])
         r.ex.execute(atom(Verb.LOOK_AT, controller=ControllerRef.YOU, count=QConst(1)), source=r.p0,
                      controller=r.p0)
-        self.assertEqual(_rows(r, "LOOK_AT"), [(str(r.p0), (top,), ZONE_LIBRARY, str(r.p0))])
+        self.assertEqual(_rows(r, "LOOK_AT"), [(str(r.p0), (top,), ZONE_LIBRARY, str(r.p0), "top")])
+
+
+class TestSeenRows(unittest.TestCase):
+    """The gate's MINOR-5: the rows a memory may read (``verbs.SEEN_VERBS``) each say who saw their
+    cards and what the cards are; the other rows that name hidden cards (a SEARCH's, a MOVE's)
+    say neither and are no one's knowledge (DESIGN_ATOM_ONTOLOGY §19). Four seeded random games
+    of the "all" pools write every form today (M21 0: a scry and a found card's reveal; M21 3: a
+    reveal of the top; M20 0: a hand; M20 3: a look). At 5a310010 the rows carried no form, on
+    main no viewers either."""
+
+    def test_every_seen_row_names_its_viewers_and_what_its_cards_are(self) -> None:
+        # not on main (TestReveals' note)
+        from MTG_bot.core.executor import games
+        from MTG_bot.core.executor.verbs import SEEN_FORMS, SEEN_VERBS
+
+        rows = []
+        for code, seed in (("M21", 0), ("M21", 3), ("M20", 0), ("M20", 3)):
+            supply = games.get_supply("all", code)
+            game = games._setup_game(seed, supply, games.deal_decks(seed, 1409, supply, "stress"))
+            games._play(game, games.RandomPolicy(seed), game.world.player_order, games.TURN_CAP)
+            players = {str(p) for p in game.world.player_order}
+            rows += [(e, players) for e in game.executor.events if e[1] in SEEN_VERBS]
+        self.assertTrue(rows)
+        for e, players in rows:
+            with self.subTest(row=e):
+                scry = e[1] == "SCRY"
+                self.assertEqual(len(e), 6 if scry else 5)
+                self.assertIn(e[3], {"ALL"} if e[1] == "REVEAL" else players)
+                self.assertIn(e[4], SEEN_FORMS)
+                named = 0
+                for owner, zone, cards in e[2]:
+                    self.assertIn(owner, players)
+                    for card in cards:
+                        handle = card[0] if scry else card
+                        self.assertTrue(handle.startswith("card:"), handle)
+                        named += 1
+                    self.assertIsInstance(zone, str)
+                if scry:  # the public part: how many went to each end, the cards' count
+                    self.assertEqual(sum(e[5]), named)
 
 
 if __name__ == "__main__":

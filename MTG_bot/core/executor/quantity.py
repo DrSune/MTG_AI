@@ -1585,8 +1585,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 arrival = e
         if arrival is None or arrival.cause != ctx.source:
             return False
-        # A moment of 0 or less is none: outside a resolution, or a synthetic event's -1 (the
-        # AbilityTriggerEvent lane's); it reads as now, and an exile as made when it arrived.
+        # A moment of 0 is none: outside a resolution; it reads as now, and an exile as made
+        # when it arrived. (The carrier trigger's synthetic event at -1 went with gate round W3.)
         moment = ctx.origin_clock if ctx.origin_clock > 0 else jrn.clock
         begun = max((c for c in entries if c <= moment), default=0)
         ended = min((c for c in entries if c > begun), default=None)

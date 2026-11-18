@@ -6,6 +6,7 @@ the same game on a board built to expose the field if anything read it."""
 from __future__ import annotations
 
 import dataclasses
+import json
 import sys
 from functools import cache
 from pathlib import Path
@@ -25,7 +26,6 @@ from run_scenarios import ScenarioRunner, run_pack
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     AtomArgs,
-    Conditional,
     ControllerRef,
     Cost,
     DurationPermanent,
@@ -40,7 +40,6 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
-    Seq,
     StaticAbility,
     TargetingEvent,
     TriggeredAbility,
@@ -48,13 +47,13 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     reveal_hand,
-    reveal_result,
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor.binding import _required_target_keys
 from MTG_bot.core.executor.games import compile_supply
 
 DATA = HERE.parents[1] / "MTG_bot" / "data"
+SCENARIOS = HERE.parent / "scenarios"
 
 
 @cache
@@ -741,7 +740,9 @@ def test_target_to_all_on_a_twin_stack_designation_is_dead() -> None:
 
 
 HARBINGER_REVEAL = "1/0/effect/steps/1/inner/steps/1/args"
-OPPONENTS_HAND = reveal_hand(ControllerRef.OPPONENT).args.get("cards")
+#: Another hand to reveal in place of the cards found: one player's, as the IR requires (a hand of
+#: no one player, OPPONENT's, is refused since gate round W3's review).
+YOUR_HAND = reveal_hand(ControllerRef.YOU).args.get("cards")
 
 
 def test_a_reveal_of_the_card_picked_is_dead() -> None:
@@ -749,7 +750,8 @@ def test_a_reveal_of_the_card_picked_is_dead() -> None:
     among them and put it into your hand. Put the rest on the bottom." The reveal follows the
     pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §19): it opens no window and writes
     ``result`` again with the same cards, which no Conditional here reads, so nothing that plays
-    reads it, and its ``cards`` offers no mutant; revealing another hand plays the same game."""
+    reads it, and its ``cards`` offers no mutant; revealing your hand instead plays the same
+    game."""
     harb = _card("Garruk's Harbinger")
     offered = _where(harb)
     assert not {w for _op, w in offered if w.startswith(HARBINGER_REVEAL)}
@@ -764,7 +766,7 @@ def test_a_reveal_of_the_card_picked_is_dead() -> None:
     real = _game(pack)
     assert next(o for o in real[0].values() if o[0] == "Beast")[1] == "hand"  # the pick from the window
     assert real[1]["player:1"][0] == 16  # 4 combat damage
-    assert _game(pack, _mutant(harb, f"{HARBINGER_REVEAL}/cards", OPPONENTS_HAND)) == real
+    assert _game(pack, _mutant(harb, f"{HARBINGER_REVEAL}/cards", YOUR_HAND)) == real
 
 
 # ---------------------------------------------- the "library and/or graveyard" zone choice
@@ -774,8 +776,8 @@ WARSTEED_OPTION = "1/0/effect/inner/options/{}/steps/{}/args"
 def test_a_reveal_of_the_card_found_is_dead() -> None:
     """"Search your library and/or graveyard ... reveal it": each of the three searches is followed
     by the reveal of its ``result`` (DESIGN_ATOM_ONTOLOGY §19), which no game state reads: no
-    mutant of its ``cards``, and every option plays the same game when it reveals the opponent's
-    hand instead. Each search stays live. No top-of-library reveal is left in the ability."""
+    mutant of its ``cards``, and every option plays the same game when it reveals your hand
+    instead. Each search stays live. No top-of-library reveal is left in the ability."""
     ws = _card("Garruk's Warsteed")
     offered = _where(ws)
     for option in (0, 1, 2):
@@ -792,30 +794,28 @@ def test_a_reveal_of_the_card_found_is_dead() -> None:
         found = "Garruk, Savage Herald"
         assert sum(o[0] == found and o[1] == "hand" for o in real[0].values()) == 1, option
         reveal = WARSTEED_OPTION.format(option, 1)
-        assert _game(pack, _mutant(ws, f"{reveal}/cards", OPPONENTS_HAND)) == real, option
+        assert _game(pack, _mutant(ws, f"{reveal}/cards", YOUR_HAND)) == real, option
     assert gates._reveal_dead_roles(ws.abilities[0]) == set()
 
 
-def test_a_conditional_after_a_reveal_reads_only_the_cards_found() -> None:
-    """A bare Conditional after a reveal judges the ``result`` that a reveal of the cards found
-    writes again (verbs._look, run_atom's ``result_fresh``); a hand's reveal writes nothing it
-    reads. So a hand reveal's ``cards`` stays dead with a Conditional after it (its zone's
-    controller mutant would reveal another hand and play the same game), and the cards found's is
-    lifted there, where the IR admits no other ``cards`` (only RESULT_REFERENT after a finder): G3
-    has no mutant of it to offer, today."""
-    ws = _card("Garruk's Warsteed")
-    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
-    search = A(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, creature,
-                                           zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),)),
-               destination=Zone(ZoneKind.HAND, ControllerRef.YOU))
-    judged = Conditional(pred=creature, then_effect=A(Verb.GAIN_LIFE, controller=ControllerRef.YOU,
-                                                      amount=QConst(1)))
-    for reveal in (reveal_hand(ControllerRef.OPPONENT), reveal_result()):
-        for tail in ((), (judged,)):
-            ability = TriggeredAbility(event=ws.abilities[0].event, condition=None,
-                                       effect=Seq(steps=(search, reveal, *tail)))
-            card = dataclasses.replace(ws, abilities=(ability,))
-            assert not {w for _op, w in _where(card) if w.startswith("1/0/effect/steps/1/")}, (reveal, tail)
+YAROK_EVENT = "1/0/effect/args/event"
+
+
+def test_an_extra_triggers_cause_is_mutated_and_the_cast_pack_kills_its_drop() -> None:
+    """The gate's MINOR-6: Yarok with his cause dropped doubles every trigger of his
+    controller's permanents (stronger than printed) and passed both entering packs, for G3 had
+    no operator on the cause. Now it drops the cause (and widens a cause's subject, Naban's
+    Wizard), and the cast pack, a Kykar trigger no entering caused, kills the drop."""
+    yarok = _card("Yarok, the Desecrated", "M20")
+    assert ("extra-trigger cause dropped", YAROK_EVENT) in _where(yarok)
+    event = _at(yarok, YAROK_EVENT)
+    dropped = _mutant(yarok, YAROK_EVENT, dataclasses.replace(event, cause=None))
+    pack = json.loads((SCENARIOS / "mapped/M20/yarok_leaves_a_cast_trigger_single.json").read_text())
+    real = _game(pack)
+    assert sum(o[0] == "Spirit" for o in real[0].values()) == 1
+    assert _game(pack, dropped) != real
+    naban = _card("Naban, Dean of Iteration", "DOM")
+    assert ("extra-trigger cause widened", YAROK_EVENT) in _where(naban)
 
 
 CULTIVATE_SEARCH = "1/0/effect/steps/0/args/destination"

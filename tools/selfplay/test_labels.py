@@ -175,21 +175,27 @@ def test_labelling_leaves_the_real_game_and_its_decisions_alone(table, net, monk
 
 def test_a_true_world_reshuffles_both_libraries_whole() -> None:
     """A true world (the audit's) and the labeller's second future keep the deal's cards and
-    shuffle both libraries whole, the same way for one seed. The journal pins nothing: it does
-    not say which cards a scry kept or which zone a reveal showed, and reading it as if it did
-    kept unseen cards in place, often the next draw (KNOWLEDGE/2026-11-12/197)."""
+    shuffle both libraries whole, the same way for one seed, whatever the rows say a player saw.
+    The seen rows are true since ontology round W3 (a scry's cards for the scryer, a reveal's for
+    all: DESIGN_ATOM_ONTOLOGY §19), but no memory reads them yet; the old rows were not, and
+    reading them as if they were kept unseen cards in place, often the next draw
+    (KNOWLEDGE/2026-11-12/197)."""
     supply = get_supply("castable")
     game = _setup_game(9, supply, deal_decks(9, 1409, supply))
     router = _router(game, [HeuristicAgent(), HeuristicAgent()], supply)
     _play(game, router, game.world.player_order, 1, stop_after=lambda g, b: b == "turn_top")
     players = game.world.player_order
     ex = game.executor
-    # the journal rows that pinned cards: a scry's size, and Duress's hand reveal journalled as
-    # the target's whole library
-    ex.events.append((len(ex.events), "SCRY", str(players[0]), 2))
+    # rows naming library cards a player saw (verbs._seen's layout): a scry of seat 0's top two,
+    # both kept on top, and a reveal of seat 1's top three
+    lib0 = game.world.players[players[0]].zone(ZONE_LIBRARY).entries
+    kept = tuple((str(h), "TOP") for h in reversed(lib0[-2:]))
+    ex.events.append((len(ex.events), "SCRY", ((str(players[0]), ZONE_LIBRARY, kept),),
+                      str(players[0]), "top", (2, 0)))
     lib1 = game.world.players[players[1]].zone(ZONE_LIBRARY).entries
-    ex.events.append((len(ex.events), "REVEAL", str(players[1]),
-                      tuple(str(h) for h in reversed(lib1))))
+    ex.events.append((len(ex.events), "REVEAL", ((str(players[1]), ZONE_LIBRARY,
+                                                  tuple(str(h) for h in reversed(lib1[-3:]))),),
+                      "ALL", "top"))
     zones = (ZONE_LIBRARY, ZONE_HAND)
     before = {(p, z): list(game.world.players[p].zone(z).entries) for p in players for z in zones}
     futures = []

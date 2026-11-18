@@ -41,6 +41,7 @@ from MTG_bot.core.ability_tree import (
     CounterPlacedEvent,
     DelayedTrigger,
     DurationEot,
+    EachPlayer,
     EmblemSpec,
     FAnd,
     FAtom,
@@ -140,6 +141,23 @@ def test_a_state_trigger_is_a_state_read_over_its_object() -> None:
 def test_a_state_says_nothing_twice_and_is_never_always_true(state) -> None:
     with pytest.raises(ValueError, match="StateTrigger"):
         StateTrigger(filter=state)
+
+
+ENCHANTMENT = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Enchantment")
+
+
+@pytest.mark.parametrize("state", [
+    ENCHANTMENT, FNot(inner=ENCHANTMENT), FAnd(children=(ENCHANTMENT, SHRINE)),
+    FOr(children=(ENCHANTMENT, FAtom(pred=FAtomPred.IS_TOKEN))),
+], ids=["type", "not-type", "type-and-subtype", "type-or-token"])
+def test_a_state_of_characteristics_alone_is_refused(state) -> None:
+    """The gate's MINOR-2: "when this is an enchantment" holds for as long as it is that object,
+    so it would trigger after every resolution until the loop tripwire, as the universal filter
+    would. A state names a counter, a count, a status or a control test; beside one, a
+    characteristic is a state's part (validated on 62cd34d8 and 5a310010 alike)."""
+    with pytest.raises(ValueError, match="characteristics alone"):
+        StateTrigger(filter=state)
+    StateTrigger(filter=FAnd(children=(ENCHANTMENT, NINE)))
 
 
 def test_a_state_trigger_has_no_intervening_if_no_occurrences_and_no_event_to_read() -> None:
@@ -273,10 +291,32 @@ def test_a_cause_is_an_object_entering_the_battlefield(cause) -> None:
 
 
 def test_two_additional_times_over_one_ability_are_one_count() -> None:
-    """"Two additional times" is one count; two equal steps would be its second encoding."""
-    with pytest.raises(ValueError, match="two TRIGGER_ADDITIONAL"):
-        Seq(steps=(extra(), extra()))
-    StaticAbility(effect=Seq(steps=(extra(), extra(AbilityTriggerEvent(filter=FAnd(children=(SHRINE, YOURS)))))))
+    """"Two additional times" is one static of count 2: two equal steps in one static, or two
+    statics of one object over one event and one condition (the gate's MAJOR-2: they validated
+    beside the count-2 form), are its second encoding, on a card and on a token alike. Another
+    event, or another condition, is another static."""
+    six_shrines = at_least(6, quantity=number_you_control(SHRINE))
+    for doubled in (
+        (StaticAbility(effect=Seq(steps=(extra(), extra()))),),
+        (StaticAbility(effect=extra()), StaticAbility(effect=extra())),
+        (StaticAbility(effect=extra(), condition=six_shrines),
+         StaticAbility(effect=extra(), condition=six_shrines)),
+    ):
+        with pytest.raises(ValueError, match="their sum"):
+            card(*doubled)
+    def doubler(*statics: StaticAbility) -> TokenSpec:
+        return TokenSpec(name="Doubler", type_line="Artifact", types=("Artifact",), subtypes=(),
+                         power=None, toughness=None, keywords=(), abilities=statics)
+
+    one = StaticAbility(effect=extra())
+    with pytest.raises(ValueError, match="their sum"):
+        card(SpellAbility(kind=SpellKind.SORCERY, effect=A(Verb.CREATE_TOKEN, tokens=doubler(one, one))),
+             types=("Sorcery",))
+    card(StaticAbility(effect=Seq(steps=(extra(), extra(AbilityTriggerEvent(filter=FAnd(children=(SHRINE, YOURS))))))))
+    card(one, StaticAbility(effect=extra(), condition=six_shrines))
+    # the card's static and its token's are two objects' statics
+    card(one, TriggeredAbility(event=UPKEEP, condition=None,
+                               effect=A(Verb.CREATE_TOKEN, tokens=doubler(one))))
 
 
 @pytest.mark.parametrize("host", ["spell", "trigger", "activation", "granted", "optional"])
@@ -342,11 +382,25 @@ def test_cards_names_the_cards_alone() -> None:
              referent="event"),
     Selector(QConst(1), SelectorMode.CHOOSE, SOURCE, zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
              referent="result"),
+    *(Selector(QUnbounded(), SelectorMode.ALL, FAnd(()), zones=(Zone(ZoneKind.HAND, ref),))
+      for ref in (ControllerRef.ANY, ControllerRef.OPPONENT, ControllerRef.ALL_OPPONENTS,
+                  ControllerRef.OWNER)),
 ], ids=["filtered-hand", "chosen-card", "two-cards", "library", "library-top-pick", "graveyard",
-        "two-zones", "event-referent", "filtered-result"])
+        "two-zones", "event-referent", "filtered-result", "every-hand", "opponents-hand",
+        "all-opponents-hands", "owners-hand"])
 def test_any_other_cards_is_refused(sel) -> None:
+    """The last four are the gate's MAJOR-2: a hand of no one player. ANY, OPPONENT and
+    ALL_OPPONENTS revealed every such hand in one row, a second encoding of EachPlayer around
+    reveal_hand(YOU) (one row per player); OWNER validated and raised in play."""
     with pytest.raises(ValueError, match="REVEAL"):
         A(Verb.REVEAL, cards=sel)
+
+
+def test_a_hand_revealed_is_one_players() -> None:
+    for who in (ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT,
+                ControllerRef.DEFENDING_PLAYER):
+        reveal_hand(who)
+    EachPlayer(ref=ControllerRef.ALL_OPPONENTS, effect=reveal_hand(ControllerRef.YOU))
 
 
 def test_a_card_picked_from_a_look_is_revealed_after_its_move() -> None:
@@ -372,6 +426,28 @@ def test_a_reveal_of_it_follows_the_step_that_found_it() -> None:
     for effect in (reveal_result(), Seq(steps=(DRAW, reveal_result()))):
         with pytest.raises(ValueError, match="reveal of `result`"):
             card(SpellAbility(kind=SpellKind.SORCERY, effect=effect), types=("Sorcery",))
+
+
+def test_a_card_revealed_is_one_from_a_hidden_zone() -> None:
+    """The gate's MINOR-3: "reveal it" after a token made or a move between public zones
+    ("exile target creature, then reveal it") shows what everyone sees: refused. A move out of a
+    library or into a hand is a card to reveal."""
+    creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+    exile = A(Verb.MOVE_ZONE, target=creature, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+    bounce = A(Verb.MOVE_ZONE, target=creature, destination=Zone(ZoneKind.HAND, ControllerRef.OWNER))
+    token = A(Verb.CREATE_TOKEN, tokens=TokenSpec(name="Bear", type_line="Creature", types=("Creature",),
+                                                  subtypes=(), power=QConst(2), toughness=QConst(2),
+                                                  keywords=(), abilities=()))
+    pick = A(Verb.MOVE_ZONE, cards=Selector(QConst(1), SelectorMode.ONE_OF, FAnd(()), zones=(TOP,)),
+             destination=Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU))
+    for public in (exile, token):
+        with pytest.raises(ValueError, match="reveal of `result`"):
+            card(SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(public, reveal_result()))),
+                 types=("Sorcery",))
+    for hidden in (bounce, pick):
+        card(SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(hidden, reveal_result()))),
+             types=("Sorcery",))
 
 
 def test_a_card_found_by_a_search_is_revealed_as_its_result() -> None:

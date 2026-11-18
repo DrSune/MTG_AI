@@ -938,9 +938,9 @@ class TriggerBinder:
             return
         if not delayed and source in self.executor.phased_out:
             # CR 702.26b: a phased-out permanent's triggered abilities (its
-            # printed, granted and keyword ones, and the AbilityTriggerEvent
-            # subscribers) do not trigger. A delayed trigger is not an
-            # ability of its source (CR 603.7) and still triggers.
+            # printed, granted and keyword ones, and its state triggers) do not
+            # trigger. A delayed trigger is not an ability of its source (CR
+            # 603.7) and still triggers.
             return
         if node.once_per_event:
             # The bind-time refusal for every flagged node that triggers: a granted
@@ -1596,11 +1596,17 @@ class TriggerBinder:
         on the stack. An instance is the object's while that object has not changed zones since
         it triggered (CR 400.7: a new object's ability is a new ability). Its event names no
         object; ``data`` names the ability, which the waiting check reads."""
-        states = [
-            (key, ability)
-            for key, ability in self._triggers()
-            if isinstance(ability.event, StateTrigger)
-        ]
+        # Every priority check: a scan of the bound triggers, never a sort of all of them (a
+        # Commander board binds hundreds); only the state triggers found are put in order.
+        states = sorted(
+            (
+                (key, ability)
+                for bound in (self.attached, self.attached_graveyard)
+                for key, ability in bound.items()
+                if isinstance(ability.event, StateTrigger)
+            ),
+            key=lambda kv: (str(kv[0][0]), kv[0][1]),
+        )
         if not states:
             return
         from MTG_bot.core.executor.returns import moved_since

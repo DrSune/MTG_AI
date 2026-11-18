@@ -168,10 +168,10 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield; Masterful Replication's "each other" is FNot(IS_ANY_TARGET) in it, that filter's first use there) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
-| 2026-11-18, round W3 (§19; gate round W3 pending) | TriggeredAbility `event` x StateTrigger(`filter`, read over the object with the ability): no `condition`, no `once_per_event`, no read of the event, no designation, never granted | M21 Nine Lives, M21 and FDN Mazemind Tome (compiler, `templates_b2a._exile_at_counters`) | **low-volume**: 3 trees, 2 cards; M11, M13 and M19 Phylactery Lich print the form, unparsed (its counter kind; F38) (NUMBERS.md 2026-11-18, `reports/w3_2026-11-18/census.txt`) |
-| 2026-11-18, round W3 (§19; gate round W3 pending) | StaticAbility x TRIGGER_ADDITIONAL (`count` a QConst of at least 1, `event` AbilityTriggerEvent(`filter`)) [x the static's `condition`] | M21 Sanctum of All (B5b-sanctum-all-extra-trigger: six Shrines the condition) | **low-volume**: 1 tree |
-| 2026-11-18, round W3 (§19; gate round W3 pending) | AbilityTriggerEvent x `cause` (an object entering the battlefield: a ZoneChangeEvent into it [x `subject` a land or a subtype] [x into YOU's]) | B5b-entering-extra-trigger: M20 Yarok, the Desecrated (his record is the compiler's tree), DOM Naban, Dean of Iteration, ZNR Ancient Greenwarden | **low-volume**: 3 trees |
-| 2026-11-18, round W3 (§19; gate round W3 pending) | REVEAL x `cards`, alone: ALL of one hand (`reveal_hand(who)`), or the `result` register whole (`reveal_result()`, after a step that found, looked at or moved cards) | hand: Duress (8 printings), Kitesail Freebooter, Thought Distortion, FDN Pilfer (record) and 12 more cards, partly compiled; `result`: every "search ..., reveal it" (49 atoms) and "reveal a ... card from among them and put it ..." (7, D34) | hand 24 atoms on 16 cards, `result` 56 on 26 (NUMBERS.md 2026-11-18, `census.txt`) |
+| 2026-11-18, round W3 (§19; gate round W3 FIX-THEN-GO, fixed) | TriggeredAbility `event` x StateTrigger(`filter`, read over the object with the ability): no `condition`, no `once_per_event`, no read of the event, no designation, never granted | M21 Nine Lives, M21 and FDN Mazemind Tome (compiler, `templates_b2a._exile_at_counters`) | **low-volume**: 3 trees, 2 cards; M11, M13 and M19 Phylactery Lich print the form, unparsed (its counter kind; F38) (NUMBERS.md 2026-11-18, `reports/w3_2026-11-18/census.txt`) |
+| 2026-11-18, round W3 (§19; gate round W3 FIX-THEN-GO, fixed) | StaticAbility x TRIGGER_ADDITIONAL (`count` a QConst of at least 1, `event` AbilityTriggerEvent(`filter`)) [x the static's `condition`] | M21 Sanctum of All (B5b-sanctum-all-extra-trigger: six Shrines the condition) | **low-volume**: 1 tree |
+| 2026-11-18, round W3 (§19; gate round W3 FIX-THEN-GO, fixed) | AbilityTriggerEvent x `cause` (an object entering the battlefield: a ZoneChangeEvent into it [x `subject` a land or a subtype] [x into YOU's]) | B5b-entering-extra-trigger: M20 Yarok, the Desecrated (his record is the compiler's tree), DOM Naban, Dean of Iteration, ZNR Ancient Greenwarden | **low-volume**: 3 trees |
+| 2026-11-18, round W3 (§19; gate round W3 FIX-THEN-GO, fixed) | REVEAL x `cards`, alone: ALL of one player's hand (`reveal_hand(who)`, `who` in `HAND_REVEALERS`), or the `result` register whole (`reveal_result()`, after a search, a look, a top reveal, or a move out of or into a hand or a library) | hand: Duress (8 printings), Kitesail Freebooter, Thought Distortion, FDN Pilfer (record) and 12 more cards, partly compiled; `result`: every "search ..., reveal it" (49 atoms, 47 after the search's move, D34) and "reveal a ... card from among them and put it ..." (7, D34) | hand 24 atoms on 16 cards, `result` 56 on 26 (NUMBERS.md 2026-11-18, `census.txt`) |
 
 ## 6. Identity + conformance
 
@@ -862,8 +862,18 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
 - W3 round W3 (state triggers, an ability triggering an additional time, what a reveal shows;
   2026-11-18; §19; branch `worktree-agent-a3637301ad1c4f789` on main 0b7f9c22; a fresh-eyes
   review of 62cd34d8 before the gate, no FATAL, 1 MAJOR in six parts, 2 MINOR and 5 NIT, fixed in
-  bf2ca5b4 or logged, each fix with a test red at 62cd34d8). **Gate round W3: pending.** The draft
-  entry's parts follow, as written for the gate.
+  bf2ca5b4 or logged, each fix with a test red at 62cd34d8). **Gate round W3 (adversarial, one
+  reviewer on 5a310010 merged with main c66f446d): FIX-THEN-GO**, no FATAL; 2 MAJOR, 6 MINOR, 4
+  NIT, all fixed, each code fix with a test red at 5a310010 (§19, "Gate round W3"):
+  - MAJOR: the planner's bitwise test red at 2 and 4 threads after the merge (pinned to one
+    thread); two second encodings validated (a hand of no one player; two extra-trigger statics
+    beside one of count 2), now refused.
+  - MINOR: assumption 2 corrected (the old instance acts on a returned object until W1's F14); a
+    characteristic-only state refused; `reveal_result` of a public object refused; D34 holds the
+    47 search reveals; the rows carry their form and §19 names the rows a memory may trust; G3
+    mutates an extra trigger's cause, and a Yarok pack kills the dropped cause.
+  - NIT: stale comments and rows, BACKLOG's package-mode line, `check_states`' sort.
+  The draft entry's parts follow, as written for the gate.
   - The change. A state trigger is `TriggeredAbility(event=StateTrigger(filter))`, its state read
     over the object with the ability at each priority check (CR 603.8, 117.5); it does not
     trigger again while an instance waits or is on the stack, and triggers again once that
@@ -893,8 +903,8 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     priority-check timing, the instance's object, the live statics, the permanent's ability, the
     gathered cause, causes other than entering, the row's order, the public scry counts, the
     pick's reveal after its move, the fresh `result`).
-- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); round W3 built,
-  its gate round pending; further ontology changes
+- BINDING STATE: rounds 1–13, B3 and W3 complete (each with its gate round's fixes); further
+  ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
 
@@ -2864,14 +2874,15 @@ exceptions, other durations and the "becomes a copy" template, casting copies; t
 11 and one rare engine residue; the gate's m3, m6, n3 and n6; the exceptions the network does not
 see.
 
-## 19. Round W3 — state triggers, an ability triggering an additional time, and what a reveal shows (2026-11-18; gate round W3 pending)
+## 19. Round W3 — state triggers, an ability triggering an additional time, and what a reveal shows (2026-11-18; gate round W3 FIX-THEN-GO, fixed)
 
 KNOWLEDGE 215's three IR changes, one gate round (215 §5's wave W3, third in §6's order): F23
 (CR 603.8, state triggers), F24 (CR 603.2d, "that ability triggers an additional time") and F63
 with F51 (what the journal records of a reveal, a look and a scry). Branch
 `worktree-agent-a3637301ad1c4f789` on main
-0b7f9c22: 62cd34d8 (the change), bf2ca5b4 (the fresh-eyes review's fixes), then the docs and the
-evidence. Scripts and outputs: `reports/w3_2026-11-18/`.
+0b7f9c22: 62cd34d8 (the change), bf2ca5b4 (the fresh-eyes review's fixes), 5a310010 (the docs
+and the evidence), then the gate round's fixes ("Gate round W3", below). Scripts and outputs:
+`reports/w3_2026-11-18/`. Line citations are to the gate fixes' commit.
 
 **Why now.** F23 turns STRONGER the day Sublime Epiphany is stamped: a countered exile trigger
 left Nine Lives on the battlefield for good, where its ruling has it trigger again at once (215
@@ -2882,9 +2893,10 @@ journalled the target's whole library as revealed, and "reveal it" after a grave
 the library's top card, the next draw. Nothing plays from those rows today, but memory v1 would
 read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before it.
 
-**W3-1 `StateTrigger`** (`ability_tree.py:2255`; the TriggeredAbility checks :4400;
-`binding.TriggerBinder.check_states` :1588, called from `Executor._priority_check`
-`executor/__init__.py:2020`; the synthetic event kind `KIND_STATE`, `events.py:127`):
+**W3-1 `StateTrigger`** (`ability_tree.py:2271`; `CHARACTERISTIC_PREDS` :610; the
+TriggeredAbility checks :4433; `binding.TriggerBinder.check_states` :1588, called from
+`Executor._priority_check` `executor/__init__.py:2020`; the synthetic event kind `KIND_STATE`,
+`events.py:127`):
 - The form: `TriggeredAbility(event=StateTrigger(filter), condition=None, effect)`. The state is
   the filter, read over the object with the ability, as a static's condition is: "nine or more
   incarnation counters on this enchantment" is `FAtom(HAS_COUNTER, INCARNATION, count=9)`. A test
@@ -2899,9 +2911,11 @@ read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before 
   leaves the stack (resolved, countered, exiled by an effect ending the turn) the next check
   triggers it again while the state holds. Its event is a STATE row that names the ability and
   no object.
-- Refused, each because it says nothing or says it twice: the universal filter (always holds);
-  IS_SOURCE anywhere in the filter (said already; under FNot it never holds, in an FOr it always
-  does); an intervening "if"; `once_per_event` (a state has no occurrences); a read of the event
+- Refused, each because it says nothing or says it twice: the universal filter (always holds),
+  and since the gate a filter of the object's characteristics alone (`CHARACTERISTIC_PREDS`:
+  "when this is an enchantment" holds for as long as it is that object, so it would trigger
+  after every resolution until the loop tripwire); IS_SOURCE anywhere in the filter (said
+  already; under FNot it never holds, in an FOr it always does); an intervening "if"; `once_per_event` (a state has no occurrences); a read of the event
   register (there is no event); a TARGET or a designated player in the effect (with no legal
   target it is removed as it goes on the stack, CR 603.3d, and the state triggers it again at
   once: a loop no card of the 19 sets prints); a grant (the binder checks bound abilities only);
@@ -2913,8 +2927,8 @@ read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before 
   M13 and M19 Phylactery Lich fit the form but need a phylactery counter kind and an "as this
   enters" counter on another permanent (215's F38): unparsed.
 
-**W3-2 "Triggers an additional time" is a static** (the Atom checks :3445; `AbilityTriggerEvent`
-:2211; `extra_trigger_fault` :4935; the Seq refusal :3570; `binding._queue` :1029,
+**W3-2 "Triggers an additional time" is a static** (the Atom checks :3477; `AbilityTriggerEvent`
+:2227; `extra_trigger_fault` :4985; `binding._queue` :1029,
 `_additional_times` :1081, `_causes` :1114; `layers.extra_triggers` :1393;
 `verbs._v_trigger_additional` :670 is a guard that raises):
 - The form: `StaticAbility(effect=TRIGGER_ADDITIONAL(count, event=AbilityTriggerEvent(filter,
@@ -2934,7 +2948,9 @@ read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before 
   AbilityTriggerEvent as a delayed trigger's, a replacement's or any other verb's event;
   TRIGGER_ADDITIONAL with another event, with a count that is no printed number of at least 1,
   anywhere but a card's, token's, emblem's or copy's own static (never resolving, granted or
-  optional), or twice over one event in a Seq ("two additional times" is one count); a test that
+  optional), or twice over one event under one condition on one object, in one static or in two
+  ("two additional times" is one static of count 2; another condition is another static; the
+  gate's MAJOR-2 found two statics validating beside the count-2 form); a test that
   reads no subject in the filter (the six Shrines are the static's condition, its one home); a
   cause that is no object entering.
 - Cards: M21 Sanctum of All (no cause; `templates_b5b._additional_time` :2463,
@@ -2949,32 +2965,53 @@ read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before 
   `needs_atom` note is replaced by the compiler's tree (unverified), and Naban and Ancient
   Greenwarden compile whole with him.
 
-**W3-3 What a reveal, a look and a scry record** (REVEAL's roles :5911; `_look_roles_fault`
-:4012; the Seq refusal :3586; `_finds` :4812; `RESULT_REFERENT` :6896, `reveal_hand` :6902,
-`reveal_result` :6912; `verbs._seen` :1689, `_look` :1709, `_v_scry` :1630):
+**W3-3 What a reveal, a look and a scry record** (REVEAL's roles :5988; `_look_roles_fault`
+:4037, `HAND_REVEALERS` :338; the Seq refusal :3611; `_finds` :4849; `RESULT_REFERENT` :6973,
+`reveal_hand` :6979, `reveal_result` :6989; `verbs.SEEN_VERBS` :1694, `SEEN_FORMS` :1699, `_seen`
+:1702, `_look` :1724, `_v_scry` :1630):
 - REVEAL names the cards it shows: the top `count` of `controller`'s library (with `until`, from
-  the top down to the `count`th match), or `cards` alone: all of one hand ("target opponent
-  reveals their hand": `reveal_hand(who)`), or the `result` register whole ("reveal it", "reveal
-  those cards": `reveal_result()`, the cards the instruction before found, moved or looked at).
+  the top down to the `count`th match), or `cards` alone: all of one player's hand ("target
+  opponent reveals their hand": `reveal_hand(who)`, `who` one of YOU, TARGET_PLAYER,
+  TARGET_OPPONENT, DEFENDING_PLAYER; "each opponent reveals their hand" is EachPlayer around
+  `reveal_hand(YOU)`, one row per player), or the `result` register whole ("reveal it", "reveal
+  those cards": `reveal_result()`, the cards the instruction before found or looked at, or moved
+  out of or into a hand or a library).
   LOOK_AT stays the top `count`. Why one role for a hand and the cards found: both answer "which
   cards", and a `zone` role would say only where (a search's card is in the library or the
   graveyard). The `result` form writes the register again with the same cards, so "reveal it.
   If it's a creature card" judges the card found, as the old top-card reveal left it.
 - The record (`verbs._seen`): one row per atom, `(i, verb, ((owner, zone, cards), ...),
-  viewers)`, a group per player's zone, the cards in the order shown (a library's top first),
-  `viewers` "ALL" for a reveal (CR 701.20a) and the looker for a look. A SCRY row names each card
-  and the end it went to, the scryer's alone (CR 701.22a), with a fifth, public field: how many
-  went to the top and how many to the bottom. One row per atom even when nothing is shown: a
-  later random order is seeded by the event count (`_library_order`).
+  viewers, form)`, a group per player's zone, the cards in the order shown (a library's top
+  first), `viewers` "ALL" for a reveal (CR 701.20a) and the looker for a look. `form` (since the
+  gate's MINOR-5) says what the cards are: "top", a library's top cards, positions known; "hand",
+  a whole hand, all of it known; "result", the cards an instruction found, picked or put
+  somewhere, where they are now (a card found, in a hand; Cultivate's two lands, at unknown
+  depths of a library). A SCRY row names each card and the end it went to, the scryer's alone
+  (CR 701.22a), form "top", with a sixth, public field: how many went to the top and how many to
+  the bottom. One row per atom even when nothing is shown: a later random order is seeded by the
+  event count (`_library_order`).
+- **The rows a memory may trust** are these, `SEEN_VERBS` (REVEAL, LOOK_AT, SCRY), each by its
+  viewers: a hidden card's identity comes from them alone. The same event log names hidden cards
+  elsewhere with no viewers, and those rows are no one's knowledge: SEARCH's (`verbs.py:1917`, a
+  search's designation, and :1943, its move: a tutor that reveals nothing), MOVE's (`verbs.py:197`:
+  "the rest on the bottom", the looked-at cards not picked) and the journal's ZONE_CHANGE subjects.
+  `test_executor_w3.TestSeenRows` holds every seen row of four seeded games to its viewers and its
+  form. SEARCH and MOVE play is unchanged.
 - "You may reveal a creature card from among them and put it into your hand" is the pick, then the
   reveal of `result` (`templates_b4.reveal_one_from_among` :933): the card picked, revealed after
   its move. The order is a divergence from print (ATOM_DIVERGENCES D34): the pick is the move's
-  ONE_OF, the only way the IR designates a card of a look.
+  ONE_OF, the only way the IR designates a card of a look. "Search ..., reveal it, put it into
+  your hand" reveals after its move too, the SEARCH's own (47 atoms; the rows name the hand): D34
+  holds both. Cultivate's search only designates, so its reveal comes before its moves.
 - Refused: the old count over the whole library (QUnbounded), which encoded a hand and a search's
   cards alike; `cards` beside another role; any other `cards` (a filtered hand, a chosen card, a
-  library, a graveyard, two zones, the event's object, a filtered `result`); a top-`count` REVEAL
-  after a look or a search (the old pick and the old named-search forms, which named the top
-  card); `reveal_result` with no step before it that found cards.
+  library, a graveyard, two zones, the event's object, a filtered `result`), and since the gate a
+  hand of no one player (ANY, OPPONENT and ALL_OPPONENTS revealed every such hand in one row, a
+  second encoding of the EachPlayer form; OWNER raised in play); a top-`count` REVEAL after a look
+  or a search (the old pick and the old named-search forms, which named the top card);
+  `reveal_result` with no step before it that found cards, and since the gate one after a token
+  made or a move between public zones ("exile target creature, then reveal it" shows what everyone
+  sees).
 - Not changed: how many options Duress's and Kitesail Freebooter's choose asks list (W-D's lane;
   the owner's ruling, options are never merged).
 
@@ -3038,12 +3075,15 @@ read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before 
 
 **What the network sees.** Nothing it reads changed: its features show a card in a hidden zone
 only as an offered option or a scried card (`tools/selfplay/features.py`), and no input reads the
-event rows; `tools/selfplay/` is not edited. The rows are now true for memory v1: a revealed hand
-is the hand, shown to all; a scry's cards are the scryer's and its counts everyone's.
+event rows; `tools/selfplay/` code is not edited (two tests are: a thread pin and a test's rows).
+The seen rows are now true for memory v1: a revealed hand is the hand, shown to all; a scry's cards
+are the scryer's and its counts everyone's; every other row naming a hidden card is no one's
+knowledge (W3-3).
 `tools/selfplay/search.py`'s `reshuffle_libraries` docstring still says the journal does not record
 which cards a scry kept; it does now, and the whole-library shuffle stays right until memory reads
 the rows (BACKLOG). `tools/selfplay/packages.py`'s `AbilityTriggerEvent` row is dead (no trigger has
-that event now), so package mode no longer reads Sanctum of All as a consumer of Shrines (BACKLOG).
+that event now); package mode still reads Sanctum of All as a consumer of Shrines, through its
+static's condition (the gate corrected this line; BACKLOG).
 
 **Assumptions, and what goes wrong in play if one is wrong.**
 1. A state is checked when a player would receive priority (CR 117.5), not inside a resolution.
@@ -3051,7 +3091,10 @@ that event now), so package mode no longer reads Sanctum of All as a consumer of
    only in the middle of one resolution would be missed: weaker than printed. Assumed rare: for
    Nine Lives or the Tome it needs their counters put on and taken off within one resolution.
 2. An instance blocks only its own object: a Nine Lives that left and came back triggers for
-   itself while the old instance waits, and the old one finds no "it" to exile (CR 400.7). If the
+   itself while the old instance waits (CR 400.7). The old instance should then find no "it" to
+   exile; it does so only after engine wave W1's F14 (selectors read IS_SOURCE on the battlefield
+   without the source-gone register): until then it exiles the new object, and a returned
+   Mazemind Tome is exiled with 4 life gained (STRONGER, W1's; the gate review's MINOR-1). If the
    rulings meant the old instance to block the new object, a returned Nine Lives would be exiled
    once more than printed.
 3. The extra-trigger statics are read live as the ability triggers, including one whose object
@@ -3084,3 +3127,45 @@ look at a hand (Peek, Thrull Surgeon, Agonizing Memories, Sorcerous Spyglass, Th
 Warning: LOOK_AT takes the top of a library only); other causes (Teysa Karlov); a granted or a
 targeted state trigger; the rows as journal events, ordered against zone moves (memory v1's
 J3/J4); the stale `search.py` docstring and the dead `packages.py` row.
+
+**Gate round W3 (FIX-THEN-GO, 2026-11-18)**: one adversarial reviewer on 5a310010, merged with main
+c66f446d in a scratch tree (2 MAJOR, 6 MINOR, 4 NIT, nothing FATAL; the reviewer's soak of 360
+games dealt from main's verified pool, re-baked cards in, gave identical digests). Fixed on the
+branch; each code fix has a test that fails at 5a310010 (`reports/w3_2026-11-18/gate/`).
+- MAJOR-1: `test_planner.py::test_without_the_planner_nothing_changes` failed on the branch
+  merged with main at 2 and 4 threads: two CPU updates with no planner arrays already differed by
+  about 1e-8 (threaded kernels sum in another order; the merged pool deals seed 5 another game).
+  Why the fix: the claim is bitwise, so the two updates run on one thread, the old count restored
+  after; reseeding would only move the deal again.
+- MAJOR-2: two second encodings validated. `reveal_hand(ANY|OPPONENT|ALL_OPPONENTS)` revealed every
+  such hand in one row where EachPlayer around `reveal_hand(YOU)` writes one per player, and
+  OWNER validated and raised in play: a hand is now one player's (`HAND_REVEALERS`). Two statics
+  of count 1 over one event validated beside one of count 2: `extra_trigger_fault` refuses two
+  over one event and one condition on one object (the card's, a token's, an emblem's, a copy's),
+  which also covers two equal steps in one static, so the Seq-level check went. Refusal tests:
+  `test_any_other_cards_is_refused` (four hands), `test_a_hand_revealed_is_one_players`,
+  `test_two_additional_times_over_one_ability_are_one_count`. MAPPER_GUIDE says both.
+- MINOR-1: assumption 2 and a test's note said the old state instance "finds no it"; it exiles a
+  returned Nine Lives until W1's F14. Corrected; the returned Mazemind Tome is W1's case.
+- MINOR-2: a state of the object's characteristics alone validated and would trigger after every
+  resolution: refused (`CHARACTERISTIC_PREDS`; `test_a_state_of_characteristics_alone_is_refused`).
+- MINOR-3: `reveal_result()` validated after a token made or an exile from the battlefield, a
+  reveal of what everyone sees: `_finds` now takes a search, a look, a top reveal or a move out of
+  or into a hand or a library (`test_a_card_revealed_is_one_from_a_hidden_zone`).
+- MINOR-4: D34 lists the 47 search reveals beside the 7 picks (both reveal after their move).
+- MINOR-5: the rows carry their form ("top", "hand", "result"), so a whole hand, a card found in
+  a hand and a top reveal tell apart (PLAN_NETWORK_READINESS §4.3's E4, E4a, E4b); W3-3 names the
+  rows a memory may trust (`SEEN_VERBS`, by viewers) and the ones it may not (SEARCH, MOVE, the
+  journal's subjects); `TestSeenRows` holds every seen row of four seeded games to it.
+- MINOR-6: G3 had no operator on an AbilityTriggerEvent's `cause`; a Yarok with none doubles
+  every trigger of his controller's permanents and passed both packs. Operators "extra-trigger
+  cause dropped" and "widened" (`gates.mutants`), and the pack
+  `mapped/M20/yarok_leaves_a_cast_trigger_single` (Kykar's cast trigger stays single) kills the
+  drop (`test_an_extra_triggers_cause_is_mutated_and_the_cast_pack_kills_its_drop`).
+- NITs: the stale comments (binding's phasing note, quantity's -1 moment), test_labels' old row
+  shapes, BACKLOG's package-mode line (Sanctum of All is still a Shrine consumer, through its
+  static's condition; only the AbilityTriggerEvent row is dead), and `check_states`, which now
+  scans the bound triggers and sorts only the state triggers it finds, not every bound trigger.
+- Also: G3's REVEAL `cards` is dead again for every form (the fresh `result` refinement of
+  5a310010 had no operator to test it: none yields another valid `cards`; the BACKLOG scaffold
+  says when that changes).

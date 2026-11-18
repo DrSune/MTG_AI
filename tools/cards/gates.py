@@ -31,8 +31,8 @@ from probe import Probe
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
-    RESULT_REFERENT,
     Ability,
+    AbilityTriggerEvent,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -337,8 +337,10 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §19) is
     no look here: it opens no window, and its outputs are its row and, for the cards found, the
     ``result`` register written again with the same cards, which only a bare Conditional after it
-    reads as fresh. So ``mutants`` holds a hand's ``cards`` dead, and the cards found's in an
-    ability with no Conditional."""
+    reads as fresh. ``mutants`` holds its ``cards`` dead; no operator yields another valid
+    ``cards`` today (a hand's controller flip names no one player's hand, and the referent admits
+    RESULT_REFERENT alone). An operator that does must leave a ``result`` reveal live before a
+    Conditional (BACKLOG, the scaffold)."""
     if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
         return set()
     nodes = list(walk(ability))
@@ -769,18 +771,12 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         dead |= _static_disclosures(ability, (1, i))
         dead |= _one_card_picks(ability, (1, i))
         roles = _reveal_dead_roles(ability)
-        judged = any(isinstance(n, Conditional) for n in walk(ability))
         for path, node in _paths(ability, (1, i)):
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:
-                cards = node.args.get("cards")
-                if cards is None:
-                    dead |= {(*path, "args", role) for role in roles}
-                elif cards != RESULT_REFERENT or not judged:
-                    # a reveal of named cards opens no window: a hand's only output is its row,
-                    # which nothing that plays reads; the cards found are also `result` again,
-                    # which only a Conditional reads (_reveal_dead_roles). A scaffold until
-                    # memory reads the rows (BACKLOG).
-                    dead |= {(*path, "args", "cards")}
+                # a reveal of named cards opens no window, and its row is read by nothing that
+                # plays (_reveal_dead_roles): a scaffold until memory reads the rows (BACKLOG)
+                dead |= ({(*path, "args", "cards")} if node.args.get("cards") is not None
+                         else {(*path, "args", role) for role in roles})
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         at = path  # where the candidates are rebuilt; the zone swap of an arranged move rebuilds the move
@@ -807,6 +803,13 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
                 cands.append(("each occurrence -> once per event", dataclasses.replace(node, once_per_event=True)))
             except ValueError:
                 pass  # stillborn: the effect reads one object of the event ("its power")
+        elif isinstance(node, AbilityTriggerEvent) and node.cause is not None:
+            # Yarok's "a permanent entering causes" dropped doubles every trigger of yours (gate
+            # round W3, MINOR-6); Naban's Wizard widened to any permanent
+            cands.append(("extra-trigger cause dropped", dataclasses.replace(node, cause=None)))
+            if node.cause.subject is not None:
+                cands.append(("extra-trigger cause widened",
+                              dataclasses.replace(node, cause=dataclasses.replace(node.cause, subject=None))))
         elif isinstance(node, Atom) and orders_a_library(node) and path not in one_card:
             # CR 401.4: the owner arranges the cards, unless "in a random order" (arrange RANDOM)
             pairs = tuple(p for p in node.args.pairs if p[0] != "arrange")
